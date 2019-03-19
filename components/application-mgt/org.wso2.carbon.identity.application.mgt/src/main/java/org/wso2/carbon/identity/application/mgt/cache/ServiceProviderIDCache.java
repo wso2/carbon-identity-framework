@@ -16,11 +16,13 @@
  *  under the License.
  */
 
-
 package org.wso2.carbon.identity.application.mgt.cache;
 
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 
+/**
+ * Cache to maintain the application id - service provider name.
+ */
 public class ServiceProviderIDCache extends
         BaseCache<ServiceProviderIDCacheKey, ServiceProviderIDCacheEntry> {
 
@@ -29,10 +31,12 @@ public class ServiceProviderIDCache extends
     private static volatile ServiceProviderIDCache instance;
 
     private ServiceProviderIDCache() {
+
         super(SP_CACHE_NAME);
     }
 
     public static ServiceProviderIDCache getInstance() {
+
         if (instance == null) {
             synchronized (ServiceProviderIDCache.class) {
                 if (instance == null) {

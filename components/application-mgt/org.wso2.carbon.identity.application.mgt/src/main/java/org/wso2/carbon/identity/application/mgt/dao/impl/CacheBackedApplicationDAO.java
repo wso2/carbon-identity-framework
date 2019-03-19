@@ -22,7 +22,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -31,12 +30,12 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
+import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderClientCacheEntry;
+import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderClientIDCache;
+import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderClientIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderIDCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderIDCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderIDCacheKey;
-import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderClientIDCache;
-import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderClientCacheEntry;
-import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderClientIDCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -44,11 +43,15 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
 
+/**
+ * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
+ * single point of caching.
+ */
 public class CacheBackedApplicationDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedApplicationDAO.class);
 
-    private ApplicationDAO appDAO = null;
+    private ApplicationDAO appDAO;
 
     private static IdentityServiceProviderCache appCacheByName = null;
     private static ServiceProviderClientIDCache appCacheByClientId = null;
@@ -258,6 +261,13 @@ public class CacheBackedApplicationDAO {
         }
     }
 
+    private void startTenantFlow(String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        startTenantFlow(tenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
+    }
+
     private void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
 
         int tenantId;
@@ -270,22 +280,6 @@ public class CacheBackedApplicationDAO {
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-    }
-
-    private void startTenantFlow(String tenantDomain, String userName)
-            throws IdentityApplicationManagementException {
-
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
     }
 
     private void endTenantFlow() {

@@ -24,15 +24,28 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.model.*;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.io.*;
-import java.util.*;
 
 public class IdentityConfigParser {
 
@@ -42,6 +55,9 @@ public class IdentityConfigParser {
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
+    private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
+    private static final String SERVICE_PROVIDER_CLIENT_ID_CACHE = "ServiceProviderClientIDCache";
+    private static final String SERVICE_PROVIDER_ID_CACHE = "ServiceProviderIDCache";
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -242,41 +258,62 @@ public class IdentityConfigParser {
 
                             IdentityCacheConfigKey identityCacheConfigKey = new IdentityCacheConfigKey(cacheManagerName,
                                     cacheName);
-                            IdentityCacheConfig identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
-
-                            String enable = cache.getAttributeValue(new QName(IdentityConstants.CACHE_ENABLE));
-                            if (StringUtils.isNotBlank(enable)) {
-                                identityCacheConfig.setEnabled(Boolean.parseBoolean(enable));
-                            }
-
-                            String timeout = cache.getAttributeValue(new QName(IdentityConstants.CACHE_TIMEOUT));
-                            if (StringUtils.isNotBlank(timeout)) {
-                                identityCacheConfig.setTimeout(Integer.parseInt(timeout));
-                            }
-
-                            String capacity = cache.getAttributeValue(new QName(IdentityConstants.CACHE_CAPACITY));
-                            if (StringUtils.isNotBlank(capacity)) {
-                                identityCacheConfig.setCapacity(Integer.parseInt(capacity));
-                            }
-
-                            String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
-                            if (StringUtils.isNotBlank(isDistributedCache)) {
-                                identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
-                            }
-
-                            String isTemporaryCache = cache.getAttributeValue(new QName(IS_TEMPORARY));
-                            if (StringUtils.isNotBlank(isTemporaryCache)) {
-                                identityCacheConfig.setTemporary(Boolean.parseBoolean(isTemporaryCache));
-                            }
+                            IdentityCacheConfig identityCacheConfig = buildIdentityCacheConfig(cache,
+                                    identityCacheConfigKey);
 
                             // Add the config to container
                             identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
+
+                            // Add newly introduced service provider related cache
+                            if (SERVICE_PROVIDER_CACHE.equals(cacheName)) {
+                                identityCacheConfigKey = new IdentityCacheConfigKey(cacheManagerName,
+                                        SERVICE_PROVIDER_CLIENT_ID_CACHE);
+                                identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
+                                identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
+
+                                identityCacheConfigKey = new IdentityCacheConfigKey(cacheManagerName,
+                                        SERVICE_PROVIDER_ID_CACHE);
+                                identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
+                                identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
+                            }
+
                         }
                     }
                 }
             }
 
         }
+    }
+
+    private IdentityCacheConfig buildIdentityCacheConfig(OMElement cache, IdentityCacheConfigKey identityCacheConfigKey) {
+
+        IdentityCacheConfig identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
+
+        String enable = cache.getAttributeValue(new QName(IdentityConstants.CACHE_ENABLE));
+        if (StringUtils.isNotBlank(enable)) {
+            identityCacheConfig.setEnabled(Boolean.parseBoolean(enable));
+        }
+
+        String timeout = cache.getAttributeValue(new QName(IdentityConstants.CACHE_TIMEOUT));
+        if (StringUtils.isNotBlank(timeout)) {
+            identityCacheConfig.setTimeout(Integer.parseInt(timeout));
+        }
+
+        String capacity = cache.getAttributeValue(new QName(IdentityConstants.CACHE_CAPACITY));
+        if (StringUtils.isNotBlank(capacity)) {
+            identityCacheConfig.setCapacity(Integer.parseInt(capacity));
+        }
+
+        String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
+        if (StringUtils.isNotBlank(isDistributedCache)) {
+            identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
+        }
+
+        String isTemporaryCache = cache.getAttributeValue(new QName(IS_TEMPORARY));
+        if (StringUtils.isNotBlank(isTemporaryCache)) {
+            identityCacheConfig.setTemporary(Boolean.parseBoolean(isTemporaryCache));
+        }
+        return identityCacheConfig;
     }
 
     private void buildCookieConfig()    {
