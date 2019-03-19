@@ -71,7 +71,8 @@ public class AuthenticationFilter implements ContainerRequestFilter, ContainerRe
 
     // To clear the ThreadLocalProvisioningServiceProvider in a non faulty case
     @Override
-    public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
+    public void filter(ContainerRequestContext containerRequestContext,
+                       ContainerResponseContext containerResponseContext) throws IOException {
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
     }
 }

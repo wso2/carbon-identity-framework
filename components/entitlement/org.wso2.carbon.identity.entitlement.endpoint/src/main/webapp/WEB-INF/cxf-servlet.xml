@@ -62,7 +62,7 @@
     <bean id="exceptionMapper"
           class="org.wso2.carbon.identity.entitlement.endpoint.filter.EntitlementExceptionMapper"/>
     <bean id="jacksonJsonProvider"
-          class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+          class="com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider"/>
 
     <!-- Swagger writers -->
     <bean id="swaggerWriter" class="io.swagger.jaxrs.listing.SwaggerSerializers"/>
@@ -90,6 +90,9 @@
         <cxf:inInterceptors>
             <ref bean="ClearThreadLocalInterceptor"/>
         </cxf:inInterceptors>
+        <cxf:properties>
+            <entry key="skip.default.json.provider.registration" value="true"/>
+        </cxf:properties>
     </cxf:bus>
 
 </beans>

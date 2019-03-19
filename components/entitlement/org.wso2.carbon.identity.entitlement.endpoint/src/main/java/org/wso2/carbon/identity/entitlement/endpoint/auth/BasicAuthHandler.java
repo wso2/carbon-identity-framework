@@ -67,7 +67,7 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
         // check the "Authorization" header and if "Basic" is there, can be handled.
 
         // get the value for Authorization Header
-        List authzHeaders = message.getHeaders().get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);;
+        List authzHeaders = message.getHeaders().get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);
@@ -80,7 +80,7 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
         // extract authorization header and authenticate.
 
         // get the value for Authorization Header
-        List authzHeaders = message.getHeaders().get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);;
+        List authzHeaders = message.getHeaders().get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);

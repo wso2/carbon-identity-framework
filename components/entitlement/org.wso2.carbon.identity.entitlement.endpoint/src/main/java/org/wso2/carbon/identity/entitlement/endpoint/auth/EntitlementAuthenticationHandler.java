@@ -26,7 +26,7 @@ import javax.ws.rs.container.ContainerRequestContext;
  * to authenticate Entitlement requests coming to Entitlement REST endpoints.
  */
 public interface EntitlementAuthenticationHandler {
-//TODO: check if needed
+
     /**
      * Returns the priority of the particular authentication handler implementation.
      *
