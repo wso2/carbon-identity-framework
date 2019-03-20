@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationCo
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
-import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 
 /**
@@ -50,7 +50,7 @@ public class DirectoryServerApplicationMgtListener extends AbstractApplicationMg
     public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        CacheBackedApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getCachedApplicationDAO();
         ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
         if (serviceProvider != null &&
                 serviceProvider.getInboundAuthenticationConfig() != null &&

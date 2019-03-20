@@ -258,62 +258,48 @@ public class IdentityConfigParser {
 
                             IdentityCacheConfigKey identityCacheConfigKey = new IdentityCacheConfigKey(cacheManagerName,
                                     cacheName);
-                            IdentityCacheConfig identityCacheConfig = buildIdentityCacheConfig(cache,
-                                    identityCacheConfigKey);
+                            IdentityCacheConfig identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
+
+                            String enable = cache.getAttributeValue(new QName(IdentityConstants.CACHE_ENABLE));
+                            if (StringUtils.isNotBlank(enable)) {
+                                identityCacheConfig.setEnabled(Boolean.parseBoolean(enable));
+                            }
+
+                            String timeout = cache.getAttributeValue(new QName(IdentityConstants.CACHE_TIMEOUT));
+                            if (StringUtils.isNotBlank(timeout)) {
+                                identityCacheConfig.setTimeout(Integer.parseInt(timeout));
+                            }
+
+                            String capacity = cache.getAttributeValue(new QName(IdentityConstants.CACHE_CAPACITY));
+                            if (StringUtils.isNotBlank(capacity)) {
+                                identityCacheConfig.setCapacity(Integer.parseInt(capacity));
+                            }
+
+                            String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
+                            if (StringUtils.isNotBlank(isDistributedCache)) {
+                                identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
+                            }
+
+                            String isTemporaryCache = cache.getAttributeValue(new QName(IS_TEMPORARY));
+                            if (StringUtils.isNotBlank(isTemporaryCache)) {
+                                identityCacheConfig.setTemporary(Boolean.parseBoolean(isTemporaryCache));
+                            }
 
                             // Add the config to container
                             identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
-
-                            // Add newly introduced service provider related cache
-                            if (SERVICE_PROVIDER_CACHE.equals(cacheName)) {
-                                identityCacheConfigKey = new IdentityCacheConfigKey(cacheManagerName,
-                                        SERVICE_PROVIDER_CLIENT_ID_CACHE);
-                                identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
-                                identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
-
-                                identityCacheConfigKey = new IdentityCacheConfigKey(cacheManagerName,
-                                        SERVICE_PROVIDER_ID_CACHE);
-                                identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
-                                identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
-                            }
-
                         }
                     }
+                    IdentityCacheConfigKey spCacheKey = new IdentityCacheConfigKey(cacheManagerName,
+                            SERVICE_PROVIDER_CACHE);
+                    IdentityCacheConfig identityCacheConfig = identityCacheConfigurationHolder.get(spCacheKey);
+                    IdentityCacheConfigKey key = new IdentityCacheConfigKey(cacheManagerName,
+                            SERVICE_PROVIDER_CLIENT_ID_CACHE);
+                    identityCacheConfigurationHolder.putIfAbsent(key, identityCacheConfig);
+                    key = new IdentityCacheConfigKey(cacheManagerName, SERVICE_PROVIDER_ID_CACHE);
+                    identityCacheConfigurationHolder.putIfAbsent(key, identityCacheConfig);
                 }
             }
-
         }
-    }
-
-    private IdentityCacheConfig buildIdentityCacheConfig(OMElement cache, IdentityCacheConfigKey identityCacheConfigKey) {
-
-        IdentityCacheConfig identityCacheConfig = new IdentityCacheConfig(identityCacheConfigKey);
-
-        String enable = cache.getAttributeValue(new QName(IdentityConstants.CACHE_ENABLE));
-        if (StringUtils.isNotBlank(enable)) {
-            identityCacheConfig.setEnabled(Boolean.parseBoolean(enable));
-        }
-
-        String timeout = cache.getAttributeValue(new QName(IdentityConstants.CACHE_TIMEOUT));
-        if (StringUtils.isNotBlank(timeout)) {
-            identityCacheConfig.setTimeout(Integer.parseInt(timeout));
-        }
-
-        String capacity = cache.getAttributeValue(new QName(IdentityConstants.CACHE_CAPACITY));
-        if (StringUtils.isNotBlank(capacity)) {
-            identityCacheConfig.setCapacity(Integer.parseInt(capacity));
-        }
-
-        String isDistributedCache = cache.getAttributeValue(new QName(IS_DISTRIBUTED_CACHE));
-        if (StringUtils.isNotBlank(isDistributedCache)) {
-            identityCacheConfig.setDistributed(Boolean.parseBoolean(isDistributedCache));
-        }
-
-        String isTemporaryCache = cache.getAttributeValue(new QName(IS_TEMPORARY));
-        if (StringUtils.isNotBlank(isTemporaryCache)) {
-            identityCacheConfig.setTemporary(Boolean.parseBoolean(isTemporaryCache));
-        }
-        return identityCacheConfig;
     }
 
     private void buildCookieConfig()    {

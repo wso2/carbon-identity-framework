@@ -24,6 +24,13 @@ public class ServiceProviderClientCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 6136546313282431483L;
     private String serviceProviderName;
+    private String tenantName;
+
+    public ServiceProviderClientCacheEntry(String serviceProviderName, String tenantName) {
+
+        this.serviceProviderName = serviceProviderName;
+        this.tenantName = tenantName;
+    }
 
     public String getServiceProviderName() {
 
@@ -33,5 +40,15 @@ public class ServiceProviderClientCacheEntry extends CacheEntry {
     public void setServiceProviderName(String serviceProviderName) {
 
         this.serviceProviderName = serviceProviderName;
+    }
+
+    public String getTenantName() {
+
+        return tenantName;
+    }
+
+    public void setTenantName(String tenantName) {
+
+        this.tenantName = tenantName;
     }
 }

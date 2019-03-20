@@ -24,15 +24,32 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 public class ServiceProviderIDCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 5060231898427225662L;
-    private ServiceProvider serviceProvider;
+    private String serviceProviderName;
+    private String tenantName;
 
-    public ServiceProvider getServiceProvider() {
+    public ServiceProviderIDCacheEntry(String serviceProviderName, String tenantName) {
 
-        return serviceProvider;
+        this.serviceProviderName = serviceProviderName;
+        this.tenantName = tenantName;
     }
 
-    public void setServiceProvider(ServiceProvider ServiceProvider) {
+    public String getServiceProviderName() {
 
-        this.serviceProvider = serviceProvider;
+        return serviceProviderName;
+    }
+
+    public void setServiceProviderName(String serviceProviderName) {
+
+        this.serviceProviderName = serviceProviderName;
+    }
+
+    public String getTenantName() {
+
+        return tenantName;
+    }
+
+    public void setTenantName(String tenantName) {
+
+        this.tenantName = tenantName;
     }
 }

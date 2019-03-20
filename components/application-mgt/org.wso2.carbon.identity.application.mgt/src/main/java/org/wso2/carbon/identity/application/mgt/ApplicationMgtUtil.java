@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
-import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -98,7 +98,7 @@ public class ApplicationMgtUtil {
         if (!isUserAuthorized(applicationName, username)) {
             // maybe the role name of the app has updated. In this case, lets
             // load back the old app name
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            CacheBackedApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getCachedApplicationDAO();
             String storedApplicationName = appDAO.getApplicationName(applicationID);
             return isUserAuthorized(storedApplicationName, username);
         }
@@ -546,7 +546,7 @@ public class ApplicationMgtUtil {
     protected Map<String, String> getPropertyValues(String tenantDomain, String spIssuer, List<String> propertyNames)
             throws IdentityApplicationManagementException {
 
-        ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+        ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getCachedApplicationDAO()
                 .getApplication(spIssuer, tenantDomain);
 
         if (serviceProvider == null) {
