@@ -24,6 +24,8 @@ public class ConfigurationManagerComponentDataHolder {
     private static ConfigurationManagerComponentDataHolder instance = new ConfigurationManagerComponentDataHolder();
     private static boolean useCreatedTime = false;
 
+    private boolean configurationManagementEnabled;
+
     public static ConfigurationManagerComponentDataHolder getInstance() {
 
         return instance;
@@ -37,5 +39,15 @@ public class ConfigurationManagerComponentDataHolder {
     public static void setUseCreatedTime(boolean useCreatedTime) {
 
         ConfigurationManagerComponentDataHolder.useCreatedTime = useCreatedTime;
+    }
+
+    public boolean isConfigurationManagementEnabled() {
+
+        return configurationManagementEnabled;
+    }
+
+    public void setConfigurationManagementEnabled(boolean configurationManagementEnabled) {
+
+        this.configurationManagementEnabled = configurationManagementEnabled;
     }
 }

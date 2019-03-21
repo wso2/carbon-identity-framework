@@ -81,6 +81,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         when(dataSource.getConnection()).thenReturn(spyConnection);
 
         prepareConfigs();
+
+        ConfigurationManagerComponentDataHolder.getInstance().setConfigurationManagementEnabled(true);
     }
 
     @AfterMethod
