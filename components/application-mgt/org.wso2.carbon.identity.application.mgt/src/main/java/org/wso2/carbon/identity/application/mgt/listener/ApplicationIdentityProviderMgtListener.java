@@ -50,18 +50,18 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         try {
             IdentityServiceProviderCache.getInstance().clear();
             ApplicationBasicInfo[] applicationBasicInfos = ApplicationMgtSystemConfig.getInstance()
-                    .getCachedApplicationDAO().getAllApplicationBasicInfo();
+                    .getApplicationDAO().getAllApplicationBasicInfo();
 
             List<ServiceProvider> serviceProvidersList = new ArrayList<>();
             for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-                ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getCachedApplicationDAO()
+                ServiceProvider serviceProvider = ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
                         .getApplication(applicationBasicInfo.getApplicationName(), tenantDomain);
                 serviceProvidersList.add(serviceProvider);
             }
 
             // Adding Local Service Provider to the list of service providers
             ServiceProvider localSp = ApplicationMgtSystemConfig.getInstance()
-                    .getCachedApplicationDAO().getApplication(ApplicationConstants.LOCAL_SP, tenantDomain);
+                    .getApplicationDAO().getApplication(ApplicationConstants.LOCAL_SP, tenantDomain);
             serviceProvidersList.add(localSp);
 
             for (ServiceProvider serviceProvider : serviceProvidersList) {
@@ -116,7 +116,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                                     fedIdp.setDefaultAuthenticatorConfig(currentDefaultAuthenticatorConfig);
                                     fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]
                                             {currentDefaultAuthenticatorConfig});
-                                    ApplicationMgtSystemConfig.getInstance().getCachedApplicationDAO()
+                                    ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
                                             .updateApplication(serviceProvider, tenantDomain);
                                 } else if (!isCurrentDefaultAuthEnabled && StringUtils.equals(currentDefaultAuthName, defaultAuthName)) {
                                     throw new IdentityProviderManagementException(

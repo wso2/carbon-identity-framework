@@ -16,29 +16,23 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.cache;
+package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
-public class ServiceProviderIDCacheKey extends CacheKey {
+public class ServiceProvideCacheInboundAuthKey extends CacheKey {
 
-    private static final long serialVersionUID = 5638400636618465149L;
-    private String serviceProviderKey;
+    private static final long serialVersionUID = -2977524029670977142L;
+    private String ServiceProvideCacheInboundAuthKey;
+    private String ServiceProvideCacheInboundAuthType;
+    private String tenantName;
 
-    /**
-     * @param serviceProviderID
-     */
-    public ServiceProviderIDCacheKey(int serviceProviderID) {
+    public ServiceProvideCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
+            serviceProvideCacheInboundAuthType, String tenantName) {
 
-        this.serviceProviderKey = String.valueOf(serviceProviderID);
-    }
-
-    /**
-     * @return
-     */
-    public int getServiceProviderKey() {
-
-        return Integer.getInteger(serviceProviderKey);
+        ServiceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
+        ServiceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
+        this.tenantName = tenantName;
     }
 
     @Override
@@ -54,9 +48,10 @@ public class ServiceProviderIDCacheKey extends CacheKey {
             return false;
         }
 
-        ServiceProviderIDCacheKey that = (ServiceProviderIDCacheKey) o;
+        ServiceProvideCacheInboundAuthKey that = (ServiceProvideCacheInboundAuthKey) o;
 
-        if (!serviceProviderKey.equals(that.serviceProviderKey)) return false;
+        if (!ServiceProvideCacheInboundAuthKey.equals(that.ServiceProvideCacheInboundAuthKey)) return false;
+        if (!ServiceProvideCacheInboundAuthType.equals(that.ServiceProvideCacheInboundAuthType)) return false;
         return tenantDomain.equals(that.tenantDomain);
     }
 
@@ -64,7 +59,8 @@ public class ServiceProviderIDCacheKey extends CacheKey {
     public int hashCode() {
 
         int result = super.hashCode();
-        result = 31 * result + serviceProviderKey.hashCode();
+        result = 31 * result + ServiceProvideCacheInboundAuthKey.hashCode();
+        result = 31 * result + ServiceProvideCacheInboundAuthType.hashCode();
         result = 31 * result + tenantDomain.hashCode();
         return result;
     }

@@ -16,21 +16,29 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.cache;
+package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
-public class ServiceProviderClientIDCacheKey extends CacheKey {
+public class ServiceProviderIDCacheKey extends CacheKey {
 
-    private static final long serialVersionUID = -2977524029670977142L;
-    private String ServiceProviderNameKey;
+    private static final long serialVersionUID = 5638400636618465149L;
+    private String serviceProviderKey;
 
     /**
-     * @param serviceProviderName
+     * @param serviceProviderID
      */
-    public ServiceProviderClientIDCacheKey(String serviceProviderName) {
+    public ServiceProviderIDCacheKey(int serviceProviderID) {
 
-        this.ServiceProviderNameKey = serviceProviderName;
+        this.serviceProviderKey = String.valueOf(serviceProviderID);
+    }
+
+    /**
+     * @return
+     */
+    public int getServiceProviderKey() {
+
+        return Integer.getInteger(serviceProviderKey);
     }
 
     @Override
@@ -46,9 +54,9 @@ public class ServiceProviderClientIDCacheKey extends CacheKey {
             return false;
         }
 
-        ServiceProviderClientIDCacheKey that = (ServiceProviderClientIDCacheKey) o;
+        ServiceProviderIDCacheKey that = (ServiceProviderIDCacheKey) o;
 
-        if (!ServiceProviderNameKey.equals(that.ServiceProviderNameKey)) return false;
+        if (!serviceProviderKey.equals(that.serviceProviderKey)) return false;
         return tenantDomain.equals(that.tenantDomain);
     }
 
@@ -56,7 +64,7 @@ public class ServiceProviderClientIDCacheKey extends CacheKey {
     public int hashCode() {
 
         int result = super.hashCode();
-        result = 31 * result + ServiceProviderNameKey.hashCode();
+        result = 31 * result + serviceProviderKey.hashCode();
         result = 31 * result + tenantDomain.hashCode();
         return result;
     }

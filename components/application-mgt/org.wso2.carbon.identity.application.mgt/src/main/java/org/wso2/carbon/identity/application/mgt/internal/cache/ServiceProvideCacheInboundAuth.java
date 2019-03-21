@@ -16,31 +16,31 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.mgt.cache;
+package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 
 /**
  * Cache to maintain the clint id - service provider name.
  */
-public class ServiceProviderClientIDCache extends
-        BaseCache<ServiceProviderClientIDCacheKey, ServiceProviderClientCacheEntry> {
+public class ServiceProvideCacheInboundAuth extends
+        BaseCache<ServiceProvideCacheInboundAuthKey, ServiceProvideCacheInboundAuthEntry> {
 
-    public static final String SP_CACHE_NAME = "ServiceProviderClientIDCache";
+    public static final String SP_CACHE_NAME = "ServiceProvideCache.InboundAuthKey";
 
-    private static volatile ServiceProviderClientIDCache instance;
+    private static volatile ServiceProvideCacheInboundAuth instance;
 
-    private ServiceProviderClientIDCache() {
+    private ServiceProvideCacheInboundAuth() {
 
         super(SP_CACHE_NAME);
     }
 
-    public static ServiceProviderClientIDCache getInstance() {
+    public static ServiceProvideCacheInboundAuth getInstance() {
 
         if (instance == null) {
-            synchronized (ServiceProviderClientIDCache.class) {
+            synchronized (ServiceProvideCacheInboundAuth.class) {
                 if (instance == null) {
-                    instance = new ServiceProviderClientIDCache();
+                    instance = new ServiceProvideCacheInboundAuth();
                 }
             }
         }

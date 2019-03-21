@@ -56,8 +56,8 @@ public class IdentityConfigParser {
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
-    private static final String SERVICE_PROVIDER_CLIENT_ID_CACHE = "ServiceProviderClientIDCache";
-    private static final String SERVICE_PROVIDER_ID_CACHE = "ServiceProviderIDCache";
+    private static final String SERVICE_PROVIDER_AUTH_KEY_CACHE = "ServiceProvideCache.InboundAuthKey";
+    private static final String SERVICE_PROVIDER_ID_CACHE = "ServiceProviderCache.ID";
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -293,7 +293,7 @@ public class IdentityConfigParser {
                             SERVICE_PROVIDER_CACHE);
                     IdentityCacheConfig identityCacheConfig = identityCacheConfigurationHolder.get(spCacheKey);
                     IdentityCacheConfigKey key = new IdentityCacheConfigKey(cacheManagerName,
-                            SERVICE_PROVIDER_CLIENT_ID_CACHE);
+                            SERVICE_PROVIDER_AUTH_KEY_CACHE);
                     identityCacheConfigurationHolder.putIfAbsent(key, identityCacheConfig);
                     key = new IdentityCacheConfigKey(cacheManagerName, SERVICE_PROVIDER_ID_CACHE);
                     identityCacheConfigurationHolder.putIfAbsent(key, identityCacheConfig);
