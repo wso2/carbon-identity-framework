@@ -1706,6 +1706,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             serviceProvider.setConsentConfig(consentConfig);
             */
 
+            if (serviceProvider != null) {
+                loadApplicationPermissions(applicationName, serviceProvider);
+            }
             return serviceProvider;
 
         } catch (SQLException | CertificateRetrievingException e) {
@@ -1939,6 +1942,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             serviceProvider.setConsentConfig(consentConfig);
             */
 
+            String serviceProviderName = serviceProvider.getApplicationName();
+            String tenantDomain = serviceProvider.getOwner().getTenantDomain();
+
+            loadApplicationPermissions(serviceProviderName, serviceProvider);
             return serviceProvider;
 
         } catch (SQLException e) {
@@ -3982,5 +3989,27 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
 
         newServiceProviderProperties[newServiceProviderProperties.length - 1] = propertyForDomainInRoles;
         serviceProvider.setSpProperties(newServiceProviderProperties);
+    }
+
+    private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(serviceProvider.getOwner().getTenantDomain());
+            List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
+
+            if (permissionList != null) {
+                PermissionsAndRoleConfig permissionAndRoleConfig;
+                if (serviceProvider.getPermissionAndRoleConfig() == null) {
+                    permissionAndRoleConfig = new PermissionsAndRoleConfig();
+                } else {
+                    permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
+                }
+                permissionAndRoleConfig.setPermissions(permissionList.toArray(new ApplicationPermission[0]));
+                serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
+            }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
     }
 }

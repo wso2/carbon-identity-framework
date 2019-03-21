@@ -76,7 +76,6 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
             try {
                 serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
                 if (serviceProvider != null) {
-                    loadApplicationPermissions(applicationName, serviceProvider);
                     addToCache(serviceProvider, tenantDomain);
                 }
             } catch (Exception e) {
@@ -93,21 +92,12 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
         ServiceProvider serviceProvider = getApplicationFromCache(appId);
         if (serviceProvider == null) {
             serviceProvider = appDAO.getApplication(appId);
-            addToCache(serviceProvider, null);
         }
         if (serviceProvider == null) {
             throw new IdentityApplicationManagementException(
                     "Error while getting the service provider for appId: " + appId);
         }
-        String serviceProviderName = serviceProvider.getApplicationName();
-        String tenantDomain = serviceProvider.getOwner().getTenantDomain();
-
-        try {
-            startTenantFlow(tenantDomain);
-            loadApplicationPermissions(serviceProviderName, serviceProvider);
-        } finally {
-            endTenantFlow();
-        }
+        addToCache(serviceProvider, serviceProvider.getOwner().getTenantDomain());
         return serviceProvider;
     }
 
@@ -125,14 +115,14 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
 
         String appName = null;
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             ServiceProvideCacheInboundAuthKey cacheKey = new ServiceProvideCacheInboundAuthKey(clientId, type, tenantDomain);
             ServiceProvideCacheInboundAuthEntry entry = appCacheByInboundAuth.getValueFromCache(cacheKey);
             if (entry != null) {
                 appName = entry.getServiceProviderName();
             }
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
         if (appName == null) {
             appName = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
@@ -204,42 +194,6 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
         return appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName, tenantDomain);
     }
 
-    private void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
-
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-    }
-
-    private void endTenantFlow() {
-
-        PrivilegedCarbonContext.endTenantFlow();
-    }
-
-    private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
-            throws IdentityApplicationManagementException {
-
-        List<ApplicationPermission> permissionList = ApplicationMgtUtil.loadPermissions(serviceProviderName);
-
-        if (permissionList != null) {
-            PermissionsAndRoleConfig permissionAndRoleConfig;
-            if (serviceProvider.getPermissionAndRoleConfig() == null) {
-                permissionAndRoleConfig = new PermissionsAndRoleConfig();
-            } else {
-                permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
-            }
-            permissionAndRoleConfig.setPermissions(permissionList.toArray(new ApplicationPermission[0]));
-            serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
-        }
-    }
-
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) {
 
         IdentityServiceProviderCacheKey nameKey = new IdentityServiceProviderCacheKey(serviceProvider
@@ -248,8 +202,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
         appCacheByName.addToCache(nameKey, nameEntry);
 
         ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
-        ServiceProviderIDCacheEntry idEntry = new ServiceProviderIDCacheEntry(serviceProvider.getApplicationName(),
-                tenantDomain);
+        ServiceProviderIDCacheEntry idEntry = new ServiceProviderIDCacheEntry(serviceProvider);
         appCacheByID.addToCache(idKey, idEntry);
 
         if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
@@ -270,15 +223,15 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
 
         ServiceProvider serviceProvider = null;
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             ServiceProviderIDCacheKey cacheKey = new ServiceProviderIDCacheKey(appId);
             ServiceProviderIDCacheEntry entry = appCacheByID.getValueFromCache(cacheKey);
 
             if (entry != null) {
-                serviceProvider = getApplicationFromCache(entry.getServiceProvider(), entry.getTenantName());
+                serviceProvider = entry.getServiceProvider();
             }
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
         return serviceProvider;
     }
@@ -288,7 +241,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
 
         ServiceProvider serviceProvider = null;
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
                     applicationName, tenantDomain);
             IdentityServiceProviderCacheEntry entry = appCacheByName.getValueFromCache(cacheKey);
@@ -297,7 +250,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
                 serviceProvider = entry.getServiceProvider();
             }
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
         return serviceProvider;
     }
@@ -306,7 +259,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
             IdentityApplicationManagementException {
 
         try {
-            startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
                     serviceProvider.getApplicationName(), tenantDomain);
             appCacheByName.clearCacheEntry(cacheKey);
@@ -325,7 +278,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
                 }
             }
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 }

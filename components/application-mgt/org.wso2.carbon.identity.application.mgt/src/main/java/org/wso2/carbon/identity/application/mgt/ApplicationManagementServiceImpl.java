@@ -223,10 +223,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            startTenantFlow(tenantDomain, username);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
             appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
 
         if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
@@ -271,7 +271,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             // check whether user is authorized to update the application.
-            startTenantFlow(tenantDomain, username);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
             if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
                     !ApplicationMgtUtil.isUserAuthorized(applicationName, username,
                             serviceProvider.getApplicationID())) {
@@ -326,7 +326,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while updating the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
@@ -393,41 +393,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
     */
 
-    private void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
-
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-    }
-
-    private void startTenantFlow(String tenantDomain, String userName)
-            throws IdentityApplicationManagementException {
-
-        int tenantId;
-        try {
-            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(tenantDomain);
-        } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
-        }
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
-    }
-
-    private void endTenantFlow() {
-
-        PrivilegedCarbonContext.endTenantFlow();
-    }
-
     @Override
     public void deleteApplication(String applicationName, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
@@ -441,7 +406,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            startTenantFlow(tenantDomain, username);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
 
             if (!ApplicationMgtUtil.isUserAuthorized(applicationName, username)) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
@@ -484,7 +449,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while deleting the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
@@ -499,7 +464,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            startTenantFlow(tenantDomain);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             return idpdao.getIdentityProvider(federatedIdPName);
         } catch (Exception e) {
@@ -507,7 +472,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 
@@ -516,7 +481,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            startTenantFlow(tenantDomain);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<IdentityProvider> fedIdpList = idpdao.getAllIdentityProviders();
             if (fedIdpList != null) {
@@ -527,7 +492,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Identity Providers" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 
@@ -536,7 +501,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            startTenantFlow(tenantDomain);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
             if (localAuthenticators != null) {
@@ -547,7 +512,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Local Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 
@@ -556,7 +521,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            startTenantFlow(tenantDomain);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<RequestPathAuthenticatorConfig> reqPathAuthenticators = idpdao.getAllRequestPathAuthenticators();
             if (reqPathAuthenticators != null) {
@@ -567,7 +532,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Request Path Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 
@@ -575,7 +540,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String[] getAllLocalClaimUris(String tenantDomain) throws IdentityApplicationManagementException {
 
         try {
-            startTenantFlow(tenantDomain);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
             ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getClaimManager()
                     .getAllClaimMappings(claimDialect);
@@ -592,7 +557,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error while reading system claims" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 
@@ -783,7 +748,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
             }
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
 
         // invoking the listeners
@@ -1563,7 +1528,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            startTenantFlow(tenantDomain, username);
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
 
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
@@ -1584,7 +1549,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw e;
             }
         } finally {
-            endTenantFlow();
+            ApplicationMgtUtil.endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {

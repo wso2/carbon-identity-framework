@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -629,5 +630,31 @@ public class ApplicationMgtUtil {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
         }
+    }
+
+    public static void startTenantFlow(String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        startTenantFlow(tenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
+    }
+
+    public static void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
+
+        int tenantId;
+        try {
+            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                    .getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
+        }
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+    }
+
+    public static void endTenantFlow() {
+
+        PrivilegedCarbonContext.endTenantFlow();
     }
 }

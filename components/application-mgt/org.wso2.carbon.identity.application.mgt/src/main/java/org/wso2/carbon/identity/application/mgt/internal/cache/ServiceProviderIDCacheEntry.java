@@ -19,36 +19,25 @@
 package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 public class ServiceProviderIDCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 5060231898427225662L;
-    private String serviceProvider;
-    private String tenantName;
+    private ServiceProvider serviceProvider;
 
-    public ServiceProviderIDCacheEntry(String serviceProvider, String tenantName) {
+    public ServiceProviderIDCacheEntry(ServiceProvider serviceProvider) {
 
         this.serviceProvider = serviceProvider;
-        this.tenantName = tenantName;
     }
 
-    public String getServiceProvider() {
+    public ServiceProvider getServiceProvider() {
 
         return serviceProvider;
     }
 
-    public void setServiceProvider(String serviceProvider) {
+    public void setServiceProvider(ServiceProvider serviceProvider) {
 
         this.serviceProvider = serviceProvider;
-    }
-
-    public String getTenantName() {
-
-        return tenantName;
-    }
-
-    public void setTenantName(String tenantName) {
-
-        this.tenantName = tenantName;
     }
 }
