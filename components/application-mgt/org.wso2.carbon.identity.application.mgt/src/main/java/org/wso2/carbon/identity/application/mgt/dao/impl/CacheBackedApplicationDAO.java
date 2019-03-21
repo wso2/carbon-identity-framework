@@ -21,28 +21,27 @@ package org.wso2.carbon.identity.application.mgt.dao.impl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
-import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
+import org.wso2.carbon.identity.application.common.model.ClaimConfig;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
-import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProvideCacheInboundAuth;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProvideCacheInboundAuthEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProvideCacheInboundAuthKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheID;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
-import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
-import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -173,24 +172,58 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
 
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException {
 
+        // No need to cache the returned list.
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
     }
 
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName, String
             tenantDomain) throws IdentityApplicationManagementException {
-
+        ServiceProvider applicationFromCache = getApplicationFromCache(serviceProviderName, tenantDomain);
+        if (applicationFromCache != null) {
+            Map<String, String> localIdPToSPClaimMapping = new HashMap<>();
+            ClaimConfig claimConfig = applicationFromCache.getClaimConfig();
+            ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
+            for (ClaimMapping claimMapping : claimMappings) {
+                localIdPToSPClaimMapping.put(claimMapping.getRemoteClaim().getClaimUri(),
+                        claimMapping.getLocalClaim().getClaimUri());
+            }
+            return localIdPToSPClaimMapping;
+        }
         return appDAO.getServiceProviderToLocalIdPClaimMapping(serviceProviderName, tenantDomain);
     }
 
     public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName, String
             tenantDomain) throws IdentityApplicationManagementException {
 
+        ServiceProvider applicationFromCache = getApplicationFromCache(serviceProviderName, tenantDomain);
+        if (applicationFromCache != null) {
+            Map<String, String> localIdPToSPClaimMapping = new HashMap<>();
+            ClaimConfig claimConfig = applicationFromCache.getClaimConfig();
+            ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
+            for (ClaimMapping claimMapping : claimMappings) {
+                localIdPToSPClaimMapping.put(claimMapping.getLocalClaim().getClaimUri(),
+                        claimMapping.getRemoteClaim().getClaimUri());
+            }
+            return localIdPToSPClaimMapping;
+        }
         return appDAO.getLocalIdPToServiceProviderClaimMapping(serviceProviderName, tenantDomain);
     }
 
     public List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ServiceProvider applicationFromCache = getApplicationFromCache(serviceProviderName, tenantDomain);
+        if (applicationFromCache != null) {
+            List<String> requestedLocalClaims = new ArrayList<>();
+            ClaimConfig claimConfig = applicationFromCache.getClaimConfig();
+            ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
+            for (ClaimMapping claimMapping : claimMappings) {
+                if (claimMapping.isRequested()) {
+                    requestedLocalClaims.add(claimMapping.getLocalClaim().getClaimUri());
+                }
+            }
+            return requestedLocalClaims;
+        }
         return appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName, tenantDomain);
     }
 
