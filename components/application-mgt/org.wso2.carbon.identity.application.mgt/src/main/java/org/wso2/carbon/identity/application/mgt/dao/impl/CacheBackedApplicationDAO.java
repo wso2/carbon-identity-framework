@@ -120,12 +120,19 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                 appName = entry.getServiceProviderName();
             }
             if (appName == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Inbound Auth Key Cache is missing for " + clientId);
+                }
                 appName = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
                 ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
                         tenantDomain);
                 ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(appName,
                         tenantDomain);
                 appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Inbound Auth Key Cache is present for " + clientId);
+                }
             }
         } finally {
             ApplicationMgtUtil.endTenantFlow();
@@ -275,6 +282,15 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
+        if (serviceProvider == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache missing for the application with id " + appId);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache present for the application with id " + appId);
+            }
+        }
         return serviceProvider;
     }
 
@@ -294,12 +310,25 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
+        if (serviceProvider == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache missing for the application " + applicationName + "@" + tenantDomain);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache is present for the application " + applicationName + "@" + tenantDomain);
+            }
+        }
         return serviceProvider;
     }
 
     private void clearAllAppCache(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Clearing all the Service Provider Caches for " + serviceProvider.getApplicationName() + "@" +
+                    tenantDomain);
+        }
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
