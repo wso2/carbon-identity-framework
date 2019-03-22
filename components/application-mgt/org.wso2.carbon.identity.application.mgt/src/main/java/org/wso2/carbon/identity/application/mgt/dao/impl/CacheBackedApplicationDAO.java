@@ -32,10 +32,8 @@ import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCac
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProvideCacheInboundAuth;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProvideCacheInboundAuthEntry;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProvideCacheInboundAuthKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheID;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -49,14 +47,14 @@ import java.util.Map;
  * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
  * single point of caching.
  */
-public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
+public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
 
     private static final Log log = LogFactory.getLog(CacheBackedApplicationDAO.class);
 
     private ApplicationDAO appDAO;
 
     private static IdentityServiceProviderCache appCacheByName = null;
-    private static ServiceProvideCacheInboundAuth appCacheByInboundAuth = null;
+    private static ServiceProviderCacheInboundAuth appCacheByInboundAuth = null;
     private static ServiceProviderCacheID appCacheByID = null;
 
     public CacheBackedApplicationDAO(ApplicationDAO appDAO) {
@@ -91,12 +89,12 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
         ServiceProvider serviceProvider = getApplicationFromCache(appId);
         if (serviceProvider == null) {
             serviceProvider = appDAO.getApplication(appId);
+            if (serviceProvider == null) {
+                throw new IdentityApplicationManagementException(
+                        "Error while getting the service provider for appId: " + appId);
+            }
+            addToCache(serviceProvider, serviceProvider.getOwner().getTenantDomain());
         }
-        if (serviceProvider == null) {
-            throw new IdentityApplicationManagementException(
-                    "Error while getting the service provider for appId: " + appId);
-        }
-        addToCache(serviceProvider, serviceProvider.getOwner().getTenantDomain());
         return serviceProvider;
     }
 
@@ -115,19 +113,22 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
         String appName = null;
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            ServiceProvideCacheInboundAuthKey cacheKey = new ServiceProvideCacheInboundAuthKey(clientId, type, tenantDomain);
-            ServiceProvideCacheInboundAuthEntry entry = appCacheByInboundAuth.getValueFromCache(cacheKey);
+            ServiceProviderCacheInboundAuthKey cacheKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
+                    tenantDomain);
+            ServiceProviderCacheInboundAuthEntry entry = appCacheByInboundAuth.getValueFromCache(cacheKey);
             if (entry != null) {
                 appName = entry.getServiceProviderName();
             }
+            if (appName == null) {
+                appName = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
+                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
+                        tenantDomain);
+                ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(appName,
+                        tenantDomain);
+                appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+            }
         } finally {
             ApplicationMgtUtil.endTenantFlow();
-        }
-        if (appName == null) {
-            appName = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
-            ServiceProvideCacheInboundAuthKey clientKey = new ServiceProvideCacheInboundAuthKey(clientId, type, tenantDomain);
-            ServiceProvideCacheInboundAuthEntry clientEntry = new ServiceProvideCacheInboundAuthEntry(appName, tenantDomain);
-            appCacheByInboundAuth.addToCache(clientKey, clientEntry);
         }
         return appName;
     }
@@ -178,6 +179,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
 
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName, String
             tenantDomain) throws IdentityApplicationManagementException {
+
         ServiceProvider applicationFromCache = getApplicationFromCache(serviceProviderName, tenantDomain);
         if (applicationFromCache != null) {
             Map<String, String> localIdPToSPClaimMapping = new HashMap<>();
@@ -227,28 +229,35 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl{
         return appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName, tenantDomain);
     }
 
-    private void addToCache(ServiceProvider serviceProvider, String tenantDomain) {
+    private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws
+            IdentityApplicationManagementException {
 
-        IdentityServiceProviderCacheKey nameKey = new IdentityServiceProviderCacheKey(serviceProvider
-                .getApplicationName(), tenantDomain);
-        IdentityServiceProviderCacheEntry nameEntry = new IdentityServiceProviderCacheEntry(serviceProvider);
-        appCacheByName.addToCache(nameKey, nameEntry);
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
-        ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
-        ServiceProviderIDCacheEntry idEntry = new ServiceProviderIDCacheEntry(serviceProvider);
-        appCacheByID.addToCache(idKey, idEntry);
+            IdentityServiceProviderCacheKey nameKey = new IdentityServiceProviderCacheKey(serviceProvider
+                    .getApplicationName(), tenantDomain);
+            IdentityServiceProviderCacheEntry nameEntry = new IdentityServiceProviderCacheEntry(serviceProvider);
+            appCacheByName.addToCache(nameKey, nameEntry);
 
-        if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
-                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
-            InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
-                    .getInboundAuthenticationRequestConfigs();
-            for (InboundAuthenticationRequestConfig config : configs) {
-                ServiceProvideCacheInboundAuthKey clientKey = new ServiceProvideCacheInboundAuthKey(
-                        config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
-                ServiceProvideCacheInboundAuthEntry clientEntry = new ServiceProvideCacheInboundAuthEntry(
-                        serviceProvider.getApplicationName(), tenantDomain);
-                appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+            ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
+            ServiceProviderIDCacheEntry idEntry = new ServiceProviderIDCacheEntry(serviceProvider);
+            appCacheByID.addToCache(idKey, idEntry);
+
+            if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
+                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+                InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs();
+                for (InboundAuthenticationRequestConfig config : configs) {
+                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
+                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
+                    ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
+                            serviceProvider.getApplicationName(), tenantDomain);
+                    appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                }
             }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
         }
     }
 
