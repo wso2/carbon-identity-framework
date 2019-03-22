@@ -818,8 +818,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String serviceProviderName;
         ServiceProvider serviceProvider = null;
 
+        serviceProviderName = getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        serviceProviderName = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
         serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
         if (serviceProvider != null) {
