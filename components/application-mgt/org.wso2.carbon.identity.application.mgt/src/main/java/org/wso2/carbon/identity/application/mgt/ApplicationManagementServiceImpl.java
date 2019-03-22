@@ -285,7 +285,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (!isRegexValidated(serviceProvider.getApplicationName())) {
                 throw new IdentityApplicationManagementException("The Application name " +
                         serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
-                        "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
+                        "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
             }
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -1521,7 +1521,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         if (!isRegexValidated(serviceProvider.getApplicationName())) {
             throw new IdentityApplicationManagementException("The Application name " +
                     serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
-                    "to the regex " + ApplicationMgtUtil.APP_NAME_VALIDATING_REGEX);
+                    "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
         }
         if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(applicationName)) {
             throw new IdentityApplicationManagementException(
