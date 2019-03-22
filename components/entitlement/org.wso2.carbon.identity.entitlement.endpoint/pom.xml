@@ -32,13 +32,13 @@
     <dependencies>
         <dependency>
             <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
+            <artifactId>javax.ws.rs-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <!-- CXF dependency-->
         <dependency>
-            <groupId>org.wso2.orbit.org.apache.cxf</groupId>
-            <artifactId>cxf-bundle</artifactId>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -70,18 +70,22 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
             <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -102,6 +106,14 @@
                     <groupId>com.google.guava</groupId>
                     <artifactId>guava</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-yaml</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>jsr311-api</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -115,6 +127,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.code.findbugs</groupId>
+                    <artifactId>jsr305</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -132,6 +150,12 @@
             <artifactId>org.wso2.carbon.identity.testutil</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

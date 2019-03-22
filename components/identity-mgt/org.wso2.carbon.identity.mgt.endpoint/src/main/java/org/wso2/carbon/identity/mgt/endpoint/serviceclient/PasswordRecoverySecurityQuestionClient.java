@@ -17,10 +17,7 @@
  */
 package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 
-import org.apache.cxf.Bus;
-import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
-import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
@@ -30,10 +27,8 @@ import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAllAnswer
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.VerifyAnswerRequest;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.client.proxy.api.PasswordRecoverySecurityQuestion;
 
-import javax.ws.rs.core.Response;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import javax.ws.rs.core.Response;
 
 /**
  * REST client for password reset with security question

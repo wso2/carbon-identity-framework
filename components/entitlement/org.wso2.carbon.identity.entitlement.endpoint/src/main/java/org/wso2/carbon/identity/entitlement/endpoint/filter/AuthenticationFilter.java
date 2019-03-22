@@ -20,26 +20,25 @@ package org.wso2.carbon.identity.entitlement.endpoint.filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.cxf.jaxrs.ext.RequestHandler;
-import org.apache.cxf.jaxrs.ext.ResponseHandler;
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.jaxrs.model.OperationResourceInfo;
-import org.apache.cxf.message.Message;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticationHandler;
 import org.wso2.carbon.identity.entitlement.endpoint.auth.EntitlementAuthenticatorRegistry;
 import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 
+import java.io.IOException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.Response;
 
-public class AuthenticationFilter implements RequestHandler, ResponseHandler {
+public class AuthenticationFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     private static Log log = LogFactory.getLog(AuthenticationFilter.class);
 
     @Override
-    public Response handleRequest(Message message, ClassResourceInfo classResourceInfo) {
-
+    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         // reset anything set on provisioning thread local.
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
 
@@ -50,14 +49,14 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
 
         if (entitlementAuthRegistry != null) {
             EntitlementAuthenticationHandler entitlementAuthHandler = entitlementAuthRegistry.getAuthenticator(
-                    message, classResourceInfo);
+                    containerRequestContext);
 
             boolean isAuthenticated = false;
             if (entitlementAuthHandler != null) {
-                isAuthenticated = entitlementAuthHandler.isAuthenticated(message, classResourceInfo);
+                isAuthenticated = entitlementAuthHandler.isAuthenticated(containerRequestContext);
 
                 if (isAuthenticated) {
-                    return null;
+                    return;
                 }
             }
         }
@@ -67,14 +66,13 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
         Response.ResponseBuilder responseBuilder = Response.status(unauthorizedException.getCode());
         responseBuilder.entity(unauthorizedException.getDescription());
 
-        return responseBuilder.build();
+        containerRequestContext.abortWith(responseBuilder.build());
     }
 
     // To clear the ThreadLocalProvisioningServiceProvider in a non faulty case
     @Override
-    public Response handleResponse(Message message, OperationResourceInfo operationResourceInfo, Response response) {
+    public void filter(ContainerRequestContext containerRequestContext,
+                       ContainerResponseContext containerResponseContext) throws IOException {
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
-        return null;
     }
-
 }
