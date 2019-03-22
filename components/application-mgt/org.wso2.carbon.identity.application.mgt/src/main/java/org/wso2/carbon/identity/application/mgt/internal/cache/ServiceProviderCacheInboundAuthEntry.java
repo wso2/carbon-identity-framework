@@ -20,13 +20,13 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 
-public class ServiceProvideCacheInboundAuthEntry extends CacheEntry {
+public class ServiceProviderCacheInboundAuthEntry extends CacheEntry {
 
     private static final long serialVersionUID = 6136546313282431483L;
     private String serviceProviderName;
     private String tenantName;
 
-    public ServiceProvideCacheInboundAuthEntry(String serviceProviderName, String tenantName) {
+    public ServiceProviderCacheInboundAuthEntry(String serviceProviderName, String tenantName) {
 
         this.serviceProviderName = serviceProviderName;
         this.tenantName = tenantName;

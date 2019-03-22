@@ -23,24 +23,24 @@ import org.wso2.carbon.identity.application.common.cache.BaseCache;
 /**
  * Cache to maintain the application id - service provider name.
  */
-public class ServiceProviderCacheID extends
+public class ServiceProviderByIDCache extends
         BaseCache<ServiceProviderIDCacheKey, ServiceProviderIDCacheEntry> {
 
     public static final String SP_CACHE_NAME = "ServiceProviderCache.ID";
 
-    private static volatile ServiceProviderCacheID instance;
+    private static volatile ServiceProviderByIDCache instance;
 
-    private ServiceProviderCacheID() {
+    private ServiceProviderByIDCache() {
 
         super(SP_CACHE_NAME);
     }
 
-    public static ServiceProviderCacheID getInstance() {
+    public static ServiceProviderByIDCache getInstance() {
 
         if (instance == null) {
-            synchronized (ServiceProviderCacheID.class) {
+            synchronized (ServiceProviderByIDCache.class) {
                 if (instance == null) {
-                    instance = new ServiceProviderCacheID();
+                    instance = new ServiceProviderByIDCache();
                 }
             }
         }

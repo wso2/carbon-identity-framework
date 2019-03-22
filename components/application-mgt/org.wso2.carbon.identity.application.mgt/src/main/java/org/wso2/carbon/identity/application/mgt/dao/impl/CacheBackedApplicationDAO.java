@@ -32,8 +32,10 @@ import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCac
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -54,15 +56,15 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     private ApplicationDAO appDAO;
 
     private static IdentityServiceProviderCache appCacheByName = null;
-    private static ServiceProviderCacheInboundAuth appCacheByInboundAuth = null;
-    private static ServiceProviderCacheID appCacheByID = null;
+    private static ServiceProviderByInboundAuthCache appCacheByInboundAuth = null;
+    private static ServiceProviderByIDCache appCacheByID = null;
 
     public CacheBackedApplicationDAO(ApplicationDAO appDAO) {
 
         this.appDAO = appDAO;
         appCacheByName = IdentityServiceProviderCache.getInstance();
-        appCacheByInboundAuth = ServiceProvideCacheInboundAuth.getInstance();
-        appCacheByID = ServiceProviderCacheID.getInstance();
+        appCacheByInboundAuth = ServiceProviderByInboundAuthCache.getInstance();
+        appCacheByID = ServiceProviderByIDCache.getInstance();
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -343,7 +345,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                 InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                         .getInboundAuthenticationRequestConfigs();
                 for (InboundAuthenticationRequestConfig config : configs) {
-                    ServiceProvideCacheInboundAuthKey clientKey = new ServiceProvideCacheInboundAuthKey(
+                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
                             config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
                     appCacheByInboundAuth.clearCacheEntry(clientKey);
                 }

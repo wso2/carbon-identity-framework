@@ -20,14 +20,14 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
-public class ServiceProvideCacheInboundAuthKey extends CacheKey {
+public class ServiceProviderCacheInboundAuthKey extends CacheKey {
 
     private static final long serialVersionUID = -2977524029670977142L;
     private String ServiceProvideCacheInboundAuthKey;
     private String ServiceProvideCacheInboundAuthType;
     private String tenantName;
 
-    public ServiceProvideCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
+    public ServiceProviderCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
             serviceProvideCacheInboundAuthType, String tenantName) {
 
         ServiceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
@@ -48,7 +48,7 @@ public class ServiceProvideCacheInboundAuthKey extends CacheKey {
             return false;
         }
 
-        ServiceProvideCacheInboundAuthKey that = (ServiceProvideCacheInboundAuthKey) o;
+        ServiceProviderCacheInboundAuthKey that = (ServiceProviderCacheInboundAuthKey) o;
 
         if (!ServiceProvideCacheInboundAuthKey.equals(that.ServiceProvideCacheInboundAuthKey)) return false;
         if (!ServiceProvideCacheInboundAuthType.equals(that.ServiceProvideCacheInboundAuthType)) return false;
