@@ -19,11 +19,11 @@
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.io.IOUtils;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -80,7 +80,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -1931,6 +1930,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
 
             serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
+            serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
 
             // Will be supported with 'Advance Consent Management Feature'.
             /*
@@ -1943,14 +1943,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             */
 
             String serviceProviderName = serviceProvider.getApplicationName();
-            String tenantDomain = serviceProvider.getOwner().getTenantDomain();
-
             loadApplicationPermissions(serviceProviderName, serviceProvider);
             return serviceProvider;
 
-        } catch (SQLException e) {
+        } catch (SQLException | CertificateRetrievingException e) {
             throw new IdentityApplicationManagementException("Failed to update service provider "
-                                                             + applicationId, e);
+                    + applicationId, e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
