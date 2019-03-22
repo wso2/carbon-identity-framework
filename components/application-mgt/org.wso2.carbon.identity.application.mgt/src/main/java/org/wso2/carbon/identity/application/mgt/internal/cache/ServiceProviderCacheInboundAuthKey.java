@@ -25,14 +25,12 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
     private static final long serialVersionUID = -2977524029670977142L;
     private String ServiceProvideCacheInboundAuthKey;
     private String ServiceProvideCacheInboundAuthType;
-    private String tenantName;
 
     public ServiceProviderCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
-            serviceProvideCacheInboundAuthType, String tenantName) {
+            serviceProvideCacheInboundAuthType) {
 
         ServiceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
         ServiceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
-        this.tenantName = tenantName;
     }
 
     @Override
