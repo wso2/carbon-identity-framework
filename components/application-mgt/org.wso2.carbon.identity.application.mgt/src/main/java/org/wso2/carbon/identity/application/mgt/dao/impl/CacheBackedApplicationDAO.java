@@ -32,10 +32,10 @@ import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCac
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthKey;
-import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
