@@ -70,6 +70,7 @@ public class ApplicationMgtUtil {
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
     // Regex for validating application name
     public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
+    private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
     private static boolean perSPCertificateSupportAvailable;
@@ -530,9 +531,22 @@ public class ApplicationMgtUtil {
      */
     public static boolean isRegexValidated(String applicationName) {
 
-        String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
+        String spValidatorRegex = getSPValidatorRegex();
         Pattern regexPattern = Pattern.compile(spValidatorRegex);
         return regexPattern.matcher(applicationName).matches();
+    }
+
+    /**
+     * Return the Service Provider validation regex.
+     * @return regex.
+     */
+    public static String getSPValidatorRegex() {
+
+        String spValidatorRegex = IdentityUtil.getProperty(SERVICE_PROVIDERS_NAME_REGEX);
+        if (StringUtils.isBlank(spValidatorRegex)) {
+            spValidatorRegex = APP_NAME_VALIDATING_REGEX;
+        }
+        return spValidatorRegex;
     }
 
     /**

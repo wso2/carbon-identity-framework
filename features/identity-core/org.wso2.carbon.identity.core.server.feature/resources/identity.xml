@@ -83,6 +83,11 @@
         </System>
     </Identity>
 
+    <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
+    <!--<ServiceProviders>-->
+        <!--<SPNameRegex>^[a-zA-Z0-9._-]*$</SPNameRegex>-->
+    <!--</ServiceProviders>-->
+
     <OpenID>
         <!--
             Default values for OpenIDServerUrl and OpenIDUSerPattern are built in following format
