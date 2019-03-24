@@ -115,7 +115,8 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
         String appName = null;
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            ServiceProviderCacheInboundAuthKey cacheKey = new ServiceProviderCacheInboundAuthKey(clientId, type);
+            ServiceProviderCacheInboundAuthKey cacheKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
+                    tenantDomain);
             ServiceProviderCacheInboundAuthEntry entry = appCacheByInboundAuth.getValueFromCache(cacheKey);
             if (entry != null) {
                 appName = entry.getServiceProviderName();
@@ -125,7 +126,8 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                     log.debug("Inbound Auth Key Cache is missing for " + clientId);
                 }
                 appName = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
-                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId, type);
+                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
+                        tenantDomain);
                 ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(appName,
                         tenantDomain);
                 appCacheByInboundAuth.addToCache(clientKey, clientEntry);
@@ -240,6 +242,9 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Add cache for the application " + serviceProvider.getApplicationName() + "@" + tenantDomain);
+        }
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
@@ -258,7 +263,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                         .getInboundAuthenticationRequestConfigs();
                 for (InboundAuthenticationRequestConfig config : configs) {
                     ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                            config.getInboundAuthKey(), config.getInboundAuthType());
+                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
                     ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
                             serviceProvider.getApplicationName(), tenantDomain);
                     appCacheByInboundAuth.addToCache(clientKey, clientEntry);
@@ -339,7 +344,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
             ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
             appCacheByID.clearCacheEntry(idKey);
 
-            clearAppCacheByInboundKey(serviceProvider);
+            clearAppCacheByInboundKey(serviceProvider, tenantDomain);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
@@ -359,14 +364,14 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
             ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
             appCacheByID.clearCacheEntry(idKey);
 
-            clearAppCacheByInboundKey(serviceProvider);
+            clearAppCacheByInboundKey(serviceProvider, tenantDomain);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
 
     }
 
-    private void clearAppCacheByInboundKey(ServiceProvider serviceProvider) {
+    private void clearAppCacheByInboundKey(ServiceProvider serviceProvider, String tenantDomain) {
 
         if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
@@ -374,7 +379,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                     .getInboundAuthenticationRequestConfigs();
             for (InboundAuthenticationRequestConfig config : configs) {
                 ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                        config.getInboundAuthKey(), config.getInboundAuthType());
+                        config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
                 appCacheByInboundAuth.clearCacheEntry(clientKey);
             }
         }

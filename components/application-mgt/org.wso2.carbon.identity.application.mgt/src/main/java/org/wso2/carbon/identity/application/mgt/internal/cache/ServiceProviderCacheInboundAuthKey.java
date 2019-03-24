@@ -27,10 +27,11 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
     private String ServiceProvideCacheInboundAuthType;
 
     public ServiceProviderCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
-            serviceProvideCacheInboundAuthType) {
+            serviceProvideCacheInboundAuthType, String tenantDomain) {
 
         ServiceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
         ServiceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
+        this.tenantDomain = tenantDomain;
     }
 
     @Override
