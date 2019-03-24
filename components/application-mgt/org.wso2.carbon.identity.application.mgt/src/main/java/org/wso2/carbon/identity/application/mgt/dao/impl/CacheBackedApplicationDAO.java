@@ -161,8 +161,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
             IdentityApplicationManagementException {
 
         String storedAppName = getApplicationName(serviceProvider.getApplicationID());
-        clearAllAppCache(serviceProvider, tenantDomain);
-        clearAppCacheByName(storedAppName, tenantDomain);
+        clearAllAppCache(serviceProvider, storedAppName, tenantDomain);
         appDAO.updateApplication(serviceProvider, tenantDomain);
 
     }
@@ -340,32 +339,44 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
             ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
             appCacheByID.clearCacheEntry(idKey);
 
-            if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
-                    .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
-                InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
-                        .getInboundAuthenticationRequestConfigs();
-                for (InboundAuthenticationRequestConfig config : configs) {
-                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                            config.getInboundAuthKey(), config.getInboundAuthType());
-                    appCacheByInboundAuth.clearCacheEntry(clientKey);
-                }
-            }
+            clearAppCacheByInboundKey(serviceProvider);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
     }
 
-    private void clearAppCacheByName(String storedAppName, String tenantDomain) throws
+    private void clearAllAppCache(ServiceProvider serviceProvider, String storedAppName, String tenantDomain) throws
             IdentityApplicationManagementException {
 
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
-                storedAppName, tenantDomain);
+            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(storedAppName, tenantDomain);
             appCacheByName.clearCacheEntry(cacheKey);
+
+            cacheKey = new IdentityServiceProviderCacheKey(serviceProvider.getApplicationName(), tenantDomain);
+            appCacheByName.clearCacheEntry(cacheKey);
+
+            ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
+            appCacheByID.clearCacheEntry(idKey);
+
+            clearAppCacheByInboundKey(serviceProvider);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
 
+    }
+
+    private void clearAppCacheByInboundKey(ServiceProvider serviceProvider) {
+
+        if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
+                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+            InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs();
+            for (InboundAuthenticationRequestConfig config : configs) {
+                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
+                        config.getInboundAuthKey(), config.getInboundAuthType());
+                appCacheByInboundAuth.clearCacheEntry(clientKey);
+            }
+        }
     }
 }
