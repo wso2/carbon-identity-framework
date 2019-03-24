@@ -160,7 +160,9 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
+        String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
         clearAllAppCache(serviceProvider, tenantDomain);
+        clearAppCacheByName(storedAppName, tenantDomain);
         appDAO.updateApplication(serviceProvider, tenantDomain);
 
     }
@@ -351,5 +353,19 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
+    }
+
+    private void clearAppCacheByName(String storedAppName, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
+                storedAppName, tenantDomain);
+            appCacheByName.clearCacheEntry(cacheKey);
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+
     }
 }
