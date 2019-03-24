@@ -160,7 +160,7 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        String storedAppName = appDAO.getApplicationName(serviceProvider.getApplicationID());
+        String storedAppName = getApplicationName(serviceProvider.getApplicationID());
         clearAllAppCache(serviceProvider, tenantDomain);
         clearAppCacheByName(storedAppName, tenantDomain);
         appDAO.updateApplication(serviceProvider, tenantDomain);
