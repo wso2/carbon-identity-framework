@@ -19,7 +19,9 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="java.util.List" %>
-
+<%@ page import="org.apache.commons.collections.CollectionUtils"%>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil"%>
+<%@ page import="org.apache.commons.lang.StringUtils"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
 
@@ -33,7 +35,16 @@
     List<IdentityProvider> identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderList");
     String identityProvider = "identityProvider";
     session.removeAttribute(identityProvider);
-    if (identityProvidersList == null) {
+    String filter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
+    if (StringUtils.isNotBlank(filter)) {
+%>
+        <script type="text/javascript">
+            location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp&<%=IdPManagementUIUtil.FILTER_STRING%>=<%=filter%>
+              ";
+        </script>
+<%
+    }
+    else if (CollectionUtils.isEmpty(identityProvidersList)) {
 %>
         <script type="text/javascript">
             location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp";
@@ -97,11 +108,46 @@
             <%--<div style="height:30px;">--%>
                 <%--<a href="idp-mgt-edit-load-local.jsp" class="icon-link" style="background-image:url(images/resident-idp.png);"><fmt:message key='resident.idp'/></a>--%>
             <%--</div>--%>
-            <div class="sectionSub">
+            <form name="filterForm" method="post" action="idp-mgt-list.jsp">
+              <table style="width: 100%" class="styledLeft">
+                <tbody>
+                  <tr>
+                    <td style="border: none !important">
+                      <table class="styledLeft" width="100%" id="IDProviders">
+                        <thead>
+                          <tr>
+                            <th colspan="2"><fmt:message key="search.idp" /></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
+										key="idp.search.pattern" /></td>
+                            <td><input type="text" name="<%=IdPManagementUIUtil.FILTER_STRING%>"
+									value="<%=StringUtils.isBlank(filter) ? StringUtils.EMPTY : Encode
+					.forHtmlAttribute(filter)%>"
+									black-list-patterns="xml-meta-exists" /> <input class="button"
+									type="submit" value="Search" /></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+          </form>
+          <div class="sectionSub">
             <table class="styledLeft" id="idPsListTable">
                 <thead><tr><th class="leftCol-med"><fmt:message key='registered.idps'/></th><th class="leftCol-big"><fmt:message key='description'/></th><th style="width: 30% ;" ><fmt:message key='actions'/></th></tr></thead>
                 <tbody>
-                    <% if(identityProvidersList != null && identityProvidersList.size() > 0){ %>
+                    <% if (StringUtils.isNotBlank(request.getParameter("idpFilter"))) {
+                      identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderListFilter");
+                    	session.removeAttribute("identityProviderListFilter");
+                    	session.removeAttribute(IdPManagementUIUtil.FILTER_STRING);
+                    } else {
+                    	identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderList");
+                    }
+                    if (identityProvidersList != null && identityProvidersList.size() > 0) { %>
                         <% for(int i = 0; i < identityProvidersList.size(); i++){
                          String description = identityProvidersList.get(i).getIdentityProviderDescription();
                          boolean enable = identityProvidersList.get(i).getEnable();
