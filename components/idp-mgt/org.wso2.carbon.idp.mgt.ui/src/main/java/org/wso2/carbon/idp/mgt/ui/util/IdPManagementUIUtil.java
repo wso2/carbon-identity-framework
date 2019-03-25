@@ -69,6 +69,8 @@ public class IdPManagementUIUtil {
 
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
+    public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
+
     /**
      * Validates an URI.
      *
