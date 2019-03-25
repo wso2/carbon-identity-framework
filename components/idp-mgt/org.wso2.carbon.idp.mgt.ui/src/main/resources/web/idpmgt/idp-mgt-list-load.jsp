@@ -56,7 +56,7 @@
         List<IdentityProvider> identityProviders;
         if (StringUtils.isBlank(filter)) {
         	identityProviders = client.getIdPs();        	
- 	        session.setAttribute("identityProviderList", identityProviders);
+ 	        session.setAttribute(IdPManagementUIUtil.IDP_LIST, identityProviders);
         } else {
          	identityProviders = client.getIdPsSearch(filter.trim());    
          	session.setAttribute(IdPManagementUIUtil.IDP_LIST_FILTER, identityProviders);
