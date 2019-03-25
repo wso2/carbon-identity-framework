@@ -72,6 +72,8 @@ public class IdPManagementUIUtil {
     public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
     
     public static final String IDP_LIST_FILTER = "identityProviderListFilter";
+    
+    public static final String IDP_LIST = "identityProviderList";
 
     /**
      * Validates an URI.
