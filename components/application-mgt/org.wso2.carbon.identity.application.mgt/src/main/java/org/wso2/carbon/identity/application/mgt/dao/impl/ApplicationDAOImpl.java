@@ -2651,8 +2651,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
 
                     try {
                         boolean isEnabled = "1".equals(localAndOutboundConfigScriptResultSet.getString(2));
-                        String targetString = IOUtils.
-                                toString(localAndOutboundConfigScriptResultSet.getBinaryStream(1));
+                        InputStream scriptBinaryStream = localAndOutboundConfigScriptResultSet.getBinaryStream(1);
+                        String targetString = StringUtils.EMPTY;
+                        if (scriptBinaryStream != null) {
+                            targetString = IOUtils.toString(scriptBinaryStream);
+                        }
                         authenticationScriptConfig.setContent(targetString);
                         authenticationScriptConfig.setEnabled(isEnabled);
                     } catch (IOException e) {
