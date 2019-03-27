@@ -115,22 +115,26 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
         String appName = null;
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            ServiceProviderCacheInboundAuthKey cacheKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
-                    tenantDomain);
-            ServiceProviderCacheInboundAuthEntry entry = appCacheByInboundAuth.getValueFromCache(cacheKey);
-            if (entry != null) {
-                appName = entry.getServiceProviderName();
+            if (tenantDomain != null) {
+                ServiceProviderCacheInboundAuthKey cacheKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
+                        tenantDomain);
+                ServiceProviderCacheInboundAuthEntry entry = appCacheByInboundAuth.getValueFromCache(cacheKey);
+                if (entry != null) {
+                    appName = entry.getServiceProviderName();
+                }
             }
             if (appName == null) {
                 if (log.isDebugEnabled()) {
                     log.debug("Inbound Auth Key Cache is missing for " + clientId);
                 }
                 appName = appDAO.getServiceProviderNameByClientId(clientId, type, tenantDomain);
-                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId, type,
-                        tenantDomain);
-                ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(appName,
-                        tenantDomain);
-                appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                if (tenantDomain != null) {
+                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(clientId,
+                            type, tenantDomain);
+                    ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(appName,
+                            tenantDomain);
+                    appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                }
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Inbound Auth Key Cache is present for " + clientId);
