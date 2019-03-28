@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -134,7 +135,14 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     context.setAuthenticatorProperties(FrameworkUtils
                             .getAuthenticatorPropertyMapFromIdP(
                                     externalIdPConfig, authenticator.getName()));
-                    context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
+
+                    if (authenticatorConfig.getAuthenticatorStateInfo() != null) {
+                        context.setStateInfo(authenticatorConfig.getAuthenticatorStateInfo());
+                    } else {
+                        context.setStateInfo(
+                                getStateInfoFromPreviousAuthenticatedIdPs(idpName, authenticatorConfig.getName(),
+                                        context));
+                    }
 
                     AuthenticatorFlowStatus status = authenticator.process(request, response, context);
                     request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
@@ -233,5 +241,23 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
     private void addAuthenticationResultToRequest(HttpServletRequest request,
             AuthenticationResult authenticationResult) {
         request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+    }
+
+    private AuthenticatorStateInfo getStateInfoFromPreviousAuthenticatedIdPs(String idpName, String authenticatorName,
+            AuthenticationContext context) {
+
+        if (context.getPreviousAuthenticatedIdPs() == null
+                || context.getPreviousAuthenticatedIdPs().get(idpName) == null
+                || context.getPreviousAuthenticatedIdPs().get(idpName).getAuthenticators() == null) {
+            return null;
+        }
+
+        for (AuthenticatorConfig authenticatorConfig : context.getPreviousAuthenticatedIdPs().get(idpName)
+                .getAuthenticators()) {
+            if (authenticatorName.equals(authenticatorConfig.getName())) {
+                return authenticatorConfig.getAuthenticatorStateInfo();
+            }
+        }
+        return null;
     }
 }
