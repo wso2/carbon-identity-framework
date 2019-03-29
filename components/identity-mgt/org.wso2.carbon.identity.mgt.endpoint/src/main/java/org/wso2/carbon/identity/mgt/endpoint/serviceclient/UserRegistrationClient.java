@@ -14,8 +14,7 @@ import javax.ws.rs.core.Response;
 
 public class UserRegistrationClient {
     StringBuilder builder = new StringBuilder();
-    String url = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+    String url = IdentityManagementEndpointUtil.buildEndpointUrl(
                      IdentityManagementEndpointConstants.UserInfoRecovery.REST_API_URL_DOMAIN);
 
     public Response getAllClaims(String tenantDomain) {
