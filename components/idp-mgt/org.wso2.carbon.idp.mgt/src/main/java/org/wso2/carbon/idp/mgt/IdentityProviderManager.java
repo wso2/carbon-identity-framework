@@ -137,8 +137,6 @@ public class IdentityProviderManager implements IdpManager {
         String scim2GroupsEndpoint;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
-        samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
-        samlLogoutUrl = samlSSOUrl;
         samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
         samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
@@ -170,9 +168,9 @@ public class IdentityProviderManager implements IdpManager {
         samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
                 + IdPManagementUtil.getTenantParameter();
 
-        if (StringUtils.isBlank(samlLogoutUrl)) {
-            samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
-        }
+        samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
+                + IdPManagementUtil.getTenantParameter();
+
         if (StringUtils.isBlank(samlArtifactUrl)) {
             samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
@@ -394,9 +392,9 @@ public class IdentityProviderManager implements IdpManager {
         if (samlSSOUrlProperty == null) {
             samlSSOUrlProperty = new Property();
             samlSSOUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
+            // Set the generated saml sso endpoint value.
+            samlSSOUrlProperty.setValue(samlSSOUrl);
         }
-        // Set the generated saml sso endpoint value.
-        samlSSOUrlProperty.setValue(samlSSOUrl);
         propertiesList.add(samlSSOUrlProperty);
 
         Property samlLogoutUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
@@ -404,9 +402,9 @@ public class IdentityProviderManager implements IdpManager {
         if (samlLogoutUrlProperty == null) {
             samlLogoutUrlProperty = new Property();
             samlLogoutUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
+            // Set the generated saml slo endpoint value.
+            samlLogoutUrlProperty.setValue(samlLogoutUrl);
         }
-        // Set the generated saml slo endpoint value.
-        samlLogoutUrlProperty.setValue(samlLogoutUrl);
         propertiesList.add(samlLogoutUrlProperty);
 
         Property samlECPUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
@@ -2095,18 +2093,6 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
-
-//        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
-//                IdPManagementUtil.getTenantParameter();
-//        updateFederationAuthenticationConfigProperty(residentIDP,
-//                IdentityApplicationConstants.Authenticator
-//                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
-
-        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
-                IdPManagementUtil.getTenantParameter();
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator
-                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL, samlLogoutUrl);
 
         String passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
         updateFederationAuthenticationConfigProperty(residentIDP,

@@ -29,7 +29,6 @@
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
@@ -277,12 +276,11 @@ function idpMgtCancel(){
             return false;
         }
         var isSSOUrlValidated = doValidateInput(document.getElementById('samlSSOUrl'), "Please enter a valid SSO URL");
-        var SSOUrl = $("#samlSSOUrl").val();
         if (!isSSOUrlValidated) {
             return false;
         }
-        if (SSOUrl == null || SSOUrl.trim().length == 0) {
-            CARBON.showWarningDialog("Please enter a valid SSO URL");
+        var issamlSLOUrlValidated = doValidateInput(document.getElementById('samlSLOUrl'), "Please enter a valid Logout Url");
+        if (!issamlSLOUrlValidated) {
             return false;
         }
         return true;
@@ -561,7 +559,9 @@ function removeDefaultAuthSeq() {
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
-                            <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
+                            <td><input id="samlSLOUrl" name="samlSLOUrl"
+                                       type="text" value="<%=Encode.forHtmlContent(samlSLOUrl)%>"
+                                       white-list-patterns="http-url https-url"/></td>
                         </tr>
                         <tr style="display:none;">
                             <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>
