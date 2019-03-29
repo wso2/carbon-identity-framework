@@ -167,9 +167,8 @@ public class IdentityProviderManager implements IdpManager {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
         }
 
-        if (StringUtils.isBlank(samlSSOUrl)) {
-            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
-        }
+        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
+                + IdPManagementUtil.getTenantParameter();
 
         if (StringUtils.isBlank(samlLogoutUrl)) {
             samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
@@ -2097,11 +2096,11 @@ public class IdentityProviderManager implements IdpManager {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
 
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
-                IdPManagementUtil.getTenantParameter();
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator
-                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
+//        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
+//                IdPManagementUtil.getTenantParameter();
+//        updateFederationAuthenticationConfigProperty(residentIDP,
+//                IdentityApplicationConstants.Authenticator
+//                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
 
         String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true) +
                 IdPManagementUtil.getTenantParameter();
