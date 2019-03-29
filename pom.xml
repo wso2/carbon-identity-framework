@@ -1659,7 +1659,7 @@
         <osgi.framework.imp.pkg.version.range>[1.7.0, 2.0.0)</osgi.framework.imp.pkg.version.range>
         <osgi.util.tracker.imp.pkg.version.range>[1.5.1, 2.0.0)</osgi.util.tracker.imp.pkg.version.range>
         <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
-        <apache.felix.scr.ds.annotations.version>1.2.8</apache.felix.scr.ds.annotations.version>
+        <apache.felix.scr.ds.annotations.version>1.2.10</apache.felix.scr.ds.annotations.version>
 
         <!--Carbon commons version-->
         <carbon.commons.version>4.5.2</carbon.commons.version>
