@@ -63,11 +63,6 @@ public class MutualSSLManagerTest extends PowerMockTestCase {
         };
     }
 
-    @AfterMethod
-    public void tearDown() throws Exception {
-
-    }
-
     @Test(dataProvider = "configData")
     public void testInit(String configFilePath, String carbonLogin) throws Exception {
 
