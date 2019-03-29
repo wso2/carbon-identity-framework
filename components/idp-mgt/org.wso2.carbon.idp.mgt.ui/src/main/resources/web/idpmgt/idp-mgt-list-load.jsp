@@ -33,17 +33,19 @@
 <%@ page import="java.util.UUID" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
+<%!
+    private static final String TRUSTED_CALLBACK_EDIT = "idp-mgt-edit.jsp";
+    private static final String TRUSTED_CALLBACK_LIST = "idp-mgt-list.jsp";
+%>
 <%
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String callback = request.getParameter("callback");
     
-    final String trustedCallbackEdit = "idp-mgt-edit.jsp";
-    
     if (!IdentityValidationUtil.isValidOverBlackListPatterns(callback,
             IdentityValidationUtil.ValidatorPattern.URI_RESERVED_EXISTS.name())
-            || !trustedCallbackEdit.equals(callback)) {
-        callback = "idp-mgt-list.jsp";
+            || !TRUSTED_CALLBACK_EDIT.equals(callback)) {
+        callback = TRUSTED_CALLBACK_LIST;
     }
     try {
         String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
