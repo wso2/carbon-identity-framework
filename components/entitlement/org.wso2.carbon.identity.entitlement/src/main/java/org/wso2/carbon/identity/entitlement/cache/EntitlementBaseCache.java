@@ -29,7 +29,6 @@ import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.event.CacheEntryCreatedListener;
 import javax.cache.event.CacheEntryUpdatedListener;
-import java.io.Serializable;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -158,8 +157,6 @@ public class EntitlementBaseCache<K extends IdentityCacheKey, V extends Object> 
             log.debug("Cache : " + Entitlement_CACHE_NAME + "  is populated with new entry " + "in tenant domain : " +
                       tenantDomain);
         }
-
-
     }
 
     /**

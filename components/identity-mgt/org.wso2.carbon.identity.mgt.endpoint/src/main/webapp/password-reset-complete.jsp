@@ -15,19 +15,19 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
+<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
-<%@ page import="java.net.URLDecoder" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Property" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ResetPasswordRequest" %>
+<%@ page import="java.net.URISyntaxException" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -38,11 +38,18 @@
     String newPassword = request.getParameter("reset-password");
     String callback = request.getParameter("callback");
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
-    
+    boolean isUserPortalURL = false;
+
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
     }
+
+    if (callback.equals(IdentityManagementEndpointUtil.getUserPortalUrl(application
+            .getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))) {
+        isUserPortalURL = true;
+    }
+
     if (StringUtils.isNotBlank(newPassword)) {
         NotificationApi notificationApi = new NotificationApi();
         ResetPasswordRequest resetPasswordRequest = new ResetPasswordRequest();
@@ -51,7 +58,12 @@
         property.setKey("callback");
         property.setValue(URLEncoder.encode(callback, "UTF-8"));
         properties.add(property);
-        
+
+        Property userPortalURLProperty = new Property();
+        userPortalURLProperty.setKey("isUserPortalURL");
+        userPortalURLProperty.setValue(String.valueOf(isUserPortalURL));
+        properties.add(userPortalURLProperty);
+
         Property tenantProperty = new Property();
         tenantProperty.setKey(IdentityManagementEndpointConstants.TENANT_DOMAIN);
         if (tenantDomain == null) {
@@ -133,7 +145,18 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forUri(callback)%>";
+            <%
+            try {
+            %>
+                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+            <%
+            } catch (URISyntaxException e) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+            %>
         })
     });
 </script>

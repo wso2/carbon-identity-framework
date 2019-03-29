@@ -88,9 +88,11 @@ public class TenantDataManager {
                     inputStream = new FileInputStream(configFile);
 
                     prop.load(inputStream);
-                    if (isSecuredPropertyAvailable(prop)) {
-                        // Resolve encrypted properties with secure vault
-                        resolveSecrets(prop);
+                    if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
+                        if (isSecuredPropertyAvailable(prop)) {
+                            // Resolve encrypted properties with secure vault
+                            resolveSecrets(prop);
+                        }
                     }
 
                 } else {

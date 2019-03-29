@@ -69,6 +69,7 @@ public class IdentityManagementEndpointConstants {
         public static final String REST_API_URL_DOMAIN = "account-recovery";
         public static final String RECOVERY_API_RELATIVE_PATH = "/api/identity/recovery/v0.9";
         public static final String USER_API_RELATIVE_PATH = "/api/identity/user/v1.0";
+        public static final String RECOVERY_CALLBACK_REGEX = "Recovery.CallbackRegex";
     }
 
     public static final class UserInfoRecoveryErrorDesc {
@@ -105,6 +106,8 @@ public class IdentityManagementEndpointConstants {
     public static final String SKIP_SIGN_UP_ENABLE_CHECK = "skipsignupenablecheck";
     public static final String KEY = "key";
     public static final String VALUE = "value";
+
+    public static final String UTF_8 = "UTF-8";
 
     public static class Consent {
 

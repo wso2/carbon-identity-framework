@@ -182,7 +182,7 @@ window.onload = function() {
                     <tr>
                         <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.name'/>:<span class="required">*</span></td>
                         <td>
-                            <input id="spName" name="spName" type="text" value="" white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                            <input id="spName" name="spName" type="text" value="" white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
                             <div class="sectionHelp">
                                 <fmt:message key='help.name'/>
                             </div>
@@ -244,7 +244,7 @@ window.onload = function() {
             </div>
             </form>
             <form id="upload-sp-form" name="upload-sp-form" method="post"
-                  action="import-service-provider-finish-ajaxprocessor.jsp">
+                  action="import-service-provider-finish-ajaxprocessor.jsp" style="display: none;">
                 <table class="styledLeft" width="100%">
                     <thead>
                     <tr>
@@ -271,7 +271,7 @@ window.onload = function() {
             </form>
         </div>
     </div>
-    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon'>
+    <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon' style="display: none;">
         <div id="messagebox-error">
             <h3>
                 <fmt:message key="alert.error.add.sp.template"/>

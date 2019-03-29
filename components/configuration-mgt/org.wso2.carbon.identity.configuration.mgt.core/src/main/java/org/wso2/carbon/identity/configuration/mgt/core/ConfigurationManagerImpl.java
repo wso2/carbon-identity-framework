@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationCon
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -72,6 +73,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Resources getTenantResources(Condition searchCondition) throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateSearchRequest(searchCondition);
         Resources resources = getConfigurationDAO().getTenantResources(searchCondition);
         if (resources == null) {
@@ -88,6 +91,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Resources getResources() throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         if (log.isDebugEnabled()) {
             log.debug("Not Implemented yet.");
         }
@@ -98,6 +103,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      * {@inheritDoc}
      */
     public Resources getResourcesByType(String resourceType) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         if (log.isDebugEnabled()) {
             log.debug("Not Implemented yet.");
@@ -110,6 +117,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Resource getResource(String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateResourceRetrieveRequest(resourceTypeName, resourceName);
         ResourceType resourceType = getResourceType(resourceTypeName);
@@ -130,6 +139,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public void deleteResource(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateResourceDeleteRequest(resourceTypeName, resourceName);
         ResourceType resourceType = getResourceType(resourceTypeName);
         this.getConfigurationDAO().deleteResourceByName(getTenantId(), resourceType.getId(), resourceName);
@@ -143,6 +154,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Resource addResource(String resourceTypeName, ResourceAdd resourceAdd)
             throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateResourceCreateRequest(resourceTypeName, resourceAdd);
         Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
@@ -164,6 +177,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public Resource replaceResource(String resourceTypeName, ResourceAdd resourceAdd)
             throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateResourceReplaceRequest(resourceTypeName, resourceAdd);
         String resourceId = generateResourceId(resourceTypeName, resourceAdd.getName());
         Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
@@ -179,6 +194,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      * {@inheritDoc}
      */
     public ResourceType getResourceType(String resourceTypeName) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateResourceTypeRetrieveRequest(resourceTypeName);
         ResourceType resourceType = getConfigurationDAO().getResourceTypeByName(resourceTypeName);
@@ -200,6 +217,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public void deleteResourceType(String resourceName) throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateResourceTypeDeleteRequest(resourceName);
         getConfigurationDAO().deleteResourceTypeByName(resourceName);
 
@@ -212,6 +231,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      * {@inheritDoc}
      */
     public ResourceType addResourceType(ResourceTypeAdd resourceTypeAdd) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateResourceTypeCreateRequest(resourceTypeAdd);
         String resourceTypeID = generateUniqueID();
@@ -237,6 +258,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public ResourceType replaceResourceType(ResourceTypeAdd resourceTypeAdd) throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateResourceTypeReplaceRequest(resourceTypeAdd);
         String resourceTypeID;
         resourceTypeID = generateResourceTypeId(resourceTypeAdd.getName());
@@ -259,6 +282,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public void deleteAttribute(String resourceTypeName, String resourceName, String attributeKey)
             throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateAttributeDeleteRequest(resourceTypeName, resourceName, attributeKey);
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attributeKey);
         getConfigurationDAO().deleteAttribute(
@@ -273,6 +298,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Attribute getAttribute(String resourceTypeName, String resourceName, String attributeKey)
             throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateAttributeGetRequest(resourceTypeName, resourceName, attributeKey);
         String resourceId = getResourceId(resourceTypeName, resourceName);
@@ -296,6 +323,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public Attribute updateAttribute(String resourceTypeName, String resourceName, Attribute attribute)
             throws ConfigurationManagementException {
 
+        checkFeatureStatus();
+
         validateAttributeRequest(attribute);
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attribute.getKey());
         getConfigurationDAO().updateAttribute(existingAttribute.getAttributeId(), getResourceId(resourceTypeName,
@@ -312,6 +341,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Attribute addAttribute(String resourceTypeName, String resourceName, Attribute attribute)
             throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateAttributeAddRequest(resourceTypeName, resourceName, attribute.getKey());
         String resourceId = getResourceId(resourceTypeName, resourceName);
@@ -331,6 +362,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      */
     public Attribute replaceAttribute(String resourceTypeName, String resourceName, Attribute attribute)
             throws ConfigurationManagementException {
+
+        checkFeatureStatus();
 
         validateAttributeRequest(attribute);
         String resourceId = getResourceId(resourceTypeName, resourceName);
@@ -400,7 +433,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         resource.setResourceName(resourceAdd.getName());
         resource.setResourceType(resourceTypeName);
         resource.setAttributes(resourceAdd.getAttributes());
-        resource.setLastModified(java.time.Instant.now().toString());
         return resource;
     }
 
@@ -569,12 +601,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateAttributeDeleteRequest(String resourceTypeName, String resourceName, String attributeKey)
-            throws ConfigurationManagementException {
-
-        validateAttributeAddRequest(resourceTypeName, resourceName, attributeKey);
-    }
-
     private void validateAttributeGetRequest(String resourceTypeName, String resourceName, String attributeKey)
             throws ConfigurationManagementException {
 
@@ -623,6 +649,17 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
+    private void validateAttributeDeleteRequest(String resourceTypeName, String resourceName, String attributeKey)
+            throws ConfigurationManagementException {
+
+        if (StringUtils.isEmpty(attributeKey) || StringUtils.isEmpty(attributeKey)) {
+            throw handleClientException(ERROR_CODE_ATTRIBUTE_REQUIRED, null);
+        }
+        if (!isAttributeExists(resourceTypeName, resourceName, attributeKey)) {
+            throw handleClientException(ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS, attributeKey);
+        }
+    }
+
     private String generateAttributeId(String resourceTypeName, String resourceName, Attribute attribute)
             throws ConfigurationManagementException {
 
@@ -654,6 +691,23 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             return configurationDAOS.get(configurationDAOS.size() - 1);
         } else {
             throw handleServerException(ERROR_CODE_GET_DAO, "configurationDAOs");
+        }
+    }
+
+    /**
+     * This feature only get enabled when IDN_CONFIG_TYPE, IDN_CONFIG_RESOURCE, IDN_CONFIG_ATTRIBUTE and
+     * IDN_CONFIG_FILE tables are available.
+     *
+     * @throws ConfigurationManagementException if any of the required table is not available.
+     */
+    private void checkFeatureStatus() throws ConfigurationManagementException {
+
+        if (!ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled()) {
+            if (log.isDebugEnabled()) {
+                log.debug(ErrorMessages.ERROR_CODE_FEATURE_NOT_ENABLED.getMessage());
+            }
+            throw new ConfigurationManagementClientException(ErrorMessages.ERROR_CODE_FEATURE_NOT_ENABLED.getMessage(),
+                    ErrorMessages.ERROR_CODE_FEATURE_NOT_ENABLED.getCode());
         }
     }
 }

@@ -28,6 +28,7 @@ public class Resource {
     private String resourceName;
     private String resourceType;
     private String lastModified;
+    private String created;
     private List<ResourceFile> files;
     private List<Attribute> attributes;
     private boolean hasFile;
@@ -47,6 +48,16 @@ public class Resource {
 
     public Resource() {
 
+    }
+
+    public String getCreatedTime() {
+
+        return created;
+    }
+
+    public void setCreatedTime(String createdTime) {
+
+        this.created = createdTime;
     }
 
     public boolean isHasFile() {

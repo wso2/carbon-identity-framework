@@ -19,7 +19,6 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -35,12 +34,14 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
 import org.wso2.carbon.user.api.UserStoreException;
-import java.util.ArrayList;
-import java.util.List;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 public class IdPManagementUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUtil.class);
+
+    private static String tenantContext;
+    private static String tenantParameter;
 
     /**
      * Get the tenant id of the given tenant domain.
@@ -151,5 +152,42 @@ public class IdPManagementUtil {
             properties = RandomPasswordProcessor.getInstance().removeRandomPasswords(properties, withCacheClear);
             provisioningConnectorConfig.setProvisioningProperties(properties);
         }
+    }
+
+
+    /**
+     * Set tenantContext and tenantParameter specific to the tenant domain.
+     *
+     * @param tenantDomain of requested resident IdP
+     */
+    public static void setTenantSpecifiers(String tenantDomain) {
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
+            tenantParameter = "?" + MultitenantConstants.TENANT_DOMAIN + "=" + tenantDomain;
+        } else {
+            tenantContext = "";
+            tenantParameter = "";
+        }
+    }
+
+    /**
+     * Get the tenant context specific to the resident IdP tenant domain.
+     *
+     * @return the tenantContext
+     */
+    public static String getTenantContext() {
+
+        return tenantContext;
+    }
+
+    /**
+     * Get the tenant parameter specific to the resident IdP tenant domain to be appended with the endpoint URL.
+     *
+     * @return the tenantParameter
+     */
+    public static String getTenantParameter() {
+
+        return tenantParameter;
     }
 }

@@ -171,7 +171,7 @@
             <table style="width: 100%" class="styledLeft">
                 <tbody>
                 <tr>
-                    <div style="height:30px;">
+                    <div style="display:none">
                         <a href="javascript:document.location.href='list-sp-templates.jsp'" class="icon-link"
                            style="background-image:url(../application/images/list.png);"><fmt:message key="sp.template.view.link"/></a>
                     </div>
