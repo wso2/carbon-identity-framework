@@ -276,6 +276,15 @@ function idpMgtCancel(){
         if (!isSamlMetadataValidityPeriodValidated) {
             return false;
         }
+        var isSSOUrlValidated = doValidateInput(document.getElementById('samlSSOUrl'), "Please enter a valid SSO URL");
+        var SSOUrl = $("#samlSSOUrl").val();
+        if (!isSSOUrlValidated) {
+            return false;
+        }
+        if (SSOUrl == null || SSOUrl.trim().length == 0) {
+            CARBON.showWarningDialog("Please enter a valid SSO URL");
+            return false;
+        }
         return true;
     }
     function onClickAddDestinationUrl() {
@@ -546,7 +555,9 @@ function removeDefaultAuthSeq() {
                         <!--End the if conditions from here. For the destination url table-->
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='sso.url'/>:</td>
-                            <td><%=Encode.forHtmlContent(samlSSOUrl)%></td>
+                            <td><input id="samlSSOUrl" name="samlSSOUrl"
+                                       type="text" value="<%=Encode.forHtmlContent(samlSSOUrl)%>"
+                                       white-list-patterns="http-url https-url"/></td>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
