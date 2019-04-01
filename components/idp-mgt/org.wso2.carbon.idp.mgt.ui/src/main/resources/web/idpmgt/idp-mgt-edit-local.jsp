@@ -29,7 +29,6 @@
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
@@ -274,6 +273,14 @@ function idpMgtCancel(){
         var isSamlMetadataValidityPeriodValidated = doValidateInput(document.getElementById('samlMetadataValidityPeriod'),
             "SAML metadata validity period must be numeric value greater than 0");
         if (!isSamlMetadataValidityPeriodValidated) {
+            return false;
+        }
+        var isSSOUrlValidated = doValidateInput(document.getElementById('samlSSOUrl'), "Please enter a valid SSO URL");
+        if (!isSSOUrlValidated) {
+            return false;
+        }
+        var issamlSLOUrlValidated = doValidateInput(document.getElementById('samlSLOUrl'), "Please enter a valid Logout Url");
+        if (!issamlSLOUrlValidated) {
             return false;
         }
         return true;
@@ -546,11 +553,15 @@ function removeDefaultAuthSeq() {
                         <!--End the if conditions from here. For the destination url table-->
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='sso.url'/>:</td>
-                            <td><%=Encode.forHtmlContent(samlSSOUrl)%></td>
+                            <td><input id="samlSSOUrl" name="samlSSOUrl"
+                                       type="text" value="<%=Encode.forHtmlContent(samlSSOUrl)%>"
+                                       white-list-patterns="http-url https-url"/></td>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
-                            <td><%=Encode.forHtmlContent(samlSLOUrl)%></td>
+                            <td><input id="samlSLOUrl" name="samlSLOUrl"
+                                       type="text" value="<%=Encode.forHtmlContent(samlSLOUrl)%>"
+                                       white-list-patterns="http-url https-url"/></td>
                         </tr>
                         <tr style="display:none;">
                             <td class="leftCol-med labelField"><fmt:message key='ecp.url'/>:</td>

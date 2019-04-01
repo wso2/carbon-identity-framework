@@ -96,6 +96,14 @@
         property.setValue(request.getParameter("samlMetadataValidityPeriod"));
         propertyList.add(property);
         property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
+        property.setValue(request.getParameter("samlSSOUrl"));
+        propertyList.add(property);
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
+        property.setValue(request.getParameter("samlSLOUrl"));
+        propertyList.add(property);
+        property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED);
         String samlMetadataSigningEnabled = "false";
         if (StringUtils.containsIgnoreCase(request.getParameter("samlMetadataSigningEnabled"), "on")) {
