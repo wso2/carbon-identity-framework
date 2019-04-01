@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -1699,33 +1698,9 @@ public class IdentityProviderManager implements IdpManager {
                     .getIdentityProviderName() + "exists in the file system.");
         }
 
-        PermissionsAndRoleConfig roleConfiguration = identityProvider.getPermissionAndRoleConfig();
-
-        if (roleConfiguration != null && roleConfiguration.getRoleMappings() != null) {
-            for (RoleMapping mapping : roleConfiguration.getRoleMappings()) {
-                UserStoreManager usm = null;
-                try {
-                    usm = IdPManagementServiceComponent.getRealmService()
-                            .getTenantUserRealm(tenantId).getUserStoreManager();
-                    String role = null;
-                    if (mapping.getLocalRole().getUserStoreId() != null) {
-                        role = mapping.getLocalRole().getUserStoreId()
-                                + CarbonConstants.DOMAIN_SEPARATOR
-                                + mapping.getLocalRole().getLocalRoleName();
-                    }
-                    if (usm.isExistingRole(role)) {
-                        // perfect
-                    } else {
-                        String msg = "Cannot find tenant role " + role + " for tenant "
-                                + tenantDomain;
-                        throw new IdentityProviderManagementException(msg);
-                    }
-                } catch (UserStoreException e) {
-                    String msg = "Error occurred while retrieving UserStoreManager for tenant "
-                            + tenantDomain;
-                    throw new IdentityProviderManagementException(msg, e);
-                }
-            }
+        if (identityProvider.getPermissionAndRoleConfig() != null
+                && identityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
+            verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, identityProvider.getPermissionAndRoleConfig());
         }
 
         if (IdentityProviderManager.getInstance().getIdPByName(
@@ -1759,7 +1734,6 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
     }
-
 
     /**
      * Deletes an Identity Provider from a given tenant
@@ -1866,33 +1840,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (newIdentityProvider.getPermissionAndRoleConfig() != null
                 && newIdentityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
-            for (RoleMapping mapping : newIdentityProvider.getPermissionAndRoleConfig()
-                    .getRoleMappings()) {
-                UserStoreManager usm = null;
-                try {
-                    usm = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                            .getUserStoreManager();
-                    String role = null;
-                    if (mapping.getLocalRole().getUserStoreId() != null) {
-                        role = mapping.getLocalRole().getUserStoreId()
-                                + CarbonConstants.DOMAIN_SEPARATOR
-                                + mapping.getLocalRole().getLocalRoleName();
-                    } else {
-                        role = mapping.getLocalRole().getLocalRoleName();
-                    }
-                    if (usm.isExistingRole(role)) {
-                        // perfect
-                    } else {
-                        String msg = "Cannot find tenant role " + role + " for tenant "
-                                + tenantDomain;
-                        throw new IdentityProviderManagementException(msg);
-                    }
-                } catch (UserStoreException e) {
-                    String msg = "Error occurred while retrieving UserStoreManager for tenant "
-                            + tenantDomain;
-                    throw new IdentityProviderManagementException(msg, e);
-                }
-            }
+            verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, newIdentityProvider.getPermissionAndRoleConfig());
         }
 
 
@@ -2156,4 +2104,32 @@ public class IdentityProviderManager implements IdpManager {
         return uriModified.toString();
     }
 
+    private void verifyAndUpdateRoleConfiguration(String tenantDomain, int tenantId,
+            PermissionsAndRoleConfig roleConfiguration) throws IdentityProviderManagementException {
+
+        List<RoleMapping> validRoleMappings = new ArrayList<>();
+        List<String> validIdPRoles = new ArrayList<>();
+
+        for (RoleMapping mapping : roleConfiguration.getRoleMappings()) {
+            try {
+                UserStoreManager usm = IdPManagementServiceComponent.getRealmService().getTenantUserRealm(tenantId)
+                        .getUserStoreManager();
+                String role = mapping.getLocalRole().getLocalRoleName();
+                if (mapping.getLocalRole().getUserStoreId() != null) {
+                    role = mapping.getLocalRole().getUserStoreId() + CarbonConstants.DOMAIN_SEPARATOR + role;
+                }
+                // Remove invalid mappings if local role does not exists.
+                if (usm.isExistingRole(role)) {
+                    validRoleMappings.add(mapping);
+                    validIdPRoles.add(mapping.getRemoteRole());
+                }
+            } catch (UserStoreException e) {
+                String msg = "Error occurred while retrieving UserStoreManager for tenant " + tenantDomain;
+                throw new IdentityProviderManagementException(msg, e);
+            }
+        }
+
+        roleConfiguration.setRoleMappings(validRoleMappings.toArray(new RoleMapping[0]));
+        roleConfiguration.setIdpRoles(validIdPRoles.toArray(new String[0]));
+    }
 }
