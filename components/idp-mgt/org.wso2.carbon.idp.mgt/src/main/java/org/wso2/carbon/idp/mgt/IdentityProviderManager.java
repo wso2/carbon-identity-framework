@@ -24,7 +24,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -2112,20 +2111,30 @@ public class IdentityProviderManager implements IdpManager {
 
         for (RoleMapping mapping : roleConfiguration.getRoleMappings()) {
             try {
+                if (mapping.getRemoteRole() == null || mapping.getLocalRole() == null || StringUtils
+                        .isBlank(mapping.getLocalRole().getLocalRoleName())) {
+                    continue;
+                }
+
                 UserStoreManager usm = IdPManagementServiceComponent.getRealmService().getTenantUserRealm(tenantId)
                         .getUserStoreManager();
                 String role = mapping.getLocalRole().getLocalRoleName();
-                if (mapping.getLocalRole().getUserStoreId() != null) {
-                    role = mapping.getLocalRole().getUserStoreId() + CarbonConstants.DOMAIN_SEPARATOR + role;
+                if (StringUtils.isNotBlank(mapping.getLocalRole().getUserStoreId())) {
+                    role = IdentityUtil.addDomainToName(role, mapping.getLocalRole().getUserStoreId());
                 }
                 // Remove invalid mappings if local role does not exists.
                 if (usm.isExistingRole(role)) {
                     validRoleMappings.add(mapping);
                     validIdPRoles.add(mapping.getRemoteRole());
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Invalid local role name: " + role + " for the federated role: " + mapping
+                                .getRemoteRole());
+                    }
                 }
             } catch (UserStoreException e) {
-                String msg = "Error occurred while retrieving UserStoreManager for tenant " + tenantDomain;
-                throw new IdentityProviderManagementException(msg, e);
+                throw new IdentityProviderManagementException(
+                        "Error occurred while retrieving UserStoreManager for tenant " + tenantDomain, e);
             }
         }
 
