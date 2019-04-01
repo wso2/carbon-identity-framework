@@ -65,6 +65,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
+import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
+
 public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
@@ -154,25 +156,37 @@ public class ApplicationMgtUtil {
 
         String roleName = getAppRoleName(applicationName);
         String[] usernames = {username};
-
+        UserStoreManager userStoreManager = null;
         try {
+            userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
             // create a role for the application and assign the user to that role.
             if (log.isDebugEnabled()) {
                 log.debug("Creating application role : " + roleName + " and assign the user : "
                         + Arrays.toString(usernames) + " to that role");
             }
-            if (CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager().
-                    isExistingRole(roleName)) {
-                String errorMsg = "Application registration failed. The application role \'" + roleName +
-                        "\' already exists.";
-                log.error(errorMsg);
-                throw new IdentityApplicationRegistrationFailureException(errorMsg);
-            }
-            CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
-                    .addRole(roleName, usernames, null);
+            userStoreManager.addRole(roleName, usernames, null);
         } catch (UserStoreException e) {
-            throw new IdentityApplicationManagementException("Error while creating application role: " + roleName +
-                    " with user " + username, e);
+            //If the Application/<sp-name> role addition has failed giving role already exists issue, then assign the
+            // role to user
+            String errorMsgString = String.format(ERROR_CODE_ROLE_ALREADY_EXISTS.getMessage(), roleName);
+            String errMsg = e.getMessage();
+            if (errMsg != null && errMsg.contains(ERROR_CODE_ROLE_ALREADY_EXISTS.getCode()) || errorMsgString.contains(errMsg)) {
+                String[] newRoles = {roleName};
+                if (log.isDebugEnabled()) {
+                    log.debug("Application role is already created. Skip creating: " + roleName + ". Assigning role " +
+                            "to the user: " + username);
+                }
+                try {
+                    userStoreManager.updateRoleListOfUser(username, null, newRoles);
+                } catch (UserStoreException e1) {
+                    throw new IdentityApplicationManagementException("Error while updating application role: " +
+                            roleName + " with user " + username, e1);
+
+                }
+            } else {
+                throw new IdentityApplicationManagementException("Error while creating application role: " + roleName +
+                        " with user " + username, e);
+            }
         }
     }
 
