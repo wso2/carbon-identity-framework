@@ -28,7 +28,6 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -37,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.Collection;
@@ -44,8 +44,6 @@ import org.wso2.carbon.registry.api.Registry;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.api.Resource;
 import org.wso2.carbon.registry.core.RegistryConstants;
-import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -73,6 +71,7 @@ public class ApplicationMgtUtil {
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
     // Regex for validating application name
     public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
+    private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
     private static boolean perSPCertificateSupportAvailable;
@@ -166,27 +165,42 @@ public class ApplicationMgtUtil {
             }
             userStoreManager.addRole(roleName, usernames, null);
         } catch (UserStoreException e) {
-            //If the Application/<sp-name> role addition has failed giving role already exists issue, then assign the
-            // role to user
-            String errorMsgString = String.format(ERROR_CODE_ROLE_ALREADY_EXISTS.getMessage(), roleName);
-            String errMsg = e.getMessage();
-            if (errMsg != null && errMsg.contains(ERROR_CODE_ROLE_ALREADY_EXISTS.getCode()) || errorMsgString.contains(errMsg)) {
-                String[] newRoles = {roleName};
-                if (log.isDebugEnabled()) {
-                    log.debug("Application role is already created. Skip creating: " + roleName + ". Assigning role " +
-                            "to the user: " + username);
-                }
-                try {
-                    userStoreManager.updateRoleListOfUser(username, null, newRoles);
-                } catch (UserStoreException e1) {
-                    throw new IdentityApplicationManagementException("Error while updating application role: " +
-                            roleName + " with user " + username, e1);
+            assignRoleToUser(username, roleName, userStoreManager, e);
+        }
+    }
 
-                }
-            } else {
-                throw new IdentityApplicationManagementException("Error while creating application role: " + roleName +
-                        " with user " + username, e);
+    /**
+     * If the Application/<sp-name> role addition has failed giving role already exists issue, then
+     * assign the role to user.
+     *
+     * @param username         User name
+     * @param roleName         Role name
+     * @param userStoreManager User store manager
+     * @param e                User store exception threw.
+     * @throws IdentityApplicationManagementException
+     */
+    private static void assignRoleToUser(String username, String roleName, UserStoreManager userStoreManager,
+                                         UserStoreException e) throws IdentityApplicationManagementException {
+
+        String errorMsgString = String.format(ERROR_CODE_ROLE_ALREADY_EXISTS.getMessage(), roleName);
+        String errMsg = e.getMessage();
+        if (errMsg != null && (errMsg.contains(ERROR_CODE_ROLE_ALREADY_EXISTS.getCode()) ||
+                errorMsgString.contains(errMsg))) {
+            String[] newRoles = {roleName};
+            if (log.isDebugEnabled()) {
+                log.debug("Application role is already created. Skip creating: " + roleName + " and assigning" +
+                        " the user: " + username);
             }
+            try {
+                userStoreManager.updateRoleListOfUser(username, null, newRoles);
+            } catch (UserStoreException e1) {
+                throw new IdentityApplicationManagementException("Error while updating application role: " +
+                        roleName + " with user " + username, e1);
+
+            }
+        } else {
+            throw new IdentityApplicationManagementException("Error while creating application role: " + roleName +
+                    " with user " + username, e);
         }
     }
 
@@ -276,10 +290,8 @@ public class ApplicationMgtUtil {
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            RegistryUtils.initializeTenant(
-                    (RegistryService) ApplicationManagementServiceComponentHolder.getInstance().getRegistryService(),
-                    tenantId);
-        } catch (RegistryException e) {
+            IdentityTenantUtil.initializeRegistry(tenantId, IdentityTenantUtil.getTenantDomain(tenantId));
+        } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error loading tenant registry for tenant domain: " +
                     IdentityTenantUtil.getTenantDomain(tenantId), e);
         }
@@ -547,9 +559,22 @@ public class ApplicationMgtUtil {
      */
     public static boolean isRegexValidated(String applicationName) {
 
-        String spValidatorRegex = APP_NAME_VALIDATING_REGEX;
+        String spValidatorRegex = getSPValidatorRegex();
         Pattern regexPattern = Pattern.compile(spValidatorRegex);
         return regexPattern.matcher(applicationName).matches();
+    }
+
+    /**
+     * Return the Service Provider validation regex.
+     * @return regex.
+     */
+    public static String getSPValidatorRegex() {
+
+        String spValidatorRegex = IdentityUtil.getProperty(SERVICE_PROVIDERS_NAME_REGEX);
+        if (StringUtils.isBlank(spValidatorRegex)) {
+            spValidatorRegex = APP_NAME_VALIDATING_REGEX;
+        }
+        return spValidatorRegex;
     }
 
     /**
@@ -647,5 +672,31 @@ public class ApplicationMgtUtil {
             throw new IdentityApplicationManagementException(String.format("Error in reading Service Provider " +
                     "configuration file %s uploaded by tenant: %s", spFileStream.getFileName(), tenantDomain), e);
         }
+    }
+
+    public static void startTenantFlow(String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
+        startTenantFlow(tenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(userName);
+    }
+
+    public static void startTenantFlow(String tenantDomain) throws IdentityApplicationManagementException {
+
+        int tenantId;
+        try {
+            tenantId = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
+                    .getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error when setting tenant domain. ", e);
+        }
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+    }
+
+    public static void endTenantFlow() {
+
+        PrivilegedCarbonContext.endTenantFlow();
     }
 }
