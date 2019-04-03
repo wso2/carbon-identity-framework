@@ -1623,12 +1623,12 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.resourceType</ClaimURI>
 				<DisplayName>Meta - Location</DisplayName>
-				<AttributeID>ref</AttributeID>
+				<AttributeID>userType</AttributeID>
 				<Description>Meta - Location</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/resourceType</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/userType</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.version</ClaimURI>
