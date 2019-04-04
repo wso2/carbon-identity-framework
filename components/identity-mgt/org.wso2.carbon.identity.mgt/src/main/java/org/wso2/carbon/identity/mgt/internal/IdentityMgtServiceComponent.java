@@ -31,6 +31,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -45,6 +47,7 @@ import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
 import org.wso2.carbon.identity.mgt.listener.TenantManagementListener;
 import org.wso2.carbon.identity.mgt.listener.UserOperationsNotificationListener;
+import org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener;
 import org.wso2.carbon.identity.mgt.store.RegistryCleanUpService;
 import org.wso2.carbon.identity.mgt.util.UserIdentityManagementUtil;
 import org.wso2.carbon.identity.notification.mgt.NotificationSender;
@@ -78,6 +81,7 @@ public class IdentityMgtServiceComponent {
     private static RecoveryProcessor recoveryProcessor;
     private static NotificationSender notificationSender;
     private static AttributeSearchService attributeSearchService;
+    private static UserSessionManagementService userSessionManagementService;
 
     public static RealmService getRealmService() {
         return realmService;
@@ -191,6 +195,8 @@ public class IdentityMgtServiceComponent {
                 UserOperationEventListener.class.getName(), notificationListener, null);
         context.getBundleContext().registerService(TenantMgtListener.class.getName(), new TenantManagementListener()
                 , null);
+        context.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                new UserSessionTerminationListener(), null);
 
         if (userOperationNotificationSR != null) {
             if (log.isDebugEnabled()) {
@@ -207,6 +213,10 @@ public class IdentityMgtServiceComponent {
         RegistryCleanUpService registryCleanUpService = new RegistryCleanUpService(IdentityMgtConfig.getInstance()
                 .getRegistryCleanUpPeriod(), IdentityMgtConfig.getInstance().getRegistryCleanUpPeriod());
         registryCleanUpService.activateCleanUp();
+
+        // Set user session mapping enabled.
+        IdentityMgtServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
+                .isUserSessionMappingEnabled());
     }
 
     @Deactivate
@@ -296,5 +306,35 @@ public class IdentityMgtServiceComponent {
 
     public static AttributeSearchService getAttributeSearchService() {
         return attributeSearchService;
+    }
+
+    @Reference(
+            name = "userSessionManagementService",
+            service = UserSessionManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserSessionManagementService"
+    )
+    protected void setUserSessionManagementService(UserSessionManagementService sessionService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Setting Session Management Service");
+        }
+
+        userSessionManagementService = sessionService;
+    }
+
+    protected void unsetUserSessionManagementService(UserSessionManagementService sessionService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unsetting Session Management Service");
+        }
+
+        userSessionManagementService = null;
+    }
+
+    public static UserSessionManagementService getUserSessionManagementService() {
+
+        return userSessionManagementService;
     }
 }

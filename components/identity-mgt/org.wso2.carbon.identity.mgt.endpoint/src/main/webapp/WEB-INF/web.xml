@@ -32,6 +32,10 @@
         <param-name>EnableCaptchaVerification</param-name>
         <param-value>false</param-value>
     </context-param>
+    <context-param>
+        <param-name>EnableMultiTenancy</param-name>
+        <param-value>false</param-value>
+    </context-param>
     <!--context-param>
         <param-name>UserPortalUrl</param-name>
         <param-value>https://localhost:9443/dashboard/index.jag</param-value>
@@ -80,6 +84,25 @@
         <filter-name>ContentTypeBasedCachePreventionFilter</filter-name>
         <url-pattern>*</url-pattern>
     </filter-mapping>
+
+    <filter>
+        <filter-name>CharsetFilter</filter-name>
+        <filter-class>org.wso2.carbon.tomcat.ext.filter.CharacterSetFilter</filter-class>
+        <init-param>
+            <param-name>requestEncoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>CharsetFilter</filter-name>
+        <url-pattern>*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>recoveraccountrouter.do</servlet-name>
+        <jsp-file>/account-recovery-router.jsp</jsp-file>
+    </servlet>
 
     <servlet>
         <servlet-name>recoverusername.do</servlet-name>
@@ -151,6 +174,11 @@
         <servlet-name>verify.do</servlet-name>
         <jsp-file>/recovery.jsp</jsp-file>
     </servlet>
+
+    <servlet-mapping>
+        <servlet-name>recoveraccountrouter.do</servlet-name>
+        <url-pattern>/recoveraccountrouter.do</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>recoverusername.do</servlet-name>

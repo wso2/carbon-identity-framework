@@ -22,16 +22,15 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
-<%@ page import="javax.ws.rs.core.Response" %>
-<%@ page import="java.net.HttpURLConnection" %>
-<%@ page import="java.net.URL" %>
-<%@ page import="java.net.URLEncoder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
+
+<jsp:directive.include file="init-loginform-action-url.jsp"/>
 
 
 <script>
@@ -42,6 +41,10 @@
             if(userName.value){
                 document.getElementById("loginForm").submit();
             }
+        }
+
+        function goBack() {
+            window.history.back();
         }
 </script>
 
@@ -88,25 +91,12 @@
     }
 %>
 
+<form action="<%=loginFormActionURL%>" method="post" id="loginForm">
 
-<%
-    String type = request.getParameter("type");
-    if ("samlsso".equals(type)) {
-%>
-<form action="<%=samlssoURL%>" method="post" id="loginForm">
+    <%
+        if (loginFormActionURL.equals(samlssoURL) || loginFormActionURL.equals(oauth2AuthorizeURL)) {
+    %>
     <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
-<%
-    } else if ("oauth2".equals(type)){
-%>
-    <form action="<%=oauth2AuthorizeURL%>" method="post" id="loginForm">
-        <input id="tocommonauth" name="tocommonauth" type="hidden" value="true">
-
-<%
-    } else {
-%>
-
-<form action="<%=commonauthURL%>" method="post" id="loginForm">
-
     <%
         }
     %>
@@ -120,10 +110,14 @@
     </div>
     <%}%>
 
+    <% if (!isIdentifierFirstLogin(inputType)) { %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
         <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
     </div>
+    <% } else {%>
+        <input id="username" name="username" type="hidden" value="<%=username%>">
+    <% }%>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="password"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "password")%></label>
         <input id="password" name="password" type="password" class="form-control" placeholder="" autocomplete="off">
@@ -217,19 +211,29 @@
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password")%>
-                <a id="usernameRecoverLink" href="<%=getRecoverUsernameUrl(identityMgtEndpointContext, urlEncodedURL)%>">
-                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
-                </a>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
-                <a id="passwordRecoverLink" href="<%=getRecoverPasswordUrl(identityMgtEndpointContext, urlEncodedURL)%>">
+                <% if (!isIdentifierFirstLogin(inputType)) { %>
+                    <a id="usernameRecoverLink" href="<%=getRecoverAccountUrl(identityMgtEndpointContext, urlEncodedURL, true)%>">
+                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username")%>
+                    </a>
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.username.password.or")%>
+                <% } %>
+                <a id="passwordRecoverLink" href="<%=getRecoverAccountUrl(identityMgtEndpointContext, urlEncodedURL, false)%>">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "forgot.password")%>
                 </a>
                 ?
             </div>
+    
+            <div class="form-actions">
+                <% if (isIdentifierFirstLogin(inputType)) { %>
+                <a id="backLink" onclick="goBack()">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "sign.in.different.account")%>
+                </a>
+                <% } %>
+            </div>
         </div>
         <%
                 }
-                if (isSelfSignUpEPAvailable) {
+                if (isSelfSignUpEPAvailable && !isIdentifierFirstLogin(inputType)) {
         %>
         <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
             <div class="form-actions">
@@ -258,14 +262,16 @@
 
     <div class="clearfix"></div>
     <%!
-    private String getRecoverPasswordUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        return identityMgtEndpointContext + "/recoverpassword.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-    }
-    private String getRecoverUsernameUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        return identityMgtEndpointContext + "/recoverusername.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-    }
-    private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
-        return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
-    }
+    
+        private String getRecoverAccountUrl(String identityMgtEndpointContext, String urlEncodedURL, boolean isUsernameRecovery) {
+        
+            return identityMgtEndpointContext + "/recoveraccountrouter.do?callback=" +
+                    Encode.forHtmlAttribute(urlEncodedURL) + "&isUsernameRecovery=" + isUsernameRecovery;
+        }
+    
+        private String getRegistrationUrl(String identityMgtEndpointContext, String urlEncodedURL) {
+        
+            return identityMgtEndpointContext + "/register.do?callback=" + Encode.forHtmlAttribute(urlEncodedURL);
+        }
     %>
 </form>

@@ -26,8 +26,9 @@ import java.util.Map;
  * Decision making node on graph execution model.
  * This node will construct its child nodes upon execution on asynchronous events.
  */
-public class DynamicDecisionNode implements AuthGraphNode {
+public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGraphNode {
 
+    private static final long serialVersionUID = -2151385170280964420L;
     private Map<String, SerializableJsFunction> functionMap = new HashMap<>();
     private AuthGraphNode defaultEdge;
 

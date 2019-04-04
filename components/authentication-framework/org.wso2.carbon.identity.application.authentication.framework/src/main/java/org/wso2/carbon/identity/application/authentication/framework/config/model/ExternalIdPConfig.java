@@ -205,6 +205,42 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
+     * To check whether password provisioning is enabled, while JIT provisioning.
+     *
+     * @return true if the password provisioning is enabled otherwise false.
+     */
+    public boolean isPasswordProvisioningEnabled() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isPasswordProvisioningEnabled();
+        }
+        return false;
+    }
+
+    /**
+     * To check whether modify user name is allowed, while JIT provisioning.
+     *
+     * @return true if modification of user name is allowed.
+     */
+    public boolean isModifyUserNameAllowed() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isModifyUserNameAllowed();
+        }
+        return false;
+    }
+
+    /**
+     * To check whether prompt for consent is enabled, while JIT provisioning.
+     *
+     * @return true if prompt for consent is enabled.
+     */
+    public boolean isPromptConsentEnabled() {
+        if (justInTimeProConfig != null) {
+            return justInTimeProConfig.isPromptConsent();
+        }
+        return false;
+    }
+
+    /**
      * @return
      */
     public String getRoleClaimUri() {

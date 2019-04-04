@@ -667,7 +667,7 @@ function showHidePassword(element, inputId) {
 
 function emailValidator(name) {
     var errorMsg = "";
-    var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    var emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     if (name == "") {
         errorMsg = "null";
     } else if (!name.match(new RegExp(emailPattern))) {
@@ -697,7 +697,7 @@ function doValidation() {
         if ($('#meta_data_saml').val() == "") {
 
             if ($('#idPEntityId').val() == "") {
-                CARBON.showWarningDialog('Identity Provider Entity Id cannot be empty');
+                CARBON.showWarningDialog('Identity Provider Entity ID cannot be empty');
                 return false;
             }
             if ($('#ssoUrl').val() == "") {
@@ -707,7 +707,7 @@ function doValidation() {
         }
 
         if ($('#spEntityId').val() == "") {
-            CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+            CARBON.showWarningDialog('Service Provider Entity ID cannot be empty');
             return false;
         }
 
@@ -716,7 +716,7 @@ function doValidation() {
 
     if ($('#meta_data_saml').val() != ""  && !jQuery('#saml2SSOEnabled').attr('checked') ) {
         if ($('#spEntityId').val() == "") {
-            CARBON.showWarningDialog('Service Provider Entity Id cannot be empty');
+            CARBON.showWarningDialog('Service Provider Entity ID cannot be empty');
             return false;
         }
 
@@ -1000,9 +1000,15 @@ jQuery('#roleMappingDeleteLink').click(function () {
 });
 jQuery('#provision_disabled').click(function () {
     jQuery('#provision_static_dropdown').attr('disabled', 'disabled');
+    $('input[name=choose_jit_type_group]').attr('disabled', 'disabled');
 });
 jQuery('#provision_static').click(function () {
     jQuery('#provision_static_dropdown').removeAttr('disabled');
+    $('input[name=choose_jit_type_group]').removeAttr('disabled');
+});
+
+jQuery('#password_provisioning').click(function () {
+    jQuery('#modify_username').removeAttr('disabled');
 });
 
 

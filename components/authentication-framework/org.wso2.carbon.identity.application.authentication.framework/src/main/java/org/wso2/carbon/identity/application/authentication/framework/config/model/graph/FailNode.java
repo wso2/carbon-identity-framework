@@ -25,7 +25,7 @@ import java.util.Map;
  * Authentication fail Node.
  * Contains parameters required to process authentication failure.
  */
-public class FailNode implements AuthGraphNode {
+public class FailNode extends AbstractAuthGraphNode implements AuthGraphNode {
 
     private static final long serialVersionUID = 9217119784147648132L;
     private boolean showErrorPage;

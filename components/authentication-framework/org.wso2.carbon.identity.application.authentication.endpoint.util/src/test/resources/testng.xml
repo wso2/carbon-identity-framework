@@ -18,9 +18,19 @@
 
 <suite name="AuthenticationEndpointUtilTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
 
-    <test name="AuthenticationEndpointUtilTests" preserve-order="true" parallel="false">
+    <test name="AuthenticationEndpointUtilTests-with-info-logs" preserve-order="true" parallel="false">
+        <parameter name="log-level" value="info"/>
         <classes>
             <class name="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtilTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.endpoint.util.MutualSSLManagerTest"/>
+        </classes>
+    </test>
+
+    <test name="AuthenticationEndpointUtilTests-with-debug-logs" preserve-order="true" parallel="false">
+        <parameter name="log-level" value="debug"/>
+        <classes>
+            <class name="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtilTest"/>
+            <class name="org.wso2.carbon.identity.application.authentication.endpoint.util.MutualSSLManagerTest"/>
         </classes>
     </test>
 

@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.pro
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -86,17 +87,28 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
                                                                           realmService, tenantDomain);
-
-            String userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
-
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
-            UserStoreManager userStoreManager = getUserStoreManager(realm, userStoreDomain);
-
-            // Remove userStoreManager domain from username if the userStoreDomain is not primary
-            if (realm.getUserStoreManager().getRealmConfiguration().isPrimary()) {
-                username = UserCoreUtil.removeDomainFromName(username);
+            String userStoreDomain;
+            UserStoreManager userStoreManager;
+            if (IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT
+                    .equalsIgnoreCase(provisioningUserStoreId)) {
+                String userStoreDomainFromSubject = UserCoreUtil.extractDomainFromName(subject);
+                try {
+                    userStoreManager = getUserStoreManager(realm, userStoreDomainFromSubject);
+                    userStoreDomain = userStoreDomainFromSubject;
+                } catch (FrameworkException e) {
+                    log.error("User store domain " + userStoreDomainFromSubject + " does not exist for the tenant "
+                            + tenantDomain + ", hence provisioning user to "
+                            + UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                    userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+                    userStoreManager = getUserStoreManager(realm, userStoreDomain);
+                }
+            } else {
+                userStoreDomain = getUserStoreDomain(provisioningUserStoreId, realm);
+                userStoreManager = getUserStoreManager(realm, userStoreDomain);
             }
+            username = UserCoreUtil.removeDomainFromName(username);
 
             if (log.isDebugEnabled()) {
                 log.debug("User: " + username + " with roles : " + roles + " is going to be provisioned");
@@ -117,18 +129,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                 if (roles != null && !roles.isEmpty()) {
                     // Update user
-                    Collection<String> currentRolesList = Arrays.asList(userStoreManager
+                    List<String> currentRolesList = Arrays.asList(userStoreManager
                                                                                 .getRoleListOfUser(username));
                     // addingRoles = (newRoles AND existingRoles) - currentRolesList)
                     addingRoles.removeAll(currentRolesList);
 
-                    Collection<String> deletingRoles = new ArrayList<String>();
-                    deletingRoles.addAll(currentRolesList);
-                    // deletingRoles = currentRolesList - rolesToAdd
-                    deletingRoles.removeAll(rolesToAdd);
-
-                    // Exclude Internal/everyonerole from deleting role since its cannot be deleted
-                    deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
+                    Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
 
                     // TODO : Does it need to check this?
                     // Check for case whether superadmin login
@@ -138,13 +144,26 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 if (!userClaims.isEmpty()) {
-                    userStoreManager.setUserClaimValues(username, userClaims, null);
+                    userClaims.remove(FrameworkConstants.PASSWORD);
+                    userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                 }
 
-            } else {
+                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
 
-                userStoreManager.addUser(username, generatePassword(), addingRoles.toArray(
-                        new String[addingRoles.size()]), userClaims, null);
+                if (StringUtils.isEmpty(userProfileAdmin.getNameAssociatedWith(idp, subjectVal))) {
+                    // Associate User
+                    associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
+                }
+            } else {
+                String password = generatePassword();
+                String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
+                if (StringUtils.isNotEmpty(passwordFromUser)) {
+                    password = passwordFromUser;
+                }
+                userClaims.remove(FrameworkConstants.PASSWORD);
+                userStoreManager
+                        .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
+                                null);
 
                 // Associate User
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
@@ -158,7 +177,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException | UserProfileException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
@@ -369,4 +388,29 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         return updatedRoles;
     }
+
+    /**
+     * Retrieve the list of roles to be deleted.
+     *
+     * @param realm            user realm
+     * @param currentRolesList current role list of the user
+     * @param rolesToAdd       roles that are about to be added
+     * @return roles to be deleted
+     * @throws UserStoreException When failed to get realm configuration
+     */
+    protected List<String> retrieveRolesToBeDeleted(UserRealm realm, List<String> currentRolesList,
+                                                    List<String> rolesToAdd) throws UserStoreException {
+
+        List<String> deletingRoles = new ArrayList<String>();
+        deletingRoles.addAll(currentRolesList);
+
+        // deletingRoles = currentRolesList - rolesToAdd
+        deletingRoles.removeAll(rolesToAdd);
+
+        // Exclude Internal/everyonerole from deleting role since its cannot be deleted
+        deletingRoles.remove(realm.getRealmConfiguration().getEveryOneRoleName());
+
+        return deletingRoles;
+    }
+
 }

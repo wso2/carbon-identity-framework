@@ -67,7 +67,7 @@ public class SQLConstants {
     public static final String DELETE_CLAIM_MAPPED_ATTRIBUTE = "DELETE FROM IDN_CLAIM_MAPPED_ATTRIBUTE WHERE " +
             "LOCAL_CLAIM_ID=? AND TENANT_ID=?";
 
-    // Local Claim Properties SQLs
+    // Claim Properties SQLs
     public static final String GET_CLAIM_PROPERTIES = "SELECT PROPERTY_NAME, PROPERTY_VALUE FROM IDN_CLAIM_PROPERTY " +
             "WHERE LOCAL_CLAIM_ID=? AND TENANT_ID=?";
     public static final String ADD_CLAIM_PROPERTY = "INSERT INTO IDN_CLAIM_PROPERTY (LOCAL_CLAIM_ID, PROPERTY_NAME, " +

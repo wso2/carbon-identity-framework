@@ -63,8 +63,13 @@ public class IdentityManagementEndpointConstants {
     }
 
     public static final class UserInfoRecovery {
+        public static final String SERVICE_CONTEXT_URL = "/services";
+        // Inorder to preserve the backward compatibility this constant is remained purposely.
         public static final String SERVICE_CONTEXT_URL_DOMAIN = "services";
         public static final String REST_API_URL_DOMAIN = "account-recovery";
+        public static final String RECOVERY_API_RELATIVE_PATH = "/api/identity/recovery/v0.9";
+        public static final String USER_API_RELATIVE_PATH = "/api/identity/user/v1.0";
+        public static final String RECOVERY_CALLBACK_REGEX = "Recovery.CallbackRegex";
     }
 
     public static final class UserInfoRecoveryErrorDesc {
@@ -73,6 +78,11 @@ public class IdentityManagementEndpointConstants {
         public static final String NOTIFICATION_ERROR_3 = "Failed to reset password.";
         public static final String NOTIFICATION_ERROR_4 = "Missing confirmation code or invalid session. Cannot proceed further.";
         public static final String NOTIFICATION_ERROR_5 = "Failed to send email notification for username recovery.";
+    }
+
+    public static final class RecoveryOptions {
+
+        public static final String ENABLE_MULTI_TENANCY = "EnableMultiTenancy";
     }
 
     public static final String SUPER_TENANT = "carbon.super";
@@ -93,6 +103,11 @@ public class IdentityManagementEndpointConstants {
 
     public static final String SECRET_ALIAS = "secretAlias:";
     public static final String SECRET_ALIAS_SEPARATOR = ":";
+    public static final String SKIP_SIGN_UP_ENABLE_CHECK = "skipsignupenablecheck";
+    public static final String KEY = "key";
+    public static final String VALUE = "value";
+
+    public static final String UTF_8 = "UTF-8";
 
     public static class Consent {
 

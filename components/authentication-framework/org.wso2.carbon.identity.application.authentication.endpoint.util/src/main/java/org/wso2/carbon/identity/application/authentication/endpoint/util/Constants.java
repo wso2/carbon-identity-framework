@@ -24,22 +24,27 @@ public class Constants {
     public static final String SESSION_DATA_KEY_CONSENT = "sessionDataKeyConsent";
     public static final String AUTH_FAILURE = "authFailure";
     public static final String ERROR_CODE = "errorCode";
+    public static final String ERROR_MSG = "errorMsg";
     public static final String AUTH_FAILURE_MSG = "authFailureMsg";
     public static final String STATUS = "status";
     public static final String STATUS_MSG = "statusMsg";
     public static final String IDP_AUTHENTICATOR_MAP = "idpAuthenticatorMap";
     public static final String RESIDENT_IDP_RESERVED_NAME = "LOCAL";
-    public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL" ;
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String REQUESTED_CLAIMS = "requestedClaims";
     public static final String MANDATORY_CLAIMS = "mandatoryClaims";
     public static final String USER_CLAIMS_CONSENT_ONLY = "userClaimsConsentOnly";
     public static final String CLAIM_SEPARATOR = ",";
     public static final String REQUEST_PARAM_SP = "sp";
-
+    // Response Messages
     public static final String ACCOUNT_RESEND_SUCCESS_RESOURCE = "account.resend.email.success" ;
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail" ;
-
+    public static final String CONFIGURATION_ERROR = "configuration.error";
+    public static final String AUTHENTICATION_MECHANISM_NOT_CONFIGURED = "authentication.mechanism.not.configured";
+    // WebAPP Configurations
+    public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL";
+    public static final String ENABLE_AUTHENTICATION_WITH_REST_API = "EnableAuthenticationWithAuthenticationRESTAPI";
+    public static final String AUTHENTICATION_REST_ENDPOINT_URL = "AuthenticationRESTEndpointURL";
 
 
     public static final String HTTPS_URL = "https://";
@@ -76,6 +81,7 @@ public class Constants {
         public static final String KEY_MANAGER_TYPE = "key.manager.type";
         public static final String TRUST_MANAGER_TYPE = "trust.manager.type";
         public static final String TENANT_LIST_ENABLED = "tenantListEnabled";
+        public static final String MUTUAL_SSL_MANAGER_ENABLED = "mutualSSLManagerEnabled";
         public static final String TLS_PROTOCOL = "tls.protocol";
 
         // Service URL constants
@@ -90,6 +96,7 @@ public class Constants {
         public static final String RELATIVE_PATH_START_CHAR = ".";
         public static final String CHARACTER_ENCODING = "UTF-8";
         public static final String CONFIG_RELATIVE_PATH = "./repository/conf/identity/EndpointConfig.properties";
+        public static final String IDENTITY_XML_RELATIVE_PATH = "./repository/conf/identity/identity.xml";
         public static final String CONFIG_FILE_NAME = "EndpointConfig.properties";
 
         private TenantConstants() {

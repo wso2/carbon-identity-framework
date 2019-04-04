@@ -2,13 +2,14 @@
 .templateName {
     text-decoration: none;
     display: inline-table;
+    color:#555;
 }
 #template_list{
-    height: 280px;
+    height: 325px;
     overflow-y: scroll;
 }
 #template_list .name {
-    padding: 4px;
+    padding: 5px 4px 2px 5px;
     border: 1px solid #ccc;
     border-top: 0;
     height: 20px;
@@ -22,22 +23,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100px;
+    width: 128px;
 }
 #template_list .type {
     margin-bottom: 4px;
 }
-#template_list .name a span{
-    display: inline-block;
-    vertical-align: top;
-    margin-left: 5px;
+.view-template {
+    float:right;
 }
-#template_list .name a {
-    margin-top: 2px;
-    float: left;
-}
-#template_list .name span {
-    float: right;
+.add-template {
+    padding-right : 8px;
+    float:right;
 }
 #template_list li h2{
     white-space: nowrap;
@@ -56,7 +52,7 @@
     margin-top: 4px;
 
 }
-.helpLink {
+.helpLink, .option-links {
     display: inline-block;
     float: right;
 }
@@ -257,10 +253,10 @@
     background-color: rgba(204, 204, 204, 0.9);
 }
 #addTemplate{
-    background:url('images/templates.png') 5px 50% no-repeat;
+    background:url('../images/templates.png') 5px 50% no-repeat;
     background-color: rgba(204, 204, 204, 0.4);
     height: auto;
-    width: 260px;
+    width: 305px;
     line-height: inherit;
     margin: 0px;
     padding: 5px 10px;
@@ -289,3 +285,174 @@
     margin-left: 35px;
 }
 
+.messagebox-error-custom {
+    background-image: url(../../dialog/img/error.gif);
+    background-position: 15px 15px;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    padding: 15px 15px 15px 90px;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    min-height: 50px;
+}
+.messagebox-warning-custom {
+    background-image: url(../../dialog/img/warning.gif);
+    background-position: 15px 15px;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    padding: 15px 15px 15px 90px;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    min-height: 50px;
+}
+.messagebox-info-custom {
+    background-image: url(../images/info.png);
+    background-position: 15px 15px;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    padding: 15px 15px 15px 90px;
+    width: auto;
+    height: auto;
+    overflow: auto;
+    min-height: 50px;
+    font-size: 12px;
+}
+
+#messagebox-template-summary {
+    margin-bottom: 40px;
+}
+
+.messagebox-warning-custom p,.messagebox-error-custom p {
+    text-align: justify;
+}
+
+.messagebox-warning-custom table,.messagebox-error-custom table {
+    border-spacing: 0px;
+}
+
+.messagebox-warning-custom table td,.messagebox-error-custom table td {
+    border: solid 1px #cccccc;
+    height: 25px;
+    padding: 2px 8px;
+    vertical-align: middle;
+}
+
+.messagebox-warning-custom p, .messagebox-warning-custom ul li, .messagebox-warning-custom table td, .messagebox-warning-custom a,
+.messagebox-error-custom p, .messagebox-error-custom ul li, .messagebox-error-custom table td, .messagebox-error-custom a {
+    font-size: 12.65px;
+    margin: 0px;
+}
+
+.editor-warning-content li, .editor-error-content li{
+    list-style-type: disc;
+}
+.editor-error-content, .editor-warning-content {
+    display: none;
+}
+.messagebox-warning-custom .error-msg,.messagebox-error-custom .error-msg, .messagebox-info-custom .error-msg {
+    margin: 10px 0px;
+    margin-top: 20px;
+    padding: 12px;
+    color: #D8000C;
+    background-color: #FFD2D2;
+}
+.messagebox-warning-custom .stepErrorListContainer{
+    padding-bottom: 10px;
+}
+.messagebox-warning-custom .stepErrorListContainer span,
+.messagebox-warning-custom .stepWarningListContainer span{
+    font-weight: bold;
+}
+.editor-error-warn-container {
+    display: none;
+}
+.err_warn_container {
+    display: none;
+}
+.disable_text {
+    font-weight: 700;
+    color: #c51e1e;
+    padding-left: 4px;
+}
+.disable_status {
+    padding-bottom: 12px;
+}
+.err_warn_content li, .warning_content li {
+    list-style-type: disc;
+}
+.editor_err_img, .editor_warn_img {
+    height: 18px;
+    float: left;
+}
+.err_head {
+    font-weight: 600;
+    padding-left: 12px;
+}
+.err_list, .warn_list, .warning_list {
+    padding-left: 47px;
+}
+
+.warn_container {
+    padding: 10px 0;
+}
+.warning_container {
+    display: none;
+    padding-bottom: 10px;
+}
+.err_warn_content, .warning_content {
+    padding: 10px;
+    border: 1px solid #cecece;
+    margin-bottom: 10px;
+    color: #444;
+    display: none;
+}
+.instruction{
+    padding-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+}
+.err_container, .warn_container {
+    display: none;
+}
+.show_errors_toggle_buttons a:hover{
+    color:#2F7ABD;
+}
+.err_warn_text {
+    padding: 20px 0 0 16px;
+    font-size: 12.65px;
+}
+#editorRow .CodeMirror {
+    height: 345px;
+}
+.template-list-container h2.trigger {
+    background-color: #f5f5f5;
+    border: 1px solid #cccccc!important;
+}
+.categoryImg {
+    float: right;
+    padding: 4px;
+    margin-left: 0 !important;
+    height: 18px;
+}
+.truncate-content {
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+}
+.category-title {
+    width: 120px;
+}
+
+#messagebox-template-summary .CodeMirror {
+    height: auto !important;
+}
+#messagebox-template-summary .CodeMirror-scroll {
+    overflow-y: hidden;
+    overflow-x: auto;
+}
+.ui-dialog-buttonpane {
+    z-index: 999;
+}

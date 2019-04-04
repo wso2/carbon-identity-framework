@@ -22,13 +22,24 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "InboundProvisioningConfig")
 public class InboundProvisioningConfig implements Serializable {
 
     private static final long serialVersionUID = -7320364749026206151L;
 
+    @XmlElement(name = "ProvisioningUserStore")
     private String provisioningUserStore;
+
+    @XmlElement(name = "IsProvisioningEnabled")
     private boolean provisioningEnabled;
+
+    @XmlElement(name = "IsDumbModeEnabled")
     private boolean isDumbMode = false;
 
     public boolean isDumbMode() {

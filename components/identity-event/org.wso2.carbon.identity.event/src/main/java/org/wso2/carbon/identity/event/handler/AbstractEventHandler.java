@@ -33,6 +33,8 @@ import org.wso2.carbon.identity.event.event.Event;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 public abstract class AbstractEventHandler extends AbstractIdentityMessageHandler {
 
@@ -44,18 +46,10 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
 
         Event event = ((IdentityEventMessageContext) messageContext).getEvent();
         String eventName = event.getEventName();
-        String moduleName = this.getName();
-        IdentityEventConfigBuilder notificationMgtConfigBuilder;
-        try {
-            notificationMgtConfigBuilder = IdentityEventConfigBuilder.getInstance();
-        } catch (IdentityEventException e) {
-            log.error("Error while retrieving event mgt config builder", e);
-            return false;
-        }
+
         List<Subscription> subscriptionList = null;
-        ModuleConfiguration moduleConfiguration = notificationMgtConfigBuilder.getModuleConfigurations(moduleName);
-        if (moduleConfiguration != null) {
-            subscriptionList = moduleConfiguration.getSubscriptions();
+        if (configs != null) {
+            subscriptionList = configs.getSubscriptions();
         } else {
             return false;
         }
@@ -70,18 +64,72 @@ public abstract class AbstractEventHandler extends AbstractIdentityMessageHandle
         return false;
     }
 
-    public boolean isAssociationAsync(String eventName) throws IdentityEventException {
-        Map<String, ModuleConfiguration> moduleConfigurationList = IdentityEventConfigBuilder.getInstance()
-                .getModuleConfiguration();
-        ModuleConfiguration moduleConfiguration = moduleConfigurationList.get(this.getName());
-        List<Subscription> subscriptions = moduleConfiguration.getSubscriptions();
+    /**
+     * Each event has its own subscriptions (configure in identity-event.properties) and it is possible to define
+     * multiple properties for each subscription per event under the given module.
+     * This method will allow to get the properties for event subscription under the current module.
+     *
+     * @param eventName Current Event Name
+     * @return Property Map for the given event name under the current module.
+     * @throws IdentityEventException
+     */
+    public Properties getSubscriptionProperties(String eventName) throws IdentityEventException {
+        if (log.isDebugEnabled()) {
+            log.debug("Get the subscription properties for event : " + eventName);
+        }
+        Properties subscriptionProperties = new Properties();
+
+        List<Subscription> subscriptions = configs.getSubscriptions();
         for (Subscription sub : subscriptions) {
             if (sub.getSubscriptionName().equals(eventName)) {
-                    return Boolean.parseBoolean(sub.getSubscriptionProperties().getProperty(this
-                            .getName() + ".subscription." + eventName + ".operationAsync"));
+                subscriptionProperties = sub.getSubscriptionProperties();
+                break;
             }
         }
-        return false;
+        if (log.isDebugEnabled() && subscriptionProperties != null) {
+            log.debug("List of subscription properties for event : " + eventName);
+            for (Object key : subscriptionProperties.keySet()) {
+                log.debug("Key : " + key + " Value : " + subscriptionProperties.getProperty((String) key));
+            }
+        }
+        return subscriptionProperties;
+    }
+
+    /**
+     * Each event has its own subscriptions (configure in identity-event.properties) and it is possible to define
+     * multiple properties for each subscription per event under the given module.
+     * This method will allow to get the property value for event subscription and property name under the current module.
+     *
+     * @param propertyName Required property name to be read.
+     * @param eventName    Current Event Name.
+     * @return Return the String value of that property value.
+     * @throws IdentityEventException
+     */
+    public String getSubscriptionProperty(String propertyName, String eventName) throws IdentityEventException {
+        if (log.isDebugEnabled()) {
+            log.debug("Get the subscription property value for property : " + propertyName
+                    + " for event : " + eventName);
+        }
+        return getSubscriptionProperties(eventName).getProperty(this
+                .getName() + ".subscription." + eventName + "." + propertyName);
+    }
+
+
+
+    /**
+     * If the association which is given in the subscription property is true for 'operationAsync', then this method
+     * will return true and the event will drop to queue to process based on the priority.
+     * Otherwise, it will call in the same thread.
+     *
+     * @param eventName Current Event Name
+     * @return
+     * @throws IdentityEventException
+     */
+    public boolean isAssociationAsync(String eventName) throws IdentityEventException {
+        if (log.isDebugEnabled()) {
+            log.debug("Validate the association is sync or not.");
+        }
+        return Boolean.parseBoolean(getSubscriptionProperty("operationAsync", eventName));
     }
 
     public abstract void handleEvent(Event event) throws IdentityEventException;

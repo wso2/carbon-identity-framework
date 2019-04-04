@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.mgt.endpoint.serviceclient;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.wso2.carbon.identity.mgt.beans.User;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.serviceclient.beans.ResetPasswordRequest;
@@ -33,8 +34,7 @@ import javax.ws.rs.core.Response;
  */
 public class UserInfoRecoveryWithNotificationClient {
 
-    private static final String ENDPOINT_URL = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
+    private static final String ENDPOINT_URL = IdentityManagementEndpointUtil.buildEndpointUrl(
                     IdentityManagementEndpointConstants.UserInfoRecovery.REST_API_URL_DOMAIN);
 
     // Validate user and returns a new key through a notification

@@ -17,20 +17,25 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.NotificationApi" %>
-<%@ page import="java.net.URLDecoder" %>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
-<%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Property" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RecoveryInitiatingRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
+<%@ page import="java.io.UnsupportedEncodingException" %>
+<%@ page import="java.net.URISyntaxException" %>
+<%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -57,7 +62,11 @@
     recoveryInitiatingRequest.setProperties(properties);
 
     try {
-        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null);
+        Map<String, String> requestHeaders = new HashedMap();
+        if (request.getParameter("g-recaptcha-response") != null) {
+            requestHeaders.put("g-recaptcha-response", request.getParameter("g-recaptcha-response"));
+        }
+        notificationApi.recoverPasswordPost(recoveryInitiatingRequest, null, null, requestHeaders);
     } catch (ApiException e) {
         Error error = new Gson().fromJson(e.getMessage(), Error.class);
         request.setAttribute("error", true);
@@ -73,6 +82,7 @@
 %>
 <html>
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
@@ -110,7 +120,18 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScriptBlock(URLDecoder.decode(callback, "UTF-8"))%>";
+            <%
+            try {
+            %>
+                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+            <%
+            } catch (URISyntaxException e) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+            %>
         })
     });
 </script>

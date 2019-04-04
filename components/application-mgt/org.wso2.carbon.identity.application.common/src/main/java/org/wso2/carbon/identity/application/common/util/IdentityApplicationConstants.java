@@ -32,6 +32,12 @@ public class IdentityApplicationConstants {
     public static final String DEFAULT_SP_CONFIG = "default";
     public static final String DEFAULT_IDP_CONFIG = "default";
 
+    public static final String CERTIFICATE_TYPE = "X.509";
+    public static final String DATE_FORMAT = "dd/MM/yyyy";
+
+    public static final String CERTIFICATE_VAL = "certificateVal";
+    public static final String OLD_CERT_FILE = "oldCertFile";
+
     public static final String WSO2CARBON_CLAIM_DIALECT = "http://wso2.org/claims";
     public static final String SF_OAUTH2_TOKEN_ENDPOINT = "https://login.salesforce.com/services/oauth2/token";
 
@@ -69,8 +75,14 @@ public class IdentityApplicationConstants {
     public static final String UNIQUE_ID_CONSTANT = "UniqueID";
     public static final String PASSWORD = "password";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
+    public static final String AS_IN_USERNAME_USERSTORE_FOR_JIT = "As in username";
 
     public static final String REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE = "redirectToMultiOptionPageOnFailure";
+
+    // JustInTimeProviderConfigElements
+    public static final String IS_PASSWORD_PROVISIONING_ENABLED_ELEMENT = "IsPasswordProvisioningEnabled";
+    public static final String ALLOW_MODIFY_USERNAME_ELEMENT = "AllowModifyUserName";
+    public static final String PROMPT_CONSENT_ELEMENT = "PromptConsent";
 
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";
@@ -109,6 +121,7 @@ public class IdentityApplicationConstants {
             public static final String IDP_ENTITY_ID = "IdPEntityId";
             public static final String SP_ENTITY_ID = "SPEntityId";
             public static final String SSO_URL = "SSOUrl";
+            public static final String ECP_URL = "ECPUrl";
             public static final String IS_AUTHN_REQ_SIGNED = "ISAuthnReqSigned";
             public static final String IS_ENABLE_ASSERTION_ENCRYPTION = "IsAssertionEncrypted";
             public static final String IS_ENABLE_ASSERTION_SIGNING = "isAssertionSigned";
@@ -134,6 +147,10 @@ public class IdentityApplicationConstants {
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
             public static final String RESPONSE_AUTHN_CONTEXT_CLASS_REF = "ResponseAuthnContextClassRef";
+            public static final String SAML_METADATA_VALIDITY_PERIOD = "SAMLMetadataValidityPeriod";
+            public static final String SAML_METADATA_VALIDITY_PERIOD_DEFAULT = "60";
+            public static final String SAML_METADATA_SIGNING_ENABLED = "SAMLMetadataSigningEnabled";
+            public static final String SAML_METADATA_SIGNING_ENABLED_DEFAULT = "false";
 
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";

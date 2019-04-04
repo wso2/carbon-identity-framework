@@ -32,6 +32,7 @@
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -75,21 +76,43 @@
         FederatedAuthenticatorConfig samlFedAuthn = new FederatedAuthenticatorConfig();
         samlFedAuthn.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
         String[] destinationUrls = request.getParameter("destinationURLs").split(",");
-        Property[] properties = new Property[1 + destinationUrls.length];
+        List<Property> propertyList = new ArrayList<Property>();
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IDP_ENTITY_ID);
         property.setValue(request.getParameter("idPEntityId"));
-        properties[0] = property;
+        propertyList.add(property);
         if (destinationUrls != null && destinationUrls.length > 0) {
             for (int destinationCount = 1; destinationCount <= destinationUrls.length; destinationCount++) {
                 property = new Property();
                 property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.DESTINATION_URL_PREFIX +
                         IdentityApplicationConstants.MULTIVALUED_PROPERTY_CHARACTER + destinationCount);
                 property.setValue(destinationUrls[destinationCount - 1]);
-                properties[destinationCount] = property;
+                propertyList.add(property);
             }
 
         }
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_VALIDITY_PERIOD);
+        property.setValue(request.getParameter("samlMetadataValidityPeriod"));
+        propertyList.add(property);
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
+        property.setValue(request.getParameter("samlSSOUrl"));
+        propertyList.add(property);
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
+        property.setValue(request.getParameter("samlSLOUrl"));
+        propertyList.add(property);
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_SIGNING_ENABLED);
+        String samlMetadataSigningEnabled = "false";
+        if (StringUtils.containsIgnoreCase(request.getParameter("samlMetadataSigningEnabled"), "on")) {
+            samlMetadataSigningEnabled = "true";
+        }
+        property.setValue(samlMetadataSigningEnabled);
+        propertyList.add(property);
+        Property[] properties = new Property[propertyList.size()];
+        properties = propertyList.toArray(properties);
         samlFedAuthn.setProperties(properties);
 
         FederatedAuthenticatorConfig passiveStsFedAuthn = new FederatedAuthenticatorConfig();

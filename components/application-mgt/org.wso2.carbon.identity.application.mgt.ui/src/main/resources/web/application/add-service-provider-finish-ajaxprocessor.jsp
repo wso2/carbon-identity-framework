@@ -17,58 +17,59 @@
 -->
 
 <%@page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.owasp.encoder.Encode"%>
 <%@ page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider"%>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage"%>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil"%>
-<%@ page import="org.wso2.carbon.utils.ServerConstants"%>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 
-
-	<%
-		String httpMethod = request.getMethod();
-		if (!"post".equalsIgnoreCase(httpMethod)) {
-			response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-			return;
-		}
-
-		String appid = request.getParameter("spName");
-		String description = request.getParameter("sp-description");
-
-	    if (appid != null && !"".equals(appid)) {
-		
-		ServiceProvider serviceProvider = new ServiceProvider();
-		serviceProvider.setApplicationName(appid);
-		serviceProvider.setDescription(description);
-					
-		try {
-
-			String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-			String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
-			ConfigurationContext configContext =
-			                                     (ConfigurationContext) config.getServletContext()
-			                                                                  .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);				
-			ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
-			serviceClient.createApplication(serviceProvider);
-			%>
-			<script>
-				location.href = 'load-service-provider.jsp?spName=<%=Encode.forUriComponent(appid)%>';
-			</script>
-			<%
-		} catch (Exception e) {
+<%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+    
+    String appid = request.getParameter("spName");
+    String description = request.getParameter("sp-description");
+    String templateName = request.getParameter("sp-template");
+    
+    if (appid != null && !"".equals(appid)) {
+        
+        ServiceProvider serviceProvider = new ServiceProvider();
+        serviceProvider.setApplicationName(appid);
+        serviceProvider.setDescription(description);
+        
+        try {
+            
+            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+            ConfigurationContext configContext =
+                (ConfigurationContext) config.getServletContext()
+                    .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(
+                    cookie, backendServerURL, configContext);
+            serviceClient.createApplicationWithTemplate(serviceProvider, templateName);
+%>
+<script>
+    location.href = 'load-service-provider.jsp?spName=<%=Encode.forUriComponent(appid)%>';
+</script>
+<%
+        } catch (Exception e) {
             CarbonUIMessage.sendCarbonUIMessage(e.getMessage(), CarbonUIMessage.ERROR, request, e);
-			%>
-			<script>
-				location.href = 'add-service-provider.jsp';
-			</script>
-			<%
-		}
-		} else {
-			%>
-			<script>
-				location.href = 'add-service-provider.jsp';
-			</script>
-			<%
-		}
-	%>
+%>
+<script>
+    location.href = 'add-service-provider.jsp';
+</script>
+<%
+        }
+    } else {
+%>
+<script>
+    location.href = 'add-service-provider.jsp';
+</script>
+<%
+    }
+%>

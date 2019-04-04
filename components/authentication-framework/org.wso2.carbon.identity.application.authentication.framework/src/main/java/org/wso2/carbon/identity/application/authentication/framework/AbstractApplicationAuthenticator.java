@@ -96,9 +96,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
                             isStepHasMultiOption(context) && isRedirectToMultiOptionPageOnFailure();
+                    context.setRetrying(retryAuthenticationEnabled());
                     if (retryAuthenticationEnabled(context) && !sendToMultiOptionPage) {
                         // The Authenticator will re-initiate the authentication and retry.
-                        context.setRetrying(true);
                         context.setCurrentAuthenticator(getName());
                         initiateAuthenticationRequest(request, response, context);
                         return AuthenticatorFlowStatus.INCOMPLETE;
@@ -139,7 +139,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return false;
     }
 
-    private boolean isStepHasMultiOption(AuthenticationContext context) {
+    protected boolean isStepHasMultiOption(AuthenticationContext context) {
         Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
         boolean stepHasMultiOption = false;
 
@@ -255,5 +255,37 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             userName = UserCoreUtil.getDomainFromThreadLocal() + CarbonConstants.DOMAIN_SEPARATOR + userName;
         }
         return userName;
+    }
+
+    /**
+     * Get map of runtime params set through the script.
+     *
+     * @param context context
+     * @return Map of params
+     */
+    public Map<String, String> getRuntimeParams(AuthenticationContext context) {
+
+        Map<String, String> runtimeParams = context.getAuthenticatorParams(getName());
+        Map<String, String> commonParams = context
+                .getAuthenticatorParams(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS);
+        if (commonParams != null) {
+            if (runtimeParams != null) {
+                commonParams.putAll(runtimeParams);
+            }
+            return commonParams;
+        } else if (runtimeParams != null) {
+            return runtimeParams;
+        }
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public String getAuthMechanism() {
+
+        String authMechanism = getAuthenticatorConfig().getParameterMap().get(FrameworkConstants.AUTH_MECHANISM);
+        if (StringUtils.isEmpty(authMechanism)) {
+            authMechanism = getName();
+        }
+        return authMechanism;
     }
 }

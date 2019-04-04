@@ -20,10 +20,16 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a authentication step.
@@ -55,6 +61,8 @@ public class JsStep extends AbstractJSContextMemberObject {
                 return new JsAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
+                return getOptions();
             default:
                 return super.getMember(name);
         }
@@ -89,9 +97,27 @@ public class JsStep extends AbstractJSContextMemberObject {
 
         if (authenticatedIdp != null) {
             AuthenticatedIdPData idPData = getContext().getCurrentAuthenticatedIdPs().get(authenticatedIdp);
-            return idPData.getUser();
+            if (idPData == null) {
+                idPData = getContext().getPreviousAuthenticatedIdPs().get(authenticatedIdp);
+            }
+            if (idPData != null) {
+                return idPData.getUser();
+            }
         }
         return null;
     }
 
+    private List<Map<String, String>> getOptions() {
+
+        List<Map<String, String>> optionsList = new ArrayList<>();
+        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
+        stepConfig.getAuthenticatorList().forEach(authConfig -> authConfig.getIdpNames().forEach(name -> {
+            Map<String, String> option = new HashMap<>();
+            option.put(FrameworkConstants.JSAttributes.IDP, name);
+            option.put(FrameworkConstants.JSAttributes.AUTHENTICATOR, authConfig.getApplicationAuthenticator()
+                .getName());
+            optionsList.add(option);
+        }));
+        return optionsList;
+    }
 }

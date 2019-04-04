@@ -28,9 +28,9 @@ import org.wso2.carbon.identity.consent.mgt.IdentityConsentMgtUtils;
 import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
 import org.wso2.carbon.identity.core.handler.InitConfig;
-import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.bean.IdentityEventMessageContext;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.handler.AbstractEventHandler;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -105,6 +105,15 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
     @Override
     public void handleEvent(Event event) throws IdentityEventException {
 
+        IdentityEventMessageContext eventContext = new IdentityEventMessageContext(event);
+        if (!isEnabled(eventContext)) {
+            if (log.isDebugEnabled()) {
+                log.debug("ConsentDeletionUserEventHandler is disabled. Not handling the " + event.getEventName()
+                        + " event.");
+            }
+            return;
+        }
+
         Map<String, Object> eventProperties = event.getEventProperties();
         String userName = (String) eventProperties.get(IdentityEventConstants.EventProperty.USER_NAME);
         UserStoreManager userStoreManager = (UserStoreManager)
@@ -112,28 +121,35 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
 
         String domainName = userStoreManager.getRealmConfiguration().
                 getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        String tenantDomain = getUserTenantDomain(eventProperties);
+        String usernameWithUserStoreDomain = UserCoreUtil.addDomainToName(userName, domainName);
         if (log.isDebugEnabled()) {
             log.debug(String.format("Deleting consents for user: %s , in tenant domain :%s",
-                    UserCoreUtil.addDomainToName(userName, domainName)));
+                    usernameWithUserStoreDomain, tenantDomain));
         }
-        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
+        ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getPrivilegedConsentManager();
         try {
             List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,
-                    UserCoreUtil.addDomainToName(userName, domainName),
-                    null, "*", null);
+                    usernameWithUserStoreDomain, null, "*", null);
             if (log.isDebugEnabled()) {
-                log.debug(String.format("%d", receiptListResponses.size()));
+                log.debug(String.format("Found %d receipts issued for user: %s, in tenant domain: %s",
+                        receiptListResponses.size(), usernameWithUserStoreDomain, tenantDomain));
             }
             receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("Deleting receipt with ID : %d, issued for application %s" + receiptListResponse
-                            .getConsentReceiptId(), receiptListResponse.getSpDisplayName()));
+                    log.debug(String.format("Deleting receipt with ID : %d, issued for application %s" +
+                            receiptListResponse.getConsentReceiptId(), receiptListResponse.getSpDisplayName()));
                 }
                 consentManager.deleteReceipt(receiptListResponse.getConsentReceiptId());
             }));
         } catch (ConsentManagementException e) {
             throw new IdentityEventException("Error while deleting consents for user " + userName, e);
         }
+    }
+
+    private String getUserTenantDomain(Map<String, Object> eventProperties) {
+
+        return (String) eventProperties.get(IdentityEventConstants.EventProperty.TENANT_DOMAIN);
     }
 
     /**

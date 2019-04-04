@@ -19,9 +19,10 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.11.255-SNAPSHOT</version>
+        <version>5.12.335-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
+
     <name>WSO2 Carbon - Application Management UI</name>
     <description>Application Management UI component for WSO2 Carbon</description>
     <url>http://wso2.org</url>
@@ -69,6 +70,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.claim.metadata.mgt.stub</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.consent.mgt</groupId>
+            <artifactId>org.wso2.carbon.consent.mgt.core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -87,11 +92,13 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
                             javax.servlet.http,
+                            javax.activation; version="${javax.activation.import.pkg.version}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             com.google.gson;version="${com.google.code.gson.osgi.version.range}",
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.lang.*; version="${commons-lang.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
                             org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
@@ -102,14 +109,21 @@
 
                             org.wso2.carbon.identity.application.authentication.framework.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.dto.xsd.*; version="${carbon.identity.package.export.version}",
                             org.wso2.carbon.identity.claim.metadata.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.model.xsd; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.model.script.xsd; version="${carbon.identity.package.import.version.range}",
-
+                            org.wso2.carbon.consent.mgt.core.*; version="${carbon.consent.mgt.imp.pkg.version.range}",
                             org.wso2.carbon.identity.application.common.xsd;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.stub.types.axis2;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.defaultsequence.stub.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.defaultsequence.xsd.*;
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.application.mgt.defaultsequence.stub.types.axis2.*;
                             version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>org.wso2.carbon.identity.application.mgt.ui.*</Export-Package>

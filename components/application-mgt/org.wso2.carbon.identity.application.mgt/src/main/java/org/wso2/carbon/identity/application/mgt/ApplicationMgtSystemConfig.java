@@ -23,13 +23,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationTemplateDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.IdentityProviderDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.OAuthApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.SAMLApplicationDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -45,6 +48,7 @@ public class ApplicationMgtSystemConfig {
     private static final String CONFIG_OAUTH_OIDC_DAO = "OAuthOIDCClientDAO";
     private static final String CONFIG_SAML_DAO = "SAMLClientDAO";
     private static final String CONFIG_SYSTEM_IDP_DAO = "SystemIDPDAO";
+    private static final String CONFIG_APPLICATION_TEMPLATE_DAO = "ApplicationTemplateDAO";
     private static final String CONFIG_CLAIM_DIALECT = "ClaimDialect";
     private static volatile ApplicationMgtSystemConfig instance = null;
     // configured String values
@@ -52,6 +56,7 @@ public class ApplicationMgtSystemConfig {
     private String oauthDAOClassName = null;
     private String samlDAOClassName = null;
     private String systemIDPDAPClassName = null;
+    private String appTemplateDAOClassName = null;
     private String claimDialect = null;
 
 
@@ -116,6 +121,13 @@ public class ApplicationMgtSystemConfig {
                 systemIDPDAPClassName = idpDAOConfigElem.getText().trim();
             }
 
+            // Application Template DAO class
+            OMElement appTemplateDAOConfigElem = spConfigElem.getFirstChildWithName(IdentityApplicationManagementUtil.
+                    getQNameWithIdentityApplicationNS(CONFIG_APPLICATION_TEMPLATE_DAO));
+            if (appTemplateDAOConfigElem != null) {
+                appTemplateDAOClassName = appTemplateDAOConfigElem.getText().trim();
+            }
+
             OMElement claimDAOConfigElem = spConfigElem.getFirstChildWithName(IdentityApplicationManagementUtil.
                     getQNameWithIdentityApplicationNS(CONFIG_CLAIM_DIALECT));
             if (claimDAOConfigElem != null) {
@@ -154,8 +166,7 @@ public class ApplicationMgtSystemConfig {
         } else {
             applicationDAO = new ApplicationDAOImpl();
         }
-
-        return applicationDAO;
+        return new CacheBackedApplicationDAO(applicationDAO);
     }
 
     /**
@@ -256,6 +267,33 @@ public class ApplicationMgtSystemConfig {
         }
 
         return idpDAO;
+    }
+
+    /**
+     * Return an instance of the ApplicationDAO
+     *
+     * @return
+     */
+    public ApplicationTemplateDAO getApplicationTemplateDAO() {
+        ApplicationTemplateDAO applicationTemplateDAO = null;
+        if (appTemplateDAOClassName != null) {
+            try {
+                // Bundle class loader will cache the loaded class and returned
+                // the already loaded instance, hence calling this method
+                // multiple times doesn't cost.
+                Class clazz = Class.forName(appTemplateDAOClassName);
+                applicationTemplateDAO = (ApplicationTemplateDAO) clazz.newInstance();
+            } catch (ClassNotFoundException e) {
+                log.error("Error while instantiating the ApplicationTemplateDAO ", e);
+            } catch (InstantiationException e) {
+                log.error("Error while instantiating the ApplicationTemplateDAO ", e);
+            } catch (IllegalAccessException e) {
+                log.error("Error while instantiating the ApplicationTemplateDAO ", e);
+            }
+        } else {
+            applicationTemplateDAO = new ApplicationTemplateDAOImpl();
+        }
+        return applicationTemplateDAO;
     }
 
     /**

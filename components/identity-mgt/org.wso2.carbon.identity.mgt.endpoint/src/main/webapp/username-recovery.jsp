@@ -19,12 +19,19 @@
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityRuntimeException" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.ReCaptchaApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Claim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ReCaptchaProperties" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -33,7 +40,39 @@
         response.sendError(HttpServletResponse.SC_FOUND);
         return;
     }
-
+    
+    ReCaptchaApi reCaptchaApi = new ReCaptchaApi();
+    String tenantDomain = request.getParameter("tenantDomain");
+    
+    if (StringUtils.isNotEmpty(tenantDomain)) {
+        try {
+            IdentityTenantUtil.getTenantId(tenantDomain);
+        } catch (IdentityRuntimeException e) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", e.getMessage());
+            request.getRequestDispatcher("username-recovery-tenant-request.jsp").forward(request, response);
+            return;
+        }
+    }
+    
+    try {
+        ReCaptchaProperties reCaptchaProperties = reCaptchaApi.getReCaptcha(tenantDomain, true, "ReCaptcha",
+                "username-recovery");
+        
+        if (reCaptchaProperties != null && reCaptchaProperties.getReCaptchaEnabled()) {
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("reCaptcha", Arrays.asList(String.valueOf(true)));
+            headers.put("reCaptchaAPI", Arrays.asList(reCaptchaProperties.getReCaptchaAPI()));
+            headers.put("reCaptchaKey", Arrays.asList(reCaptchaProperties.getReCaptchaKey()));
+            IdentityManagementEndpointUtil.addReCaptchaHeaders(request, headers);
+        }
+    } catch (ApiException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", e.getMessage());
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
+    
     boolean error = IdentityManagementEndpointUtil.getBooleanValue(request.getAttribute("error"));
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 
@@ -43,7 +82,7 @@
     List<Claim> claims;
     UsernameRecoveryApi usernameRecoveryApi = new UsernameRecoveryApi();
     try {
-        claims = usernameRecoveryApi.claimsGet(null);
+        claims = usernameRecoveryApi.getClaimsForUsernameRecovery(null, true);
     } catch (ApiException e) {
         request.setAttribute("error", true);
         request.setAttribute("errorMsg", e.getMessage());
@@ -74,9 +113,17 @@
     }
 
 %>
+<%
+    boolean reCaptchaEnabled = false;
+    if (request.getAttribute("reCaptcha") != null &&
+            "TRUE".equalsIgnoreCase((String) request.getAttribute("reCaptcha"))) {
+        reCaptchaEnabled = true;
+    }
+%>
 
     <html>
     <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
@@ -90,6 +137,13 @@
         <script src="js/html5shiv.min.js"></script>
         <script src="js/respond.min.js"></script>
         <![endif]-->
+        <%
+            if (reCaptchaEnabled) {
+        %>
+        <script src='<%=(request.getAttribute("reCaptchaAPI"))%>'></script>
+        <%
+            }
+        %>
     </head>
 
     <body>
@@ -154,8 +208,7 @@
                             <%}%>
 
                             <%
-                                String callback = Encode.forHtmlAttribute
-                                        (request.getParameter("callback"));
+                                String callback = request.getParameter("callback");
 
                                 if (StringUtils.isBlank(callback)) {
                                     callback = IdentityManagementEndpointUtil.getUserPortalUrl(
@@ -165,7 +218,7 @@
                                 if (callback != null) {
                             %>
                             <div>
-                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                                <input type="hidden" name="callback" value="<%=Encode.forHtmlAttribute(callback) %>"/>
                             </div>
                             <%
                                 }
@@ -179,16 +232,29 @@
                                        data-validate="email">
                             </div>
                             <%}%>
-
+    
+                            <%
+                                if (StringUtils.isNotEmpty(tenantDomain) && !error) {
+                            %>
+                            <div>
+                                <input type="hidden" name="tenantDomain" value="<%=tenantDomain %>"/>
+                            </div>
+                            <%
+                            } else {
+                            %>
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 ">
                                 <label class="control-label"><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                                        "Tenant.domain")%></label>
+                                        "Tenant.domain")%>
+                                </label>
                                 <input id="tenant-domain" type="text" name="tenantDomain"
                                        class="form-control ">
                             </div>
-
+                            <%
+                                }
+                            %>
+                            
                             <td>&nbsp;&nbsp;</td>
-                            <input type="hidden" , id="isUsernameRecovery" , name="isUsernameRecovery" value="true">
+                            <input type="hidden" id="isUsernameRecovery" name="isUsernameRecovery" value="true">
 
                             <% for (Claim claim : claims) {
                                 if (claim.getRequired() &&
@@ -210,7 +276,19 @@
                                     }
                                 }
                             %>
-
+    
+                            <%
+                                if (reCaptchaEnabled) {
+                            %>
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+                                <div class="g-recaptcha"
+                                     data-sitekey=
+                                             "<%=Encode.forHtmlContent((String)request.getAttribute("reCaptchaKey"))%>">
+                                </div>
+                            </div>
+                            <%
+                                }
+                            %>
 
                             <div class="form-actions">
                                 <table width="100%" class="styledLeft">
@@ -251,7 +329,7 @@
         <div class="container-fluid">
             <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                <a href="<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i> <%=
                 IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
                 <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>
@@ -260,5 +338,45 @@
 
     <script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            $("#recoverDetailsForm").submit(function (e) {
+                var errorMessage = $("#error-msg");
+                errorMessage.hide();
+
+                <%
+                if (isFirstNameInClaims){
+                %>
+                var firstName = $("#first-name").val();
+                if (firstName == '') {
+                    errorMessage.text("Please fill the first name.");
+                    errorMessage.show();
+                    $("html, body").animate({scrollTop: errorMessage.offset().top}, 'slow');
+                    return false;
+                }
+                <%
+                }
+                %>
+
+                <%
+                if (reCaptchaEnabled) {
+                %>
+                var reCaptchaResponse = $("[name='g-recaptcha-response']")[0].value;
+                if (reCaptchaResponse.trim() == '') {
+                    errorMessage.text("Please select reCaptcha.");
+                    errorMessage.show();
+                    $("html, body").animate({scrollTop: errorMessage.offset().top}, 'slow');
+                    return false;
+                }
+                <%
+                }
+                %>
+                return true;
+            });
+        });
+
+    </script>
     </body>
     </html>

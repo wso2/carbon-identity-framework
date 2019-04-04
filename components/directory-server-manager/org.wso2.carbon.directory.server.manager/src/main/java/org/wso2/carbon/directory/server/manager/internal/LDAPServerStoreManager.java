@@ -564,6 +564,53 @@ public class LDAPServerStoreManager {
         }
     }
 
+    public ServerPrinciple getServicePrinciple(String serverName) throws DirectoryServerManagerException {
+
+        DirContext dirContext;
+
+        try {
+            dirContext = this.connectionSource.getContext();
+        } catch (UserStoreException e) {
+            throw new DirectoryServerManagerException("Unable to retrieve directory connection.", e);
+        }
+
+        //first search the existing user entry.
+        String searchBase = this.realmConfiguration.getUserStoreProperty(LDAPConstants.USER_SEARCH_BASE);
+        String searchFilter = getServicePrincipleFilter(serverName);
+
+        SearchControls searchControls = new SearchControls();
+        searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+        searchControls.setReturningAttributes(new String[]{LDAPServerManagerConstants.LDAP_PASSWORD,
+                LDAPServerManagerConstants.LDAP_COMMON_NAME});
+
+        try {
+            NamingEnumeration<SearchResult> namingEnumeration = dirContext.search(searchBase, searchFilter,
+                    searchControls);
+            // here we assume only
+            while (namingEnumeration.hasMore()) {
+
+                BasicAttributes basicAttributes = new BasicAttributes(true);
+
+                SearchResult searchResult = namingEnumeration.next();
+                Attributes attributes = searchResult.getAttributes();
+
+                String userPassword = (String)attributes.get(LDAPServerManagerConstants.LDAP_PASSWORD).get();
+                String description = (String)attributes.get(LDAPServerManagerConstants.LDAP_COMMON_NAME).get();
+
+                return new ServerPrinciple(serverName, description, userPassword);
+            }
+            return null;
+        } catch (NamingException e) {
+            throw new DirectoryServerManagerException("Can not access the directory service", e);
+        } finally {
+            try {
+                JNDIUtil.closeContext(dirContext);
+            } catch (UserStoreException e) {
+                log.error("Unable to close directory context.", e);
+            }
+        }
+    }
+
     public boolean isValidPassword(String serverName, Object existingCredentials)
             throws DirectoryServerManagerException {
 

@@ -22,11 +22,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
@@ -38,34 +41,49 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.SequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.LongWaitStatus;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.FAIL_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.INCOMPLETE;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
 public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler implements SequenceHandler {
 
     private static final Log log = LogFactory.getLog(GraphBasedSequenceHandler.class);
+    private static final String PROMPT_DEFAULT_ACTION = "Success";
+    private static final String PROMPT_ACTION_PREFIX = "action.";
+    private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
+    public static final String SKIPPED_CALLBACK_NAME = "onSkip";
+    public static final String STEP_IDENTIFIER_PARAM = "step";
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
@@ -75,11 +93,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Executing the Step Based Authentication...");
         }
 
+        if (isBackToPreviousStep(context)) {
+            modifyCurrentNodeAsPreviousStep(context);
+        }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
             .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled() || !ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType)) {
+        if (graph == null || !graph.isEnabled() || (!ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType) &&
+                !ApplicationConstants.AUTH_TYPE_DEFAULT.equals(authenticationType))) {
             //Handle pre-configured step array
             if (log.isDebugEnabled()) {
                 log.debug("Authentication Graph not defined for the application. "
@@ -107,12 +129,42 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
     }
 
+    private void modifyCurrentNodeAsPreviousStep(AuthenticationContext context) {
+
+        context.removeProperty(BACK_TO_PREVIOUS_STEP);
+        if (context.getProperty(PROP_CURRENT_NODE) != null) {
+            //Identifier first should be the first step. Other steps will be determine dynamically.
+            for (int i = 2; i <= context.getSequenceConfig().getStepMap().size(); i++) {
+                context.getSequenceConfig().getStepMap().remove(i);
+            }
+            AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).getParent();
+            while (parentNode != null && !isIdentifierFirstStep((parentNode))) {
+                if (parentNode instanceof DynamicDecisionNode) {
+                    ((DynamicDecisionNode) parentNode).setDefaultEdge(new EndStep());
+                }
+                parentNode = parentNode.getParent();
+            }
+            context.setProperty(PROP_CURRENT_NODE, parentNode);
+            if (log.isDebugEnabled()) {
+                log.debug("Modified current node a parent node which can handle the Identifier First requests.");
+            }
+        }
+    }
+
+    private boolean isBackToPreviousStep(AuthenticationContext context) {
+
+        return context.getProperty(BACK_TO_PREVIOUS_STEP) != null && Boolean.parseBoolean(context.getProperty
+                (BACK_TO_PREVIOUS_STEP).toString());
+    }
+
     private boolean handleNode(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
                                SequenceConfig sequenceConfig, AuthGraphNode currentNode) throws FrameworkException {
 
         context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, currentNode);
         boolean isInterrupt = false;
-        if (currentNode instanceof LongWaitNode) {
+        if (currentNode instanceof ShowPromptNode) {
+            isInterrupt = handlePrompt(request, response, context, sequenceConfig, (ShowPromptNode) currentNode);
+        } else if (currentNode instanceof LongWaitNode) {
             isInterrupt = handleLongWait(request, response, context, sequenceConfig, (LongWaitNode) currentNode);
         } else if (currentNode instanceof DynamicDecisionNode) {
             handleDecisionPoint(request, response, context, sequenceConfig, (DynamicDecisionNode) currentNode);
@@ -128,6 +180,96 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
         }
         return isInterrupt;
+    }
+
+    private void displayLongWait(AuthenticationContext context, HttpServletRequest request, HttpServletResponse
+            response) throws FrameworkException {
+
+        try {
+            String longWaitUrl = ConfigurationFacade.getInstance().getAuthenticationEndpointWaitURL();
+            response.sendRedirect(longWaitUrl + "?" + FrameworkConstants.SESSION_DATA_KEY + "=" + context
+                    .getContextIdentifier());
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        } catch (IOException e) {
+            throw new FrameworkException("Error while redirecting to wait.do", e);
+        }
+    }
+
+    /**
+     * Handles the prompt. Make redirect to prompt handler (authentication endpoint) URL when this is initial prompt
+     * state. Executes the respective event handler function when prompt is returning with user input.
+     *
+     * @param request Http servlet request
+     * @param response Http servlet response
+     * @param context Authentication context
+     * @param sequenceConfig Authentication sequence config
+     * @param promptNode Show prompt node
+     * @return true if the execution needs to be stopped and show somethin to the user.
+     */
+    private boolean handlePrompt(HttpServletRequest request, HttpServletResponse response,
+                                 AuthenticationContext context, SequenceConfig sequenceConfig,
+                                 ShowPromptNode promptNode) throws FrameworkException {
+
+        boolean isPromptToBeDisplayed = false;
+        if (context.isReturning()) {
+            String action = PROMPT_DEFAULT_ACTION;
+            for (String s : request.getParameterMap().keySet()) {
+                if (s.startsWith(PROMPT_ACTION_PREFIX)) {
+                    action = s.substring(PROMPT_ACTION_PREFIX.length(), s.length());
+                    action = StringUtils.capitalize(action);
+                    break;
+                }
+            }
+            action = "on" + action;
+            executeFunction(action, promptNode, context);
+            AuthGraphNode nextNode = promptNode.getDefaultEdge();
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+            context.setReturning(false);
+        } else {
+            if (promptNode.getHandlerMap().get(ShowPromptNode.preHandler) != null) {
+                Object result = evaluateHandler(ShowPromptNode.preHandler, promptNode, context, promptNode
+                        .getParameters().get(STEP_IDENTIFIER_PARAM));
+                if (Boolean.TRUE.equals(result)) {
+                    executeFunction(SKIPPED_CALLBACK_NAME, promptNode, context);
+                    AuthGraphNode nextNode = promptNode.getDefaultEdge();
+                    context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+                } else {
+                    displayPrompt(context, request, response, promptNode);
+                    isPromptToBeDisplayed = true;
+                }
+                return isPromptToBeDisplayed;
+            }
+            displayPrompt(context, request, response, promptNode);
+            isPromptToBeDisplayed = true;
+        }
+        return isPromptToBeDisplayed;
+    }
+
+    private void displayPrompt(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response,
+                               ShowPromptNode promptNode) throws FrameworkException {
+
+        try {
+
+            String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
+            String redirectUrl = promptPage + "?templateId=" +
+                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
+                    context.getContextIdentifier()+ "&tenantDomain=" + context.getTenantDomain();
+            if (promptNode.getData() != null) {
+                context.addEndpointParams(promptNode.getData());
+            }
+
+                response.sendRedirect(redirectUrl);
+            AuthenticationResult authenticationResult = new AuthenticationResult();
+            request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
+            request.setAttribute(RESPONSE_HANDLED_BY_FRAMEWORK, Boolean.TRUE);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+        } catch (UnsupportedEncodingException e) {
+            throw new FrameworkException("Error while encoding the data to send to prompt page with session data key"
+                    + context.getContextIdentifier(), e);
+        } catch (IOException e) {
+            throw new FrameworkException("Error while redirecting the user for prompt page with session data key"
+                    + context.getContextIdentifier(), e);
+        }
     }
 
     private void gotoToNextNode(AuthenticationContext context, SequenceConfig sequenceConfig,
@@ -199,7 +341,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             URIBuilder uriBuilder = new URIBuilder(errorPage);
             node.getFailureData().forEach(uriBuilder::addParameter);
             redirectURL = uriBuilder.toString();
-            response.sendRedirect(redirectURL);
+            response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
         } catch (IOException e) {
             throw new FrameworkException("Error when redirecting user to " + errorPage, e);
         } catch (URISyntaxException e) {
@@ -279,8 +421,23 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
 
         if (flowStatus == FAIL_COMPLETED) {
-            if (stepConfigGraphNode.getNext() instanceof EndStep) {
-                stepConfigGraphNode.setNext(new FailNode());
+            if (!(stepConfigGraphNode.getNext() instanceof DynamicDecisionNode)) {
+                if (context.isRetrying()) {
+                    StepConfigGraphNode newNextNode = new StepConfigGraphNode(stepConfigGraphNode.getStepConfig());
+                    newNextNode.setNext(stepConfigGraphNode.getNext());
+                    AuthGraphNode parentNode = stepConfigGraphNode.getParent();
+                    if (parentNode == null) {
+                        parentNode = sequenceConfig.getAuthenticationGraph().getStartNode();
+                    }
+                    if (parentNode instanceof DynamicDecisionNode) {
+                        ((DynamicDecisionNode) parentNode).setDefaultEdge(newNextNode);
+                    } else if (parentNode instanceof StepConfigGraphNode) {
+                        ((StepConfigGraphNode) parentNode).setNext(newNextNode);
+                    }
+                    stepConfigGraphNode.setNext(newNextNode);
+                } else {
+                    stepConfigGraphNode.setNext(new FailNode());
+                }
             }
         }
         // if step is not completed, that means step wants to redirect to outside
@@ -290,7 +447,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             }
             return true;
         }
-
+        if (context.isPassiveAuthenticate() && !context.isRequestAuthenticated()) {
+            return true;
+        }
         context.setReturning(false);
         return false;
     }
@@ -302,21 +461,23 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         boolean isWaiting;
         LongWaitStatusStoreService longWaitStatusStoreService =
                 FrameworkServiceDataHolder.getInstance().getLongWaitStatusStoreService();
-        // TODO: Check why context.getSessionIdentifier() is null.
-        String longWaitKey = (String) context.getProperty(FrameworkConstants.LONG_WAIT_KEY);
-        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(longWaitKey);
-        if (longWaitKey == null || longWaitStatus == null) {
+        LongWaitStatus longWaitStatus = longWaitStatusStoreService.getWait(context.getContextIdentifier());
+        if (longWaitStatus == null || longWaitStatus.getStatus() == LongWaitStatus.Status.UNKNOWN) {
             //This is a initiation of long wait
             longWaitStatus = new LongWaitStatus();
-            longWaitKey = UUID.randomUUID().toString();
-            context.setProperty(FrameworkConstants.LONG_WAIT_KEY, longWaitKey);
-            longWaitStatusStoreService.addWait(longWaitKey, longWaitStatus);
+            int tenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+            longWaitStatusStoreService.addWait(tenantId, context.getContextIdentifier(), longWaitStatus);
             isWaiting = callExternalSystem(request, response, context, sequenceConfig, longWaitNode);
+            if (promptOnLongWait()) {
+                if (isWaiting) {
+                    displayLongWait(context, request, response);
+                }
+            }
         } else {
+            context.setReturning(false);
             // This is a continuation of long wait
             isWaiting = LongWaitStatus.Status.COMPLETED != longWaitStatus.getStatus();
-            context.removeProperty(FrameworkConstants.LONG_WAIT_KEY);
-            longWaitStatusStoreService.removeWait(longWaitKey);
+            longWaitStatusStoreService.removeWait(context.getContextIdentifier());
             String outcomeName = (String) context.getProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             Map<String, Object> data = (Map<String, Object>) context.getProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
@@ -348,33 +509,52 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         AsyncCaller caller = asyncProcess.getAsyncCaller();
 
-        //Need to lock the thread since the response should be continued in the same thread.
-        //TODO: As the thread is blocked, this can degrade performance. We have to add a mechanism to continue the
-        // response from out side in a new thread.
         AsyncReturn asyncReturn = rethrowTriConsumer((authenticationContext, data, result) -> {
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS, result);
             authenticationContext.setProperty(
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA, data);
-            synchronized (context) {
-                context.notify();
+
+            if (!promptOnLongWait()) {
+                synchronized (context) {
+                    context.notify();
+                }
             }
         });
 
         if (caller != null) {
             FrameworkServiceDataHolder.getInstance().getAsyncSequenceExecutor().exec(caller, asyncReturn, context);
-            synchronized (context) {
-                try {
-                    context.wait();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    log.error("Error while waiting for the external call the complete. ", e);
+            if (!promptOnLongWait()) {
+                int waitTimeout = getLongWaitTimeout();
+                synchronized (context) {
+                    try {
+                        context.wait(waitTimeout);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        log.error("Thread interrupted while waiting for the external call to complete for session " +
+                                "data key: " + context.getContextIdentifier() + ". ", e);
+                    }
                 }
+                resumeLongWait(request, response, context);
             }
-            resumeLongWait(request, response, context);
             return true;
         }
         return false;
+    }
+
+    private int getLongWaitTimeout() {
+
+        String waitTimeoutPropValue = IdentityUtil.getProperty(ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT);
+        int waitTimeout = 10000;
+        try {
+            if (waitTimeoutPropValue != null) {
+                waitTimeout = Integer.parseInt(waitTimeoutPropValue);
+            }
+        } catch (NumberFormatException e) {
+            //ignore. Default value will be used.
+            log.warn("Error while reading the wait timeout. Default value of 10 seconds will be used. ", e);
+        }
+        return waitTimeout;
     }
 
     private void handleDecisionPoint(HttpServletRequest request, HttpServletResponse response,
@@ -390,18 +570,29 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
         if (flowStatus != null) {
             switch (flowStatus) {
-            case SUCCESS_COMPLETED:
-                executeFunction("onSuccess", dynamicDecisionNode, context);
-                break;
-            case FAIL_COMPLETED:
-                executeFunction("onFail", dynamicDecisionNode, context);
-                if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
-                    dynamicDecisionNode.setDefaultEdge(new FailNode());
-                }
-                break;
-            case FALLBACK:
-                executeFunction("onFallback", dynamicDecisionNode, context);
-                break;
+                case SUCCESS_COMPLETED:
+                    executeFunction("onSuccess", dynamicDecisionNode, context);
+                    break;
+                case FAIL_COMPLETED:
+                    if (dynamicDecisionNode.getFunctionMap().get("onFail") != null) {
+                        executeFunction("onFail", dynamicDecisionNode, context);
+                    } else {
+                        if (context.isRetrying()) {
+                            AuthGraphNode nextNode = dynamicDecisionNode.getParent();
+                            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
+                            return;
+                        }
+                    }
+                    if (dynamicDecisionNode.getDefaultEdge() instanceof EndStep) {
+                        dynamicDecisionNode.setDefaultEdge(new FailNode());
+                    }
+                    break;
+                case FALLBACK:
+                    executeFunction("onFallback", dynamicDecisionNode, context);
+                    break;
+                case USER_ABORT:
+                    executeFunction("onUserAbort", dynamicDecisionNode, context);
+                    break;
             }
         }
 
@@ -418,9 +609,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, (func) -> {
-            func.call(null, new JsAuthenticationContext(context));
-        });
+        jsBasedEvaluator.evaluate(context, (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context)));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -435,12 +624,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, (func) -> {
-            func.call(null, new JsAuthenticationContext(context), new JsParameters(data));
-        });
+        jsBasedEvaluator.evaluate(context,
+                (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context), new JsWritableParameters(data)));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
+    }
+
+    private Object evaluateHandler(String outcomeName, ShowPromptNode dynamicDecisionNode,
+                                   AuthenticationContext context, Object stepId) {
+
+        SerializableJsFunction fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
+                .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
+        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
+        return jsBasedEvaluator.evaluate(context,
+                (jsFunction) -> jsFunction.call(null, stepId, new JsAuthenticationContext(context)));
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,
@@ -481,5 +682,20 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
 
         throw (E) exception;
+    }
+
+    private boolean isIdentifierFirstStep(AuthGraphNode authGraphNode) {
+
+        if (authGraphNode instanceof DynamicDecisionNode) {
+            return false;
+        } else if (authGraphNode instanceof StepConfigGraphNode) {
+            StepConfig stepConfig = ((StepConfigGraphNode) authGraphNode).getStepConfig();
+            for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
+                if (authenticatorConfig.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

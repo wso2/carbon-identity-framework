@@ -1,0 +1,67 @@
+{
+  "category": "user_based",
+  "name": "Login-Attempts-Based",
+  "title": "Login-Attempts-Based Authentication Template",
+  "summary": "Prompts 2FA to the users who are successfully logging after specific number of failed login attempts.",
+  "preRequisites": [
+    "Change the parameters at the top of the script as needed to match the requirements.",
+    "Modify the authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "invalidAttemptsToStepup" : "Minimum number of attempts made by a user to prompt 2FA.",
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator",
+    "Step 2": "TOTP authenticator"
+  },
+  "authenticationSteps": 2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp"
+      ],
+      "federated": []
+    }
+  },
+  "helpLink": "https://docs.wso2.com/display/IS570/Adaptive+Authentication+Scenarios",
+  "code": [
+    "// This script will step up authentication for any user who has exceeded 3 invalid login attempts continuously.",
+    "// This variable is used to define the number of invalid attempts allowed before prompting the second facto.",
+    "var invalidAttemptsToStepup = 3;",
+    "",
+    "var failedLoginAttemptsBeforeSuccessClaim= 'http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess';",
+
+    "function onLoginRequest(context) {",
+    "  doLogin(context);",
+    "}",
+    "",
+    "function doLogin(context) {",
+    "   executeStep(1, {",
+    "       onSuccess : function(context){",
+    "           var user = context.steps[1].subject;",
+    "           if (isExceedInvalidAttempts(user)) {",
+    "               executeStep(2);",
+    "           }",
+    "       },",
+    "       onFail : function(context) {",
+    "           // Retry the login..",
+    "           doLogin(context);",
+    "       }",
+    "   });",
+    "}",
+    "",
+    "function isExceedInvalidAttempts(user) {",
+    "   if (user.localClaims[failedLoginAttemptsBeforeSuccessClaim] >= invalidAttemptsToStepup) {",
+    "       return true;",
+    "   } else {",
+    "       return false;",
+    "   }",
+    "}"
+  ]
+}

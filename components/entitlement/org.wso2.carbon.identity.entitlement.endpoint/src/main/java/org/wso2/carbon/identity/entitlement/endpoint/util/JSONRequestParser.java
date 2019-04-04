@@ -183,7 +183,7 @@ public class JSONRequestParser {
                     throw new JsonParseException("DOM of request element can not be created from String.", e);
                 }
                 if (doc != null) {
-                    content = doc;
+                    content = doc.getDocumentElement();
                 }
             }
 
@@ -260,8 +260,8 @@ public class JSONRequestParser {
                         if (value.isJsonPrimitive()) {
                             //check if each value's data type can be determined
                             URI dataType = stringAttributeToURI(
-                                    jsonElementToDataType(property.getValue().getAsJsonPrimitive()));
-                            attributeValues.add(getAttributeValue(property.getValue().getAsString(), dataType, type));
+                                    jsonElementToDataType(value.getAsJsonPrimitive()));
+                            attributeValues.add(getAttributeValue(value.getAsString(), dataType, type));
                         }
                     }
                 }

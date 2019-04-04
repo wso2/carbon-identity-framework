@@ -487,7 +487,7 @@ public class OutboundProvisioningManager {
                 String[] provisionByRoleList = new String[0];
 
                 if (provisioningIdp.getProvisioningRole() != null) {
-                    provisionByRoleList = provisioningIdp.getProvisioningRole().split(",");
+                    provisionByRoleList = provisioningIdp.getProvisioningRole().trim().split("\\s*,[,\\s]*");
                 }
 
                 if (provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP && Arrays.asList

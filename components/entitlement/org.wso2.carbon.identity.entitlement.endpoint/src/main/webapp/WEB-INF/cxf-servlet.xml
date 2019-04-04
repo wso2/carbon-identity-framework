@@ -32,7 +32,6 @@
         </jaxrs:serviceBeans>
 
         <jaxrs:providers>
-            <ref bean="authenticationFilter"/>
             <ref bean="jacksonJsonProvider"/>
             <ref bean="exceptionMapper"/>
 
@@ -60,9 +59,6 @@
 
     <bean id="decisionBean" class="org.wso2.carbon.identity.entitlement.endpoint.resources.DecisionResource"/>
 
-    <bean id="authenticationFilter" class="org.wso2.carbon.identity.entitlement.endpoint.filter.AuthenticationFilter">
-        <!-- authorization bean properties -->
-    </bean>
     <bean id="exceptionMapper"
           class="org.wso2.carbon.identity.entitlement.endpoint.filter.EntitlementExceptionMapper"/>
     <bean id="jacksonJsonProvider"
@@ -94,6 +90,9 @@
         <cxf:inInterceptors>
             <ref bean="ClearThreadLocalInterceptor"/>
         </cxf:inInterceptors>
+        <cxf:properties>
+            <entry key="skip.default.json.provider.registration" value="true"/>
+        </cxf:properties>
     </cxf:bus>
 
 </beans>

@@ -63,6 +63,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
     private boolean enableAuthorization = false;
+    private boolean useUserstoreDomainInRole = false;
 
     Log log = LogFactory.getLog(ApplicationConfig.class);
 
@@ -79,6 +80,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
             setUseUserstoreDomainInLocalSubjectIdentifier(outboundAuthConfig
                     .isUseUserstoreDomainInLocalSubjectIdentifier());
             setEnableAuthorization(outboundAuthConfig.isEnableAuthorization());
+            setUseUserstoreDomainInRole(outboundAuthConfig.isUseUserstoreDomainInRoles());
         }
 
 
@@ -148,6 +150,11 @@ public class ApplicationConfig implements Serializable, Cloneable {
                 }
             }
         }
+    }
+
+    public void setUseUserstoreDomainInRole(boolean useUserstoreDomainInRole) {
+
+        this.useUserstoreDomainInRole = useUserstoreDomainInRole;
     }
 
     public int getApplicationID() {

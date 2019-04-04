@@ -26,6 +26,14 @@ public class ApplicationMgtUIConstants {
     private ApplicationMgtUIConstants() {
     }
 
+    public static final String PURPOSE_GROUP_SHARED = "SHARED";
+    public static final String PURPOSE_GROUP_TYPE_SP = "SP";
+    public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
+    public static final int DEFAULT_DISPLAY_ORDER = 0;
+    public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
+    public static final String DEFAULT_AUTH_SEQ = "default_sequence";
+    public static final String JWKS_URI = "jwksUri";
+
     /**
      * Holds the application UI param related constants.
      */

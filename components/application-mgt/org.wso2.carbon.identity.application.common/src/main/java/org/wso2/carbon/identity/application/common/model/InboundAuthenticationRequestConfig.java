@@ -30,15 +30,35 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "InboundAuthenticationRequestConfig")
 public class InboundAuthenticationRequestConfig implements Serializable {
 
     private static final long serialVersionUID = -62766721187073002L;
 
+    @XmlElement(name = "InboundAuthKey")
     private String inboundAuthKey;
+
+    @XmlElement(name = "InboundAuthType")
     private String inboundAuthType;
+
+    @XmlElement(name = "InboundConfigType")
     private String inboundConfigType;
+
+    @XmlElement(name = "friendlyName")
     private String friendlyName;
+
+    @XmlElement(name = "inboundConfiguration")
+    private String inboundConfiguration;
+
+    @XmlElementWrapper(name="Properties")
+    @XmlElement(name = "Property")
     private Property[] properties = new Property[0];
 
     /*
@@ -171,5 +191,15 @@ public class InboundAuthenticationRequestConfig implements Serializable {
         });
 
         return list.toArray(new Property[list.size()]);
+    }
+
+    public String getInboundConfiguration() {
+
+        return inboundConfiguration;
+    }
+
+    public void setInboundConfiguration(String inboundConfiguration) {
+
+        this.inboundConfiguration = inboundConfiguration;
     }
 }
