@@ -252,7 +252,7 @@
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/resourceType</ClaimURI>
 				<DisplayName>Resource Type</DisplayName>
-				<AttributeID>ref</AttributeID>
+				<AttributeID>resourceType</AttributeID>
 				<Description>Resource Type</Description>
 			</Claim>
 			<Claim>
@@ -1623,7 +1623,7 @@
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:meta.resourceType</ClaimURI>
 				<DisplayName>Meta - Location</DisplayName>
-				<AttributeID>ref</AttributeID>
+				<AttributeID>resourceType</AttributeID>
 				<Description>Meta - Location</Description>
 				<Required />
 				<DisplayOrder>1</DisplayOrder>
