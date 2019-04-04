@@ -31,6 +31,11 @@ public class IdentityServiceProviderCacheEntry extends CacheEntry {
 
     private ServiceProvider serviceProvider;
 
+    public IdentityServiceProviderCacheEntry(ServiceProvider serviceProvider) {
+
+        this.serviceProvider = serviceProvider;
+    }
+
     public ServiceProvider getServiceProvider() {
         return serviceProvider;
     }

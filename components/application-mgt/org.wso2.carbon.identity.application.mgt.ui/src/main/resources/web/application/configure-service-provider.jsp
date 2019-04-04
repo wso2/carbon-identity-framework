@@ -1300,7 +1300,7 @@
                             <td>
                                 <input style="width:50%" id="spName" name="spName" type="text"
                                        value="<%=Encode.forHtmlAttribute(spName)%>"
-                                       white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                                       white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.name'/>
                                 </div>

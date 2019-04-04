@@ -5,6 +5,6 @@
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <context:property-placeholder/>
     <context:annotation-config/>
-    <bean class="org.springframework.web.context.support.ServletContextPropertyPlaceholderConfigurer"/>
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"/>
     <bean class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer"/>
 </beans>

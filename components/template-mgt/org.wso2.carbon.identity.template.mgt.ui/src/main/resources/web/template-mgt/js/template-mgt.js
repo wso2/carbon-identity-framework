@@ -28,6 +28,7 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
     mode: "htmlmixed",
     // mode: {name: "handlebars", base: "text/html"},
     lineNumbers: true,
+    indentUnit: 4,
     lineWrapping: true,
     lineWiseCopyCut: true,
     pasteLinesPerSelection: true,
@@ -42,9 +43,15 @@ var myCodeMirror = CodeMirror.fromTextArea(scriptTextArea, {
         "Shift-Ctrl-F": function (myCodeMirror) {
             CodeMirror.commands["selectAll"](myCodeMirror);
             autoFormatSelection(myCodeMirror);
+        },
+        Tab: function (myCodeMirror) {
+            myCodeMirror.execCommand("indentMore");
+        },
+        "Shift-Tab": function (myCodeMirror) {
+            myCodeMirror.execCommand("indentLess");
         }
     },
-    indentWithTabs: true,
+    indentWithTabs: false,
     autoCloseBrackets: true,
     closeTagEnabled: true,
     matchBrackets: true,

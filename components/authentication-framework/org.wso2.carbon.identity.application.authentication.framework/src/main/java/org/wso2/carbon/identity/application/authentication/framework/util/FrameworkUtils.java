@@ -93,6 +93,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -108,6 +109,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -126,6 +131,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
@@ -2063,6 +2069,55 @@ public class FrameworkUtils {
 
         return requestedProperty;
 
+    }
+
+    /**
+     * Check user session mapping enabled.
+     *
+     * @return Return true if UserSessionMapping configuration enabled and both IDN_AUTH_USER and
+     * IDN_AUTH_USER_SESSION_MAPPING tables are available.
+     */
+    public static boolean isUserSessionMappingEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExists(
+                "IDN_AUTH_USER") && isTableExists("IDN_AUTH_USER_SESSION_MAPPING");
+    }
+
+    /**
+     * Check whether the specified table exists in the Identity database.
+     *
+     * @param tableName name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExists(String tableName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Table - " + tableName + " available in the Identity database.");
+                    }
+                    connection.commit();
+                    return true;
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Table - " + tableName + " not available in the Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
     }
 }
 

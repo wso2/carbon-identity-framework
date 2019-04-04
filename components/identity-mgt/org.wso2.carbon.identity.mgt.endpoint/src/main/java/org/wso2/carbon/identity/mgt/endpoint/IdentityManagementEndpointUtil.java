@@ -448,4 +448,22 @@ public class IdentityManagementEndpointUtil {
 
         return encodedCallbackUrl.toString();
     }
+
+    /**
+     * Construct the URL depending on the path and the resource name.
+     *
+     * @param path path of the url
+     * @return  endpoint url
+     */
+    public static String buildEndpointUrl(String path) {
+
+        String endpointUrl = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL, "");
+
+        if (path.startsWith("/")) {
+            return endpointUrl + path;
+        } else {
+            return endpointUrl + "/" + path;
+        }
+    }
 }

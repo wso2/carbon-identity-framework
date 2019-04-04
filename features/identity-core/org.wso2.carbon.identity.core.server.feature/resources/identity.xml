@@ -52,6 +52,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>40</CleanUpTimeout>
             </TempDataCleanup>
+            <UserSessionMapping>
+                <Enable>true</Enable>
+            </UserSessionMapping>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
@@ -79,6 +82,11 @@
             <StorePass></StorePass>
         </System>
     </Identity>
+
+    <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
+    <!--<ServiceProviders>-->
+        <!--<SPNameRegex>^[a-zA-Z0-9._-]*$</SPNameRegex>-->
+    <!--</ServiceProviders>-->
 
     <OpenID>
         <!--
@@ -320,19 +328,18 @@
         </EnableAssertions>
 
 
-        <!-- This should be true if subject identifier in the token validation response needs to adhere to the
-        following SP configuration.
+        <!-- This value should be false if subject identifier in the token validation response needs to be set as the
+             fully qualified username.
+         This value is true if subject identifier needs to adhere to the following SP configuration.
 
         - Use tenant domain in local subject identifier.
         - Use user store domain in local subject identifier.
 
-        if the value is false, subject identifier will be set as the fully qualified username.
+        Default value : true
 
-        Default value : false
-
-        Supported versions: IS 5.4.0 beta onwards
+        Supported versions: IS 5.8.0 beta onwards
         -->
-        <!--<BuildSubjectIdentifierFromSPConfig>true</BuildSubjectIdentifierFromSPConfig>-->
+        <!--<BuildSubjectIdentifierFromSPConfig>false</BuildSubjectIdentifierFromSPConfig>-->
 
         <!-- This should be set to true when using multiple user stores and keys
             should saved into different tables according to the user store. By default
@@ -739,6 +746,10 @@
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.ConsentMgtPostAuthnHandler"
                        orderId="110" enable="true"/>
 
+        <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                       name="org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener"
+                       orderId="85" enable="true"/>
+
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.JITProvisioningPostAuthenticationHandler"
@@ -803,6 +814,8 @@
             <Cache name="SAMLSSOSessionIndexCache"   enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="SAMLSSOSessionDataCache"    enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderCache"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache name="ServiceProviderCache.ID"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache name="ServiceProvideCache.InboundAuthKey"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ProvisioningConnectorCache" enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ProvisioningEntityCache"    enable="true" timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderProvisioningConnectorCache" enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
@@ -994,6 +1007,10 @@
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+        </Resource>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>

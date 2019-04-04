@@ -38,6 +38,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
 import java.io.BufferedReader;
@@ -133,13 +134,11 @@ public class SelfRegistrationMgtClient {
 
         String purposesEndpoint;
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
+            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
         } else {
-            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
+            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(CONSENT_API_RELATIVE_PATH +
+                    PURPOSES_ENDPOINT_RELATIVE_PATH);
         }
         return purposesEndpoint;
     }
@@ -148,23 +147,18 @@ public class SelfRegistrationMgtClient {
 
         String purposesEndpoint;
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + CONSENT_API_RELATIVE_PATH +
-                                    PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
+            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
         } else {
-            purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
+            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(CONSENT_API_RELATIVE_PATH +
+                    PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
         }
         return purposesEndpoint;
     }
 
     private String getUserAPIEndpoint() {
 
-        String purposesEndpoint = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                        USERNAME_VALIDATE_API_RELATIVE_PATH);
+        String purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
         return purposesEndpoint;
     }
 

@@ -182,7 +182,7 @@ window.onload = function() {
                     <tr>
                         <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.name'/>:<span class="required">*</span></td>
                         <td>
-                            <input id="spName" name="spName" type="text" value="" white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                            <input id="spName" name="spName" type="text" value="" white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
                             <div class="sectionHelp">
                                 <fmt:message key='help.name'/>
                             </div>

@@ -41,6 +41,7 @@ var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("scriptTextAr
     lineWrapping: true,
     lineWiseCopyCut: true,
     pasteLinesPerSelection: true,
+    indentUnit: 4,
     extraKeys: {
         "Ctrl-Space": "autocomplete",
         "F11": function (myCodeMirror) {
@@ -52,9 +53,15 @@ var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("scriptTextAr
         "Shift-Ctrl-F": function (myCodeMirror) {
             CodeMirror.commands["selectAll"](myCodeMirror);
             autoFormatSelection(myCodeMirror);
+        },
+        Tab: function (myCodeMirror) {
+            myCodeMirror.execCommand("indentMore");
+        },
+        "Shift-Tab": function (myCodeMirror) {
+            myCodeMirror.execCommand("indentLess");
         }
     },
-    indentWithTabs: true,
+    indentWithTabs: false,
     autoCloseBrackets: true,
     matchBrackets: true,
     gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
@@ -1032,6 +1039,7 @@ function readOnlyCodeMirror() {
         mode: "javascript",
         theme: "mdn-like",
         lineNumbers: true,
+        indentUnit: 4,
         readOnly: true
     });
 }
