@@ -663,7 +663,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
         } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
             //Ex. SAML custom claims.
-            idpRoleClaimUri = getRoleClaimUriInLocalDialect(externalIdPConfig);
+            idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         }
 
         /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
