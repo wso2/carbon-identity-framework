@@ -53,6 +53,16 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class ApiClient {
+
+    private static final String AUTHORIZATION           = "Authorization";
+    private static final String CLIENT                  = "Client ";
+    private static final String X_HTTP_METHOD_OVERRIDE  = "X-HTTP-Method-Override";
+    private static final String PATCH                   = "PATCH";
+    private static final String GET                     = "GET";
+    private static final String POST                    = "POST";
+    private static final String PUT                     = "PUT";
+    private static final String DELETE                  = "DELETE";
+
     private static final Log log = LogFactory.getLog(ApiClient.class);
 
     private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
@@ -435,20 +445,11 @@ public class ApiClient {
 
     private ClientResponse getAPIResponse(String path, String method, List<Pair> queryParams, Object body, Map<String, String> headerParams, Map<String, Object> formParams, String accept, String contentType, String[] authNames) throws ApiException {
 
-        final String AUTHORIZATION          = "Authorization";
-        final String CLIENT                 = "Client ";
-        final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
-        final String PATCH                  = "PATCH";
-        final String GET                    = "GET";
-        final String POST                   = "POST";
-        final String PUT                    = "PUT";
-        final String DELETE                 = "DELETE";
-
         if (body != null && !formParams.isEmpty()) {
             throw new ApiException(500, "Cannot have body and form params");
         }
 
-        if(!isRequestMethodSupported(method, GET, POST, PUT, DELETE, PATCH)) {
+        if (!isRequestMethodSupported(method)) {
             throw new ApiException(500, "unknown method type " + method);
         }
 
@@ -477,7 +478,7 @@ public class ApiClient {
         try {
             ClientResponse response = null;
             if (GET.equals(method)) {
-                response = (ClientResponse) builder.header(AUTHORIZATION,  CLIENT + authHeader).get(ClientResponse.class);
+                response = builder.header(AUTHORIZATION,  CLIENT + authHeader).get(ClientResponse.class);
             } else if (POST.equals(method)) {
                 response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).post(ClientResponse.class,
                         serialize(body, contentType, formParams));
@@ -551,8 +552,7 @@ public class ApiClient {
         }
     }
 
-    private boolean isRequestMethodSupported(String method, String GET, String POST, String PUT, String DELETE,
-                                             String PATCH) {
+    private boolean isRequestMethodSupported(String method) {
 
         return  GET.equals(method) || POST.equals(method) || PUT.equals(method) || DELETE.equals(method)
                 || PATCH.equals(method);
