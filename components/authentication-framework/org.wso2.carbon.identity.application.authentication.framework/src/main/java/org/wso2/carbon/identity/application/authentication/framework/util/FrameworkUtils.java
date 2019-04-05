@@ -1666,7 +1666,7 @@ public class FrameworkUtils {
      * @param excludeUnmapped       to indicate whether to exclude unmapped.
      * @return ArrayList<string> list of roles.
      */
-    public static List<String> getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
+    public static List<String>  getIdentityProvideMappedUserRoles(ExternalIdPConfig externalIdPConfig,
             Map<String, String> extAttributesValueMap, String idpRoleClaimUri, Boolean excludeUnmapped) {
 
         if (idpRoleClaimUri == null) {
@@ -1725,7 +1725,13 @@ public class FrameworkUtils {
                 idpMappedUserRoles.add(idpRole);
             }
         }
-        return idpMappedUserRoles;
+        List<String> idpMappedUniqueUserRoles = new ArrayList<>();
+        for (String role: idpMappedUserRoles) {
+            if (!idpMappedUniqueUserRoles.contains(role)) {
+                idpMappedUniqueUserRoles.add(role);
+            }
+        }
+        return idpMappedUniqueUserRoles;
     }
 
     /**
