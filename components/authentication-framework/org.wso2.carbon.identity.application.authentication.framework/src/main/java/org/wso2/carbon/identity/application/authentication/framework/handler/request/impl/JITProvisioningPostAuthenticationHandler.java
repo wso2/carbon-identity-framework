@@ -812,28 +812,4 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return null;
     }
 
-    private String getRoleClaimUriInLocalDialect(ExternalIdPConfig idPConfig) {
-        // get external identity provider role claim URI.
-        String roleClaimUri = idPConfig.getRoleClaimUri();
-
-        if (StringUtils.isBlank(roleClaimUri)) {
-            return null;
-        }
-
-        boolean useDefaultLocalIdpDialect = idPConfig.useDefaultLocalIdpDialect();
-        if (useDefaultLocalIdpDialect) {
-            return roleClaimUri;
-        } else {
-            ClaimMapping[] claimMappings = idPConfig.getClaimMappings();
-            if (!ArrayUtils.isEmpty(claimMappings)) {
-                for (ClaimMapping claimMapping : claimMappings) {
-                    if (roleClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
-                        return claimMapping.getLocalClaim().getClaimUri();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
 }
