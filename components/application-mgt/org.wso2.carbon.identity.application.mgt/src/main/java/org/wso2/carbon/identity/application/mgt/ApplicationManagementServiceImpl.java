@@ -838,6 +838,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                         .setAuthenticationSteps(authenticationSteps);
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(scriptConfig);
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                        .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
             }
         }
 
