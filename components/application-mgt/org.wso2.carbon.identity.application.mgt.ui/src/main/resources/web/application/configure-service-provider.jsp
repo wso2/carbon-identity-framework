@@ -421,40 +421,57 @@
 
     function validateSPConfigurations() {
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
+            var isValied = true;
             $.each($('.spClaimVal'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.claim.config")%>');
                     return false;
                 }
             });
+            if (!isValied) {
+                return false;
+            }
         }
         // number_of_claim_mappings
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
         if ($('[name=app_permission]').length > 0) {
+            var isValied = true;
             $.each($('[name=app_permission]'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.permission.config")%>');
                     return false;
                 }
             });
+            if (!isValied) {
+                return false;
+            }
         }
         if ($('.roleMapIdp').length > 0) {
+            var isValied = true;
             $.each($('.roleMapIdp'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
                     return false;
                 }
             });
-
-            if ($('.roleMapSp').length > 0) {
-                $.each($('.roleMapSp'), function () {
-                    if ($(this).val().length == 0) {
-                        CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
-                        return false;
-                    }
-                });
+            if (isValied) {
+                if ($('.roleMapSp').length > 0) {
+                    $.each($('.roleMapSp'), function () {
+                        if ($(this).val().length == 0) {
+                            isValied = false;
+                            CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
+                            return false;
+                        }
+                    });
+                }
+            }
+            if (!isValied) {
+                return false;
             }
         }
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
@@ -462,6 +479,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        return true;
     }
 
     function saveTemplate() {
@@ -527,7 +545,9 @@
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
         } else {
-            validateSPConfigurations();
+            if (!validateSPConfigurations()) {
+                return false;
+            }
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     spName + '?';
