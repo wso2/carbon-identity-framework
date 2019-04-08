@@ -837,9 +837,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         .getAuthenticationScriptConfig();
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                         .setAuthenticationSteps(authenticationSteps);
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(scriptConfig);
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                        .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
+                if (scriptConfig != null) {
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationScriptConfig(scriptConfig);
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
+                }
             }
         }
 
