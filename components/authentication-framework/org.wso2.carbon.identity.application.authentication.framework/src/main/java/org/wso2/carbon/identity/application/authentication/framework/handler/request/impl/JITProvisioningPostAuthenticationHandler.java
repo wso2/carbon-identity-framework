@@ -663,7 +663,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
         } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
             //Ex. SAML custom claims.
-            idpRoleClaimUri = getRoleClaimUriInLocalDialect(externalIdPConfig);
+            idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         }
 
         /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
@@ -812,28 +812,4 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return null;
     }
 
-    private String getRoleClaimUriInLocalDialect(ExternalIdPConfig idPConfig) {
-        // get external identity provider role claim URI.
-        String roleClaimUri = idPConfig.getRoleClaimUri();
-
-        if (StringUtils.isBlank(roleClaimUri)) {
-            return null;
-        }
-
-        boolean useDefaultLocalIdpDialect = idPConfig.useDefaultLocalIdpDialect();
-        if (useDefaultLocalIdpDialect) {
-            return roleClaimUri;
-        } else {
-            ClaimMapping[] claimMappings = idPConfig.getClaimMappings();
-            if (!ArrayUtils.isEmpty(claimMappings)) {
-                for (ClaimMapping claimMapping : claimMappings) {
-                    if (roleClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
-                        return claimMapping.getLocalClaim().getClaimUri();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
 }
