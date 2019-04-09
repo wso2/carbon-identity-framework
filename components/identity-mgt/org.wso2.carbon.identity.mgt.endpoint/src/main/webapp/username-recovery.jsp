@@ -237,7 +237,7 @@
                                 if (StringUtils.isNotEmpty(tenantDomain) && !error) {
                             %>
                             <div>
-                                <input type="hidden" name="tenantDomain" value="<%=tenantDomain %>"/>
+                                <input type="hidden" name="tenantDomain" value="<%=Encode.forHtmlAttribute(tenantDomain)%>"/>
                             </div>
                             <%
                             } else {
