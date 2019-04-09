@@ -699,7 +699,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        if (!StringUtils.isEmpty(clientId)) {
+        if (StringUtils.isNotEmpty(clientId)) {
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
 
