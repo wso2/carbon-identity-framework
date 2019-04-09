@@ -146,7 +146,8 @@
                         if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
                             window.location.href = data.redirectUrl;
                         }
-                    }
+                    },
+                    cache: false
                 });
             }
 
