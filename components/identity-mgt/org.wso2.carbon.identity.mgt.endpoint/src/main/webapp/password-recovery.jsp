@@ -146,7 +146,7 @@
                                 if (StringUtils.isNotEmpty(username) && !error) {
                             %>
                             <div>
-                                <input type="hidden" name="username" value="<%=username %>"/>
+                                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
                             </div>
                             <%
                             } else {
