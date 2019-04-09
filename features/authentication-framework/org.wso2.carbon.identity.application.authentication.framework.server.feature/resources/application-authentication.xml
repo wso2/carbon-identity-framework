@@ -128,38 +128,44 @@
                        <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
                 </AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
+            <Parameter name="EMAILOTPAuthenticationEndpointURL">emailotpauthenticationendpoint/emailotp.jsp</Parameter>
+            <Parameter name="EmailOTPAuthenticationEndpointErrorPage">emailotpauthenticationendpoint/emailotpError.jsp</Parameter>
+            <Parameter name="EmailAddressRequestPage">emailotpauthenticationendpoint/emailAddress.jsp</Parameter>
             <Parameter name="GmailClientId">gmailClientIdValue</Parameter>
             <Parameter name="GmailClientSecret">gmailClientSecretValue</Parameter>
-            <Parameter name="SendgridAPIKey">sendgridAPIKeyValue</Parameter>
             <Parameter name="GmailRefreshToken">gmailRefreshTokenValue</Parameter>
             <Parameter name="GmailEmailEndpoint">https://www.googleapis.com/gmail/v1/users/[userId]/messages/send</Parameter>
-            <Parameter name="SendgridEmailEndpoint">https://api.sendgrid.com/api/mail.send.json</Parameter>
-            <Parameter name="accessTokenRequiredAPIs">Gmail</Parameter>
-            <Parameter name="apiKeyHeaderRequiredAPIs">Sendgrid</Parameter>
-            <Parameter name="SendgridFormData">sendgridFormDataValue</Parameter>
-            <Parameter name="SendgridURLParams">sendgridURLParamsValue</Parameter>
             <Parameter name="GmailAuthTokenType">Bearer</Parameter>
             <Parameter name="GmailTokenEndpoint">https://www.googleapis.com/oauth2/v3/token</Parameter>
-            <Parameter name="SendgridAuthTokenType">Bearer</Parameter>
-            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
-        </AuthenticatorConfig>
-        <AuthenticatorConfig name="SMSOTP" enabled="true">
-            <Parameter name="SMSOTPAuthenticationEndpointURL">smsotpauthenticationendpoint/smsotp.jsp</Parameter>
-            <Parameter name="SMSOTPAuthenticationEndpointErrorPage">smsotpauthenticationendpoint/smsotpError.jsp</Parameter>
-            <Parameter name="MobileNumberRegPage">smsotpauthenticationendpoint/mobile.jsp</Parameter>
-            <Parameter name="RetryEnable">true</Parameter>
-            <Parameter name="ResendEnable">true</Parameter>
-            <Parameter name="BackupCode">true</Parameter>
-            <Parameter name="SMSOTPEnableByUserClaim">true</Parameter>
-            <Parameter name="SMSOTPMandatory">false</Parameter>
-            <Parameter name="CaptureAndUpdateMobileNumber">true</Parameter>
-            <Parameter name="SendOTPDirectlyToMobile">false</Parameter>
-            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
-        </AuthenticatorConfig>
-        <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
-            <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
-            <Parameter name="username">CN</Parameter>
-            <!--<Parameter name="setClaimURI">http://wso2.org/claims/identity/userCertificate</Parameter>-->
+            <Parameter name="accessTokenRequiredAPIs">Gmail</Parameter>
+            <Parameter name="usecase">local</Parameter>
+            <!--To configure Sendgrid as the Email OTP Provider uncomment below lines-->
+            <!--
+           <Parameter name="SendgridAPIKey">sendgridAPIKeyValue</Parameter>
+           <Parameter name="SendgridEmailEndpoint">https://api.sendgrid.com/api/mail.send.json</Parameter>
+           <Parameter name="SendgridFormData">sendgridFormDataValue</Parameter>
+           <Parameter name="SendgridURLParams">sendgridURLParamsValue</Parameter>
+           <Parameter name="SendgridAuthTokenType">Bearer</Parameter>
+           <Parameter name="apiKeyHeaderRequiredAPIs">Sendgrid</Parameter>
+           -->
+       </AuthenticatorConfig>
+       <AuthenticatorConfig name="SMSOTP" enabled="true">
+           <Parameter name="SMSOTPAuthenticationEndpointURL">smsotpauthenticationendpoint/smsotp.jsp</Parameter>
+           <Parameter name="SMSOTPAuthenticationEndpointErrorPage">smsotpauthenticationendpoint/smsotpError.jsp</Parameter>
+           <Parameter name="MobileNumberRegPage">smsotpauthenticationendpoint/mobile.jsp</Parameter>
+           <Parameter name="RetryEnable">true</Parameter>
+           <Parameter name="ResendEnable">true</Parameter>
+           <Parameter name="BackupCode">true</Parameter>
+           <Parameter name="SMSOTPEnableByUserClaim">true</Parameter>
+           <Parameter name="SMSOTPMandatory">false</Parameter>
+           <Parameter name="CaptureAndUpdateMobileNumber">true</Parameter>
+           <Parameter name="SendOTPDirectlyToMobile">false</Parameter>
+           <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
+       </AuthenticatorConfig>
+       <AuthenticatorConfig name="x509CertificateAuthenticator" enabled="true">
+           <Parameter name="AuthenticationEndpoint">https://localhost:8443/x509-certificate-servlet</Parameter>
+           <Parameter name="username">CN</Parameter>
+           <!--<Parameter name="setClaimURI">http://wso2.org/claims/identity/userCertificate</Parameter>-->
             <!--<Parameter name="EnforceSelfRegistration">true</Parameter>-->
         </AuthenticatorConfig>
         <AuthenticatorConfig name="totp" enabled="true">
