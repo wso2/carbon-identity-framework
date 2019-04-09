@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -111,6 +112,10 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
 
     public String getServiceProviderNameByClientId(String clientId, String type, String
             tenantDomain) throws IdentityApplicationManagementException {
+
+        if (StringUtils.isEmpty(clientId)) {
+            return null;
+        }
 
         String appName = null;
         try {

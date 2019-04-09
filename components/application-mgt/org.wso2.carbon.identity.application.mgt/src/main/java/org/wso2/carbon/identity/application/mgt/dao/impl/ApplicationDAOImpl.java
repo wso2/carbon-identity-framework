@@ -3426,6 +3426,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                                                    String tenantDomain) throws IdentityApplicationManagementException {
         int tenantID = -123;
 
+        if (StringUtils.isEmpty(clientId)) {
+            return null;
+        }
+
         if (tenantDomain != null) {
             try {
                 tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
