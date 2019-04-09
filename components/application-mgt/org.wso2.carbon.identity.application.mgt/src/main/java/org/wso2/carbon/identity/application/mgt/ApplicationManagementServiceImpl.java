@@ -699,12 +699,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
-        if (name == null) {
-            name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
-                    clientType, tenantDomain);
+        if (StringUtils.isNotEmpty(clientId)) {
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
+
+            if (name == null) {
+                name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
+                        clientType, tenantDomain);
+            }
         }
+
         if (name == null) {
             ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
                     .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
