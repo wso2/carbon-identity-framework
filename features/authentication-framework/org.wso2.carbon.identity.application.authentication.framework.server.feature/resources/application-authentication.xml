@@ -128,9 +128,9 @@
                        <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
                 </AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
-            <Parameter name="EMAILOTPAuthenticationEndpointURL">https://localhost:9443/emailotpauthenticationendpoint/emailotp.jsp</Parameter>
-            <Parameter name="EmailOTPAuthenticationEndpointErrorPage">https://localhost:9443/emailotpauthenticationendpoint/emailotpError.jsp</Parameter>
-            <Parameter name="EmailAddressRequestPage">https://localhost:9443/emailotpauthenticationendpoint/emailAddress.jsp</Parameter>
+            <Parameter name="EMAILOTPAuthenticationEndpointURL">emailotpauthenticationendpoint/emailotp.jsp</Parameter>
+            <Parameter name="EmailOTPAuthenticationEndpointErrorPage">emailotpauthenticationendpoint/emailotpError.jsp</Parameter>
+            <Parameter name="EmailAddressRequestPage">emailotpauthenticationendpoint/emailAddress.jsp</Parameter>
             <Parameter name="GmailClientId">gmailClientIdValue</Parameter>
             <Parameter name="GmailClientSecret">gmailClientSecretValue</Parameter>
             <Parameter name="GmailRefreshToken">gmailRefreshTokenValue</Parameter>
@@ -139,7 +139,7 @@
             <Parameter name="GmailTokenEndpoint">https://www.googleapis.com/oauth2/v3/token</Parameter>
             <Parameter name="accessTokenRequiredAPIs">Gmail</Parameter>
             <Parameter name="usecase">local</Parameter>
-            <!--To Configure Email OTP Provider as Sendgrid uncomment below lines-->
+            <!--To configure Sendgrid as the Email OTP Provider uncomment below lines-->
             <!--
            <Parameter name="SendgridAPIKey">sendgridAPIKeyValue</Parameter>
            <Parameter name="SendgridEmailEndpoint">https://api.sendgrid.com/api/mail.send.json</Parameter>
@@ -148,7 +148,6 @@
            <Parameter name="SendgridAuthTokenType">Bearer</Parameter>
            <Parameter name="apiKeyHeaderRequiredAPIs">Sendgrid</Parameter>
            -->
-           <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
        </AuthenticatorConfig>
        <AuthenticatorConfig name="SMSOTP" enabled="true">
            <Parameter name="SMSOTPAuthenticationEndpointURL">smsotpauthenticationendpoint/smsotp.jsp</Parameter>
