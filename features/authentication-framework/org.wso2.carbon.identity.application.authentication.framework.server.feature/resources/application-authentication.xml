@@ -173,7 +173,8 @@
             <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
             <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
             <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
-            <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
+            <Parameter name="Issuer">WSO2</Parameter>
+            <Parameter name="UseCommonIssuer">true</Parameter>
         </AuthenticatorConfig>
     </AuthenticatorConfigs>
 
