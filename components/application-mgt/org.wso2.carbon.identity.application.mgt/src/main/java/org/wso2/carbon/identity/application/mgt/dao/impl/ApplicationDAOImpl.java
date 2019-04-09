@@ -3424,7 +3424,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
      */
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
-        int tenantID = -123;
+        int tenantID = MultitenantConstants.SUPER_TENANT_ID;
 
         if (StringUtils.isEmpty(clientId)) {
             return null;
