@@ -349,7 +349,7 @@
                                             'x509CertificateAuthenticator')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
                                         <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
                                              data-placement="top" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
-                                                       "sign.in.with")%> x509CertificateAuthenticator"/>
+                                                       "sign.in.with")%> X509 Certificate"/>
                                     </a>
                                     <label for="icon-<%=iconId%>">x509CertificateAuthenticator</label>
 
