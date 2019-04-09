@@ -1705,7 +1705,7 @@ public class FrameworkUtils {
             return new ArrayList<>();
         }
         Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
-        List<String> idpMappedUserRoles = new ArrayList<>();
+        Set<String> idpMappedUserRoles = new HashSet<>();
         // If no role mapping is configured in the identity provider.
         if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
             if (log.isDebugEnabled()) {
@@ -1716,7 +1716,7 @@ public class FrameworkUtils {
                 return new ArrayList<>();
             }
             idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
-            return idpMappedUserRoles;
+            return new ArrayList<>(idpMappedUserRoles);
         }
         for (String idpRole : idpRoles) {
             if (idpToLocalRoleMapping.containsKey(idpRole)) {
@@ -1725,7 +1725,7 @@ public class FrameworkUtils {
                 idpMappedUserRoles.add(idpRole);
             }
         }
-        return idpMappedUserRoles;
+        return new ArrayList<>(idpMappedUserRoles);
     }
 
     /**
