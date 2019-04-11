@@ -572,6 +572,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         return context;
     }
 
+    /* Test is not valid with the fix for wso2/product-is#5009
     @Test
     public void testHandleJitProvisioningFailure() throws Exception {
 
@@ -593,7 +594,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         } catch (FrameworkException ex) {
             fail("Possible API change. This method did not throw any exception to outside before.");
         }
-    }
+    }*/
 
     private void returnMockProvisioningHandler(ProvisioningHandler mockProvisioningHandler) throws FrameworkException {
         // Mock framework util to returned mocked provisioning handler
