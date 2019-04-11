@@ -1467,30 +1467,30 @@
         jQuery('#claimAddTable .claimrow').each(function () {
             var val = htmlEncode($(this).val());
             if (val.trim() != "") {
-                if (val == unescape('<%=Encode.forJavaScript(userIdClaimURI)%>')) {
+                if (val == decodeURI('<%=Encode.forJavaScript(userIdClaimURI)%>')) {
                     $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $user_id_claim_dropdown.append('<option>' + val + '</option>');
                 }
-                if (val == unescape('<%=Encode.forJavaScript(roleClaimURI)%>')) {
+                if (val == decodeURI('<%=Encode.forJavaScript(roleClaimURI)%>')) {
                     $role_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $role_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val === unescape('<%=Encode.forJavaScript(googlePrimaryEmailClaim)%>')) {
+                if (val === decodeURI('<%=Encode.forJavaScript(googlePrimaryEmailClaim)%>')) {
                     $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == unescape('<%=Encode.forJavaScript(googleFamilyNameClaim)%>')) {
+                if (val == decodeURI('<%=Encode.forJavaScript(googleFamilyNameClaim)%>')) {
                     $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == unescape('<%=Encode.forJavaScript(googleGivenNameClaim)%>')) {
+                if (val == decodeURI('<%=Encode.forJavaScript(googleGivenNameClaim)%>')) {
                     $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
