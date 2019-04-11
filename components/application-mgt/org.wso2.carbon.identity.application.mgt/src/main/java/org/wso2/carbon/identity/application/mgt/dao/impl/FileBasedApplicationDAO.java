@@ -141,6 +141,10 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
 
+        if (StringUtils.isEmpty(clientId)) {
+            return null;
+        }
+
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent
                 .getFileBasedSPs();
 

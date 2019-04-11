@@ -22,7 +22,7 @@
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>entitlement</artifactId>
         <relativePath>../pom.xml</relativePath>
-        <version>5.12.341-SNAPSHOT</version>
+        <version>5.12.353-SNAPSHOT</version>
     </parent>
 
     <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
@@ -128,6 +128,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.code.findbugs</groupId>

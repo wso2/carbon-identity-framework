@@ -3880,7 +3880,7 @@
                                 <td>
                                     <%if (openidQueryParam != null) { %>
                                     <input id="openidQueryParam" name="openidQueryParam" type="text"
-                                           value=<%=Encode.forHtmlAttribute(openidQueryParam)%>>
+                                           value="<%=Encode.forHtmlAttribute(openidQueryParam)%>">
                                     <% } else { %>
                                     <input id="openidQueryParam" name="openidQueryParam" type="text"/>
                                     <% } %>
@@ -4550,7 +4550,7 @@
                                         %>
 
                                         <input id="samlQueryParam" name="samlQueryParam" type="text"
-                                               value=<%=Encode.forHtmlAttribute(samlQueryParam)%>>
+                                               value="<%=Encode.forHtmlAttribute(samlQueryParam)%>">
 
                                         <div class="sectionHelp">
                                             <fmt:message key='query.param.help'/>
