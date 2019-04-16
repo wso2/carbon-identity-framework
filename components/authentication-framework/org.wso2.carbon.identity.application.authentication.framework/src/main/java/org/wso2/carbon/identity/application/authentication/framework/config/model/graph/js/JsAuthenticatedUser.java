@@ -130,6 +130,24 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
     }
 
     @Override
+    public void setMember(String name, Object value) {
+
+        switch (name) {
+            case FrameworkConstants.JSAttributes.JS_USERNAME:
+                getWrapped().setUserName((String) value);
+                break;
+            case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
+                getWrapped().setUserStoreDomain((String) value);
+                break;
+            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
+                getWrapped().setTenantDomain((String) value);
+                break;
+            default:
+                super.setMember(name, value);
+        }
+    }
+
+    @Override
     public boolean hasMember(String name) {
 
         switch (name) {
