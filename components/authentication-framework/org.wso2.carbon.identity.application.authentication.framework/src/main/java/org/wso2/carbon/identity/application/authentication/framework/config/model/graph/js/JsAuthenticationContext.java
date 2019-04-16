@@ -179,7 +179,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
         if (subjectIdentifierStep.isPresent()) {
             return subjectIdentifierStep.get();
-        } else if (getContext().getCurrentStep() > 0){
+        } else if (getContext().getCurrentStep() > 0) {
             return stepConfigs.get(getContext().getCurrentStep());
         } else {
             return null;
