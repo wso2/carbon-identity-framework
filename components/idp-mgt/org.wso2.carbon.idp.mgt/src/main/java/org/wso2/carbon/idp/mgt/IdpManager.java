@@ -79,8 +79,10 @@ public interface IdpManager {
      * identifiers of each IdP
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
-    List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
-			throws IdentityProviderManagementException;
+    default List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
+			throws IdentityProviderManagementException {
+	System.out.println("Search Identity Provider on the basis of filter");     
+    }
     
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
