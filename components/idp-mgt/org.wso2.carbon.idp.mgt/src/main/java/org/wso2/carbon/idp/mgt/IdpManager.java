@@ -81,7 +81,7 @@ public interface IdpManager {
      */
     default List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
 			throws IdentityProviderManagementException {
-	System.out.println("Search Identity Provider on the basis of filter");     
+	return null;     
     }
     
     /**
