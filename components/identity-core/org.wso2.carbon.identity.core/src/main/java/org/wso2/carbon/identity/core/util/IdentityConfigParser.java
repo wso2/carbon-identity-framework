@@ -56,7 +56,7 @@ public class IdentityConfigParser {
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
-    private static final String SERVICE_PROVIDER_AUTH_KEY_CACHE = "ServiceProvideCache.InboundAuthKey";
+    private static final String SERVICE_PROVIDER_AUTH_KEY_CACHE = "ServiceProvideCache.InboundAuth";
     private static final String SERVICE_PROVIDER_ID_CACHE = "ServiceProviderCache.ID";
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
