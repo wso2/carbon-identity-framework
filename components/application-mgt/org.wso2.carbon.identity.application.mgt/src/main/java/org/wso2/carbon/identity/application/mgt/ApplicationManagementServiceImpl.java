@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
@@ -836,8 +837,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
                 authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
                         .getAuthenticationSteps();
+                AuthenticationScriptConfig scriptConfig = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                        .getAuthenticationScriptConfig();
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                         .setAuthenticationSteps(authenticationSteps);
+                if (scriptConfig != null) {
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationScriptConfig(scriptConfig);
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
+                }
             }
         }
 
