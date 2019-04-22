@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  * Policy publish executor
  */
-public class PolicyPublishExecutor implements Runnable {
+public class PolicyPublishExecutor {
 
     private static Log log = LogFactory.getLog(PolicyPublishExecutor.class);
     private String[] policyIds;
