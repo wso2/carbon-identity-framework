@@ -819,7 +819,7 @@
             <Cache name="SAMLSSOSessionDataCache"    enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderCache"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderCache.ID"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
-            <Cache name="ServiceProvideCache.InboundAuthKey"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache name="ServiceProvideCache.InboundAuth"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ProvisioningConnectorCache" enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ProvisioningEntityCache"    enable="true" timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderProvisioningConnectorCache" enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
