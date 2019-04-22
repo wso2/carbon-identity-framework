@@ -58,10 +58,6 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -72,6 +68,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
@@ -273,15 +273,6 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
-            }
-            Throwable cause = e;
-            while (cause != null) {
-                if (cause instanceof org.wso2.carbon.user.core.UserStoreException) {
-                    FrameworkUtils.sendToRetryPage(request, responseWrapper, "JIT provisioning Failed",
-                            cause.getMessage());
-                    return;
-                }
-                cause = cause.getCause();
             }
             FrameworkUtils.removeCookie(request, responseWrapper,
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));

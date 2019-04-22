@@ -611,7 +611,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     extAttributesValueMap, userStoreDomain, context.getTenantDomain());
 
         } catch (FrameworkException e) {
-            throw e;
+            log.error("User provisioning failed!", e);
         } finally {
             IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
         }
