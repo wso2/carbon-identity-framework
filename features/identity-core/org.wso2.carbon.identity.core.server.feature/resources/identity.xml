@@ -479,8 +479,10 @@
         or if a valid id_token_hint and a valid post_logout_redirect_uri is available user will be redirected to the
         post_logout_redirect_uri
 
+        Default value : true
+        Supported versions : IS 5.8.0 onwards
         -->
-        <HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>
+        <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
     </OAuth>
 
