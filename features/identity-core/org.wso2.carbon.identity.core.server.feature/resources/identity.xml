@@ -484,6 +484,13 @@
         -->
         <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
+        <!--
+        The following property allow to get UMA related information through introspection response
+        -->
+        <Introspection>
+            <EnableDataProviders>true</EnableDataProviders>
+        </Introspection>
+
     </OAuth>
 
     <MultifactorAuthentication>
