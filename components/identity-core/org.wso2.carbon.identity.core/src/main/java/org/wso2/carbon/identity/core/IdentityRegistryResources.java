@@ -122,12 +122,16 @@ public class IdentityRegistryResources {
 
     //SAML SSO
     public final static String PROP_SAML_SSO_ISSUER = "Issuer";
+    public final static String PROP_SAML_SSO_ISSUER_QUALIFIER = "SpQualifier";
     public final static String PROP_SAML_SSO_ASSERTION_CONS_URL = "SAMLSSOAssertionConsumerURL";
     public final static String PROP_SAML_SSO_ASSERTION_CONS_URLS = "SAMLSSOAssertionConsumerURLs";
     public final static String PROP_DEFAULT_SAML_SSO_ASSERTION_CONS_URL = "DefaultSAMLSSOAssertionConsumerURL";
     public final static String PROP_SAML_SSO_ISSUER_CERT_ALIAS = "IssuerCertAlias";
     public final static String PROP_SAML_SSO_USE_FULLY_QUALIFIED_USERNAME_AS_SUBJECT = "useFullyQualifiedUsername";
     public final static String PROP_SAML_SSO_DO_SINGLE_LOGOUT = "doSingleLogout";
+    public final static String PROP_SAML_SSO_DO_FRONT_CHANNEL_LOGOUT = "doFrontChannelLogout";
+    public final static String PROP_SAML_SSO_FRONT_CHANNEL_LOGOUT_BINDING = "frontChannelLogoutBinding";
+    public final static String DEFAULT_FRONT_CHANNEL_LOGOUT_BINDING = "HTTPRedirectBinding";
     public final static String PROP_SAML_SLO_RESPONSE_URL = "sloResponseURL";
     public final static String PROP_SAML_SLO_REQUEST_URL = "sloRequestURL";
     public final static String PROP_SAML_SSO_LOGIN_PAGE_URL = "loginPageURL";
@@ -159,6 +163,11 @@ public class IdentityRegistryResources {
     public static final String PROP_SAML_SSO_SUPPORTED_ASSERTION_QUERY_REQUEST_TYPES =
             "SupportedAssertionQueryRequestTypes";
     public static final String PROP_SAML_SSO_ENABLE_SAML2_ARTIFACT_BINDING = "EnableSAML2ArtifactBinding";
+    public static final String PROP_SAML_ENABLE_ECP = "EnableSAMLECP";
+    public static final String PROP_SAML_SSO_IDP_ENTITY_ID_ALIAS = "IdPEntityIDAlias";
+
+    //SAML Issuer Qualifier
+    public final static String QUALIFIER_ID = ":urn:sp:qualifier:";
 
     // OpenID Admin
     public final static String SUB_DOMAIN = "SubDomain";

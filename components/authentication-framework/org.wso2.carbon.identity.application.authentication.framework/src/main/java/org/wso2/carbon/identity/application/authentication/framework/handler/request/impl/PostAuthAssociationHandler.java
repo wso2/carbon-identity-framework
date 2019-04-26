@@ -103,6 +103,11 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
+            if (authenticatorConfig == null) {
+                //May have skipped from the script
+                //ex: Different authentication sequences evaluated by the script
+                continue;
+            }
             ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (authenticator instanceof FederatedApplicationAuthenticator) {
@@ -161,7 +166,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         String tenantDomain = MultitenantUtils.getTenantDomain(associatedLocalUserName);
         Map<String, Object> authProperties = context.getProperties();
 
-        if (MapUtils.isNotEmpty(authProperties)) {
+        if (authProperties == null) {
             authProperties = new HashMap<>();
             context.setProperties(authProperties);
         }

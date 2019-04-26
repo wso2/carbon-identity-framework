@@ -33,6 +33,10 @@ public abstract class FrameworkConstants {
     public static final String PASTR_COOKIE = "pastr";
     public static final String CLAIM_URI_WSO2_EXT_IDP = "http://wso2.org/claims/externalIDP";
     public static final String LOCAL_ROLE_CLAIM_URI = "http://wso2.org/claims/role";
+    public static final String ACCOUNT_LOCKED_CLAIM_URI = "http://wso2.org/claims/identity/accountLocked";
+    public static final String ACCOUNT_DISABLED_CLAIM_URI = "http://wso2.org/claims/identity/accountDisabled";
+    public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
+    public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
@@ -115,6 +119,13 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
+    public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
+
+    public static final String AUTH_MECHANISM = "AuthMechanism";
+    public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
+
+    public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
+            "FederatedIDPRoleClaimValueAttributeSeparator";
 
     private FrameworkConstants() {
 
@@ -129,12 +140,16 @@ public abstract class FrameworkConstants {
         public static final String ELEM_AUTHENTICATOR = "Authenticator";
         public static final String ELEM_AUTHENTICATOR_CONFIG = "AuthenticatorConfig";
         public static final String ELEM_AUTH_ENDPOINT_QUERY_PARAM = "AuthenticationEndpointQueryParam";
+        public static final String ELEM_HOST_NAME = "HostName";
         public static final String ELEM_AUTHENTICATOR_NAME_MAPPING = "AuthenticatorNameMapping";
         public static final String ELEM_IDP_CONFIG = "IdPConfig";
         public static final String ELEM_PARAMETER = "Parameter";
         public static final String ELEM_REQ_PATH_AUTHENTICATOR = "RequestPathAuthenticators";
+        public static final String ELEM_AUTH_ENDPOINT_REDIRECT_PARAM = "AuthenticationEndpointRedirectParam";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
+        public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
          */
@@ -158,6 +173,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTHENTICATION_ENDPOINT_URL = "AuthenticationEndpointURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_RETRY_URL = "AuthenticationEndpointRetryURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_WAIT_URL = "AuthenticationEndpointWaitURL";
+        public static final String QNAME_AUTHENTICATION_ENDPOINT_IDF_CONFIRM_URL = "IdentifierFirstConfirmationURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_PROMPT_URL = "AuthenticationEndpointPromptURL";
         public static final String QNAME_AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_URL =
                 "AuthenticationEndpointMissingClaimsURL";
@@ -170,6 +186,8 @@ public abstract class FrameworkConstants {
         public static final String QNAME_IDP_CONFIGS = "IdPConfigs";
         public static final String QNAME_SEQUENCES = "Sequences";
         public static final String QNAME_AUTH_ENDPOINT_QUERY_PARAMS = "AuthenticationEndpointQueryParams";
+        public static final String QNAME_AUTH_ENDPOINT_REDIRECT_PARAMS = "AuthenticationEndpointRedirectParams";
+        public static final String QNAME_FILTERING_ENABLED_HOST_NAMES = "FilteringEnabledHostNames";
         /**
          * Configuration name for the collection of urls for receiving tenant list
          */
@@ -191,6 +209,12 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
         public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
         public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
+
+        /**
+         * Configuration used for user session mapping.
+         */
+        public static final String USER_SESSION_MAPPING_ENABLED =
+                "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
 
         private Config() {
         }
@@ -219,6 +243,9 @@ public abstract class FrameworkConstants {
         public static final String MANDOTARY_CLAIM_PREFIX = "claim_mand_";
         public static final String REMEMBER_ME = "chkRemember";
         public static final String INPUT_TYPE = "inputType";
+        public static final String AUTH_TYPE = "authType";
+        public static final String IDF = "idf";
+        public static final String IDENTIFIER_CONSENT = "identifier_consent";
 
         private RequestParams() {
         }
@@ -256,6 +283,7 @@ public abstract class FrameworkConstants {
         public static final String AUTH_REQUEST = "authRequest";
         public static final String HTTP_REQUEST = "HttpServletRequest";
         public static final String HTTP_RESPONSE = "HttpServletResponse";
+        public static final String IDENTIFIER_FIRST_AUTHENTICATOR = "IdentifierExecutor";
 
         private RequestAttribute() {
         }
@@ -327,6 +355,7 @@ public abstract class FrameworkConstants {
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
+        public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
@@ -366,5 +395,11 @@ public abstract class FrameworkConstants {
     public static class AdaptiveAuthentication {
 
         public static final String ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT = "AdaptiveAuth.LongWaitTimeout";
+    }
+
+    public static class ResidentIdpPropertyName {
+
+        public static final String ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY = "account.lock.handler.enable";
+        public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
     }
 }

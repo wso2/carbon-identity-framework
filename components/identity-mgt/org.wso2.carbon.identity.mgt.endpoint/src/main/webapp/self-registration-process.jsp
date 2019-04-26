@@ -77,6 +77,11 @@
     <div class="container-fluid body-wrapper">
 
         <%
+            String ERROR_MESSAGE = "errorMsg";
+            String ERROR_CODE = "errorCode";
+            String SELF_REGISTRATION_WITH_VERIFICATION_PAGE = "self-registration-with-verification.jsp";
+            String SELF_REGISTRATION_WITHOUT_VERIFICATION_PAGE = "self-registration-without-verification.jsp";
+            String passwordPatternErrorCode = "20035";
             boolean isSelfRegistrationWithVerification =
                     Boolean.parseBoolean(request.getParameter("isSelfRegistrationWithVerification"));
             
@@ -208,10 +213,26 @@
                 Error error = new Gson().fromJson(e.getMessage(), Error.class);
                 request.setAttribute("error", true);
                 if (error != null) {
-                    request.setAttribute("errorMsg", error.getDescription());
-                    request.setAttribute("errorCode", error.getCode());
+                    request.setAttribute(ERROR_MESSAGE, error.getDescription());
+                    request.setAttribute(ERROR_CODE, error.getCode());
+                    if (passwordPatternErrorCode.equals(error.getCode())) {
+                        String i18Resource = IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, error.getCode());
+                        if (!i18Resource.equals(error.getCode())) {
+                            request.setAttribute(ERROR_MESSAGE, i18Resource);
+                        }
+                        if (isSelfRegistrationWithVerification) {
+                            request.getRequestDispatcher(SELF_REGISTRATION_WITH_VERIFICATION_PAGE).forward(request,
+                                    response);
+                        } else {
+                            request.getRequestDispatcher(SELF_REGISTRATION_WITHOUT_VERIFICATION_PAGE).forward(request,
+                                    response);
+                        }
+
+                        return;
+                    }
                 }
                 request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
             }
 
 
@@ -224,7 +245,7 @@
         <div class="container-fluid">
             <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
                 <script>document.write(new Date().getFullYear());</script>
-                <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i> <%=
+                <a href="<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i> <%=
                 IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
                 <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
             </p>

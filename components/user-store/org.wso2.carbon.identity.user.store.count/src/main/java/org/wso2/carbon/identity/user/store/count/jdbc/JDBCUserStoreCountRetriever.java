@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.identity.user.store.count.jdbc;
 
-import javax.sql.DataSource;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
@@ -27,18 +27,16 @@ import org.wso2.carbon.identity.user.store.count.AbstractUserStoreCountRetriever
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.api.UserRealm;
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.Map;
+import javax.sql.DataSource;
 
 public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever {
 
@@ -194,7 +192,9 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             // db connection is present
         }
         dbConnection.setAutoCommit(false);
-        dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
+            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        }
         return dbConnection;
     }
 

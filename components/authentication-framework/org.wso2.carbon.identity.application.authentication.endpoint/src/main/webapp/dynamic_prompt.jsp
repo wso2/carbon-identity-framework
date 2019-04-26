@@ -11,16 +11,17 @@
   ~ Unless required by applicable law or agreed to in writing,
   ~ software distributed under the License is distributed on an
   ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~ KIND, either express or implied.  See the License for the
+  ~ KIND, either express or implied. See the License for the
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.TemplateMgtAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.identity.template.mgt.model.Template" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
@@ -32,6 +33,8 @@
 <%
     String templateId = request.getParameter("templateId");
     String promptId = request.getParameter("promptId");
+    String tenantDomain = request.getParameter("tenantDomain");
+    
     String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
     if (StringUtils.isBlank(authAPIURL)) {
         authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
@@ -41,11 +44,12 @@
     }
     authAPIURL += "context/" + request.getParameter("promptId");
     String contextProperties = AuthContextAPIClient.getContextProperties(authAPIURL);
+
+
     Gson gson = new Gson();
     Map data = gson.fromJson(contextProperties, Map.class);
     String templatePath = templateMap.get(templateId);
 %>
-
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -53,21 +57,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%>
     </title>
-    
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
-    
     <!--[if lt IE 9]>
     <script src="js/html5shiv.min.js"></script>
     <script src="js/respond.min.js"></script>
     <![endif]-->
 </head>
 <body>
+<script type="text/javascript">
+    var data = JSON.parse("<%=Encode.forJavaScript(contextProperties)%>");
+    var prompt_id = "<%=promptId%>";
+</script>
 
-
-<!-- header -->
 <header class="header header-default">
     <div class="container-fluid"><br></div>
     <div class="container-fluid">
@@ -86,24 +90,26 @@
     
     <div class="row">
         <div class="col-md-12">
-    
+            
             <%
                 if (templatePath != null) {
             %>
             <div class="container col-xs-10 col-sm-6 col-md-6 col-lg-4 col-centered wr-content wr-login col-centered">
-                <c:set var="data" value="<%=data%>" scope="request"/>
-                <c:set var="promptId" value="<%=URLEncoder.encode(promptId, StandardCharsets.UTF_8.name())%>" scope="request"/>
-                <jsp:include page="<%=templatePath%>"/>
-            </div>
-    
+                            <c:set var="data" value="<%=data%>" scope="request"/>
+                            <c:set var="promptId" value="<%=URLEncoder.encode(promptId, StandardCharsets.UTF_8.name())%>"
+                            scope="request"/>
+                            <jsp:include page="<%=templatePath%>"/>
+                        </div>
+            
             <%
             } else {
             %>
             <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
                 <div>
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent("Incorrect Request")%> </h2>
+                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent("Incorrect Request")%>
+                    </h2>
                 </div>
-        
+                
                 <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
                     <div class="font-medium">
                         <strong>
@@ -118,9 +124,8 @@
             <%
                 }
             %>
-            
+        
         </div>
-    
     </div>
 </div>
 

@@ -78,6 +78,8 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
                 } else {
                     return null;
                 }
+            case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
+                return getWrapped().isRetrying();
             default:
                 return super.getMember(name);
         }

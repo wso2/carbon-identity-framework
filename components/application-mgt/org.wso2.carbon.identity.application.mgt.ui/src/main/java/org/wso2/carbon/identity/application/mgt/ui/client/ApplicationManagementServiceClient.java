@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenti
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.xsd.SpTemplate;
+import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
@@ -118,9 +119,22 @@ public class ApplicationManagementServiceClient {
      * @return
      * @throws AxisFault
      */
-    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws Exception {
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws AxisFault {
+
+        return getApplicationBasicInfo("*");
+    }
+
+    /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws AxisFault
+     */
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws AxisFault {
+
         try {
-            return stub.getAllApplicationBasicInfo();
+            return stub.getApplicationBasicInfo(filter);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
             handleException(e);
         }
@@ -281,17 +295,18 @@ public class ApplicationManagementServiceClient {
      * Create an application template.
      *
      * @param spTemplate service provider template info
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
-    public void createApplicationTemplate(SpTemplate spTemplate) throws AxisFault {
+    public void createApplicationTemplate(SpTemplate spTemplate)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
         try {
             if (debugEnabled) {
                 log.debug("Registering Service Provider template: " + spTemplate.getName());
             }
             stub.createApplicationTemplate(spTemplate);
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when creating Service Provider template: " + spTemplate.getName());
         }
     }
 
@@ -300,18 +315,20 @@ public class ApplicationManagementServiceClient {
      *
      * @param serviceProvider Service provider to be configured as a template
      * @param spTemplate service provider template basic info
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
     public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
-            throws AxisFault {
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
         try {
             if (debugEnabled) {
-                log.debug("Adding Service Provider as a template with name: " + spTemplate.getName());
+                log.debug("Adding Service Provider:" + serviceProvider.getApplicationName() + " as a template " +
+                        "with name: " + spTemplate.getName());
             }
             stub.createApplicationTemplateFromSP(serviceProvider, spTemplate);
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when creating Service Provider template: " + spTemplate.getName() +
+                            " from service provider: " + serviceProvider.getApplicationName());
         }
     }
 
@@ -320,17 +337,18 @@ public class ApplicationManagementServiceClient {
      *
      * @param templateName template name
      * @return service provider template info
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
-    public SpTemplate getApplicationTemplate(String templateName) throws AxisFault {
+    public SpTemplate getApplicationTemplate(String templateName)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
         try {
             if (debugEnabled) {
                 log.debug("Retrieving Service Provider template: " + templateName);
             }
             return stub.getApplicationTemplate(templateName);
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when retrieving Service Provider template: " + templateName);
         }
         return null;
     }
@@ -339,17 +357,18 @@ public class ApplicationManagementServiceClient {
      * Delete an application template.
      *
      * @param templateName name of the template
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
-    public void deleteApplicationTemplate(String templateName) throws AxisFault {
+    public void deleteApplicationTemplate(String templateName)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
         try {
             if (debugEnabled) {
                 log.debug("Deleting Service Provider template: " + templateName);
             }
             stub.deleteApplicationTemplate(templateName);
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when deleting Service Provider template: " + templateName);
         }
     }
 
@@ -357,17 +376,18 @@ public class ApplicationManagementServiceClient {
      * Update an application template.
      *
      * @param spTemplate SP template info to be updated
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
-    public void updateApplicationTemplate(String templateName, SpTemplate spTemplate) throws AxisFault {
+    public void updateApplicationTemplate(String templateName, SpTemplate spTemplate)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
         try {
             if (debugEnabled) {
                 log.debug("Updating Service Provider template: " + templateName);
             }
             stub.updateApplicationTemplate(templateName, spTemplate);
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when updating Service Provider template: " + templateName);
         }
     }
 
@@ -376,17 +396,18 @@ public class ApplicationManagementServiceClient {
      *
      * @param templateName template name
      * @return true if a template with the specified name exists
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
-    public boolean isExistingApplicationTemplate(String templateName) throws AxisFault {
+    public boolean isExistingApplicationTemplate(String templateName)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
         try {
             if (debugEnabled) {
                 log.debug("Checking existence of application template: " + templateName);
             }
             return stub.isExistingApplicationTemplate(templateName);
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when checking existence of Service Provider template: " + templateName);
         }
         return false;
     }
@@ -395,20 +416,20 @@ public class ApplicationManagementServiceClient {
      * Get basic info of all the service provider templates.
      *
      * @return Array of all application templates
-     * @throws AxisFault
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
      */
-    public SpTemplate[] getAllApplicationTemplateInfo() throws AxisFault {
+    public SpTemplate[] getAllApplicationTemplateInfo()
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
 
-        SpTemplate[] templates = null;
         try {
             if (debugEnabled) {
                 log.debug("Get all service provider template basic info.");
             }
-            templates = stub.getAllApplicationTemplateInfo();
-        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            handleException(e);
+            return stub.getAllApplicationTemplateInfo();
+        } catch (RemoteException e) {
+            handleException(e, "Error occurred when retrieving service provider template basic info");
         }
-        return templates;
+        return new SpTemplate[0];
     }
 
     private void handleException(Exception e) throws AxisFault {
@@ -427,4 +448,12 @@ public class ApplicationManagementServiceClient {
         throw new AxisFault(errorMessage, e);
     }
 
+    private void handleException(RemoteException e, String msg)
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
+        log.error(msg, e);
+        throw new IdentityApplicationManagementServiceIdentityApplicationManagementClientException(
+                "Server error occurred.");
+    }
+
 }
+

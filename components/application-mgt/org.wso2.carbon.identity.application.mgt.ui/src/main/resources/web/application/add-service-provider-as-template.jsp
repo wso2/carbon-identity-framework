@@ -17,20 +17,34 @@
   --%>
 
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
+<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page
+        import="org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementClientException" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
-<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="java.util.ResourceBundle" %>
+
+<script type="text/javascript" src="extensions/js/vui.js"></script>
+<script type="text/javascript" src="../extensions/core/js/vui.js"></script>
+<script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
+<jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
     String templateName = request.getParameter("templateName");
     String templateDesc = request.getParameter("templateDesc");
     String oldSPName = request.getParameter("oldSPName");
+
+    String BUNDLE = "org.wso2.carbon.identity.application.mgt.ui.i18n.Resources";
+    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
+
     try {
         ApplicationBean appBean = ApplicationMgtUIUtil.getApplicationBeanFromSession(session, oldSPName);
         appBean.update(request);
@@ -45,8 +59,25 @@
         spTemplate.setDescription(templateDesc);
         ServiceProvider sp = appBean.getServiceProvider();
         serviceClient.createApplicationTemplateFromSP(sp, spTemplate);
-    } catch (Exception e) {
-        CarbonUIMessage.sendCarbonUIMessage("Error occurred while adding the Service Provider as a template",
-                CarbonUIMessage.ERROR, request, e);
+    } catch (IdentityApplicationManagementServiceIdentityApplicationManagementClientException e) {
+        String message = resourceBundle.getString("alert.error.add.sp.as.template");
+        if (e.getFaultMessage() != null && e.getFaultMessage().getIdentityApplicationManagementClientException() != null
+                && e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages() != null) {
+            String[] errorMessages = e.getFaultMessage().getIdentityApplicationManagementClientException().getMessages();
+            session.setAttribute("createTemplateError", errorMessages);
+%>
+<script>
+    location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>&createTemplateError=true';
+</script>
+<%
+} else {
+    CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+%>
+<script>
+    location.href = 'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(oldSPName)%>';
+</script>
+<%
+        }
     }
 %>
+

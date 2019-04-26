@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.provisioning;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
@@ -68,6 +69,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -487,7 +490,7 @@ public class OutboundProvisioningManager {
                 String[] provisionByRoleList = new String[0];
 
                 if (provisioningIdp.getProvisioningRole() != null) {
-                    provisionByRoleList = provisioningIdp.getProvisioningRole().split(",");
+                    provisionByRoleList = provisioningIdp.getProvisioningRole().trim().split("\\s*,[,\\s]*");
                 }
 
                 if (provisioningEntity.getEntityType() == ProvisioningEntityType.GROUP && Arrays.asList
@@ -824,11 +827,18 @@ public class OutboundProvisioningManager {
             return true;
         }
 
-        String userName = getUserName(provisioningEntity.getAttributes());
-        List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
+        if (provisioningEntity.getAttributes() != null) {
+            String userName = getUserName(provisioningEntity.getAttributes());
+            List<String> provisioningRoleList = Arrays.asList(provisionByRoleList);
 
-        for (String provisionByRole : provisionByRoleList) {
-            if (roleListOfUser.contains(provisionByRole)) {
+            List<String> roleListOfUser = getUserRoles(userName, tenantDomain);
+            if (userHasProvisioningRoles(roleListOfUser, provisioningRoleList, userName)) {
+                return true;
+            }
+            List<String> newRoleListOfUser = provisioningEntity.getAttributes().get(ClaimMapping.build
+                        (IdentityProvisioningConstants.GROUP_CLAIM_URI, null, null, false));
+
+            if (userHasProvisioningRoles(newRoleListOfUser, provisioningRoleList, userName)) {
                 return true;
             }
         }
@@ -1051,5 +1061,28 @@ public class OutboundProvisioningManager {
         if (mappedGroups != null && !mappedGroups.isEmpty()) {
             ProvisioningUtil.setClaimValue(groupAttributeName, provisioningEntity.getAttributes(), mappedGroups);
         }
+    }
+
+    /**
+     * Check if user roles has common elements with the provisioning role list
+     *
+     * @param userRoles
+     * @param provisioningRoles
+     * @param userName
+     */
+    private boolean userHasProvisioningRoles(List<String> userRoles, List<String> provisioningRoles, String userName) {
+
+        if (CollectionUtils.isNotEmpty(userRoles) && CollectionUtils.isNotEmpty(provisioningRoles)) {
+            for(String provisioningRole : provisioningRoles) {
+                if (userRoles.contains(provisioningRole)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User with userName : " + userName + " has provisioning role(s) assigned.");
+                    }
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

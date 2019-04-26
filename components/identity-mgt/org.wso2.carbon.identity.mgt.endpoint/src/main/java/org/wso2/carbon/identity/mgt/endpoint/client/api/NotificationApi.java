@@ -21,9 +21,11 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
@@ -44,9 +46,8 @@ public class NotificationApi {
 
     private ApiClient apiClient;
 
-    String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/recovery/v0.9");
+    String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(
+            IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
 
     public NotificationApi() {
 
@@ -71,13 +72,33 @@ public class NotificationApi {
     /**
      * This API is used to send password recovery confirmation over defined channels like email/sms
      *
-     * @param recoveryInitiatingRequest It can be sent optional property parameters over email based on email template. (required)
+     * @param recoveryInitiatingRequest It can be sent optional property parameters over email based on email template.
+     *                                  (required)
      * @param type                      Notification Type (optional)
      * @param notify                    If notify&#x3D;true then, notifications will be internally managed. (optional)
      * @return String
      * @throws ApiException if fails to make API call
      */
-    public String recoverPasswordPost(RecoveryInitiatingRequest recoveryInitiatingRequest, String type, Boolean notify) throws ApiException {
+    public String recoverPasswordPost(RecoveryInitiatingRequest recoveryInitiatingRequest, String type, Boolean notify)
+            throws ApiException {
+
+        return recoverPasswordPost(recoveryInitiatingRequest, type, notify, null);
+
+    }
+
+    /**
+     * This API is used to send password recovery confirmation over defined channels like email/sms
+     *
+     * @param recoveryInitiatingRequest It can be sent optional property parameters over email based on email template.
+     *                                  (required)
+     * @param type                      Notification Type (optional)
+     * @param notify                    If notify&#x3D;true then, notifications will be internally managed. (optional)
+     * @param headers                   Adding headers for request recover password api. (optional)
+     * @return String
+     * @throws ApiException if fails to make API call
+     */
+    public String recoverPasswordPost(RecoveryInitiatingRequest recoveryInitiatingRequest, String type, Boolean notify,
+                                      Map<String, String> headers) throws ApiException {
 
         Object localVarPostBody = recoveryInitiatingRequest;
 
@@ -99,6 +120,11 @@ public class NotificationApi {
         // query params
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        if (MapUtils.isNotEmpty(headers)) {
+            localVarHeaderParams.putAll(headers);
+        }
+
         Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
         localVarQueryParams.addAll(apiClient.parameterToPairs("", "type", type));
@@ -258,9 +284,8 @@ public class NotificationApi {
     private void setBasePath(String tenantDomain) {
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         }
 
         apiClient.setBasePath(basePath);

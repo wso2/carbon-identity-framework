@@ -35,7 +35,10 @@ import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 
 import javax.ws.rs.core.MediaType;
@@ -50,10 +53,21 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class ApiClient {
+
+    private static final String AUTHORIZATION           = "Authorization";
+    private static final String CLIENT                  = "Client ";
+    private static final String X_HTTP_METHOD_OVERRIDE  = "X-HTTP-Method-Override";
+    private static final String PATCH                   = "PATCH";
+    private static final String GET                     = "GET";
+    private static final String POST                    = "POST";
+    private static final String PUT                     = "PUT";
+    private static final String DELETE                  = "DELETE";
+
+    private static final Log log = LogFactory.getLog(ApiClient.class);
+
     private Map<String, String> defaultHeaderMap = new HashMap<String, String>();
-    private String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/recovery/v0.9");
+    private String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
+            .UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
     private boolean debugging = false;
     private int connectionTimeout = 0;
 
@@ -431,17 +445,12 @@ public class ApiClient {
 
     private ClientResponse getAPIResponse(String path, String method, List<Pair> queryParams, Object body, Map<String, String> headerParams, Map<String, Object> formParams, String accept, String contentType, String[] authNames) throws ApiException {
 
-        final String AUTHORIZATION          = "Authorization";
-        final String CLIENT                 = "Client ";
-        final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
-        final String PATCH                  = "PATCH";
-        final String GET                    = "GET";
-        final String POST                   = "POST";
-        final String PUT                    = "PUT";
-        final String DELETE                 = "DELETE";
-
         if (body != null && !formParams.isEmpty()) {
             throw new ApiException(500, "Cannot have body and form params");
+        }
+
+        if (!isRequestMethodSupported(method)) {
+            throw new ApiException(500, "unknown method type " + method);
         }
 
         final String url = buildUrl(path, queryParams);
@@ -461,31 +470,36 @@ public class ApiClient {
             }
         }
 
-        ClientResponse response;
         String toEncode = IdentityManagementServiceUtil.getInstance().getAppName() + ":"
                 + String.valueOf(IdentityManagementServiceUtil.getInstance().getAppPassword());
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
 
-        if (GET.equals(method)) {
-            response = (ClientResponse) builder.header(AUTHORIZATION,  CLIENT + authHeader).get(ClientResponse.class);
-        } else if (POST.equals(method)) {
-            response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).post(ClientResponse.class,
-                    serialize(body, contentType, formParams));
-        } else if (PUT.equals(method)) {
-            response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).put(ClientResponse.class,
-                    serialize(body, contentType, formParams));
-        } else if (DELETE.equals(method)) {
-            response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).delete
-                    (ClientResponse.class, serialize(body, contentType, formParams));
-        } else if (PATCH.equals(method)) {
-            response = builder.type(contentType).header(X_HTTP_METHOD_OVERRIDE, PATCH).header
-                    (AUTHORIZATION, CLIENT + authHeader).post
-                    (ClientResponse.class, serialize(body, contentType, formParams));
-        } else {
-            throw new ApiException(500, "unknown method type " + method);
+        try {
+            ClientResponse response = null;
+            if (GET.equals(method)) {
+                response = builder.header(AUTHORIZATION,  CLIENT + authHeader).get(ClientResponse.class);
+            } else if (POST.equals(method)) {
+                response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).post(ClientResponse.class,
+                        serialize(body, contentType, formParams));
+            } else if (PUT.equals(method)) {
+                response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).put(ClientResponse.class,
+                        serialize(body, contentType, formParams));
+            } else if (DELETE.equals(method)) {
+                response = builder.type(contentType).header(AUTHORIZATION, CLIENT + authHeader).delete
+                        (ClientResponse.class, serialize(body, contentType, formParams));
+            } else if (PATCH.equals(method)) {
+                response = builder.type(contentType).header(X_HTTP_METHOD_OVERRIDE, PATCH).header
+                        (AUTHORIZATION, CLIENT + authHeader).post
+                        (ClientResponse.class, serialize(body, contentType, formParams));
+            }
+            return response;
+        } catch (Exception e) {
+            String errMsg = String.format("Error while performing the request method: %s on the " +
+                    "resource: %s", method, url) ;
+            log.error(errMsg, e);
+            throw new ApiException(500, "Error while accessing the backend service");
         }
-        return response;
     }
 
     /**
@@ -536,6 +550,12 @@ public class ApiClient {
                     response.getHeaders(),
                     respBody);
         }
+    }
+
+    private boolean isRequestMethodSupported(String method) {
+
+        return  GET.equals(method) || POST.equals(method) || PUT.equals(method) || DELETE.equals(method)
+                || PATCH.equals(method);
     }
 
 

@@ -21,9 +21,11 @@
 package org.wso2.carbon.identity.mgt.endpoint.client.api;
 
 import com.sun.jersey.api.client.GenericType;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
@@ -38,11 +40,13 @@ import java.util.List;
 import java.util.Map;
 
 public class UsernameRecoveryApi {
+
+  final String[] localVarAccepts = {"application/json"};
+  final String[] localVarContentTypes = {"application/json"};
+  String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(
+          IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
   private ApiClient apiClient;
 
-  String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-          .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                  "api/identity/recovery/v0.9");
   public UsernameRecoveryApi() {
     this(Configuration.getDefaultApiClient());
   }
@@ -87,9 +91,8 @@ public class UsernameRecoveryApi {
     }
 
     if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-      basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                      "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+      basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+              IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
     }
 
     apiClient.setBasePath(basePath);
@@ -104,14 +107,8 @@ public class UsernameRecoveryApi {
 
     localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
 
-    final String[] localVarAccepts = {
-            "application/json"
-    };
     final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
 
-    final String[] localVarContentTypes = {
-            "application/json"
-    };
     final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
 
     String[] localVarAuthNames = new String[]{};
@@ -122,14 +119,31 @@ public class UsernameRecoveryApi {
   }
 
   /**
+   * This API can be used to recover forgot username.
+   *
+   * @param claim        User answers for recovery claims. (required)
+   * @param tenantDomain Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
+   * @param notify       If notify&#x3D;true then, notifications will be internally managed. (optional)
+   * @throws ApiException if fails to make API call
+   */
+  public void recoverUsernamePost(List<UserClaim> claim, String tenantDomain, Boolean notify) throws ApiException {
+
+    recoverUsernamePost(claim, tenantDomain, notify, null);
+
+  }
+
+  /**
    * 
    * This API can be used to recover forgot username.  
    * @param claim User answers for recovery claims. (required)
    * @param tenantDomain Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
    * @param notify If notify&#x3D;true then, notifications will be internally managed. (optional)
+   * @param headers If reCaptcha respond is found, embedded in request header. (optional)
    * @throws ApiException if fails to make API call
    */
-  public void recoverUsernamePost(List<UserClaim> claim, String tenantDomain, Boolean notify) throws ApiException {
+  public void recoverUsernamePost(List<UserClaim> claim, String tenantDomain, Boolean notify,
+                                  Map<String, String> headers) throws ApiException {
+
     Object localVarPostBody = claim;
     
     // verify the required parameter 'claim' is set
@@ -143,9 +157,8 @@ public class UsernameRecoveryApi {
     }
 
     if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-      basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-              .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                      "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+      basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+              IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
     }
 
     apiClient.setBasePath(basePath);
@@ -156,26 +169,70 @@ public class UsernameRecoveryApi {
     // query params
     List<Pair> localVarQueryParams = new ArrayList<Pair>();
     Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+    if (MapUtils.isNotEmpty(headers)) {
+      localVarHeaderParams.putAll(headers);
+    }
+
     Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
     localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
     localVarQueryParams.addAll(apiClient.parameterToPairs("", "notify", notify));
 
     
-    
-    final String[] localVarAccepts = {
-      "application/json"
-    };
+
     final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
 
-    final String[] localVarContentTypes = {
-      "application/json"
-    };
     final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
 
     String[] localVarAuthNames = new String[] {  };
 
 
     apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
+  }
+
+  /**
+   * return the user name recovery supported claims in the given tenant.
+   *
+   * @param tenantDomain tenant domain. Default &#x60;carbon.super&#x60; (optional)
+   * @return List<Claim>
+   * @throws ApiException if fails to make API call
+   */
+  public List<Claim> getClaimsForUsernameRecovery(String tenantDomain, boolean isEndpointTenantAware)
+          throws ApiException {
+
+    if (StringUtils.isBlank(tenantDomain)) {
+      tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+    }
+
+    if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+      basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+              IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+    }
+
+    apiClient.setBasePath(basePath);
+
+    // Create path and map variables
+    String localVarPath = "/claims".replaceAll("\\{format\\}", "json");
+
+    // Query params
+    List<Pair> localVarQueryParams = new ArrayList<Pair>();
+    Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+    Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+    localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
+    localVarQueryParams.addAll(apiClient.parameterToPairs("", "isUsernameRecovery",
+            true));
+
+    final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+    final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+
+    String[] localVarAuthNames = new String[]{};
+
+    GenericType<List<Claim>> localVarReturnType = new GenericType<List<Claim>>() {
+    };
+    return apiClient.invokeAPI(localVarPath, "GET", localVarQueryParams, null,
+            localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType,
+            localVarAuthNames, localVarReturnType);
   }
 }

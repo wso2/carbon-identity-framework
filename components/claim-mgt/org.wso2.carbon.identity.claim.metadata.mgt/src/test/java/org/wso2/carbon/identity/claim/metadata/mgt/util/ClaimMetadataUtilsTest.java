@@ -156,10 +156,21 @@ public class ClaimMetadataUtilsTest {
             externalClaims[i] = new ExternalClaim(claimDialectURI + i, externalClaimURI + i, mappedLocalClaimURI + i);
         }
 
+        ClaimPropertyDTO claimPropertyDTO1 = new ClaimPropertyDTO();
+        claimPropertyDTO1.setPropertyName(ClaimConstants.DISPLAY_NAME_PROPERTY);
+        claimPropertyDTO1.setPropertyValue("username");
+
+        ClaimPropertyDTO claimPropertyDTO2 = new ClaimPropertyDTO();
+        claimPropertyDTO2.setPropertyName(ClaimConstants.READ_ONLY_PROPERTY);
+        claimPropertyDTO2.setPropertyValue("true");
+
+        ClaimPropertyDTO[] claimPropertyDTOs = new ClaimPropertyDTO[]{claimPropertyDTO1, claimPropertyDTO2};
+
         externalClaimDTO = new ExternalClaimDTO();
         externalClaimDTO.setExternalClaimDialectURI(claimDialectURI);
         externalClaimDTO.setExternalClaimURI(externalClaimURI);
         externalClaimDTO.setMappedLocalClaimURI(mappedLocalClaimURI);
+        externalClaimDTO.setClaimProperties(claimPropertyDTOs);
     }
 
     @Test
@@ -284,6 +295,14 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(externalClaimDTO.getExternalClaimDialectURI(), externalClaim.getClaimDialectURI());
         Assert.assertEquals(externalClaimDTO.getExternalClaimURI(), externalClaim.getClaimURI());
         Assert.assertEquals(externalClaimDTO.getMappedLocalClaimURI(), externalClaim.getMappedLocalClaim());
+        Assert.assertEquals(externalClaimDTO.getClaimProperties().length, externalClaim.getClaimProperties().size());
+
+        for (ClaimPropertyDTO claimPropertyDTO : externalClaimDTO.getClaimProperties()) {
+            String propertyName = claimPropertyDTO.getPropertyName();
+            String propertyValue = claimPropertyDTO.getPropertyValue();
+
+            Assert.assertEquals(propertyValue, externalClaim.getClaimProperties().get(propertyName));
+        }
 
     }
 
@@ -296,10 +315,22 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(externalClaimDTOs.length, externalClaims.length);
 
         for (int i = 0; i < externalClaims.length; i++) {
+            ExternalClaim externalClaim = externalClaims[i];
+            ExternalClaimDTO externalClaimDTO = externalClaimDTOs[i];
+
             Assert.assertEquals(externalClaimDTOs[i].getExternalClaimDialectURI(),
                     externalClaims[i].getClaimDialectURI());
             Assert.assertEquals(externalClaimDTOs[i].getExternalClaimURI(), externalClaims[i].getClaimURI());
             Assert.assertEquals(externalClaimDTOs[i].getMappedLocalClaimURI(), externalClaims[i].getMappedLocalClaim());
+            Assert.assertEquals(externalClaimDTO.getClaimProperties().length,
+                    externalClaim.getClaimProperties().size());
+
+            for (ClaimPropertyDTO claimPropertyDTO : externalClaimDTO.getClaimProperties()) {
+                String propertyName = claimPropertyDTO.getPropertyName();
+                String propertyValue = claimPropertyDTO.getPropertyValue();
+
+                Assert.assertEquals(propertyValue, externalClaim.getClaimProperties().get(propertyName));
+            }
         }
     }
 
@@ -311,6 +342,14 @@ public class ClaimMetadataUtilsTest {
         Assert.assertEquals(externalClaim.getClaimDialectURI(), externalClaimDTO.getExternalClaimDialectURI());
         Assert.assertEquals(externalClaim.getClaimURI(), externalClaimDTO.getExternalClaimURI());
         Assert.assertEquals(externalClaim.getMappedLocalClaim(), externalClaimDTO.getMappedLocalClaimURI());
+        Assert.assertEquals(externalClaim.getClaimProperties().size(), externalClaimDTO.getClaimProperties().length);
+
+        for (ClaimPropertyDTO claimPropertyDTO : externalClaimDTO.getClaimProperties()) {
+            String propertyName = claimPropertyDTO.getPropertyName();
+            String propertyValue = claimPropertyDTO.getPropertyValue();
+
+            Assert.assertEquals(propertyValue, externalClaim.getClaimProperties().get(propertyName));
+        }
     }
 
     @DataProvider(name = "Authentication")

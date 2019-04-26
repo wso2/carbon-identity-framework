@@ -1,0 +1,621 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://defaultsequence.mgt.application.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ax2175="http://defaultsequence.mgt.application.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2177="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:ax2178="http://script.model.common.application.identity.carbon.wso2.org/xsd" targetNamespace="http://defaultsequence.mgt.application.identity.carbon.wso2.org">
+    <wsdl:documentation>IdentityDefaultSeqManagementService</wsdl:documentation>
+    <wsdl:types>
+        <xs:schema xmlns:ns="http://org.apache.axis2/xsd" xmlns:ax2176="http://defaultsequence.mgt.application.identity.carbon.wso2.org/xsd" xmlns:ax2180="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://org.apache.axis2/xsd">
+            <xs:import namespace="http://defaultsequence.mgt.application.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
+            <xs:element name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="DefaultAuthSeqMgtException" nillable="true" type="ax2175:DefaultAuthSeqMgtException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingDefaultAuthenticationSequence">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="isExistingDefaultAuthenticationSequenceResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="createDefaultAuthenticationSeq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="authenticationSequence" nillable="true" type="ax2180:DefaultAuthenticationSequence"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDefaultAuthenticationSeq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDefaultAuthenticationSeqResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2180:DefaultAuthenticationSequence"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDefaultAuthenticationSeqInXML">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDefaultAuthenticationSeqInXMLResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2180:DefaultAuthenticationSequence"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDefaultAuthenticationSeqInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getDefaultAuthenticationSeqInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2180:DefaultAuthenticationSequence"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="deleteDefaultAuthenticationSeq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateDefaultAuthenticationSeq">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="sequenceName" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="sequence" nillable="true" type="ax2180:DefaultAuthenticationSequence"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema xmlns:ax2179="http://script.model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://model.common.application.identity.carbon.wso2.org/xsd">
+            <xs:import namespace="http://script.model.common.application.identity.carbon.wso2.org/xsd"/>
+            <xs:complexType name="DefaultAuthenticationSequence">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="content" nillable="true" type="ax2177:LocalAndOutboundAuthenticationConfig"/>
+                    <xs:element minOccurs="0" name="contentXml" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="LocalAndOutboundAuthenticationConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="alwaysSendBackAuthenticatedListOfIdPs" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="authenticationScriptConfig" nillable="true" type="ax2179:AuthenticationScriptConfig"/>
+                    <xs:element minOccurs="0" name="authenticationStepForAttributes" nillable="true" type="ax2177:AuthenticationStep"/>
+                    <xs:element minOccurs="0" name="authenticationStepForSubject" nillable="true" type="ax2177:AuthenticationStep"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="authenticationSteps" nillable="true" type="ax2177:AuthenticationStep"/>
+                    <xs:element minOccurs="0" name="authenticationType" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="enableAuthorization" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="useTenantDomainInLocalSubjectIdentifier" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="useUserstoreDomainInLocalSubjectIdentifier" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="useUserstoreDomainInRoles" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="AuthenticationStep">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="attributeStep" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedIdentityProviders" nillable="true" type="ax2177:IdentityProvider"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="localAuthenticatorConfigs" nillable="true" type="ax2177:LocalAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="stepOrder" type="xs:int"/>
+                    <xs:element minOccurs="0" name="subjectStep" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdentityProvider">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="alias" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="certificate" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="certificateInfoArray" nillable="true" type="ax2177:CertificateInfo"/>
+                    <xs:element minOccurs="0" name="claimConfig" nillable="true" type="ax2177:ClaimConfig"/>
+                    <xs:element minOccurs="0" name="defaultAuthenticatorConfig" nillable="true" type="ax2177:FederatedAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="defaultProvisioningConnectorConfig" nillable="true" type="ax2177:ProvisioningConnectorConfig"/>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="enable" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="federatedAuthenticatorConfigs" nillable="true" type="ax2177:FederatedAuthenticatorConfig"/>
+                    <xs:element minOccurs="0" name="federationHub" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="homeRealmId" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="id" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="identityProviderDescription" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="identityProviderName" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpProperties" nillable="true" type="ax2177:IdentityProviderProperty"/>
+                    <xs:element minOccurs="0" name="justInTimeProvisioningConfig" nillable="true" type="ax2177:JustInTimeProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2177:PermissionsAndRoleConfig"/>
+                    <xs:element minOccurs="0" name="primary" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningConnectorConfigs" nillable="true" type="ax2177:ProvisioningConnectorConfig"/>
+                    <xs:element minOccurs="0" name="provisioningRole" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="CertificateInfo">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="certValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="thumbPrint" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClaimConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="alwaysSendMappedLocalSubjectId" type="xs:boolean"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="claimMappings" nillable="true" type="ax2177:ClaimMapping"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpClaims" nillable="true" type="ax2177:Claim"/>
+                    <xs:element minOccurs="0" name="localClaimDialect" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="roleClaimURI" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="spClaimDialects" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="userClaimURI" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ClaimMapping">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="localClaim" nillable="true" type="ax2177:Claim"/>
+                    <xs:element minOccurs="0" name="mandatory" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="remoteClaim" nillable="true" type="ax2177:Claim"/>
+                    <xs:element minOccurs="0" name="requested" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="Claim">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="claimId" type="xs:int"/>
+                    <xs:element minOccurs="0" name="claimUri" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FederatedAuthenticatorConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2177:Property"/>
+                    <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="Property">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="advanced" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="confidential" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="defaultValue" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="displayOrder" type="xs:int"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="required" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="type" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ProvisioningConnectorConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="blocking" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="provisioningProperties" nillable="true" type="ax2177:Property"/>
+                    <xs:element minOccurs="0" name="rulesEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="IdentityProviderProperty">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="InboundProvisioningConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="dumbMode" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="provisioningEnabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="provisioningUserStore" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="JustInTimeProvisioningConfig">
+                <xs:complexContent>
+                    <xs:extension base="ax2177:InboundProvisioningConfig">
+                        <xs:sequence>
+                            <xs:element minOccurs="0" name="modifyUserNameAllowed" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="passwordProvisioningEnabled" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="promptConsent" type="xs:boolean"/>
+                            <xs:element minOccurs="0" name="userStoreClaimUri" nillable="true" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:extension>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="PermissionsAndRoleConfig">
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="idpRoles" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="permissions" nillable="true" type="ax2177:ApplicationPermission"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="roleMappings" nillable="true" type="ax2177:RoleMapping"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ApplicationPermission">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="value" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="RoleMapping">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="localRole" nillable="true" type="ax2177:LocalRole"/>
+                    <xs:element minOccurs="0" name="remoteRole" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="LocalRole">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="localRoleName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="userStoreId" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="LocalAuthenticatorConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="displayName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2177:Property"/>
+                    <xs:element minOccurs="0" name="valid" type="xs:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://defaultsequence.mgt.application.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="DefaultAuthSeqMgtException">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="message" nillable="true" type="xs:string"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="messages" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://script.model.common.application.identity.carbon.wso2.org/xsd">
+            <xs:complexType name="AuthenticationScriptConfig">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="content" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="enabled" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="language" nillable="true" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="getDefaultAuthenticationSeqInfoRequest">
+        <wsdl:part name="parameters" element="ns1:getDefaultAuthenticationSeqInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getDefaultAuthenticationSeqInfoResponse">
+        <wsdl:part name="parameters" element="ns1:getDefaultAuthenticationSeqInfoResponse"/>
+    </wsdl:message>
+    <wsdl:message name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+        <wsdl:part name="parameters" element="ns1:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+    </wsdl:message>
+    <wsdl:message name="getDefaultAuthenticationSeqRequest">
+        <wsdl:part name="parameters" element="ns1:getDefaultAuthenticationSeq"/>
+    </wsdl:message>
+    <wsdl:message name="getDefaultAuthenticationSeqResponse">
+        <wsdl:part name="parameters" element="ns1:getDefaultAuthenticationSeqResponse"/>
+    </wsdl:message>
+    <wsdl:message name="deleteDefaultAuthenticationSeqRequest">
+        <wsdl:part name="parameters" element="ns1:deleteDefaultAuthenticationSeq"/>
+    </wsdl:message>
+    <wsdl:message name="deleteDefaultAuthenticationSeqResponse"/>
+    <wsdl:message name="getDefaultAuthenticationSeqInXMLRequest">
+        <wsdl:part name="parameters" element="ns1:getDefaultAuthenticationSeqInXML"/>
+    </wsdl:message>
+    <wsdl:message name="getDefaultAuthenticationSeqInXMLResponse">
+        <wsdl:part name="parameters" element="ns1:getDefaultAuthenticationSeqInXMLResponse"/>
+    </wsdl:message>
+    <wsdl:message name="isExistingDefaultAuthenticationSequenceRequest">
+        <wsdl:part name="parameters" element="ns1:isExistingDefaultAuthenticationSequence"/>
+    </wsdl:message>
+    <wsdl:message name="isExistingDefaultAuthenticationSequenceResponse">
+        <wsdl:part name="parameters" element="ns1:isExistingDefaultAuthenticationSequenceResponse"/>
+    </wsdl:message>
+    <wsdl:message name="updateDefaultAuthenticationSeqRequest">
+        <wsdl:part name="parameters" element="ns1:updateDefaultAuthenticationSeq"/>
+    </wsdl:message>
+    <wsdl:message name="updateDefaultAuthenticationSeqResponse"/>
+    <wsdl:message name="createDefaultAuthenticationSeqRequest">
+        <wsdl:part name="parameters" element="ns1:createDefaultAuthenticationSeq"/>
+    </wsdl:message>
+    <wsdl:message name="createDefaultAuthenticationSeqResponse"/>
+    <wsdl:portType name="IdentityDefaultSeqManagementServicePortType">
+        <wsdl:operation name="getDefaultAuthenticationSeqInfo">
+            <wsdl:input message="tns:getDefaultAuthenticationSeqInfoRequest" wsaw:Action="urn:getDefaultAuthenticationSeqInfo"/>
+            <wsdl:output message="tns:getDefaultAuthenticationSeqInfoResponse" wsaw:Action="urn:getDefaultAuthenticationSeqInfoResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:getDefaultAuthenticationSeqInfoIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeq">
+            <wsdl:input message="tns:getDefaultAuthenticationSeqRequest" wsaw:Action="urn:getDefaultAuthenticationSeq"/>
+            <wsdl:output message="tns:getDefaultAuthenticationSeqResponse" wsaw:Action="urn:getDefaultAuthenticationSeqResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:getDefaultAuthenticationSeqIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="deleteDefaultAuthenticationSeq">
+            <wsdl:input message="tns:deleteDefaultAuthenticationSeqRequest" wsaw:Action="urn:deleteDefaultAuthenticationSeq"/>
+            <wsdl:output message="tns:deleteDefaultAuthenticationSeqResponse" wsaw:Action="urn:deleteDefaultAuthenticationSeqResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:deleteDefaultAuthenticationSeqIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeqInXML">
+            <wsdl:input message="tns:getDefaultAuthenticationSeqInXMLRequest" wsaw:Action="urn:getDefaultAuthenticationSeqInXML"/>
+            <wsdl:output message="tns:getDefaultAuthenticationSeqInXMLResponse" wsaw:Action="urn:getDefaultAuthenticationSeqInXMLResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:getDefaultAuthenticationSeqInXMLIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="isExistingDefaultAuthenticationSequence">
+            <wsdl:input message="tns:isExistingDefaultAuthenticationSequenceRequest" wsaw:Action="urn:isExistingDefaultAuthenticationSequence"/>
+            <wsdl:output message="tns:isExistingDefaultAuthenticationSequenceResponse" wsaw:Action="urn:isExistingDefaultAuthenticationSequenceResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:isExistingDefaultAuthenticationSequenceIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="updateDefaultAuthenticationSeq">
+            <wsdl:input message="tns:updateDefaultAuthenticationSeqRequest" wsaw:Action="urn:updateDefaultAuthenticationSeq"/>
+            <wsdl:output message="tns:updateDefaultAuthenticationSeqResponse" wsaw:Action="urn:updateDefaultAuthenticationSeqResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:updateDefaultAuthenticationSeqIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+        <wsdl:operation name="createDefaultAuthenticationSeq">
+            <wsdl:input message="tns:createDefaultAuthenticationSeqRequest" wsaw:Action="urn:createDefaultAuthenticationSeq"/>
+            <wsdl:output message="tns:createDefaultAuthenticationSeqResponse" wsaw:Action="urn:createDefaultAuthenticationSeqResponse"/>
+            <wsdl:fault message="tns:IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException" wsaw:Action="urn:createDefaultAuthenticationSeqIdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="IdentityDefaultSeqManagementServiceSoap11Binding" type="tns:IdentityDefaultSeqManagementServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getDefaultAuthenticationSeqInfo">
+            <soap:operation soapAction="urn:getDefaultAuthenticationSeqInfo" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeq">
+            <soap:operation soapAction="urn:getDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteDefaultAuthenticationSeq">
+            <soap:operation soapAction="urn:deleteDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeqInXML">
+            <soap:operation soapAction="urn:getDefaultAuthenticationSeqInXML" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isExistingDefaultAuthenticationSequence">
+            <soap:operation soapAction="urn:isExistingDefaultAuthenticationSequence" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateDefaultAuthenticationSeq">
+            <soap:operation soapAction="urn:updateDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="createDefaultAuthenticationSeq">
+            <soap:operation soapAction="urn:createDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentityDefaultSeqManagementServiceSoap12Binding" type="tns:IdentityDefaultSeqManagementServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getDefaultAuthenticationSeqInfo">
+            <soap12:operation soapAction="urn:getDefaultAuthenticationSeqInfo" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeq">
+            <soap12:operation soapAction="urn:getDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="deleteDefaultAuthenticationSeq">
+            <soap12:operation soapAction="urn:deleteDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeqInXML">
+            <soap12:operation soapAction="urn:getDefaultAuthenticationSeqInXML" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="isExistingDefaultAuthenticationSequence">
+            <soap12:operation soapAction="urn:isExistingDefaultAuthenticationSequence" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="updateDefaultAuthenticationSeq">
+            <soap12:operation soapAction="urn:updateDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="createDefaultAuthenticationSeq">
+            <soap12:operation soapAction="urn:createDefaultAuthenticationSeq" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException">
+                <soap12:fault use="literal" name="IdentityDefaultSeqManagementServiceDefaultAuthSeqMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="IdentityDefaultSeqManagementServiceHttpBinding" type="tns:IdentityDefaultSeqManagementServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="getDefaultAuthenticationSeqInfo">
+            <http:operation location="getDefaultAuthenticationSeqInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeq">
+            <http:operation location="getDefaultAuthenticationSeq"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="deleteDefaultAuthenticationSeq">
+            <http:operation location="deleteDefaultAuthenticationSeq"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getDefaultAuthenticationSeqInXML">
+            <http:operation location="getDefaultAuthenticationSeqInXML"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="isExistingDefaultAuthenticationSequence">
+            <http:operation location="isExistingDefaultAuthenticationSequence"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="updateDefaultAuthenticationSeq">
+            <http:operation location="updateDefaultAuthenticationSeq"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="createDefaultAuthenticationSeq">
+            <http:operation location="createDefaultAuthenticationSeq"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="IdentityDefaultSeqManagementService">
+        <wsdl:port name="IdentityDefaultSeqManagementServiceHttpsSoap11Endpoint" binding="tns:IdentityDefaultSeqManagementServiceSoap11Binding">
+            <soap:address location="https://localhost:9443/services/IdentityDefaultSeqManagementService.IdentityDefaultSeqManagementServiceHttpsSoap11Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="IdentityDefaultSeqManagementServiceHttpsSoap12Endpoint" binding="tns:IdentityDefaultSeqManagementServiceSoap12Binding">
+            <soap12:address location="https://localhost:9443/services/IdentityDefaultSeqManagementService.IdentityDefaultSeqManagementServiceHttpsSoap12Endpoint/"/>
+        </wsdl:port>
+        <wsdl:port name="IdentityDefaultSeqManagementServiceHttpsEndpoint" binding="tns:IdentityDefaultSeqManagementServiceHttpBinding">
+            <http:address location="https://localhost:9443/services/IdentityDefaultSeqManagementService.IdentityDefaultSeqManagementServiceHttpsEndpoint/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

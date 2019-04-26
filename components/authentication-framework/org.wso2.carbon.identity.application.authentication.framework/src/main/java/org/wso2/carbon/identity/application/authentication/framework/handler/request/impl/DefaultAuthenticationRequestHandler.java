@@ -33,17 +33,22 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationContextProperty;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.services.PostAuthenticationMgtService;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -56,7 +61,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -139,23 +143,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // if flow completed, send response back
         if (canConcludeFlow(context)) {
             concludeFlow(request, response, context);
-        } else {
-            // persisting context before redirecting to outside.
-            persistCurrentContext(context);
         }
     }
 
-    private void persistCurrentContext(AuthenticationContext context) {
-
-        FrameworkUtils.addAuthenticationContextToCache(context.getContextIdentifier(), context);
-    }
-
-    private boolean canConcludeFlow(AuthenticationContext context) {
+    protected boolean canConcludeFlow(AuthenticationContext context) {
 
         return LoginContextManagementUtil.isPostAuthenticationExtensionCompleted(context);
     }
 
-    private void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
+    protected void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
                                           AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
@@ -310,7 +306,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
-            if (FrameworkUtils.getAuthCookie(request) != null) {
+            // Force authentication requires the creation of a new session. Therefore skip using the existing session
+            if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
 
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
 
@@ -352,6 +349,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             }
                         }
                     }
+                }
+
+                Long createdTime = (Long)sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+                if (createdTime != null) {
+                    authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTime);
                 }
 
                 // Authentication context properties received from newly authenticated IdPs
@@ -407,7 +409,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String sessionKey = UUIDGenerator.generateUUID();
                 sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
+                Long createdTimeMillis = System.currentTimeMillis();
+                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -426,12 +430,21 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
+            if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+                try {
+                    storeSessionData(context, sessionContextKey);
+                } catch (UserSessionException e) {
+                    throw new FrameworkException("Error while storing session details of the authenticated user to " +
+                            "the database", e);
+                }
+            }
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
         // authenticator in multi steps scenario. Ex. Fido
         if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
-                && (response instanceof CommonAuthResponseWrapper)) {
+                && (response instanceof CommonAuthResponseWrapper) &&
+                !((CommonAuthResponseWrapper) response).isWrappedByFramework()) {
             //Set the result as request attribute
             request.setAttribute("sessionDataKey", context.getCallerSessionKey());
             addAuthenticationResultToRequest(request, authenticationResult);
@@ -449,6 +462,57 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    /**
+     * Method used to store user and session related data to the database.
+     *
+     * @param context           {@link AuthenticationContext} object with the authentication request related data
+     * @param sessionContextKey of the authenticated session
+     */
+    private void storeSessionData(AuthenticationContext context, String sessionContextKey)
+            throws UserSessionException {
+
+        for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
+            String userName = authenticatedIdPData.getUser().getUserName();
+            String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
+            int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
+                    .getTenantId(tenantDomain);
+            String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
+            String idpName = authenticatedIdPData.getIdpName();
+            String userId;
+            try {
+                int idpId = UserSessionStore.getInstance().getIdPId(idpName);
+                userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
+
+                boolean persistUserToSessionMapping = true;
+                try {
+                    if (userId == null) {
+                        userId = UUIDGenerator.generateUUID();
+                        UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain, idpId);
+                    }
+                } catch (DuplicatedAuthUserException e) {
+                    // When the authenticated user is already persisted the respective user to session mapping will
+                    // be persisted from the same node handling the request.
+                    // Thus, persisting the user to session mapping can be gracefully ignored here.
+                    persistUserToSessionMapping = false;
+                    String msg = "User authenticated is already persisted. Username: " + userName + " Tenant Domain:" +
+                            " " + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: " + idpName;
+                    log.warn(msg);
+                    if (log.isDebugEnabled()) {
+                        log.debug(msg, e);
+                    }
+                }
+
+                if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
+                        sessionContextKey)) {
+                    UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+                }
+            } catch (UserSessionException e) {
+                throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
+                        "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain , e);
+            }
+        }
     }
 
     private String getApplicationTenantDomain(AuthenticationContext context) {
@@ -621,7 +685,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         AuthenticationResult authenticationResult = null;
         if (FrameworkUtils.getCacheDisabledAuthenticators().contains(context.getRequestType())
-                && (response instanceof CommonAuthResponseWrapper)) {
+                && (response instanceof CommonAuthResponseWrapper) &&
+                !((CommonAuthResponseWrapper) response).isWrappedByFramework()) {
             // Get the authentication result from the request
             authenticationResult =
                     (AuthenticationResult) request.getAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT);

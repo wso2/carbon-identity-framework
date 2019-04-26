@@ -32,4 +32,20 @@ public interface AuthGraphNode extends Serializable {
      * @return
      */
     String getName();
+
+    /**
+     * Parent is the immediate upper level node of the AuthGraphNode.
+     * This method can be called to get Parent of a particular node.
+     *
+     * @return
+     */
+    AuthGraphNode getParent();
+
+    /**
+     * This method should be used to assign a value to a instance variable
+     * which refers to the parent of that particular AuthGraphNode object instance
+     *
+     * @param parentNode
+     */
+    void setParent(AuthGraphNode parentNode);
 }

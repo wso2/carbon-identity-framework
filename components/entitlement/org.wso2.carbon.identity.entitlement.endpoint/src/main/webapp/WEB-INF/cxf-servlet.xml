@@ -90,6 +90,9 @@
         <cxf:inInterceptors>
             <ref bean="ClearThreadLocalInterceptor"/>
         </cxf:inInterceptors>
+        <cxf:properties>
+            <entry key="skip.default.json.provider.registration" value="true"/>
+        </cxf:properties>
     </cxf:bus>
 
 </beans>

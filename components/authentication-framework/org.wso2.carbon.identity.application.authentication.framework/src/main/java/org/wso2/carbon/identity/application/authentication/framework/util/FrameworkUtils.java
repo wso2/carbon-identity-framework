@@ -19,11 +19,13 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
@@ -50,7 +52,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -70,10 +71,8 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.RequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.StepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.StepHandler;
-import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -86,6 +85,7 @@ import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
@@ -93,7 +93,11 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
@@ -105,6 +109,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -123,10 +131,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.STATUS_MSG;
 
 public class FrameworkUtils {
 
@@ -141,6 +148,7 @@ public class FrameworkUtils {
     private static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
     private static final String REQUEST_PARAM_APPLICATION = "application";
+    private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
 
     private FrameworkUtils() {
@@ -1089,7 +1097,8 @@ public class FrameworkUtils {
                             authenticatedIdPData.getIdpName().equals(authenticatorIdp)) {
 
                         if (FrameworkConstants.LOCAL.equals(authenticatedIdPData.getIdpName())) {
-                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName)) {
+                            if (authenticatedIdPData.isAlreadyAuthenticatedUsing(authenticatorName,
+                                    authenticatorConfig.getApplicationAuthenticator().getAuthMechanism())) {
                                 idpAuthenticatorMap.put(authenticatorIdp, authenticatorConfig);
 
                                 if (log.isDebugEnabled()) {
@@ -1266,6 +1275,98 @@ public class FrameworkUtils {
         return queryStrBuilder.toString();
     }
 
+    public static String getRedirectURLWithFilteredParams(String redirectUrl, AuthenticationContext context) {
+
+        return getRedirectURLWithFilteredParams(redirectUrl, context.getEndpointParams());
+    }
+
+    public static String getRedirectURLWithFilteredParams(String redirectUrl, Map<String, Serializable> dataStoreMap) {
+
+        boolean configAvailable = FileBasedConfigurationBuilder.getInstance()
+                .isAuthEndpointRedirectParamsConfigAvailable();
+
+        if (!configAvailable) {
+            return redirectUrl;
+        }
+        List<String> queryParams = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParams();
+        String action = FileBasedConfigurationBuilder.getInstance()
+                .getAuthEndpointRedirectParamsAction();
+
+        URIBuilder uriBuilder;
+        try {
+            uriBuilder = new URIBuilder(redirectUrl);
+        } catch (URISyntaxException e) {
+            log.warn("Unable to filter redirect params for url." + redirectUrl, e);
+            return redirectUrl;
+        }
+
+        // If the host name is not white listed then the query params will not be removed from the redirect url.
+        List<String> filteringEnabledHosts = FileBasedConfigurationBuilder.getInstance().getFilteringEnabledHostNames();
+        if (CollectionUtils.isNotEmpty(filteringEnabledHosts) && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
+            return redirectUrl;
+        }
+
+        List<NameValuePair> queryParamsList = uriBuilder.getQueryParams();
+
+        if (action != null
+                && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (queryParams.contains(paramName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(paramName + " is in exclude list, hence removing from url and making " +
+                                    "available via API");
+                        }
+                        dataStoreMap.put(paramName, paramValue);
+                        iterator.remove();
+                    }
+                }
+            }
+        } else {
+            if (queryParamsList != null) {
+                Iterator<NameValuePair> iterator = queryParamsList.iterator();
+                while (iterator.hasNext()) {
+                    NameValuePair nameValuePair = iterator.next();
+                    String paramName = nameValuePair.getName();
+                    String paramValue = nameValuePair.getValue();
+
+                    //skip sessionDataKey which is mandatory
+                    if (SESSION_DATA_KEY.equals(paramName)) {
+                        continue;
+                    }
+
+                    if (!queryParams.contains(paramName)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(paramName + " is not in include list, hence removing from url and making " +
+                                    "available via API");
+                        }
+                        dataStoreMap.put(paramName, paramValue);
+                        iterator.remove();
+                    }
+                }
+            }
+        }
+        uriBuilder.clearParameters();
+        uriBuilder.setParameters(queryParamsList);
+        return uriBuilder.toString();
+    }
+
+    public static boolean isRemoveAPIParamsOnConsume() {
+
+        return FileBasedConfigurationBuilder.getInstance().isRemoveAPIParametersOnConsume();
+    }
+
     public static int getMaxInactiveInterval() {
         return maxInactiveInterval;
     }
@@ -1422,7 +1523,10 @@ public class FrameworkUtils {
      * @param queryParams Map of query params to be append.
      * @return Built URL with query params.
      * @throws UnsupportedEncodingException Throws when trying to encode the query params.
+     *
+     * @deprecated Use {@link #buildURLWithQueryParams(String, Map)} instead.
      */
+    @Deprecated
     public static String appendQueryParamsToUrl(String url, Map<String, String> queryParams)
             throws UnsupportedEncodingException {
 
@@ -1441,6 +1545,34 @@ public class FrameworkUtils {
 
         String queryString = StringUtils.join(queryParam1, "&");
 
+        return appendQueryParamsStringToUrl(url, queryString);
+    }
+
+    /**
+     * Append a query param map to the URL (URL may already contain query params)
+     *
+     * @param url         URL string to append the params.
+     * @param queryParams Map of query params to be append.
+     * @return Built URL with query params.
+     * @throws UnsupportedEncodingException Can be thrown when trying to encode the query params.
+     */
+    public static String buildURLWithQueryParams(String url, Map<String, String> queryParams)
+            throws UnsupportedEncodingException {
+
+        if (StringUtils.isEmpty(url)) {
+            throw new IllegalArgumentException("Passed URL is empty.");
+        }
+        if (MapUtils.isEmpty(queryParams)) {
+            return url;
+        }
+
+        List<String> queryParam1 = new ArrayList<>();
+        for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            String encodedValue = URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.name());
+            queryParam1.add(entry.getKey() + "=" + encodedValue);
+        }
+
+        String queryString = StringUtils.join(queryParam1, "&");
         return appendQueryParamsStringToUrl(url, queryString);
     }
 
@@ -1550,8 +1682,19 @@ public class FrameworkUtils {
             idpRoleAttrValue = extAttributesValueMap.get(idpRoleClaimUri);
         }
         String[] idpRoles;
+        String federatedIDPRoleClaimAttributeSeparator;
         if (idpRoleAttrValue != null) {
-            idpRoles = idpRoleAttrValue.split(FrameworkUtils.getMultiAttributeSeparator());
+            if (IdentityUtil.getProperty(FrameworkConstants.FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR) != null) {
+                federatedIDPRoleClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
+                        .FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
+                if (log.isDebugEnabled()) {
+                    log.debug("The IDP side role claim value separator is configured as : " + federatedIDPRoleClaimAttributeSeparator);
+                }
+            } else {
+                federatedIDPRoleClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
+            }
+
+            idpRoles = idpRoleAttrValue.split(federatedIDPRoleClaimAttributeSeparator);
         } else {
             // No identity provider role values found.
             if (log.isDebugEnabled()) {
@@ -1562,7 +1705,7 @@ public class FrameworkUtils {
             return new ArrayList<>();
         }
         Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
-        List<String> idpMappedUserRoles = new ArrayList<>();
+        Set<String> idpMappedUserRoles = new HashSet<>();
         // If no role mapping is configured in the identity provider.
         if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
             if (log.isDebugEnabled()) {
@@ -1573,7 +1716,7 @@ public class FrameworkUtils {
                 return new ArrayList<>();
             }
             idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
-            return idpMappedUserRoles;
+            return new ArrayList<>(idpMappedUserRoles);
         }
         for (String idpRole : idpRoles) {
             if (idpToLocalRoleMapping.containsKey(idpRole)) {
@@ -1582,7 +1725,7 @@ public class FrameworkUtils {
                 idpMappedUserRoles.add(idpRole);
             }
         }
-        return idpMappedUserRoles;
+        return new ArrayList<>(idpMappedUserRoles);
     }
 
     /**
@@ -1803,7 +1946,13 @@ public class FrameworkUtils {
     public static Object toJsSerializable(Object value) {
 
         if (value instanceof Serializable) {
-            return value;
+            if (value instanceof HashMap) {
+                Map<String, Object> map = new HashMap<>();
+                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
+                return map;
+            } else {
+                return value;
+            }
         } else if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
             if (scriptObjectMirror.isFunction()) {
@@ -1864,6 +2013,111 @@ public class FrameworkUtils {
             return deserializedMap;
         }
         return value;
+    }
+
+    /**
+     * Get the configurations of a tenant from cache or database
+     *
+     * @param tenantDomain Domain name of the tenant
+     * @return Configurations belong to the tenant
+     */
+    private static Property[] getResidentIdpConfiguration(String tenantDomain) throws FrameworkException {
+
+        IdpManager identityProviderManager = IdentityProviderManager.getInstance();
+        IdentityProvider residentIdp = null;
+        try {
+            residentIdp = identityProviderManager.getResidentIdP(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            String errorMsg = String.format("Error while retrieving resident Idp for %s tenant.", tenantDomain);
+            throw new FrameworkException(errorMsg, e);
+        }
+        IdentityProviderProperty[] identityMgtProperties = residentIdp.getIdpProperties();
+        Property[] configMap = new Property[identityMgtProperties.length];
+        int index = 0;
+        for (IdentityProviderProperty identityMgtProperty : identityMgtProperties) {
+            if (ALREADY_WRITTEN_PROPERTY.equals(identityMgtProperty.getName())) {
+                continue;
+            }
+            Property property = new Property();
+            property.setName(identityMgtProperty.getName());
+            property.setValue(identityMgtProperty.getValue());
+            configMap[index] = property;
+            index++;
+        }
+        return configMap;
+    }
+
+    /**
+     * This method is used to get the requested resident Idp configuration details.
+     *
+     * @param propertyName
+     * @param tenantDomain
+     * @return Property
+     * @throws FrameworkException
+     */
+    public static Property getResidentIdpConfiguration(String propertyName, String tenantDomain) throws
+            FrameworkException {
+
+        Property requestedProperty = null;
+        Property[] allProperties = getResidentIdpConfiguration(tenantDomain);
+        for (int i = 0; i < allProperties.length; i++) {
+            if (propertyName.equals(allProperties[i].getName())) {
+                requestedProperty = allProperties[i];
+                break;
+            }
+        }
+
+        return requestedProperty;
+
+    }
+
+    /**
+     * Check user session mapping enabled.
+     *
+     * @return Return true if UserSessionMapping configuration enabled and both IDN_AUTH_USER and
+     * IDN_AUTH_USER_SESSION_MAPPING tables are available.
+     */
+    public static boolean isUserSessionMappingEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExists(
+                "IDN_AUTH_USER") && isTableExists("IDN_AUTH_USER_SESSION_MAPPING");
+    }
+
+    /**
+     * Check whether the specified table exists in the Identity database.
+     *
+     * @param tableName name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExists(String tableName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Table - " + tableName + " available in the Identity database.");
+                    }
+                    connection.commit();
+                    return true;
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Table - " + tableName + " not available in the Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
     }
 }
 

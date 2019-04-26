@@ -17,13 +17,32 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="java.net.URLDecoder" %>
-<%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.CallBackValidator" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.IdentityRecoveryException" %>
+<%@ page import="java.net.URISyntaxException" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
     String callback = (String) request.getAttribute("callback");
+    String tenantDomain = (String) request.getAttribute("tenantDomain");
+    boolean isUserPortalURL = (boolean) request.getAttribute("isUserPortalURL");
+
+    CallBackValidator callBackValidator = new CallBackValidator();
+    try {
+        if (!callBackValidator.isValidCallbackURL(callback, tenantDomain, isUserPortalURL)) {
+            request.setAttribute("error", true);
+            request.setAttribute("errorMsg", "Configured callback URL does not match with the provided callback " +
+                    "URL in the request.");
+            request.getRequestDispatcher("error.jsp").forward(request, response);
+            return;
+        }
+    } catch (IdentityRecoveryException e) {
+        request.setAttribute("error", true);
+        request.setAttribute("errorMsg", "Callback URL validation failed. " + e);
+        request.getRequestDispatcher("error.jsp").forward(request, response);
+        return;
+    }
 %>
 
 <html>
@@ -63,7 +82,18 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScriptBlock(URLDecoder.decode(callback, "UTF-8"))%>";
+            <%
+            try {
+            %>
+                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+            <%
+            } catch (URISyntaxException e) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+            %>
         })
     });
 </script>

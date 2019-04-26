@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.model;
 
+import java.util.Map;
+
 /**
  * Represents the metadata of a external claim.
  */
@@ -27,7 +29,17 @@ public class ExternalClaim extends Claim {
         this.mappedLocalClaim = mappedLocalClaimURI;
     }
 
+    public ExternalClaim(String claimDialectURI, String claimURI, String mappedLocalClaimURI,
+            Map<String, String> claimProperties) {
+        super(claimDialectURI, claimURI, claimProperties);
+        this.mappedLocalClaim = mappedLocalClaimURI;
+    }
+
     public String getMappedLocalClaim() {
         return mappedLocalClaim;
+    }
+
+    public void setMappedLocalClaim(String mappedLocalClaim) {
+        this.mappedLocalClaim = mappedLocalClaim;
     }
 }

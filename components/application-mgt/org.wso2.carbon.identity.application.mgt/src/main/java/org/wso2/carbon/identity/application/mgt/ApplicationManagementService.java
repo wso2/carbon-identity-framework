@@ -114,6 +114,18 @@ public abstract class ApplicationManagementService {
             throws IdentityApplicationManagementException;
 
     /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username User Name
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException;
+
+    /**
      * Update Application
      *
      * @param tenantDomain Tenant Domain
@@ -275,10 +287,11 @@ public abstract class ApplicationManagementService {
      *
      * @param serviceProvider Service provider to be configured as a template
      * @param spTemplate   service provider template basic info
+     * @param tenantDomain  tenant domain
      * @throws IdentityApplicationManagementException
      */
     public abstract void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate,
-                                                         String tenantDomain)
+                                                                   String tenantDomain)
             throws IdentityApplicationManagementException;
 
     /**
@@ -305,12 +318,14 @@ public abstract class ApplicationManagementService {
     /**
      * Update an application template.
      *
+     * @param templateName name of the template
      * @param spTemplate SP template info to be updated
      * @param tenantDomain  tenant domain
      * @throws IdentityApplicationManagementException
      */
     public abstract void updateApplicationTemplate(String templateName, SpTemplate spTemplate,
-                                                   String tenantDomain) throws IdentityApplicationManagementException;
+                                                             String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Check existence of a application template.
@@ -334,3 +349,4 @@ public abstract class ApplicationManagementService {
             throws IdentityApplicationManagementException;
 
 }
+

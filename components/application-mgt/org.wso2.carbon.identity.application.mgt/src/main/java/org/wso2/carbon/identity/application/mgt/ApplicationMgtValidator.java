@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
@@ -64,8 +65,8 @@ public class ApplicationMgtValidator {
     private static final String PROVISIONING_CONNECTOR_NOT_CONFIGURED = "No Provisioning connector configured for %s.";
     private static final String FEDERATED_IDP_NOT_AVAILABLE =
             "Federated Identity Provider %s is not available in the server.";
-    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available for tenant %s.";
-    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available for tenant %s.";
+    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server.";
+    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server.";
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
@@ -73,26 +74,33 @@ public class ApplicationMgtValidator {
     public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
                                             String userName) throws IdentityApplicationManagementException {
 
-        validateLocalAndOutBoundAuthenticationConfig(serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
+        List<String> validationMsg = new ArrayList<>();
+        validateLocalAndOutBoundAuthenticationConfig(validationMsg, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
                 tenantDomain);
-        validateOutBoundProvisioning(serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
-        validateClaimsConfigs(serviceProvider.getClaimConfig(), tenantDomain);
-        validateRoleConfigs(serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
+        validateRequestPathAuthenticationConfig(validationMsg, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
+        validateOutBoundProvisioning(validationMsg, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
+        validateClaimsConfigs(validationMsg, serviceProvider.getClaimConfig(),
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
+                        .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null, tenantDomain);
+        validateRoleConfigs(validationMsg, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
+
+        if (!validationMsg.isEmpty()) {
+            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+        }
     }
 
     /**
      * Validate local and outbound authenticator related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param localAndOutBoundAuthenticationConfig local and out bound authentication config
      * @param tenantDomain                         tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      *                                                authenticator params
      */
-    private void validateLocalAndOutBoundAuthenticationConfig(
+    private void validateLocalAndOutBoundAuthenticationConfig(List<String> validationMsg,
             LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain)
             throws IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
 
         if (localAndOutBoundAuthenticationConfig == null) {
             return;
@@ -103,7 +111,7 @@ public class ApplicationMgtValidator {
             return;
         }
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
-        Map<String, Property[]> allLocalAuthenticators = Arrays.stream( applicationMgtService
+        Map<String, Property[]> allLocalAuthenticators = Arrays.stream(applicationMgtService
                 .getAllLocalAuthenticators(tenantDomain))
                 .collect(Collectors.toMap(LocalAuthenticatorConfig::getName, LocalAuthenticatorConfig::getProperties));
 
@@ -133,8 +141,34 @@ public class ApplicationMgtValidator {
         if (!isAuthenticatorIncluded.get()) {
             validationMsg.add("No authenticator have been registered in the authentication flow.");
         }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+    }
+
+    /**
+     * Validate request path authenticator related configurations and append to the validation msg list.
+     *
+     * @param validationMsg                        validation error messages
+     * @param requestPathAuthenticatorConfigs request path authentication config
+     * @param tenantDomain                         tenant domain
+     * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
+     *                                                authenticator params
+     */
+    private void validateRequestPathAuthenticationConfig(List<String> validationMsg,
+                                                         RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs,
+                                                         String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
+        Map<String, Property[]> allRequestPathAuthenticators = Arrays.stream(applicationMgtService
+                .getAllRequestPathAuthenticators(tenantDomain))
+                .collect(Collectors.toMap(RequestPathAuthenticatorConfig::getName,
+                        RequestPathAuthenticatorConfig::getProperties));
+
+        if (requestPathAuthenticatorConfigs != null) {
+            for (RequestPathAuthenticatorConfig config : requestPathAuthenticatorConfigs) {
+                if (!allRequestPathAuthenticators.keySet().contains(config.getName())) {
+                    validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, config.getName()));
+                }
+            }
         }
     }
 
@@ -174,13 +208,13 @@ public class ApplicationMgtValidator {
     /**
      * Validate outbound provisioning related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param outboundProvisioningConfig Outbound provisioning config
      * @param tenantDomain               tenant domain
      */
-    private void validateOutBoundProvisioning(OutboundProvisioningConfig outboundProvisioningConfig, String
-            tenantDomain) throws IdentityApplicationManagementValidationException {
-
-        List<String> validationMsg = new ArrayList<>();
+    private void validateOutBoundProvisioning(List<String> validationMsg,
+                                              OutboundProvisioningConfig outboundProvisioningConfig,
+                                              String tenantDomain) {
 
         if (outboundProvisioningConfig == null
                 || outboundProvisioningConfig.getProvisioningIdentityProviders() == null) {
@@ -204,22 +238,19 @@ public class ApplicationMgtValidator {
                         idp.getIdentityProviderName()));
             }
         }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
     }
 
     /**
      * Validate claim related configurations and append to the validation msg list.
      *
+     * @param validationMsg                        validation error messages
      * @param claimConfig  claim config
+     * @param subjectClaimUri Subject claim Uri
      * @param tenantDomain tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    private void validateClaimsConfigs(ClaimConfig claimConfig, String tenantDomain) throws
-            IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
+    private void validateClaimsConfigs(List<String> validationMsg, ClaimConfig claimConfig, String subjectClaimUri,
+                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         if (claimConfig == null) {
             return;
@@ -235,6 +266,20 @@ public class ApplicationMgtValidator {
                 if (!Arrays.asList(allLocalClaimUris).contains(claimUri)) {
                     validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, claimUri, tenantDomain));
                 }
+            }
+        }
+
+        if (claimConfig.isLocalClaimDialect()) {
+            String roleClaimUri = claimConfig.getRoleClaimURI();
+            String userClaimUri = claimConfig.getUserClaimURI();
+            if (StringUtils.isNotBlank(roleClaimUri) && !Arrays.asList(allLocalClaimUris).contains(roleClaimUri)) {
+                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, roleClaimUri, tenantDomain));
+            }
+            if (StringUtils.isNotBlank(userClaimUri) && !Arrays.asList(allLocalClaimUris).contains(userClaimUri)) {
+                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, userClaimUri, tenantDomain));
+            }
+            if (StringUtils.isNotBlank(subjectClaimUri) && !Arrays.asList(allLocalClaimUris).contains(subjectClaimUri)) {
+                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, subjectClaimUri, tenantDomain));
             }
         }
 
@@ -254,21 +299,17 @@ public class ApplicationMgtValidator {
         } catch (ClaimMetadataException e) {
             validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
         }
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
     }
 
     /**
      * Validate local roles in role mapping configuration.
      *
+     * @param validationMsg                        validation error messages
      * @param permissionsAndRoleConfig permission and role configurations
      * @param tenantDomain tenant domain
      */
-    private void validateRoleConfigs(PermissionsAndRoleConfig permissionsAndRoleConfig, String tenantDomain)
-            throws IdentityApplicationManagementException {
-
-        List<String> validationMsg = new ArrayList<>();
+    private void validateRoleConfigs(List<String> validationMsg, PermissionsAndRoleConfig permissionsAndRoleConfig,
+                                     String tenantDomain) {
 
         if (permissionsAndRoleConfig == null || permissionsAndRoleConfig.getRoleMappings() == null) {
             return;
@@ -286,9 +327,6 @@ public class ApplicationMgtValidator {
         } catch (UserStoreException e) {
             validationMsg.add(String.format("Error when checking the existence of local roles in %s.", tenantDomain));
         }
-
-        if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
-        }
     }
 }
+

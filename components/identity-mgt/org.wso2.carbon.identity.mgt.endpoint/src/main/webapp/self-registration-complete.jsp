@@ -17,11 +17,10 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="java.net.URLDecoder" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.net.URISyntaxException" %>
 <jsp:directive.include file="localize.jsp"/>
 <%
     boolean isEmailNotificationEnabled = false;
@@ -88,7 +87,18 @@
         var infoModel = $("#infoModel");
         infoModel.modal("show");
         infoModel.on('hidden.bs.modal', function () {
-            location.href = "<%=Encode.forJavaScriptBlock(URLDecoder.decode(callback, "UTF-8"))%>";
+            <%
+            try {
+            %>
+                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+            <%
+            } catch (URISyntaxException e) {
+                request.setAttribute("error", true);
+                request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
+                request.getRequestDispatcher("error.jsp").forward(request, response);
+                return;
+            }
+            %>
         })
     });
 </script>

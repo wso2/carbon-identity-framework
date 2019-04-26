@@ -24,19 +24,19 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
  * Graph node extending traditional authentication step.
  * Provides the Graph (Node) constructs so that the Step can be executed within a graph.
  */
-public class StepConfigGraphNode extends StepConfig implements AuthGraphNode {
+public class StepConfigGraphNode extends AbstractAuthGraphNode implements AuthGraphNode {
 
     private static final long serialVersionUID = -5648175409277330725L;
     private AuthGraphNode nextLink;
     private StepConfig stepConfig;
-
 
     public StepConfigGraphNode(StepConfig stepConfig) {
         this.stepConfig = stepConfig;
     }
 
     public StepConfig getStepConfig() {
-        return stepConfig == null ? this : stepConfig;
+
+        return stepConfig;
     }
 
     public void setNext(AuthGraphNode nextLink) {

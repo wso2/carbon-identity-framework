@@ -94,11 +94,6 @@ public class PolicySearch {
 
         if (cachingEnable) {
 
-            /*
-            if(DecisionInvalidationCache.getInstance().isInvalidate()){
-                policySearchCache.clearCache();
-            }*/
-
             cacheKey = (subjectId != null ? subjectId : "") + (subjectName != null ? subjectName : "") +
                        (resourceName != null ? resourceName : "") +
                        (action != null ? action : "") + enableChildSearch;
@@ -312,10 +307,6 @@ public class PolicySearch {
 
         if (cachingEnable) {
 
-            /*if(DecisionInvalidationCache.getInstance().isInvalidate()){
-                policySearchCache.clearCache();
-            }*/
-
             int hashCode = 0;
             for (AttributeDTO dto : givenAttributes) {
                 hashCode = hashCode + (31 * dto.hashCode());
@@ -375,6 +366,11 @@ public class PolicySearch {
         }
 
         return result;
+    }
+
+    public void clearCache() {
+
+        policySearchCache.clearCache();
     }
 
     /**

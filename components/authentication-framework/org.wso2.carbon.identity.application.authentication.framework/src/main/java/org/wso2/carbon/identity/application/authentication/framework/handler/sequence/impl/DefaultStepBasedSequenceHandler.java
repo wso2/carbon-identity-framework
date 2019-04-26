@@ -219,8 +219,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
         for (Map.Entry<Integer, StepConfig> entry : sequenceConfig.getStepMap().entrySet()) {
             StepConfig stepConfig = entry.getValue();
             AuthenticatorConfig authenticatorConfig = stepConfig.getAuthenticatedAutenticator();
-            ApplicationAuthenticator authenticator = authenticatorConfig
-                    .getApplicationAuthenticator();
+            if (authenticatorConfig == null) {
+                //May have skipped from the script
+                //ex: Different authentication sequences evaluated by the script
+                continue;
+            }
+            ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
             if (!(authenticator instanceof AuthenticationFlowHandler)) {
                 isAuthenticatorExecuted = true;
@@ -365,13 +369,13 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             }
         }
         if (!isAuthenticatorExecuted) {
-            String errorMsg = String.format("No authenticator have been executed in the authentication flow of %s@%s",
-                    sequenceConfig.getApplicationConfig().getApplicationName(), sequenceConfig.getAuthenticatedUser()
-                            .getTenantDomain());
+            String errorMsg = String.format("No authenticator have been executed in the authentication flow of " +
+                    "application: %s in tenant-domain: %s", sequenceConfig.getApplicationConfig().getApplicationName
+                    (), context.getTenantDomain());
             log.error(errorMsg);
             throw new MisconfigurationException(errorMsg);
         }
-        if (authenticatedUserAttributes != null) {
+        if (!authenticatedUserAttributes.isEmpty() &&  sequenceConfig.getAuthenticatedUser() != null) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
         }
     }
