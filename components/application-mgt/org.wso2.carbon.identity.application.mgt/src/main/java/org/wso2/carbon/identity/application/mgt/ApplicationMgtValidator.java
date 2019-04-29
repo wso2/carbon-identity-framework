@@ -85,6 +85,7 @@ public class ApplicationMgtValidator {
         validateRoleConfigs(validationMsg, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
 
         if (!validationMsg.isEmpty()) {
+            log.error("SP Configurations validation failed: " + Arrays.toString(validationMsg.toArray(new String[0])));
             throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
         }
     }
