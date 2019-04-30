@@ -1079,43 +1079,49 @@ public class ApplicationBean {
         serviceProvider.setApplicationName(request.getParameter("spName"));
         serviceProvider.setDescription(request.getParameter("sp-description"));
         serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
-        String jwks = request.getParameter(ApplicationMgtUIConstants.JWKS_URI);
-        boolean jwksExist = false;
-        ArrayList<ServiceProviderProperty> spPropList;
-        // Adding jwks uri as a sp meta data.
-        if (this.serviceProvider.getSpProperties() != null) {
-            spPropList = new ArrayList(Arrays.asList(this.serviceProvider.getSpProperties()));
-        } else {
-            spPropList = new ArrayList();
-        }
 
-        // If a jwks property already exist for the service provider check whether the stored value is not equal to the
-        // value received from the request.
-        for (ServiceProviderProperty spProperty : spPropList) {
-            if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
-                jwksExist = true;
-                if (StringUtils.isBlank(jwks)) {
-                    spPropList.remove(spProperty);
-                    break;
-                } else if (!jwks.equals(spProperty.getValue())) {
-                    if(log.isDebugEnabled()) {
-                        log.debug("Existing jwks value: "+spProperty.getValue()+" Updated jwks value is "+jwks);
+        String jwks = request.getParameter(ApplicationMgtUIConstants.JWKS_URI);
+        boolean skipConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_CONSENT));
+
+        final Map<String, ServiceProviderProperty> configNameValueMap =
+                getServiceProviderProperties().stream().collect(Collectors.toMap(ServiceProviderProperty::getName, spProperty -> spProperty));
+
+        // Handling JWKS URL property
+        if (configNameValueMap.containsKey(ApplicationMgtUIUtil.JWKS_URI)) {
+            if (StringUtils.isBlank(jwks)) {
+                configNameValueMap.remove(ApplicationMgtUIUtil.JWKS_URI);
+            } else {
+                ServiceProviderProperty propertyForJWKS = configNameValueMap.get(ApplicationMgtUIUtil.JWKS_URI);
+                if (!propertyForJWKS.getValue().equals(jwks)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Existing jwks value: " + propertyForJWKS.getValue() + " Updated jwks value is " + jwks);
                     }
-                    // If a new value is set for the jwks uri add it to the service provider properties.
-                    spPropList.get(spPropList.indexOf(spProperty)).setValue(jwks);
-                    break;
+
+                    propertyForJWKS.setValue(jwks);
                 }
             }
-        }
-        // When a jwks value is set for the first time add it to spProperties.
-        if (StringUtils.isNotBlank(jwks) && !jwksExist) {
+        } else if (StringUtils.isNotBlank(jwks)) {
             ServiceProviderProperty propertyForJWKS = new ServiceProviderProperty();
             propertyForJWKS.setDisplayName(ApplicationMgtUIUtil.JWKS_DISPLAYNAME);
             propertyForJWKS.setName(ApplicationMgtUIUtil.JWKS_URI);
             propertyForJWKS.setValue(jwks);
-            spPropList.add(propertyForJWKS);
+
+            configNameValueMap.put(propertyForJWKS.getName(), propertyForJWKS);
         }
-        serviceProvider.setSpProperties(spPropList.toArray(new ServiceProviderProperty[spPropList.size()]));
+
+        // Handling consent page skip property
+        if (configNameValueMap.containsKey(IdentityConstants.SKIP_CONSENT)) {
+            configNameValueMap.get(IdentityConstants.SKIP_CONSENT).setValue(Boolean.toString(skipConsent));
+        } else {
+            ServiceProviderProperty propertyForSkipConsent = new ServiceProviderProperty();
+            propertyForSkipConsent.setDisplayName(IdentityConstants.SKIP_CONSENT_DISPLAY_NAME);
+            propertyForSkipConsent.setName(IdentityConstants.SKIP_CONSENT);
+            propertyForSkipConsent.setValue(Boolean.toString(skipConsent));
+
+            configNameValueMap.put(propertyForSkipConsent.getName(), propertyForSkipConsent);
+        }
+
+        serviceProvider.setSpProperties(configNameValueMap.values().toArray(new ServiceProviderProperty[]{}));
 
         if (Boolean.parseBoolean(request.getParameter("deletePublicCert"))) {
             serviceProvider.setCertificateContent("");

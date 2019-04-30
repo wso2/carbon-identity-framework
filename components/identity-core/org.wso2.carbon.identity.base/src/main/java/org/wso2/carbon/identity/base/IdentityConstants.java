@@ -138,6 +138,10 @@ public class IdentityConstants {
     public static final String UNKNOWN = "unknown";
     public static final String USER_IP = "user-ip";
 
+    // Service provider constants
+    public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
+    public static final String SKIP_CONSENT="skipConsent";
+
     private IdentityConstants() {
     }
 

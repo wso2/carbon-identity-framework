@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.mgt.ui.util;
 
+import org.wso2.carbon.identity.base.IdentityConstants;
+
 /**
  * Holds the application UI related constants.
  */
@@ -33,6 +35,7 @@ public class ApplicationMgtUIConstants {
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
     public static final String JWKS_URI = "jwksUri";
+    public static final String SKIP_CONSENT = IdentityConstants.SKIP_CONSENT;
 
     /**
      * Holds the application UI param related constants.

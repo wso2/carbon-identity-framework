@@ -34,8 +34,10 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -95,6 +97,16 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         // handled from OAuth endpoint. OpenID flow is skipped as it is deprecated.
         if (isOAuthFlow(context) || isOpenIDFlow(context)) {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        // Check whether currently engaged SP has skipConsent enabled
+        ServiceProviderProperty[] spProperties = getServiceProvider(context).getSpProperties();
+
+        for (ServiceProviderProperty serviceProviderProperty : spProperties) {
+            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
+                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
+                return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+            }
         }
 
         if (isConsentPrompted(context)) {
