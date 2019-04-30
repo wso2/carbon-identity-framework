@@ -32,12 +32,11 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -100,13 +99,8 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         }
 
         // Check whether currently engaged SP has skipConsent enabled
-        ServiceProviderProperty[] spProperties = getServiceProvider(context).getSpProperties();
-
-        for (ServiceProviderProperty serviceProviderProperty : spProperties) {
-            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
-                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
-                return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-            }
+        if (FrameworkUtils.isConsentPageSkippedForSP(getServiceProvider(context))) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
         if (isConsentPrompted(context)) {
