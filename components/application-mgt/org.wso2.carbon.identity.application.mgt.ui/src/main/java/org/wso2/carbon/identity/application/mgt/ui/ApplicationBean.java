@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.consent.mgt.core.model.Purpose;
-import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil;
 import org.wso2.carbon.identity.application.common.model.script.xsd.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.xsd.AuthenticationStep;
@@ -48,15 +47,16 @@ import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
-import org.wso2.carbon.ui.CarbonUIMessage;
+import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil;
+import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 public class ApplicationBean {
@@ -1716,4 +1716,15 @@ public class ApplicationBean {
         }
         return false;
     }
+
+    private ArrayList<ServiceProviderProperty> getServiceProviderProperties() {
+        ArrayList<ServiceProviderProperty> spPropList;
+        if (serviceProvider.getSpProperties() != null) {
+            spPropList = new ArrayList<>(Arrays.asList(serviceProvider.getSpProperties()));
+        } else {
+            spPropList = new ArrayList<>();
+        }
+        return spPropList;
+    }
+
 }
