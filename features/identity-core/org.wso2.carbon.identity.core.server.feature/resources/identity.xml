@@ -622,6 +622,10 @@
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
+        <!--<FilterUsersAndGroupsOnlyFromPrimaryDomain>false</FilterUsersAndGroupsOnlyFromPrimaryDomain>-->
+        <MandateDomainForGroupNamesInGroupsResponse>false</MandateDomainForGroupNamesInGroupsResponse>
+        <!--<MandateDomainForUsernamesAndGroupNamesInResponse>false</MandateDomainForUsernamesAndGroupNamesInResponse
+        >-->
     </SCIM2>
 
     <!--Recovery>
