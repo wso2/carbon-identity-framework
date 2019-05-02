@@ -485,11 +485,14 @@
         <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
         <!--
-        The following property allow to get UMA related information through introspection response
+        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
+
+        Default value : false
+        Supported versions : IS 5.8.0 onwards
         -->
-        <Introspection>
-            <EnableDataProviders>true</EnableDataProviders>
-        </Introspection>
+        <!--Introspection>
+            <EnableDataProviders>false</EnableDataProviders>
+        </Introspection-->
 
     </OAuth>
 
