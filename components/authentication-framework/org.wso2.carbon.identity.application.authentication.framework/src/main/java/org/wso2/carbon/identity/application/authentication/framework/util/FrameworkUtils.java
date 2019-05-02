@@ -2126,11 +2126,7 @@ public class FrameworkUtils {
     public static boolean isConsentPageSkippedForSP(ServiceProvider serviceProvider) {
 
         if (serviceProvider == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("A null referenced service provider is received.");
-            }
-
-            return false;
+            throw new IllegalArgumentException("A null reference received for service provider.");
         }
 
         for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
