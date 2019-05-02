@@ -2125,9 +2125,21 @@ public class FrameworkUtils {
 
     public static boolean isConsentPageSkippedForSP(ServiceProvider serviceProvider) {
 
+        if (serviceProvider == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("A null referenced service provider is received.");
+            }
+
+            return false;
+        }
+
         for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
             if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
                     && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Consent page skip property set for service provider : " + serviceProvider.getApplicationName());
+                }
+
                 return true;
             }
         }
