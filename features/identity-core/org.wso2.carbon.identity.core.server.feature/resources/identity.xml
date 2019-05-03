@@ -625,10 +625,36 @@
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
+
+        <!--
+            If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will filter
+            users or groups only from 'PRIMARY' user store.
+            if the property value is false, it will filter users or groups across all user stores.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
         <!--<FilterUsersAndGroupsOnlyFromPrimaryDomain>false</FilterUsersAndGroupsOnlyFromPrimaryDomain>-->
-        <MandateDomainForGroupNamesInGroupsResponse>false</MandateDomainForGroupNamesInGroupsResponse>
+
+        <!--
+            If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will prepend
+            "PRIMARY/" prefix in-front of the username and role(group) name which belong to PRIMARY user store.
+            if the property value is false, "PRIMARY/" prefix will not be prepended.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
         <!--<MandateDomainForUsernamesAndGroupNamesInResponse>false</MandateDomainForUsernamesAndGroupNamesInResponse
         >-->
+
+        <!--
+            There was a case where PRIMARY domain is not depicted with users being returned at all but only on groups.
+            The purpose of this property is to ensure backward compatibility.
+            If you set the property value to true, in Groups endpoint, it will prepend "PRIMARY/" prefix in-front of
+            the role(group) name which belong to PRIMARY user store.
+            if the property value is false, "PRIMARY/" prefix will not be prepended.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<MandateDomainForGroupNamesInGroupsResponse>false</MandateDomainForGroupNamesInGroupsResponse>-->
     </SCIM2>
 
     <!--Recovery>
