@@ -2142,5 +2142,47 @@ public class FrameworkUtils {
 
         return false;
     }
+
+    /**
+     * Check whether the specified column of the specified table exists in the Identity database.
+     *
+     * @param tableName name of the table.
+     * @param columnName name of the column.
+     * @return true if column exists.
+     */
+    public static boolean isTableColumnExists(String tableName, String columnName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+                columnName = columnName.toLowerCase();
+            }
+
+            try (ResultSet resultSet = metaData.getColumns(null, null, tableName, columnName)) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
+                                "Identity database.");
+                    }
+                    connection.commit();
+                    return true;
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                        "Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                    "Identity database.");
+        }
+        return false;
+    }
 }
 

@@ -485,11 +485,14 @@
         <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
 
         <!--
-        The following property allow to get UMA related information through introspection response
+        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
+
+        Default value : false
+        Supported versions : IS 5.8.0 onwards
         -->
-        <Introspection>
-            <EnableDataProviders>true</EnableDataProviders>
-        </Introspection>
+        <!--Introspection>
+            <EnableDataProviders>false</EnableDataProviders>
+        </Introspection-->
 
     </OAuth>
 
@@ -540,7 +543,6 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
-        <SAMLECPEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlecp</SAMLECPEndpoint>
     </SSOService>
 
     <Consent>
@@ -622,6 +624,36 @@
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
+
+        <!--
+            If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will filter
+            users or groups only from 'PRIMARY' user store.
+            if the property value is false, it will filter users or groups across all user stores.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<FilterUsersAndGroupsOnlyFromPrimaryDomain>false</FilterUsersAndGroupsOnlyFromPrimaryDomain>-->
+
+        <!--
+            If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will prepend
+            "PRIMARY/" prefix in-front of the username and role(group) name which belong to PRIMARY user store.
+            if the property value is false, "PRIMARY/" prefix will not be prepended.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<MandateDomainForUsernamesAndGroupNamesInResponse>false</MandateDomainForUsernamesAndGroupNamesInResponse
+        >-->
+
+        <!--
+            There was a case where PRIMARY domain is not depicted with users being returned at all but only on groups.
+            The purpose of this property is to ensure backward compatibility.
+            If you set the property value to true, in Groups endpoint, it will prepend "PRIMARY/" prefix in-front of
+            the role(group) name which belong to PRIMARY user store.
+            if the property value is false, "PRIMARY/" prefix will not be prepended.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<MandateDomainForGroupNamesInGroupsResponse>false</MandateDomainForGroupNamesInGroupsResponse>-->
     </SCIM2>
 
     <!--Recovery>
@@ -1019,8 +1051,6 @@
         <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
 
-        <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
-
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
         </Resource>
@@ -1045,7 +1075,6 @@
             <Context>/scim2/</Context>
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
-            <Context>/api/identity/template/mgt/v1.0.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>

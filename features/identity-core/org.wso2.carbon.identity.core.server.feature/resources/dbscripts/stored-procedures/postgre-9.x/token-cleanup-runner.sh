@@ -3,7 +3,11 @@ set -e
 set -u
 
 username='postgres'
+password='postgres'
 database='CARBON_DB'
+host='localhost'
+
+export PGPASSWORD=$password
 
 
 # ----------------------------------------------------
@@ -12,6 +16,7 @@ database='CARBON_DB'
 
 batchStatus=$(psql \
   -X \
+  -h $host \
   -U $username \
   --echo-all \
    -d $database \
@@ -25,6 +30,7 @@ echo ''
 
 batchStatus=$(psql \
   -X \
+  -h $host \
   -U $username \
   --echo-all \
    -d $database \
@@ -39,6 +45,7 @@ while true
 do
 batchStatus=$(psql \
   -X \
+  -h $host \
   -U $username \
   --echo-all \
    -d $database \
@@ -55,6 +62,7 @@ done
 
 batchStatus=$(psql \
   -X \
+  -h $host \
   -U $username \
   --echo-all \
    -d $database \
@@ -70,6 +78,7 @@ while true
 do
 batchStatus=$(psql \
   -X \
+  -h $host \
   -U $username \
   --echo-all \
    -d $database \
@@ -86,6 +95,7 @@ done
 
 batchStatus=$(psql \
   -X \
+  -h $host \
   -U $username \
   --echo-all \
    -d $database \
