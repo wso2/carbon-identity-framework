@@ -76,7 +76,7 @@
                     <h2 id="cookie-policy"><strong>Cookie Policy</strong></h2>
                     <p>WSO2 IS uses cookies so that it can provide the best user experience for you and identify you for security purposes. If you disable cookies, some of the services will (most probably) be inaccessible to you. </p>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="how-wso2-is-5.5.0-processes-cookies">How does WSO2 IS process cookies?</h2>
+                    <h2 id="how-wso2-is-5.8.0-processes-cookies">How does WSO2 IS process cookies?</h2>
                     <p>WSO2 IS stores and retrieves information on your browser using cookies. This information is used to provide a better experience. Some cookies serve the primary purposes of allowing a user to log in to the system, maintaining sessions, and keeping track of activities you do within the login session.</p>
                     <p>The primary purpose of some cookies used in WSO2 IS is to personally identify you as this is the main function of the WSO2 Identity Server. However the cookie lifetime ends once your session ends i.e., after you log-out, or after the session expiry time has elapsed.</p>
                     <p>Some cookies are simply used to give you a more personalised web experience and these cookies can not be used to personally identify you or your activities.</p>
@@ -85,7 +85,7 @@
                     <h2 id="what-is-a-cookie">What is a cookie?</h2>
                     <p>A browser cookie is a small piece of data that is stored on your device to help websites and mobile apps remember things about you. Other technologies, including web storage and identifiers associated with your device, may be used for similar purposes. In this policy, we use the term &ldquo;cookies&rdquo; to discuss all of these technologies.</p>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="what-does-wso2-is-5.5.0-use-cookies-for">What does WSO2 IS use cookies for?</h2>
+                    <h2 id="what-does-wso2-is-5.8.0-use-cookies-for">What does WSO2 IS use cookies for?</h2>
                     <p>Cookies are used for two purposes in WSO2 IS.</p>
                     <ol>
                         <li>To identify you and provide security (as this is the main function of WSO2 IS).</li>
@@ -120,7 +120,7 @@
                     </ul>
                     <p>WSO2 strongly advises you to refer the respective cookie policy of such sites carefully as WSO2 has no knowledge or use on these cookies.</p>
                     <div class="margin-bottom-double"></div>
-                    <h2 id="what-type-of-cookies-does-5.5.0-use">What type of cookies does WSO2 IS use?</h2>
+                    <h2 id="what-type-of-cookies-does-5.8.0-use">What type of cookies does WSO2 IS use?</h2>
                     <p>WSO2 IS uses persistent cookies and session cookies. A persistent cookie helps WSO2 IS to recognize you as an existing user so that it is easier to return to WSO2 or interact with WSO2 IS without signing in again. After you sign in, a persistent cookie stays in your browser and will be read by WSO2 IS when you return to WSO2 IS.</p>
                     <p>A session cookie is a cookie that is erased when the user closes the web browser. The session cookie is stored in temporary memory and is not retained after the browser is closed. Session cookies do not collect information from the user's computer.</p>
                     <div class="margin-bottom-double"></div>
