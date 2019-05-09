@@ -2137,7 +2137,16 @@ public class FrameworkUtils {
                 columnName = columnName.toLowerCase();
             }
 
-            try (ResultSet resultSet = metaData.getColumns(null, null, tableName, columnName)) {
+            String schemaPattern = null;
+            if (metaData.getDriverName().contains("Oracle")){
+                if (log.isDebugEnabled()) {
+                    log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
+                }
+                // Oracle checks the availability of the table column
+                // in all users in the DB unless specified.
+                schemaPattern = metaData.getUserName();
+            }
+            try (ResultSet resultSet = metaData.getColumns(null, schemaPattern, tableName, columnName)) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
