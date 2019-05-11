@@ -335,9 +335,9 @@
         - Use tenant domain in local subject identifier.
         - Use user store domain in local subject identifier.
 
-        Default value : true
+        Default value : false
 
-        Supported versions: IS 5.8.0 beta onwards
+        Supported versions: IS 5.4.0 beta onwards
         -->
         <!--<BuildSubjectIdentifierFromSPConfig>false</BuildSubjectIdentifierFromSPConfig>-->
 
