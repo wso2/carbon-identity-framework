@@ -18,6 +18,7 @@
 
 <%@ page import="org.apache.cxf.jaxrs.client.JAXRSClientFactory" %>
 <%@ page import="org.apache.cxf.jaxrs.provider.json.JSONProvider" %>
+<%@ page import="org.apache.cxf.jaxrs.client.WebClient" %>
 <%@ page import="org.apache.http.HttpStatus" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
@@ -29,6 +30,10 @@
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.getServerURL" %>
+<%@ page import="org.apache.commons.codec.binary.Base64" %>
+<%@ page import="java.nio.charset.Charset" %>
+<%@ page import="org.wso2.carbon.base.ServerConfiguration" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.EndpointConfigManager" %>
 
 <jsp:directive.include file="init-loginform-action-url.jsp"/>
 
@@ -52,17 +57,29 @@
     private static final String JAVAX_SERVLET_FORWARD_REQUEST_URI = "javax.servlet.forward.request_uri";
     private static final String JAVAX_SERVLET_FORWARD_QUERY_STRING = "javax.servlet.forward.query_string";
     private static final String UTF_8 = "UTF-8";
+    private static final String TENANT_DOMAIN = "tenant-domain";
 %>
 <%
     String resendUsername = request.getParameter("resend_username");
     if (StringUtils.isNotBlank(resendUsername)) {
 
-        String url = config.getServletContext().getInitParameter(Constants.ACCOUNT_RECOVERY_REST_ENDPOINT_URL);
-
         ResendCodeRequestDTO selfRegistrationRequest = new ResendCodeRequestDTO();
         UserDTO userDTO = AuthenticationEndpointUtil.getUser(resendUsername);
         selfRegistrationRequest.setUser(userDTO);
-        url = url.replace("tenant-domain", userDTO.getTenantDomain());
+
+        String path = config.getServletContext().getInitParameter(Constants.ACCOUNT_RECOVERY_REST_ENDPOINT_URL);
+        String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
+                .PROXY_CONTEXT_PATH);
+        if (proxyContextPath == null) {
+            proxyContextPath = "";
+        }
+        String url;
+        if (StringUtils.isNotBlank(EndpointConfigManager.getServerOrigin())) {
+            url = EndpointConfigManager.getServerOrigin() + proxyContextPath + path;
+        } else {
+            url = IdentityUtil.getServerURL(path, true, false);
+        }
+        url = url.replace(TENANT_DOMAIN, userDTO.getTenantDomain());
 
         List<JSONProvider> providers = new ArrayList<JSONProvider>();
         JSONProvider jsonProvider = new JSONProvider();
@@ -72,8 +89,14 @@
         jsonProvider.setSupportUnwrapped(true);
         providers.add(jsonProvider);
 
+        String toEncode = EndpointConfigManager.getAppName() + ":" + EndpointConfigManager.getAppPassword();
+        byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
+        String authHeader = new String(encoding, Charset.defaultCharset());
+        String header = "Client " + authHeader;
+
         SelfUserRegistrationResource selfUserRegistrationResource = JAXRSClientFactory
                 .create(url, SelfUserRegistrationResource.class, providers);
+        WebClient.client(selfUserRegistrationResource).header("Authorization", header);
         Response selfRegistrationResponse = selfUserRegistrationResource.regenerateCode(selfRegistrationRequest);
         if (selfRegistrationResponse != null &&  selfRegistrationResponse.getStatus() == HttpStatus.SC_CREATED) {
 %>
