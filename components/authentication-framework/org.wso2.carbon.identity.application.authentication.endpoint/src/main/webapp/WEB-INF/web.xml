@@ -54,7 +54,7 @@
    </context-param-->
     <context-param>
        <param-name>AccountRecoveryRESTEndpointURL</param-name>
-       <param-value>https://localhost:9443/t/tenant-domain/api/identity/user/v1.0/</param-value>
+       <param-value>/t/tenant-domain/api/identity/user/v1.0/</param-value>
    </context-param>
     <!--context-param>
         <param-name>EnableRecoveryEndpoint</param-name>
