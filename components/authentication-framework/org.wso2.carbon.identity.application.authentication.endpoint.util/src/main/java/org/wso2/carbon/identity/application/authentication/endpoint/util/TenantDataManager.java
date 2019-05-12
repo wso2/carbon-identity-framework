@@ -112,46 +112,46 @@ public class TenantDataManager {
 
                 if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
 
-                    usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
+                        usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
 
-                    carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
+                        carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
 
-                    // Base64 encoded username
-                    carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
+                        // Base64 encoded username
+                        carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
 
-                    String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
-                    String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
-                            .CLIENT_TRUST_STORE));
+                        String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
+                        String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
+                                .CLIENT_TRUST_STORE));
 
-                    if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
-                        TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
-                                .TLS_PROTOCOL));
-                    }
+                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
+                            TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
+                                    .TLS_PROTOCOL));
+                        }
 
-                    if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
-                        TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
-                                .KEY_MANAGER_TYPE));
-                    }
-                    if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
-                        TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
-                                .TRUST_MANAGER_TYPE));
-                    }
+                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
+                            TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
+                                    .KEY_MANAGER_TYPE));
+                        }
+                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
+                            TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
+                                    .TRUST_MANAGER_TYPE));
+                        }
 
-                    TenantMgtAdminServiceClient
-                            .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
-                                    .CLIENT_KEY_STORE_PASSWORD));
-                    TenantMgtAdminServiceClient
-                            .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
-                                    .CLIENT_TRUST_STORE_PASSWORD));
-                    TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
-                            getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
+                        TenantMgtAdminServiceClient
+                                .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
+                                        .CLIENT_KEY_STORE_PASSWORD));
+                        TenantMgtAdminServiceClient
+                                .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
+                                        .CLIENT_TRUST_STORE_PASSWORD));
+                        TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
+                                getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
 
-                    // Build the service URL of tenant management admin service
-                    StringBuilder builder = new StringBuilder();
-                    serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL)).append(Constants.TenantConstants
-                            .TENANT_MGT_ADMIN_SERVICE_URL).toString();
+                        // Build the service URL of tenant management admin service
+                        StringBuilder builder = new StringBuilder();
+                        serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL)).append(Constants.TenantConstants
+                                .TENANT_MGT_ADMIN_SERVICE_URL).toString();
 
-                    initialized = true;
+                        initialized = true;
                 }
             }
 

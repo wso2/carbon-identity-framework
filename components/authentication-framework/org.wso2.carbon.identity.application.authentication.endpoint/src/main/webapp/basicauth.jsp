@@ -74,7 +74,7 @@
             proxyContextPath = "";
         }
         String url;
-        if (EndpointConfigManager.isIsLocalTransportEnabled()) {
+        if (StringUtils.isNotBlank(EndpointConfigManager.getServerOrigin())) {
             url = EndpointConfigManager.getServerOrigin() + proxyContextPath + path;
         } else {
             url = IdentityUtil.getServerURL(path, true, false);

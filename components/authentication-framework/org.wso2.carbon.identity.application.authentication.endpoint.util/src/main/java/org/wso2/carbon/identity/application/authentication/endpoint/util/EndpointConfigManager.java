@@ -39,9 +39,11 @@ public class EndpointConfigManager {
     private static Properties prop;
     private static String appName = null;
     private static String appPassword = null;
-    private static boolean isLocalTransportEnabled = true;
     private static String serverOrigin;
 
+    /**
+     * Initialize Tenant data manager
+     */
     public static void init() {
 
         prop = new Properties();
@@ -67,17 +69,17 @@ public class EndpointConfigManager {
                             + " file loaded from authentication endpoint webapp");
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("Input stream is null while loading authentication endpoint from webapp");
+                        log.debug(Constants.TenantConstants.CONFIG_FILE_NAME + " could not be located in "
+                                + Constants.TenantConstants.CONFIG_RELATIVE_PATH + " or authentication endpoint webapp");
                     }
                 }
             }
-
             appName = getPropertyValue(Constants.CONFIG_APP_NAME);
             appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD);
-            isLocalTransportEnabled = Boolean.parseBoolean(getPropertyValue(Constants
-                    .CONFIG_LOCAL_TRANSPORT_ENABLED));
-            serverOrigin = IdentityUtil.fillURLPlaceholders(getPropertyValue(Constants.CONFIG_SERVER_ORIGIN));
-
+            serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
+            if (StringUtils.isNotBlank(serverOrigin)) {
+                serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
+            }
         } catch (IOException e) {
             log.error("Initialization failed : ", e);
         }
@@ -101,16 +103,6 @@ public class EndpointConfigManager {
     public static String getAppPassword() {
 
         return appPassword;
-    }
-
-    /**
-     * Check if local transport is enabled
-     *
-     * @return True if local transport is enabled
-     */
-    public static boolean isIsLocalTransportEnabled() {
-
-        return isLocalTransportEnabled;
     }
 
     /**
