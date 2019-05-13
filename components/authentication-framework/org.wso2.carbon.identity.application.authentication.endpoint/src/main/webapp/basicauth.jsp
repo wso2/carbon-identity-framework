@@ -89,7 +89,8 @@
         jsonProvider.setSupportUnwrapped(true);
         providers.add(jsonProvider);
 
-        String toEncode = EndpointConfigManager.getAppName() + ":" + EndpointConfigManager.getAppPassword();
+        String toEncode = EndpointConfigManager.getAppName() + ":" + String
+                .valueOf(EndpointConfigManager.getAppPassword());
         byte[] encoding = Base64.encodeBase64(toEncode.getBytes());
         String authHeader = new String(encoding, Charset.defaultCharset());
         String header = "Client " + authHeader;
