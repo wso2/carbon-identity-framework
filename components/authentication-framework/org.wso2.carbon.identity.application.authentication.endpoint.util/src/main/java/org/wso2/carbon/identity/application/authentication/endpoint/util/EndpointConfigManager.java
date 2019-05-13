@@ -22,12 +22,16 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.securevault.SecretResolver;
+import org.wso2.securevault.SecretResolverFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 /**
  * This class provides methods to handle endpoint configurations extracted
@@ -36,9 +40,12 @@ import java.util.Properties;
 public class EndpointConfigManager {
 
     private static final Log log = LogFactory.getLog(EndpointConfigManager.class);
+    private static final String PROTECTED_TOKENS = "protectedTokens";
+    private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    private static final String SECRET_PROVIDER = "secretProvider";
     private static Properties prop;
     private static String appName = null;
-    private static String appPassword = null;
+    private static char[] appPassword = null;
     private static String serverOrigin;
 
     /**
@@ -60,6 +67,11 @@ public class EndpointConfigManager {
 
                 prop.load(inputStream);
 
+                if (isSecuredPropertyAvailable(prop)) {
+                    // Resolve encrypted properties with secure vault
+                    resolveSecrets(prop);
+                }
+
             } else {
                 inputStream = EndpointConfigManager.class.getClassLoader()
                         .getResourceAsStream(Constants.TenantConstants.CONFIG_FILE_NAME);
@@ -75,7 +87,7 @@ public class EndpointConfigManager {
                 }
             }
             appName = getPropertyValue(Constants.CONFIG_APP_NAME);
-            appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD);
+            appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD).toCharArray();
             serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
             if (StringUtils.isNotBlank(serverOrigin)) {
                 serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
@@ -100,7 +112,7 @@ public class EndpointConfigManager {
      *
      * @return Application password
      */
-    public static String getAppPassword() {
+    public static char[] getAppPassword() {
 
         return appPassword;
     }
@@ -150,5 +162,64 @@ public class EndpointConfigManager {
             return IdentityUtil.getServerURL(serviceUrl, true, true);
         }
         return prop.getProperty(key);
+    }
+
+    /**
+     * Get status of the availability of secured (with secure vault) properties
+     *
+     * @return availability of secured properties
+     */
+    private static boolean isSecuredPropertyAvailable(Properties properties) {
+
+        Enumeration propertyNames = properties.propertyNames();
+
+        while (propertyNames.hasMoreElements()) {
+            String key = (String) propertyNames.nextElement();
+            if (PROTECTED_TOKENS.equals(key) && StringUtils.isNotBlank(properties.getProperty(key))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * There can be sensitive information like passwords in configuration file. If they are encrypted using secure
+     * vault, this method will resolve them and replace with original values.
+     */
+    private static void resolveSecrets(Properties properties) {
+
+        String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
+
+        if (StringUtils.isNotBlank(protectedTokens)) {
+            String secretProvider = (String) properties.get(SECRET_PROVIDER);
+            SecretResolver secretResolver;
+
+            if (StringUtils.isBlank(secretProvider)) {
+                properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+            }
+
+            secretResolver = SecretResolverFactory.create(properties, "");
+            StringTokenizer stringTokenizer = new StringTokenizer(protectedTokens, ",");
+
+            while (stringTokenizer.hasMoreElements()) {
+                String element = stringTokenizer.nextElement().toString().trim();
+
+                if (secretResolver.isTokenProtected(element)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Resolving and replacing secret for " + element);
+                    }
+                    // Replaces the original encrypted property with resolved property
+                    properties.put(element, secretResolver.resolve(element));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No encryption done for value with key :" + element);
+                    }
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Secure vault encryption ignored since no protected tokens available");
+            }
+        }
     }
 }
