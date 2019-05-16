@@ -64,8 +64,7 @@ public interface ConfigurationManager {
      * @return 200 ok. Returns the corresponding {@link ResourceType}.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
-    ResourceType getResourceType(String resourceTypeName)
-            throws ConfigurationManagementException;
+    ResourceType getResourceType(String resourceTypeName) throws ConfigurationManagementException;
 
     /**
      * This API is used to delete the {@link ResourceType}.
@@ -90,8 +89,7 @@ public interface ConfigurationManager {
      * @return 200 ok. @link Resources} object with all the resources of the given resource type name.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
-    Resources getResourcesByType(String resourceTypeName)
-            throws ConfigurationManagementException;
+    Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException;
 
     /**
      * This API is used to create the given resource.
@@ -121,8 +119,7 @@ public interface ConfigurationManager {
      * @return 200 ok. Returns {@link Resource} requested.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    Resource getResource(String resourceTypeName, String resourceName)
-            throws ConfigurationManagementException;
+    Resource getResource(String resourceTypeName, String resourceName) throws ConfigurationManagementException;
 
     /**
      * This API is used to delete the given resource.

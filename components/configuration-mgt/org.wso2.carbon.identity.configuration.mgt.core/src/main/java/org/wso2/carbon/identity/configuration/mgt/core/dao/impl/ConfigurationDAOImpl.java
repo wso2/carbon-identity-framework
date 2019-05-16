@@ -107,6 +107,9 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
 
+/**
+ * {@link ConfigurationDAO} implementation.
+ */
 public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     private static final Log log = LogFactory.getLog(ConfigurationDAOImpl.class);
@@ -121,6 +124,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         return 1;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Resources getTenantResources(Condition condition) throws ConfigurationManagementException {
 
         PlaceholderSQL placeholderSQL = buildPlaceholderSQL(condition, useCreatedTimeField());
@@ -186,6 +193,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Resource getResourceByName(int tenantId, String resourceTypeId, String resourceName)
             throws ConfigurationManagementException {
 
@@ -238,8 +246,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * {@inheritDoc}
      */
-    public Resource getResourceById(String resourceId)
-            throws ConfigurationManagementException {
+    @Override
+    public Resource getResourceById(String resourceId) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
@@ -286,6 +294,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void deleteResourceByName(int tenantId, String resourceTypeId, String resourceName)
             throws ConfigurationManagementException {
 
@@ -302,8 +311,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
-    public void replaceResource(Resource resource)
-            throws ConfigurationManagementException {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void replaceResource(Resource resource) throws ConfigurationManagementException {
 
         String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
@@ -358,6 +370,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void addResource(Resource resource) throws ConfigurationManagementException {
 
         String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
@@ -420,6 +433,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void addResourceType(ResourceType resourceType) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -438,6 +452,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void replaceResourceType(ResourceType resourceType) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -458,18 +473,28 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResourceType getResourceTypeByName(String resourceTypeName) throws ConfigurationManagementException {
 
         return getResourceTypeByIdentifier(resourceTypeName, null);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ResourceType getResourceTypeById(String resourceTypeId) throws ConfigurationManagementException {
 
         return getResourceTypeByIdentifier(null, resourceTypeId);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void deleteResourceTypeByName(String resourceTypeName) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -482,6 +507,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void deleteAttribute(String attributeId, String resourceId, String attributeKey)
             throws ConfigurationManagementException {
 
@@ -504,6 +533,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void updateAttribute(String attributeId, String resourceId, Attribute attribute)
             throws ConfigurationManagementException {
 
@@ -528,6 +561,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void addAttribute(String attributeId, String resourceId, Attribute attribute)
             throws ConfigurationManagementException {
 
@@ -555,6 +592,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void replaceAttribute(String attributeId, String resourceId, Attribute attribute)
             throws ConfigurationManagementException {
 
@@ -585,6 +626,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Attribute getAttributeByKey(String resourceId, String attributeKey) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -604,6 +649,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             throw handleServerException(ERROR_CODE_GET_ATTRIBUTE, attributeKey, e);
         }
     }
+
 
     private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, boolean isAttributeExists,
                                         Timestamp currentTime, boolean useCreatedTime)

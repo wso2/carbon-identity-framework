@@ -16,10 +16,12 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.model;
 
+/**
+ * A model class representing a request to add a {@link ResourceType}.
+ */
 public class ResourceTypeAdd {
 
     private String name;
-
     private String description;
 
     public String getName() {
