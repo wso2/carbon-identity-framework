@@ -403,8 +403,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 return null;
             }
         } catch (ConsentManagementException e) {
-            throw new SSOConsentServiceException("Consent Management Error",
-                    "Error while retrieving user consents.", e);
+            throw new SSOConsentServiceException("Consent Management Error", "Error while retrieving user consents.",
+                    e);
         }
     }
 
@@ -418,8 +418,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             startTenantFlowWithUser(subject, subjectTenantDomain);
             receiptResponse = getConsentManager().addConsent(receiptInput);
         } catch (ConsentManagementException e) {
-            throw new SSOConsentServiceException("Consent receipt error", "Error while adding the consent " +
-                    "receipt", e);
+            throw new SSOConsentServiceException("Consent receipt error", "Error while adding the consent " + "receipt",
+                    e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
@@ -545,8 +545,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         try {
             piiCategory = getConsentManager().addPIICategory(piiCategoryInput);
         } catch (ConsentManagementException e) {
-            throw new SSOConsentServiceException("Consent PII category error", "Error while adding" +
-                    " PII category:" + DEFAULT_PURPOSE_CATEGORY, e);
+            throw new SSOConsentServiceException("Consent PII category error","Error while adding PII category: "
+                    + DEFAULT_PURPOSE_CATEGORY, e);
         }
         return piiCategory;
     }
@@ -625,8 +625,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         try {
             purpose = getConsentManager().addPurpose(defaultPurpose);
         } catch (ConsentManagementException e) {
-            throw new SSOConsentServiceException("Consent purpose error",
-                    "Error while adding purpose: " + DEFAULT_PURPOSE, e);
+            throw new SSOConsentServiceException("Consent purpose error", "Error while adding purpose: "
+                    + DEFAULT_PURPOSE, e);
         }
         return purpose;
     }
@@ -995,8 +995,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             throw new SSOConsentServiceException("Consent Management Error",
                     "Error while retrieving user consents.", e);
         } catch (IdentityException e) {
-            throw new SSOConsentServiceException("Consent Management Error",
-                    "Error while initializing registry for the tenant domain: " + authenticatedUser.getTenantDomain(), e);
+            throw new SSOConsentServiceException("Consent Management Error", "Error while initializing registry for " +
+                    "the tenant domain: " + authenticatedUser.getTenantDomain(), e);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
