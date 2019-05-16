@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationMan
 
 import java.util.UUID;
 
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
 
 /**
  * Utility methods for configuration management.
@@ -113,9 +113,14 @@ public class ConfigurationUtils {
         return UUID.randomUUID().toString();
     }
 
-    public static int getMaximumQueryLength() {
+    /**
+     * Get upper limit of the length of the query when converted in to a byte array.
+     *
+     * @return Maximum length of the query when converted in to a byte array.
+     */
+    public static int getMaximumQueryLengthInBytes() {
 
-        return StringUtils.isEmpty(MAX_QUERY_LENGTH_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_SQL);
+        return StringUtils.isEmpty(MAX_QUERY_LENGTH_IN_BYTES_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_IN_BYTES_SQL);
     }
 
     public static boolean useCreatedTimeField() {

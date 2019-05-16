@@ -23,7 +23,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
  */
 public class SQLConstants {
 
-    public static final String MAX_QUERY_LENGTH_SQL = IdentityUtil.getProperty("ConfigurationStore.MaximumQueryLength");
+    public static final String MAX_QUERY_LENGTH_IN_BYTES_SQL =
+            IdentityUtil.getProperty("ConfigurationStore.MaximumQueryLengthInBytes");
     public static final String INSERT_RESOURCE_TYPE_SQL = "INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) " +
             "VALUES (?, ?, ?)";
     public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_MYSQL = "INSERT INTO IDN_CONFIG_TYPE (ID, NAME, " +
