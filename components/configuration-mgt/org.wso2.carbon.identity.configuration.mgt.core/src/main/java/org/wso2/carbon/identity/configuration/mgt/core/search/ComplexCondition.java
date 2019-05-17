@@ -20,6 +20,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.constant.Condition
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -51,7 +52,7 @@ public class ComplexCondition implements Condition {
         StringBuilder sb = new StringBuilder();
 
         boolean first = true;
-        for (Condition condition : conditions) {
+        for (Condition condition : getNullSafeConditions()) {
             if (!first) {
                 sb.append(" ").append(operator.toSQL()).append(" ");
             } else {
@@ -67,5 +68,10 @@ public class ComplexCondition implements Condition {
         placeholderSQL.setQuery(sb.toString());
         placeholderSQL.setData(data);
         return placeholderSQL;
+    }
+
+    private List<Condition> getNullSafeConditions() {
+
+        return (this.conditions == null ? Collections.emptyList() : this.conditions);
     }
 }

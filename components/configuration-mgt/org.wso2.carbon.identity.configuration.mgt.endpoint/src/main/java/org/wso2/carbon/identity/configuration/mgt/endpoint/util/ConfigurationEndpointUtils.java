@@ -310,27 +310,7 @@ public class ConfigurationEndpointUtils {
         return new InternalServerErrorException(errorDTO);
     }
 
-    public static <T> Condition getSearchCondition(SearchContext searchContext, Class<T> reference, Log log)
-            throws SearchConditionException {
-
-        if (searchContext != null) {
-            SearchCondition<T> searchCondition = searchContext.getCondition(reference);
-            if (searchCondition != null) {
-                return buildSearchCondition(searchCondition);
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Search condition parsed from the search expression is invalid.");
-                }
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Cannot find a valid search context.");
-            }
-        }
-        throw new SearchConditionException("Invalid search expression found.");
-    }
-
-    private static Condition buildSearchCondition(SearchCondition searchCondition) {
+    public static Condition buildSearchCondition(SearchCondition searchCondition) {
 
         if (!(searchCondition.getStatement() == null)) {
             PrimitiveStatement primitiveStatement = searchCondition.getStatement();
