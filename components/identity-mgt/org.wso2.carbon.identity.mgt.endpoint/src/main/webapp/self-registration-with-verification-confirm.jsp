@@ -68,14 +68,7 @@
         request.setAttribute("confirm", "true");
         request.getRequestDispatcher("self-registration-complete.jsp").forward(request,response);
     } catch (Exception e) {
-
-        Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
-        request.setAttribute("error", true);
-        if (errorD != null) {
-            request.setAttribute("errorMsg", errorD.getDescription());
-            request.setAttribute("errorCode", errorD.getCode());
-        }
-
+        IdentityManagementEndpointUtil.addErrorInformation(request, e);
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }

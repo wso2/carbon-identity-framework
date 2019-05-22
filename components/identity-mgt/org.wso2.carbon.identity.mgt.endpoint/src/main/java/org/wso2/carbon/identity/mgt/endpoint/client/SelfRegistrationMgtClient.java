@@ -173,7 +173,8 @@ public class SelfRegistrationMgtClient {
             try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
 
                 if (isDebugEnabled) {
-                    log.debug("HTTP status " + response.getStatusLine().getStatusCode());
+                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() + " when invoking GET for URL: "
+                            + url);
                 }
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -185,8 +186,8 @@ public class SelfRegistrationMgtClient {
                     }
                     return responseString.toString();
                 } else {
-                    throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". Found http " +
-                            "status " + response.getStatusLine());
+                    throw new SelfRegistrationMgtClientException("Error while retrieving data from " + url + ". " +
+                            "Found http status " + response.getStatusLine());
                 }
             } finally {
                 httpGet.releaseConnection();
@@ -217,7 +218,10 @@ public class SelfRegistrationMgtClient {
     public Integer checkUsernameValidity(String username, boolean skipSignUpCheck) throws
             SelfRegistrationMgtClientException {
 
-        boolean isDebugEnabled = log.isDebugEnabled();
+        if (log.isDebugEnabled()) {
+            log.debug("Checking username validating for username: " + username + ". SkipSignUpCheck flag is set to "
+                    + skipSignUpCheck + ".");
+        }
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
             JSONObject user = new JSONObject();
@@ -238,23 +242,27 @@ public class SelfRegistrationMgtClient {
 
             try (CloseableHttpResponse response = httpclient.execute(post)) {
 
-                if (isDebugEnabled) {
-                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() + " validating username");
+                if (log.isDebugEnabled()) {
+                    log.debug("HTTP status " + response.getStatusLine().getStatusCode() + " when validating username: "
+                            + username);
                 }
 
                 if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                     JSONObject jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
-                    if (isDebugEnabled) {
-                        log.debug("Create response: " + jsonResponse.toString(2));
+                    if (log.isDebugEnabled()) {
+                        log.debug("Username validation response: " + jsonResponse.toString(2) + " for username: "
+                                + username);
                     }
                     return jsonResponse.getInt("statusCode");
                 } else {
                     // Logging and throwing since this is a client
                     if (log.isDebugEnabled()) {
-                        log.debug("Unexpected response code found : " + response.getStatusLine().getStatusCode());
+                        log.debug("Unexpected response code found: " + response.getStatusLine().getStatusCode()
+                                + " when validating username: " + username);
                     }
-                    throw new SelfRegistrationMgtClientException("Error while self registering user : " + username);
+                    throw new SelfRegistrationMgtClientException("Error while checking username validity for user : "
+                            + username);
                 }
 
             } finally {
@@ -262,10 +270,11 @@ public class SelfRegistrationMgtClient {
             }
         } catch (IOException e) {
             // Logging and throwing since this is a client.
+            String msg = "Error while check username validity for user : " + username;
             if (log.isDebugEnabled()) {
-                log.debug("Error while self registering user : " + username, e);
+                log.debug(msg, e);
             }
-            throw new SelfRegistrationMgtClientException("Error while self registering user : " + username, e);
+            throw new SelfRegistrationMgtClientException(msg, e);
         }
     }
 

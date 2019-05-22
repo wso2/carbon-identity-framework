@@ -92,13 +92,7 @@
         if (allowchangeusername) {
             request.getRequestDispatcher("register.do").forward(request, response);
         } else {
-            Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
-            request.setAttribute("error", true);
-            if (errorD != null) {
-                request.setAttribute("errorMsg", errorD.getDescription());
-                request.setAttribute("errorCode", errorD.getCode());
-            }
-
+            IdentityManagementEndpointUtil.addErrorInformation(request, e);
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
@@ -163,13 +157,7 @@
         IdentityManagementEndpointUtil.addReCaptchaHeaders(request, usernameRecoveryApi.getApiClient().getResponseHeaders());
 
     } catch (ApiException e) {
-        Error errorD = new Gson().fromJson(e.getMessage(), Error.class);
-        request.setAttribute("error", true);
-        if (errorD != null) {
-            request.setAttribute("errorMsg", errorD.getDescription());
-            request.setAttribute("errorCode", errorD.getCode());
-        }
-
+        IdentityManagementEndpointUtil.addErrorInformation(request, e);
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }

@@ -52,12 +52,7 @@
         notificationApi.validateCodePostCall(validationRequest);
         
     } catch (ApiException e) {
-        Error error = new Gson().fromJson(e.getMessage(), Error.class);
-        request.setAttribute("error", true);
-        if (error != null) {
-            request.setAttribute("errorMsg", error.getDescription());
-            request.setAttribute("errorCode", error.getCode());
-        }
+        IdentityManagementEndpointUtil.addErrorInformation(request, e);
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }
