@@ -15,7 +15,6 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
@@ -82,9 +81,9 @@
         try {
             notificationApi.setPasswordPost(resetPasswordRequest);
         } catch (ApiException e) {
-        
-            Error error = new Gson().fromJson(e.getMessage(), Error.class);
-            request.setAttribute("error", true);
+
+            Error error = IdentityManagementEndpointUtil.buildError(e);
+            IdentityManagementEndpointUtil.addErrorInformation(request, error);
             if (error != null) {
                 request.setAttribute(ERROR_MESSAGE, error.getDescription());
                 request.setAttribute(ERROR_CODE, error.getCode());

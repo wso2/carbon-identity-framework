@@ -143,13 +143,7 @@
                     claims = claimsList.toArray(new Claim[claimsList.size()]);
                 }
             } catch (ApiException e) {
-                Error error = new Gson().fromJson(e.getMessage(), Error.class);
-                request.setAttribute("error", true);
-                if (error != null) {
-                    request.setAttribute("errorMsg", error.getDescription());
-                    request.setAttribute("errorCode", error.getCode());
-                }
-
+                IdentityManagementEndpointUtil.addErrorInformation(request, e);
                 request.getRequestDispatcher("error.jsp").forward(request, response);
                 return;
             }
@@ -210,29 +204,23 @@
                 request.getRequestDispatcher("self-registration-complete.jsp").forward(request, response);
 
             } catch (Exception e) {
-                Error error = new Gson().fromJson(e.getMessage(), Error.class);
-                request.setAttribute("error", true);
-                if (error != null) {
-                    request.setAttribute(ERROR_MESSAGE, error.getDescription());
-                    request.setAttribute(ERROR_CODE, error.getCode());
-                    if (passwordPatternErrorCode.equals(error.getCode())) {
-                        String i18Resource = IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, error.getCode());
-                        if (!i18Resource.equals(error.getCode())) {
-                            request.setAttribute(ERROR_MESSAGE, i18Resource);
-                        }
-                        if (isSelfRegistrationWithVerification) {
-                            request.getRequestDispatcher(SELF_REGISTRATION_WITH_VERIFICATION_PAGE).forward(request,
-                                    response);
-                        } else {
-                            request.getRequestDispatcher(SELF_REGISTRATION_WITHOUT_VERIFICATION_PAGE).forward(request,
-                                    response);
-                        }
-
-                        return;
+                IdentityManagementEndpointUtil.addErrorInformation(request, e);
+                String errorCode = (String) request.getAttribute("errorCode");
+                if (passwordPatternErrorCode.equals(errorCode)) {
+                    String i18Resource = IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, errorCode);
+                    if (!i18Resource.equals(errorCode)) {
+                        request.setAttribute(ERROR_MESSAGE, i18Resource);
                     }
+                    if (isSelfRegistrationWithVerification) {
+                        request.getRequestDispatcher(SELF_REGISTRATION_WITH_VERIFICATION_PAGE).forward(request,
+                                response);
+                    } else {
+                        request.getRequestDispatcher(SELF_REGISTRATION_WITHOUT_VERIFICATION_PAGE).forward(request,
+                                response);
+                    }
+        
+                    return;
                 }
-                request.getRequestDispatcher("error.jsp").forward(request, response);
-                return;
             }
 
 
