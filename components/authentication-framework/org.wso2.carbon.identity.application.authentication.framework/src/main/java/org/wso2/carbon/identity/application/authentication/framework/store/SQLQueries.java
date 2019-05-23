@@ -99,7 +99,7 @@ public class SQLQueries {
      */
     public static final String UPDATE_LAST_ACCESS_TIME = "UPDATE IDN_AUTH_SESSION_META_DATA SET VALUE=? WHERE " +
             "SESSION_ID =? AND PROPERTY_TYPE=?";
-    
+
     /**
      * Queries to delete session data.
      */
