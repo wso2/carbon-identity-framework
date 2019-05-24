@@ -55,9 +55,6 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -65,6 +62,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
