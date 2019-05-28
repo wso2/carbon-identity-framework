@@ -36,6 +36,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
@@ -143,18 +144,24 @@
     String jwksUri = null;
     boolean hasJWKSUri = false;
 
+    // SP bound consent skip
+    boolean skipContent = false;
+
     ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
+
     if (spProperties != null) {
         for (ServiceProviderProperty spProperty : spProperties) {
             if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
                 hasJWKSUri = true;
                 jwksUri = spProperty.getValue();
+            } else if (ApplicationMgtUIConstants.SKIP_CONSENT.equals(spProperty.getName())) {
+                skipContent = Boolean.parseBoolean(spProperty.getValue());
             }
         }
     }
 
     if (jwksUri == null) {
-        jwksUri = "";
+       jwksUri = "";
     }
 
     String authTypeReq = request.getParameter("authType");
@@ -2762,6 +2769,14 @@
                                                         for="enable_authorization"><fmt:message
                                                         key="config.application.enable.authorization"/></label>
                                                     </td>
+                                                </tr>
+                                                <tr>
+                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= skipContent ? "checked" : ""%> value="true"/>
+                                                    <label for="skipConsent"><fmt:message key="config.application.skip.consent"/></label>
+                                                    </br>
+                                                    <div class="sectionHelp">
+                                                        <fmt:message key='help.skip.consent'/>
+                                                    </div>
                                                 </tr>
                                             </table>
 

@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -94,6 +95,11 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         // If OAuth flow, skip handling consent from the authentication handler. OAuth related consent will be
         // handled from OAuth endpoint. OpenID flow is skipped as it is deprecated.
         if (isOAuthFlow(context) || isOpenIDFlow(context)) {
+            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+        }
+
+        // Check whether currently engaged SP has skipConsent enabled
+        if (FrameworkUtils.isConsentPageSkippedForSP(getServiceProvider(context))) {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
