@@ -193,7 +193,27 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException {
 
         // No need to cache the returned list.
-        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+        return appDAO.getApplicationBasicInfo(filter);
+    }
+
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+
+        // No need to cache the returned list.
+        return appDAO.getAllPaginatedApplicationBasicInfo(pageNumber);
+    }
+
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws IdentityApplicationManagementException {
+
+        // No need to cache the returned list.
+        return appDAO.getPaginatedApplicationBasicInfo(pageNumber, filter);
+    }
+
+    public int getCountOfAllApplications() throws IdentityApplicationManagementException {
+        return appDAO.getCountOfAllApplications();
+    }
+
+    public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
+        return appDAO.getCountOfApplications(filter);
     }
 
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName, String

@@ -67,6 +67,26 @@
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
             </parameter>
         </operation>
+        <operation name="getApplicationBasicInfo">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getAllPaginatedApplicationBasicInfo">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getPaginatedApplicationBasicInfo">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getCountOfAllApplications">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
+        <operation name="getCountOfApplications">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
         <operation name="getIdentityProvider">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/applicationmgt/view
             </parameter>

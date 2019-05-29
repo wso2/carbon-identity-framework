@@ -36,6 +36,15 @@ public class ApplicationMgtUIConstants {
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
     public static final String JWKS_URI = "jwksUri";
     public static final String SKIP_CONSENT = IdentityConstants.SKIP_CONSENT;
+    public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
+    public static final int DEFAULT_RESULTS_PER_PAGE = 10;
+    public static final String DEFAULT_FILTER = "*";
+    public static final String SP_NAME_FILTER = "filterString";
+    public static final String PAGE_NUMBER_PARAMETER = "pageNumber";
+    public static final String DEFAULT_REGION_VALUE = "region1";
+    public static final String DEFAULT_ITEM_VALUE = "service_providers_list";
+    public static final String PAGINATION_VALUE = "region=%s&item=%s";
+    public static final String PAGINATION_VALUE_WITH_FILTER = "region=%s&item=%s&filterString=%s";
 
     /**
      * Holds the application UI param related constants.
