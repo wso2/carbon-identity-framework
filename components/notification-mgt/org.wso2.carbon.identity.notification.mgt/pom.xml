@@ -84,6 +84,7 @@
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.securevault,
+                            org.wso2.securevault.commons,
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.notification.mgt.*;
                             version="${carbon.identity.package.import.version.range}",
