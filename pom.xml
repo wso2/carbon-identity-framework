@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.12.268-SNAPSHOT</version>
+    <version>5.12.396-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -80,6 +80,7 @@
         <module>features/consent-mgt</module>
         <module>features/functions-library-mgt</module>
         <module>features/template-mgt</module>
+        <module>features/configuration-mgt</module>
     </modules>
 
     <repositories>
@@ -874,13 +875,23 @@
             </dependency>
             <dependency>
                 <groupId>javax.ws.rs</groupId>
-                <artifactId>jsr311-api</artifactId>
-                <version>${jsr311-api.version}</version>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${javax.ws.rs-api.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.orbit.org.apache.cxf</groupId>
-                <artifactId>cxf-bundle</artifactId>
-                <version>${cxf-bundle.wso2.version}</version>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-core</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-client</artifactId>
+                <version>${org.apache.cxf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-rs-extension-providers</artifactId>
+                <version>${org.apache.cxf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.eclipse.equinox</groupId>
@@ -1208,6 +1219,12 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.configuration.mgt.endpoint</artifactId>
+                <version>${project.version}</version>
+                <type>war</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
                 <type>zip</type>
@@ -1376,13 +1393,6 @@
                 <artifactId>jdom</artifactId>
                 <version>${jdom.wso2.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>com.google.guava.wso2</groupId>
-                <artifactId>guava</artifactId>
-                <version>${google.guava.wso2.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.json.wso2</groupId>
                 <artifactId>json</artifactId>
@@ -1595,29 +1605,14 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-                <version>${apache.cxf-rt-frontend-jaxrs.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-rs-service-description</artifactId>
                 <version>${apache.cxf-rt-rs-service-description.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-core-asl</artifactId>
-                <version>${codehaus.jackson-core-asl.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-mapper-asl</artifactId>
-                <version>${codehaus.jackson-mapper-asl.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.jackson</groupId>
-                <artifactId>jackson-jaxrs</artifactId>
-                <version>${codehaus.jackson-jaxrs.version}</version>
-            </dependency>
+        <dependency>
+            <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>${codehaus.jettison.version}</version>
+        </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-web</artifactId>
@@ -1639,17 +1634,14 @@
         <apache.tomcat-catalina.version>9.0.11</apache.tomcat-catalina.version>
         <apache.cxf-rt-frontend-jaxrs.version>2.7.16</apache.cxf-rt-frontend-jaxrs.version>
         <apache.cxf-rt-rs-service-description.version>3.1.4</apache.cxf-rt-rs-service-description.version>
-        <codehaus.jackson-core-asl.version>1.8.6</codehaus.jackson-core-asl.version>
-        <codehaus.jackson-mapper-asl.version>1.8.6</codehaus.jackson-mapper-asl.version>
-        <codehaus.jackson-jaxrs.version>1.8.6</codehaus.jackson-jaxrs.version>
-        <springframework.spring-web.version>4.1.6.RELEASE</springframework.spring-web.version>
+        <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
+        <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
-        <org.apache.cxf.version>3.2.0</org.apache.cxf.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.4.37-SNAPSHOT</carbon.kernel.version>
+        <carbon.kernel.version>4.4.41-SNAPSHOT</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
         <carbon.consent.mgt.imp.pkg.version.range>[1.0.0, 3.0.0)</carbon.consent.mgt.imp.pkg.version.range>
@@ -1665,7 +1657,7 @@
         <carbon.commons.version>4.5.2</carbon.commons.version>
         <carbon.commons.imp.pkg.version>[4.4.0, 5.0.0)</carbon.commons.imp.pkg.version>
 
-        <org.wso2.carbon.database.utils.version>2.0.6</org.wso2.carbon.database.utils.version>
+        <org.wso2.carbon.database.utils.version>2.0.7</org.wso2.carbon.database.utils.version>
         <org.wso2.carbon.database.utils.version.range>[2.0.0,2.1.0)</org.wso2.carbon.database.utils.version.range>
 
         <!--Carbon identity version-->
@@ -1717,13 +1709,11 @@
         <imp.pkg.version.javax.servlet>[2.6.0, 3.0.0)</imp.pkg.version.javax.servlet>
 
         <!-- Misc -->
-        <google.guava.wso2.version>12.0.0.wso2v1</google.guava.wso2.version>
-        <google.guava.version>15.0</google.guava.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
         <derby.version>10.4.2.0</derby.version>
         <activation.version>1.1</activation.version>
         <javamail.version>1.4</javamail.version>
-        <wss4j.version>1.5.11.wso2v17</wss4j.version>
+        <wss4j.version>1.5.11-wso2v18</wss4j.version>
         <wss4j.xml.security.imp.pkg.version.range>[1.4.2.patched,2.0.0)</wss4j.xml.security.imp.pkg.version.range>
         <wss4j.ws.security.imp.pkg.version.range>[1.5.11,2.0.0)</wss4j.ws.security.imp.pkg.version.range>
         <wsdl4j.wso2.version>1.6.2.wso2v4</wsdl4j.wso2.version>
@@ -1770,7 +1760,7 @@
         <orbit.version.maven-scm>1.7.0.wso2v1</orbit.version.maven-scm>
 
         <!-- Rampart -->
-        <rampart.wso2.version>1.6.1-wso2v26</rampart.wso2.version>
+        <rampart.wso2.version>1.6.1-wso2v34</rampart.wso2.version>
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
 
         <!-- Equinox -->
@@ -1800,13 +1790,13 @@
 
         <neethi.osgi.version>2.0.4.wso2v5</neethi.osgi.version>
         <neethi.osgi.version.range>[2.0.4.wso2v4,3.0.0)</neethi.osgi.version.range>
-        <libthrift.wso2.version>0.8.0.wso2v1</libthrift.wso2.version>
+        <libthrift.wso2.version>0.12.0.wso2v1</libthrift.wso2.version>
         <!--Change major version to minor version which is 0.9.0 due to 0.8.x and 0.9.x incompatibility-->
-        <libthrift.wso2.osgi.version.range>[0.8.0.wso2v1,0.9.0)</libthrift.wso2.osgi.version.range>
+        <libthrift.wso2.osgi.version.range>[0.12.0.wso2v1,0.15.0)</libthrift.wso2.osgi.version.range>
         <log4j.version>1.2.13</log4j.version>
         <orbit.version.commons.fileuploader>1.2.0.wso2v1</orbit.version.commons.fileuploader>
         <opensaml.version>2.6.4</opensaml.version>
-        <opensaml2.wso2.version>2.6.4.wso2v3</opensaml2.wso2.version>
+        <opensaml2.wso2.version>2.6.4.wso2v5</opensaml2.wso2.version>
         <opensaml2.wso2.osgi.version.range>[2.6.0,3.0.0)</opensaml2.wso2.osgi.version.range>
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
@@ -1817,7 +1807,7 @@
         <httpcore.version>4.3.3.wso2v1</httpcore.version>
         <com.google.code.gson.version>2.3.1</com.google.code.gson.version>
         <com.google.code.gson.osgi.version.range>[2.3.1,3.0.0)</com.google.code.gson.osgi.version.range>
-        <com.google.guava.version>23.0</com.google.guava.version>
+        <com.google.guava.version>27.0-jre</com.google.guava.version>
         <com.google.code.findbugs.version>1.3.9</com.google.code.findbugs.version>
         <com.google.client.version>1.17.0-rc</com.google.client.version>
         <com.google.service.api.version>directory_v1-rev28-1.17.0-rc</com.google.service.api.version>
@@ -1832,7 +1822,7 @@
         <openid4java.version>1.0.0</openid4java.version>
         <openid4java.wso2.version>1.0.0.wso2v4</openid4java.wso2.version>
         <openid4java.wso2.osgi.version.range>[1.0.0,2.0.0)</openid4java.wso2.osgi.version.range>
-        <balana.version>1.1.5</balana.version>
+        <balana.version>1.1.14</balana.version>
         <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
         <gdata-core.wso2.version>1.47.0.wso2v1</gdata-core.wso2.version>
         <gdata-core.imp.pkg.version.range>[1.47.0.wso2v1,2.0.0)</gdata-core.imp.pkg.version.range>
@@ -1855,9 +1845,9 @@
         <kaptcha.wso2.version>2.3.0.wso2v1</kaptcha.wso2.version>
         <json.wso2.version>3.0.0.wso2v1</json.wso2.version>
         <json.wso2.version.range>[3.0.0.wso2v1, 4.0.0)</json.wso2.version.range>
-        <com.fasterxml.jackson.version>2.9.6</com.fasterxml.jackson.version>
-        <com.fasterxml.jackson.annotation.version>2.9.6</com.fasterxml.jackson.annotation.version>
-        <com.fasterxml.jackson.jaxrs-json-provider-version>2.9.6</com.fasterxml.jackson.jaxrs-json-provider-version>
+        <com.fasterxml.jackson.version>2.9.7</com.fasterxml.jackson.version>
+        <com.fasterxml.jackson.annotation.version>2.9.7</com.fasterxml.jackson.annotation.version>
+        <com.fasterxml.jackson.jaxrs-json-provider-version>2.9.7</com.fasterxml.jackson.jaxrs-json-provider-version>
 
         <apache.wink.version>1.1.3-incubating</apache.wink.version>
         <openspml.version>192-20100413</openspml.version>
@@ -1865,10 +1855,12 @@
         <thetransactioncompany.cors-filter.wso2.version>1.7.0.wso2v1</thetransactioncompany.cors-filter.wso2.version>
         <thetransactioncompany.utils.wso2.version>1.9.0.wso2v1</thetransactioncompany.utils.wso2.version>
         <jsr311-api.version>1.1.1</jsr311-api.version>
+        <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <tomcat-util.version>3.3.2</tomcat-util.version>
         <jdom.wso2.version>1.0.0.wso2v1</jdom.wso2.version>
         <json-smart.version>1.3</json-smart.version>
         <cxf-bundle.wso2.version>2.7.16.wso2v1</cxf-bundle.wso2.version>
+        <org.apache.cxf.version>3.2.8</org.apache.cxf.version>
         <opencsv.wso2.version>1.8.wso2v1</opencsv.wso2.version>
         <apache.poi.wso2.version>3.9.0.wso2v1</apache.poi.wso2.version>
         <javax.activation.import.pkg.version>[0.0.0, 1.0.0)</javax.activation.import.pkg.version>
@@ -1910,7 +1902,6 @@
         <quartz.version>2.1.1.wso2v1</quartz.version>
         <disruptor.orbit.version>3.3.2.wso2v2</disruptor.orbit.version>
         <antlr.version>4.5</antlr.version>
-        <guava.version>19.0</guava.version>
         <snakeyaml.version>1.11</snakeyaml.version>
         <h2database.version>1.3.175</h2database.version>
     </properties>

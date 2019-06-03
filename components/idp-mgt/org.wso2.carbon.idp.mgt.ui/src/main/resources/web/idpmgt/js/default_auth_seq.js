@@ -85,9 +85,10 @@ var myCodeMirror = CodeMirror.fromTextArea(seqContent, {
     mode: "xml",
     lineNumbers: true,
     lineWrapping: true,
+    indentUnit: 4,
     lineWiseCopyCut: true,
     pasteLinesPerSelection: true,
-    indentWithTabs: true,
+    indentWithTabs: false,
     autoCloseBrackets: true,
     matchBrackets: true,
     gutters: ["CodeMirror-lint-markers", "CodeMirror-linenumbers", "CodeMirror-foldgutter"],
@@ -110,6 +111,12 @@ var myCodeMirror = CodeMirror.fromTextArea(seqContent, {
         "Shift-Ctrl-F": function (myCodeMirror) {
             CodeMirror.commands["selectAll"](myCodeMirror);
             autoFormatSelection(myCodeMirror);
+        },
+        Tab: function (myCodeMirror) {
+            myCodeMirror.execCommand("indentMore");
+        },
+        "Shift-Tab": function (myCodeMirror) {
+            myCodeMirror.execCommand("indentLess");
         }
     },
     hintOptions: {schemaInfo: tags}

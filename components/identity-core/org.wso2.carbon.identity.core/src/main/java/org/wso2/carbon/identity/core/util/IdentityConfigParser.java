@@ -24,15 +24,28 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.model.*;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
+import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
+import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.io.*;
-import java.util.*;
 
 public class IdentityConfigParser {
 
@@ -42,6 +55,9 @@ public class IdentityConfigParser {
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
+    private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
+    private static final String SERVICE_PROVIDER_AUTH_KEY_CACHE = "ServiceProvideCache.InboundAuth";
+    private static final String SERVICE_PROVIDER_ID_CACHE = "ServiceProviderCache.ID";
     private static IdentityConfigParser parser;
     private static SecretResolver secretResolver;
     // To enable attempted thread-safety using double-check locking
@@ -273,9 +289,16 @@ public class IdentityConfigParser {
                             identityCacheConfigurationHolder.put(identityCacheConfigKey, identityCacheConfig);
                         }
                     }
+                    IdentityCacheConfigKey spCacheKey = new IdentityCacheConfigKey(cacheManagerName,
+                            SERVICE_PROVIDER_CACHE);
+                    IdentityCacheConfig identityCacheConfig = identityCacheConfigurationHolder.get(spCacheKey);
+                    IdentityCacheConfigKey key = new IdentityCacheConfigKey(cacheManagerName,
+                            SERVICE_PROVIDER_AUTH_KEY_CACHE);
+                    identityCacheConfigurationHolder.putIfAbsent(key, identityCacheConfig);
+                    key = new IdentityCacheConfigKey(cacheManagerName, SERVICE_PROVIDER_ID_CACHE);
+                    identityCacheConfigurationHolder.putIfAbsent(key, identityCacheConfig);
                 }
             }
-
         }
     }
 

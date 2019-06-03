@@ -72,9 +72,10 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
                 return new JsStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep());
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
-                AuthenticatedUser currentSubject = getCurrentSubject();
-                if (currentSubject != null) {
-                    return new JsAuthenticatedUser(this.getContext(), currentSubject);
+                StepConfig stepConfig = getCurrentSubjectIdentifierStep();
+                if (stepConfig != null) {
+                    return new JsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
+                            stepConfig.getOrder(), stepConfig.getAuthenticatedIdP());
                 } else {
                     return null;
                 }
@@ -165,7 +166,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
 
     }
 
-    private AuthenticatedUser getCurrentSubject() {
+    private StepConfig getCurrentSubjectIdentifierStep() {
 
         if (getContext().getSequenceConfig() == null) {
             //Sequence config is not yet initialized
@@ -176,6 +177,12 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
         Optional<StepConfig> subjectIdentifierStep = stepConfigs.values().stream()
                 .filter(stepConfig -> (stepConfig.isCompleted() && stepConfig.isSubjectIdentifierStep())).findFirst();
 
-        return subjectIdentifierStep.map(StepConfig::getAuthenticatedUser).orElse(getWrapped().getLastAuthenticatedUser());
+        if (subjectIdentifierStep.isPresent()) {
+            return subjectIdentifierStep.get();
+        } else if (getContext().getCurrentStep() > 0) {
+            return stepConfigs.get(getContext().getCurrentStep());
+        } else {
+            return null;
+        }
     }
 }

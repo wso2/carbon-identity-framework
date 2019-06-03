@@ -41,6 +41,8 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
@@ -74,6 +76,7 @@ import org.wso2.carbon.identity.application.authentication.framework.servlet.Lon
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -218,6 +221,8 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
                 ApplicationAuthenticationService(), null);
         bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+        bundleContext.registerService(UserSessionManagementService.class.getName(),
+                new UserSessionManagementServiceImpl(), null);
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -332,6 +337,10 @@ public class FrameworkServiceComponent {
          * Load and reade the require.js file in resources.
          */
         this.loadCodeForRequire();
+
+        // Set user session mapping enabled.
+        FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
+                .isUserSessionMappingEnabled());
     }
 
     @Deactivate

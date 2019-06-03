@@ -183,6 +183,9 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
                     }
 
                     if (key != null) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Retrieving attributes from cache, tenantId: " + tenantId + ", key: " + key);
+                        }
                         attrs = attributeFinderCache.getFromCache(tenantId, key);
                     }
                 }
@@ -202,6 +205,9 @@ public class CarbonAttributeFinder extends AttributeFinderModule {
                         AttributeValue attribute = EntitlementUtil.
                                 getAttributeValue(attr, attributeType.toString());
                         attrBag.add(attribute);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Attribute added to the attributeBag: \'" + attr + "\'");
+                        }
                     }
                 }
             }

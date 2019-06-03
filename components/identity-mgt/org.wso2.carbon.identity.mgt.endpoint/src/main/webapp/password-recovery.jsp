@@ -146,7 +146,7 @@
                                 if (StringUtils.isNotEmpty(username) && !error) {
                             %>
                             <div>
-                                <input type="hidden" name="username" value="<%=username %>"/>
+                                <input type="hidden" name="username" value="<%=Encode.forHtmlAttribute(username)%>"/>
                             </div>
                             <%
                             } else {
@@ -183,12 +183,11 @@
                             %>
 
                             <%
-                                String callback = Encode.forHtmlAttribute
-                                        (request.getParameter("callback"));
+                                String callback = request.getParameter("callback");
                                 if (callback != null) {
                             %>
                             <div>
-                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                                <input type="hidden" name="callback" value="<%=Encode.forHtmlAttribute(callback) %>"/>
                             </div>
                             <%
                                 }

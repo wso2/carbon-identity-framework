@@ -21,20 +21,16 @@ package org.wso2.carbon.identity.entitlement.endpoint.auth;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.message.Message;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.entitlement.endpoint.exception.UnauthorizedException;
 import org.wso2.carbon.identity.entitlement.endpoint.util.EntitlementEndpointConstants;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * This is the default BASIC-Auth authentication handler for Entitlement REST Endpoints
@@ -67,31 +63,24 @@ public class BasicAuthHandler implements EntitlementAuthenticationHandler {
         this.priority = priority;
     }
 
-    public boolean canHandle(Message message, ClassResourceInfo classResourceInfo) {
+    public boolean canHandle(ContainerRequestContext message) {
         // check the "Authorization" header and if "Basic" is there, can be handled.
 
-        // get the map of protocol headers
-        Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
         // get the value for Authorization Header
-        List authzHeaders = (ArrayList) protocolHeaders
-                .get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);
+        List authzHeaders = message.getHeaders().get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);
-            if (authzHeader != null && authzHeader.contains(BASIC_AUTH_HEADER)) {
-                return true;
-            }
+            return authzHeader != null && authzHeader.contains(BASIC_AUTH_HEADER);
         }
         return false;
     }
 
-    public boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo) {
+    public boolean isAuthenticated(ContainerRequestContext message) {
         // extract authorization header and authenticate.
-        // get the map of protocol headers
-        Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
+
         // get the value for Authorization Header
-        List authzHeaders = (ArrayList) protocolHeaders
-                .get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);
+        List authzHeaders = message.getHeaders().get(EntitlementEndpointConstants.AUTHORIZATION_HEADER);
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);

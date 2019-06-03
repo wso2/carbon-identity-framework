@@ -17,10 +17,6 @@
  */
 package org.wso2.carbon.identity.user.store.count.jdbc.internal;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -30,6 +26,11 @@ import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.DatabaseUtil;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Class that retrieve the role counts from internal domains
@@ -128,7 +129,9 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             throw new UserStoreException("Could not create a database connection to User database");
         }
         dbConnection.setAutoCommit(false);
-        dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
+            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        }
         return dbConnection;
     }
 }

@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.mgt.endpoint;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,18 +31,20 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
-import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
-import org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.Claim;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.Error;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
-import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class defines utility methods used within this web application.
@@ -58,6 +60,8 @@ public class IdentityManagementEndpointUtil {
     public static final String DISPLAY_NAME = "displayName";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
+    private static final String CODE = "51007";
+    private static final String UNEXPECTED_ERROR = "Unexpected Error.";
 
     private IdentityManagementEndpointUtil() {
 
@@ -187,14 +191,16 @@ public class IdentityManagementEndpointUtil {
         return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 
-    public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation, Map<String, String> headers) {
+    public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation,
+                               Map<String, String> headers) {
 
         JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
         bean.setProviders(providers);
         return bean.create(cls, new Object[0]);
     }
 
-    private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation, Map<String, String> headers) {
+    private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation,
+                                                  Map<String, String> headers) {
 
         JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
         bean.setServiceClass(cls);
@@ -415,5 +421,110 @@ public class IdentityManagementEndpointUtil {
             }
         }
         return piis;
+    }
+
+    /**
+     * Encode query params of the call back url.
+     *
+     * @param callbackUrl callback url from the request.
+     * @return encoded callback url.
+     * @throws URISyntaxException URI Syntax Exception.
+     */
+    public static String getURLEncodedCallback(String callbackUrl) throws URISyntaxException {
+
+        URI uri = new URI(callbackUrl);
+        StringBuilder encodedCallbackUrl = new StringBuilder(
+                new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
+
+        if (StringUtils.isNotBlank(uri.getQuery())) {
+            String[] params = uri.getQuery().split("&");
+            encodedCallbackUrl.append("?");
+            boolean isFirstParam = true;
+            for (String pair : params) {
+                if (!isFirstParam) {
+                    encodedCallbackUrl.append("&");
+                } else {
+                    isFirstParam = false;
+                }
+
+                int idx = pair.indexOf("=");
+                encodedCallbackUrl.append(Encode.forUriComponent(pair.substring(0, idx))).append("=")
+                        .append(Encode.forUriComponent(pair.substring(idx + 1)));
+            }
+        }
+
+        return encodedCallbackUrl.toString();
+    }
+
+    /**
+     * Construct the URL depending on the path and the resource name.
+     *
+     * @param path path of the url
+     * @return  endpoint url
+     */
+    public static String buildEndpointUrl(String path) {
+
+        String endpointUrl = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL, "");
+
+        if (path.startsWith("/")) {
+            return endpointUrl + path;
+        } else {
+            return endpointUrl + "/" + path;
+        }
+    }
+
+    public static void addErrorInformation(HttpServletRequest request, Exception e) {
+        Error error = buildError(e);
+        addErrorInformation(request, error);
+    }
+
+    public static void addErrorInformation(HttpServletRequest request, Error errorD) {
+        request.setAttribute("error", true);
+        if (errorD != null) {
+            request.setAttribute("errorMsg", errorD.getDescription());
+            request.setAttribute("errorCode", errorD.getCode());
+        }
+    }
+
+    public static Error buildError(Exception e) {
+
+        try {
+            return new Gson().fromJson(e.getMessage(), Error.class);
+        } catch (JsonSyntaxException ex) {
+            // We cannot build proper error code and error messages from the exception.
+            log.error("Exception while retrieving error details from original exception. Original exception:", e);
+            return buildUnexpectedError();
+
+        }
+    }
+
+    private static Error buildUnexpectedError() {
+
+        Error error = new Error();
+        error.setCode(CODE);
+        error.setMessage(UNEXPECTED_ERROR);
+        error.setDescription(UNEXPECTED_ERROR);
+        return error;
+    }
+
+    private static RetryError buildUnexpectedRetryError() {
+
+        RetryError error = new RetryError();
+        error.setCode(CODE);
+        error.setMessage(UNEXPECTED_ERROR);
+        error.setDescription(UNEXPECTED_ERROR);
+        return error;
+    }
+
+    public static RetryError buildRetryError(Exception e) {
+
+        try {
+            return new Gson().fromJson(e.getMessage(), RetryError.class);
+        } catch (JsonSyntaxException ex) {
+            // We cannot build proper error code and error messages from the exception.
+            log.error("Exception while retrieving error details from original exception. Original exception:", e);
+            return buildUnexpectedRetryError();
+        }
     }
 }

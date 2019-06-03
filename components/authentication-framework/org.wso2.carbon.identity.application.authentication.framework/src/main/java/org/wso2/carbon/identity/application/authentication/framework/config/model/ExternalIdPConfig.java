@@ -229,9 +229,9 @@ public class ExternalIdPConfig implements Serializable {
     }
 
     /**
-     * To check whether silent provisioning is enabled, while JIT provisioning.
+     * To check whether prompt for consent is enabled, while JIT provisioning.
      *
-     * @return true if modification of user name is allowed.
+     * @return true if prompt for consent is enabled.
      */
     public boolean isPromptConsentEnabled() {
         if (justInTimeProConfig != null) {

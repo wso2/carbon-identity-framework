@@ -36,6 +36,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
@@ -143,18 +144,24 @@
     String jwksUri = null;
     boolean hasJWKSUri = false;
 
+    // SP bound consent skip
+    boolean skipContent = false;
+
     ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
+
     if (spProperties != null) {
         for (ServiceProviderProperty spProperty : spProperties) {
             if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
                 hasJWKSUri = true;
                 jwksUri = spProperty.getValue();
+            } else if (ApplicationMgtUIConstants.SKIP_CONSENT.equals(spProperty.getName())) {
+                skipContent = Boolean.parseBoolean(spProperty.getValue());
             }
         }
     }
 
     if (jwksUri == null) {
-        jwksUri = "";
+       jwksUri = "";
     }
 
     String authTypeReq = request.getParameter("authType");
@@ -361,7 +368,6 @@
             .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
-
         SpTemplate[] spTemplates = serviceClient.getAllApplicationTemplateInfo();
         if (spTemplates != null) {
             for (SpTemplate spTemplate : spTemplates) {
@@ -422,40 +428,57 @@
 
     function validateSPConfigurations() {
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
+            var isValied = true;
             $.each($('.spClaimVal'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.claim.config")%>');
                     return false;
                 }
             });
+            if (!isValied) {
+                return false;
+            }
         }
         // number_of_claim_mappings
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
         if ($('[name=app_permission]').length > 0) {
+            var isValied = true;
             $.each($('[name=app_permission]'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.permission.config")%>');
                     return false;
                 }
             });
+            if (!isValied) {
+                return false;
+            }
         }
         if ($('.roleMapIdp').length > 0) {
+            var isValied = true;
             $.each($('.roleMapIdp'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
                     return false;
                 }
             });
-
-            if ($('.roleMapSp').length > 0) {
-                $.each($('.roleMapSp'), function () {
-                    if ($(this).val().length == 0) {
-                        CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
-                        return false;
-                    }
-                });
+            if (isValied) {
+                if ($('.roleMapSp').length > 0) {
+                    $.each($('.roleMapSp'), function () {
+                        if ($(this).val().length == 0) {
+                            isValied = false;
+                            CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
+                            return false;
+                        }
+                    });
+                }
+            }
+            if (!isValied) {
+                return false;
             }
         }
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
@@ -463,6 +486,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        return true;
     }
 
     function saveTemplate() {
@@ -528,7 +552,9 @@
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
         } else {
-            validateSPConfigurations();
+            if (!validateSPConfigurations()) {
+                return false;
+            }
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     spName + '?';
@@ -1301,7 +1327,7 @@
                             <td>
                                 <input style="width:50%" id="spName" name="spName" type="text"
                                        value="<%=Encode.forHtmlAttribute(spName)%>"
-                                       white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                                       white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.name'/>
                                 </div>
@@ -2744,6 +2770,14 @@
                                                         key="config.application.enable.authorization"/></label>
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= skipContent ? "checked" : ""%> value="true"/>
+                                                    <label for="skipConsent"><fmt:message key="config.application.skip.consent"/></label>
+                                                    </br>
+                                                    <div class="sectionHelp">
+                                                        <fmt:message key='help.skip.consent'/>
+                                                    </div>
+                                                </tr>
                                             </table>
 
 
@@ -2996,9 +3030,9 @@
                                             <input type="button"
                                                    value="<fmt:message key='button.update.service.provider'/>"
                                                    onclick="createAppOnclick();"/>
-                                            <input type="button"
-                                                   value="<fmt:message key='button.save.service.provider.template'/>"
-                                                   onclick="saveAsTemplate();"/>
+                                                <input style="display: none" type="button"
+                                                       value="<fmt:message key='button.save.service.provider.template'/>"
+                                                       onclick="saveAsTemplate();"/>
                                             <input type="hidden" name="templateName" id="templateName"/>
                                             <input type="hidden" name="templateDesc" id="templateDesc"/>
                                             <input type="button" value="<fmt:message key='button.cancel'/>"

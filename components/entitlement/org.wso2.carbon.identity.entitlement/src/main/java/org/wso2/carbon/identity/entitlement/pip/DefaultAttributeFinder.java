@@ -71,6 +71,10 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
                                           String environmentId, String attributeId, String issuer) throws Exception {
         Set<String> values = new HashSet<String>();
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving attribute values of subjectId \'" + subjectId + "\'with attributeId \'" +
+                    attributeId + "\'");
+        }
         if (StringUtils.isEmpty(subjectId)) {
             if (log.isDebugEnabled()) {
                 log.debug("subjectId value is null or empty. Returning empty attribute set");
@@ -98,6 +102,10 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
             try {
                 claimValue = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
                         getUserStoreManager().getUserClaimValue(subjectId, attributeId, null);
+                if (log.isDebugEnabled()) {
+                    log.debug("Claim \'" + claimValue + "\' retrieved for attributeId \'" + attributeId + "\' " +
+                            "for subjectId \'" + subjectId + "\'");
+                }
             } catch (UserStoreException e) {
                 if(e.getMessage().startsWith(IdentityCoreConstants.USER_NOT_FOUND)){
                     if(log.isDebugEnabled()){

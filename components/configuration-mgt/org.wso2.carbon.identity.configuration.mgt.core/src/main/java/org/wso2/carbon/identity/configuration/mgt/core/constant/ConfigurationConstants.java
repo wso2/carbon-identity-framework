@@ -101,6 +101,7 @@ public class ConfigurationConstants {
         ERROR_CODE_RESOURCE_REPLACE_REQUEST_INVALID("CONFIGM_00033", "Resource replace request validation failed."),
         ERROR_CODE_REPLACE_RESOURCE("CONFIGM_00034", "Error while replacing the resource : %s."),
         ERROR_CODE_REPLACE_ATTRIBUTE("CONFIGM_00035", "Error while replacing the attribute: %s."),
+        ERROR_CODE_FEATURE_NOT_ENABLED("CONFIGM_00036", "Configuration management feature is not enabled."),
         ;
 
         private final String code;

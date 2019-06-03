@@ -87,12 +87,16 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -108,6 +112,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -126,6 +134,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 
@@ -1699,7 +1708,7 @@ public class FrameworkUtils {
             return new ArrayList<>();
         }
         Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
-        List<String> idpMappedUserRoles = new ArrayList<>();
+        Set<String> idpMappedUserRoles = new HashSet<>();
         // If no role mapping is configured in the identity provider.
         if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
             if (log.isDebugEnabled()) {
@@ -1710,7 +1719,7 @@ public class FrameworkUtils {
                 return new ArrayList<>();
             }
             idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
-            return idpMappedUserRoles;
+            return new ArrayList<>(idpMappedUserRoles);
         }
         for (String idpRole : idpRoles) {
             if (idpToLocalRoleMapping.containsKey(idpRole)) {
@@ -1719,7 +1728,7 @@ public class FrameworkUtils {
                 idpMappedUserRoles.add(idpRole);
             }
         }
-        return idpMappedUserRoles;
+        return new ArrayList<>(idpMappedUserRoles);
     }
 
     /**
@@ -2063,6 +2072,126 @@ public class FrameworkUtils {
 
         return requestedProperty;
 
+    }
+
+    /**
+     * Check user session mapping enabled.
+     *
+     * @return Return true if UserSessionMapping configuration enabled and both IDN_AUTH_USER and
+     * IDN_AUTH_USER_SESSION_MAPPING tables are available.
+     */
+    public static boolean isUserSessionMappingEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(USER_SESSION_MAPPING_ENABLED)) && isTableExists(
+                "IDN_AUTH_USER") && isTableExists("IDN_AUTH_USER_SESSION_MAPPING");
+    }
+
+    /**
+     * Check whether the specified table exists in the Identity database.
+     *
+     * @param tableName name of the table.
+     * @return true if table exists.
+     */
+    public static boolean isTableExists(String tableName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+            }
+
+            try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Table - " + tableName + " available in the Identity database.");
+                    }
+                    connection.commit();
+                    return true;
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Table - " + tableName + " not available in the Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
+    }
+
+    public static boolean isConsentPageSkippedForSP(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            throw new IllegalArgumentException("A null reference received for service provider.");
+        }
+
+        for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
+            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
+                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Consent page skip property set for service provider : " + serviceProvider.getApplicationName());
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check whether the specified column of the specified table exists in the Identity database.
+     *
+     * @param tableName name of the table.
+     * @param columnName name of the column.
+     * @return true if column exists.
+     */
+    public static boolean isTableColumnExists(String tableName, String columnName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+                columnName = columnName.toLowerCase();
+            }
+
+            String schemaPattern = null;
+            if (metaData.getDriverName().contains("Oracle")){
+                if (log.isDebugEnabled()) {
+                    log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
+                }
+                // Oracle checks the availability of the table column
+                // in all users in the DB unless specified.
+                schemaPattern = metaData.getUserName();
+            }
+            try (ResultSet resultSet = metaData.getColumns(null, schemaPattern, tableName, columnName)) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
+                                "Identity database.");
+                    }
+                    connection.commit();
+                    return true;
+                }
+            }
+            connection.commit();
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                        "Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                    "Identity database.");
+        }
+        return false;
     }
 }
 

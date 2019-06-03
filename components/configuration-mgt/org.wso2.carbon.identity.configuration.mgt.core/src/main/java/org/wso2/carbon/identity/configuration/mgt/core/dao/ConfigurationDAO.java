@@ -59,6 +59,15 @@ public interface ConfigurationDAO {
             throws ConfigurationManagementException;
 
     /**
+     * Returns {@link Resource} by id.
+     *
+     * @param resourceId Id value of the {@link Resource} to be returned.
+     * @return {@link Resource} for the given name.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    Resource getResourceById(String resourceId) throws ConfigurationManagementException;
+
+    /**
      * Delete {@link Resource} by the given resourceName.
      *
      * @param tenantId       Tenant id of the {@link Resource}.
@@ -174,5 +183,6 @@ public interface ConfigurationDAO {
      * @param attributeKey Key of the {@link Attribute} to be updated.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
-    void deleteAttribute(String attributeId, String resourceId, String attributeKey) throws ConfigurationManagementException;
+    void deleteAttribute(String attributeId, String resourceId, String attributeKey)
+            throws ConfigurationManagementException;
 }

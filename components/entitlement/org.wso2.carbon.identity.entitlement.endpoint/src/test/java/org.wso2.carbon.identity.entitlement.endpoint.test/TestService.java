@@ -36,10 +36,6 @@ public class TestService extends Assert {
     private final static String WADL_ADDRESS = ENDPOINT_ADDRESS + "?_wadl";
     private static Log log = LogFactory.getLog(TestService.class);
 
-    TestService() {
-        System.setProperty("javax.net.ssl.trustStore", "/home/manujith/Apps/wso2is-5.1.0/repository/resources/security/client-truststore.jks");
-    }
-
     private static boolean waitForWADL() {
         WebClient client = WebClient.create(WADL_ADDRESS);
         // wait for 20 secs or so

@@ -18,45 +18,5 @@
 
 <component xmlns="http://products.wso2.org/carbon">
     <menus>
-        <menu>
-            <id>template_menu</id>
-            <i18n-key>template.menu</i18n-key>
-            <i18n-bundle>org.wso2.carbon.identity.template.mgt.ui.i18n.Resources</i18n-bundle>
-            <parent-menu>manage_menu</parent-menu>
-            <link>#</link>
-            <region>region1</region>
-            <order>5</order>
-            <style-class>manage</style-class>
-            <icon>../template-mgt/images/templateManager.png</icon>
-            <require-permission>/permission/admin/manage</require-permission>
-            <require-not-logged-in>false</require-not-logged-in>
-
-        </menu>
-        <menu>
-            <id>add_template</id>
-            <i18n-key>add</i18n-key>
-            <i18n-bundle>org.wso2.carbon.identity.template.mgt.ui.i18n.Resources</i18n-bundle>
-            <parent-menu>template_menu</parent-menu>
-            <link>../template-mgt/add-template.jsp</link>
-            <region>region1</region>
-            <order>1</order>
-            <style-class>manage</style-class>
-            <icon>../template-mgt/images/add.png</icon>
-            <require-permission>/permission/admin/manage/identity/template/mgt/add</require-permission>
-            <require-not-logged-in>false</require-not-logged-in>
-        </menu>
-        <menu>
-            <id>list_templates</id>
-            <i18n-key>templates.list</i18n-key>
-            <i18n-bundle>org.wso2.carbon.identity.template.mgt.ui.i18n.Resources</i18n-bundle>
-            <parent-menu>template_menu</parent-menu>
-            <link>../template-mgt/list-templates.jsp</link>
-            <region>region1</region>
-            <order>2</order>
-            <style-class>manage</style-class>
-            <icon>../template-mgt/images/list.png</icon>
-            <require-permission>/permission/admin/manage/identity/template/mgt/list</require-permission>
-            <require-not-logged-in>false</require-not-logged-in>
-        </menu>
     </menus>
 </component>

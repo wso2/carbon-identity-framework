@@ -507,7 +507,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 Cookie cookie = FrameworkUtils.getAuthCookie(request);
 
                 if (cookie != null) {
-                    String sessionContextKey = DigestUtils.shaHex(cookie.getValue());
+                    String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
                     context.setSessionIdentifier(sessionContextKey);
                 }
 
@@ -610,10 +610,17 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         .getValue());
             }
 
-            String sessionContextKey = DigestUtils.shaHex(cookie.getValue());
-
+            String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+            SessionContext sessionContext;
             // get the authentication details from the cache
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
+            try {
+                //Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
+                // tenant wise session expiry time
+                FrameworkUtils.startTenantFlow(context.getTenantDomain());
+                sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
+            } finally {
+                FrameworkUtils.endTenantFlow();
+            }
 
             if (sessionContext != null) {
 
