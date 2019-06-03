@@ -145,6 +145,7 @@
                             javax.xml.xpath,
                             org.wso2.carbon.securevault;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.securevault,
+                            org.wso2.securevault.commons,
                             javax.net.ssl,
                             javax.xml.namespace,
                             org.w3c.dom,

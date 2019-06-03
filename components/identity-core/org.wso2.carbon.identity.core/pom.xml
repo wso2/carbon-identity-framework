@@ -160,6 +160,7 @@
                             org.w3c.dom,
 
                             org.wso2.securevault,
+                            org.wso2.securevault.commons,
 
                             org.wso2.carbon;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.base;version="${carbon.base.imp.pkg.version.range}",

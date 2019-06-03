@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,6 +54,7 @@ public class MutualSSLManager {
 
     private static final Log log = LogFactory.getLog(MutualSSLManager.class);
     private static final String PROTECTED_TOKENS = "protectedTokens";
+    private static final String SECRET_ALIAS = "$secret";
     private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
     private static Properties prop;
@@ -94,7 +96,7 @@ public class MutualSSLManager {
     public static synchronized void init() {
 
         try {
-            prop = new Properties();
+us            prop = new Properties();
             String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
             File configFile = new File(configFilePath);
 
@@ -225,33 +227,24 @@ public class MutualSSLManager {
      */
     private static void resolveSecrets(Properties properties) {
 
-        String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
-
-        if (StringUtils.isNotBlank(protectedTokens)) {
-            String secretProvider = (String) properties.get(SECRET_PROVIDER);
-            SecretResolver secretResolver;
-
-            if (StringUtils.isBlank(secretProvider)) {
-                properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
-            }
-
-            secretResolver = SecretResolverFactory.create(properties, "");
-            StringTokenizer st = new StringTokenizer(protectedTokens, ",");
-
-            while (st.hasMoreElements()) {
-                String element = st.nextElement().toString().trim();
-
-                if (secretResolver.isTokenProtected(element)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Resolving and replacing secret for " + element);
-                    }
-                    // Replaces the original encrypted property with resolved property
-                    properties.put(element, secretResolver.resolve(element));
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("No encryption done for value with key :" + element);
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
+        SecretResolver secretResolver = SecretResolverFactory.create(properties, "");
+        Enumeration propertyNames = properties.propertyNames();
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            while (propertyNames.hasMoreElements()) {
+                String key = (String) propertyNames.nextElement();
+                String value = properties.getProperty(key);
+                if (value != null) {
+                    if (secretResolver.isTokenProtected(key)) {
+                        value = secretResolver.resolve(key);
+                    } else {
+                        value = MiscellaneousUtil.resolve(value, secretResolver);
                     }
                 }
+                properties.put(key, value);
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -268,11 +261,13 @@ public class MutualSSLManager {
     private static boolean isSecuredPropertyAvailable(Properties properties) {
 
         Enumeration propertyNames = properties.propertyNames();
-
         while (propertyNames.hasMoreElements()) {
             String key = (String) propertyNames.nextElement();
-            if (PROTECTED_TOKENS.equals(key) && StringUtils.isNotBlank(properties.getProperty(key))) {
-                return true;
+            String value = properties.getProperty(key);
+            if (StringUtils.isNotBlank(value)) {
+                if (value.startsWith(SECRET_ALIAS) || PROTECTED_TOKENS.equals(key)) {
+                    return true;
+                }
             }
         }
         return false;
