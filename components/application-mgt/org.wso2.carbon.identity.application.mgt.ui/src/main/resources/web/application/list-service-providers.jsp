@@ -128,7 +128,7 @@
                 int pageNumberInt = 0;
                 int numberOfPages = 0;
                 int numberOfApps;
-                int resultsPerPage = ApplicationMgtUIConstants.DEFAULT_RESULTS_PER_PAGE;
+                int resultsPerPageInt = ApplicationMgtUIConstants.DEFAULT_RESULTS_PER_PAGE;
 
                 if (StringUtils.isNotBlank(resultsPerPage)) {
                     try {
@@ -175,7 +175,7 @@
                         }
                     }
                     numberOfPages = (int) Math.ceil((double) numberOfApps / resultsPerPageInt);
-                    }
+                    
                 } catch (Exception e) {
                     String message = resourceBundle.getString("error.while.reading.app.info") + " : " + e.getMessage();
                     CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
