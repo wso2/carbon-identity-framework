@@ -1,10 +1,10 @@
 ## **HOW TO RUN**
 
 **>> postgresql-tokencleanup.sql**
-\------------------------------------
 
 
 **Compile the Stored Procedure**
+
 First - Compile the stored procedure using a PostgreSQL client. Following is a sample for CLI based PostgreSQL client.
 Make sure to create the procedure in the identity database schema only.
 
@@ -18,9 +18,9 @@ pgsql>\i postgresql-tokencleanup.sql
 ```
 
 **Execute the Stored Procedure.**
-Then execute the compiled store procedure by using the call function in the PostgreSQL client. Following is a sample for CLI based PostgreSQL client.
 
-Download and configure the database name, username, password, hostname in the script token-cleanup-runner.sh according to your environment configurations.
+configure the database name, username, password, hostname in the script token-cleanup-runner.sh according to your environment configurations.
+
 ```
 username='postgres'
 password='postgres'
@@ -28,7 +28,7 @@ database='CARBON_DB'
 host='localhost'
 ```
 
-Execute the token-cleanup-runner.sh script
+Execute the token-cleanup-runner.sh script in the bash
 ```
 bash:$./token-clean-runner.sh
 ```
