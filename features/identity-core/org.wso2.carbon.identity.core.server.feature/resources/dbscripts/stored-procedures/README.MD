@@ -6,7 +6,7 @@ There are stored procedures available for OAuth2 token and authorization code cl
 
 Below is the directory structure of the stored procedure script files.
 
-** NOTE: Some of the scripts might not exist based on the availability**
+**NOTE: Some of the scripts might not exist based on the availability**
 
 ```
 --stored-procedures
@@ -22,7 +22,7 @@ Below is the directory structure of the stored procedure script files.
 ## **Usage**
 
 **>> tokencleanup.sql**
-\----------------------------------------
+
 
 This is an optimized token cleanup script with batch wise delete, which will have a very minimal impact the database on its execution for other queries. This procedure includes the cleanup of Tokens , Scopes and the Authorization Codes from the respective tables of *idn_oauth2_access_token*, *idn_oauth2_access_token_scope* and *idn_oauth2_authorization_code* 
 
@@ -43,6 +43,7 @@ This is an optimized token cleanup script with batch wise delete, which will hav
 
 
 **CONFIGURABLE ATTRIBUTES** 
+
 This is where you can have customized configurations. following are some of the important variables you need to consider.
 
 **batchSize* - This variable defines how many records will be deleted per batch for one iteration.
@@ -82,7 +83,6 @@ This is where you can have customized configurations. following are some of the 
 **ANALYSING TABLES*  - As an extra step you can perform a table analyze for gather the statistics for the tables which had the delete operation. This is also to improve the performance of the database. However, it's also not recommended to perform on a live system unless you have downtime. Please refer to documentation [2] for more information.
 
 **>> tokencleanup-restore.sql**
-\----------------------------------------
 
 This is the stored procedure used to restore the deleted tokens from the WSO2_TOKEN_CLEANUP_SP procedure. The restoration can be only done if the backupTables property is set to true in the WSO2_TOKEN_CLEANUP_SP procedure.
 
@@ -91,9 +91,9 @@ This is only an immediate restoration script for the WSO2_TOKEN_CLEANUP_SP proce
 Please note that it is highly recommended to have a complete backup of the production environment before modifying any data, in case of any restoration would be required.
 
 **>> confirmation-code-cleanup.sql**
-\----------------------------------------
+
 This scripts used to delete the confirmation codes from the registry tables.
 
 **>> session-data-cleanup.sql**
-\----------------------------------------
+
 This scripts used to delete the session data from the IDN_AUTH_SESSION_STORE table.
