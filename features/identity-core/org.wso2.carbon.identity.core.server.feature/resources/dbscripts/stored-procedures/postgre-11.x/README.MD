@@ -1,10 +1,10 @@
 ## **HOW TO RUN**
 
 **>> postgresql_11-tokencleanup.sql**
-\------------------------------------
 
 
 **Compile the Stored Procedure**
+
 First - Compile the stored procedure using a PostgreSQL client. Following is a sample for CLI based PostgreSQL client.
 Make sure to create the procedure in the identity database schema only.
 
@@ -18,6 +18,7 @@ pgsql>\i postgresql_11-tokencleanup.sql
 ```
 
 **Execute the Stored Procedure.**
+
 Then execute the compiled stored procedure by using the call function in the PostgreSQL client. Following is a sample for CLI based PostgreSQL client.
 
 ```
