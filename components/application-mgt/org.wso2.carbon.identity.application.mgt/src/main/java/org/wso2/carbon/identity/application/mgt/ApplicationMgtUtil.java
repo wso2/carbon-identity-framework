@@ -28,6 +28,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -698,5 +699,19 @@ public class ApplicationMgtUtil {
     public static void endTenantFlow() {
 
         PrivilegedCarbonContext.endTenantFlow();
+    }
+
+    public static ArrayList<ApplicationBasicInfo> processApplicationBasicInfos(ApplicationBasicInfo[] applicationBasicInfos, String userName) throws IdentityApplicationManagementException {
+        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
+        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
+                appInfo.add(applicationBasicInfo);
+                if (log.isDebugEnabled()) {
+                    log.debug("Retrieving basic information of application: " +
+                            applicationBasicInfo.getApplicationName() + "username: " + userName);
+                }
+            }
+        }
+        return appInfo;
     }
 }

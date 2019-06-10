@@ -335,9 +335,9 @@
         - Use tenant domain in local subject identifier.
         - Use user store domain in local subject identifier.
 
-        Default value : true
+        Default value : false
 
-        Supported versions: IS 5.8.0 beta onwards
+        Supported versions: IS 5.4.0 beta onwards
         -->
         <!--<BuildSubjectIdentifierFromSPConfig>false</BuildSubjectIdentifierFromSPConfig>-->
 
@@ -1157,10 +1157,10 @@
 
     <!--Configuration Store properties-->
     <ConfigurationStore>
-        <!--Set an upper limit to the database call queries. Configuration store uses dynamic query generation,
+        <!--Set an upper limit to the database call query size. Configuration store uses dynamic query generation,
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
-        <MaximumQueryLength>4194304</MaximumQueryLength>
+        <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
     </ConfigurationStore>
 
 </Server>

@@ -78,9 +78,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         validateSearchRequest(searchCondition);
         Resources resources = getConfigurationDAO().getTenantResources(searchCondition);
         if (resources == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("No resources found for the search.");
-            }
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, null);
         }
         return resources;
@@ -94,7 +91,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         checkFeatureStatus();
 
         if (log.isDebugEnabled()) {
-            log.debug("Not Implemented yet.");
+            log.debug("Get Resources API is not Implemented yet.");
         }
         return null;
     }
@@ -107,7 +104,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         checkFeatureStatus();
 
         if (log.isDebugEnabled()) {
-            log.debug("Not Implemented yet.");
+            log.debug("Get Resources by Resource Type API is not Implemented yet.");
         }
         return null;
     }
@@ -201,7 +198,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         ResourceType resourceType = getConfigurationDAO().getResourceTypeByName(resourceTypeName);
         if (resourceType == null || resourceType.getId() == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Resource Type: " + resourceTypeName + " does not exists.");
+                log.debug("Resource Type: " + resourceTypeName + " does not exist.");
             }
             throw handleClientException(ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS, resourceTypeName);
         }
@@ -306,7 +303,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         Attribute attribute = getConfigurationDAO().getAttributeByKey(resourceId, attributeKey);
         if (attribute == null || attribute.getKey() == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Resource Type: " + attributeKey + " does not exists.");
+                log.debug("Resource Type: " + attributeKey + " does not exist.");
             }
             throw handleClientException(ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS, attributeKey);
         }
@@ -327,9 +324,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateAttributeRequest(attribute);
         Attribute existingAttribute = getAttribute(resourceTypeName, resourceName, attribute.getKey());
-        getConfigurationDAO().updateAttribute(existingAttribute.getAttributeId(), getResourceId(resourceTypeName,
-                resourceName),
-                attribute);
+        getConfigurationDAO().updateAttribute(
+                existingAttribute.getAttributeId(), getResourceId(resourceTypeName, resourceName), attribute);
         if (log.isDebugEnabled()) {
             log.debug("Attribute: " + attribute.getKey() + " successfully updated.");
         }

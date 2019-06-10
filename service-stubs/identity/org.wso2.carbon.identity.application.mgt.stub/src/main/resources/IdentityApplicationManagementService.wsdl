@@ -84,21 +84,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getApplicationBasicInfo">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getApplicationBasicInfoResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true"
-                                    type="ax2171:ApplicationBasicInfo"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="createApplicationWithTemplate">
                 <xs:complexType>
                     <xs:sequence>
@@ -114,10 +99,80 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true"
+                                    type="ax2172:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="createApplication">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="serviceProvider" nillable="true" type="ax2171:ServiceProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPaginatedApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPaginatedApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllPaginatedApplicationBasicInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="pageNumer" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllPaginatedApplicationBasicInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2171:ApplicationBasicInfo"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountOfAllApplications">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountOfAllApplicationsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountOfApplications">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getCountOfApplicationsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -653,6 +708,30 @@
     <wsdl:message name="getApplicationBasicInfoResponse">
         <wsdl:part name="parameters" element="ns1:getApplicationBasicInfoResponse"/>
     </wsdl:message>
+    <wsdl:message name="getAllPaginatedApplicationBasicInfoRequest">
+        <wsdl:part name="parameters" element="ns1:getAllPaginatedApplicationBasicInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getAllPaginatedApplicationBasicInfoResponse">
+        <wsdl:part name="parameters" element="ns1:getAllPaginatedApplicationBasicInfoResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getPaginatedApplicationBasicInfoRequest">
+        <wsdl:part name="parameters" element="ns1:getPaginatedApplicationBasicInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getPaginatedApplicationBasicInfoResponse">
+        <wsdl:part name="parameters" element="ns1:getPaginatedApplicationBasicInfoResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getCountOfAllApplicationsRequest">
+        <wsdl:part name="parameters" element="ns1:getCountOfAllApplications"/>
+    </wsdl:message>
+    <wsdl:message name="getCountOfAllApplicationsResponse">
+        <wsdl:part name="parameters" element="ns1:getCountOfAllApplicationsResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getCountOfApplicationsRequest">
+        <wsdl:part name="parameters" element="ns1:getCountOfApplications"/>
+    </wsdl:message>
+    <wsdl:message name="getCountOfApplicationsResponse">
+        <wsdl:part name="parameters" element="ns1:getCountOfApplicationsResponse"/>
+    </wsdl:message>
     <wsdl:message name="createApplicationWithTemplateRequest">
         <wsdl:part name="parameters" element="ns1:createApplicationWithTemplate"/>
     </wsdl:message>
@@ -768,6 +847,26 @@
             <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException"
                         name="IdentityApplicationManagementServiceIdentityApplicationManagementException"
                         wsaw:Action="urn:getApplicationBasicInfoIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedApplicationBasicInfo">
+            <wsdl:input message="tns:getAllPaginatedApplicationBasicInfoRequest" wsaw:Action="urn:getAllPaginatedApplicationBasicInfo"/>
+            <wsdl:output message="tns:getAllPaginatedApplicationBasicInfoResponse" wsaw:Action="urn:getAllPaginatedApplicationBasicInfoResponse"/>
+            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getAllPaginatedApplicationBasicInfoIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getPaginatedApplicationBasicInfo">
+            <wsdl:input message="tns:getPaginatedApplicationBasicInfoRequest" wsaw:Action="urn:getPaginatedApplicationBasicInfo"/>
+            <wsdl:output message="tns:getPaginatedApplicationBasicInfoResponse" wsaw:Action="urn:getPaginatedApplicationBasicInfoResponse"/>
+            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getPaginatedApplicationBasicInfoIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfAllApplications">
+            <wsdl:input message="tns:getCountOfAllApplicationsRequest" wsaw:Action="urn:getCountOfAllApplications"/>
+            <wsdl:output message="tns:getCountOfAllApplicationsResponse" wsaw:Action="urn:getCountOfAllApplicationsResponse"/>
+            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getCountOfAllApplicationsIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfApplications">
+            <wsdl:input message="tns:getCountOfApplicationsRequest" wsaw:Action="urn:getCountOfApplications"/>
+            <wsdl:output message="tns:getCountOfApplicationsResponse" wsaw:Action="urn:getCountOfApplicationsResponse"/>
+            <wsdl:fault message="tns:IdentityApplicationManagementServiceIdentityApplicationManagementException" name="IdentityApplicationManagementServiceIdentityApplicationManagementException" wsaw:Action="urn:getCountOfApplicationsIdentityApplicationManagementServiceIdentityApplicationManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="createApplicationWithTemplate">
             <wsdl:input message="tns:createApplicationWithTemplateRequest" wsaw:Action="urn:createApplicationWithTemplate"/>
@@ -997,6 +1096,54 @@
             <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
                 <soap:fault use="literal"
                             name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedApplicationBasicInfo">
+            <soap:operation soapAction="urn:getAllPaginatedApplicationBasicInfo" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPaginatedApplicationBasicInfo">
+            <soap:operation soapAction="urn:getPaginatedApplicationBasicInfo" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfAllApplications">
+            <soap:operation soapAction="urn:getCountOfAllApplications" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfApplications">
+            <soap:operation soapAction="urn:getCountOfApplications" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
         <wsdl:operation name="createApplicationWithTemplate">
@@ -1264,6 +1411,54 @@
                               name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedApplicationBasicInfo">
+            <soap12:operation soapAction="urn:getAllPaginatedApplicationBasicInfo" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getPaginatedApplicationBasicInfo">
+            <soap12:operation soapAction="urn:getPaginatedApplicationBasicInfo" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfAllApplications">
+            <soap12:operation soapAction="urn:getCountOfAllApplications" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfApplications">
+            <soap12:operation soapAction="urn:getCountOfApplications" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityApplicationManagementServiceIdentityApplicationManagementException">
+                <soap12:fault use="literal" name="IdentityApplicationManagementServiceIdentityApplicationManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="createApplicationWithTemplate">
             <soap12:operation soapAction="urn:createApplicationWithTemplate" style="document"/>
             <wsdl:input>
@@ -1473,6 +1668,42 @@
         </wsdl:operation>
         <wsdl:operation name="getApplicationBasicInfo">
             <http:operation location="getApplicationBasicInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedApplicationBasicInfo">
+            <http:operation location="getAllPaginatedApplicationBasicInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getPaginatedApplicationBasicInfo">
+            <http:operation location="getPaginatedApplicationBasicInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfAllApplications">
+            <http:operation location="getCountOfAllApplications"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getCountOfApplications">
+            <http:operation location="getCountOfApplications"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

@@ -25,8 +25,11 @@ import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationMan
 
 import java.util.UUID;
 
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
 
+/**
+ * Utility methods for configuration management.
+ */
 public class ConfigurationUtils {
 
     /**
@@ -40,26 +43,14 @@ public class ConfigurationUtils {
     public static ConfigurationManagementClientException handleClientException(ConfigurationConstants.ErrorMessages error,
                                                                                String data) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
-
+        String message = populateMessageWithData(error, data);
         return new ConfigurationManagementClientException(message, error.getCode());
     }
 
     public static ConfigurationManagementClientException handleClientException(ConfigurationConstants.ErrorMessages error,
                                                                                String data, Throwable e) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
-
+        String message = populateMessageWithData(error, data);
         return new ConfigurationManagementClientException(message, error.getCode(), e);
     }
 
@@ -74,24 +65,14 @@ public class ConfigurationUtils {
     public static ConfigurationManagementServerException handleServerException(ConfigurationConstants.ErrorMessages error,
                                                                                String data) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
+        String message = populateMessageWithData(error, data);
         return new ConfigurationManagementServerException(message, error.getCode());
     }
 
     public static ConfigurationManagementServerException handleServerException(ConfigurationConstants.ErrorMessages error,
                                                                                String data, Throwable e) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
+        String message = populateMessageWithData(error, data);
         return new ConfigurationManagementServerException(message, error.getCode(), e);
     }
 
@@ -107,12 +88,7 @@ public class ConfigurationUtils {
     public static ConfigurationManagementRuntimeException handleRuntimeException(ConfigurationConstants.ErrorMessages error,
                                                                                  String data, Throwable e) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
+        String message = populateMessageWithData(error, data);
         return new ConfigurationManagementRuntimeException(message, error.getCode(), e);
     }
 
@@ -128,12 +104,7 @@ public class ConfigurationUtils {
     public static ConfigurationManagementRuntimeException handleRuntimeException(ConfigurationConstants.ErrorMessages error,
                                                                                  String data) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
+        String message = populateMessageWithData(error, data);
         return new ConfigurationManagementRuntimeException(message, error.getCode());
     }
 
@@ -142,13 +113,29 @@ public class ConfigurationUtils {
         return UUID.randomUUID().toString();
     }
 
-    public static int getMaximumQueryLength() {
+    /**
+     * Get upper limit of the length of the query when converted in to a byte array.
+     *
+     * @return Maximum length of the query when converted in to a byte array.
+     */
+    public static int getMaximumQueryLengthInBytes() {
 
-        return StringUtils.isEmpty(MAX_QUERY_LENGTH_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_SQL);
+        return StringUtils.isEmpty(MAX_QUERY_LENGTH_IN_BYTES_SQL) ? 4194304 : Integer.parseInt(MAX_QUERY_LENGTH_IN_BYTES_SQL);
     }
 
     public static boolean useCreatedTimeField() {
 
         return ConfigurationManagerComponentDataHolder.getUseCreatedTime();
+    }
+
+    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String data) {
+
+        String message;
+        if (StringUtils.isNotBlank(data)) {
+            message = String.format(error.getMessage(), data);
+        } else {
+            message = error.getMessage();
+        }
+        return message;
     }
 }

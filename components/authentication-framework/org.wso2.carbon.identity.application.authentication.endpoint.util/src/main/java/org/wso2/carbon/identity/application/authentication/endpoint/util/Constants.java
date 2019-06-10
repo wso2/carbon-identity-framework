@@ -53,7 +53,9 @@ public class Constants {
     public static final String PORT = "identity.server.port";
     public static final String SERVICES_URL = "identity.server.serviceURL";
     public static final String DASHBOARD_RELYING_PARTY = "wso2.my.dashboard";
-
+    public static final String CONFIG_APP_NAME = "app.name";
+    public static final String CONFIG_APP_PASSWORD = "app.password";
+    public static final String CONFIG_SERVER_ORIGIN = "identity.server.origin";
 
     private Constants() {
     }

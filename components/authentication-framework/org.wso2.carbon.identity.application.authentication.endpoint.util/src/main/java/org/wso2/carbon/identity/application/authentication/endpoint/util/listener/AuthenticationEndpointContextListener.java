@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.endpoint.util.listen
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.AdaptiveAuthUtil;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.EndpointConfigManager;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.MutualSSLManager;
 import org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager;
 
@@ -49,6 +50,7 @@ public class AuthenticationEndpointContextListener implements ServletContextList
         TenantDataManager.init();
         MutualSSLManager.init();
         AdaptiveAuthUtil.init();
+        EndpointConfigManager.init();
     }
 
     /**

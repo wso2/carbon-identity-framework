@@ -18,20 +18,22 @@ package org.wso2.carbon.identity.configuration.mgt.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.jaxrs.ext.search.SearchCondition;
 import org.apache.cxf.jaxrs.ext.search.SearchContext;
 import org.apache.cxf.jaxrs.ext.search.SearchParseException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceSearchBean;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.SearchApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.SearchConditionException;
 
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.buildSearchCondition;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourcesDTO;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getSearchCondition;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleBadRequestResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleSearchQueryParseError;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleServerErrorResponse;
@@ -46,7 +48,7 @@ public class SearchApiServiceImpl extends SearchApiService {
 
         try {
             Resources resources = getConfigurationManager().getTenantResources(
-                    getSearchCondition(searchContext, ResourceSearchBean.class, LOG)
+                    getSearchCondition(searchContext)
             );
             return Response.ok().entity(getResourcesDTO(resources)).build();
         } catch (SearchParseException | SearchConditionException e) {
@@ -58,5 +60,25 @@ public class SearchApiServiceImpl extends SearchApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, LOG);
         }
+    }
+
+    private Condition getSearchCondition(SearchContext searchContext)
+            throws SearchConditionException {
+
+        if (searchContext != null) {
+            SearchCondition<ResourceSearchBean> searchCondition = searchContext.getCondition(ResourceSearchBean.class);
+            if (searchCondition != null) {
+                return buildSearchCondition(searchCondition);
+            } else {
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Search condition parsed from the search expression is invalid.");
+                }
+            }
+        } else {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Cannot find a valid search context.");
+            }
+        }
+        throw new SearchConditionException("Invalid search expression found.");
     }
 }

@@ -443,7 +443,15 @@ public class ApiClient {
         return url.toString();
     }
 
-    private ClientResponse getAPIResponse(String path, String method, List<Pair> queryParams, Object body, Map<String, String> headerParams, Map<String, Object> formParams, String accept, String contentType, String[] authNames) throws ApiException {
+    private ClientResponse getAPIResponse(String path,
+                                          String method,
+                                          List<Pair> queryParams,
+                                          Object body,
+                                          Map<String, String> headerParams,
+                                          Map<String, Object> formParams,
+                                          String accept,
+                                          String contentType,
+                                          String[] authNames) throws ApiException {
 
         if (body != null && !formParams.isEmpty()) {
             throw new ApiException(500, "Cannot have body and form params");

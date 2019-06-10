@@ -22,9 +22,7 @@ package org.wso2.carbon.identity.configuration.mgt.core.model;
 public class ResourceType {
 
     private String name;
-
     private String id;
-
     private String description;
 
     public ResourceType(String name, String id, String description) {

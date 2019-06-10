@@ -1,6 +1,21 @@
+/*
+ *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package org.wso2.carbon.identity.configuration.mgt.core;
 
-import org.junit.Assert;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -34,19 +49,24 @@ import java.sql.Connection;
 import java.util.Collections;
 import javax.sql.DataSource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestSQLConstants.REMOVE_CREATED_TIME_COLUMN_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3_UPDATED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_DOMAIN_ABC;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_ID_ABC;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestSQLConstants.REMOVE_CREATED_TIME_COLUMN_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute1;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute3;
@@ -98,7 +118,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceTypeAdd resourceTypeAdd = getSampleResourceTypeAdd();
 
         ResourceType resourceType = configurationManager.addResourceType(resourceTypeAdd);
-        Assert.assertNotNull(resourceType.getId(), "Created resource type id cannot be null");
+        assertNotNull(resourceType.getId(), "Created resource type id cannot be null");
     }
 
     @Test(priority = 2, expectedExceptions = ConfigurationManagementClientException.class)
@@ -109,7 +129,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         configurationManager.addResourceType(resourceTypeAdd);
         configurationManager.addResourceType(resourceTypeAdd);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 3)
@@ -119,7 +139,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         ResourceType resourceType = configurationManager.replaceResourceType(resourceTypeAdd);
 
-        Assert.assertNotNull(resourceType.getId(), "Created resource id cannot be null");
+        assertNotNull(resourceType.getId(), "Created resource id cannot be null");
     }
 
     @Test(priority = 4)
@@ -130,7 +150,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceType resourceTypeCreated = configurationManager.addResourceType(resourceTypeAdd);
         ResourceType resourceTypeReplaced = configurationManager.replaceResourceType(resourceTypeAdd);
 
-        Assert.assertEquals("Existing id should be equal to the replaced id", resourceTypeCreated.getId(),
+        assertEquals("Existing id should be equal to the replaced id", resourceTypeCreated.getId(),
                 resourceTypeReplaced.getId());
     }
 
@@ -139,7 +159,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 6)
@@ -148,7 +168,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceType resourceTypeCreated = configurationManager.addResourceType(getSampleResourceTypeAdd());
         ResourceType resourceTypeRetrieved = configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME);
 
-        Assert.assertEquals("Existing id should be equal to the retrieved id", resourceTypeCreated.getId(),
+        assertEquals("Existing id should be equal to the retrieved id", resourceTypeCreated.getId(),
                 resourceTypeRetrieved.getId());
     }
 
@@ -157,7 +177,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         configurationManager.deleteResourceType(SAMPLE_RESOURCE_TYPE_NAME);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 8, expectedExceptions = ConfigurationManagementClientException.class)
@@ -167,7 +187,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         configurationManager.deleteResourceType(SAMPLE_RESOURCE_TYPE_NAME);
         configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 9)
@@ -177,7 +197,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceAdd resourceTypeAdd = getSampleResource1Add();
 
         Resource resource = configurationManager.addResource(resourceType.getName(), resourceTypeAdd);
-        Assert.assertNotNull(resource.getResourceId(), "Created resource type id cannot be null");
+        assertNotNull(resource.getResourceId(), "Created resource type id cannot be null");
     }
 
     @Test(priority = 10, expectedExceptions = ConfigurationManagementClientException.class)
@@ -190,7 +210,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         configurationManager.addResource(resourceType.getName(), resourceAdd);
         configurationManager.addResource(resourceType.getName(), resourceAdd);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 11)
@@ -202,7 +222,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         Resource resource = configurationManager.replaceResource(resourceType.getName(), resourceAdd);
 
-        Assert.assertNotNull(resource.getResourceId(), "Created resource id cannot be null");
+        assertNotNull(resource.getResourceId(), "Created resource id cannot be null");
     }
 
     @Test(priority = 12)
@@ -215,9 +235,9 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Resource resourceCreated = configurationManager.addResource(resourceType.getName(), resourceAdd);
         Resource resourceReplaced = configurationManager.replaceResource(resourceType.getName(), resourceAdd);
 
-        Assert.assertNotEquals("Created time should be different from the last updated time",
+        assertNotEquals("Created time should be different from the last updated time",
                 resourceReplaced.getCreatedTime(),resourceReplaced.getLastModified());
-        Assert.assertEquals("Existing id should be equal to the replaced id", resourceCreated.getResourceId(),
+        assertEquals("Existing id should be equal to the replaced id", resourceCreated.getResourceId(),
                 resourceReplaced.getResourceId());
     }
 
@@ -228,7 +248,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_NAME);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 14)
@@ -239,7 +259,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Resource resourceCreated = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
         Resource resourceRetrieved = configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_NAME);
 
-        Assert.assertEquals("Existing id should be equal to the retrieved id", resourceCreated.getResourceId(),
+        assertEquals("Existing id should be equal to the retrieved id", resourceCreated.getResourceId(),
                 resourceRetrieved.getResourceId());
     }
 
@@ -250,7 +270,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         configurationManager.deleteResource(resourceType.getName(), SAMPLE_RESOURCE_NAME);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 16, expectedExceptions = ConfigurationManagementClientException.class)
@@ -262,7 +282,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         configurationManager.deleteResource(resourceType.getName(), SAMPLE_RESOURCE_TYPE_NAME);
         configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_TYPE_NAME);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 17)
@@ -274,7 +294,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         Attribute retrievedAttribute = configurationManager.addAttribute(resourceType.getName(),
                 resource.getResourceName(), attribute);
-        Assert.assertNotNull(retrievedAttribute.getAttributeId(), "Created resource type id cannot be null");
+        assertNotNull(retrievedAttribute.getAttributeId(), "Created resource type id cannot be null");
     }
 
     @Test(priority = 18, expectedExceptions = ConfigurationManagementClientException.class)
@@ -287,7 +307,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         configurationManager.addAttribute(resourceType.getName(), resource.getResourceName(), attribute);
         configurationManager.addAttribute(resourceType.getName(), resource.getResourceName(), attribute);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 19)
@@ -299,7 +319,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         Attribute retrievedAttribute = configurationManager.replaceAttribute(resourceType.getName(),
                 resource.getResourceName(), attribute);
-        Assert.assertNotNull(retrievedAttribute.getAttributeId(), "Created resource id cannot be null");
+        assertNotNull(retrievedAttribute.getAttributeId(), "Created resource id cannot be null");
     }
 
     @Test(priority = 20)
@@ -314,7 +334,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Attribute retrievedAttribute = configurationManager.replaceAttribute(resourceType.getName(),
                 resource.getResourceName(), attribute);
 
-        Assert.assertEquals("Existing id should be equal to the replaced id", createdAttribute.getAttributeId(),
+        assertEquals("Existing id should be equal to the replaced id", createdAttribute.getAttributeId(),
                 retrievedAttribute.getAttributeId());
     }
 
@@ -331,9 +351,9 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Attribute retrievedAttribute = configurationManager.updateAttribute(resourceType.getName(),
                 resource.getResourceName(), attribute);
 
-        Assert.assertEquals("Existing id should be equal to the replaced id",
+        assertEquals("Existing id should be equal to the replaced id",
                 createdAttribute.getAttributeId(), retrievedAttribute.getAttributeId());
-        Assert.assertEquals("Retrieved value should be equal to the updated value",
+        assertEquals("Retrieved value should be equal to the updated value",
                 retrievedAttribute.getValue(), SAMPLE_ATTRIBUTE_VALUE3_UPDATED);
     }
 
@@ -342,7 +362,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         configurationManager.getAttribute(SAMPLE_RESOURCE_TYPE_NAME, SAMPLE_RESOURCE_NAME, SAMPLE_ATTRIBUTE_NAME1);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 23)
@@ -353,7 +373,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         Attribute retrievedAttribute = configurationManager.getAttribute(resourceType.getName(),
                 resource.getResourceName(), SAMPLE_ATTRIBUTE_NAME1);
 
-        Assert.assertEquals("Existing id should be equal to the retrieved id", SAMPLE_ATTRIBUTE_NAME1,
+        assertEquals("Existing id should be equal to the retrieved id", SAMPLE_ATTRIBUTE_NAME1,
                 retrievedAttribute.getKey());
     }
 
@@ -362,7 +382,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         configurationManager.deleteAttribute(SAMPLE_RESOURCE_TYPE_NAME, SAMPLE_RESOURCE_NAME, SAMPLE_ATTRIBUTE_NAME1);
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 25, expectedExceptions = ConfigurationManagementClientException.class)
@@ -377,7 +397,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         configurationManager.getAttribute(resourceType.getName(),
                 resource.getResourceName(), createdAttribute.getKey());
 
-        Assert.fail("Expected: " + ConfigurationManagementClientException.class.getName());
+        fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
 
     @Test(priority = 26)
@@ -395,7 +415,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ComplexCondition condition = getSampleSearchCondition();
         Resources resources = configurationManager.getTenantResources(condition);
 
-        Assert.assertTrue(isSearchConditionMatch(resources));
+        assertTrue(isSearchConditionMatch(resources));
     }
 
     @Test(priority = 27)

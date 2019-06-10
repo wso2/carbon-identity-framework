@@ -87,7 +87,10 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -2126,6 +2129,26 @@ public class FrameworkUtils {
         return false;
     }
 
+    public static boolean isConsentPageSkippedForSP(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            throw new IllegalArgumentException("A null reference received for service provider.");
+        }
+
+        for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
+            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
+                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Consent page skip property set for service provider : " + serviceProvider.getApplicationName());
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Check whether the specified column of the specified table exists in the Identity database.
      *
@@ -2143,7 +2166,16 @@ public class FrameworkUtils {
                 columnName = columnName.toLowerCase();
             }
 
-            try (ResultSet resultSet = metaData.getColumns(null, null, tableName, columnName)) {
+            String schemaPattern = null;
+            if (metaData.getDriverName().contains("Oracle")){
+                if (log.isDebugEnabled()) {
+                    log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
+                }
+                // Oracle checks the availability of the table column
+                // in all users in the DB unless specified.
+                schemaPattern = metaData.getUserName();
+            }
+            try (ResultSet resultSet = metaData.getColumns(null, schemaPattern, tableName, columnName)) {
                 if (resultSet.next()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
