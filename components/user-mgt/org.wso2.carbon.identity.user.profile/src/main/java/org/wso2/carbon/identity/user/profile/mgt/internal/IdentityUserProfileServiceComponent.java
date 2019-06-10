@@ -132,8 +132,10 @@ public class IdentityUserProfileServiceComponent {
                     connection.commit();
                     return true;
                 }
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollBack(connection);
+                return false;
             }
-            connection.commit();
         } catch (SQLException e) {
             return false;
         }

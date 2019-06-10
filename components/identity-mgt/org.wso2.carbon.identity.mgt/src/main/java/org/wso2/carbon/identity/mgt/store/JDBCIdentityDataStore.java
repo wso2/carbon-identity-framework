@@ -115,6 +115,9 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
                 return true;
             }
             connection.commit();
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
+            return false;
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -136,6 +139,8 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.setString(4, value);
             prepStmt.execute();
             connection.commit();
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -162,6 +167,8 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.setString(4, key);
             prepStmt.executeUpdate();
             connection.commit();
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -218,6 +225,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             }
             return dto;
         } catch (SQLException | UserStoreException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -252,6 +260,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException | UserStoreException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);

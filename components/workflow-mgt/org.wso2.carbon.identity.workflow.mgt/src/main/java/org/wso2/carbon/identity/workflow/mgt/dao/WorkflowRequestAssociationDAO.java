@@ -65,6 +65,7 @@ public class WorkflowRequestAssociationDAO {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -93,6 +94,7 @@ public class WorkflowRequestAssociationDAO {
             }
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -120,6 +122,7 @@ public class WorkflowRequestAssociationDAO {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -148,6 +151,7 @@ public class WorkflowRequestAssociationDAO {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -177,6 +181,7 @@ public class WorkflowRequestAssociationDAO {
             }
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -206,6 +211,7 @@ public class WorkflowRequestAssociationDAO {
             }
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -244,8 +250,10 @@ public class WorkflowRequestAssociationDAO {
             for (int i = 0; i < workflowDTOs.size(); i++) {
                 requestArray[i] = workflowDTOs.get(i);
             }
+            connection.commit();
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -288,7 +296,9 @@ public class WorkflowRequestAssociationDAO {
 
                 associations.add(association);
             }
+            connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

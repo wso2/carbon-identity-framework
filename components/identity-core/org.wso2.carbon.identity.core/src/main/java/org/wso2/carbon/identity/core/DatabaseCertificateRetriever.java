@@ -57,11 +57,15 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
     @Override
     public X509Certificate getCertificate(String certificateId, Tenant tenant) throws CertificateRetrievingException {
 
-        Connection connection;
+        Connection connection = null;
         try {
              connection = IdentityDatabaseUtil.getDBConnection();
+             connection.commit();
         } catch (IdentityRuntimeException e) {
             throw new CertificateRetrievingException("Couldn't get a database connection.", e);
+        } catch (SQLException e1) {
+            IdentityDatabaseUtil.rollBack(connection);
+            throw new CertificateRetrievingException("Couldn't get a database connection.", e1);
         }
 
         PreparedStatement statementToGetApplicationCertificate = null;

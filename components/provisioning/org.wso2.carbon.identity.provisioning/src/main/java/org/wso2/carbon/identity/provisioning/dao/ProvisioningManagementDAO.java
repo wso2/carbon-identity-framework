@@ -468,7 +468,9 @@ public class ProvisioningManagementDAO {
             while (rs.next()) {
                 spNames.add(rs.getString(1));
             }
+            dbConnection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             String msg = "Error occurred while retrieving SP names of provisioning connectors by IDP name";
             throw new IdentityApplicationManagementException(msg, e);
         } finally {
@@ -514,6 +516,7 @@ public class ProvisioningManagementDAO {
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, localId);
             rs = prepStmt.executeQuery();
+            dbConnection.commit();
             if (rs.next()) {
                 return rs.getString(1);
             } else {

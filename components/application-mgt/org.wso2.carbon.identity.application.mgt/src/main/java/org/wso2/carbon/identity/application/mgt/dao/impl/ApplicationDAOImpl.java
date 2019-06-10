@@ -1708,9 +1708,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             if (serviceProvider != null) {
                 loadApplicationPermissions(applicationName, serviceProvider);
             }
+            connection.commit();
             return serviceProvider;
 
         } catch (SQLException | CertificateRetrievingException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException("Failed to retrieve service provider "
                     + applicationId, e);
         } finally {
@@ -1944,9 +1946,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
 
             String serviceProviderName = serviceProvider.getApplicationName();
             loadApplicationPermissions(serviceProviderName, serviceProvider);
+            connection.commit();
             return serviceProvider;
 
         } catch (SQLException | CertificateRetrievingException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException("Failed to update service provider "
                     + applicationId, e);
         } finally {
@@ -2120,6 +2124,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException("Error while reading application", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(appNameResult);
@@ -2140,8 +2145,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             throws IdentityApplicationManagementException {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         try {
+            connection.commit();
             return getApplicationName(applicationID, connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException("Failed loading the application with "
                     + applicationID, e);
         } finally {
@@ -3030,6 +3037,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             }
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException("Error while Reading all Applications", e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3458,6 +3466,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             }
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException("Error while reading application", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(appNameResult);
@@ -3500,8 +3509,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         try {
 
-            getClaimPreStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_CLAIM_MAPPING_BY_APP_NAME);
+            getClaimPreStmt = connection.prepareStatement(ApplicationMgtDBQueries.LOAD_CLAIM_MAPPING_BY_APP_NAME);
             // IDP_CLAIM, SP_CLAIM, IS_REQUESTED
             getClaimPreStmt.setString(1, serviceProviderName);
             getClaimPreStmt.setInt(2, tenantID);
@@ -3515,6 +3523,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 }
             }
             connection.commit();
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getClaimPreStmt);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
@@ -3584,6 +3594,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             }
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new IdentityApplicationManagementException(
                     "Error while retrieving requested claims", e);
         } finally {
@@ -3621,6 +3632,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                         return true;
                     }
                 }
+                connection.commit();
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"
+                        + serviceProviderName, e1);
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"

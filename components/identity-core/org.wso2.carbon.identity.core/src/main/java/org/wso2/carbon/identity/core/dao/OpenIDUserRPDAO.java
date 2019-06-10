@@ -90,6 +90,7 @@ public class OpenIDUserRPDAO {
                 connection.commit();
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Failed to store RP:  " + rpdo.getRpUrl() + " for user: " +
                     rpdo.getUserName() + " Error while accessing the database", e);
         } finally {
@@ -131,6 +132,7 @@ public class OpenIDUserRPDAO {
                 }
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Failed to update RP:  " + rpdo.getRpUrl() + " for user: " +
                     rpdo.getUserName() + " Error while accessing the database", e);
         } finally {
@@ -161,6 +163,7 @@ public class OpenIDUserRPDAO {
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Failed to remove RP: " + opdo.getRpUrl() + " of user: " + opdo.getUserName(), e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -199,6 +202,7 @@ public class OpenIDUserRPDAO {
                 }
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Failed to load RP: " + rpUrl + " for user: " + userName, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -238,6 +242,7 @@ public class OpenIDUserRPDAO {
             rpDOs = rpdos.toArray(rpDOs);
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Error while accessing the database to load RPs.", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -283,6 +288,7 @@ public class OpenIDUserRPDAO {
             rpDOs = rpdos.toArray(rpDOs);
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Error while accessing the database to load RPs", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -313,6 +319,7 @@ public class OpenIDUserRPDAO {
 
             if (isUserRPExist(connection, rpdo, tenantId)) {
                 prepStmt = connection.prepareStatement(OpenIDSQLQueries.LOAD_USER_RP_DEFAULT_PROFILE);
+                connection.commit();
                 prepStmt.setString(1, userName);
                 prepStmt.setInt(2, tenantId);
                 prepStmt.setString(3, rpUrl);
@@ -323,6 +330,7 @@ public class OpenIDUserRPDAO {
                 }
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Failed to load RP: " + rpUrl + " for user: " + userName, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);

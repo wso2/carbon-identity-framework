@@ -58,6 +58,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                 }
                 connection.commit();
             } catch (SQLException e) {
+                IdentityDatabaseUtil.rollBack(connection);
                 throw new FrameworkException("Error while adding wait status for key:" + waitKey, e);
             }
         } catch (SQLException e) {
@@ -79,6 +80,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                 }
                 connection.commit();
             } catch (SQLException e) {
+                IdentityDatabaseUtil.rollBack(connection);
                 throw new FrameworkException("Error while removing wait status with key:" + waitKey, e);
             }
         } catch (SQLException e) {
@@ -116,6 +118,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                     }
                 }
             } catch (SQLException e) {
+                IdentityDatabaseUtil.rollBack(connection);
                 throw new FrameworkException("Error while searching for wait status with key:" + waitKey, e);
             }
         } catch (SQLException e) {

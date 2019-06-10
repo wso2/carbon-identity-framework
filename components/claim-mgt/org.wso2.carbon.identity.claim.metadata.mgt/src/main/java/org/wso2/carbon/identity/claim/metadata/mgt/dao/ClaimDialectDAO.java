@@ -59,7 +59,9 @@ public class ClaimDialectDAO {
                 ClaimDialect claimDialect = new ClaimDialect(claimDialectURI);
                 claimDialects.add(claimDialect);
             }
+            connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while listing claim dialects", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
@@ -82,6 +84,7 @@ public class ClaimDialectDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while adding claim dialect " + claimDialect
                     .getClaimDialectURI(), e);
         } finally {
@@ -105,6 +108,7 @@ public class ClaimDialectDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while renaming claim dialect " + oldClaimDialect
                     .getClaimDialectURI(), e);
         } finally {
@@ -126,6 +130,7 @@ public class ClaimDialectDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while deleting claim dialect " + claimDialect
                     .getClaimDialectURI(), e);
         } finally {

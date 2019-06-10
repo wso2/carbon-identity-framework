@@ -71,6 +71,7 @@ public class WorkflowRequestDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (IOException e) {
             throw new InternalWorkflowException("Error when serializing the workflow request: " + workflow, e);
@@ -111,11 +112,13 @@ public class WorkflowRequestDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             rs = prepStmt.executeQuery();
+            connection.commit();
             if (rs.next()) {
                 byte[] requestBytes = rs.getBytes(SQLConstants.REQUEST_COLUMN);
                 return deserializeWorkflowRequest(requestBytes);
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing the workflow request. uuid = " + uuid, e);
@@ -142,11 +145,13 @@ public class WorkflowRequestDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             resultSet = prepStmt.executeQuery();
+            connection.commit();
             if (resultSet.next()) {
                 String status = resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN);
                 return status;
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -171,10 +176,12 @@ public class WorkflowRequestDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             resultSet = prepStmt.executeQuery();
+            connection.commit();
             if (resultSet.next()) {
                 return resultSet.getString(SQLConstants.CREATED_BY_COLUMN);
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -221,6 +228,7 @@ public class WorkflowRequestDAO {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -267,8 +275,10 @@ public class WorkflowRequestDAO {
             for (int i = 0; i < requestDTOs.size(); i++) {
                 requestArray[i] = requestDTOs.get(i);
             }
+            connection.commit();
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
@@ -432,8 +442,10 @@ public class WorkflowRequestDAO {
             for (int i = 0; i < requestDTOs.size(); i++) {
                 requestArray[i] = requestDTOs.get(i);
             }
+            connection.commit();
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
@@ -595,8 +607,10 @@ public class WorkflowRequestDAO {
             for (int i = 0; i < requestDTOs.size(); i++) {
                 requestArray[i] = requestDTOs.get(i);
             }
+            connection.commit();
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
@@ -623,6 +637,7 @@ public class WorkflowRequestDAO {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

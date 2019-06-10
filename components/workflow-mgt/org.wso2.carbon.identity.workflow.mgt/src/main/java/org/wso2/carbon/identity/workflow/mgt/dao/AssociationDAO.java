@@ -62,6 +62,7 @@ public class AssociationDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -97,6 +98,7 @@ public class AssociationDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -139,7 +141,9 @@ public class AssociationDAO {
                     associationDTO.setEnabled(false);
                 }
             }
+            connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -189,9 +193,9 @@ public class AssociationDAO {
                     associationDTO.setEnabled(false);
                 }
             }
-
-
+            connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -215,6 +219,7 @@ public class AssociationDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -254,7 +259,9 @@ public class AssociationDAO {
                 associationDTO.setWorkflowName(workflowName);
                 associations.add(associationDTO);
             }
+            connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

@@ -72,6 +72,7 @@ public class LocalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while listing local claims", e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);

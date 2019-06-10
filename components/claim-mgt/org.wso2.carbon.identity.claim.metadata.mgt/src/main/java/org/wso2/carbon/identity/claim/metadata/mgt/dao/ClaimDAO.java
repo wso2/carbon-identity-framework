@@ -124,6 +124,7 @@ public class ClaimDAO {
             prepStmt.executeUpdate();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while deleting claim " + localClaimURI + " from dialect" +
                     claimDialectURI, e);
         } finally {

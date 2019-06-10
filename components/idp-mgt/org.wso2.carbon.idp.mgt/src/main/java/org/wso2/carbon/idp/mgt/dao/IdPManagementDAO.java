@@ -1635,6 +1635,7 @@ public class IdPManagementDAO {
             dbConnection.commit();
             return getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             throw new IdentityProviderManagementException("Error while retreiving Identity Provider by realm " +
                     realmId, e);
         } finally {
@@ -2062,6 +2063,7 @@ public class IdPManagementDAO {
             }
             dbConnection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while searching for IDP references in SP ", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rsProvIdp, prepStmtProvIdp);
@@ -2264,6 +2266,7 @@ public class IdPManagementDAO {
             prepStmt.executeUpdate();
             dbConnection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while renaming tenant role " + oldClaimURI + " to "
                     + newClaimURI + " of tenant " + tenantDomain, e);
         } finally {
@@ -2837,9 +2840,13 @@ public class IdPManagementDAO {
             prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
             prepStmt.setString(3, idpName);
             rs = prepStmt.executeQuery();
+            dbConnection.commit();
             if (rs.next()) {
                 return rs.getInt(1);
             }
+        } catch (SQLException e) {
+           IdentityDatabaseUtil.rollBack(dbConnection);
+           return 0;
         } finally {
             if (dbConnInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -2916,6 +2923,7 @@ public class IdPManagementDAO {
             }
             dbConnection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while searching for similar IdP EntityIds", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);

@@ -69,6 +69,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -77,6 +78,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -103,6 +105,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -111,6 +114,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }

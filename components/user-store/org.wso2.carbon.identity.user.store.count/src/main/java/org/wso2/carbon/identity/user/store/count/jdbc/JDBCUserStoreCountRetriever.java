@@ -70,6 +70,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -78,6 +79,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
+           IdentityDatabaseUtil.rollBack(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -105,6 +107,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -113,6 +116,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -154,6 +158,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -162,6 +167,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }

@@ -74,6 +74,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while listing external claims for diaclect " +
                     externalDialectURI, e);
         } finally {
@@ -190,8 +191,10 @@ public class ExternalClaimDAO extends ClaimDAO {
             if (rs.next()) {
                 isMappedLocalClaim = true;
             }
+            connection.commit();
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             throw new ClaimMetadataException("Error while checking mapped local claim " + mappedLocalClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);

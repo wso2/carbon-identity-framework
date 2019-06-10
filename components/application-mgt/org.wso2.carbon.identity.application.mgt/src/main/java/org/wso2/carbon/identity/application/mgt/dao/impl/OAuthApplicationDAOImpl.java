@@ -47,6 +47,7 @@ public class OAuthApplicationDAOImpl implements OAuthApplicationDAO {
             prepStmt.execute();
             connection.commit();
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollBack(connection);
             log.error("Error when executing the SQL : " + ApplicationMgtDBQueries.REMOVE_OAUTH_APPLICATION);
             log.error(e.getMessage(), e);
             throw new IdentityApplicationManagementException("Error removing the consumer application.");

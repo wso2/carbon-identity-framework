@@ -74,17 +74,22 @@ public class UserSessionStore {
     public void storeUserData(String userId, String userName, int tenantId, String userDomain, int idPId)
             throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_INSERT_USER_STORE_OPERATION)) {
-            preparedStatement.setString(1, userId);
-            preparedStatement.setString(2, userName);
-            preparedStatement.setInt(3, tenantId);
-            preparedStatement.setString(4, (userDomain == null) ? FEDERATED_USER_DOMAIN : userDomain.toUpperCase());
-            preparedStatement.setInt(5, idPId);
-            preparedStatement.executeUpdate();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try ( PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_INSERT_USER_STORE_OPERATION)) {
+                preparedStatement.setString(1, userId);
+                preparedStatement.setString(2, userName);
+                preparedStatement.setInt(3, tenantId);
+                preparedStatement.setString(4, (userDomain == null) ? FEDERATED_USER_DOMAIN :
+                        userDomain.toUpperCase());
+                preparedStatement.setInt(5, idPId);
+                preparedStatement.executeUpdate();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new DuplicatedAuthUserException("Error when store user data.", e1);
             }
         } catch (SQLIntegrityConstraintViolationException e) {
             // Handle the constraint violation in case concurrent authentication requests had been initiated and the
@@ -122,22 +127,29 @@ public class UserSessionStore {
             throws UserSessionException {
 
         String userId = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_SELECT_USER_ID)) {
-            preparedStatement.setString(1, userName);
-            preparedStatement.setInt(2, tenantId);
-            preparedStatement.setString(3, (userDomain == null) ? FEDERATED_USER_DOMAIN : userDomain.toUpperCase());
-            preparedStatement.setInt(4, idPId);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                            .prepareStatement(SQLQueries.SQL_SELECT_USER_ID)) {
+                preparedStatement.setString(1, userName);
+                preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, (userDomain == null) ? FEDERATED_USER_DOMAIN :
+                        userDomain.toUpperCase());
+                preparedStatement.setInt(4, idPId);
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    userId = resultSet.getString(1);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        userId = resultSet.getString(1);
+                    }
                 }
-            }
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new UserSessionException("Error while retrieving User Id of the user: " + userName + ", "
+                        + "Tenant Id: " + tenantId + ", User domain: " + userDomain + ", Identity provider id: " +
+                        idPId, e1);
             }
 
         } catch (SQLException e) {
@@ -159,22 +171,27 @@ public class UserSessionStore {
     public String getUserId(String userName, int tenantId, String userDomain) throws UserSessionException {
 
         String userId = null;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER)) {
-            preparedStatement.setString(1, userName);
-            preparedStatement.setInt(2, tenantId);
-            preparedStatement.setString(3, (userDomain == null) ? FEDERATED_USER_DOMAIN : userDomain.toUpperCase());
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    userId = resultSet.getString(1);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                            .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER)) {
+                preparedStatement.setString(1, userName);
+                preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, (userDomain == null) ? FEDERATED_USER_DOMAIN :
+                        userDomain.toUpperCase());
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        userId = resultSet.getString(1);
+                    }
                 }
-            }
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new UserSessionException("Error while retrieving User Id of the user: " + userName +
+                        ", Tenant Id: " + tenantId + ", User domain: " + userDomain, e1);
             }
-
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving User Id of the user: " + userName + ", Tenant Id: "
                     + tenantId + ", User domain: " + userDomain, e);
@@ -193,19 +210,24 @@ public class UserSessionStore {
     public List<String> getUserIdsOfUserStore(String userDomain, int tenantId) throws UserSessionException {
 
         List<String> userIds = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER_STORE)) {
-            preparedStatement.setString(1, userDomain.toUpperCase());
-            preparedStatement.setInt(2, tenantId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    userIds.add(resultSet.getString(1));
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                            .prepareStatement(SQLQueries.SQL_SELECT_USER_IDS_OF_USER_STORE)) {
+                preparedStatement.setString(1, userDomain.toUpperCase());
+                preparedStatement.setInt(2, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        userIds.add(resultSet.getString(1));
+                    }
                 }
-            }
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new UserSessionException("Error while retrieving user Ids stored in the user domain: " +
+                        userDomain + ", Tenant Id: " + tenantId, e1);
             }
 
         } catch (SQLException e) {
@@ -228,18 +250,22 @@ public class UserSessionStore {
         if (idPName.equals("LOCAL")) {
             return idPId;
         }
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
-                     .prepareStatement(SQLQueries.SQL_SELECT_IDP_ID_OF_IDP)) {
-            preparedStatement.setString(1, idPName);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    idPId = resultSet.getInt(1);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                            .prepareStatement(SQLQueries.SQL_SELECT_IDP_ID_OF_IDP)) {
+                preparedStatement.setString(1, idPName);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        idPId = resultSet.getInt(1);
+                    }
                 }
-            }
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new UserSessionException("Error while retrieving the IdP id of: " + idPName, e1);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving the IdP id of: " + idPName, e);
@@ -256,14 +282,19 @@ public class UserSessionStore {
      */
     public void storeUserSessionData(String userId, String sessionId) throws UserSessionException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try(PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_INSERT_USER_SESSION_STORE_OPERATION)) {
-            preparedStatement.setString(1, userId);
-            preparedStatement.setString(2, sessionId);
-            preparedStatement.executeUpdate();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+                preparedStatement.setString(1, userId);
+                preparedStatement.setString(2, sessionId);
+                preparedStatement.executeUpdate();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new UserSessionException("Error while storing mapping between user Id: " + userId +
+                        " and session Id: " + sessionId, e1);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while storing mapping between user Id: " + userId +
@@ -282,21 +313,25 @@ public class UserSessionStore {
     public boolean isExistingMapping(String userId, String sessionId) throws UserSessionException {
 
         Boolean isExisting = false;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_SELECT_USER_SESSION_MAP)) {
-            preparedStatement.setString(1, userId);
-            preparedStatement.setString(2, sessionId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    isExisting = true;
+                preparedStatement.setString(1, userId);
+                preparedStatement.setString(2, sessionId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        isExisting = true;
+                    }
                 }
-            }
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
+                if (!connection.getAutoCommit()) {
+                    connection.commit();
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                throw new UserSessionException("Error while retrieving existing mapping between user Id: " + userId
+                        + " and session Id: " + sessionId, e1);
             }
-
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user Id: " + userId
                     + " and session Id: " + sessionId, e);
@@ -314,20 +349,23 @@ public class UserSessionStore {
     public List<String> getSessionId(String userId) throws UserSessionException {
 
         List<String> sessionIdList = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement preparedStatement = connection
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+             try (PreparedStatement preparedStatement = connection
                      .prepareStatement(SQLQueries.SQL_SELECT_SESSION_ID_OF_USER_ID)) {
-            preparedStatement.setString(1, userId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    sessionIdList.add(resultSet.getString(1));
-                }
-            }
+                 preparedStatement.setString(1, userId);
+                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                     while (resultSet.next()) {
+                         sessionIdList.add(resultSet.getString(1));
+                     }
+                 }
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-
+                 if (!connection.getAutoCommit()) {
+                     connection.commit();
+                 }
+             } catch (SQLException e1) {
+                 IdentityDatabaseUtil.rollBack(connection);
+                 throw new UserSessionException("Error while retrieving session Id of user Id: " + userId, e1);
+             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving session Id of user Id: " + userId, e);
         }
@@ -344,12 +382,13 @@ public class UserSessionStore {
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try {
             Set<String> terminatedAuthSessionIds = getSessionsTerminated(connection);
 
             if (!terminatedAuthSessionIds.isEmpty()) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Session to user mappings for " + terminatedAuthSessionIds.size() + " no of sessions has " +
-                            "to be removed. Removing in " + deleteChunkSize + " size batches.");
+                    log.debug("Session to user mappings for " + terminatedAuthSessionIds.size() + " no of sessions has "
+                            + "to be removed. Removing in " + deleteChunkSize + " size batches.");
                 }
 
                 deleteSessionToUserMappingsFor(terminatedAuthSessionIds, connection);
@@ -362,10 +401,15 @@ public class UserSessionStore {
             if (!connection.getAutoCommit()) {
                 connection.commit();
             }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollBack(connection);
+                log.error("Error while removing the terminated sessions from the table "
+                                + "IDN_AUTH_USER_SESSION_STORE.", e1);
+            }
 
         } catch (SQLException e) {
-            log.error("Error while removing the terminated sessions from the table IDN_AUTH_USER_SESSION_STORE."
-                    , e);
+            log.error("Error while removing the terminated sessions from the table "
+                            + "IDN_AUTH_USER_SESSION_STORE.", e);
         }
     }
 

@@ -2106,8 +2106,14 @@ public class FrameworkUtils {
                     connection.commit();
                     return true;
                 }
+                connection.commit();
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollBack(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Identity database.");
+                }
+                return false;
             }
-            connection.commit();
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Table - " + tableName + " not available in the Identity database.");
@@ -2146,8 +2152,16 @@ public class FrameworkUtils {
                     connection.commit();
                     return true;
                 }
+                connection.commit();
+            } catch (SQLException ex) {
+                IdentityDatabaseUtil.rollBack(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                            "Identity database.");
+                }
+                return false;
             }
-            connection.commit();
+
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
