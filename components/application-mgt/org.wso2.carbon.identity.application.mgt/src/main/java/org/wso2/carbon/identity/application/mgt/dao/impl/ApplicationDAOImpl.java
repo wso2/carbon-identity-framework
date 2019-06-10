@@ -3377,8 +3377,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             connection.commit();
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollBack(connection);
-            throw new IdentityApplicationManagementException("Error while Reading all Applications", e);
-            throw new IdentityApplicationManagementException("Error while getting applications from DB: " + e.getMessage(), e);
+            throw new IdentityApplicationManagementException("Error while getting applications from DB: " +
+                    e.getMessage(), e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
             IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
