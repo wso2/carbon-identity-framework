@@ -79,7 +79,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-           IdentityDatabaseUtil.rollBack(dbConnection);
+            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -116,7 +116,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(dbConnection);
+            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -167,7 +167,7 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
             }
 
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(dbConnection);
+            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -204,4 +204,20 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         return dbConnection;
     }
 
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     * @throws SQLException SQL Exception.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
+    }
 }

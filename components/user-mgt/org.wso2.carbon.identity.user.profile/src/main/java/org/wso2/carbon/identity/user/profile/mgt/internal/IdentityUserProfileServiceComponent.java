@@ -129,11 +129,11 @@ public class IdentityUserProfileServiceComponent {
             }
             try (ResultSet resultSet = metaData.getTables(null, null, tableName, new String[] { "TABLE" })) {
                 if (resultSet.next()) {
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
             } catch (SQLException e) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 return false;
             }
         } catch (SQLException e) {

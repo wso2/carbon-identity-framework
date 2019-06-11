@@ -122,4 +122,37 @@ public class ThriftAuthenticationJDBCPersistenceManager {
         }
     }
 
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     * @throws SQLException SQL Exception.
+     */
+    public void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
+    }
+
+    /**
+     * Commit the transaction.
+     *
+     * @param dbConnection database connection.
+     * @throws SQLException SQL Exception.
+     */
+    public void commitTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.commit();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while commit transactions. ", e1);
+        }
+    }
 }

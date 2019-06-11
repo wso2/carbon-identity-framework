@@ -57,15 +57,11 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
     @Override
     public X509Certificate getCertificate(String certificateId, Tenant tenant) throws CertificateRetrievingException {
 
-        Connection connection = null;
+        Connection connection;
         try {
-             connection = IdentityDatabaseUtil.getDBConnection();
-             connection.commit();
+            connection = IdentityDatabaseUtil.getDBConnection();
         } catch (IdentityRuntimeException e) {
             throw new CertificateRetrievingException("Couldn't get a database connection.", e);
-        } catch (SQLException e1) {
-            IdentityDatabaseUtil.rollBack(connection);
-            throw new CertificateRetrievingException("Couldn't get a database connection.", e1);
         }
 
         PreparedStatement statementToGetApplicationCertificate = null;
@@ -86,7 +82,9 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
             if (StringUtils.isNotBlank(certificateContent)) {
                 return (X509Certificate) IdentityUtil.convertPEMEncodedContentToCertificate(certificateContent);
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessage = String.format("An error occurred while retrieving the certificate content from " +
                     "the database for the ID '%s'", certificateId);
             throw new CertificateRetrievingException(errorMessage, e);

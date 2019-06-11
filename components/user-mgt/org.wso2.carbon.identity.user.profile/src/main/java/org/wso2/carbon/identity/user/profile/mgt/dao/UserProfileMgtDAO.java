@@ -55,12 +55,9 @@ public class UserProfileMgtDAO {
             preparedStatement.setString(2, currentDomainName);
             preparedStatement.setInt(3, tenantId);
             preparedStatement.executeUpdate();
-
-            if (!dbConnection.getAutoCommit()) {
-                dbConnection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(dbConnection);
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new UserProfileException(String.format("Database error occurred while updating user domain of " +
                                                          "associated ids with domain '%s'", currentDomainName), e);
         } finally {
@@ -80,12 +77,10 @@ public class UserProfileMgtDAO {
             preparedStatement.setInt(1, tenantId);
             preparedStatement.setString(2, domainName);
             preparedStatement.executeUpdate();
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
 
-            if (!dbConnection.getAutoCommit()) {
-                dbConnection.commit();
-            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(dbConnection);
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new UserProfileException(String.format("Database error occurred while deleting associated ids with " +
                                                          "domain '%s'", domainName), e);
         } finally {
@@ -117,11 +112,9 @@ public class UserProfileMgtDAO {
                 prepStmt.setString(5, userStoreDomain.toUpperCase());
                 prepStmt.setString(6, domainFreeUsername);
                 prepStmt.execute();
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserProfileException("Error occurred while persisting account association entry for user: " +
                         domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " + tenantId +
                         " for federated ID: " + federatedUserId + " of IdP: " + idpId, e1);
@@ -157,11 +150,9 @@ public class UserProfileMgtDAO {
                 prepStmt.setString(6, userStoreDomain);
 
                 prepStmt.executeUpdate();
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserProfileException("Error occurred while removing account association entry of user: " +
                         domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " + tenantId +
                         " with federated ID: " + federatedUserId + " of IdP: " + idpId, e1);
@@ -202,10 +193,10 @@ public class UserProfileMgtDAO {
                         }
                         return username;
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                 }
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserProfileException("Error occurred while retrieving user account associated for federated "
                         + "ID: " + federatedUserId + " of IdP: " + idpId + " for tenant: " + tenantId, e1);
             }
@@ -244,10 +235,10 @@ public class UserProfileMgtDAO {
                             associatedFederatedAccounts.add(new AssociatedAccountDTO(resultSet.getString(1),
                                     resultSet.getString(2)));
                         }
-                        connection.commit();
+                        IdentityDatabaseUtil.commitTransaction(connection);
                     }
                 }catch (SQLException e1) {
-                    IdentityDatabaseUtil.rollBack(connection);
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
                     throw new UserProfileException("Error occurred while retrieving federated accounts associated for "
                             + "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain +
                             " in tenant: " + tenantId, e1);

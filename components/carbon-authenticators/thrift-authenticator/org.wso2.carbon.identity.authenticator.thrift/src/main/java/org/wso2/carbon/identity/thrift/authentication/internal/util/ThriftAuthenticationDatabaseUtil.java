@@ -90,13 +90,21 @@ public class ThriftAuthenticationDatabaseUtil {
 
     }
 
-    public static void rollBack(Connection dbConnection) {
+    public static void rollbackTransaction(Connection dbConnection) {
         try {
-            if (dbConnection != null) {
-                dbConnection.rollback();
-            }
-        } catch (SQLException e1) {
-            log.error("An error occurred while rolling back transactions. ", e1);
+            ThriftAuthenticationJDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);
+        } catch (AuthenticationException e) {
+            String errMsg = "Error when rollback from the Thrift Identity Persistence Manager";
+            log.error(errMsg, e);
+        }
+    }
+
+    public static void commitTransaction(Connection dbConnection) {
+        try {
+            ThriftAuthenticationJDBCPersistenceManager.getInstance().commitTransaction(dbConnection);
+        } catch (AuthenticationException e) {
+            String errMsg = "Error when rollback from the Thrift Identity Persistence Manager";
+            log.error(errMsg, e);
         }
     }
 

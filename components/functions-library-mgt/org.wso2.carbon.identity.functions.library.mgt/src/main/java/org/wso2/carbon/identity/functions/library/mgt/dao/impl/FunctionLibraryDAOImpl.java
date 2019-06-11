@@ -68,21 +68,20 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
                 try (PreparedStatement addFunctionLibStmt =
                         connection.prepareStatement(FunctionLibMgtDBQueries.STORE_FUNCTIONLIB_INFO)) {
-                    connection.setAutoCommit(false);
                     addFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
                     addFunctionLibStmt.setString(2, functionLibrary.getDescription());
                     addFunctionLibStmt.setString(3, "authentication");
                     addFunctionLibStmt.setInt(4, tenantID);
                     setBlobValue(functionLibrary.getFunctionLibraryScript(), addFunctionLibStmt, 5);
                     addFunctionLibStmt.executeUpdate();
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
 
                     if (log.isDebugEnabled()) {
                         log.debug("Function Library stored successfully with function library name " +
                                 functionLibrary.getFunctionLibraryName());
                     }
                 } catch (SQLException e1) {
-                    IdentityDatabaseUtil.rollBack(connection);
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
                     throw new FunctionLibraryManagementException(
                             "Error while creating Function Library.", e1);
                 }
@@ -124,7 +123,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             getFunctionLibStmt.setString(2, functionLibraryName);
 
                 try (ResultSet resultSet = getFunctionLibStmt.executeQuery()) {
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     if (resultSet.next()) {
                         FunctionLibrary functionlib = new FunctionLibrary();
                         functionlib.setFunctionLibraryName(resultSet.getString("NAME"));
@@ -137,7 +136,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                     }
                 }
             } catch (IOException e) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new FunctionLibraryManagementException(
                         "Error while reading function library" + functionLibraryName, e);
             }
@@ -179,10 +178,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                         functionlib.setDescription(functionLibsResultSet.getString("DESCRIPTION"));
                         functionLibraries.add(functionlib);
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                 }
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new FunctionLibraryManagementException("Error while reading function libraries", e1);
             }
         } catch (SQLException e) {
@@ -215,16 +214,15 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
                 try (PreparedStatement updateFunctionLibStmt =
                                 connection.prepareStatement(FunctionLibMgtDBQueries.UPDATE_FUNCTIONLIB_INFO)) {
-                    connection.setAutoCommit(false);
                     updateFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
                     updateFunctionLibStmt.setString(2, functionLibrary.getDescription());
                     setBlobValue(functionLibrary.getFunctionLibraryScript(), updateFunctionLibStmt, 3);
                     updateFunctionLibStmt.setInt(4, tenantID);
                     updateFunctionLibStmt.setString(5, oldFunctionLibName);
                     updateFunctionLibStmt.executeUpdate();
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                 } catch (SQLException e1) {
-                    IdentityDatabaseUtil.rollBack(connection);
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
                     throw new FunctionLibraryManagementException("Failed to update Function library" +
                             oldFunctionLibName, e1);
                 }
@@ -264,12 +262,12 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                 deleteFunctionLibStmt.setInt(1, tenantID);
                 deleteFunctionLibStmt.setString(2, functionLibraryName);
                 deleteFunctionLibStmt.executeUpdate();
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
                 if (log.isDebugEnabled()) {
                     log.debug("Removed the function library " + functionLibraryName + " successfully.");
                 }
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new FunctionLibraryManagementException("Error while removing function library" +
                         functionLibraryName, e1);
             }
@@ -309,9 +307,9 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                         isFunctionLibraryExists = true;
                     }
                 }
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new FunctionLibraryManagementException("Failed to check whether the function library exists with "
                         + functionLibraryName, e1);
             }

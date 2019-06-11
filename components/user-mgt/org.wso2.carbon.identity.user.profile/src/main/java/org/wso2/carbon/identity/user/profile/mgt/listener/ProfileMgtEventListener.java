@@ -149,9 +149,9 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
                 prepStmt.setString(2, userStoreDomain);
                 prepStmt.setInt(3, tenantId);
                 prepStmt.executeUpdate();
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserStoreException(String.format("Error when trying to delete the federated IDP user "
                         + "account associations of user:%s", fullyQualifiedUsername), e1);
             }

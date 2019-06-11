@@ -162,10 +162,10 @@ public class ConfigurationManagerComponent {
                 // Following statement will throw SQLException if the column is not found
                 resultSet.findColumn(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
                 // If we are here then the column exists.
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
                 return true;
             } catch (SQLException e) {
-                connection.rollback();
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 return false;
             }
         } catch (IdentityRuntimeException | SQLException e) {

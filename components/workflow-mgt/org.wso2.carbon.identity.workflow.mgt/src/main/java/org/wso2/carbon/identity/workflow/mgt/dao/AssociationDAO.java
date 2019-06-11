@@ -60,9 +60,9 @@ public class AssociationDAO {
             prepStmt.setString(3, condition);
             prepStmt.setString(4, workflowId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -96,9 +96,9 @@ public class AssociationDAO {
             // As the WF_WORKFLOW_ASSOCIATION.ID is integer, this has to be set as a int to work with postgre
             prepStmt.setInt(6, Integer.parseInt(associationDTO.getAssociationId()));
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -141,9 +141,9 @@ public class AssociationDAO {
                     associationDTO.setEnabled(false);
                 }
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -193,9 +193,9 @@ public class AssociationDAO {
                     associationDTO.setEnabled(false);
                 }
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -217,9 +217,9 @@ public class AssociationDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setInt(1, id);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -259,9 +259,9 @@ public class AssociationDAO {
                 associationDTO.setWorkflowName(workflowName);
                 associations.add(associationDTO);
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

@@ -84,11 +84,9 @@ public class UserSessionStore {
                         userDomain.toUpperCase());
                 preparedStatement.setInt(5, idPId);
                 preparedStatement.executeUpdate();
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new DuplicatedAuthUserException("Error when store user data.", e1);
             }
         } catch (SQLIntegrityConstraintViolationException e) {
@@ -141,12 +139,10 @@ public class UserSessionStore {
                         userId = resultSet.getString(1);
                     }
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
 
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while retrieving User Id of the user: " + userName + ", "
                         + "Tenant Id: " + tenantId + ", User domain: " + userDomain + ", Identity provider id: " +
                         idPId, e1);
@@ -183,12 +179,9 @@ public class UserSessionStore {
                         userId = resultSet.getString(1);
                     }
                 }
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while retrieving User Id of the user: " + userName +
                         ", Tenant Id: " + tenantId + ", User domain: " + userDomain, e1);
             }
@@ -220,12 +213,9 @@ public class UserSessionStore {
                         userIds.add(resultSet.getString(1));
                     }
                 }
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while retrieving user Ids stored in the user domain: " +
                         userDomain + ", Tenant Id: " + tenantId, e1);
             }
@@ -259,12 +249,9 @@ public class UserSessionStore {
                         idPId = resultSet.getInt(1);
                     }
                 }
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while retrieving the IdP id of: " + idPName, e1);
             }
         } catch (SQLException e) {
@@ -288,11 +275,9 @@ public class UserSessionStore {
                 preparedStatement.setString(1, userId);
                 preparedStatement.setString(2, sessionId);
                 preparedStatement.executeUpdate();
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while storing mapping between user Id: " + userId +
                         " and session Id: " + sessionId, e1);
             }
@@ -323,12 +308,9 @@ public class UserSessionStore {
                         isExisting = true;
                     }
                 }
-
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserSessionException("Error while retrieving existing mapping between user Id: " + userId
                         + " and session Id: " + sessionId, e1);
             }
@@ -358,12 +340,9 @@ public class UserSessionStore {
                          sessionIdList.add(resultSet.getString(1));
                      }
                  }
-
-                 if (!connection.getAutoCommit()) {
-                     connection.commit();
-                 }
+                 IdentityDatabaseUtil.commitTransaction(connection);
              } catch (SQLException e1) {
-                 IdentityDatabaseUtil.rollBack(connection);
+                 IdentityDatabaseUtil.rollbackTransaction(connection);
                  throw new UserSessionException("Error while retrieving session Id of user Id: " + userId, e1);
              }
         } catch (SQLException e) {
@@ -397,12 +376,10 @@ public class UserSessionStore {
                     log.debug("No terminated sessions found to remove session to user mappings.");
                 }
             }
+                IdentityDatabaseUtil.commitTransaction(connection);
 
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollBack(connection);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
                 log.error("Error while removing the terminated sessions from the table "
                                 + "IDN_AUTH_USER_SESSION_STORE.", e1);
             }
