@@ -117,10 +117,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement getFunctionLibStmt = connection.prepareStatement(
-                            FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME)) {
-            getFunctionLibStmt.setInt(1, tenantID);
-            getFunctionLibStmt.setString(2, functionLibraryName);
+            try (PreparedStatement getFunctionLibStmt = connection
+                    .prepareStatement(FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME)) {
+                getFunctionLibStmt.setInt(1, tenantID);
+                getFunctionLibStmt.setString(2, functionLibraryName);
 
                 try (ResultSet resultSet = getFunctionLibStmt.executeQuery()) {
                     IdentityDatabaseUtil.commitTransaction(connection);
