@@ -56,9 +56,9 @@ public class UserIdentityMetadataStore {
             prepStmt.setString(3, metadata.getMetadataType());
             prepStmt.setString(4, metadata.getMetadata());
             prepStmt.execute();
-            connection.setAutoCommit(false);
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while storing user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -83,9 +83,9 @@ public class UserIdentityMetadataStore {
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();
-            connection.setAutoCommit(false);
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while invalidating user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -111,8 +111,9 @@ public class UserIdentityMetadataStore {
             prepStmt.setString(4, metadata.getMetadata());
             prepStmt.setString(5, Boolean.toString(metadata.isValid()));
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while storing user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -130,7 +131,6 @@ public class UserIdentityMetadataStore {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         try {
-            connection.setAutoCommit(false);
             prepStmt = connection.prepareStatement(SQLQuery.STORE_META_DATA);
             for (IdentityMetadataDO metadata : metadataSet) {
                 prepStmt.setString(1, metadata.getUserName());
@@ -141,8 +141,9 @@ public class UserIdentityMetadataStore {
                 prepStmt.addBatch();
             }
             prepStmt.executeBatch();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while storing user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -175,7 +176,7 @@ public class UserIdentityMetadataStore {
             prepStmt.setString(3, metadataType);
             prepStmt.setString(4, metadata);
             results = prepStmt.executeQuery();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (results.next()) {
                 return new IdentityMetadataDO(results.getString(1), results.getInt(2),
                         results.getString(3), results.getString(4),
@@ -186,6 +187,7 @@ public class UserIdentityMetadataStore {
             }
             return null;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -218,9 +220,10 @@ public class UserIdentityMetadataStore {
                         Boolean.parseBoolean(results.getString(5))));
             }
             IdentityMetadataDO[] resultMetadata = new IdentityMetadataDO[metada.size()];
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
             return metada.toArray(resultMetadata);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -255,9 +258,10 @@ public class UserIdentityMetadataStore {
                         Boolean.parseBoolean(results.getString(5))));
             }
             IdentityMetadataDO[] resultMetadata = new IdentityMetadataDO[metada.size()];
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
             return metada.toArray(resultMetadata);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -313,5 +317,4 @@ public class UserIdentityMetadataStore {
         private SQLQuery() {
         }
     }
-
 }

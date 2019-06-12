@@ -72,6 +72,7 @@ public class LocalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while listing local claims", e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
@@ -109,7 +110,7 @@ public class LocalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while adding local claim " + localClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
@@ -139,7 +140,7 @@ public class LocalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while updating local claim " + localClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, null);
@@ -231,6 +232,22 @@ public class LocalClaimDAO extends ClaimDAO {
             throw new ClaimMetadataException("Error while deleting attribute mappings", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
+        }
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    private static void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
         }
     }
 }

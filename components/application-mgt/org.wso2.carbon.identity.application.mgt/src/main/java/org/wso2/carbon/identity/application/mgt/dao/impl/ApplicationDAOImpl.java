@@ -304,10 +304,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 addServiceProviderProperties(connection, applicationId,
                         Arrays.asList(serviceProvider.getSpProperties()), tenantID);
             }
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (log.isDebugEnabled()) {
                 log.debug("Application Stored successfully with application id " + applicationId);
             }
@@ -315,14 +312,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             return applicationId;
 
         } catch (SQLException e) {
-            try {
-                if (connection != null) {
-                    connection.rollback();
-                }
-            } catch (SQLException sql) {
-                throw new IdentityApplicationManagementException(
-                        "Error while Creating Application", sql);
-            }
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while Creating Application", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(results);
@@ -415,19 +405,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                         tenantID);
             }
             */
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | UserStoreException e) {
-            try {
-                if (connection != null) {
-                    connection.rollback();
-                }
-            } catch (SQLException e1) {
-                throw new IdentityApplicationManagementException(
-                        "Failed to update service provider " + applicationId, e);
-            }
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to update service provider "
                     + applicationId, e);
         } finally {
@@ -1709,9 +1689,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             if (serviceProvider != null) {
                 loadApplicationPermissions(applicationName, serviceProvider);
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return serviceProvider;
 
         } catch (SQLException | CertificateRetrievingException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to retrieve service provider "
                     + applicationId, e);
         } finally {
@@ -1945,9 +1927,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
 
             String serviceProviderName = serviceProvider.getApplicationName();
             loadApplicationPermissions(serviceProviderName, serviceProvider);
+            IdentityDatabaseUtil.commitTransaction(connection);
             return serviceProvider;
 
         } catch (SQLException | CertificateRetrievingException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed to update service provider "
                     + applicationId, e);
         } finally {
@@ -2115,12 +2099,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             storeAppPrepStmt.setString(2, type);
             storeAppPrepStmt.setInt(3, tenantID);
             appNameResult = storeAppPrepStmt.executeQuery();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (appNameResult.next()) {
                 applicationName = appNameResult.getString(1);
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while reading application", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(appNameResult);
@@ -2141,8 +2126,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             throws IdentityApplicationManagementException {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         try {
+            IdentityDatabaseUtil.commitTransaction(connection);
             return getApplicationName(applicationID, connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Failed loading the application with "
                     + applicationID, e);
         } finally {
@@ -3003,8 +2990,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while getting the count of all Applications for the tenantID: " + tenantID, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3052,8 +3040,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while Reading all Applications");
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3100,8 +3089,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while Reading all Applications for the tenantID: " + tenantID, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3158,8 +3148,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 basicInfo.setDescription(appNameResultSet.getString(2));
                 appInfo.add(basicInfo);
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while getting applications from DB with filter: " + filter, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3255,8 +3246,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while getting applications from DB: " + e.getMessage(), e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3367,9 +3359,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while getting applications from DB: " + e.getMessage(), e);
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new IdentityApplicationManagementException("Error while getting applications from DB: " +
+                    e.getMessage(), e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
             IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
@@ -3416,18 +3410,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             deleteClientPrepStmt.setString(1, appName);
             deleteClientPrepStmt.setInt(2, tenantID);
             deleteClientPrepStmt.execute();
-
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
-
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | UserStoreException | IdentityApplicationManagementException e) {
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException ignore) {
-                }
-            }
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessege = "An error occured while delete the application : " + appName;
             log.error(errorMessege, e);
             throw new IdentityApplicationManagementException(errorMessege, e);
@@ -3795,8 +3780,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             if (appNameResult.next()) {
                 applicationName = appNameResult.getString(1);
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while reading application", e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(appNameResult);
@@ -3839,8 +3825,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         try {
 
-            getClaimPreStmt = connection
-                    .prepareStatement(ApplicationMgtDBQueries.LOAD_CLAIM_MAPPING_BY_APP_NAME);
+            getClaimPreStmt = connection.prepareStatement(ApplicationMgtDBQueries.LOAD_CLAIM_MAPPING_BY_APP_NAME);
             // IDP_CLAIM, SP_CLAIM, IS_REQUESTED
             getClaimPreStmt.setString(1, serviceProviderName);
             getClaimPreStmt.setInt(2, tenantID);
@@ -3853,7 +3838,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                     claimMapping.put(resultSet.getString(2), resultSet.getString(1));
                 }
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getClaimPreStmt);
             IdentityApplicationManagementUtil.closeResultSet(resultSet);
@@ -3921,8 +3908,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                     reqClaimUris.add(resultSet.getString(1));
                 }
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException(
                     "Error while retrieving requested claims", e);
         } finally {
@@ -3960,6 +3948,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                         return true;
                     }
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"
+                        + serviceProviderName, e1);
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Failed to check whether the service provider exists with"

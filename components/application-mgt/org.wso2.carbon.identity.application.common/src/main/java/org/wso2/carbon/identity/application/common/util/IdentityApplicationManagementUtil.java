@@ -306,16 +306,6 @@ public class IdentityApplicationManagementUtil {
     }
 
     /**
-     * Utility method to rollback a database connection
-     *
-     * @param dbConnection Database <code>Connection</code> object
-     */
-    public static void rollBack(Connection dbConnection) {
-
-        IdentityDatabaseUtil.rollBack(dbConnection);
-    }
-
-    /**
      * @param o1
      * @param o2
      * @return

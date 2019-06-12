@@ -69,6 +69,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -77,6 +78,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             }
 
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -103,6 +105,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
+            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -111,6 +114,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             }
 
         } catch (SQLException e) {
+            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -133,5 +137,21 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         }
         return dbConnection;
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
     }
 }

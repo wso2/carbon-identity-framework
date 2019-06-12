@@ -109,6 +109,8 @@ public class UMDatabaseManager {
                 stmt.setString(2, value);
                 stmt.executeUpdate();
                 dbConnection.commit();
+            } catch (SQLException e1) {
+                dbConnection.rollback();
             }
         }
     }
