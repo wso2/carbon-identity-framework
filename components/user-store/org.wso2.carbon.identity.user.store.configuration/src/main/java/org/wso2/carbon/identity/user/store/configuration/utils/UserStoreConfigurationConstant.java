@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
+import org.wso2.carbon.utils.CarbonUtils;
+
 /**
  * Constant class to hold IdentityUserStoreMgtConstants
  */
@@ -31,6 +33,12 @@ public class UserStoreConfigurationConstant {
     public static final String SECONDARY_STORAGE_CACHE_MANAGER = "secondaryStorageCacheManager";
     //random password container cache
     public static final String RANDOM_PASSWORD_CONTAINER_CACHE = "randomPasswordContainerCache";
+    public static final String UNDERSCORE = "_";
+    public static final String DESCRIPTION = "Description";
+    public static final String FEDERATED = "FEDERATED";
+    public static final String USERSTORES = "userstores";
+    public static final String deploymentDirectory = CarbonUtils.getCarbonRepository() + USERSTORES;
+    public static final String PERIOD = ".";
 
     private UserStoreConfigurationConstant() {
 

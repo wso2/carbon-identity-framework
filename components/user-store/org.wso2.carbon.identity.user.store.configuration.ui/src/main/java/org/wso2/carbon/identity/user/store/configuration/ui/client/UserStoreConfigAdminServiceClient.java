@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.user.store.configuration.stub.UserStoreConfigAdm
 import org.wso2.carbon.identity.user.store.configuration.stub.api.Properties;
 import org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO;
 
+import java.rmi.RemoteException;
+
 public class UserStoreConfigAdminServiceClient {
     private UserStoreConfigAdminServiceStub stub;
     protected static final Log log = LogFactory.getLog(UserStoreConfigAdminServiceClient.class);
@@ -109,13 +111,37 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
+     * Deletes a given list of user stores from repository
+     * @param userStores : an instance of an array of {@link UserStoreDTO}
+     * @throws RemoteException RemoteException
+     * @throws RemoteException UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     */
+    @Deprecated
+    public void deleteUserStoresSet(UserStoreDTO[] userStores) throws RemoteException,
+            UserStoreConfigAdminServiceIdentityUserStoreMgtException {
+        stub.deleteUserStoresSetFromRepository(userStores);
+    }
+
+    /**
      * Deletes a given user store
      *
      * @param userStore : domain name of the user store to deleted
      * @throws Exception
      */
+    @Deprecated
     public void deleteUserStore(String userStore) throws Exception {
         stub.deleteUserStore(userStore);
+    }
+
+    /**
+     * Delete user store from any repository.
+     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @throws RemoteException RemoteException
+     * @throws UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     */
+    public void deleteUserStoreFromRepository(UserStoreDTO userStoreDTO) throws RemoteException,
+            UserStoreConfigAdminServiceIdentityUserStoreMgtException {
+        stub.deleteUserStoreFromRepository(userStoreDTO);
     }
 
     /**
@@ -123,10 +149,22 @@ public class UserStoreConfigAdminServiceClient {
      *
      * @param domain     : domain name of the user store to enable/dissable
      * @param isDisabled : set true to disable user store
-     * @throws Exception
+     * @throws RemoteException
      */
+    @Deprecated
     public void changeUserStoreState(String domain, String isDisabled) throws Exception {
         stub.changeUserStoreState(domain, Boolean.parseBoolean(isDisabled));
+    }
+
+    /**
+     * Toggle user store state (enable/disable) from any repository
+     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @throws RemoteException RemoteException
+     * @throws UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     */
+    public void enableDisableUserStore(UserStoreDTO userStoreDTO) throws RemoteException,
+            UserStoreConfigAdminServiceIdentityUserStoreMgtException {
+        stub.enableDisableUserStore(userStoreDTO);
     }
 
     /**

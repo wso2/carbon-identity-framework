@@ -30,6 +30,9 @@
         <operation name="getSecondaryRealmConfigurations">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
+        <operation name="getSecondaryRealmConfigurationsFromAllRepositories">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
+        </operation>
         <operation name="getAvailableUserStoreClasses">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
@@ -45,13 +48,22 @@
         <operation name="editUserStoreWithDomainName">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
+        <operation name="deleteUserStoreFromRepository">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/delete</parameter>
+        </operation>
         <operation name="deleteUserStore">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/delete</parameter>
         </operation>
-        <operation name="deleteUserStoresSet">
+        <operation name="deleteUserStoresSetFromRepository">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/delete</parameter>
         </operation>
+        <operation name="deleteUserStoresSet">
+        <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/delete</parameter>
+        </operation>
         <operation name="changeUserStoreState">
+            <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
+        </operation>
+        <operation name="enableDisableUserStore">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
         <operation name="testRDBMSConnection">
