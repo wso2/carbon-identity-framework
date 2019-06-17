@@ -131,6 +131,7 @@
     String callBackUrl = null;
     String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
+    boolean isUseOIDCClaimDialectEnabled = true;
     boolean isPassiveSTSEnabled = false;
     boolean isPassiveSTSDefault = false;
     String passiveSTSRealm = null;
@@ -473,7 +474,13 @@
                     if (basicAuthEnabledProp != null) {
                         isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
                     }
-
+    
+                    Property isUseOIDCClaimDialectEnabledProp = IdPManagementUIUtil.getProperty(
+                            fedAuthnConfig.getProperties(), IdentityApplicationConstants.Authenticator.OIDC
+                                    .USE_OIDC_CLAIM_DIALECT);
+                    if (isUseOIDCClaimDialectEnabledProp != null) {
+                        isUseOIDCClaimDialectEnabled = Boolean.parseBoolean(isUseOIDCClaimDialectEnabledProp.getValue());
+                    }
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
                     isSamlssoAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
@@ -1151,6 +1158,11 @@
     String oidcBasicAuthEnabledChecked = "";
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
+    }
+    
+    String useOIDCClaimDialectEnabled = "";
+    if (isUseOIDCClaimDialectEnabled) {
+        useOIDCClaimDialectEnabled = "checked=\'checked\'";
     }
 
     String passiveSTSEnabledChecked = "";
@@ -4765,6 +4777,19 @@
                                     </div>
                                 </td>
                             </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='oidc.use.oidc.claim.dialect'/>:</td>
+                                <td>
+                                    <div class="sectionCheckbox">
+                                        <input id="<%=IdentityApplicationConstants.Authenticator.OIDC.USE_OIDC_CLAIM_DIALECT%>"
+                                               name="<%=IdentityApplicationConstants.Authenticator.OIDC.USE_OIDC_CLAIM_DIALECT%>"
+                                               type="checkbox" <%=useOIDCClaimDialectEnabled%> />
+                                        <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='oidc.use.oidc.claim.dialect.help'/>
+                                </span>
+                                    </div>
+                                </td>
+                            </tr>
                         </table>
                     </div>
 
@@ -5149,6 +5174,10 @@
                                     });
                                     for (Property prop : properties) {
                                         if (prop != null && prop.getDisplayName() != null) {
+                                            String propType = prop.getType();
+                                            if (!"checkbox".equals(propType)) {
+                                                propType = "text";
+                                            }
                             %>
 
                             <tr>
@@ -5193,6 +5222,8 @@
                                     <% } %>
 
                                     <% } else { %>
+    
+                                    <% if ("text".equals(propType)) { %>
 
                                     <% if (prop.getValue() != null) { %>
                                     <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
@@ -5204,11 +5235,22 @@
                                            name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
                                            type="text">
                                     <% } %>
-
+    
+                                    <% } else if ("checkbox".equals(propType)) { %>
+                                    <input type="hidden" id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>_hidden"
+                                           name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" value="false"
+                                            <% if (Boolean.valueOf(prop.getValue())) { %> disabled="disabled" <% } %>/>
+                                    <input id="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>"
+                                           name="cust_auth_prop_<%=fedConfig.getName()%>#<%=prop.getName()%>" type="checkbox"
+                                           onclick="onCheckSetValue(this);" value="<%=prop.getValue()%>"
+                                            <% if (Boolean.valueOf(prop.getValue())) { %> checked="checked" <% } %> />
+                                    <span style="display:inline-block" class="sectionHelp"><%=prop.getDescription()%></span>
+                                    <% } %>
+                                    
                                     <% } %>
 
                                     <%
-                                        if (prop.getDescription() != null) { %>
+                                        if (prop.getDescription() != null && !"checkbox".equals(propType)) { %>
                                     <div class="sectionHelp"><%=prop.getDescription()%>
                                     </div>
                                     <%} %>
