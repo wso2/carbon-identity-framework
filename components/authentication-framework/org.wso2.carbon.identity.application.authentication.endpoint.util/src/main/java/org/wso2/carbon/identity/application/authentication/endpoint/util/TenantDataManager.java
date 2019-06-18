@@ -56,7 +56,6 @@ public class TenantDataManager {
 
     private static final Log log = LogFactory.getLog(TenantDataManager.class);
     private static final String PROTECTED_TOKENS = "protectedTokens";
-    private static final String SECRET_ALIAS = "$secret";
     private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
     private static final String SECRET_PROVIDER = "secretProvider";
     private static Properties prop;
@@ -91,10 +90,8 @@ public class TenantDataManager {
 
                     prop.load(inputStream);
                     if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
-                        if (isSecuredPropertyAvailable(prop)) {
-                            // Resolve encrypted properties with secure vault
-                            resolveSecrets(prop);
-                        }
+                        // Resolve encrypted properties with secure vault
+                        resolveSecrets(prop);
                     }
 
                 } else {
@@ -362,20 +359,36 @@ public class TenantDataManager {
         if (StringUtils.isBlank(secretProvider)) {
             properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
         }
-        SecretResolver secretResolver = SecretResolverFactory.create(properties, "");
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
         Enumeration propertyNames = properties.propertyNames();
         if (secretResolver != null && secretResolver.isInitialized()) {
             while (propertyNames.hasMoreElements()) {
                 String key = (String) propertyNames.nextElement();
                 String value = properties.getProperty(key);
                 if (value != null) {
-                    if (secretResolver.isTokenProtected(key)) {
-                        value = secretResolver.resolve(key);
-                    } else {
-                        value = MiscellaneousUtil.resolve(value, secretResolver);
-                    }
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
                 }
                 properties.put(key, value);
+            }
+            // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        } if (isSecuredPropertyAvailable(properties)) {
+            SecretResolver resolver = SecretResolverFactory.create(properties, "");
+            String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
+            StringTokenizer st = new StringTokenizer(protectedTokens, ",");
+            while (st.hasMoreElements()) {
+                String element = st.nextElement().toString().trim();
+
+                if (resolver.isTokenProtected(element)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Resolving and replacing secret for " + element);
+                    }
+                    // Replaces the original encrypted property with resolved property
+                    properties.put(element, resolver.resolve(element));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No encryption done for value with key :" + element);
+                    }
+                }
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -392,13 +405,11 @@ public class TenantDataManager {
     private static boolean isSecuredPropertyAvailable(Properties properties) {
 
         Enumeration propertyNames = properties.propertyNames();
+
         while (propertyNames.hasMoreElements()) {
             String key = (String) propertyNames.nextElement();
-            String value = properties.getProperty(key);
-            if (StringUtils.isNotBlank(value)) {
-                if (value.startsWith(SECRET_ALIAS) || PROTECTED_TOKENS.equals(key)) {
-                    return true;
-                }
+            if (PROTECTED_TOKENS.equals(key) && StringUtils.isNotBlank(properties.getProperty(key))) {
+                return true;
             }
         }
         return false;
