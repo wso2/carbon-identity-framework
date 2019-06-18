@@ -173,6 +173,7 @@ public class IdentityApplicationConstants {
             public static final String OIDC_LOGOUT_URL = "OIDCLogoutEPUrl";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
             public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
+            public static final String USE_OIDC_CLAIM_DIALECT = "UseOIDCClaimDialect";
         }
 
         public static class PassiveSTS {
