@@ -232,18 +232,16 @@ public class IdentityEventConfigBuilder {
         Enumeration propertyNames = notificationMgtConfigProperties.propertyNames();
         // Iterate through whole config file and find encrypted properties and resolve them
         if (secretResolver != null && secretResolver.isInitialized()) {
-            while (propertyNames.hasMoreElements()) {
-                String key = (String) propertyNames.nextElement();
-                String value = notificationMgtConfigProperties.getProperty(key);
-                if (value != null){
+            for (Map.Entry<Object, Object> entry : notificationMgtConfigProperties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
                     value = MiscellaneousUtil.resolve(value, secretResolver);
-
                 }
                 notificationMgtConfigProperties.put(key, value);
             }
-        }
-        else {
-            if(log.isDebugEnabled()){
+        } else {
+            if (log.isDebugEnabled()) {
                 log.debug("Secret Resolver is not present. Will not resolve encryptions in config file");
             }
         }
