@@ -246,11 +246,7 @@ public class NotificationMgtConfigBuilder {
                 String key = (String) propertyNames.nextElement();
                 String value = notificationMgtConfigProperties.getProperty(key);
                 if (value != null){
-                    if (secretResolver.isTokenProtected(key)) {
-                        value = secretResolver.resolve(key);
-                    } else {
-                        value = MiscellaneousUtil.resolve(value, secretResolver);
-                    }
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
                 }
                 notificationMgtConfigProperties.put(key, value);
             }

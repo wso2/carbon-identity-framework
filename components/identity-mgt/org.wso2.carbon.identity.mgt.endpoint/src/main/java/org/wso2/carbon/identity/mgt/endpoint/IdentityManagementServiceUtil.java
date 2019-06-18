@@ -189,12 +189,7 @@ public class IdentityManagementServiceUtil {
             String key = (String) propertyNames.nextElement();
             String value = properties.getProperty(key);
             if (value != null) {
-                if (StringUtils.startsWith(value, IdentityManagementEndpointConstants.SECRET_ALIAS)){
-                    value = value.split(IdentityManagementEndpointConstants.SECRET_ALIAS_SEPARATOR, 2)[1];
-                    value = secretResolver.isTokenProtected(value) ? secretResolver.resolve(value) : value;
-                } else {
-                    value = MiscellaneousUtil.resolve(value, secretResolver);
-                }
+                value = MiscellaneousUtil.resolve(value, secretResolver);
             }
             properties.put(key, value);
         }
