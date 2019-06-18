@@ -120,6 +120,10 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -142,6 +146,7 @@
                             version=${carbon.identity.package.export.version}
                         </Export-Package>
                         <Import-Package>
+                            javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
                             javax.xml.xpath,
                             org.wso2.carbon.securevault;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.securevault,

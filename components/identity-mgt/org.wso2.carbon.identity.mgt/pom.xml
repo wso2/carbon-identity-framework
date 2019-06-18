@@ -102,6 +102,10 @@
             <artifactId>commons-lang</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <scope>test</scope>
@@ -136,6 +140,7 @@
                             org.wso2.carbon.identity.mgt.*; version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
+                            javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
                             javax.cache,
                             javax.xml.namespace,
                             javax.xml.stream; version="${equinox.osgi.stax-api.imp.pkg.version.range}",

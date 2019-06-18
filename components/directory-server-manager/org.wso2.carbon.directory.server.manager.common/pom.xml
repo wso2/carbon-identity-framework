@@ -33,6 +33,12 @@
     <description>Server management component's common code goes here.</description>
     <url>http://wso2.org</url>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
@@ -47,6 +53,9 @@
                             org.wso2.carbon.directory.server.manager.common.*;
                             version="${carbon.identity.package.export.version}"
                         </Export-Package>
+                        <Import-Package>
+                        javax.xml.bind.annotation; version="[0.0.0, 1.0.0)"
+                        </Import-Package>
                     </instructions>
                 </configuration>
             </plugin>

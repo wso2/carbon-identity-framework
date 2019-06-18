@@ -122,7 +122,7 @@
                             org.wso2.carbon.identity.application.mgt.dao; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.listener; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.application.common.model; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.application.common.model; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.util; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>

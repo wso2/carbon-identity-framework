@@ -52,6 +52,12 @@
         <module>org.wso2.carbon.identity.functions.library.mgt.stub</module>
     </modules>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.activation</groupId>
+            <artifactId>activation</artifactId>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>

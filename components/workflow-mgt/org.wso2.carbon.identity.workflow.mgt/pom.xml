@@ -47,6 +47,10 @@
             <groupId>org.wso2.carbon.commons</groupId>
             <artifactId>org.wso2.carbon.tenant.common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -67,6 +71,8 @@
                             org.wso2.carbon.identity.workflow.mgt.internal,
                         </Private-Package>
                         <Import-Package>
+                            javax.xml.bind; version="[0.0.0, 1.0.0)",
+                            javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
                             javax.activation; version="${javax.activation.import.pkg.version}",
                             javax.xml.xpath,
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
