@@ -26,6 +26,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
@@ -137,11 +138,16 @@ public class ThriftAuthenticationConfigParser {
             if (elementHasText(element)) {
                 String key = getKey(nameStack);
                 Object currentObject = configuration.get(key);
-                String value = replaceSystemProperty(element.getText());
-                if (secretResolver != null && secretResolver.isInitialized() &&
-                        secretResolver.isTokenProtected(key)) {
-                    value = secretResolver.resolve(key);
+                String value;
+                String resolvedValue = MiscellaneousUtil.resolve(element, secretResolver);
+
+                if (resolvedValue != null && !resolvedValue.isEmpty()) {
+                    value = resolvedValue;
+                } else {
+                    value = element.getText();
                 }
+                value = replaceSystemProperty(value);
+
                 if (currentObject == null) {
                     configuration.put(key, value);
                 } else if (currentObject instanceof ArrayList) {

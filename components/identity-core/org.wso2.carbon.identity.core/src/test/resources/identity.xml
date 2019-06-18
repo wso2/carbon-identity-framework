@@ -21,7 +21,7 @@
 
     <JDBCPersistenceManager>
         <DataSource>
-            <Name>jdbc/WSO2CarbonDB</Name>
+            <Name>jdbc/WSO2IdentityDB</Name>
         </DataSource>
         <SessionDataPersist>
             <Enable>true</Enable>

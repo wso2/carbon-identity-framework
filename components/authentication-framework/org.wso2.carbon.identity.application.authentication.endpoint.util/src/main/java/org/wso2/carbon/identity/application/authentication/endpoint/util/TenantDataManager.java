@@ -29,6 +29,7 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -89,10 +90,8 @@ public class TenantDataManager {
 
                     prop.load(inputStream);
                     if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
-                        if (isSecuredPropertyAvailable(prop)) {
-                            // Resolve encrypted properties with secure vault
-                            resolveSecrets(prop);
-                        }
+                        // Resolve encrypted properties with secure vault
+                        resolveSecrets(prop);
                     }
 
                 } else {
@@ -356,28 +355,35 @@ public class TenantDataManager {
      */
     private static void resolveSecrets(Properties properties) {
 
-        String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
-
-        if (StringUtils.isNotBlank(protectedTokens)) {
-            String secretProvider = (String) properties.get(SECRET_PROVIDER);
-            SecretResolver secretResolver;
-
-            if (StringUtils.isBlank(secretProvider)) {
-                properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
+                }
+                properties.put(key, value);
             }
-
-            secretResolver = SecretResolverFactory.create(properties, "");
+        }
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        if (isSecuredPropertyAvailable(properties)) {
+            SecretResolver resolver = SecretResolverFactory.create(properties, "");
+            String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
             StringTokenizer st = new StringTokenizer(protectedTokens, ",");
-
             while (st.hasMoreElements()) {
                 String element = st.nextElement().toString().trim();
 
-                if (secretResolver.isTokenProtected(element)) {
+                if (resolver.isTokenProtected(element)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Resolving and replacing secret for " + element);
                     }
                     // Replaces the original encrypted property with resolved property
-                    properties.put(element, secretResolver.resolve(element));
+                    properties.put(element, resolver.resolve(element));
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No encryption done for value with key :" + element);
