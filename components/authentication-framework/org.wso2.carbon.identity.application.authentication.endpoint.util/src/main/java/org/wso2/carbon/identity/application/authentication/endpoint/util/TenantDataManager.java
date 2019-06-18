@@ -360,18 +360,18 @@ public class TenantDataManager {
             properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
         }
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
-        Enumeration propertyNames = properties.propertyNames();
         if (secretResolver != null && secretResolver.isInitialized()) {
-            while (propertyNames.hasMoreElements()) {
-                String key = (String) propertyNames.nextElement();
-                String value = properties.getProperty(key);
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
                 if (value != null) {
                     value = MiscellaneousUtil.resolve(value, secretResolver);
                 }
                 properties.put(key, value);
             }
-            // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
-        } if (isSecuredPropertyAvailable(properties)) {
+        }
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        if (isSecuredPropertyAvailable(properties)) {
             SecretResolver resolver = SecretResolverFactory.create(properties, "");
             String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
             StringTokenizer st = new StringTokenizer(protectedTokens, ",");

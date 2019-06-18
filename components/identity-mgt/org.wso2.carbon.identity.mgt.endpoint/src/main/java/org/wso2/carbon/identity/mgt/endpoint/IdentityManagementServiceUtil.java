@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -183,11 +184,9 @@ public class IdentityManagementServiceUtil {
     private static void resolveSecrets(Properties properties) {
 
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
-        Enumeration propertyNames = properties.propertyNames();
-            // Iterate through config file, find encrypted properties and resolve them
-        while (propertyNames.hasMoreElements()) {
-            String key = (String) propertyNames.nextElement();
-            String value = properties.getProperty(key);
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            String key = entry.getKey().toString();
+            String value = entry.getValue().toString();
             if (value != null) {
                 value = MiscellaneousUtil.resolve(value, secretResolver);
             }
