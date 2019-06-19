@@ -1091,14 +1091,3 @@ jQuery('#enableArtifactBinding').click(function() {
         jQuery('#digest_algorithem_dropdown').attr('disabled', true);
     }
 });
-
-function onCheckSetValue(obj) {
-    var hiddenCheckBoxId = '[id="'+jQuery(obj).attr('id')+'_hidden"]';
-    if (jQuery(obj).is(':checked')) {
-        jQuery(obj).val('true');
-        jQuery(hiddenCheckBoxId).attr('disabled', 'disabled');
-    } else {
-        jQuery(obj).val('false');
-        jQuery(hiddenCheckBoxId).removeAttr('disabled');
-    }
-}
