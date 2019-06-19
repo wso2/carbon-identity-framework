@@ -317,7 +317,7 @@
         </ScopeValidators>
 
         <!-- Uncomment below to disable scope validation for implicit grant and authorization code grant. -->
-        <!--<ScopeValidationEnabledForAuthCodeAndImplicitGrant>false</ScopeValidationEnabledForAuthCodeAndImplicitGrant>-->
+        <!--<ScopeValidationEnabledForAuthzCodeAndImplicitGrant>false</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>-->
 
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
              issuing access tokens. -->
