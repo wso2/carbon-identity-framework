@@ -23,10 +23,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.common.model.Property;
 
-import java.io.Serializable;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * API of the Application Authenticators.
@@ -84,18 +84,6 @@ public interface ApplicationAuthenticator extends Serializable {
      * @return boolean
      */
     public String getClaimDialectURI();
-
-    /**
-     * Get the claim dialect URI if this authenticator receives claims in a standard dialect
-     * and needs to be mapped to the Carbon dialect http://wso2.org/claims.
-     *
-     * @param context Authentication context.
-     * @return Claim dialect.
-     */
-    default String getClaimDialectURI(AuthenticationContext context) {
-
-        return getClaimDialectURI();
-    }
 
     /**
      * @return

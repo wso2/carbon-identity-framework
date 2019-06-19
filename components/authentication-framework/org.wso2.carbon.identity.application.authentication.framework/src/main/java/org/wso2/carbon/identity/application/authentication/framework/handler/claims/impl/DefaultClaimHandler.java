@@ -146,7 +146,7 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
-        String idPStandardDialect = authenticator.getClaimDialectURI(context);
+        String idPStandardDialect = authenticator.getClaimDialectURI();
 
         boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
 
