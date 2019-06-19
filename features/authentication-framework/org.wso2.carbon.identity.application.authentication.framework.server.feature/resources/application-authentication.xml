@@ -232,4 +232,11 @@
           <TenantDataListenerURL>/authenticationendpoint/tenantlistrefresher.do</TenantDataListenerURL>
         </TenantDataListenerURLs-->
 
+    <!--
+    Allow federated authenticators to use the idp local claim dialect instead of the authenticator's claim
+    dialect when using a custom dialect claim mapping. The configuration affects all federated authenticators.
+    Default value: false
+    -->
+    <!--<AllowCustomClaimMappingsForAuthenticators>true</AllowCustomClaimMappingsForAuthenticators>-->
+
 </ApplicationAuthentication>
