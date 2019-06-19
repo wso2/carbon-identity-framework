@@ -96,6 +96,12 @@ public class IdentityDatabaseUtil {
 
     }
 
+    @Deprecated
+    public static void rollBack(Connection dbConnection) {
+
+        rollbackTransaction(dbConnection);
+    }
+
     public static void rollbackTransaction(Connection dbConnection) {
 
         JDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);

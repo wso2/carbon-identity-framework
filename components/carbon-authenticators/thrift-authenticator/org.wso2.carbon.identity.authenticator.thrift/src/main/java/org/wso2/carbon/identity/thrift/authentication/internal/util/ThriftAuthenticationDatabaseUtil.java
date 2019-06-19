@@ -90,6 +90,12 @@ public class ThriftAuthenticationDatabaseUtil {
 
     }
 
+    @Deprecated
+    public static void rollBack(Connection dbConnection) {
+
+        rollbackTransaction(dbConnection);
+    }
+
     public static void rollbackTransaction(Connection dbConnection) {
         try {
             ThriftAuthenticationJDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);
