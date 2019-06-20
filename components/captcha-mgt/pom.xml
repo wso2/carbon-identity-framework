@@ -20,9 +20,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.identity</groupId>
-        <artifactId>carbon-identity</artifactId>
-        <version>5.12.405-SNAPSHOT</version>
+        <groupId>org.wso2.carbon.identity.framework</groupId>
+        <artifactId>identity-framework</artifactId>
+        <version>5.13.5-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
