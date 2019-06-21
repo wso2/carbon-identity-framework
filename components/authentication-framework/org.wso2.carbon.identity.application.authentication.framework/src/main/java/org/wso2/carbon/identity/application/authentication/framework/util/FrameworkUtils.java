@@ -576,7 +576,7 @@ public class FrameworkUtils {
 
         if (StringUtils.isNotBlank(uri) && StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 
-            if (uri.contains("?")) {
+            if (uri.contains("?") || uri.contains("#")) {
                 uri += "&" + key + "=" + URLEncoder.encode(value, "UTF-8");
             } else {
                 uri += "?" + key + "=" + URLEncoder.encode(value, "UTF-8");
