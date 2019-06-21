@@ -35,15 +35,20 @@ public class ThriftAuthenticationDatabaseUtil {
 
     private static final Log log = LogFactory.getLog(ThriftAuthenticationDatabaseUtil.class);
 
+        @Deprecated
+        public static Connection getDBConnection() throws AuthenticationException {
+           return getDBConnection(true);
+        }
+
     /**
      * Get a database connection instance from the Thrift Identity Persistence Manager
      *
      * @return Database Connection
      * @throws AuthenticationException Error when getting an instance of the identity Persistence Manager
      */
-    public static Connection getDBConnection() throws AuthenticationException {
+    public static Connection getDBConnection(Boolean shouldApplyTransaction) throws AuthenticationException {
         try {
-            return ThriftAuthenticationJDBCPersistenceManager.getInstance().getDBConnection();
+            return ThriftAuthenticationJDBCPersistenceManager.getInstance().getDBConnection(shouldApplyTransaction);
         } catch (AuthenticationException e) {
             String errMsg = "Error when getting a database connection from the Thrift Identity Persistence Manager";
             log.error(errMsg, e);

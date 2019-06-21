@@ -103,17 +103,24 @@ public class ThriftAuthenticationJDBCPersistenceManager {
         }
     }
 
+    @Deprecated
+    public Connection getDBConnection() throws AuthenticationException {
+        return getDBConnection(true);
+    }
+
     /**
      * Returns an database connection for Identity data source.
      *
      * @return Database connection
      * @throws AuthenticationException Exception occurred when getting the data source.
      */
-    public Connection getDBConnection() throws AuthenticationException {
+    public Connection getDBConnection(Boolean shouldApplyTransaction) throws AuthenticationException {
         try {
             Connection dbConnection = dataSource.getConnection();
-            dbConnection.setAutoCommit(false);
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            if (shouldApplyTransaction) {
+                dbConnection.setAutoCommit(false);
+                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            }
             return dbConnection;
         } catch (SQLException e) {
             String errMsg = "Error when getting a database connection object from the Thrift Authentication data source.";

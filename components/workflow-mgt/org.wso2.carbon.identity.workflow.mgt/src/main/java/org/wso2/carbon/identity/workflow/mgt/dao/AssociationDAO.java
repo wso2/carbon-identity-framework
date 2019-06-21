@@ -112,7 +112,7 @@ public class AssociationDAO {
      */
     public List<Association> listAssociations(int tenantId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs;
         List<Association> associations = new ArrayList<>();
@@ -141,9 +141,7 @@ public class AssociationDAO {
                     associationDTO.setEnabled(false);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -160,7 +158,7 @@ public class AssociationDAO {
      */
     public Association getAssociation(String associationId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs;
         Association associationDTO = null ;
@@ -193,9 +191,7 @@ public class AssociationDAO {
                     associationDTO.setEnabled(false);
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -236,7 +232,7 @@ public class AssociationDAO {
     public List<Association> listAssociationsForWorkflow(String workflowId)
             throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs;
         List<Association> associations = new ArrayList<>();
@@ -259,9 +255,7 @@ public class AssociationDAO {
                 associationDTO.setWorkflowName(workflowName);
                 associations.add(associationDTO);
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

@@ -155,7 +155,7 @@ public class ProvisioningManagementDAO {
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         try {
 
             // id of the identity provider
@@ -177,9 +177,7 @@ public class ProvisioningManagementDAO {
             prepStmt.setString(4, UserCoreUtil.removeDomainFromName(provisioningEntity.getEntityName()));
             prepStmt.setInt(5, tenantId);
 
-
             rs = prepStmt.executeQuery();
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             if (rs.next()) {
                 String entityId = rs.getString(1);
                 ProvisionedIdentifier provisionedIdentifier = new ProvisionedIdentifier();
@@ -190,7 +188,6 @@ public class ProvisioningManagementDAO {
             }
 
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             String msg = "Error occurred while adding Provisioning entity for tenant " + tenantId;
             throw new IdentityApplicationManagementException(msg, e);
         } finally {
@@ -354,7 +351,7 @@ public class ProvisioningManagementDAO {
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         } else {
             dbConnInitialized = false;
         }
@@ -364,7 +361,6 @@ public class ProvisioningManagementDAO {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, idpName);
             rs = prepStmt.executeQuery();
-            dbConnection.commit();
             if (rs.next()) {
                 return rs.getInt(1);
             }
@@ -454,7 +450,7 @@ public class ProvisioningManagementDAO {
 
     public List<String> getSPNamesOfProvisioningConnectorsByIDP(String idPName, int tenantId)
             throws IdentityApplicationManagementException {
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<String> spNames = new ArrayList<String>();
@@ -468,9 +464,7 @@ public class ProvisioningManagementDAO {
             while (rs.next()) {
                 spNames.add(rs.getString(1));
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             String msg = "Error occurred while retrieving SP names of provisioning connectors by IDP name";
             throw new IdentityApplicationManagementException(msg, e);
         } finally {

@@ -299,7 +299,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection(false);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return null;
@@ -329,7 +329,6 @@ public class SessionDataStore {
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             resultSet = preparedStatement.executeQuery();
-            IdentityDatabaseUtil.commitTransaction(connection);
             if(resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
@@ -339,7 +338,6 @@ public class SessionDataStore {
             }
         } catch (ClassNotFoundException | IOException | SQLException |
                 IdentityApplicationManagementException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while retrieving session data", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);

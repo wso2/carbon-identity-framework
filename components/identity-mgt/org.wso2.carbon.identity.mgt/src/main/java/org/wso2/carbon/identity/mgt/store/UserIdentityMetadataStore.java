@@ -166,7 +166,7 @@ public class UserIdentityMetadataStore {
      */
     public IdentityMetadataDO loadMetadata(String userName, int tenantId, String metadataType,
                                            String metadata) throws IdentityException {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
@@ -176,7 +176,6 @@ public class UserIdentityMetadataStore {
             prepStmt.setString(3, metadataType);
             prepStmt.setString(4, metadata);
             results = prepStmt.executeQuery();
-            IdentityDatabaseUtil.commitTransaction(connection);
             if (results.next()) {
                 return new IdentityMetadataDO(results.getString(1), results.getInt(2),
                         results.getString(3), results.getString(4),
@@ -187,7 +186,6 @@ public class UserIdentityMetadataStore {
             }
             return null;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -204,7 +202,7 @@ public class UserIdentityMetadataStore {
      */
     public IdentityMetadataDO[] loadMetadata(String userName, int tenantId)
             throws IdentityException {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
@@ -220,10 +218,8 @@ public class UserIdentityMetadataStore {
                         Boolean.parseBoolean(results.getString(5))));
             }
             IdentityMetadataDO[] resultMetadata = new IdentityMetadataDO[metada.size()];
-            IdentityDatabaseUtil.commitTransaction(connection);
             return metada.toArray(resultMetadata);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -243,7 +239,7 @@ public class UserIdentityMetadataStore {
      */
     public IdentityMetadataDO[] loadMetadata(String userName, int tenantId, String metadataType)
             throws IdentityException {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
@@ -258,10 +254,8 @@ public class UserIdentityMetadataStore {
                         Boolean.parseBoolean(results.getString(5))));
             }
             IdentityMetadataDO[] resultMetadata = new IdentityMetadataDO[metada.size()];
-            IdentityDatabaseUtil.commitTransaction(connection);
             return metada.toArray(resultMetadata);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
