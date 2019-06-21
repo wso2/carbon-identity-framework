@@ -69,10 +69,10 @@ public class SQLConstants {
 
     // Claim Properties SQLs
     public static final String GET_CLAIM_PROPERTIES = "SELECT PROPERTY_NAME, PROPERTY_VALUE FROM IDN_CLAIM_PROPERTY " +
-            "WHERE CLAIM_ID=? AND TENANT_ID=?";
-    public static final String ADD_CLAIM_PROPERTY = "INSERT INTO IDN_CLAIM_PROPERTY (CLAIM_ID, PROPERTY_NAME, " +
+            "WHERE LOCAL_CLAIM_ID=? AND TENANT_ID=?";
+    public static final String ADD_CLAIM_PROPERTY = "INSERT INTO IDN_CLAIM_PROPERTY (LOCAL_CLAIM_ID, PROPERTY_NAME, " +
             "PROPERTY_VALUE, TENANT_ID) VALUES (?, ?, ?, ?)";
-    public static final String DELETE_CLAIM_PROPERTY = "DELETE FROM IDN_CLAIM_PROPERTY WHERE CLAIM_ID=? AND " +
+    public static final String DELETE_CLAIM_PROPERTY = "DELETE FROM IDN_CLAIM_PROPERTY WHERE LOCAL_CLAIM_ID=? AND " +
             "TENANT_ID=?";
 
     // External Claim Mapping SQLs

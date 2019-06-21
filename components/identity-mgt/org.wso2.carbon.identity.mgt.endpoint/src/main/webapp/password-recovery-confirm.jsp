@@ -34,6 +34,9 @@
 <%
     String confirmationKey = request.getParameter("confirmation");
     String callback = request.getParameter("callback");
+    if (StringUtils.isBlank(callback)) {
+        callback = request.getParameter("redirect_uri");
+    }
     String tenantDomain = request.getParameter(IdentityManagementEndpointConstants.TENANT_DOMAIN);
     NotificationApi notificationApi = new NotificationApi();
     try {
@@ -49,12 +52,7 @@
         notificationApi.validateCodePostCall(validationRequest);
         
     } catch (ApiException e) {
-        Error error = new Gson().fromJson(e.getMessage(), Error.class);
-        request.setAttribute("error", true);
-        if (error != null) {
-            request.setAttribute("errorMsg", error.getDescription());
-            request.setAttribute("errorCode", error.getCode());
-        }
+        IdentityManagementEndpointUtil.addErrorInformation(request, e);
         request.getRequestDispatcher("error.jsp").forward(request, response);
         return;
     }

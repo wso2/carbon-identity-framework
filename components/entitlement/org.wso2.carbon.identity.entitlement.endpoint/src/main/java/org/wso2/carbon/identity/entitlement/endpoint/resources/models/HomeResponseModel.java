@@ -18,13 +18,13 @@
 
 package org.wso2.carbon.identity.entitlement.endpoint.resources.models;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import java.util.ArrayList;
-import java.util.List;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(propOrder = {
@@ -35,6 +35,7 @@ import java.util.List;
  */
 @XmlRootElement(name = "resources")
 public class HomeResponseModel {
+
     @XmlAttribute
     private String xmlns = "http://ietf.org/ns/home-documents";
 

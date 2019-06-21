@@ -72,7 +72,6 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ConditionalAuthMgtClient" %>
-<%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.DefaultAuthenticationSeqMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
@@ -294,9 +293,7 @@
         String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
         ConfigurationContext configContext = (ConfigurationContext) config.getServletContext()
                 .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-         DefaultAuthenticationSeqMgtServiceClient serviceClient = new DefaultAuthenticationSeqMgtServiceClient(cookie,
-                backendServerURL, configContext);
-         boolean isSeqExists = serviceClient.isExistingDefaultAuthenticationSequence();
+         boolean isSeqExists = false;
          if (isSeqExists) { %>
         CARBON.showConfirmationDialog('<%=resourceBundle.getString("alert.confirm.override.default.seq")%>', saveSeq,
             null);
@@ -585,10 +582,10 @@
                 <div style="clear:both"></div>
                 <div class="buttonRow" style=" margin-top: 10px;">
                     <input id="createApp" type="button" value="<fmt:message key='button.update.service.provider'/>"/>
-                    <input type="button"
-                           value="<fmt:message key='button.save.as.default.seq'/>"
-                           onclick="saveAsDefaultAuthSeq();"/>
-                    <input type="hidden" name="seqDesc" id="seqDesc"/>
+                    <input style="display: none"type="button"
+                                               value="<fmt:message key='button.save.as.default.seq'/>"
+                                               onclick="saveAsDefaultAuthSeq();"/>
+                                        <input type="hidden" name="seqDesc" id="seqDesc"/>
                     <input type="button" value="<fmt:message key='button.cancel'/>"
                            onclick="javascript:location.href='configure-service-provider.jsp?display=auth_config&spName=<%=Encode.forUriComponent(spName)%>'"/>
                 </div>
@@ -611,22 +608,22 @@
         </div>
     </div>
     <div id="add_default_AuthSeq" class="editor-error-warn-container" style="display: none">
-        <br/>
-        <br/>
-        <div class="sectionSub">
-            <table class="carbonFormTable">
-                <tr>
-                    <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.default.seq.desc'/>:
-                    </td>
-                    <td>
-                        <textarea style="width:50%" type="text" class="sequence-desc" name="sequence-desc"
-                                  id="sequence-desc" class="text-box-big"></textarea>
-                        <div class="sectionHelp"><fmt:message key='help.default.seq.desc'/></div>
-                    </td>
-                </tr>
-            </table>
+            <br/>
+            <br/>
+            <div class="sectionSub">
+                <table class="carbonFormTable">
+                    <tr>
+                        <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.default.seq.desc'/>:
+                        </td>
+                        <td>
+                            <textarea style="width:50%" type="text" class="sequence-desc" name="sequence-desc"
+                                      id="sequence-desc" class="text-box-big"></textarea>
+                            <div class="sectionHelp"><fmt:message key='help.default.seq.desc'/></div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
-    </div>
 </fmt:bundle>
 
 <script id="template-info" type="text/x-handlebars-template">

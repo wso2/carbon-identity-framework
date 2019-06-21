@@ -99,16 +99,17 @@ public class SQLQueries {
      */
     public static final String UPDATE_LAST_ACCESS_TIME = "UPDATE IDN_AUTH_SESSION_META_DATA SET VALUE=? WHERE " +
             "SESSION_ID =? AND PROPERTY_TYPE=?";
-
     /**
-     * Queries to delete session data.
+     * Query to delete session data.
      */
-    public static final String SQL_DELETE_TERMINATED_USER_SESSION_MAPPING_DATA =
+    public static final String SQL_DELETE_TERMINATED_SESSION_DATA =
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
+
 
     public static final String SQL_DELETE_TERMINATED_APP_SESSION_DATA =
             "DELETE FROM IDN_AUTH_APP_SESSION_STORE WHERE SESSION_ID = ?";
 
     public static final String SQL_DELETE_TERMINATED_SESSION_META_DATA =
             "DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID = ?";
+
 }

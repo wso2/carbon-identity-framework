@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.Property" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.ProvisioningConnectorConfig" %>
@@ -35,6 +36,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
@@ -137,6 +139,30 @@
     StringBuilder spTemplateNames = new StringBuilder();
     boolean isNeedToUpdate = false;
     boolean isAdvanceConsentManagementEnabled = false;
+
+    //adding code to support jwks URI
+    String jwksUri = null;
+    boolean hasJWKSUri = false;
+
+    // SP bound consent skip
+    boolean skipContent = false;
+
+    ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
+
+    if (spProperties != null) {
+        for (ServiceProviderProperty spProperty : spProperties) {
+            if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
+                hasJWKSUri = true;
+                jwksUri = spProperty.getValue();
+            } else if (ApplicationMgtUIConstants.SKIP_CONSENT.equals(spProperty.getName())) {
+                skipContent = Boolean.parseBoolean(spProperty.getValue());
+            }
+        }
+    }
+
+    if (jwksUri == null) {
+       jwksUri = "";
+    }
 
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
@@ -342,7 +368,6 @@
             .getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
         userStoreDomains = serviceClient.getUserStoreDomains();
-
         SpTemplate[] spTemplates = serviceClient.getAllApplicationTemplateInfo();
         if (spTemplates != null) {
             for (SpTemplate spTemplate : spTemplates) {
@@ -403,40 +428,57 @@
 
     function validateSPConfigurations() {
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
+            var isValied = true;
             $.each($('.spClaimVal'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.claim.config")%>');
                     return false;
                 }
             });
+            if (!isValied) {
+                return false;
+            }
         }
         // number_of_claim_mappings
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
 
         if ($('[name=app_permission]').length > 0) {
+            var isValied = true;
             $.each($('[name=app_permission]'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.permission.config")%>');
                     return false;
                 }
             });
+            if (!isValied) {
+                return false;
+            }
         }
         if ($('.roleMapIdp').length > 0) {
+            var isValied = true;
             $.each($('.roleMapIdp'), function () {
                 if ($(this).val().length == 0) {
+                    isValied = false;
                     CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
                     return false;
                 }
             });
-
-            if ($('.roleMapSp').length > 0) {
-                $.each($('.roleMapSp'), function () {
-                    if ($(this).val().length == 0) {
-                        CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
-                        return false;
-                    }
-                });
+            if (isValied) {
+                if ($('.roleMapSp').length > 0) {
+                    $.each($('.roleMapSp'), function () {
+                        if ($(this).val().length == 0) {
+                            isValied = false;
+                            CARBON.showWarningDialog('<%=resourceBundle.getString("alert.error.sp.template.role.config")%>');
+                            return false;
+                        }
+                    });
+                }
+            }
+            if (!isValied) {
+                return false;
             }
         }
         var numberOfPermissions = document.getElementById("permissionAddTable").rows.length;
@@ -444,6 +486,7 @@
 
         var numberOfRoleMappings = document.getElementById("roleMappingAddTable").rows.length;
         document.getElementById('number_of_rolemappings').value = numberOfRoleMappings;
+        return true;
     }
 
     function saveTemplate() {
@@ -509,7 +552,9 @@
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
         } else {
-            validateSPConfigurations();
+            if (!validateSPConfigurations()) {
+                return false;
+            }
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     spName + '?';
@@ -1205,6 +1250,41 @@
         }
     }
 
+    function selectJWKS(certDataNotNull) {
+        var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+        useJWKSUriStype.display = 'table-row';
+        var uploadCertType = document.getElementById('upload_certificate').style;
+        uploadCertType.display = 'none';
+        // delete certificates if jwks_uri is selected.
+        if (jQuery('#sp-certificate').val() != '') {
+            jQuery('#sp-certificate').val('');
+        } else if (certDataNotNull == 'true' && jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('true');
+        } else if (certDataNotNull == 'true' && !jQuery('#deletePublicCert').length) {
+            $(jQuery('#publicCertDiv')).toggle();
+            var publicCertDiv = document.getElementById('publicCertDiv').style;
+            publicCertDiv.display = 'none';
+            jQuery( '#publicCertDiv').empty();
+            var input = document.createElement('input');
+            input.type = "hidden";
+            input.name = "deletePublicCert";
+            input.id = "deletePublicCert";
+            input.value = "true";
+            document.forms['configure-sp-form'].appendChild(input);
+        }
+    }
+
+    function selectCertificate() {
+         var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
+         useJWKSUriStype.display = 'none';
+         var uploadCertType = document.getElementById('upload_certificate').style;
+         uploadCertType.display = 'table-row';
+         if (jQuery('#deletePublicCert').length) {
+            jQuery('#deletePublicCert').val('false');
+         }
+         $('#jwksUri').val("");
+    }
+
     function showManual() {
         $("#configure-sp-form").show();
     }
@@ -1247,7 +1327,7 @@
                             <td>
                                 <input style="width:50%" id="spName" name="spName" type="text"
                                        value="<%=Encode.forHtmlAttribute(spName)%>"
-                                       white-list-patterns="^[a-zA-Z0-9\s._-]*$" autofocus/>
+                                       white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.name'/>
                                 </div>
@@ -1263,7 +1343,26 @@
                                 </div>
                             </td>
                         </tr>
+
+                        <!-- Add radio button to select certificate or jwks end point fro sp -->
                         <tr>
+                            <td class="leftCol-med labelField"> Select SP Certificate Type </td>
+                                <td>
+                                    <label style="display:block">
+                                    <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
+                                     value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && appBean.getServiceProvider().getCertificateContent() == null)) { %>
+                                     checked="checked" <% } %> onclick="selectJWKS('<%=(appBean.getServiceProvider().getCertificateContent() != null)%>');" />
+                                    Use SP JWKS endpoint
+                                    </label>
+                                    <label style="display:block">
+                                    <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
+                                     <% if (appBean.getServiceProvider().getCertificateContent() != null) { %> checked="checked" <% } %>
+                                     value="choose_upload_certificate" onclick="selectCertificate()" />
+                                    Upload SP certificate
+                                    </label>
+                                </td>
+                        </tr>
+                        <tr id ="upload_certificate" <% if (appBean.getServiceProvider().getCertificateContent() == null) { %> style="display:none" <% } %>>
                             <td style="width:15%" class="leftCol-med labelField">Application Certificate:</td>
                             <td>
                             <textarea style="width:100%;height: 100px;" type="text" name="sp-certificate"
@@ -1337,6 +1436,17 @@
                                     </table>
                                     <% } %>
                                 </div>
+                            </td>
+                        </tr>
+                        <!--JWKS TEXT BOX-->
+                        <tr id="use_jwks_uri" <% if (appBean.getServiceProvider().getCertificateContent() != null) { %>
+                            style="display:none" <% } %>>
+                            <td style="width:15%" class="leftCol-med labelField">
+                            <fmt:message key="config.application.JWKS"/>
+                            </td>
+                            <td style="width:50%" class="leftCol-med labelField">
+                               <input style="width:50%" id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                autofocus required/>
                             </td>
                         </tr>
                         <tr>
@@ -2660,6 +2770,14 @@
                                                         key="config.application.enable.authorization"/></label>
                                                     </td>
                                                 </tr>
+                                                <tr>
+                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= skipContent ? "checked" : ""%> value="true"/>
+                                                    <label for="skipConsent"><fmt:message key="config.application.skip.consent"/></label>
+                                                    </br>
+                                                    <div class="sectionHelp">
+                                                        <fmt:message key='help.skip.consent'/>
+                                                    </div>
+                                                </tr>
                                             </table>
 
 
@@ -2912,9 +3030,9 @@
                                             <input type="button"
                                                    value="<fmt:message key='button.update.service.provider'/>"
                                                    onclick="createAppOnclick();"/>
-                                            <input type="button"
-                                                   value="<fmt:message key='button.save.service.provider.template'/>"
-                                                   onclick="saveAsTemplate();"/>
+                                                <input style="display: none" type="button"
+                                                       value="<fmt:message key='button.save.service.provider.template'/>"
+                                                       onclick="saveAsTemplate();"/>
                                             <input type="hidden" name="templateName" id="templateName"/>
                                             <input type="hidden" name="templateDesc" id="templateDesc"/>
                                             <input type="button" value="<fmt:message key='button.cancel'/>"

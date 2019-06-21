@@ -208,8 +208,7 @@
                             <%}%>
 
                             <%
-                                String callback = Encode.forHtmlAttribute
-                                        (request.getParameter("callback"));
+                                String callback = request.getParameter("callback");
 
                                 if (StringUtils.isBlank(callback)) {
                                     callback = IdentityManagementEndpointUtil.getUserPortalUrl(
@@ -219,7 +218,7 @@
                                 if (callback != null) {
                             %>
                             <div>
-                                <input type="hidden" name="callback" value="<%=callback %>"/>
+                                <input type="hidden" name="callback" value="<%=Encode.forHtmlAttribute(callback) %>"/>
                             </div>
                             <%
                                 }
@@ -238,7 +237,7 @@
                                 if (StringUtils.isNotEmpty(tenantDomain) && !error) {
                             %>
                             <div>
-                                <input type="hidden" name="tenantDomain" value="<%=tenantDomain %>"/>
+                                <input type="hidden" name="tenantDomain" value="<%=Encode.forHtmlAttribute(tenantDomain)%>"/>
                             </div>
                             <%
                             } else {
@@ -306,8 +305,7 @@
                                             <button id="recoveryCancel"
                                                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
                                                     type="button"
-                                                    onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getUserPortalUrl(
-                                                        application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))%>';">
+                                                    onclick="location.href='<%=Encode.forJavaScript(callback)%>';">
                                                 <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
                                             </button>
                                         </td>

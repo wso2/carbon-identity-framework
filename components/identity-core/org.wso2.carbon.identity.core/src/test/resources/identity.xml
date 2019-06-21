@@ -21,7 +21,7 @@
 
     <JDBCPersistenceManager>
         <DataSource>
-            <Name>jdbc/WSO2CarbonDB</Name>
+            <Name>jdbc/WSO2IdentityDB</Name>
         </DataSource>
         <SessionDataPersist>
             <Enable>true</Enable>
@@ -92,6 +92,7 @@
         <OAuth2DCREPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/identity/connect/register</OAuth2DCREPUrl>
         <OAuth2JWKSPage>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/jwks</OAuth2JWKSPage>
         <OIDCDiscoveryEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/oauth2/oidcdiscovery</OIDCDiscoveryEPUrl>
+
 
         <AuthorizationCodeDefaultValidityPeriod>300</AuthorizationCodeDefaultValidityPeriod>
         <AccessTokenDefaultValidityPeriod>3600</AccessTokenDefaultValidityPeriod>

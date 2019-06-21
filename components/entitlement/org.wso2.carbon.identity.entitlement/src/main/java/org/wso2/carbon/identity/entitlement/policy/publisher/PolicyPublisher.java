@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,7 +54,7 @@ public class PolicyPublisher {
     public static final String SUBSCRIBER_ID = "subscriberId";
     public static final String SUBSCRIBER_DISPLAY_NAME = "Subscriber Id";
     private static Log log = LogFactory.getLog(PolicyPublisher.class);
-    private static ExecutorService threadPool = Executors.newFixedThreadPool(2);
+
     /**
      * set of publisher modules
      */
@@ -144,7 +142,7 @@ public class PolicyPublisher {
         executor.setTenantId(CarbonContext.getThreadLocalCarbonContext().getTenantId());
         executor.setUserName(CarbonContext.getThreadLocalCarbonContext().getUsername());
 
-        threadPool.execute(executor);
+        executor.run();
     }
 
 

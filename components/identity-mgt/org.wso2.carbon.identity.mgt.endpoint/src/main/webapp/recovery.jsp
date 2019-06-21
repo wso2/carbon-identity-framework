@@ -44,10 +44,16 @@
     String confirmationKey = request.getParameter("confirmationKey");
     String callback = request.getParameter("callback");
     String tenantDomain = request.getParameter("tenantDomain");
+    boolean isUserPortalURL = false;
 
     if (StringUtils.isBlank(callback)) {
         callback = IdentityManagementEndpointUtil.getUserPortalUrl(
                 application.getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL));
+    }
+
+    if (callback.equals(IdentityManagementEndpointUtil.getUserPortalUrl(application
+            .getInitParameter(IdentityManagementEndpointConstants.ConfigConstants.USER_PORTAL_URL)))) {
+        isUserPortalURL = true;
     }
 
     // Password recovery parameters
@@ -61,13 +67,7 @@
         try {
             claims = usernameRecoveryApi.getClaimsForUsernameRecovery(null, true);
         } catch (ApiException e) {
-
-            Error error = new Gson().fromJson(e.getMessage(), Error.class);
-            request.setAttribute("error", true);
-            if (error != null) {
-                request.setAttribute("errorMsg", error.getDescription());
-                request.setAttribute("errorCode", error.getCode());
-            }
+            IdentityManagementEndpointUtil.addErrorInformation(request, e);
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
@@ -98,6 +98,8 @@
     
             usernameRecoveryApi.recoverUsernamePost(claimDTOList, tenantDomain, null, requestHeaders);
             request.setAttribute("callback", callback);
+            request.setAttribute("tenantDomain", tenantDomain);
+            request.setAttribute("isUserPortalURL", isUserPortalURL);
             request.getRequestDispatcher("username-recovery-complete.jsp").forward(request, response);
         } catch (ApiException e) {
             if (e.getCode() == 204) {
@@ -108,12 +110,7 @@
                 return;
             }
 
-            Error error = new Gson().fromJson(e.getMessage(), Error.class);
-            request.setAttribute("error", true);
-            if (error != null) {
-                request.setAttribute("errorMsg", error.getDescription());
-                request.setAttribute("errorCode", error.getCode());
-            }
+            IdentityManagementEndpointUtil.addErrorInformation(request, e);
             request.getRequestDispatcher("recoveraccountrouter.do").forward(request, response);
             return;
         }

@@ -20,8 +20,12 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.client;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 public class Configuration {
   private static ApiClient defaultApiClient;
+  private static final Log logger = LogFactory.getLog(Configuration.class);
 
   /**
    * Get the default API client, which would be used when creating API
@@ -31,6 +35,11 @@ public class Configuration {
     if (defaultApiClient == null) {
       defaultApiClient = new ApiClient();
     }
+
+    if (logger.isDebugEnabled()) {
+      defaultApiClient.setDebugging(true);
+    }
+
     return defaultApiClient;
   }
 

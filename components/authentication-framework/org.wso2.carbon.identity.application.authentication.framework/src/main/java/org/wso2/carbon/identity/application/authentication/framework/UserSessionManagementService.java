@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 
-import java.util.List;
-
 /**
  * Defines the session management service operations.
  */

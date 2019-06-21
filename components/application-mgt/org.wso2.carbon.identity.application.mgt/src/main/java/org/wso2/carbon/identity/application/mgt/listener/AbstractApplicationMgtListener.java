@@ -81,6 +81,101 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
         return true;
     }
 
+    /**
+     * Define any additional actions before getting all applications' basic information for matching filter.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @param filter
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information for matching filter.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param appDAO
+     * @param tenantDomain
+     * @param username
+     * @param filter
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                 String filter) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions before getting all applications' basic information with pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information with pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param appDAO
+     * @param tenantDomain
+     * @param username
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                          int pageNumber) throws IdentityApplicationManagementException {
+        return true;
+    }
+
+    /**
+     * Define any additional actions before getting all applications' basic information for matching filter with pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @param filter
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information for matching filter with pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param appDAO
+     * @param tenantDomain
+     * @param username
+     * @param filter
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username, int pageNumber,
+                                                 String filter) throws IdentityApplicationManagementException {
+        return true;
+    }
+
     @Override
     public boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
         return true;
@@ -88,20 +183,6 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
 
     @Override
     public boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
-        return true;
-    }
-
-    @Override
-    public boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter)
-            throws IdentityApplicationManagementException {
-
-        return true;
-    }
-
-    @Override
-    public boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
-                                                 String filter) throws IdentityApplicationManagementException {
-
         return true;
     }
 

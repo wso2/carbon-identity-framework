@@ -96,14 +96,20 @@ public class IdentityDatabaseUtil {
 
     }
 
+    @Deprecated
     public static void rollBack(Connection dbConnection) {
-        try {
-            if (dbConnection != null) {
-                dbConnection.rollback();
-            }
-        } catch (SQLException e1) {
-            log.error("An error occurred while rolling back transactions. ", e1);
-        }
+
+        rollbackTransaction(dbConnection);
+    }
+
+    public static void rollbackTransaction(Connection dbConnection) {
+
+        JDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);
+    }
+
+    public static void commitTransaction(Connection dbConnection) {
+
+        JDBCPersistenceManager.getInstance().commitTransaction(dbConnection);
     }
 
     /**
@@ -121,5 +127,4 @@ public class IdentityDatabaseUtil {
         }
         return connection;
     }
-
 }

@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -70,8 +70,7 @@ public final class SessionCleanUpService {
         public void run() {
 
             log.debug("Start running the Session Data cleanup task.");
-            if (Boolean.parseBoolean(IdentityUtil
-                    .getProperty(FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED))) {
+            if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                 UserSessionStore.getInstance().removeExpiredSessionRecords();
             }
 

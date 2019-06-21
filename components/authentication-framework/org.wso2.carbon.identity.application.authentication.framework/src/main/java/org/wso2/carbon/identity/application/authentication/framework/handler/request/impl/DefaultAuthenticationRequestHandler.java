@@ -307,12 +307,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
-            if (FrameworkUtils.getAuthCookie(request) != null) {
+            // Force authentication requires the creation of a new session. Therefore skip using the existing session
+            if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
 
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
 
                 if (commonAuthCookie != null) {
-                    sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
+                    sessionContextKey = DigestUtils.shaHex(commonAuthCookie);
                     sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
                 }
             }
@@ -349,6 +350,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             }
                         }
                     }
+                }
+
+                Long createdTime = (Long)sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+                if (createdTime != null) {
+                    authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTime);
                 }
 
                 // Authentication context properties received from newly authenticated IdPs
@@ -411,9 +417,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES));
                 }
                 String sessionKey = UUIDGenerator.generateUUID();
-                sessionContextKey = DigestUtils.sha256Hex(sessionKey);
+                sessionContextKey = DigestUtils.shaHex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
-                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, System.currentTimeMillis());
+                Long createdTimeMillis = System.currentTimeMillis();
+                sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -440,7 +448,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             }
             publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
-            if (isUserSessionMappingEnabled()) {
+            if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                 try {
                     storeSessionData(context, sessionContextKey);
                 } catch (UserSessionException e) {
@@ -564,18 +572,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         } catch (UserSessionException e) {
             throw new UserSessionException("Error while storing session meta data.", e);
         }
-    }
-
-    /**
-     * Method to check whether the SessionUserManager configuration is enabled.
-     *
-     * @return the boolean value of the enable decision
-     */
-    private boolean isUserSessionMappingEnabled() {
-
-        String sessionUserManagerConfig = IdentityUtil
-                .getProperty(FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED);
-        return Boolean.parseBoolean(sessionUserManagerConfig);
     }
 
     private String getApplicationTenantDomain(AuthenticationContext context) {

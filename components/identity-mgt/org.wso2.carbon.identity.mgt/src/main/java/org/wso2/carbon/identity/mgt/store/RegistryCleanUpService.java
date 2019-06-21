@@ -97,8 +97,11 @@ public class RegistryCleanUpService {
                     try {
                         registry = IdentityMgtServiceComponent.getRegistryService().
                             getConfigSystemRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-                        identityDataResource = (Collection) registry.get(CONFIRMATION_REGISTRY_RESOURCE_PATH);
-                        String[] identityResourcesPaths = identityDataResource.getChildren();
+                        String[] identityResourcesPaths = new String[0];
+                        if (registry.resourceExists(CONFIRMATION_REGISTRY_RESOURCE_PATH)) {
+                            identityDataResource = (Collection) registry.get(CONFIRMATION_REGISTRY_RESOURCE_PATH);
+                            identityResourcesPaths = identityDataResource.getChildren();
+                        }
                         for (int j = 0; j < identityResourcesPaths.length; j++) {
                             try {
                                 Resource currentResource = registry.get(identityResourcesPaths[j]);

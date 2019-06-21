@@ -72,7 +72,7 @@ public class AuthenticatedUser extends User {
             this.userAttributes.putAll(authenticatedUser.getUserAttributes());
         }
         this.isFederatedUser = authenticatedUser.isFederatedUser();
-        this.federatedIdPName=authenticatedUser.getFederatedIdPName();
+        this.federatedIdPName = authenticatedUser.getFederatedIdPName();
         if (!isFederatedUser && StringUtils.isNotEmpty(userStoreDomain) && StringUtils.isNotEmpty(tenantDomain)) {
             updateCaseSensitivity();
         }

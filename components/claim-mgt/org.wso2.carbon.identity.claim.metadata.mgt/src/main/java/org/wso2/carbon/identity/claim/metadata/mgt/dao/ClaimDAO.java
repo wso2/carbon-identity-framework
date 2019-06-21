@@ -122,8 +122,9 @@ public class ClaimDAO {
             prepStmt.setString(3, localClaimURI);
             prepStmt.setInt(4, tenantId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while deleting claim " + localClaimURI + " from dialect" +
                     claimDialectURI, e);
         } finally {

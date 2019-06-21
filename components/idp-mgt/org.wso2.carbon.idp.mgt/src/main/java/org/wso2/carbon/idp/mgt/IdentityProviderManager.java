@@ -24,8 +24,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -108,11 +106,7 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider getResidentIdP(String tenantDomain)
             throws IdentityProviderManagementException {
 
-        String tenantContext = "";
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            tenantContext = MultitenantConstants.TENANT_AWARE_URL_PREFIX + "/" + tenantDomain + "/";
-        }
+        IdPManagementUtil.setTenantSpecifiers(tenantDomain);
 
         String openIdUrl;
         String samlSSOUrl;
@@ -141,8 +135,6 @@ public class IdentityProviderManager implements IdpManager {
         String scim2GroupsEndpoint;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
-        samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
-        samlLogoutUrl = samlSSOUrl;
         samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
         samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
@@ -171,13 +163,12 @@ public class IdentityProviderManager implements IdpManager {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
         }
 
-        if (StringUtils.isBlank(samlSSOUrl)) {
-            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
-        }
+        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
+                + IdPManagementUtil.getTenantParameter();
 
-        if (StringUtils.isBlank(samlLogoutUrl)) {
-            samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
-        }
+        samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
+                + IdPManagementUtil.getTenantParameter();
+
         if (StringUtils.isBlank(samlArtifactUrl)) {
             samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
@@ -274,11 +265,11 @@ public class IdentityProviderManager implements IdpManager {
 
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
-            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, tenantContext +
+            stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
                     IdentityConstants.STS.WSO2_CARBON_STS);
         } else {
-            stsUrl = IdentityUtil.getServerURL("services/" + tenantContext + IdentityConstants.STS.WSO2_CARBON_STS,
-                    true, true);
+            stsUrl = IdentityUtil.getServerURL("services/" + IdPManagementUtil.getTenantContext() +
+                            IdentityConstants.STS.WSO2_CARBON_STS, true, true);
         }
 
         if (StringUtils.isBlank(scimUsersEndpoint)) {
@@ -399,9 +390,9 @@ public class IdentityProviderManager implements IdpManager {
         if (samlSSOUrlProperty == null) {
             samlSSOUrlProperty = new Property();
             samlSSOUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
+            // Set the generated saml sso endpoint value.
+            samlSSOUrlProperty.setValue(samlSSOUrl);
         }
-        // Set the generated saml sso endpoint value.
-        samlSSOUrlProperty.setValue(samlSSOUrl);
         propertiesList.add(samlSSOUrlProperty);
 
         Property samlLogoutUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
@@ -409,9 +400,9 @@ public class IdentityProviderManager implements IdpManager {
         if (samlLogoutUrlProperty == null) {
             samlLogoutUrlProperty = new Property();
             samlLogoutUrlProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
+            // Set the generated saml slo endpoint value.
+            samlLogoutUrlProperty.setValue(samlLogoutUrl);
         }
-        // Set the generated saml slo endpoint value.
-        samlLogoutUrlProperty.setValue(samlLogoutUrl);
         propertiesList.add(samlLogoutUrlProperty);
 
         Property samlECPUrlProperty = IdentityApplicationManagementUtil.getProperty(saml2SSOFedAuthn.getProperties(),
@@ -1703,33 +1694,9 @@ public class IdentityProviderManager implements IdpManager {
                     .getIdentityProviderName() + "exists in the file system.");
         }
 
-        PermissionsAndRoleConfig roleConfiguration = identityProvider.getPermissionAndRoleConfig();
-
-        if (roleConfiguration != null && roleConfiguration.getRoleMappings() != null) {
-            for (RoleMapping mapping : roleConfiguration.getRoleMappings()) {
-                UserStoreManager usm = null;
-                try {
-                    usm = IdPManagementServiceComponent.getRealmService()
-                            .getTenantUserRealm(tenantId).getUserStoreManager();
-                    String role = null;
-                    if (mapping.getLocalRole().getUserStoreId() != null) {
-                        role = mapping.getLocalRole().getUserStoreId()
-                                + CarbonConstants.DOMAIN_SEPARATOR
-                                + mapping.getLocalRole().getLocalRoleName();
-                    }
-                    if (usm.isExistingRole(role)) {
-                        // perfect
-                    } else {
-                        String msg = "Cannot find tenant role " + role + " for tenant "
-                                + tenantDomain;
-                        throw new IdentityProviderManagementException(msg);
-                    }
-                } catch (UserStoreException e) {
-                    String msg = "Error occurred while retrieving UserStoreManager for tenant "
-                            + tenantDomain;
-                    throw new IdentityProviderManagementException(msg, e);
-                }
-            }
+        if (identityProvider.getPermissionAndRoleConfig() != null
+                && identityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
+            verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, identityProvider.getPermissionAndRoleConfig());
         }
 
         if (IdentityProviderManager.getInstance().getIdPByName(
@@ -1763,7 +1730,6 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
     }
-
 
     /**
      * Deletes an Identity Provider from a given tenant
@@ -1870,33 +1836,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (newIdentityProvider.getPermissionAndRoleConfig() != null
                 && newIdentityProvider.getPermissionAndRoleConfig().getRoleMappings() != null) {
-            for (RoleMapping mapping : newIdentityProvider.getPermissionAndRoleConfig()
-                    .getRoleMappings()) {
-                UserStoreManager usm = null;
-                try {
-                    usm = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                            .getUserStoreManager();
-                    String role = null;
-                    if (mapping.getLocalRole().getUserStoreId() != null) {
-                        role = mapping.getLocalRole().getUserStoreId()
-                                + CarbonConstants.DOMAIN_SEPARATOR
-                                + mapping.getLocalRole().getLocalRoleName();
-                    } else {
-                        role = mapping.getLocalRole().getLocalRoleName();
-                    }
-                    if (usm.isExistingRole(role)) {
-                        // perfect
-                    } else {
-                        String msg = "Cannot find tenant role " + role + " for tenant "
-                                + tenantDomain;
-                        throw new IdentityProviderManagementException(msg);
-                    }
-                } catch (UserStoreException e) {
-                    String msg = "Error occurred while retrieving UserStoreManager for tenant "
-                            + tenantDomain;
-                    throw new IdentityProviderManagementException(msg, e);
-                }
-            }
+            verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, newIdentityProvider.getPermissionAndRoleConfig());
         }
 
 
@@ -2101,16 +2041,6 @@ public class IdentityProviderManager implements IdpManager {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
 
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator
-                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
-
-        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);;
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator
-                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL, samlLogoutUrl);
-
         String passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator.PassiveSTS.NAME, IdentityApplicationConstants
@@ -2158,4 +2088,42 @@ public class IdentityProviderManager implements IdpManager {
         return uriModified.toString();
     }
 
+    private void verifyAndUpdateRoleConfiguration(String tenantDomain, int tenantId,
+            PermissionsAndRoleConfig roleConfiguration) throws IdentityProviderManagementException {
+
+        List<RoleMapping> validRoleMappings = new ArrayList<>();
+        List<String> validIdPRoles = new ArrayList<>();
+
+        for (RoleMapping mapping : roleConfiguration.getRoleMappings()) {
+            try {
+                if (mapping.getRemoteRole() == null || mapping.getLocalRole() == null || StringUtils
+                        .isBlank(mapping.getLocalRole().getLocalRoleName())) {
+                    continue;
+                }
+
+                UserStoreManager usm = IdPManagementServiceComponent.getRealmService().getTenantUserRealm(tenantId)
+                        .getUserStoreManager();
+                String role = mapping.getLocalRole().getLocalRoleName();
+                if (StringUtils.isNotBlank(mapping.getLocalRole().getUserStoreId())) {
+                    role = IdentityUtil.addDomainToName(role, mapping.getLocalRole().getUserStoreId());
+                }
+                // Remove invalid mappings if local role does not exists.
+                if (usm.isExistingRole(role)) {
+                    validRoleMappings.add(mapping);
+                    validIdPRoles.add(mapping.getRemoteRole());
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Invalid local role name: " + role + " for the federated role: " + mapping
+                                .getRemoteRole());
+                    }
+                }
+            } catch (UserStoreException e) {
+                throw new IdentityProviderManagementException(
+                        "Error occurred while retrieving UserStoreManager for tenant " + tenantDomain, e);
+            }
+        }
+
+        roleConfiguration.setRoleMappings(validRoleMappings.toArray(new RoleMapping[0]));
+        roleConfiguration.setIdpRoles(validIdPRoles.toArray(new String[0]));
+    }
 }

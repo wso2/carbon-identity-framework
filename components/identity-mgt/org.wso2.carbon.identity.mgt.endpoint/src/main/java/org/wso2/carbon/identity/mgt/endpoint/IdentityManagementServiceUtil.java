@@ -25,16 +25,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.mgt.endpoint.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +41,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -185,34 +184,13 @@ public class IdentityManagementServiceUtil {
     private static void resolveSecrets(Properties properties) {
 
         SecretResolver secretResolver = SecretResolverFactory.create(properties);
-        Enumeration propertyNames = properties.propertyNames();
-        if (secretResolver != null && secretResolver.isInitialized()) {
-            // Iterate through config file, find encrypted properties and resolve them
-            while (propertyNames.hasMoreElements()) {
-                String key = (String) propertyNames.nextElement();
-                if (StringUtils
-                        .startsWith(properties.getProperty(key), IdentityManagementEndpointConstants.SECRET_ALIAS)) {
-                    String secretAlias = properties.getProperty(key)
-                                                   .split(IdentityManagementEndpointConstants.SECRET_ALIAS_SEPARATOR,
-                                                          2)[1];
-                    if (secretResolver.isTokenProtected(secretAlias)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Resolving and replacing secret for " + secretAlias);
-                        }
-                        // Resolving the secret password.
-                        String value = secretResolver.resolve(secretAlias);
-                        // Replaces the original encrypted property with resolved property
-                        properties.put(key, value);
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("No encryption done for value with key :" + key);
-                        }
-                    }
-                }
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            String key = entry.getKey().toString();
+            String value = entry.getValue().toString();
+            if (value != null) {
+                value = MiscellaneousUtil.resolve(value, secretResolver);
             }
-        } else {
-            log.warn("Secret Resolver is not present. Failed to resolve encryption in " +
-                     IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME + " file");
+            properties.put(key, value);
         }
     }
 

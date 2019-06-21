@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.ui.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.mgt.ui.ApplicationBean;
 
 import java.util.HashMap;
@@ -25,9 +26,13 @@ import java.util.Map;
 import java.util.UUID;
 import javax.servlet.http.HttpSession;
 
+import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_FILTER;
+
 public class ApplicationMgtUIUtil {
 
     private static final String SP_UNIQUE_ID_MAP = "spUniqueIdMap";
+    public static final String JWKS_URI = "jwksURI";
+    public static final String JWKS_DISPLAYNAME = "JWKS Endpoint";
 
     /**
      * Get related application bean from the session.
@@ -74,6 +79,36 @@ public class ApplicationMgtUIUtil {
         }
         session.removeAttribute(spUniqueIdMap.get(spName).toString());
         spUniqueIdMap.remove(spName);
+    }
+
+    /**
+     * Resolves the filter string for search the application.
+     *
+     * @param filterString String to resolve.
+     * @return filterString, If the filterString is null then use the default filter.
+     */
+    public static String resolveFilterString(String filterString){
+
+        if (!StringUtils.isNotBlank(filterString)) {
+            return DEFAULT_FILTER;
+        } else {
+            return filterString.trim();
+        }
+    }
+
+    /**
+     * Resolves the pagination value.
+     *
+     * @param filterString String to resolve.
+     * @return paginationValue.
+     */
+    public static String resolvePaginationValue(String filterString, String region, String item){
+
+        if (filterString != null) {
+            return String.format(ApplicationMgtUIConstants.PAGINATION_VALUE_WITH_FILTER, region, item, filterString);
+        } else {
+            return String.format(ApplicationMgtUIConstants.PAGINATION_VALUE, region, item);
+        }
     }
 
     // Will be supported with 'Advance Consent Management Feature'.

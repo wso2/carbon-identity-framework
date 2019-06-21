@@ -75,6 +75,8 @@ public class EmailConfigTransformer {
                 template.setDisplayName("Password Expires");
             } else if (IdentityMgtConstants.Notification.PASSWORD_EXPIRED.equals(key)) {
                 template.setDisplayName("Password Expired");
+            } else if (IdentityMgtConstants.Notification.RESEND_NOTIFICATION.equals(key)) {
+                template.setDisplayName("Resend Notification");
             } else {
                 // Ignore all other keys in the registry mount.
                 continue;

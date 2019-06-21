@@ -36,6 +36,7 @@ import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
+import org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
 import org.wso2.carbon.user.mgt.listeners.UserManagementAuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserMgtAuditLogger;
@@ -150,6 +151,18 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("DefaultUserDeletionEventRecorder successfully registered.");
+                }
+            }
+
+            UserClaimsAuditLogger userClaimsAuditLogger = new UserClaimsAuditLogger();
+            userClaimsAuditLogger.init();
+            ServiceRegistration userClaimsAuditLoggerSR = ctxt.getBundleContext().registerService
+                    (UserOperationEventListener.class.getName(), userClaimsAuditLogger, null);
+            if (userClaimsAuditLoggerSR == null) {
+                log.error("Error while registering UserClaimsAuditLogger.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserClaimsAuditLogger successfully registered.");
                 }
             }
         } catch (Throwable e) {

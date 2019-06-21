@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,6 +38,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import javax.net.ssl.HostnameVerifier;
@@ -104,7 +106,9 @@ public class MutualSSLManager {
                 try (InputStream inputStream = new FileInputStream(configFile)) {
 
                     prop.load(inputStream);
-                    if (isSecuredPropertyAvailable(prop)) {
+                    //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
+                    // feature is enabled.
+                    if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
                         // Resolve encrypted properties with secure vault
                         resolveSecrets(prop);
                     }
@@ -126,40 +130,57 @@ public class MutualSSLManager {
                 }
             }
 
-            usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
-            carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
+            //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
+            // feature is enabled.
+            if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
+                usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
+                carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
 
-            // Base64 encoded username
-            carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
+                // Base64 encoded username
+                carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
 
-            String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
-            String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
-                    .CLIENT_TRUST_STORE));
+                String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
+                String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
+                        .CLIENT_TRUST_STORE));
 
-            if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
-                TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
-                        .TLS_PROTOCOL));
+                if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
+                    TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
+                            .TLS_PROTOCOL));
+                }
+
+                if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
+                    TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
+                            .KEY_MANAGER_TYPE));
+                }
+                if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
+                    TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
+                            .TRUST_MANAGER_TYPE));
+                }
+
+                loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
+                        .CLIENT_KEY_STORE_PASSWORD));
+                loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
+                        .CLIENT_TRUST_STORE_PASSWORD));
+                initMutualSSLConnection(Boolean.parseBoolean(
+                        getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
             }
-
-            if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
-                TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
-                        .KEY_MANAGER_TYPE));
-            }
-            if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
-                TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
-                        .TRUST_MANAGER_TYPE));
-            }
-
-            loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
-                    .CLIENT_KEY_STORE_PASSWORD));
-            loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
-                    .CLIENT_TRUST_STORE_PASSWORD));
-            initMutualSSLConnection(Boolean.parseBoolean(
-                    getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
-
         } catch (AuthenticationException | IOException e) {
             log.error("Initialization failed : ", e);
         }
+    }
+
+    /**
+     * Get status of the mutualSSLManagerEnabled feature.
+     *
+     * @return availability of mutualSSLManagerEnabled feature.
+     */
+    private static boolean isMutualSSLManagerEnabled(String mutualSSLManagerEnabled) {
+
+        boolean isMutualSSLManagerEnabled = true;
+        if (StringUtils.isNotEmpty(mutualSSLManagerEnabled)) {
+            isMutualSSLManagerEnabled = Boolean.parseBoolean(mutualSSLManagerEnabled);
+        }
+        return isMutualSSLManagerEnabled;
     }
 
     /**
@@ -205,28 +226,35 @@ public class MutualSSLManager {
      */
     private static void resolveSecrets(Properties properties) {
 
-        String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
-
-        if (StringUtils.isNotBlank(protectedTokens)) {
-            String secretProvider = (String) properties.get(SECRET_PROVIDER);
-            SecretResolver secretResolver;
-
-            if (StringUtils.isBlank(secretProvider)) {
-                properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
+                }
+                properties.put(key, value);
             }
-
-            secretResolver = SecretResolverFactory.create(properties, "");
+        }
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        if (isSecuredPropertyAvailable(properties)) {
+            SecretResolver resolver = SecretResolverFactory.create(properties, "");
+            String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
             StringTokenizer st = new StringTokenizer(protectedTokens, ",");
-
             while (st.hasMoreElements()) {
                 String element = st.nextElement().toString().trim();
 
-                if (secretResolver.isTokenProtected(element)) {
+                if (resolver.isTokenProtected(element)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Resolving and replacing secret for " + element);
                     }
                     // Replaces the original encrypted property with resolved property
-                    properties.put(element, secretResolver.resolve(element));
+                    properties.put(element, resolver.resolve(element));
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No encryption done for value with key :" + element);

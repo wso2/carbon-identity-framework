@@ -23,6 +23,7 @@ import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
@@ -45,9 +46,8 @@ public class ReCaptchaApi {
     private static final String RECOVERY_TYPE = "recovery-type";
     private final String[] localVarAccepts = {"application/json"};
     private final String[] localVarContentTypes = {"application/json"};
-    private String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/recovery/v0.9");
+    private String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
+            .UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
     private ApiClient apiClient;
 
     public ReCaptchaApi() {
@@ -74,9 +74,8 @@ public class ReCaptchaApi {
         }
 
         if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         }
 
         apiClient.setBasePath(basePath);

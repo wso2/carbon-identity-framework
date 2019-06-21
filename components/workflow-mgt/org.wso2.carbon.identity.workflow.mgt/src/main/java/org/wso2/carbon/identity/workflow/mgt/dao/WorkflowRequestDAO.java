@@ -69,8 +69,9 @@ public class WorkflowRequestDAO {
             prepStmt.setString(7, WorkflowRequestStatus.PENDING.toString());
             prepStmt.setInt(8, tenantId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (IOException e) {
             throw new InternalWorkflowException("Error when serializing the workflow request: " + workflow, e);
@@ -111,11 +112,13 @@ public class WorkflowRequestDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             rs = prepStmt.executeQuery();
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (rs.next()) {
                 byte[] requestBytes = rs.getBytes(SQLConstants.REQUEST_COLUMN);
                 return deserializeWorkflowRequest(requestBytes);
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing the workflow request. uuid = " + uuid, e);
@@ -142,11 +145,13 @@ public class WorkflowRequestDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             resultSet = prepStmt.executeQuery();
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (resultSet.next()) {
                 String status = resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN);
                 return status;
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -171,10 +176,12 @@ public class WorkflowRequestDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             resultSet = prepStmt.executeQuery();
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (resultSet.next()) {
                 return resultSet.getString(SQLConstants.CREATED_BY_COLUMN);
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -219,8 +226,9 @@ public class WorkflowRequestDAO {
             prepStmt.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
             prepStmt.setString(3, requestId);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -267,8 +275,10 @@ public class WorkflowRequestDAO {
             for (int i = 0; i < requestDTOs.size(); i++) {
                 requestArray[i] = requestDTOs.get(i);
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
@@ -432,8 +442,10 @@ public class WorkflowRequestDAO {
             for (int i = 0; i < requestDTOs.size(); i++) {
                 requestArray[i] = requestDTOs.get(i);
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
@@ -595,8 +607,10 @@ public class WorkflowRequestDAO {
             for (int i = 0; i < requestDTOs.size(); i++) {
                 requestArray[i] = requestDTOs.get(i);
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return requestArray;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } catch (ClassNotFoundException | IOException e) {
             throw new InternalWorkflowException("Error when deserializing a workflow request.", e);
@@ -621,8 +635,9 @@ public class WorkflowRequestDAO {
             prepStmt.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
             prepStmt.setString(2, requestId);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

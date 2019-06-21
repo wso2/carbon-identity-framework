@@ -203,7 +203,8 @@ public class RecoveryProcessor {
 
             String notification = recoveryDTO.getNotification().trim();
             notificationData.setNotification(notification);
-            if (IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY.equals(notification)) {
+            if (IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY.equals(notification) ||
+                    IdentityMgtConstants.Notification.RESEND_NOTIFICATION.equals(notification)) {
                 internalCode = generateUserCode(2, userId);
                 try {
                     confirmationKey = getUserExternalCodeStr(internalCode);
@@ -212,7 +213,7 @@ public class RecoveryProcessor {
                 }
                 secretKey = UUIDGenerator.generateUUID();
                 emailNotificationData.setTagData(CONFIRMATION_CODE, confirmationKey);
-                emailTemplate = config.getProperty(IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY);
+                emailTemplate = config.getProperty(notification);
 
             } else if (IdentityMgtConstants.Notification.ACCOUNT_CONFORM.equals(notification)) {
                 confirmationKey = UUIDGenerator.generateUUID();

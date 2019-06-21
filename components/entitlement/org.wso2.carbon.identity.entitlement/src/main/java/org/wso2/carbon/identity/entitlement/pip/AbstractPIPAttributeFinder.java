@@ -147,6 +147,9 @@ public abstract class AbstractPIPAttributeFinder implements PIPAttributeFinder {
                   (actionId != null ? actionId : "");
 
             attributeValues = abstractAttributeFinderCache.getFromCache(tenantId, key);
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving attributes from cache, tenantId: " + tenantId + ", key: " + key);
+            }
         }
 
         if (attributeValues == null) {

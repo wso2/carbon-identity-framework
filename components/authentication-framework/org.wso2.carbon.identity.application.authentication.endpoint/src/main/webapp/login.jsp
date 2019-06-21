@@ -44,6 +44,7 @@
     private static final String IDENTIFIER_EXECUTOR = "IdentifierExecutor";
     private static final String OPEN_ID_AUTHENTICATOR = "OpenIDAuthenticator";
     private static final String JWT_BASIC_AUTHENTICATOR = "JWTBasicAuthenticator";
+    private static final String X509_CERTIFICATE_AUTHENTICATOR = "x509CertificateAuthenticator";
 %>
 
     <%
@@ -131,7 +132,7 @@
             if (reCaptchaEnabled) {
         %>
         <script src='<%=
-        (request.getParameter("reCaptchaAPI"))%>'></script>
+        (Encode.forJavaScriptSource(request.getParameter("reCaptchaAPI")))%>'></script>
         <%
             }
         %>
@@ -146,7 +147,8 @@
                         if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
                             window.location.href = data.redirectUrl;
                         }
-                    }
+                    },
+                    cache: false
                 });
             }
 
@@ -340,6 +342,21 @@
                                 </div>
                                 <%
                                     }
+                                    if (localAuthenticatorNames.contains(X509_CERTIFICATE_AUTHENTICATOR)) {
+                                %>
+                                <div>
+                                    <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                forUriComponent(idpEntry.getKey()))%>',
+                                            'x509CertificateAuthenticator')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
+                                        <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
+                                             data-placement="top" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                       "sign.in.with")%> X509 Certificate"/>
+                                    </a>
+                                    <label for="icon-<%=iconId%>">x509CertificateAuthenticator</label>
+
+                                </div>
+                                <%
+                                    }
                                     if (localAuthenticatorNames.contains(FIDO_AUTHENTICATOR)) {
                                 %>
                                 <div>
@@ -459,7 +476,7 @@
         function handleNoDomain(key, value) {
             <%
                 String multiOptionURIParam = "";
-                if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping.size() > 1) {
+                if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping != null && idpAuthenticatorMapping.size() > 1) {
                     multiOptionURIParam = "&multiOptionURI=" + Encode.forUriComponent(request.getRequestURI() +
                         (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
                 }
