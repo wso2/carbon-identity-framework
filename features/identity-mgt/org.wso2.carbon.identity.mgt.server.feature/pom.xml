@@ -38,7 +38,7 @@
             <artifactId>org.wso2.carbon.identity.mgt</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.captcha.mgt</artifactId>
         </dependency>
         <dependency>
@@ -129,7 +129,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.captcha.mgt</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.captcha.mgt</bundleDef>
                                 <bundleDef>kaptcha.wso2:kaptcha</bundleDef>
                             </bundles>
                             <importFeatures>
