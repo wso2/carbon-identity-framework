@@ -1054,8 +1054,8 @@
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
         </Resource>
-
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/fido/v1.0/(.*)" secured="true" http-method="all"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -1078,6 +1078,7 @@
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
             <Context>/api/identity/oauth2/v1.0/</Context>
+            <Context>/api/identity/fido/v1.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>

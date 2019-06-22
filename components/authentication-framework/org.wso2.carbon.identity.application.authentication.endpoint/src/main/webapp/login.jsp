@@ -38,6 +38,7 @@
 
 <%!
     private static final String FIDO_AUTHENTICATOR = "FIDOAuthenticator";
+    private static final String FIDO2_AUTHENTICATOR = "FIDO2Authenticator";
     private static final String IWA_AUTHENTICATOR = "IwaNTLMAuthenticator";
     private static final String IS_SAAS_APP = "isSaaSApp";
     private static final String BASIC_AUTHENTICATOR = "BasicAuthenticator";
@@ -368,6 +369,21 @@
                                                        "sign.in.with")%> FIDO"/>
                                 </a>
                                 <label for="icon-<%=iconId%>">FIDO</label>
+
+                                </div>
+                                <%
+                                    }
+                                    if (localAuthenticatorNames.contains(FIDO2_AUTHENTICATOR)) {
+                                %>
+                                <div>
+                                    <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                forUriComponent(idpEntry.getKey()))%>',
+                                            'FIDO2Authenticator')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
+                                        <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
+                                             data-placement="top" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle,
+                                                       "sign.in.with")%> FIDO2"/>
+                                    </a>
+                                    <label for="icon-<%=iconId%>">FIDO</label>
 
                                 </div>
                                 <%
