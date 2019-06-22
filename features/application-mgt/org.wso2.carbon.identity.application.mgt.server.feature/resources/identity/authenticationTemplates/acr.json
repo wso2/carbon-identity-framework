@@ -13,7 +13,8 @@
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator",
     "Step 2": "TOTP authenticator",
-    "Step 3": "FIDO authenticator"
+    "Step 3": "FIDO authenticator",
+    "Step 4": "FIDO2 authenticator"
   },
   "authenticationSteps":3,
   "defaultAuthenticators": {
@@ -32,6 +33,12 @@
     "3": {
       "local": [
         "FIDOAuthenticator"
+      ],
+      "federated": []
+    },
+    "4": {
+      "local": [
+        "FIDO2Authenticator"
       ],
       "federated": []
     }

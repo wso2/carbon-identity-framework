@@ -63,6 +63,7 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String OAUTH2 = "oauth2";
     private static final String OIDC = "oidc";
     private static final String FIDO = "fido";
+    private static final String FIDO2 = "fido2";
 
     private static final String URI_LOGIN = "login.do";
     private static final String URI_SAMLSSO_LOGIN = "samlsso_login.do";
@@ -173,6 +174,8 @@ public class AuthenticationEndpointFilter implements Filter {
                 loadPage = URI_OAUTH2_LOGIN;
             } else if (FIDO.equals(protocolType)) {
                 loadPage = "fido-auth.jsp";
+            } else if (FIDO2.equals(protocolType)) {
+                loadPage = "fido2-auth.jsp";
             } else {
                 loadPage = "login.jsp";
             }
