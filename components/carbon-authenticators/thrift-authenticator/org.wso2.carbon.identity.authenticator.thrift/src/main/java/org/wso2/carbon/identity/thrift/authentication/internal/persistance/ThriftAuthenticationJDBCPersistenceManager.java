@@ -110,7 +110,8 @@ public class ThriftAuthenticationJDBCPersistenceManager {
      * @throws AuthenticationException
      * @Deprecated The getDBConnection should handle both transaction and non-transaction connection. Earlier it
      * handle only the transactionConnection. Therefore this method was deprecated and changed as handle both
-     * transaction and non-transaction connection.
+     * transaction and non-transaction connection. getDBConnection(boolean shouldApplyTransaction) method used as
+     * alternative of this method.
      */
     @Deprecated
     public Connection getDBConnection() throws AuthenticationException {
