@@ -383,7 +383,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             authenticationContextProperties);
                 }
 
-                if (isUserSessionMappingEnabled()) {
+                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
                         UserSessionStore.getInstance().updateLastAccessTime(sessionContextKey,
                                 Long.toString(updatedSessionTime));
@@ -434,7 +434,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
 
-                if (isUserSessionMappingEnabled()) {
+                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
                         storeSessionMetaData(sessionContextKey, request);
                     } catch (UserSessionException e) {

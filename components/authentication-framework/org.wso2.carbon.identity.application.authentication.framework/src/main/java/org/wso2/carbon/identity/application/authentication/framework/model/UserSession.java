@@ -1,37 +1,15 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
-public class UserSessionData {
+public class UserSession {
 
-    public UserSessionData(){}
+    public UserSession(){}
 
-
-    public UserSessionData(String appId,String subject){
-        this.appId=appId;
-        this.subject=subject;
-    }
-
-    private String subject;
-    private String appId;
+    private String sessionId;
     private String userAgent;
     private String ip;
     private String loginTime;
     private String lastAccessTime;
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getAppId() {
-        return appId;
-    }
-
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
+    private Application[] applications;
 
     public String getUserAgent() {
         return userAgent;
@@ -63,5 +41,21 @@ public class UserSessionData {
 
     public void setLastAccessTime(String lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
+    }
+
+    public Application[] getApplications() {
+        return applications;
+    }
+
+    public void setApplications(Application[] applications) {
+        this.applications = applications;
+    }
+
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 }

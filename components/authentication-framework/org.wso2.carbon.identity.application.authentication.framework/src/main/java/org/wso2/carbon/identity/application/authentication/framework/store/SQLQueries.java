@@ -112,4 +112,36 @@ public class SQLQueries {
     public static final String SQL_DELETE_TERMINATED_SESSION_META_DATA =
             "DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID = ?";
 
+    /**
+     *  Query to retrieve userName and appName.
+     */
+    public static final String GET_APPLICATION = "SELECT SUBJECT, APP_NAME FROM IDN_" +
+            "AUTH_APP_SESSION_STORE SESSION_STORE , SP_APP APP where SESSION_STORE." +
+            "APP_ID = APP.ID AND SESSION_ID = ?";
+
+    /**
+     *  Query to retrieve userAgent.
+     */
+    public static final String GET_USER_AGENT = "SELECT VALUE  FROM IDN_AUTH_SESSION_META" +
+            "_DATA WHERE PROPERTY_TYPE = 'User Agent' AND SESSION_ID = ?";
+
+    /**
+     * Query to retrieve IP.
+     */
+    public static final String GET_IP = "SELECT VALUE  FROM IDN_AUTH_SESSION_META_DATA" +
+            " WHERE PROPERTY_TYPE ='IP' AND SESSION_ID = ?";
+
+    /**
+     * Query to retrieve loginTIme.
+     */
+    public static final String GET_LOGIN_TIME = "SELECT VALUE  FROM IDN_AUTH_SESSION_META_" +
+            "DATA WHERE PROPERTY_TYPE = 'Login Time' AND SESSION_ID = ?";
+
+    /**
+     *  Query to retrieve lastAccessTime.
+     */
+    public static final String GET_LAST_ACCESS_TIME = "SELECT VALUE  FROM IDN_AUTH_" +
+            "SESSION_META_DATA WHERE PROPERTY_TYPE = 'Last Access Time' AND SESSION_ID = ?";
+
+
 }

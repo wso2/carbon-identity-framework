@@ -19,6 +19,10 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
+        .SessionManagementServerException;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 
 /**
  * Defines the session management service operations.
@@ -36,21 +40,9 @@ public interface UserSessionManagementService {
     void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
             UserSessionException;
 
-    /**
-     * This method is used to terminate all the active sessions of a given user.
-     *
-     * @param sessionIdList         name of the user
-     * @return
-     * @throws UserSessionException
-     */
-    boolean terminateSession(List<String> sessionIdList) throws UserSessionException;
+    UserSession[] getSessionsByUserId(String userId) throws SessionManagementServerException;
 
-    /**
-     *
-     * @param sessionId
-     * @return
-     * @throws UserSessionException
-     */
-    boolean terminateASession(String sessionId) throws UserSessionException;
+    boolean terminateSessionsByUserId(String userId) throws SessionManagementServerException;
 
+    boolean terminateSessionBySessionId(String sessionId);
 }
