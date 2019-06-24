@@ -312,7 +312,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
 
                 if (commonAuthCookie != null) {
-                    sessionContextKey = DigestUtils.shaHex(commonAuthCookie);
+                    sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
                     sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
                 }
             }
@@ -407,7 +407,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES));
                 }
                 String sessionKey = UUIDGenerator.generateUUID();
-                sessionContextKey = DigestUtils.shaHex(sessionKey);
+                sessionContextKey = DigestUtils.sha256Hex(sessionKey);
                 sessionContext.addProperty(FrameworkConstants.AUTHENTICATED_USER, authenticationResult.getSubject());
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
