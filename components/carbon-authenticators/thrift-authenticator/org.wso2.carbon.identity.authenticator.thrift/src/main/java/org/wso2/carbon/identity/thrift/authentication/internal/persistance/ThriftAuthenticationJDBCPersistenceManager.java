@@ -103,6 +103,15 @@ public class ThriftAuthenticationJDBCPersistenceManager {
         }
     }
 
+    /**
+     * Returns an database connection for Identity data source.
+     *
+     * @return dbConnection
+     * @throws AuthenticationException
+     * @Deprecated The getDBConnection should handle both transaction and non-transaction connection. Earlier it
+     * handle only the transactionConnection. Therefore this method was deprecated and changed as handle both
+     * transaction and non-transaction connection.
+     */
     @Deprecated
     public Connection getDBConnection() throws AuthenticationException {
         return getDBConnection(true);
