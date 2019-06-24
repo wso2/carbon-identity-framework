@@ -1431,32 +1431,32 @@
         $idpClaimsList2.empty();
 
 
-        if ('<%=Encode.forJavaScriptBlock(userIdClaimURI)%>' == '') {
+        if ('<%=Encode.forJavaScript(userIdClaimURI)%>' == '') {
             $user_id_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $user_id_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=Encode.forJavaScriptBlock(roleClaimURI)%>' == '') {
+        if ('<%=Encode.forJavaScript(roleClaimURI)%>' == '') {
             $role_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $role_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
 
-        if ('<%=Encode.forJavaScriptBlock(googlePrimaryEmailClaim)%>' == '') {
+        if ('<%=Encode.forJavaScript(googlePrimaryEmailClaim)%>' == '') {
             $google_prov_email_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_email_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=Encode.forJavaScriptBlock(googleFamilyNameClaim)%>' == '') {
+        if ('<%=Encode.forJavaScript(googleFamilyNameClaim)%>' == '') {
             $google_prov_familyname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_familyname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
 
-        if ('<%=Encode.forJavaScriptBlock(googleGivenNameClaim)%>' == '') {
+        if ('<%=Encode.forJavaScript(googleGivenNameClaim)%>' == '') {
             $google_prov_givenname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_givenname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
@@ -1467,30 +1467,30 @@
         jQuery('#claimAddTable .claimrow').each(function () {
             var val = htmlEncode($(this).val());
             if (val.trim() != "") {
-                if (val == '<%=Encode.forJavaScriptBlock(userIdClaimURI)%>') {
+                if (val == decodeURI('<%=Encode.forJavaScript(userIdClaimURI)%>')) {
                     $user_id_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $user_id_claim_dropdown.append('<option>' + val + '</option>');
                 }
-                if (val == '<%=Encode.forJavaScriptBlock(roleClaimURI)%>') {
+                if (val == decodeURI('<%=Encode.forJavaScript(roleClaimURI)%>')) {
                     $role_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $role_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=Encode.forJavaScriptBlock(googlePrimaryEmailClaim)%>') {
+                if (val === decodeURI('<%=Encode.forJavaScript(googlePrimaryEmailClaim)%>')) {
                     $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=Encode.forJavaScriptBlock(googleFamilyNameClaim)%>') {
+                if (val == decodeURI('<%=Encode.forJavaScript(googleFamilyNameClaim)%>')) {
                     $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
                 }
 
-                if (val == '<%=Encode.forJavaScriptBlock(googleGivenNameClaim)%>') {
+                if (val == decodeURI('<%=Encode.forJavaScript(googleGivenNameClaim)%>')) {
                     $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
@@ -1523,9 +1523,9 @@
             <% for(int i =0 ; i< claimUris.length ; i++){
 
            		 if(claimUris[i].equals(userIdClaimURI)){  %>
-            user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtmlAttribute(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
+            user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            user_id_option += '<option value="' + "<%=Encode.forHtmlAttribute(claimUris[i])%>" + '">' + "<%=Encode.forHtmlContent(claimUris[i])%>" + '</option>';
+            user_id_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
@@ -1534,10 +1534,10 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googlePrimaryEmailClaim))){  %>
-            google_prov_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+           		 if(claimUris[i].equals(googlePrimaryEmailClaim)){  %>
+            google_prov_email_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            google_prov_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            google_prov_email_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
@@ -1546,10 +1546,10 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googleFamilyNameClaim))){  %>
-            google_prov_family_email_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+           		 if(claimUris[i].equals(googleFamilyNameClaim)){  %>
+            google_prov_family_email_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            google_prov_family_email_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            google_prov_family_email_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
@@ -1558,16 +1558,16 @@
 
             <% for(int i =0 ; i< claimUris.length ; i++){
 
-           		 if(claimUris[i].equals(Encode.forJavaScriptBlock(googleGivenNameClaim))){  %>
-            google_prov_givenname_option += '<option  selected="selected" value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+           		 if(claimUris[i].equals(googleGivenNameClaim)){  %>
+            google_prov_givenname_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
-            google_prov_givenname_option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            google_prov_givenname_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
 
 
             <% for(int i =0 ; i< claimUris.length ; i++){%>
-            option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+            option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
 
             <%}%>
 
@@ -3880,7 +3880,7 @@
                                 <td>
                                     <%if (openidQueryParam != null) { %>
                                     <input id="openidQueryParam" name="openidQueryParam" type="text"
-                                           value=<%=Encode.forHtmlAttribute(openidQueryParam)%>>
+                                           value="<%=Encode.forHtmlAttribute(openidQueryParam)%>">
                                     <% } else { %>
                                     <input id="openidQueryParam" name="openidQueryParam" type="text"/>
                                     <% } %>
@@ -4550,7 +4550,7 @@
                                         %>
 
                                         <input id="samlQueryParam" name="samlQueryParam" type="text"
-                                               value=<%=Encode.forHtmlAttribute(samlQueryParam)%>>
+                                               value="<%=Encode.forHtmlAttribute(samlQueryParam)%>">
 
                                         <div class="sectionHelp">
                                             <fmt:message key='query.param.help'/>
@@ -5481,7 +5481,7 @@
                                 </td>
                                 <td><span><input id="google_prov_private_key"
                                                  name="google_prov_private_key" type="file"/>
-									<% if (Encode.forJavaScriptBlock(googleProvPrivateKeyData) != null) { %>
+									<% if (googleProvPrivateKeyData != null) { %>
                                          <img src="images/key.png" alt="key" width="14" height="14"
                                               style=" padding-right: 5px; "><label>Private Key attached</label>
 									<% } %></span>

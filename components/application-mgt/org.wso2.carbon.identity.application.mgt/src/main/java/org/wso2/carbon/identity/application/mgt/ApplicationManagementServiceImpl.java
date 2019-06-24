@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
@@ -61,6 +62,7 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
+import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
@@ -218,7 +220,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 .getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreGetApplicationBasicInfo(tenantDomain, username, filter)) {
-                return null;
+                return new ApplicationBasicInfo[0];
             }
         }
 
@@ -238,11 +240,139 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostGetApplicationBasicInfo(appDAO, tenantDomain, username,
                     filter)) {
-                return null;
+                return new ApplicationBasicInfo[0];
             }
         }
 
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+    }
+
+    /**
+     * Get All Application Basic Information with pagination
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param pageNumber   Number of the page
+     * @return ApplicationBasicInfo[]
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber) throws IdentityApplicationManagementException {
+        ApplicationDAO appDAO = null;
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                    !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(tenantDomain, username, pageNumber)) {
+                return new ApplicationBasicInfo[0];
+            }
+        }
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        } catch (Exception e) {
+            String error = "Error occurred while retrieving all the applications for the tenant: " + tenantDomain;
+            throw new IdentityApplicationManagementException(error, e);
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+
+        // invoking the listeners
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                    !((AbstractApplicationMgtListener) listener).doPostGetPaginatedApplicationBasicInfo(appDAO, tenantDomain,
+                            username, pageNumber)) {
+                return new ApplicationBasicInfo[0];
+            }
+        }
+
+        return appDAO.getAllPaginatedApplicationBasicInfo(pageNumber);
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param filter       Application name filter
+     * @param pageNumber   Number of the page
+     * @return Application Basic Information array
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter) throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = null;
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
+                .getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                    !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(tenantDomain, username,
+                            pageNumber, filter)) {
+                return new ApplicationBasicInfo[0];
+            }
+        }
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+
+        // invoking the listeners
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                    !((AbstractApplicationMgtListener) listener).doPostGetPaginatedApplicationBasicInfo(appDAO, tenantDomain,
+                            username, pageNumber, filter)) {
+                return new ApplicationBasicInfo[0];
+            }
+        }
+
+        return appDAO.getPaginatedApplicationBasicInfo(pageNumber, filter);
+    }
+
+    /**
+     * Get count of all Application Basic Information.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @return int
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfAllApplications(String tenantDomain, String username) throws IdentityApplicationManagementException {
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            return appDAO.getCountOfAllApplications();
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param filter       Application name filter
+     * @return int
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfApplications(String tenantDomain, String username, String filter) throws IdentityApplicationManagementException {
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            return appDAO.getCountOfApplications(filter);
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
     }
 
     @Override
@@ -699,12 +829,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
-        if (name == null) {
-            name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
-                    clientType, tenantDomain);
+        if (StringUtils.isNotEmpty(clientId)) {
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            name = appDAO.getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
+
+            if (name == null) {
+                name = new FileBasedApplicationDAO().getServiceProviderNameByClientId(clientId,
+                        clientType, tenantDomain);
+            }
         }
+
         if (name == null) {
             ServiceProvider defaultSP = ApplicationManagementServiceComponent.getFileBasedSPs()
                     .get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
@@ -832,8 +966,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
                 authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
                         .getAuthenticationSteps();
+                AuthenticationScriptConfig scriptConfig = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                        .getAuthenticationScriptConfig();
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                         .setAuthenticationSteps(authenticationSteps);
+                if (scriptConfig != null) {
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationScriptConfig(scriptConfig);
+                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                            .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
+                }
             }
         }
 

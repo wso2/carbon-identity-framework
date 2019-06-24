@@ -74,6 +74,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while listing external claims for diaclect " +
                     externalDialectURI, e);
         } finally {
@@ -117,7 +118,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while adding external claim " + externalClaimURI + " to " +
                     "dialect " + externalClaimDialectURI, e);
         } finally {
@@ -152,7 +153,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while updating external claim " + externalClaimURI + " in " +
                     "dialect " + externalClaimDialectURI, e);
         } finally {
@@ -190,8 +191,10 @@ public class ExternalClaimDAO extends ClaimDAO {
             if (rs.next()) {
                 isMappedLocalClaim = true;
             }
+            connection.commit();
 
         } catch (SQLException e) {
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while checking mapped local claim " + mappedLocalClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);
@@ -269,5 +272,21 @@ public class ExternalClaimDAO extends ClaimDAO {
         }
 
         return mappedLocalClaimURI;
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
     }
 }

@@ -26,7 +26,7 @@ import org.wso2.carbon.identity.application.common.cache.BaseCache;
 public class ServiceProviderByInboundAuthCache extends
         BaseCache<ServiceProviderCacheInboundAuthKey, ServiceProviderCacheInboundAuthEntry> {
 
-    public static final String SP_CACHE_NAME = "ServiceProvideCache.InboundAuthKey";
+    public static final String SP_CACHE_NAME = "ServiceProvideCache.InboundAuth";
 
     private static volatile ServiceProviderByInboundAuthCache instance;
 

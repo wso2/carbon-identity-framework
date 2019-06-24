@@ -61,9 +61,11 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     public void init() {
 
         Object configValue = IdentityConfigParser.getInstance().getConfiguration().get(CONFIG_CHANGE_LOG_CLAIMS);
-        List<String> claimsFilters = null;
+        List<String> claimsFilters = new ArrayList<>();
         if (configValue instanceof ArrayList) {
             claimsFilters = (ArrayList) configValue;
+        } else if (configValue instanceof String) {
+            claimsFilters.add((String)configValue);
         }
         if (CollectionUtils.isEmpty(claimsFilters)) {
             if (log.isDebugEnabled()) {
@@ -160,8 +162,12 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
      * @return username
      */
     private String getUser() {
-
-        return UserCoreUtil.addTenantDomainToEntry(CarbonContext.getThreadLocalCarbonContext().getUsername(),
-                CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+        String user = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (user != null) {
+            user = user + "@" + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        } else {
+            user = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        }
+        return user;
     }
 }

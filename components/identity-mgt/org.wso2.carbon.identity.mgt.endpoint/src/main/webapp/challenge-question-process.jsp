@@ -73,12 +73,7 @@
                 return;
             }
             IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
-            Error error = new Gson().fromJson(e.getMessage(), Error.class);
-            request.setAttribute("error", true);
-            if (error != null) {
-                request.setAttribute("errorMsg", error.getDescription());
-                request.setAttribute("errorCode", error.getCode());
-            }
+            IdentityManagementEndpointUtil.addErrorInformation(request, e);
             request.getRequestDispatcher("error.jsp").forward(request, response);
             return;
         }
@@ -121,7 +116,7 @@
             }
 
         } catch (ApiException e) {
-            RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
+            RetryError retryError = IdentityManagementEndpointUtil.buildRetryError(e);
             if (retryError != null && "20008".equals(retryError.getCode())) {
                 IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
                 request.setAttribute("errorResponse", retryError);
@@ -178,7 +173,7 @@
             request.getRequestDispatcher("password-reset.jsp").forward(request, response);
 
         } catch (ApiException e) {
-            RetryError retryError = new Gson().fromJson(e.getMessage(), RetryError.class);
+            RetryError retryError = IdentityManagementEndpointUtil.buildRetryError(e);
             if (retryError != null && "20008".equals(retryError.getCode())) {
                 IdentityManagementEndpointUtil.addReCaptchaHeaders(request, e.getResponseHeaders());
                 request.setAttribute("errorResponse", retryError);

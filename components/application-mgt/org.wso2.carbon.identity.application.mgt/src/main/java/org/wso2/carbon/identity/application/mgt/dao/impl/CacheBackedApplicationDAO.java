@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -112,6 +113,10 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     public String getServiceProviderNameByClientId(String clientId, String type, String
             tenantDomain) throws IdentityApplicationManagementException {
 
+        if (StringUtils.isEmpty(clientId)) {
+            return null;
+        }
+
         String appName = null;
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
@@ -188,7 +193,27 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException {
 
         // No need to cache the returned list.
-        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+        return appDAO.getApplicationBasicInfo(filter);
+    }
+
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+
+        // No need to cache the returned list.
+        return appDAO.getAllPaginatedApplicationBasicInfo(pageNumber);
+    }
+
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws IdentityApplicationManagementException {
+
+        // No need to cache the returned list.
+        return appDAO.getPaginatedApplicationBasicInfo(pageNumber, filter);
+    }
+
+    public int getCountOfAllApplications() throws IdentityApplicationManagementException {
+        return appDAO.getCountOfAllApplications();
+    }
+
+    public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
+        return appDAO.getCountOfApplications(filter);
     }
 
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName, String

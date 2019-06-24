@@ -65,21 +65,25 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         }
 
         if (tenantID != MultitenantConstants.INVALID_TENANT_ID) {
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-                 PreparedStatement addFunctionLibStmt =
-                         connection.prepareStatement(FunctionLibMgtDBQueries.STORE_FUNCTIONLIB_INFO)) {
-                connection.setAutoCommit(false);
-                addFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
-                addFunctionLibStmt.setString(2, functionLibrary.getDescription());
-                addFunctionLibStmt.setString(3, "authentication");
-                addFunctionLibStmt.setInt(4, tenantID);
-                setBlobValue(functionLibrary.getFunctionLibraryScript(), addFunctionLibStmt, 5);
-                addFunctionLibStmt.executeUpdate();
-                connection.commit();
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+                try (PreparedStatement addFunctionLibStmt =
+                        connection.prepareStatement(FunctionLibMgtDBQueries.STORE_FUNCTIONLIB_INFO)) {
+                    addFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
+                    addFunctionLibStmt.setString(2, functionLibrary.getDescription());
+                    addFunctionLibStmt.setString(3, "authentication");
+                    addFunctionLibStmt.setInt(4, tenantID);
+                    setBlobValue(functionLibrary.getFunctionLibraryScript(), addFunctionLibStmt, 5);
+                    addFunctionLibStmt.executeUpdate();
+                    IdentityDatabaseUtil.commitTransaction(connection);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Function Library stored successfully with function library name " +
-                            functionLibrary.getFunctionLibraryName());
+                    if (log.isDebugEnabled()) {
+                        log.debug("Function Library stored successfully with function library name " +
+                                functionLibrary.getFunctionLibraryName());
+                    }
+                } catch (SQLException e1) {
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    throw new FunctionLibraryManagementException(
+                            "Error while creating Function Library.", e1);
                 }
             } catch (SQLException e) {
                 throw new FunctionLibraryManagementException(
@@ -112,27 +116,29 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement getFunctionLibStmt = connection.prepareStatement(
-                     FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement getFunctionLibStmt = connection
+                    .prepareStatement(FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID_AND_NAME)) {
+                getFunctionLibStmt.setInt(1, tenantID);
+                getFunctionLibStmt.setString(2, functionLibraryName);
 
-            getFunctionLibStmt.setInt(1, tenantID);
-            getFunctionLibStmt.setString(2, functionLibraryName);
-
-            try (ResultSet resultSet = getFunctionLibStmt.executeQuery()) {
-                if (resultSet.next()) {
-                    FunctionLibrary functionlib = new FunctionLibrary();
-                    functionlib.setFunctionLibraryName(resultSet.getString("NAME"));
-                    functionlib.setDescription(resultSet.getString("DESCRIPTION"));
-                    functionlib.setFunctionLibraryScript(IOUtils.
-                            toString(resultSet.getBinaryStream("DATA")));
-                    return functionlib;
-                } else {
-                    return null;
+                try (ResultSet resultSet = getFunctionLibStmt.executeQuery()) {
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                    if (resultSet.next()) {
+                        FunctionLibrary functionlib = new FunctionLibrary();
+                        functionlib.setFunctionLibraryName(resultSet.getString("NAME"));
+                        functionlib.setDescription(resultSet.getString("DESCRIPTION"));
+                        functionlib.setFunctionLibraryScript(IOUtils.
+                                toString(resultSet.getBinaryStream("DATA")));
+                        return functionlib;
+                    } else {
+                        return null;
+                    }
                 }
             } catch (IOException e) {
-                throw new FunctionLibraryManagementException
-                        ("Error while reading function library" + functionLibraryName, e);
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new FunctionLibraryManagementException(
+                        "Error while reading function library" + functionLibraryName, e);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException
@@ -160,19 +166,23 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
 
         List<FunctionLibrary> functionLibraries = new ArrayList<>();
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement getFunctionLibrariesStmt = connection.prepareStatement
-                     (FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID)) {
-            getFunctionLibrariesStmt.setInt(1, tenantID);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement getFunctionLibrariesStmt = connection
+                    .prepareStatement(FunctionLibMgtDBQueries.LOAD_FUNCTIONLIB_FROM_TENANTID)) {
+                getFunctionLibrariesStmt.setInt(1, tenantID);
 
-            try (ResultSet functionLibsResultSet = getFunctionLibrariesStmt.executeQuery()) {
-                while (functionLibsResultSet.next()) {
-                    FunctionLibrary functionlib = new FunctionLibrary();
-                    functionlib.setFunctionLibraryName(functionLibsResultSet.getString("NAME"));
-                    functionlib.setDescription(functionLibsResultSet.getString("DESCRIPTION"));
-                    functionLibraries.add(functionlib);
+                try (ResultSet functionLibsResultSet = getFunctionLibrariesStmt.executeQuery()) {
+                    while (functionLibsResultSet.next()) {
+                        FunctionLibrary functionlib = new FunctionLibrary();
+                        functionlib.setFunctionLibraryName(functionLibsResultSet.getString("NAME"));
+                        functionlib.setDescription(functionLibsResultSet.getString("DESCRIPTION"));
+                        functionLibraries.add(functionlib);
+                    }
+                    IdentityDatabaseUtil.commitTransaction(connection);
                 }
-                connection.commit();
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new FunctionLibraryManagementException("Error while reading function libraries", e1);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException("Error while reading function libraries", e);
@@ -201,18 +211,21 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
         }
 
         if (tenantID != MultitenantConstants.INVALID_TENANT_ID) {
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-                 PreparedStatement updateFunctionLibStmt =
-                         connection.prepareStatement(FunctionLibMgtDBQueries.UPDATE_FUNCTIONLIB_INFO)) {
-                connection.setAutoCommit(false);
-                updateFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
-                updateFunctionLibStmt.setString(2, functionLibrary.getDescription());
-                setBlobValue(functionLibrary.getFunctionLibraryScript(), updateFunctionLibStmt, 3);
-                updateFunctionLibStmt.setInt(4, tenantID);
-                updateFunctionLibStmt.setString(5, oldFunctionLibName);
-                updateFunctionLibStmt.executeUpdate();
-                connection.commit();
-
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+                try (PreparedStatement updateFunctionLibStmt =
+                                connection.prepareStatement(FunctionLibMgtDBQueries.UPDATE_FUNCTIONLIB_INFO)) {
+                    updateFunctionLibStmt.setString(1, functionLibrary.getFunctionLibraryName());
+                    updateFunctionLibStmt.setString(2, functionLibrary.getDescription());
+                    setBlobValue(functionLibrary.getFunctionLibraryScript(), updateFunctionLibStmt, 3);
+                    updateFunctionLibStmt.setInt(4, tenantID);
+                    updateFunctionLibStmt.setString(5, oldFunctionLibName);
+                    updateFunctionLibStmt.executeUpdate();
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                } catch (SQLException e1) {
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    throw new FunctionLibraryManagementException("Failed to update Function library" +
+                            oldFunctionLibName, e1);
+                }
             } catch (SQLException e) {
                 throw new FunctionLibraryManagementException("Failed to update Function library" + oldFunctionLibName, e);
             } catch (IOException e) {
@@ -243,16 +256,20 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
             tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement deleteFunctionLibStmt =
-                     connection.prepareStatement(FunctionLibMgtDBQueries.REMOVE_FUNCTIONLIB)) {
-
-            deleteFunctionLibStmt.setInt(1, tenantID);
-            deleteFunctionLibStmt.setString(2, functionLibraryName);
-            deleteFunctionLibStmt.executeUpdate();
-            connection.commit();
-            if (log.isDebugEnabled()) {
-                log.debug("Removed the function library " + functionLibraryName + " successfully.");
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement deleteFunctionLibStmt =
+                            connection.prepareStatement(FunctionLibMgtDBQueries.REMOVE_FUNCTIONLIB)) {
+                deleteFunctionLibStmt.setInt(1, tenantID);
+                deleteFunctionLibStmt.setString(2, functionLibraryName);
+                deleteFunctionLibStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Removed the function library " + functionLibraryName + " successfully.");
+                }
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new FunctionLibraryManagementException("Error while removing function library" +
+                        functionLibraryName, e1);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException
@@ -290,6 +307,11 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                         isFunctionLibraryExists = true;
                     }
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new FunctionLibraryManagementException("Failed to check whether the function library exists with "
+                        + functionLibraryName, e1);
             }
         } catch (SQLException e) {
             throw new FunctionLibraryManagementException("Failed to check whether the function library exists with "

@@ -138,6 +138,10 @@ public class IdentityConstants {
     public static final String UNKNOWN = "unknown";
     public static final String USER_IP = "user-ip";
 
+    // Service provider constants
+    public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
+    public static final String SKIP_CONSENT="skipConsent";
+
     private IdentityConstants() {
     }
 
@@ -236,6 +240,7 @@ public class IdentityConstants {
                 ".SAMLDefaultKeyEncryptionAlgorithmURI";
         public static final String SLO_HOST_NAME_VERIFICATION_ENABLED = "SSOService.SLOHostNameVerificationEnabled";
         public static final String SAML_METADATA_VALIDITY_PERIOD = "SSOService.SAMLMetadataValidityPeriod";
+        public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
 

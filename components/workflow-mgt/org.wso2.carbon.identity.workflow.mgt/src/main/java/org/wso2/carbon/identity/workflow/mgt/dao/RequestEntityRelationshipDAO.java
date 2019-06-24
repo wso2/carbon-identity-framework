@@ -52,8 +52,9 @@ public class RequestEntityRelationshipDAO {
             prepStmt.setString(3, entity.getEntityType());
             prepStmt.setInt(4, entity.getTenantId());
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -75,8 +76,9 @@ public class RequestEntityRelationshipDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -106,8 +108,9 @@ public class RequestEntityRelationshipDAO {
             if (resultSet.next()) {
                 return true;
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -141,8 +144,9 @@ public class RequestEntityRelationshipDAO {
             if (resultSet.next()) {
                 return true;
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -176,8 +180,9 @@ public class RequestEntityRelationshipDAO {
             if (resultSet.next()) {
                 return true;
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
@@ -220,8 +225,9 @@ public class RequestEntityRelationshipDAO {
                 String entityName = resultSet.getString(SQLConstants.ENTITY_NAME_COLUMN);
                 entityNames.add(entityName);
             }
-
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error occurred when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);

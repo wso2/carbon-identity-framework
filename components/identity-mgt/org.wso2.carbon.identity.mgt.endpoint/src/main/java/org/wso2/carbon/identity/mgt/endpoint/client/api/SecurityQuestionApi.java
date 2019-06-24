@@ -25,6 +25,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
+import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
@@ -42,9 +43,8 @@ import java.util.Map;
 public class SecurityQuestionApi {
     private ApiClient apiClient;
 
-    String basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-            .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                    "api/identity/recovery/v0.9");
+    String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
+            .UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
 
     public SecurityQuestionApi() {
         this(Configuration.getDefaultApiClient());
@@ -108,9 +108,8 @@ public class SecurityQuestionApi {
         }
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         }
 
         apiClient.setBasePath(basePath);
@@ -196,9 +195,8 @@ public class SecurityQuestionApi {
         }
 
         if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                    .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL_DOMAIN,
-                            "t/" + tenantDomain + "/api/identity/recovery/v0.9");
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         }
 
         apiClient.setBasePath(basePath);

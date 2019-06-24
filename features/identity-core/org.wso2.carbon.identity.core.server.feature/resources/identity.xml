@@ -21,7 +21,7 @@
         <DataSource>
             <!-- Include a data source name (jndiConfigName) from the set of data
                 sources defined in master-datasources.xml -->
-            <Name>jdbc/WSO2CarbonDB</Name>
+            <Name>jdbc/WSO2IdentityDB</Name>
         </DataSource>
         <!-- If the identity database is created from another place and if it is
             required to skip schema initialization during the server start up, set the
@@ -335,9 +335,9 @@
         - Use tenant domain in local subject identifier.
         - Use user store domain in local subject identifier.
 
-        Default value : true
+        Default value : false
 
-        Supported versions: IS 5.8.0 beta onwards
+        Supported versions: IS 5.4.0 beta onwards
         -->
         <!--<BuildSubjectIdentifierFromSPConfig>false</BuildSubjectIdentifierFromSPConfig>-->
 
@@ -426,7 +426,11 @@
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
             <SkipUserConsent>false</SkipUserConsent>
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
-            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <SignJWTWithSPKey>true</SignJWTWithSPKey>
+            <!-- Add tenant domain to 'realm' claim of ID Token-->
+            <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
+            <!-- Add userstore domain to 'realm' claim of ID Token-->
+            <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
             <!--
                 Expiry period of the logout token used in OIDC Back Channel Logout in seconds.
                 Supported versions: IS 5.5.0 onwards
@@ -475,8 +479,20 @@
         or if a valid id_token_hint and a valid post_logout_redirect_uri is available user will be redirected to the
         post_logout_redirect_uri
 
+        Default value : true
+        Supported versions : IS 5.8.0 onwards
         -->
-        <HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>
+        <!--<HandleAlreadyLoggedOutSessionsGracefully>false</HandleAlreadyLoggedOutSessionsGracefully>-->
+
+        <!--
+        By enabling this property UMA permission information for the RPT can be retrieved through introspection response
+
+        Default value : false
+        Supported versions : IS 5.8.0 onwards
+        -->
+        <!--Introspection>
+            <EnableDataProviders>false</EnableDataProviders>
+        </Introspection-->
 
     </OAuth>
 
@@ -527,7 +543,6 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
-        <SAMLECPEndpoint>${carbon.protocol}://${carbon.host}:${carbon.management.port}/samlecp</SAMLECPEndpoint>
     </SSOService>
 
     <Consent>
@@ -609,6 +624,36 @@
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
+
+        <!--
+            If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will filter
+            users or groups only from 'PRIMARY' user store.
+            if the property value is false, it will filter users or groups across all user stores.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<FilterUsersAndGroupsOnlyFromPrimaryDomain>false</FilterUsersAndGroupsOnlyFromPrimaryDomain>-->
+
+        <!--
+            If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will prepend
+            "PRIMARY/" prefix in-front of the username and role(group) name which belong to PRIMARY user store.
+            if the property value is false, "PRIMARY/" prefix will not be prepended.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<MandateDomainForUsernamesAndGroupNamesInResponse>false</MandateDomainForUsernamesAndGroupNamesInResponse
+        >-->
+
+        <!--
+            There was a case where PRIMARY domain is not depicted with users being returned at all but only on groups.
+            The purpose of this property is to ensure backward compatibility.
+            If you set the property value to true, in Groups endpoint, it will prepend "PRIMARY/" prefix in-front of
+            the role(group) name which belong to PRIMARY user store.
+            if the property value is false, "PRIMARY/" prefix will not be prepended.
+            Default value : false
+            Supported versions : IS 5.8.0 onwards
+        -->
+        <!--<MandateDomainForGroupNamesInGroupsResponse>false</MandateDomainForGroupNamesInGroupsResponse>-->
     </SCIM2>
 
     <!--Recovery>
@@ -815,7 +860,7 @@
             <Cache name="SAMLSSOSessionDataCache"    enable="true" timeout="300" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderCache"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderCache.ID"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
-            <Cache name="ServiceProvideCache.InboundAuthKey"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
+            <Cache name="ServiceProvideCache.InboundAuth"       enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ProvisioningConnectorCache" enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ProvisioningEntityCache"    enable="true" timeout="900" capacity="5000" isDistributed="false"/>
             <Cache name="ServiceProviderProvisioningConnectorCache" enable="true"  timeout="900" capacity="5000" isDistributed="false"/>
@@ -1006,12 +1051,12 @@
         <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
 
-        <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
-
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
         </Resource>
-    </ResourceAccessControl>
+
+        <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
+</ResourceAccessControl>
 
     <ClientAppAuthentication>
         <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
@@ -1032,7 +1077,7 @@
             <Context>/scim2/</Context>
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
-            <Context>/api/identity/template/mgt/v1.0.0/</Context>
+            <Context>/api/identity/oauth2/v1.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
@@ -1115,10 +1160,10 @@
 
     <!--Configuration Store properties-->
     <ConfigurationStore>
-        <!--Set an upper limit to the database call queries. Configuration store uses dynamic query generation,
+        <!--Set an upper limit to the database call query size. Configuration store uses dynamic query generation,
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
-        <MaximumQueryLength>4194304</MaximumQueryLength>
+        <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
     </ConfigurationStore>
 
 </Server>

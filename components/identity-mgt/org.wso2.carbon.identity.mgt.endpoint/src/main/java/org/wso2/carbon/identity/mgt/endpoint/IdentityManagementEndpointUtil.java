@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.mgt.endpoint;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -30,6 +32,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.Claim;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.Error;
+import org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
@@ -56,6 +60,8 @@ public class IdentityManagementEndpointUtil {
     public static final String DISPLAY_NAME = "displayName";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
+    private static final String CODE = "51007";
+    private static final String UNEXPECTED_ERROR = "Unexpected Error.";
 
     private IdentityManagementEndpointUtil() {
 
@@ -79,10 +85,10 @@ public class IdentityManagementEndpointUtil {
                     + fullQualifiedUsername;
         }
 
-        if (StringUtils.isNotBlank(tenantDomain) && !IdentityManagementEndpointConstants.SUPER_TENANT
-                .equals(tenantDomain)) {
-            fullQualifiedUsername =
-                    fullQualifiedUsername + IdentityManagementEndpointConstants.TENANT_DOMAIN_SEPARATOR + tenantDomain;
+        if (StringUtils.isNotBlank(tenantDomain) && !IdentityManagementEndpointConstants.SUPER_TENANT.equals
+                (tenantDomain)) {
+            fullQualifiedUsername = fullQualifiedUsername + IdentityManagementEndpointConstants
+                    .TENANT_DOMAIN_SEPARATOR + tenantDomain;
         }
 
         return fullQualifiedUsername;
@@ -96,8 +102,8 @@ public class IdentityManagementEndpointUtil {
      * @param verificationBean info recovery confirmation bean
      * @return error message to be viewed
      */
-    public static String getPrintableError(String errorMsgSummary, String optionalErrorMsg,
-            VerificationBean verificationBean) {
+    public static String getPrintableError(String errorMsgSummary, String optionalErrorMsg, VerificationBean
+            verificationBean) {
 
         StringBuilder errorMsg = new StringBuilder(errorMsgSummary);
 
@@ -186,7 +192,7 @@ public class IdentityManagementEndpointUtil {
     }
 
     public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, String configLocation,
-            Map<String, String> headers) {
+                               Map<String, String> headers) {
 
         JAXRSClientFactoryBean bean = getBean(baseAddress, cls, configLocation, headers);
         bean.setProviders(providers);
@@ -194,7 +200,7 @@ public class IdentityManagementEndpointUtil {
     }
 
     private static JAXRSClientFactoryBean getBean(String baseAddress, Class<?> cls, String configLocation,
-            Map<String, String> headers) {
+                                                  Map<String, String> headers) {
 
         JAXRSClientFactoryBean bean = getBean(baseAddress, configLocation, headers);
         bean.setServiceClass(cls);
@@ -241,8 +247,9 @@ public class IdentityManagementEndpointUtil {
      * @return Consent string which contains above facts.
      */
     public static String buildConsentForResidentIDP(String username, String consent, String jurisdiction,
-            String collectionMethod, String language, String policyURL, String consentType, boolean isPrimaryPurpose,
-            boolean isThirdPartyDisclosure, String termination) {
+                                                    String collectionMethod, String language, String policyURL,
+                                                    String consentType, boolean isPrimaryPurpose, boolean
+                                                            isThirdPartyDisclosure, String termination) {
 
         if (StringUtils.isEmpty(consent)) {
             if (log.isDebugEnabled()) {
@@ -257,7 +264,8 @@ public class IdentityManagementEndpointUtil {
         receipt.put(IdentityManagementEndpointConstants.Consent.LANGUAGE_KEY, language);
         receipt.put(IdentityManagementEndpointConstants.Consent.PII_PRINCIPAL_ID_KEY, piiPrincipalId);
         receipt.put(IdentityManagementEndpointConstants.Consent.POLICY_URL_KEY, policyURL);
-        buildServices(receipt, consentType, isPrimaryPurpose, isThirdPartyDisclosure, termination);
+        buildServices(receipt, consentType, isPrimaryPurpose,
+                isThirdPartyDisclosure, termination);
         if (log.isDebugEnabled()) {
             log.debug("Built consent from endpoint util : " + consent);
         }
@@ -272,37 +280,37 @@ public class IdentityManagementEndpointUtil {
 
         if (StringUtils.isNotBlank(user.getRealm()) && !IdentityManagementEndpointConstants.PRIMARY_USER_STORE_DOMAIN
                 .equals(user.getRealm())) {
-            piiPrincipalId = user.getRealm() + IdentityManagementEndpointConstants.USER_STORE_DOMAIN_SEPARATOR + user
-                    .getUsername();
+            piiPrincipalId = user.getRealm() + IdentityManagementEndpointConstants.USER_STORE_DOMAIN_SEPARATOR
+                    + user.getUsername();
         } else {
             piiPrincipalId = user.getUsername();
         }
         return piiPrincipalId;
     }
 
-    private static void buildServices(JSONObject receipt, String consentType, boolean isPrimaryPurpose,
-            boolean isThirdPartyDisclosure, String termination) {
+    private static void buildServices(JSONObject receipt, String consentType, boolean isPrimaryPurpose, boolean
+            isThirdPartyDisclosure, String termination) {
 
         JSONArray services = (JSONArray) receipt.get(IdentityManagementEndpointConstants.Consent.SERVICES);
         for (int serviceIndex = 0; serviceIndex < services.length(); serviceIndex++) {
-            buildService((JSONObject) services.get(serviceIndex), consentType, isPrimaryPurpose, isThirdPartyDisclosure,
-                    termination);
+            buildService((JSONObject) services.get(serviceIndex), consentType, isPrimaryPurpose,
+                    isThirdPartyDisclosure, termination);
         }
     }
 
-    private static void buildService(JSONObject service, String consentType, boolean isPrimaryPurpose,
-            boolean isThirdPartyDisclosure, String termination) {
+    private static void buildService(JSONObject service, String consentType, boolean isPrimaryPurpose, boolean
+            isThirdPartyDisclosure, String termination) {
 
         JSONArray purposes = (JSONArray) service.get(IdentityManagementEndpointConstants.Consent.PURPOSES);
 
         for (int purposeIndex = 0; purposeIndex < purposes.length(); purposeIndex++) {
-            buildPurpose((JSONObject) purposes.get(purposeIndex), consentType, isPrimaryPurpose, isThirdPartyDisclosure,
-                    termination);
+            buildPurpose((JSONObject) purposes.get(purposeIndex), consentType, isPrimaryPurpose,
+                    isThirdPartyDisclosure, termination);
         }
     }
 
-    private static void buildPurpose(JSONObject purpose, String consentType, boolean isPrimaryPurpose,
-            boolean isThirdPartyDisclosure, String termination) {
+    private static void buildPurpose(JSONObject purpose, String consentType, boolean isPrimaryPurpose, boolean
+            isThirdPartyDisclosure, String termination) {
 
         purpose.put(IdentityManagementEndpointConstants.Consent.CONSENT_TYPE_KEY, consentType);
         purpose.put(IdentityManagementEndpointConstants.Consent.PRIMARY_PURPOSE_KEY, isPrimaryPurpose);
@@ -330,8 +338,8 @@ public class IdentityManagementEndpointUtil {
     public static String i18n(ResourceBundle resourceBundle, String key) {
 
         try {
-            return Encode.forHtml(
-                    (StringUtils.isNotBlank(resourceBundle.getString(key)) ? resourceBundle.getString(key) : key));
+            return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(key)) ?
+                    resourceBundle.getString(key) : key));
         } catch (Exception e) {
             // Intentionally catching Exception and if something goes wrong while finding the value for key, return
             // default, not to break the UI
@@ -354,8 +362,7 @@ public class IdentityManagementEndpointUtil {
         String base64Key = Base64.encode(key.getBytes(StandardCharsets.UTF_8)).replaceAll(PADDING_CHAR, UNDERSCORE);
         try {
             return Encode.forHtml((StringUtils.isNotBlank(resourceBundle.getString(base64Key)) ?
-                    resourceBundle.getString(base64Key) :
-                    key));
+                    resourceBundle.getString(base64Key) : key));
         } catch (Exception e) {
             // Intentionally catching Exception and if something goes wrong while finding the value for key, return
             // default, not to break the UI
@@ -447,5 +454,77 @@ public class IdentityManagementEndpointUtil {
         }
 
         return encodedCallbackUrl.toString();
+    }
+
+    /**
+     * Construct the URL depending on the path and the resource name.
+     *
+     * @param path path of the url
+     * @return  endpoint url
+     */
+    public static String buildEndpointUrl(String path) {
+
+        String endpointUrl = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
+                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL, "");
+
+        if (path.startsWith("/")) {
+            return endpointUrl + path;
+        } else {
+            return endpointUrl + "/" + path;
+        }
+    }
+
+    public static void addErrorInformation(HttpServletRequest request, Exception e) {
+        Error error = buildError(e);
+        addErrorInformation(request, error);
+    }
+
+    public static void addErrorInformation(HttpServletRequest request, Error errorD) {
+        request.setAttribute("error", true);
+        if (errorD != null) {
+            request.setAttribute("errorMsg", errorD.getDescription());
+            request.setAttribute("errorCode", errorD.getCode());
+        }
+    }
+
+    public static Error buildError(Exception e) {
+
+        try {
+            return new Gson().fromJson(e.getMessage(), Error.class);
+        } catch (JsonSyntaxException ex) {
+            // We cannot build proper error code and error messages from the exception.
+            log.error("Exception while retrieving error details from original exception. Original exception:", e);
+            return buildUnexpectedError();
+
+        }
+    }
+
+    private static Error buildUnexpectedError() {
+
+        Error error = new Error();
+        error.setCode(CODE);
+        error.setMessage(UNEXPECTED_ERROR);
+        error.setDescription(UNEXPECTED_ERROR);
+        return error;
+    }
+
+    private static RetryError buildUnexpectedRetryError() {
+
+        RetryError error = new RetryError();
+        error.setCode(CODE);
+        error.setMessage(UNEXPECTED_ERROR);
+        error.setDescription(UNEXPECTED_ERROR);
+        return error;
+    }
+
+    public static RetryError buildRetryError(Exception e) {
+
+        try {
+            return new Gson().fromJson(e.getMessage(), RetryError.class);
+        } catch (JsonSyntaxException ex) {
+            // We cannot build proper error code and error messages from the exception.
+            log.error("Exception while retrieving error details from original exception. Original exception:", e);
+            return buildUnexpectedRetryError();
+        }
     }
 }

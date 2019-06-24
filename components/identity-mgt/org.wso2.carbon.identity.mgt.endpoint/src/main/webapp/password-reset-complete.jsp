@@ -15,7 +15,6 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
@@ -31,6 +30,9 @@
 <jsp:directive.include file="localize.jsp"/>
 
 <%
+    String ERROR_MESSAGE = "errorMsg";
+    String ERROR_CODE = "errorCode";
+    String PASSWORD_RESET_PAGE = "password-reset.jsp";
     String passwordHistoryErrorCode = "22001";
     String passwordPatternErrorCode = "20035";
     String confirmationKey =
@@ -79,15 +81,19 @@
         try {
             notificationApi.setPasswordPost(resetPasswordRequest);
         } catch (ApiException e) {
-        
-            Error error = new Gson().fromJson(e.getMessage(), Error.class);
-            request.setAttribute("error", true);
+
+            Error error = IdentityManagementEndpointUtil.buildError(e);
+            IdentityManagementEndpointUtil.addErrorInformation(request, error);
             if (error != null) {
-                request.setAttribute("errorMsg", error.getDescription());
-                request.setAttribute("errorCode", error.getCode());
+                request.setAttribute(ERROR_MESSAGE, error.getDescription());
+                request.setAttribute(ERROR_CODE, error.getCode());
                 if (passwordHistoryErrorCode.equals(error.getCode()) ||
                         passwordPatternErrorCode.equals(error.getCode())) {
-                    request.getRequestDispatcher("password-reset.jsp").forward(request, response);
+                    String i18Resource = IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, error.getCode());
+                    if (!i18Resource.equals(error.getCode())) {
+                        request.setAttribute(ERROR_MESSAGE, i18Resource);
+                    }
+                    request.getRequestDispatcher(PASSWORD_RESET_PAGE).forward(request, response);
                     return;
                 }
             }

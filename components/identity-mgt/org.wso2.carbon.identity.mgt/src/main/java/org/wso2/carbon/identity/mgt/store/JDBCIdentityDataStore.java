@@ -114,7 +114,10 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             if (results.next()) {
                 return true;
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            return false;
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -135,7 +138,9 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.setString(3, key);
             prepStmt.setString(4, value);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -161,7 +166,9 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.setString(3, userName);
             prepStmt.setString(4, key);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -202,7 +209,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             while (results.next()) {
                 data.put(results.getString(1), results.getString(2));
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
             if (log.isDebugEnabled()) {
                 log.debug("Retrieved identity data for:" + tenantId + ":" + userName);
                 for (Map.Entry<String, String> dataEntry : data.entrySet()) {
@@ -218,6 +225,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             }
             return dto;
         } catch (SQLException | UserStoreException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -250,8 +258,9 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, userName);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | UserStoreException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);

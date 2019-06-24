@@ -3,6 +3,7 @@ DECLARE
 
 batchSize int;
 chunkSize int;
+checkCount int;
 backupTables boolean;
 sleepTime float;
 safePeriod int;
@@ -36,14 +37,15 @@ BEGIN
 -- ------------------------------------------
 batchSize := 10000; -- SET BATCH SIZE FOR AVOID TABLE LOCKS    [DEFAULT : 10000]
 chunkSize := 500000; -- CHUNK WISE DELETE FOR LARGE TABLES     [DEFAULT : 500000]
+checkCount := 100; -- SET CHECK COUNT FOR FINISH CLEANUP SCRIPT (CLEANUP ELIGIBLE TOKENS COUNT SHOULD BE HIGHER THAN checkCount TO CONTINUE) [DEFAULT : 100]
 backupTables := TRUE;   -- SET IF TOKEN TABLE NEEDS TO BACKUP BEFORE DELETE  [DEFAULT : TRUE] , WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
 sleepTime := 2; -- SET SLEEP TIME FOR AVOID TABLE LOCKS     [DEFAULT : 2]
 safePeriod := 2; -- SET SAFE PERIOD OF HOURS FOR TOKEN DELETE, SINCE TOKENS COULD BE CASHED    [DEFAULT : 2]
 enableLog := TRUE; -- ENABLE LOGGING [DEFAULT : TRUE]
 logLevel := 'TRACE'; -- SET LOG LEVELS : TRACE , DEBUG
-enableAudit := TRUE;  -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED TOKENS USING A TABLE    [DEFAULT : TRUE] [# IF YOU ENABLE THIS TABLE BACKUP WILL FORCEFULLY SET TO TRUE]
-enableReindexing :=FALSE -- SET TRUE FOR GATHER SCHEMA LEVEL STATS TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
-enableTblAnalyzing :=FASE	-- SET TRUE FOR Rebuild Indexes TO IMPROVE QUERY PERFOMANCE [DEFAULT : TRUE]
+enableAudit := FALSE;  -- SET TRUE FOR  KEEP TRACK OF ALL THE DELETED TOKENS USING A TABLE    [DEFAULT : FALSE] [# IF YOU ENABLE THIS TABLE BACKUP WILL FORCEFULLY SET TO TRUE]
+enableReindexing :=FALSE; -- SET TRUE FOR GATHER SCHEMA LEVEL STATS TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
+enableTblAnalyzing :=FALSE;	-- SET TRUE FOR Rebuild Indexes TO IMPROVE QUERY PERFOMANCE [DEFAULT : FALSE]
 
 -- ------------------------------------------
 -- CONSTANT VARIABLES
@@ -159,7 +161,7 @@ THEN
     END IF;
 
     IF (enableLog AND logLevel IN ('TRACE')) THEN
-    SELECT COUNT(1) INTO cleanupCount FROM idn_oauth2_access_token WHERE TOKEN_STATE IN ('INACTIVE','REVOKED') OR (TOKEN_STATE in('EXPIRED','ACTIVE') AND
+    SELECT COUNT(1) INTO cleanupCount FROM idn_oauth2_access_token WHERE TOKEN_STATE IN ('EXPIRED','INACTIVE','REVOKED') OR (TOKEN_STATE in('ACTIVE') AND
     (VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND (REFRESH_TOKEN_VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND
     (deleteTillTime > (TIME_CREATED +  INTERVAL '1minute' * ( VALIDITY_PERIOD / 60000))  ) AND
     (deleteTillTime > (REFRESH_TOKEN_TIME_CREATED +  INTERVAL '1minute' * ( REFRESH_TOKEN_VALIDITY_PERIOD / 60000 ))));
@@ -215,13 +217,13 @@ THEN
         CREATE TABLE chunk_idn_oauth2_access_token (TOKEN_ID VARCHAR);
         CREATE INDEX idx_chnk_idn_oth_acs_tkn ON chunk_idn_oauth2_access_token (TOKEN_ID);
 
-        INSERT INTO chunk_idn_oauth2_access_token (TOKEN_ID) SELECT TOKEN_ID FROM idn_oauth2_access_token WHERE (TOKEN_STATE IN ('INACTIVE','REVOKED') OR
-        (TOKEN_STATE in ('EXPIRED','ACTIVE') AND (VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND (REFRESH_TOKEN_VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND
+        INSERT INTO chunk_idn_oauth2_access_token (TOKEN_ID) SELECT TOKEN_ID FROM idn_oauth2_access_token WHERE (TOKEN_STATE IN ('EXPIRED','INACTIVE','REVOKED') OR
+        (TOKEN_STATE in ('ACTIVE') AND (VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND (REFRESH_TOKEN_VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND
         ( deleteTillTime > (TIME_CREATED +  INTERVAL '1minute' *( VALIDITY_PERIOD / 60000)) ) AND
         ( deleteTillTime > (REFRESH_TOKEN_TIME_CREATED +  INTERVAL '1minute' *( REFRESH_TOKEN_VALIDITY_PERIOD / 60000 ))))) LIMIT chunkSize;
         GET diagnostics chunkCount := ROW_COUNT;
 
-        IF (chunkCount = 0)
+        IF (chunkCount < checkCount)
         THEN
           IF (enableLog AND logLevel IN ('TRACE')) THEN
           RAISE NOTICE 'IDN_OAUTH2_ACCESS_TOKEN DELETE FINISHED HENCE NEW CHUNK CREATED WITH %',chunkCount;
@@ -257,7 +259,7 @@ THEN
         INSERT INTO idn_oauth2_access_token_batch (TOKEN_ID) SELECT TOKEN_ID FROM chunk_idn_oauth2_access_token LIMIT batchSize;
         GET diagnostics batchCount := ROW_COUNT;
 
-        IF ((batchCount > 0))
+        IF (batchCount > 0)
         THEN
             IF (enableLog AND logLevel IN ('TRACE')) THEN
             RAISE NOTICE 'BATCH DELETE START ON TABLE IDN_OAUTH2_ACCESS_TOKEN WITH : %',batchCount;
@@ -292,12 +294,11 @@ THEN
         RAISE NOTICE 'TOTAL AUTHORIZATION CODES ON IDN_OAUTH2_AUTHORIZATION_CODE TABLE BEFORE DELETE: %',rowCount;
         END IF;
 
-        IF (enableLog  AND logLevel IN ('TRACE')) THEN
         SELECT COUNT(1) into cleanupCount FROM idn_oauth2_authorization_code WHERE CODE_ID IN
-        (SELECT CODE_ID FROM idn_oauth2_authorization_code code WHERE NOT EXISTS (SELECT * FROM idn_oauth2_access_token tok where tok.TOKEN_ID = code.TOKEN_ID))
-        AND (VALIDITY_PERIOD < maxValidityPeriod AND deleteTillTime > (TIME_CREATED + INTERVAL '1minute' * ( VALIDITY_PERIOD / 60000 )));
+        (SELECT CODE_ID FROM idn_oauth2_authorization_code code WHERE NOT EXISTS (SELECT * FROM IDN_OAUTH2_ACCESS_TOKEN tok where tok.TOKEN_ID = code.TOKEN_ID))
+        AND (((VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND deleteTillTime > (TIME_CREATED + INTERVAL '1minute' *( VALIDITY_PERIOD / 60000 )))
+        OR STATE ='INACTIVE');
         RAISE NOTICE 'TOTAL AUTHORIZATION CODES SHOULD BE DELETED FROM IDN_OAUTH2_AUTHORIZATION_CODE: %', cleanupCount;
-        END IF;
 
         IF (enableLog  AND logLevel IN ('TRACE')) THEN
         rowcount := (rowcount - cleanupCount);
@@ -348,11 +349,12 @@ THEN
 
           INSERT INTO idn_oauth2_authorization_code_chunk (code_id) SELECT code_id FROM idn_oauth2_authorization_code WHERE CODE_ID IN
           (SELECT CODE_ID FROM idn_oauth2_authorization_code code WHERE NOT EXISTS (SELECT * FROM IDN_OAUTH2_ACCESS_TOKEN tok where tok.TOKEN_ID = code.TOKEN_ID))
-          AND (VALIDITY_PERIOD < maxValidityPeriod AND deleteTillTime > (TIME_CREATED + INTERVAL '1minute' *( VALIDITY_PERIOD / 60000 ))) LIMIT chunkSize;
+          AND (((VALIDITY_PERIOD BETWEEN 0 and maxValidityPeriod) AND deleteTillTime > (TIME_CREATED + INTERVAL '1minute' *( VALIDITY_PERIOD / 60000 )))
+          OR STATE ='INACTIVE') LIMIT chunkSize;
 
           GET diagnostics chunkCount := ROW_COUNT;
 
-          IF (chunkCount = 0)
+          IF (chunkCount < checkCount)
           THEN
               IF (enableLog AND logLevel IN ('TRACE')) THEN
               RAISE NOTICE 'IDN_OAUTH2_AUTHORIZATION_CODE_CHUNK DELETE FINISHED HENCE NEW CHUNK CREATED WITH %',chunkCount;

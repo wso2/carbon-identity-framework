@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.12.323-SNAPSHOT</version>
+        <version>5.13.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>org.wso2.carbon.identity.application.mgt</artifactId>
@@ -139,6 +139,8 @@
                             org.wso2.carbon.identity.application.mgt.internal,
                         </Private-Package>
                         <Import-Package>
+                            javax.xml.bind,
+                            javax.xml.bind.annotation,
                             javax.xml.namespace,
                             org.json,
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",

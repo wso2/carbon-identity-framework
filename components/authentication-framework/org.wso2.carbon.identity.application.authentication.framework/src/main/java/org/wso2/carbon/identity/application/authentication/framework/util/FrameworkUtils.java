@@ -87,7 +87,10 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -573,7 +576,7 @@ public class FrameworkUtils {
 
         if (StringUtils.isNotBlank(uri) && StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 
-            if (uri.contains("?")) {
+            if (uri.contains("?") || uri.contains("#")) {
                 uri += "&" + key + "=" + URLEncoder.encode(value, "UTF-8");
             } else {
                 uri += "?" + key + "=" + URLEncoder.encode(value, "UTF-8");
@@ -1705,7 +1708,7 @@ public class FrameworkUtils {
             return new ArrayList<>();
         }
         Map<String, String> idpToLocalRoleMapping = externalIdPConfig.getRoleMappings();
-        List<String> idpMappedUserRoles = new ArrayList<>();
+        Set<String> idpMappedUserRoles = new HashSet<>();
         // If no role mapping is configured in the identity provider.
         if (MapUtils.isEmpty(idpToLocalRoleMapping)) {
             if (log.isDebugEnabled()) {
@@ -1716,7 +1719,7 @@ public class FrameworkUtils {
                 return new ArrayList<>();
             }
             idpMappedUserRoles.addAll(Arrays.asList(idpRoles));
-            return idpMappedUserRoles;
+            return new ArrayList<>(idpMappedUserRoles);
         }
         for (String idpRole : idpRoles) {
             if (idpToLocalRoleMapping.containsKey(idpRole)) {
@@ -1725,7 +1728,7 @@ public class FrameworkUtils {
                 idpMappedUserRoles.add(idpRole);
             }
         }
-        return idpMappedUserRoles;
+        return new ArrayList<>(idpMappedUserRoles);
     }
 
     /**
@@ -2103,11 +2106,17 @@ public class FrameworkUtils {
                     if (log.isDebugEnabled()) {
                         log.debug("Table - " + tableName + " available in the Identity database.");
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Identity database.");
+                }
+                return false;
             }
-            connection.commit();
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Table - " + tableName + " not available in the Identity database.");
@@ -2116,6 +2125,85 @@ public class FrameworkUtils {
         }
         if (log.isDebugEnabled()) {
             log.debug("Table - " + tableName + " not available in the Identity database.");
+        }
+        return false;
+    }
+
+    public static boolean isConsentPageSkippedForSP(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            throw new IllegalArgumentException("A null reference received for service provider.");
+        }
+
+        for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
+            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
+                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Consent page skip property set for service provider : " + serviceProvider.getApplicationName());
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check whether the specified column of the specified table exists in the Identity database.
+     *
+     * @param tableName name of the table.
+     * @param columnName name of the column.
+     * @return true if column exists.
+     */
+    public static boolean isTableColumnExists(String tableName, String columnName) {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+
+            DatabaseMetaData metaData = connection.getMetaData();
+            if (metaData.storesLowerCaseIdentifiers()) {
+                tableName = tableName.toLowerCase();
+                columnName = columnName.toLowerCase();
+            }
+
+            String schemaPattern = null;
+            if (metaData.getDriverName().contains("Oracle")){
+                if (log.isDebugEnabled()) {
+                    log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
+                }
+                // Oracle checks the availability of the table column
+                // in all users in the DB unless specified.
+                schemaPattern = metaData.getUserName();
+            }
+            try (ResultSet resultSet = metaData.getColumns(null, schemaPattern, tableName, columnName)) {
+                if (resultSet.next()) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
+                                "Identity database.");
+                    }
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                    return true;
+                }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException ex) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                            "Identity database.");
+                }
+                return false;
+            }
+
+        } catch (SQLException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                        "Identity database.");
+            }
+            return false;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                    "Identity database.");
         }
         return false;
     }

@@ -57,6 +57,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
         .InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
         .InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
@@ -145,6 +146,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
                 if (!userClaims.isEmpty()) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
+                    userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                 }
 

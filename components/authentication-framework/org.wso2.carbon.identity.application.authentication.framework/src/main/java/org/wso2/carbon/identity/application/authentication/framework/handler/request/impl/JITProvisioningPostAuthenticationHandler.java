@@ -289,28 +289,36 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     if (localClaimValues == null) {
                         localClaimValues = new HashMap<>();
                     }
+
+                    String associatedLocalUser =
+                            getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
+                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+
                     String username;
                     String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
                     if (isUserNameFoundFromUserIDClaimURI(localClaimValues, userIdClaimUriInLocalDialect)) {
                         username = localClaimValues.get(userIdClaimUriInLocalDialect);
                     } else {
-                        username = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                        username = associatedLocalUser;
                     }
 
-                    // If username is null, that means relevant assication not exist already.
-                    if (StringUtils.isEmpty(username) && !isUserCreated) {
+                    // If associatedLocalUser is null, that means relevant association not exist already.
+                    if (StringUtils.isEmpty(associatedLocalUser) && !isUserCreated) {
                         if (log.isDebugEnabled()) {
                             log.debug(sequenceConfig.getAuthenticatedUser().getUserName() + " coming from "
                                     + externalIdPConfig.getIdPName() + " do not have a local account, hence redirecting"
                                     + " to the UI to sign up.");
                         }
-                        String authenticatedUserName = getTenantDomainAppendedUserName(
-                                sequenceConfig.getAuthenticatedUser().getUserName(), context.getTenantDomain());
 
                         if (externalIdPConfig.isPromptConsentEnabled()) {
+                            if (StringUtils.isEmpty(username)) {
+                                // If there is no subject claim URI configured in the IDP, get the authenticated
+                                // username.
+                                username = getTenantDomainAppendedUserName(
+                                        sequenceConfig.getAuthenticatedUser().getUserName(), context.getTenantDomain());
+                            }
                             redirectToAccountCreateUI(externalIdPConfig, context, localClaimValues, response,
-                                    authenticatedUserName, request);
+                                    username, request);
                             // Set the property to make sure the request is a returning one.
                             context.setProperty(FrameworkConstants.PASSWORD_PROVISION_REDIRECTION_TRIGGERED, true);
                             return PostAuthnHandlerFlowStatus.INCOMPLETE;
@@ -655,7 +663,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
         } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
             //Ex. SAML custom claims.
-            idpRoleClaimUri = getRoleClaimUriInLocalDialect(externalIdPConfig);
+            idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
         }
 
         /* Get the mapped user roles according to the mapping in the IDP configuration. Exclude the unmapped from the
@@ -804,28 +812,4 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         return null;
     }
 
-    private String getRoleClaimUriInLocalDialect(ExternalIdPConfig idPConfig) {
-        // get external identity provider role claim URI.
-        String roleClaimUri = idPConfig.getRoleClaimUri();
-
-        if (StringUtils.isBlank(roleClaimUri)) {
-            return null;
-        }
-
-        boolean useDefaultLocalIdpDialect = idPConfig.useDefaultLocalIdpDialect();
-        if (useDefaultLocalIdpDialect) {
-            return roleClaimUri;
-        } else {
-            ClaimMapping[] claimMappings = idPConfig.getClaimMappings();
-            if (!ArrayUtils.isEmpty(claimMappings)) {
-                for (ClaimMapping claimMapping : claimMappings) {
-                    if (roleClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
-                        return claimMapping.getLocalClaim().getClaimUri();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
 }

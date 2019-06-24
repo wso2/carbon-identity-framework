@@ -631,10 +631,12 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             statementToGetApplicationCertificate.setString(2, issuer);
 
             queryResults = statementToGetApplicationCertificate.executeQuery();
-
+            IdentityDatabaseUtil.commitTransaction(connection);
             while (queryResults.next()) {
                 return queryResults.getInt(1);
             }
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, queryResults, statementToGetApplicationCertificate);
         }
