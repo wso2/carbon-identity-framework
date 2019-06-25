@@ -663,13 +663,20 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     private AuthenticatedUser getAuthenticatedUser(StepConfig stepConfig, AuthenticationContext context) {
+
         AuthenticatedUser authenticatedUser;
         if (stepConfig != null) {
-            //calling from StepBasedSequenceHandler
+            // Calling from StepBasedSequenceHandler.
             authenticatedUser = stepConfig.getAuthenticatedUser();
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticated user found from step config.");
+            }
         } else {
-            //calling from RequestPathBasedSequenceHandler
+            // Calling from RequestPathBasedSequenceHandler.
             authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticated user found from authentication context.");
+            }
         }
         return authenticatedUser;
     }
