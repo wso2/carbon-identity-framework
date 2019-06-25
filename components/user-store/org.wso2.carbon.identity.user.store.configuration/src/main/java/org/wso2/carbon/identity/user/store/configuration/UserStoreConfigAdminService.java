@@ -42,7 +42,6 @@ import org.wso2.carbon.user.api.Properties;
 import org.wso2.carbon.user.api.Property;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.config.XMLProcessorUtils;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 
@@ -64,7 +63,6 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 
 public class UserStoreConfigAdminService extends AbstractAdmin {
     public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
-    private XMLProcessorUtils xmlProcessorUtils = new XMLProcessorUtils();
 
     /**
      * Get details of current secondary user store configurations
@@ -160,14 +158,10 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        String domainName = userStoreDTO.getDomainId();
         try {
-            xmlProcessorUtils.isValidDomain(domainName, true);
-            validateForFederatedDomain(domainName);
-
-            if (StringUtils.isNotBlank(userStoreDTO.getRepository())) {
+            if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                        getUserStoreDAOFactories().get(userStoreDTO.getRepository());
+                        getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().addUserStore(userStoreDTO);
             } else {
                 getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
@@ -176,7 +170,6 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
         }
-
     }
 
     /**
@@ -187,24 +180,13 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        String domainName = userStoreDTO.getDomainId();
-        boolean isValidDomain;
-
         try {
-            isValidDomain = xmlProcessorUtils.isValidDomain(domainName, false);
-            validateForFederatedDomain(domainName);
-
-            if (isValidDomain) {
-                if (StringUtils.isNotEmpty(userStoreDTO.getRepository())) {
-                    AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                            getUserStoreDAOFactories().get(userStoreDTO.getRepository());
-                    userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, false);
-                } else {
-                    getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, false);
-                }
+            if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
+                        getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
+                userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, false);
             } else {
-                String errorMessage = "Trying to edit an invalid domain : " + domainName;
-                throw new IdentityUserStoreMgtException(errorMessage);
+                getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, false);
             }
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
@@ -232,9 +214,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
         try {
             validateForFederatedDomain(domainName);
-            if (StringUtils.isNotEmpty(userStoreDTO.getRepository())) {
+            if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                        getUserStoreDAOFactories().get(userStoreDTO.getRepository());
+                        getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().updateUserStoreDomainName(previousDomainName, userStoreDTO);
             } else {
                 getFileBasedUserStoreDAOFactory().updateUserStoreDomainName(previousDomainName, userStoreDTO);
@@ -243,6 +225,20 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
         }
+    }
+
+    /**
+     * To get all the registered repository classes.
+     *
+     * @return repository classes
+     */
+    public String[] getRepositoryClasses() {
+
+        Map<String, AbstractUserStoreDAOFactory> userStoreFactories = UserStoreConfigListenersHolder.getInstance().
+                getUserStoreDAOFactories();
+        Object[] repositoryArr = userStoreFactories.keySet().toArray();
+        String[] repositoryClasses = Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
+        return repositoryClasses;
     }
 
     /**
@@ -296,25 +292,18 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void deleteUserStoresSetFromRepository(UserStoreDTO[] userStoreDTO) throws IdentityUserStoreMgtException {
 
-        List<String> domains = new ArrayList<>();
-        for (UserStoreDTO userStoreDTOObject : userStoreDTO) {
-            domains.add(userStoreDTOObject.getDomainId());
-        }
-
-        if (CollectionUtils.isEmpty(domains)) {
-            throw new IdentityUserStoreMgtException("No selected user stores to delete");
-        }
-
-        if (!validateDomainsForDelete((String[]) domains.toArray())) {
-            if (log.isDebugEnabled()) {
-                log.debug("Failed to delete user store : No privileges to delete own user store configurations ");
+        for (String repositoryClass : UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories().keySet()) {
+            List<String> domains = new ArrayList<>();
+            for (UserStoreDTO userStoreDTOObject : userStoreDTO) {
+                if (repositoryClass.equals(userStoreDTOObject.getRepositoryClass())) {
+                    domains.add(userStoreDTOObject.getDomainId());
+                }
             }
-            throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
-        }
-        for (UserStoreDTO userStoreDTOObject : userStoreDTO) {
-            AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                    getUserStoreDAOFactories().get(userStoreDTOObject.getRepository());
-            userStoreDAOFactory.getInstance().deleteUserStores((String[]) domains.toArray());
+            if (CollectionUtils.isNotEmpty(domains)) {
+                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
+                        getUserStoreDAOFactories().get(repositoryClass);
+                userStoreDAOFactory.getInstance().deleteUserStores(domains.toArray(new String[domains.size()]));
+            }
         }
     }
 
@@ -337,19 +326,19 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @param domain:   Name of the domain to be updated
      * @param isDisable : Whether to disable/enable domain(true/false)
      */
-    public void changeUserStoreState(String domain, Boolean isDisable) throws IdentityUserStoreMgtException,
-                                                                              TransformerConfigurationException {
+   public void changeUserStoreState(String domain, Boolean isDisable) throws IdentityUserStoreMgtException,
+           TransformerConfigurationException {
 
-       validateDomain(domain,isDisable);
-        UserStoreDTO userStoreDTO = getUserStoreDTO(domain, isDisable);
-        updateTheStateInFileRepository(userStoreDTO);
-    }
+       validateDomain(domain, isDisable);
+       UserStoreDTO userStoreDTO = getUserStoreDTO(domain, isDisable, null);
+       updateTheStateInFileRepository(userStoreDTO);
+   }
 
     private void updateTheStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
             getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, true);
-        } catch (UserStoreException e) {
+        } catch (Exception e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
         }
@@ -357,19 +346,23 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     /**
      * Update the status of domain.
-     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @param domain userstore domain
+     * @param isDisable true if the userstore domain is disabled.
+     * @param repositoryClass repository class
      * @throws IdentityUserStoreMgtException throws an error when changing the status of the user store.
      */
-    public void enableDisableUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+    public void enableDisableUserStore(String domain, Boolean isDisable, String repositoryClass)
+            throws IdentityUserStoreMgtException {
 
-        String domain = userStoreDTO.getDomainId();
-        Boolean isDisable = userStoreDTO.getDisabled();
         validateDomain(domain, isDisable);
-        if (StringUtils.isNotEmpty(userStoreDTO.getRepository())) {
+        UserStoreDTO userStoreDTO;
+        if (StringUtils.isNotEmpty(repositoryClass)) {
             AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                    getUserStoreDAOFactories().get(userStoreDTO.getRepository());
+                    getUserStoreDAOFactories().get(repositoryClass);
+            userStoreDTO = getUserStoreDTO(domain, isDisable, repositoryClass);
             userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, true);
         } else {
+            userStoreDTO = getUserStoreDTO(domain, isDisable, null);
             updateTheStateInFileRepository(userStoreDTO);
         }
     }
@@ -389,11 +382,12 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
     }
 
-    private UserStoreDTO getUserStoreDTO(String domain, Boolean isDisable) {
+    private UserStoreDTO getUserStoreDTO(String domain, Boolean isDisable, String repositoryClass) {
 
         UserStoreDTO userStoreDTO = new UserStoreDTO();
         userStoreDTO.setDomainId(domain);
         userStoreDTO.setDisabled(isDisable);
+        userStoreDTO.setRepositoryClass(repositoryClass);
         return userStoreDTO;
     }
 
@@ -459,16 +453,6 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 //            log.error(message, e);
             throw new IdentityUserStoreMgtException(errorMessage);
         }
-    }
-
-    /**
-     * Obtains the mandatory properties for a given userStoreClass
-     *
-     * @param userStoreClass userStoreClass name
-     * @return Property[] of Mandatory Properties
-     */
-    private Property[] getMandatoryProperties(String userStoreClass) {
-        return UserStoreManagerRegistry.getUserStoreProperties(userStoreClass).getMandatoryProperties();
     }
 
     /**

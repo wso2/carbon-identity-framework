@@ -46,4 +46,3 @@ public class FileBasedUserStoreDAOFactory extends AbstractUserStoreDAOFactory {
         return FileBasedUserStoreDAOFactory.class.getName();
     }
 }
-

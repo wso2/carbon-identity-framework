@@ -26,7 +26,7 @@ public class UserStoreDTO {
     private String description;
     private Boolean disabled;
     @IgnoreNullElement
-    private String repository;
+    private String repositoryClass;
 
     private PropertyDTO[] properties;
 
@@ -70,13 +70,13 @@ public class UserStoreDTO {
         this.properties = properties;
     }
 
-    public String getRepository() {
+    public String getRepositoryClass() {
 
-        return repository;
+        return repositoryClass;
     }
 
-    public void setRepository(String repository) {
+    public void setRepositoryClass(String repositoryClass) {
 
-        this.repository = repository;
+        this.repositoryClass = repositoryClass;
     }
 }

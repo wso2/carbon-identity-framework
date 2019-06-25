@@ -52,6 +52,15 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
+     * To get all registered repository classes.
+     * @return repository classes
+     * @throws RemoteException throws of an error occurswhen getting repository classes.
+     */
+    public String[] getRepositoryClasses() throws RemoteException {
+        return stub.getRepositoryClasses();
+    }
+
+    /**
      * Get all the configured domains
      *
      * @throws Exception
@@ -101,7 +110,7 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
-     * Deletes a given list of user stores
+     * Deletes a given list of user stores from file
      *
      * @param userStores : domain names of user stores to deleted
      * @throws Exception
@@ -116,7 +125,6 @@ public class UserStoreConfigAdminServiceClient {
      * @throws RemoteException RemoteException
      * @throws RemoteException UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
      */
-    @Deprecated
     public void deleteUserStoresSet(UserStoreDTO[] userStores) throws RemoteException,
             UserStoreConfigAdminServiceIdentityUserStoreMgtException {
         stub.deleteUserStoresSetFromRepository(userStores);
@@ -157,14 +165,17 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
-     * Toggle user store state (enable/disable) from any repository
-     * @param userStoreDTO an instance of {@link UserStoreDTO}
-     * @throws RemoteException RemoteException
-     * @throws UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     * Toggle user store state (enable/disable)
+     *
+     * @param domain     : domain name of the user store to enable/dissable
+     * @param isDisabled : set true to disable user store
+     * @param repositoryClasses : the repository where the userstore properties are persisted.
+     * @throws RemoteException if an error occured while changing the userstore state.
      */
-    public void enableDisableUserStore(UserStoreDTO userStoreDTO) throws RemoteException,
+    public void enableDisableUserStore(String domain, String isDisabled, String repositoryClasses) throws RemoteException,
             UserStoreConfigAdminServiceIdentityUserStoreMgtException {
-        stub.enableDisableUserStore(userStoreDTO);
+
+        stub.enableDisableUserStore(domain, Boolean.parseBoolean(isDisabled), repositoryClasses);
     }
 
     /**

@@ -139,13 +139,14 @@
     }
 
 
-    function edit(domain, className) {
-        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className;
+    function edit(domain, className ,repository) {
+        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className+
+            "&repositoryName=" +repository;
         document.userStoreForm.submit();
 
     }
 
-    function enableDisableDomain(domain, action) {
+    function enableDisableDomain(domain, action, repository) {
 
         $.ajax({
             type: 'POST',
@@ -153,7 +154,7 @@
             headers: {
                 Accept: "text/html"
             },
-            data: 'domain=' + domain + '&action=' + action,
+            data: 'domain=' + domain + '&action=' + action + '&repository=' + repository,
             async: false,
             success: function (responseText, status) {
                 if (status == "success") {
@@ -209,6 +210,8 @@
                         String description = userstoreDTO.getDescription();
                         String domainId = userstoreDTO.getDomainId();
                         Boolean isDisabled = userstoreDTO.getDisabled();
+                        String repository = userstoreDTO.getRepositoryClass();
+                        String properties = domainId + ":" + repository;
                         if (className == null) {
                             className = "";
                         }
@@ -223,7 +226,7 @@
                 <tr id=<%=Encode.forHtmlAttribute(domainId)%>>
                     <td style="width: 5%;margin-top:10px;">
                         <input type="checkbox" name="userStores"
-                               value="<%=Encode.forHtmlAttribute(domainId)%>"
+                               value="<%=Encode.forHtmlAttribute(properties)%>"
                                onclick="resetVars()"
                                class="chkBox"/>
                     </td>
@@ -237,18 +240,21 @@
                     </td>
                     <td style="width: 45%;margin-top:10px;">
                         <a title="<fmt:message key='edit.userstore'/>"
-                           onclick="edit('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(className))%>');"
+                           onclick="edit('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(className))%>'
+                                   ,'<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');"
                            href="#" style="background-image: url(images/edit.gif);" class="icon-link">
                             <fmt:message key='edit.userstore'/></a>
                         <% if (!isDisabled) { %>
                         <a title="<fmt:message key='disable.userstore'/>"
-                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable');
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable'
+                                   ,'<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');
                                    return false;"
                            href="#" style="background-image: url(images/disable.gif);" class="icon-link">
                             <fmt:message key='disable.userstore'/></a>
                         <% } else { %>
                         <a title="<fmt:message key='enable.userstore'/>"
-                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'enable');
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>',
+                                   'enable','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');
                                    return false;"
                            href="#" style="background-image: url(images/enable.gif);" class="icon-link">
                             <fmt:message key='enable.userstore'/></a>

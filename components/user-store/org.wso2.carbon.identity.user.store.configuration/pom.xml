@@ -63,6 +63,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.securevault</groupId>
+            <artifactId>org.wso2.securevault</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -89,6 +93,7 @@
                             javax.xml.transform,
                             javax.xml.transform.dom,
                             javax.xml.transform.stream,
+                            org.apache.axiom.om.impl.builder,
 
                             org.apache.axis2.databinding.annotation,
 
@@ -98,7 +103,11 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.w3c.dom,
+                            org.wso2.securevault,
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.base.api; version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",

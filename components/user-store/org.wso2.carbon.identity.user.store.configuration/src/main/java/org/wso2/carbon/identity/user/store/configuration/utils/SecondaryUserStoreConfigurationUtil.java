@@ -39,12 +39,14 @@ import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigComponent;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.user.api.Property;
+import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.crypto.Cipher;
@@ -62,6 +64,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -70,6 +74,9 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Set;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
@@ -279,11 +286,57 @@ public class SecondaryUserStoreConfigurationUtil {
         }
     }
 
+    /**
+     * Get the user store config file.
+     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @return user store properties as a String.
+     * @throws IdentityUserStoreMgtException throws if an error occured while getting the user store properties.
+     */
+    public static String getUserStoreProperties(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+
+        String userStoreProperties;
+        DocumentBuilderFactory documentFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
+        try {
+            DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
+            Document doc = getDocument(userStoreDTO, false, documentBuilder);
+            StringWriter writer = new StringWriter();
+            transformProperties().transform(new DOMSource(doc), new StreamResult(writer));
+            //To replace the line breaks
+            userStoreProperties = writer.getBuffer().toString().replaceAll("\n|\r", "");
+
+        } catch (ParserConfigurationException | TransformerException e) {
+            throw new IdentityUserStoreMgtException("Error occured while parsing the user store file.", e);
+        } catch (IdentityUserStoreMgtException e) {
+            throw new IdentityUserStoreMgtException("Error occured while getting the user store properties.", e);
+        }
+        return userStoreProperties;
+    }
+
+    private static Transformer transformProperties() throws TransformerException {
+
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "6");
+        return transformer;
+    }
+
     private static void updateUserStoreProperties(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
                                                   boolean editSecondaryUserStore, DocumentBuilder documentBuilder)
             throws IdentityUserStoreMgtException, IOException, TransformerException {
 
-        StreamResult result;
+        Document doc = getDocument(userStoreDTO, editSecondaryUserStore, documentBuilder);
+        StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
+        DOMSource source = new DOMSource(doc);
+        transformProperties().transform(source, result);
+
+    }
+
+    private static Document getDocument(UserStoreDTO userStoreDTO, boolean editSecondaryUserStore,
+                                        DocumentBuilder documentBuilder) throws IdentityUserStoreMgtException {
+
         Document doc = documentBuilder.newDocument();
 
         //create UserStoreManager element
@@ -291,22 +344,23 @@ public class SecondaryUserStoreConfigurationUtil {
         doc.appendChild(userStoreElement);
 
         Attr attrClass = doc.createAttribute("class");
-        attrClass.setValue(userStoreDTO.getClassName());
-        userStoreElement.setAttributeNode(attrClass);
-
-        addProperties(userStoreDTO.getClassName(), userStoreDTO.getProperties(), doc, userStoreElement,
-                editSecondaryUserStore);
-        addProperty(UserStoreConfigConstants.DOMAIN_NAME, userStoreDTO.getDomainId(), doc, userStoreElement, false);
-        addProperty(UserStoreConfigurationConstant.DESCRIPTION, userStoreDTO.getDescription(), doc, userStoreElement, false);
-        result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
-        transformProperties(result, doc);
+        if (userStoreDTO != null) {
+            attrClass.setValue(userStoreDTO.getClassName());
+            userStoreElement.setAttributeNode(attrClass);
+            if (userStoreDTO.getClassName() != null) {
+                addProperties(userStoreDTO.getClassName(), userStoreDTO.getProperties(), doc, userStoreElement,
+                        editSecondaryUserStore);
+            }
+            addProperty(UserStoreConfigConstants.DOMAIN_NAME, userStoreDTO.getDomainId(), doc, userStoreElement, false);
+            addProperty(UserStoreConfigurationConstant.DESCRIPTION, userStoreDTO.getDescription(), doc, userStoreElement, false);
+        }
+        return doc;
     }
 
     private static void updateStateOfUserStore(Path userStoreConfigFile, boolean isDisable, String domain,
                                                DocumentBuilder documentBuilder) throws SAXException, IOException,
             TransformerException {
 
-        StreamResult result;
         Document doc = documentBuilder.parse(Files.newInputStream(userStoreConfigFile));
 
         NodeList elements = doc.getElementsByTagName("Property");
@@ -317,25 +371,14 @@ public class SecondaryUserStoreConfigurationUtil {
                 break;
             }
         }
-        result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
-        transformProperties(result, doc);
+        StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
+        DOMSource source = new DOMSource(doc);
+        transformProperties().transform(source, result);
 
         if (log.isDebugEnabled()) {
-            log.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully written to the file system");
+            log.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully " +
+                    "written to the file system");
         }
-    }
-
-    private static void transformProperties(StreamResult result, Document doc) throws TransformerException {
-
-        DOMSource source = new DOMSource(doc);
-
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "6");
-        transformer.transform(source, result);
     }
 
     /**
@@ -529,14 +572,92 @@ public class SecondaryUserStoreConfigurationUtil {
      */
     public static UserStoreDAO getFileBasedUserStoreDAOFactory() throws UserStoreException {
 
-        UserStoreDAO userStoreDAO;
-
-        userStoreDAO = UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories()
+        UserStoreDAO userStoreDAO = UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories()
                 .get(FileBasedUserStoreDAOFactory.class.getName()).getInstance();
         if (userStoreDAO == null) {
             throw new UserStoreException("Error occured while creating an instance of FileBasedUserStoreDAOFactory.");
         }
-
         return userStoreDAO;
+    }
+
+    /**
+     * get random passwords generated.
+     * @param secondaryRealmConfiguration realm configuration.
+     * @param userStoreProperties user store properties.
+     * @param uuid random id.
+     * @param randomPhrase random phrase
+     * @param className class name
+     * @return random password generated.
+     */
+    public static RandomPassword[] getRandomPasswords(RealmConfiguration secondaryRealmConfiguration,
+                                                Map<String, String> userStoreProperties, String uuid,
+                                                String randomPhrase, String className) {
+
+        RandomPassword[] randomPasswords = getRandomPasswordProperties(className, randomPhrase,
+                secondaryRealmConfiguration);
+        if (randomPasswords != null) {
+            updatePasswordContainer(randomPasswords, uuid);
+        }
+
+        // Replace the property with random password.
+        for (RandomPassword randomPassword : randomPasswords) {
+            userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getRandomPhrase());
+        }
+        return randomPasswords;
+    }
+
+    private static RandomPassword[] getRandomPasswordProperties(String userStoreClass,
+                                                                String randomPhrase, RealmConfiguration secondaryRealmConfiguration) {
+        //First check for mandatory field with #encrypt
+        Property[] mandatoryProperties = getMandatoryProperties(userStoreClass);
+        ArrayList<RandomPassword> randomPasswordArrayList = new ArrayList<RandomPassword>();
+        for (Property property : mandatoryProperties) {
+            String propertyName = property.getName();
+            if (property.getDescription().contains(UserStoreConfigurationConstant.ENCRYPT_TEXT)) {
+                RandomPassword randomPassword = new RandomPassword();
+                randomPassword.setPropertyName(propertyName);
+                randomPassword.setPassword(secondaryRealmConfiguration.getUserStoreProperty(propertyName));
+                randomPassword.setRandomPhrase(randomPhrase);
+                randomPasswordArrayList.add(randomPassword);
+            }
+        }
+        return randomPasswordArrayList.toArray(new RandomPassword[randomPasswordArrayList.size()]);
+    }
+
+
+    private static void updatePasswordContainer(RandomPassword[] randomPasswords, String uuid) {
+
+        if (randomPasswords != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("updatePasswordContainer reached for number of random password properties length = " +
+                        randomPasswords.length);
+            }
+            RandomPasswordContainer randomPasswordContainer = new RandomPasswordContainer();
+            randomPasswordContainer.setRandomPasswords(randomPasswords);
+            randomPasswordContainer.setUniqueID(uuid);
+
+            RandomPasswordContainerCache.getInstance().getRandomPasswordContainerCache().put(uuid,
+                    randomPasswordContainer);
+        }
+    }
+
+    /**
+     * To convert user store properties map to an array.
+     * @param properties user store properties map
+     * @return userstore properties array
+     */
+    public static PropertyDTO[] convertMapToArray(Map<String, String> properties) {
+
+        Set<Map.Entry<String, String>> propertyEntries = properties.entrySet();
+        ArrayList<PropertyDTO> propertiesList = new ArrayList<PropertyDTO>();
+        String key;
+        String value;
+        for (Map.Entry<String, String> entry : propertyEntries) {
+            key = (String) entry.getKey();
+            value = (String) entry.getValue();
+            PropertyDTO propertyDTO = new PropertyDTO(key, value);
+            propertiesList.add(propertyDTO);
+        }
+        return propertiesList.toArray(new PropertyDTO[propertiesList.size()]);
     }
 }

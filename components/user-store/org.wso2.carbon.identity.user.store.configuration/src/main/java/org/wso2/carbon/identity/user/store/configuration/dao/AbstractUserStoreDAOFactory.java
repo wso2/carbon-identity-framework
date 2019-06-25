@@ -24,11 +24,14 @@ public abstract class AbstractUserStoreDAOFactory {
 
     /**
      * To instantiate the userStoreDAO.
+     *
      * @return {@link UserStoreDTO}
      */
     public abstract UserStoreDAO getInstance();
 
-    /** To return the repository name where the userStore is persisted in.
+    /**
+     * To return the repository name where the userStore is persisted in.
+     *
      * @return repository name
      */
     public abstract String getRepository();

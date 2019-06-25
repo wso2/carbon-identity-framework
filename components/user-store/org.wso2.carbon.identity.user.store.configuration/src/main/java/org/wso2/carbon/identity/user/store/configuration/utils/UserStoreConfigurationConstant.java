@@ -37,8 +37,11 @@ public class UserStoreConfigurationConstant {
     public static final String DESCRIPTION = "Description";
     public static final String FEDERATED = "FEDERATED";
     public static final String USERSTORES = "userstores";
+    public static final String USERSTORE = "USERSTORE";
+    public static final String XML = "XML";
     public static final String deploymentDirectory = CarbonUtils.getCarbonRepository() + USERSTORES;
     public static final String PERIOD = ".";
+    public static final String DISABLED = "Disabled";
 
     private UserStoreConfigurationConstant() {
 

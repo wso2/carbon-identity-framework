@@ -34,6 +34,8 @@
     String forwardTo = null;
     String action = request.getParameter("action");
     String domain = request.getParameter("domain");
+    String repositoryClass = request.getParameter("repository");
+    
     String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = null;
@@ -47,12 +49,12 @@
 
         try {
             if (action.equals("enable")) {
-                userStoreConfigAdminServiceClient.changeUserStoreState(domain, "false");
+                userStoreConfigAdminServiceClient.enableDisableUserStore(domain, "false", repositoryClass);
                 String message = resourceBundle.getString("successful.enable");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
             }
             if (action.equals("disable")) {
-                userStoreConfigAdminServiceClient.changeUserStoreState(domain, "true");
+                userStoreConfigAdminServiceClient.enableDisableUserStore(domain, "true", repositoryClass);
                 String message = resourceBundle.getString("successful.disable");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
             }

@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -104,8 +105,11 @@ public class UserStoreConfigComponent {
             BundleContext bundleContext = ctxt.getBundleContext();
             UserStoreConfigListenersHolder.getInstance().setBundleContext(bundleContext);
             AbstractUserStoreDAOFactory fileBasedUserStoreDAOFactory = new FileBasedUserStoreDAOFactory();
+            AbstractUserStoreDAOFactory databaseBasedUserStoreDAOFactory = new DatabaseBasedUserStoreDAOFactory();
             ServiceRegistration serviceRegistration = bundleContext
                     .registerService(AbstractUserStoreDAOFactory.class.getName(), fileBasedUserStoreDAOFactory, null);
+            bundleContext.registerService(AbstractUserStoreDAOFactory.class.getName(), databaseBasedUserStoreDAOFactory,
+                    null);
             if (serviceRegistration != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("FileBasedUserStoreDAOFactory is successfully registered.");
@@ -137,7 +141,6 @@ public class UserStoreConfigComponent {
         if (log.isDebugEnabled()) {
             log.debug("Added UserStoreDAOFactory : " + userStoreDAOFactory.getRepository());
         }
-
     }
 
     protected void unsetUserStoreDAOFactory(AbstractUserStoreDAOFactory userStoreDAOFactory) {

@@ -110,6 +110,18 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getRepositoryClasses">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getRepositoryClassesResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
             <xs:element name="deleteUserStore">
                 <xs:complexType>
                     <xs:sequence>
@@ -156,7 +168,9 @@
             <xs:element name="enableDisableUserStore">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="userStoreDTO" nillable="true" type="ax2471:UserStoreDTO"/>
+                        <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="isDisable" type="xs:boolean"/>
+                        <xs:element minOccurs="0" name="repositoryClass" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -188,7 +202,7 @@
                     <xs:element minOccurs="0" name="disabled" nillable="true" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="domainId" nillable="true" type="xs:string"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2471:PropertyDTO"/>
-                    <xs:element minOccurs="0" name="repository" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="repositoryClass" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="PropertyDTO">
@@ -199,6 +213,12 @@
             </xs:complexType>
         </xs:schema>
     </wsdl:types>
+    <wsdl:message name="getRepositoryClassesRequest">
+        <wsdl:part name="parameters" element="ns1:getRepositoryClasses"/>
+    </wsdl:message>
+    <wsdl:message name="getRepositoryClassesResponse">
+        <wsdl:part name="parameters" element="ns1:getRepositoryClassesResponse"/>
+    </wsdl:message>
     <wsdl:message name="getAvailableUserStoreClassesRequest">
         <wsdl:part name="parameters" element="ns1:getAvailableUserStoreClasses"/>
     </wsdl:message>
@@ -272,6 +292,10 @@
         <wsdl:part name="parameters" element="ns1:getUserStoreManagerPropertiesResponse"/>
     </wsdl:message>
     <wsdl:portType name="UserStoreConfigAdminServicePortType">
+        <wsdl:operation name="getRepositoryClasses">
+            <wsdl:input message="tns:getRepositoryClassesRequest" wsaw:Action="urn:getRepositoryClasses"/>
+            <wsdl:output message="tns:getRepositoryClassesResponse" wsaw:Action="urn:getRepositoryClassesResponse"/>
+        </wsdl:operation>
         <wsdl:operation name="getAvailableUserStoreClasses">
             <wsdl:input message="tns:getAvailableUserStoreClassesRequest" wsaw:Action="urn:getAvailableUserStoreClasses"/>
             <wsdl:output message="tns:getAvailableUserStoreClassesResponse" wsaw:Action="urn:getAvailableUserStoreClassesResponse"/>
@@ -346,6 +370,15 @@
     </wsdl:portType>
     <wsdl:binding name="UserStoreConfigAdminServiceSoap11Binding" type="tns:UserStoreConfigAdminServicePortType">
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getRepositoryClasses">
+            <soap:operation soapAction="urn:getRepositoryClasses" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getAvailableUserStoreClasses">
             <soap:operation soapAction="urn:getAvailableUserStoreClasses" style="document"/>
             <wsdl:input>
@@ -520,6 +553,15 @@
     </wsdl:binding>
     <wsdl:binding name="UserStoreConfigAdminServiceSoap12Binding" type="tns:UserStoreConfigAdminServicePortType">
         <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getRepositoryClasses">
+            <soap12:operation soapAction="urn:getRepositoryClasses" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getAvailableUserStoreClasses">
             <soap12:operation soapAction="urn:getAvailableUserStoreClasses" style="document"/>
             <wsdl:input>
@@ -694,6 +736,15 @@
     </wsdl:binding>
     <wsdl:binding name="UserStoreConfigAdminServiceHttpBinding" type="tns:UserStoreConfigAdminServicePortType">
         <http:binding verb="POST"/>
+        <wsdl:operation name="getRepositoryClasses">
+            <http:operation location="getRepositoryClasses"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getAvailableUserStoreClasses">
             <http:operation location="getAvailableUserStoreClasses"/>
             <wsdl:input>
