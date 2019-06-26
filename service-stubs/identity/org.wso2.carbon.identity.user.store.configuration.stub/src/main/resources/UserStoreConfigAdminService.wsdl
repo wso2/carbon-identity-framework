@@ -1,3 +1,20 @@
+<!--
+ ~ Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ ~
+ ~ WSO2 Inc. licenses this file to you under the Apache License,
+ ~ Version 2.0 (the "License"); you may not use this file except
+ ~ in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~    http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing,
+ ~ software distributed under the License is distributed on an
+ ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ ~ KIND, either express or implied.  See the License for the
+ ~ specific language governing permissions and limitations
+ ~ under the License.
+ -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2469="http://utils.configuration.store.user.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://configuration.store.user.identity.carbon.wso2.org" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax2471="http://dto.configuration.store.user.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2473="http://api.user.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://configuration.store.user.identity.carbon.wso2.org">
     <wsdl:documentation>UserStoreConfigAdminService</wsdl:documentation>
     <wsdl:types>
@@ -48,14 +65,14 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getSecondaryRealmConfigurationsFromAllRepositories">
+            <xs:element name="getSecondaryRealmConfigurationsOnRepository">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="repositoryClassName" nillable="true" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getSecondaryRealmConfigurationsFromAllRepositoriesResponse">
+            <xs:element name="getSecondaryRealmConfigurationsOnRepositoryResponse">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2471:UserStoreDTO"/>
@@ -146,7 +163,7 @@
             <xs:element name="deleteUserStoresSetFromRepository">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userStoreDTO" nillable="true" type="ax2471:UserStoreDTO"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="userStoreDTOs" nillable="true" type="ax2471:UserStoreDTO"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -165,7 +182,7 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="enableDisableUserStore">
+            <xs:element name="modifyUserStoreState">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="domain" nillable="true" type="xs:string"/>
@@ -213,6 +230,15 @@
             </xs:complexType>
         </xs:schema>
     </wsdl:types>
+    <wsdl:message name="getSecondaryRealmConfigurationsOnRepositoryRequest">
+        <wsdl:part name="parameters" element="ns1:getSecondaryRealmConfigurationsOnRepository"/>
+    </wsdl:message>
+    <wsdl:message name="getSecondaryRealmConfigurationsOnRepositoryResponse">
+        <wsdl:part name="parameters" element="ns1:getSecondaryRealmConfigurationsOnRepositoryResponse"/>
+    </wsdl:message>
+    <wsdl:message name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+        <wsdl:part name="parameters" element="ns1:UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+    </wsdl:message>
     <wsdl:message name="getRepositoryClassesRequest">
         <wsdl:part name="parameters" element="ns1:getRepositoryClasses"/>
     </wsdl:message>
@@ -225,23 +251,10 @@
     <wsdl:message name="getAvailableUserStoreClassesResponse">
         <wsdl:part name="parameters" element="ns1:getAvailableUserStoreClassesResponse"/>
     </wsdl:message>
-    <wsdl:message name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
-        <wsdl:part name="parameters" element="ns1:UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-    </wsdl:message>
-    <wsdl:message name="getSecondaryRealmConfigurationsFromAllRepositoriesRequest">
-        <wsdl:part name="parameters" element="ns1:getSecondaryRealmConfigurationsFromAllRepositories"/>
-    </wsdl:message>
-    <wsdl:message name="getSecondaryRealmConfigurationsFromAllRepositoriesResponse">
-        <wsdl:part name="parameters" element="ns1:getSecondaryRealmConfigurationsFromAllRepositoriesResponse"/>
-    </wsdl:message>
     <wsdl:message name="deleteUserStoreFromRepositoryRequest">
         <wsdl:part name="parameters" element="ns1:deleteUserStoreFromRepository"/>
     </wsdl:message>
     <wsdl:message name="deleteUserStoreFromRepositoryResponse"/>
-    <wsdl:message name="enableDisableUserStoreRequest">
-        <wsdl:part name="parameters" element="ns1:enableDisableUserStore"/>
-    </wsdl:message>
-    <wsdl:message name="enableDisableUserStoreResponse"/>
     <wsdl:message name="getSecondaryRealmConfigurationsRequest">
         <wsdl:part name="parameters" element="ns1:getSecondaryRealmConfigurations"/>
     </wsdl:message>
@@ -281,6 +294,10 @@
         <wsdl:part name="parameters" element="ns1:deleteUserStoresSetFromRepository"/>
     </wsdl:message>
     <wsdl:message name="deleteUserStoresSetFromRepositoryResponse"/>
+    <wsdl:message name="modifyUserStoreStateRequest">
+        <wsdl:part name="parameters" element="ns1:modifyUserStoreState"/>
+    </wsdl:message>
+    <wsdl:message name="modifyUserStoreStateResponse"/>
     <wsdl:message name="editUserStoreRequest">
         <wsdl:part name="parameters" element="ns1:editUserStore"/>
     </wsdl:message>
@@ -292,6 +309,11 @@
         <wsdl:part name="parameters" element="ns1:getUserStoreManagerPropertiesResponse"/>
     </wsdl:message>
     <wsdl:portType name="UserStoreConfigAdminServicePortType">
+        <wsdl:operation name="getSecondaryRealmConfigurationsOnRepository">
+            <wsdl:input message="tns:getSecondaryRealmConfigurationsOnRepositoryRequest" wsaw:Action="urn:getSecondaryRealmConfigurationsOnRepository"/>
+            <wsdl:output message="tns:getSecondaryRealmConfigurationsOnRepositoryResponse" wsaw:Action="urn:getSecondaryRealmConfigurationsOnRepositoryResponse"/>
+            <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:getSecondaryRealmConfigurationsOnRepositoryUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+        </wsdl:operation>
         <wsdl:operation name="getRepositoryClasses">
             <wsdl:input message="tns:getRepositoryClassesRequest" wsaw:Action="urn:getRepositoryClasses"/>
             <wsdl:output message="tns:getRepositoryClassesResponse" wsaw:Action="urn:getRepositoryClassesResponse"/>
@@ -301,20 +323,10 @@
             <wsdl:output message="tns:getAvailableUserStoreClassesResponse" wsaw:Action="urn:getAvailableUserStoreClassesResponse"/>
             <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:getAvailableUserStoreClassesUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
         </wsdl:operation>
-        <wsdl:operation name="getSecondaryRealmConfigurationsFromAllRepositories">
-            <wsdl:input message="tns:getSecondaryRealmConfigurationsFromAllRepositoriesRequest" wsaw:Action="urn:getSecondaryRealmConfigurationsFromAllRepositories"/>
-            <wsdl:output message="tns:getSecondaryRealmConfigurationsFromAllRepositoriesResponse" wsaw:Action="urn:getSecondaryRealmConfigurationsFromAllRepositoriesResponse"/>
-            <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:getSecondaryRealmConfigurationsFromAllRepositoriesUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-        </wsdl:operation>
         <wsdl:operation name="deleteUserStoreFromRepository">
             <wsdl:input message="tns:deleteUserStoreFromRepositoryRequest" wsaw:Action="urn:deleteUserStoreFromRepository"/>
             <wsdl:output message="tns:deleteUserStoreFromRepositoryResponse" wsaw:Action="urn:deleteUserStoreFromRepositoryResponse"/>
             <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:deleteUserStoreFromRepositoryUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-        </wsdl:operation>
-        <wsdl:operation name="enableDisableUserStore">
-            <wsdl:input message="tns:enableDisableUserStoreRequest" wsaw:Action="urn:enableDisableUserStore"/>
-            <wsdl:output message="tns:enableDisableUserStoreResponse" wsaw:Action="urn:enableDisableUserStoreResponse"/>
-            <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:enableDisableUserStoreUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
         </wsdl:operation>
         <wsdl:operation name="getSecondaryRealmConfigurations">
             <wsdl:input message="tns:getSecondaryRealmConfigurationsRequest" wsaw:Action="urn:getSecondaryRealmConfigurations"/>
@@ -357,6 +369,11 @@
             <wsdl:output message="tns:deleteUserStoresSetFromRepositoryResponse" wsaw:Action="urn:deleteUserStoresSetFromRepositoryResponse"/>
             <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:deleteUserStoresSetFromRepositoryUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
         </wsdl:operation>
+        <wsdl:operation name="modifyUserStoreState">
+            <wsdl:input message="tns:modifyUserStoreStateRequest" wsaw:Action="urn:modifyUserStoreState"/>
+            <wsdl:output message="tns:modifyUserStoreStateResponse" wsaw:Action="urn:modifyUserStoreStateResponse"/>
+            <wsdl:fault message="tns:UserStoreConfigAdminServiceIdentityUserStoreMgtException" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException" wsaw:Action="urn:modifyUserStoreStateUserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+        </wsdl:operation>
         <wsdl:operation name="editUserStore">
             <wsdl:input message="tns:editUserStoreRequest" wsaw:Action="urn:editUserStore"/>
             <wsdl:output message="tns:editUserStoreResponse" wsaw:Action="urn:editUserStoreResponse"/>
@@ -370,6 +387,18 @@
     </wsdl:portType>
     <wsdl:binding name="UserStoreConfigAdminServiceSoap11Binding" type="tns:UserStoreConfigAdminServicePortType">
         <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getSecondaryRealmConfigurationsOnRepository">
+            <soap:operation soapAction="urn:getSecondaryRealmConfigurationsOnRepository" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+                <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getRepositoryClasses">
             <soap:operation soapAction="urn:getRepositoryClasses" style="document"/>
             <wsdl:input>
@@ -391,32 +420,8 @@
                 <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getSecondaryRealmConfigurationsFromAllRepositories">
-            <soap:operation soapAction="urn:getSecondaryRealmConfigurationsFromAllRepositories" style="document"/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-            </wsdl:output>
-            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
-                <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="deleteUserStoreFromRepository">
             <soap:operation soapAction="urn:deleteUserStoreFromRepository" style="document"/>
-            <wsdl:input>
-                <soap:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap:body use="literal"/>
-            </wsdl:output>
-            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
-                <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-            </wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="enableDisableUserStore">
-            <soap:operation soapAction="urn:enableDisableUserStore" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -526,6 +531,18 @@
                 <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="modifyUserStoreState">
+            <soap:operation soapAction="urn:modifyUserStoreState" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+                <soap:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="editUserStore">
             <soap:operation soapAction="urn:editUserStore" style="document"/>
             <wsdl:input>
@@ -553,6 +570,18 @@
     </wsdl:binding>
     <wsdl:binding name="UserStoreConfigAdminServiceSoap12Binding" type="tns:UserStoreConfigAdminServicePortType">
         <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getSecondaryRealmConfigurationsOnRepository">
+            <soap12:operation soapAction="urn:getSecondaryRealmConfigurationsOnRepository" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+                <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getRepositoryClasses">
             <soap12:operation soapAction="urn:getRepositoryClasses" style="document"/>
             <wsdl:input>
@@ -574,32 +603,8 @@
                 <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
             </wsdl:fault>
         </wsdl:operation>
-        <wsdl:operation name="getSecondaryRealmConfigurationsFromAllRepositories">
-            <soap12:operation soapAction="urn:getSecondaryRealmConfigurationsFromAllRepositories" style="document"/>
-            <wsdl:input>
-                <soap12:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap12:body use="literal"/>
-            </wsdl:output>
-            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
-                <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-            </wsdl:fault>
-        </wsdl:operation>
         <wsdl:operation name="deleteUserStoreFromRepository">
             <soap12:operation soapAction="urn:deleteUserStoreFromRepository" style="document"/>
-            <wsdl:input>
-                <soap12:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output>
-                <soap12:body use="literal"/>
-            </wsdl:output>
-            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
-                <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
-            </wsdl:fault>
-        </wsdl:operation>
-        <wsdl:operation name="enableDisableUserStore">
-            <soap12:operation soapAction="urn:enableDisableUserStore" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -709,6 +714,18 @@
                 <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="modifyUserStoreState">
+            <soap12:operation soapAction="urn:modifyUserStoreState" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="UserStoreConfigAdminServiceIdentityUserStoreMgtException">
+                <soap12:fault use="literal" name="UserStoreConfigAdminServiceIdentityUserStoreMgtException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="editUserStore">
             <soap12:operation soapAction="urn:editUserStore" style="document"/>
             <wsdl:input>
@@ -736,6 +753,15 @@
     </wsdl:binding>
     <wsdl:binding name="UserStoreConfigAdminServiceHttpBinding" type="tns:UserStoreConfigAdminServicePortType">
         <http:binding verb="POST"/>
+        <wsdl:operation name="getSecondaryRealmConfigurationsOnRepository">
+            <http:operation location="getSecondaryRealmConfigurationsOnRepository"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getRepositoryClasses">
             <http:operation location="getRepositoryClasses"/>
             <wsdl:input>
@@ -754,26 +780,8 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="getSecondaryRealmConfigurationsFromAllRepositories">
-            <http:operation location="getSecondaryRealmConfigurationsFromAllRepositories"/>
-            <wsdl:input>
-                <mime:content type="text/xml" part="parameters"/>
-            </wsdl:input>
-            <wsdl:output>
-                <mime:content type="text/xml" part="parameters"/>
-            </wsdl:output>
-        </wsdl:operation>
         <wsdl:operation name="deleteUserStoreFromRepository">
             <http:operation location="deleteUserStoreFromRepository"/>
-            <wsdl:input>
-                <mime:content type="text/xml" part="parameters"/>
-            </wsdl:input>
-            <wsdl:output>
-                <mime:content type="text/xml" part="parameters"/>
-            </wsdl:output>
-        </wsdl:operation>
-        <wsdl:operation name="enableDisableUserStore">
-            <http:operation location="enableDisableUserStore"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>
@@ -846,6 +854,15 @@
         </wsdl:operation>
         <wsdl:operation name="deleteUserStoresSetFromRepository">
             <http:operation location="deleteUserStoresSetFromRepository"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="modifyUserStoreState">
+            <http:operation location="modifyUserStoreState"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

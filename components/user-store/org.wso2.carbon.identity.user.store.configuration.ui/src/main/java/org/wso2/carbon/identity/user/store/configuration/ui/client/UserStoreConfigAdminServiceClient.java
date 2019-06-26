@@ -122,10 +122,10 @@ public class UserStoreConfigAdminServiceClient {
     /**
      * Deletes a given list of user stores from repository
      * @param userStores : an instance of an array of {@link UserStoreDTO}
-     * @throws RemoteException RemoteException
-     * @throws RemoteException UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     * @throws Exception RemoteException
+     * @throws Exception UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
      */
-    public void deleteUserStoresSet(UserStoreDTO[] userStores) throws RemoteException,
+    public void deleteUserStoresSet(UserStoreDTO[] userStores) throws Exception,
             UserStoreConfigAdminServiceIdentityUserStoreMgtException {
         stub.deleteUserStoresSetFromRepository(userStores);
     }
@@ -157,7 +157,7 @@ public class UserStoreConfigAdminServiceClient {
      *
      * @param domain     : domain name of the user store to enable/dissable
      * @param isDisabled : set true to disable user store
-     * @throws RemoteException
+     * @throws Exception
      */
     @Deprecated
     public void changeUserStoreState(String domain, String isDisabled) throws Exception {
@@ -172,10 +172,10 @@ public class UserStoreConfigAdminServiceClient {
      * @param repositoryClasses : the repository where the userstore properties are persisted.
      * @throws RemoteException if an error occured while changing the userstore state.
      */
-    public void enableDisableUserStore(String domain, String isDisabled, String repositoryClasses) throws RemoteException,
+    public void changeUserStoreState(String domain, String isDisabled, String repositoryClasses) throws RemoteException,
             UserStoreConfigAdminServiceIdentityUserStoreMgtException {
 
-        stub.enableDisableUserStore(domain, Boolean.parseBoolean(isDisabled), repositoryClasses);
+        stub.modifyUserStoreState(domain, Boolean.parseBoolean(isDisabled), repositoryClasses);
     }
 
     /**

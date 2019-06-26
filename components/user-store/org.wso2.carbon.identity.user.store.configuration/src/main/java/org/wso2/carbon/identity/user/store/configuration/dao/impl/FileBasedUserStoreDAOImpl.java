@@ -236,7 +236,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     }
 
     @Override
-    public UserStoreDTO[] getAllUserStores() throws IdentityUserStoreMgtException {
+    public UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException {
 
         RealmConfiguration secondaryRealmConfiguration;
         List<UserStoreDTO> domains = new ArrayList<>();

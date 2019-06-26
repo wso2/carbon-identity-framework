@@ -49,12 +49,12 @@
 
         try {
             if (action.equals("enable")) {
-                userStoreConfigAdminServiceClient.enableDisableUserStore(domain, "false", repositoryClass);
+                userStoreConfigAdminServiceClient.changeUserStoreState(domain, "false", repositoryClass);
                 String message = resourceBundle.getString("successful.enable");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
             }
             if (action.equals("disable")) {
-                userStoreConfigAdminServiceClient.enableDisableUserStore(domain, "true", repositoryClass);
+                userStoreConfigAdminServiceClient.changeUserStoreState(domain, "true", repositoryClass);
                 String message = resourceBundle.getString("successful.disable");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
             }

@@ -32,6 +32,8 @@ import java.util.List;
  */
 public abstract class AbstractUserStoreDAO implements UserStoreDAO {
 
+    public static final String DISABLED = "Disabled";
+
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
@@ -60,16 +62,16 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
             userStoreDTO = userStoreDTOTemp;
             userStoreDTO.setDisabled(newState);
             PropertyDTO[] propertyDTO = userStoreDTO.getProperties();
-            List<PropertyDTO> newPropertyDTO = new ArrayList<>();
+            //List<PropertyDTO> newPropertyDTO = new ArrayList<>();
             for (PropertyDTO propertyDTOValue : propertyDTO) {
-                if (propertyDTOValue.getName().equals("Disabled")) {
+                if (propertyDTOValue.getName().equals(DISABLED)) {
                     propertyDTOValue.setValue(String.valueOf(newState));
+                    //newPropertyDTO.add(propertyDTOValue);
+                } /*else {
                     newPropertyDTO.add(propertyDTOValue);
-                } else {
-                    newPropertyDTO.add(propertyDTOValue);
-                }
+                }*/
             }
-            userStoreDTO.setProperties(newPropertyDTO.toArray(new PropertyDTO[newPropertyDTO.size()]));
+           // userStoreDTO.setProperties(newPropertyDTO.toArray(new PropertyDTO[newPropertyDTO.size()]));
         }
         return userStoreDTO;
     }
@@ -86,20 +88,16 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
     @Override
     public UserStoreDTO getUserStore(String domain) throws IdentityUserStoreMgtException {
 
-        if (doGetUserStore(domain) != null) {
-            return doGetUserStore(domain).getUserStoreDTO();
+        UserStorePersistanceDTO userStorePersistanceDTO = doGetUserStore(domain);
+
+        if (userStorePersistanceDTO != null) {
+            return userStorePersistanceDTO.getUserStoreDTO();
         }
         return null;
     }
 
     @Override
-    public UserStoreDTO[] getUserStores(String[] domain) {
-
-        return new UserStoreDTO[0];
-    }
-
-    @Override
-    public UserStoreDTO[] getAllUserStores() throws IdentityUserStoreMgtException {
+    public UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException {
 
         UserStorePersistanceDTO[] userStorePersistanceDTOS = doGetAllUserStores();
         List<UserStoreDTO> userStoreDTOs = new ArrayList<>();

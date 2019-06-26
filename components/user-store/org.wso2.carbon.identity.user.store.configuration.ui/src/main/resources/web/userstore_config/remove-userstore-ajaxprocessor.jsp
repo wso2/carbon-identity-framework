@@ -54,8 +54,8 @@
 				cookie, backendServerURL, configContext);
 		List<UserStoreDTO> userStoreDTOList = new ArrayList();
 		
-		for (String properties : checkedList) {
-			String[] propertiesArr = properties.split(":");
+		for (String checkedItem : checkedList) {
+			String[] propertiesArr = checkedItem.split(":");
 			if (propertiesArr.length == 2) {
 				String domain = propertiesArr[0];
 				String repositoryClass = propertiesArr[1];

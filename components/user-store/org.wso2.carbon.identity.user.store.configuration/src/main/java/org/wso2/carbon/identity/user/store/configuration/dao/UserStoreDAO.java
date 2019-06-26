@@ -72,17 +72,9 @@ public interface UserStoreDAO {
     UserStoreDTO getUserStore(String domain) throws IdentityUserStoreMgtException;
 
     /**
-     * Get userStores by domains
-     *
-     * @param domain userStore domain names
-     * @return an array of {@link UserStoreDTO} by given userStore domains
-     */
-    UserStoreDTO[] getUserStores(String[] domain);
-
-    /**
      * Get all userstores of the given repository.
      *
      * @return an array of {@link UserStoreDTO}
      */
-    UserStoreDTO[] getAllUserStores() throws IdentityUserStoreMgtException;
+    UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException;
 }

@@ -30,7 +30,7 @@
         <operation name="getSecondaryRealmConfigurations">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
-        <operation name="getSecondaryRealmConfigurationsFromAllRepositories">
+        <operation name="getSecondaryRealmConfigurationsOnRepository">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/view</parameter>
         </operation>
         <operation name="getAvailableUserStoreClasses">
@@ -63,7 +63,7 @@
         <operation name="changeUserStoreState">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
-        <operation name="enableDisableUserStore">
+        <operation name="modifyUserStoreState">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/userstore/config/update</parameter>
         </operation>
         <operation name="testRDBMSConnection">

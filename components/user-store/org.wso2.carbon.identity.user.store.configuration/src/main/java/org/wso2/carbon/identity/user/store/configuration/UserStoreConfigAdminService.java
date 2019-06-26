@@ -77,7 +77,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                 getInstance().getUserStoreDAOFactories();
         for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
-            UserStoreDTO[] allUserStores = entry.getValue().getInstance().getAllUserStores();
+            UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
             userStoreDTOList.addAll(Arrays.asList(allUserStores));
         }
         return userStoreDTOList.toArray(new UserStoreDTO[0]);
@@ -89,7 +89,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @return userstore {@link UserStoreDTO}
      * @throws IdentityUserStoreMgtException
      */
-    public UserStoreDTO[] getSecondaryRealmConfigurationsFromAllRepositories(String repositoryClassName)
+    public UserStoreDTO[] getSecondaryRealmConfigurationsOnRepository(String repositoryClassName)
             throws IdentityUserStoreMgtException {
 
         Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
@@ -97,11 +97,12 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         AbstractUserStoreDAOFactory userStoreDAOFactory = userStoreDAOFactories.get(repositoryClassName);
         if (userStoreDAOFactory != null) {
-            return userStoreDAOFactory.getInstance().getAllUserStores();
+            return userStoreDAOFactory.getInstance().getUserStores();
         } else {
             return new UserStoreDTO[0];
         }
     }
+
     /**
      * Get available user store manager implementations
      *
@@ -168,7 +169,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             }
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
-            throw new IdentityUserStoreMgtException(errorMessage);
+            throw new IdentityUserStoreMgtException(errorMessage, e);
         }
     }
 
@@ -190,7 +191,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             }
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
-            throw new IdentityUserStoreMgtException(errorMessage);
+            throw new IdentityUserStoreMgtException(errorMessage, e);
         }
     }
 
@@ -236,7 +237,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         Map<String, AbstractUserStoreDAOFactory> userStoreFactories = UserStoreConfigListenersHolder.getInstance().
                 getUserStoreDAOFactories();
-        Object[] repositoryArr = userStoreFactories.keySet().toArray();
+        Object[] repositoryArr = userStoreFactories.keySet().toArray(new String[0]);;
         String[] repositoryClasses = Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
         return repositoryClasses;
     }
@@ -287,16 +288,16 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     /**
      * Delete the given list of user stores from any repository
      *
-     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @param userStoreDTOs an array instance of {@link UserStoreDTO}
      * @throws IdentityUserStoreMgtException throws when an error occured while deleting the user store.
      */
-    public void deleteUserStoresSetFromRepository(UserStoreDTO[] userStoreDTO) throws IdentityUserStoreMgtException {
+    public void deleteUserStoresSetFromRepository(UserStoreDTO[] userStoreDTOs) throws IdentityUserStoreMgtException {
 
         for (String repositoryClass : UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories().keySet()) {
             List<String> domains = new ArrayList<>();
-            for (UserStoreDTO userStoreDTOObject : userStoreDTO) {
-                if (repositoryClass.equals(userStoreDTOObject.getRepositoryClass())) {
-                    domains.add(userStoreDTOObject.getDomainId());
+            for (UserStoreDTO userStoreDTO : userStoreDTOs) {
+                if (repositoryClass.equals(userStoreDTO.getRepositoryClass())) {
+                    domains.add(userStoreDTO.getDomainId());
                 }
             }
             if (CollectionUtils.isNotEmpty(domains)) {
@@ -351,7 +352,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @param repositoryClass repository class
      * @throws IdentityUserStoreMgtException throws an error when changing the status of the user store.
      */
-    public void enableDisableUserStore(String domain, Boolean isDisable, String repositoryClass)
+    public void modifyUserStoreState(String domain, Boolean isDisable, String repositoryClass)
             throws IdentityUserStoreMgtException {
 
         validateDomain(domain, isDisable);

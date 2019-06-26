@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 public class DatabaseBasedUserStoreDAOFactory extends AbstractUserStoreDAOFactory {
 
     private static final String DATABASE_BASED = DatabaseBasedUserStoreDAOFactory.class.getName();
-    private static final Log log = LogFactory.getLog(AbstractUserStoreDAOFactory.class);
+    private static final Log log = LogFactory.getLog(DatabaseBasedUserStoreDAOFactory.class);
 
     @Override
     public UserStoreDAO getInstance() {
