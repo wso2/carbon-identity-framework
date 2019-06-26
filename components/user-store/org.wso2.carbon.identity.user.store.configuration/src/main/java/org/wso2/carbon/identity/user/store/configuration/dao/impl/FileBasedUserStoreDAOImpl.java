@@ -54,6 +54,8 @@ import java.util.UUID;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getRandomPasswords;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.writeUserMgtXMLFile;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
@@ -78,26 +80,6 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         if (log.isDebugEnabled()) {
             log.debug("Renamed persisted domain name from" + previousDomainName + " to " + domainName +
                     " of tenant:" + tenantId + " from UM_DOMAIN.");
-        }
-    }
-
-    private void triggerListnersOnUserStorePreUpdate(String previousDomainName, String domainName) throws UserStoreException {
-
-        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
-                .getUserStoreConfigListeners();
-        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
-            userStoreConfigListener.onUserStoreNamePreUpdate(CarbonContext.getThreadLocalCarbonContext().getTenantId
-                    (), previousDomainName, domainName);
-        }
-    }
-
-    private void triggerListnersOnUserStorePreDelete(String domainName) throws UserStoreException {
-
-        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
-                .getUserStoreConfigListeners();
-        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
-            userStoreConfigListener.onUserStorePreDelete(CarbonContext.getThreadLocalCarbonContext().getTenantId
-                    (), domainName);
         }
     }
 

@@ -41,23 +41,23 @@
 		    String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
 		    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 	        UserStoreDTO[] userStoreDTOs = null;
-
-		    try {
-
-		        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-		        String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
-		        ConfigurationContext configContext =
-		                (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-		        UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
-		        userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
-		    }catch(Exception e) {
-		   
-		        userStoreDTOs = new UserStoreDTO[0];
-		        String message = resourceBundle.getString("try.again");
-		        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-		        forwardTo = "../admin/index.jsp";
-		    }
-	%>
+        
+        try {
+            
+            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+            ConfigurationContext configContext =
+                    (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
+            userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
+        } catch (Exception e) {
+    
+            userStoreDTOs = new UserStoreDTO[0];
+            String message = resourceBundle.getString("try.again");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            forwardTo = "../admin/index.jsp";
+        }
+    %>
 
 
 	<script type="text/javascript">
@@ -204,7 +204,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <% if (userStoreDTOs[0] != null) {
+                <% if (userStoreDTOs != null && userStoreDTOs[0] != null) {
                     for (UserStoreDTO userstoreDTO : userStoreDTOs) {
                         String className = userstoreDTO.getClassName();
                         String description = userstoreDTO.getDescription();

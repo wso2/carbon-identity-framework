@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigComponent;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
+import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.Property;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -75,6 +76,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -659,5 +661,36 @@ public class SecondaryUserStoreConfigurationUtil {
             propertiesList.add(propertyDTO);
         }
         return propertiesList.toArray(new PropertyDTO[propertiesList.size()]);
+    }
+
+    /**
+     * Trigger the listeners before userstore name update
+     * @param previousDomainName previous user store domain name
+     * @param domainName current user store domain name
+     * @throws UserStoreException throws when an error occured when triggering listeners.
+     */
+    public static void triggerListnersOnUserStorePreUpdate(String previousDomainName, String domainName) throws UserStoreException {
+
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            userStoreConfigListener.onUserStoreNamePreUpdate(CarbonContext.getThreadLocalCarbonContext().getTenantId
+                    (), previousDomainName, domainName);
+        }
+    }
+
+    /**
+     * Trigger the listeners before userstore domain delete
+     * @param domainName user store domain name
+     * @throws UserStoreException throws when an error occured when triggering listeners.
+     */
+    public static void triggerListnersOnUserStorePreDelete(String domainName) throws UserStoreException {
+
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            userStoreConfigListener.onUserStorePreDelete(CarbonContext.getThreadLocalCarbonContext().getTenantId
+                    (), domainName);
+        }
     }
 }

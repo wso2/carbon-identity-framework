@@ -62,16 +62,12 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
             userStoreDTO = userStoreDTOTemp;
             userStoreDTO.setDisabled(newState);
             PropertyDTO[] propertyDTO = userStoreDTO.getProperties();
-            //List<PropertyDTO> newPropertyDTO = new ArrayList<>();
             for (PropertyDTO propertyDTOValue : propertyDTO) {
                 if (propertyDTOValue.getName().equals(DISABLED)) {
                     propertyDTOValue.setValue(String.valueOf(newState));
-                    //newPropertyDTO.add(propertyDTOValue);
-                } /*else {
-                    newPropertyDTO.add(propertyDTOValue);
-                }*/
+
+                }
             }
-           // userStoreDTO.setProperties(newPropertyDTO.toArray(new PropertyDTO[newPropertyDTO.size()]));
         }
         return userStoreDTO;
     }
