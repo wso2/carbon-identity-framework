@@ -1144,7 +1144,11 @@
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
             <Context>/api/identity/oauth2/v1.0/</Context>
+<<<<<<< HEAD
             <Context>/api/</Context>
+=======
+            <Context>/api/users/v1.0/</Context>
+>>>>>>> add fido2_device_store table
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
@@ -1232,5 +1236,10 @@
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
     </ConfigurationStore>
+
+    <!--FIDO2 properties-->
+    <FIDOTrustedOrigins>
+        <Origin>https://localhost:9443</Origin>
+    </FIDOTrustedOrigins>
 
 </Server>
