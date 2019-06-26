@@ -28,6 +28,7 @@ public class IdentityException extends Exception {
 
     private static final long serialVersionUID = 725992116511551241L;
     private String errorCode = null;
+    private int httpStatusCode;
 
     public IdentityException(String message) {
         super(message);
@@ -47,6 +48,36 @@ public class IdentityException extends Exception {
         this.errorCode = errorCode;
     }
 
+
+    public IdentityException(String errorCode, String message, int httpStatusCode) {
+        super(message);
+        this.errorCode = errorCode;
+        this.httpStatusCode = httpStatusCode;
+    }
+
+    public IdentityException(String errorCode, String message, int httpStatusCode, Throwable cause) {
+        super(message, cause);
+        this.errorCode = errorCode;
+        this.httpStatusCode = httpStatusCode;
+    }
+
+
+    public String getErrorCode() {
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
+
+    public int getHttpStatusCode() {
+        return httpStatusCode;
+    }
+
+    public void setHttpStatusCode(int httpStatusCode) {
+        this.httpStatusCode = httpStatusCode;
+    }
+
     @Deprecated
     public static IdentityException error(String message) {
         return new IdentityException(message);
@@ -64,7 +95,7 @@ public class IdentityException extends Exception {
         return new IdentityException(errorCode, message, cause);
     }
 
-
+    @Deprecated
     public static <T extends IdentityException> T error(Class<T> exceptionClass, String message) {
         T exception = null;
         try {
@@ -75,6 +106,7 @@ public class IdentityException extends Exception {
         return exception;
     }
 
+    @Deprecated
     public static <T extends IdentityException> T error(Class<T> exceptionClass, String errorCode, String message) {
         T exception = null;
         try {
@@ -85,6 +117,7 @@ public class IdentityException extends Exception {
         return exception;
     }
 
+    @Deprecated
     public static <T extends IdentityException> T error(Class<T> exceptionClass, String message, Throwable cause) {
         T exception = null;
         try {
@@ -107,11 +140,27 @@ public class IdentityException extends Exception {
         return exception;
     }
 
-    public String getErrorCode() {
-        return errorCode;
+    public static <T extends IdentityException> T error(Class<T> exceptionClass, String errorCode, String message,
+                                                        int httpStatusCode) {
+        T exception = null;
+        try {
+            exception = exceptionClass.getConstructor(String.class, String.class).newInstance(errorCode, message,
+                    httpStatusCode);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+        }
+        return exception;
     }
 
-    public void setErrorCode(String errorCode) {
-        this.errorCode = errorCode;
+    public static <T extends IdentityException> T error(Class<T> exceptionClass, String errorCode, String message,
+                                                        int httpStatusCode, Throwable cause) {
+        T exception = null;
+        try {
+            exception = exceptionClass.getConstructor(String.class, String.class, Throwable.class).
+                    newInstance(errorCode, message, httpStatusCode, cause);
+        } catch (Exception e) {
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+        }
+        return exception;
     }
 }
