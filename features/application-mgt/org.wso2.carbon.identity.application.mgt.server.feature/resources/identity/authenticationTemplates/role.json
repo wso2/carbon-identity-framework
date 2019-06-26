@@ -25,8 +25,7 @@
     "2": {
       "local": [
         "totp",
-        "FIDOAuthenticator",
-        "FIDO2Authenticator"
+        "FIDOAuthenticator"
       ],
       "federated": []
     }

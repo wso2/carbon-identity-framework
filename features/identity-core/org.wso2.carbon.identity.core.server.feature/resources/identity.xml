@@ -1144,11 +1144,7 @@
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
             <Context>/api/identity/oauth2/v1.0/</Context>
-<<<<<<< HEAD
             <Context>/api/</Context>
-=======
-            <Context>/api/users/v1.0/</Context>
->>>>>>> add fido2_device_store table
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
@@ -1238,8 +1234,13 @@
     </ConfigurationStore>
 
     <!--FIDO2 properties-->
-    <FIDOTrustedOrigins>
-        <Origin>https://localhost:9443</Origin>
-    </FIDOTrustedOrigins>
+    <FIDO>
+        <WebAuthn>
+            <Enable>true</Enable>
+        </WebAuthn>
+        <FIDO2TrustedOrigins>
+            <Origin>${carbon.protocol}://${carbon.host}:${carbon.management.port}</Origin>
+        </FIDO2TrustedOrigins>
+    </FIDO>
 
 </Server>
