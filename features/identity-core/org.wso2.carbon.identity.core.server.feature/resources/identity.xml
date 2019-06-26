@@ -1055,7 +1055,8 @@
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/fido/v1.0/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/users/v1.0/me/webauthn/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/users/v1.0/metadata/(.*)" secured="true" http-method="GET"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -1078,7 +1079,7 @@
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
             <Context>/api/identity/oauth2/v1.0/</Context>
-            <Context>/api/identity/fido/v1.0/</Context>
+            <Context>/api/users/v1.0/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
@@ -1166,5 +1167,10 @@
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
     </ConfigurationStore>
+
+    <!--FIDO2 properties-->
+    <FIDOTrustedOrigins>
+        <Origin>https://localhost:9443</Origin>
+    </FIDOTrustedOrigins>
 
 </Server>
