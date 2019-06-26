@@ -17,7 +17,7 @@
   --%>
 
 <%@page import="org.owasp.encoder.Encode" %>
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
@@ -190,7 +190,6 @@
           publicKey: decodePublicKeyCredentialRequestOptions(jsonAuthRequest.publicKeyCredentialRequestOptions),
       })
         .then(function(data) {
-            console.log(data);
             payload = {};
             payload.requestId = jsonAuthRequest.requestId;
             payload.credential = responseToObject(data);
@@ -200,7 +199,10 @@
             form.submit();
         })
         .catch(function(err) {
-            console.log(err);
+            var form = document.getElementById('form');
+            var reg = document.getElementById('tokenResponse');
+            reg.value = JSON.stringify({errorCode : 400, message : err});
+            form.submit();
         });
     }
 
