@@ -316,6 +316,12 @@
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
 
+        <!-- Flag to enable or disable scope validation for implicit grant and authorization code grant.
+        Default value : true
+        Supported versions: IS 5.8.1  onwards
+        -->
+        <ScopeValidationEnabledForAuthzCodeAndImplicitGrant>true</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>
+
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
              issuing access tokens. -->
         <ScopeHandlers>
