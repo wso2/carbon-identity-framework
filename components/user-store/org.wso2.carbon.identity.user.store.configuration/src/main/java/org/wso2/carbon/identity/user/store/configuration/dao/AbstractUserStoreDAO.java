@@ -65,7 +65,6 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
             for (PropertyDTO propertyDTOValue : propertyDTO) {
                 if (propertyDTOValue.getName().equals(DISABLED)) {
                     propertyDTOValue.setValue(String.valueOf(newState));
-
                 }
             }
         }
@@ -85,7 +84,6 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
     public UserStoreDTO getUserStore(String domain) throws IdentityUserStoreMgtException {
 
         UserStorePersistanceDTO userStorePersistanceDTO = doGetUserStore(domain);
-
         if (userStorePersistanceDTO != null) {
             return userStorePersistanceDTO.getUserStoreDTO();
         }
