@@ -39,6 +39,10 @@
 <jsp:include page="../dialog/display_messages.jsp" />
 
 <%
+    String[] importError = (String[]) request.getSession().getAttribute("importError");
+    if (importError == null) {
+        importError = new String[0];
+    }
     String[] createTemplateError = (String[]) request.getSession().getAttribute("createTemplateError");
     if (createTemplateError == null) {
         createTemplateError = new String[0];
@@ -118,6 +122,23 @@ function showFile() {
 }
 
 $(function() {
+    $( "#importErrorMsgDialog" ).dialog({
+        autoOpen: false,
+        modal: true,
+        buttons: {
+            OK: closeImportErrorDialog
+        },
+        width: "fit-content"
+    });
+});
+function closeImportErrorDialog() {
+    $(this).dialog("close");
+    <%
+     request.getSession().removeAttribute("importError");
+    %>
+}
+
+$(function() {
     $( "#createTemplateErrorMsgDialog" ).dialog({
         autoOpen: false,
         modal: true,
@@ -134,9 +155,11 @@ function closeCreateTemplateErrorDialog() {
     request.getSession().removeAttribute("createTemplateError");
    %>
 }
-
 window.onload = function() {
     showManual();
+    <% if (Boolean.valueOf(request.getParameter("importError")) && importError.length > 0) { %>
+    $( "#importErrorMsgDialog" ).dialog( "open" );
+    <% } %>
     <% if (createTemplateError.length > 0) { %>
         $( "#createTemplateErrorMsgDialog" ).dialog( "open" );
     <% } %>
@@ -269,6 +292,24 @@ window.onload = function() {
                     </tbody>
                 </table>
             </form>
+        </div>
+    </div>
+    <div id="importErrorMsgDialog"  title='WSO2 Carbon'>
+        <div id="messagebox-import-error">
+            <h3>
+                <fmt:message key="error.while.importing.sp"/>
+            </h3>
+            <table style="margin-top:10px;">
+                <%
+                    for (String error : importError){
+                %>
+                <tr>
+                    <td><%=error%></td>
+                </tr>
+                <%
+                    }
+                %>
+            </table>
         </div>
     </div>
     <div id="createTemplateErrorMsgDialog"  title='WSO2 Carbon' style="display: none;">
