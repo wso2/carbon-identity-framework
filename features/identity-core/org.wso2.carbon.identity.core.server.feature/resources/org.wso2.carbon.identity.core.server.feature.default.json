@@ -1,4 +1,7 @@
 {
+  "authentication.consent.prompt": true,
+  "authentication.map_federated_users_to_local": false,
+
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
   "server.clock_skew": "5m",

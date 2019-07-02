@@ -1,0 +1,6 @@
+{
+  "time": {
+    "identity_mgt.events.schemes.'account.lock.handler'.properties.Time": "m",
+    "identity_mgt.events.schemes.'suspension.notification'.properties.'account.disable.delay'": "d"
+  }
+}

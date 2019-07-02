@@ -98,6 +98,10 @@
                                         <include>application-authentication.xml</include>
                                         <include>authenticationendpoint.war</include>
                                         <include>EndpointConfig.properties</include>
+                                        <include>application-authentication.xml.j2</include>
+                                        <include>EndpointConfig.properties.j2</include>
+                                        <include>org.wso2.carbon.identity.application.authentication.framework.server.feature.default.json</include>
+                                        <include>org.wso2.carbon.identity.application.authentication.framework.server.feature.key-mappings.json</include>
                                     </includes>
                                 </resource>
                             </resources>
