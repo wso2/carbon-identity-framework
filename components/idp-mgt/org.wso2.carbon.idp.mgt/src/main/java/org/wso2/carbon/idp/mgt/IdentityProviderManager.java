@@ -795,7 +795,10 @@ public class IdentityProviderManager implements IdpManager {
         Property samlMetadataValidityPeriodProperty = new Property();
         String samlMetadataValidityPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
                 SAML_METADATA_VALIDITY_PERIOD);
-        if (StringUtils.isBlank(samlMetadataValidityPeriod) || !StringUtils.isNumeric(samlMetadataValidityPeriod) ||
+        if (StringUtils.isBlank(samlMetadataValidityPeriod)) {
+            samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
+        } else if (!StringUtils.isNumeric(samlMetadataValidityPeriod) ||
                 Integer.parseInt(samlMetadataValidityPeriod) <= 0) {
             log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value");
             samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.

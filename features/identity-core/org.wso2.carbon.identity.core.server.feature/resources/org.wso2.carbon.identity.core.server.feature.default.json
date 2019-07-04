@@ -173,6 +173,9 @@
   "saml.extensions.signer": "org.wso2.carbon.identity.sso.saml.builders.signature.DefaultSSOSigner",
   "saml.extensions.redirect_signature_validator": "org.wso2.carbon.identity.sso.saml.validators.SAML2HTTPRedirectDeflateSignatureValidator",
 
+  "saml.metadata.validity_period": "1h",
+  "saml.metadata.enable_signing": false,
+
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
 
   "passive_sts.token_store_class": "org.wso2.carbon.identity.sts.passive.utils.NoPersistenceTokenStore",
