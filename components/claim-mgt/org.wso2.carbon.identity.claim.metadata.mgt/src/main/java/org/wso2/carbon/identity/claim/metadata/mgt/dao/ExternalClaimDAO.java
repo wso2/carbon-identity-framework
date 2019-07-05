@@ -49,11 +49,9 @@ public class ExternalClaimDAO extends ClaimDAO {
 
         List<ExternalClaim> externalClaims = new ArrayList<>();
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
         try {
-            // Start transaction
-            connection.setAutoCommit(false);
 
             Map<Integer, Claim> externalClaimMap = getClaims(connection, externalDialectURI, tenantId);
 
@@ -70,12 +68,6 @@ public class ExternalClaimDAO extends ClaimDAO {
 
                 externalClaims.add(externalClaim);
             }
-
-            // End transaction
-            connection.commit();
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while listing external claims for diaclect " +
-                    externalDialectURI, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
         }
@@ -117,7 +109,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while adding external claim " + externalClaimURI + " to " +
                     "dialect " + externalClaimDialectURI, e);
         } finally {
@@ -152,7 +144,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while updating external claim " + externalClaimURI + " in " +
                     "dialect " + externalClaimDialectURI, e);
         } finally {
@@ -172,7 +164,7 @@ public class ExternalClaimDAO extends ClaimDAO {
 
         boolean isMappedLocalClaim = false;
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 
@@ -190,7 +182,6 @@ public class ExternalClaimDAO extends ClaimDAO {
             if (rs.next()) {
                 isMappedLocalClaim = true;
             }
-
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while checking mapped local claim " + mappedLocalClaimURI, e);
         } finally {
@@ -269,5 +260,21 @@ public class ExternalClaimDAO extends ClaimDAO {
         }
 
         return mappedLocalClaimURI;
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
     }
 }

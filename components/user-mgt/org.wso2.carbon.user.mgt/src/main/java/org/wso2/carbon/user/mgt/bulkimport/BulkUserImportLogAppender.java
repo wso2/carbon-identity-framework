@@ -55,7 +55,7 @@ public class BulkUserImportLogAppender extends DailyRollingFileAppender {
             log.error("Error while setting the log file " + LOG_FILE_PATH + LOG_FILE_NAME, e);
         }
         String serviceName = CarbonContext.getThreadLocalCarbonContext().getApplicationName();
-        final TenantAwareLoggingEvent tenantAwareLoggingEvent = LoggingUtils.getTenantAwareLogEvent(loggingEvent,
+        final TenantAwareLoggingEvent tenantAwareLoggingEvent = LoggingUtils.getTenantAwareLogEvent(null, loggingEvent,
                 tenantId, serviceName);
         AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {

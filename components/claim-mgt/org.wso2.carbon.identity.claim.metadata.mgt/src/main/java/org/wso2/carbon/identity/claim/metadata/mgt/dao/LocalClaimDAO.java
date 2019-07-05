@@ -49,12 +49,9 @@ public class LocalClaimDAO extends ClaimDAO {
 
         List<LocalClaim> localClaims = new ArrayList<>();
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
         try {
-            // Start transaction
-            connection.setAutoCommit(false);
-
             Map<Integer, Claim> localClaimMap = getClaims(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
                     tenantId);
 
@@ -68,11 +65,6 @@ public class LocalClaimDAO extends ClaimDAO {
                 LocalClaim localClaim = new LocalClaim(claim.getClaimURI(), attributeMappings, claimProperties);
                 localClaims.add(localClaim);
             }
-
-            // End transaction
-            connection.commit();
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while listing local claims", e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
         }
@@ -109,7 +101,7 @@ public class LocalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while adding local claim " + localClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
@@ -139,7 +131,7 @@ public class LocalClaimDAO extends ClaimDAO {
             // End transaction
             connection.commit();
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollBack(connection);
+            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while updating local claim " + localClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, null);
@@ -231,6 +223,22 @@ public class LocalClaimDAO extends ClaimDAO {
             throw new ClaimMetadataException("Error while deleting attribute mappings", e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
+        }
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    private static void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
         }
     }
 }

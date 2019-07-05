@@ -21,7 +21,7 @@
         <DataSource>
             <!-- Include a data source name (jndiConfigName) from the set of data
                 sources defined in master-datasources.xml -->
-            <Name>jdbc/WSO2CarbonDB</Name>
+            <Name>jdbc/WSO2IdentityDB</Name>
         </DataSource>
         <!-- If the identity database is created from another place and if it is
             required to skip schema initialization during the server start up, set the
@@ -315,6 +315,12 @@
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.JDBCScopeValidator" />
             <ScopeValidator class="org.wso2.carbon.identity.oauth2.validators.xacml.XACMLScopeValidator"/>
         </ScopeValidators>
+
+        <!-- Flag to enable or disable scope validation for implicit grant and authorization code grant.
+        Default value : true
+        Supported versions: IS 5.8.1  onwards
+        -->
+        <ScopeValidationEnabledForAuthzCodeAndImplicitGrant>true</ScopeValidationEnabledForAuthzCodeAndImplicitGrant>
 
         <!-- Scope handlers list. The handlers registered here will be executed at the scope validation phase while
              issuing access tokens. -->
@@ -1054,7 +1060,19 @@
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
         </Resource>
-    </ResourceAccessControl>
+
+        <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/login</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/</Permissions>
+        </Resource>
+</ResourceAccessControl>
 
     <ClientAppAuthentication>
         <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
@@ -1075,6 +1093,8 @@
             <Context>/scim2/</Context>
             <Context>/api/identity/entitlement/</Context>
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
+            <Context>/api/identity/oauth2/v1.0/</Context>
+            <Context>/api/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>

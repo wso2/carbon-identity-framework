@@ -276,7 +276,7 @@
             <div class="form-actions">
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.confirmation.mail")%>
                 <a id="registerLink"
-                   href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
+                   href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(Encode.forJava(request.getQueryString()))%>">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "resend.mail")%>
                 </a>
             </div>

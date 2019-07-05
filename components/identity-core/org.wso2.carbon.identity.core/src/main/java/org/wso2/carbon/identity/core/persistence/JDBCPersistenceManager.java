@@ -119,27 +119,45 @@ public class JDBCPersistenceManager {
     /**
      * Returns an database connection for Identity data source.
      *
-     * @return Database connection
-     * @throws IdentityException Exception occurred when getting the data source.
+     * @return dbConnection
+     * @throws IdentityRuntimeException
+     * @Deprecated The getDBConnection should handle both transaction and non-transaction connection. Earlier it
+     * handle only the transactionConnection. Therefore this method was deprecated and changed as handle both
+     * transaction and non-transaction connection. getDBConnection(boolean shouldApplyTransaction) method used as
+     * alternative of this method.
      */
+    @Deprecated
     public Connection getDBConnection() throws IdentityRuntimeException {
 
+        return getDBConnection(true);
+    }
+
+    /**
+     * Returns an database connection for Identity data source.
+     *
+     * @param shouldApplyTransaction apply transaction or not
+     * @return Database connection.
+     * @throws IdentityException Exception occurred when getting the data source.
+     */
+    public Connection getDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
         try {
             Connection dbConnection = dataSource.getConnection();
-            dbConnection.setAutoCommit(false);
-            try {
-                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
-            } catch (SQLException e) {
-                // Handling startup error for postgresql
-                // Active SQL Transaction means that connection is not committed.
-                // Need to commit before setting isolation property.
-                if (dbConnection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE) &&
-                        PG_ACTIVE_SQL_TRANSACTION_STATE.equals(e.getSQLState())) {
-                    dbConnection.commit();
+            if (shouldApplyTransaction) {
+                dbConnection.setAutoCommit(false);
+                try {
                     dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                } catch (SQLException e) {
+                    // Handling startup error for postgresql
+                    // Active SQL Transaction means that connection is not committed.
+                    // Need to commit before setting isolation property.
+                    if (dbConnection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)
+                            && PG_ACTIVE_SQL_TRANSACTION_STATE.equals(e.getSQLState())) {
+                        dbConnection.commit();
+                        dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+                    }
                 }
             }
-        return dbConnection;
+            return dbConnection;
         } catch (SQLException e) {
             String errMsg = "Error when getting a database connection object from the Identity data source.";
             throw IdentityRuntimeException.error(errMsg, e);
@@ -155,4 +173,35 @@ public class JDBCPersistenceManager {
         return dataSource;
     }
 
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    public void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
+    }
+
+    /**
+     * Commit the transaction.
+     *
+     * @param dbConnection database connection.
+     */
+    public void commitTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.commit();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while commit transactions. ", e1);
+        }
+    }
 }

@@ -17,7 +17,9 @@
 
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/j2ee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
-         version="2.4">
+         version="2.4" metadata-complete="true">
+    <absolute-ordering />
+
     <display-name>JAX-RS Simple Service</display-name>
     <description>JAX-RS Simple Service</description>
     <context-param>

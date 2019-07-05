@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.12.398-SNAPSHOT</version>
+        <version>5.13.28-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -120,6 +120,10 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -142,9 +146,11 @@
                             version=${carbon.identity.package.export.version}
                         </Export-Package>
                         <Import-Package>
+                            javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
                             javax.xml.xpath,
                             org.wso2.carbon.securevault;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.securevault,
+                            org.wso2.securevault.commons,
                             javax.net.ssl,
                             javax.xml.namespace,
                             org.w3c.dom,

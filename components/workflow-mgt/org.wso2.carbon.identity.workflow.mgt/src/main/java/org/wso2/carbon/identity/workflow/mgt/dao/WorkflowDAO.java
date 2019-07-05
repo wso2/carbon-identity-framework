@@ -62,8 +62,9 @@ public class WorkflowDAO {
             prepStmt.setString(5, workflow.getWorkflowImplId());
             prepStmt.setInt(6, tenantId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage , e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -79,7 +80,7 @@ public class WorkflowDAO {
      */
     public Workflow getWorkflow(String workflowId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         String query = SQLConstants.GET_WORKFLOW;
@@ -127,8 +128,9 @@ public class WorkflowDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -155,8 +157,9 @@ public class WorkflowDAO {
             prepStmt.setString(4, workflow.getWorkflowImplId());
             prepStmt.setString(5, workflow.getWorkflowId());
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -173,7 +176,7 @@ public class WorkflowDAO {
      */
     public List<Workflow> listWorkflows(int tenantId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<Workflow> workflowList = new ArrayList<>();
@@ -220,8 +223,9 @@ public class WorkflowDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, workflowId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -255,8 +259,9 @@ public class WorkflowDAO {
 
                 prepStmt.executeUpdate();
             }
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -272,7 +277,7 @@ public class WorkflowDAO {
      */
     public List<Parameter> getWorkflowParams(String workflowId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<Parameter> parameterList = new ArrayList<>();
@@ -291,7 +296,9 @@ public class WorkflowDAO {
                     parameterList.add(parameter);
                 }
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);

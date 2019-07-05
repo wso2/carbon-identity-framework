@@ -576,7 +576,7 @@ public class FrameworkUtils {
 
         if (StringUtils.isNotBlank(uri) && StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 
-            if (uri.contains("?")) {
+            if (uri.contains("?") || uri.contains("#")) {
                 uri += "&" + key + "=" + URLEncoder.encode(value, "UTF-8");
             } else {
                 uri += "?" + key + "=" + URLEncoder.encode(value, "UTF-8");
@@ -2106,11 +2106,17 @@ public class FrameworkUtils {
                     if (log.isDebugEnabled()) {
                         log.debug("Table - " + tableName + " available in the Identity database.");
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Identity database.");
+                }
+                return false;
             }
-            connection.commit();
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Table - " + tableName + " not available in the Identity database.");
@@ -2175,11 +2181,19 @@ public class FrameworkUtils {
                         log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
                                 "Identity database.");
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException ex) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                            "Identity database.");
+                }
+                return false;
             }
-            connection.commit();
+
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +

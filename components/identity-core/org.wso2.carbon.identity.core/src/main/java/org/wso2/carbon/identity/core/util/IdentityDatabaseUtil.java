@@ -37,14 +37,21 @@ public class IdentityDatabaseUtil {
 
     private static final Log log = LogFactory.getLog(IdentityDatabaseUtil.class);
 
+    @Deprecated
+    public static Connection getDBConnection() throws IdentityRuntimeException {
+
+        return getDBConnection(true);
+    }
+
     /**
      * Get a database connection instance from the Identity Persistence Manager
      *
      * @return Database Connection
      * @throws IdentityRuntimeException Error when getting a database connection to Identity database
      */
-    public static Connection getDBConnection() throws IdentityRuntimeException {
-        return JDBCPersistenceManager.getInstance().getDBConnection();
+    public static Connection getDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
+        return JDBCPersistenceManager.getInstance().getDBConnection(shouldApplyTransaction);
     }
 
     /**
@@ -96,14 +103,20 @@ public class IdentityDatabaseUtil {
 
     }
 
+    @Deprecated
     public static void rollBack(Connection dbConnection) {
-        try {
-            if (dbConnection != null) {
-                dbConnection.rollback();
-            }
-        } catch (SQLException e1) {
-            log.error("An error occurred while rolling back transactions. ", e1);
-        }
+
+        rollbackTransaction(dbConnection);
+    }
+
+    public static void rollbackTransaction(Connection dbConnection) {
+
+        JDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);
+    }
+
+    public static void commitTransaction(Connection dbConnection) {
+
+        JDBCPersistenceManager.getInstance().commitTransaction(dbConnection);
     }
 
     /**
@@ -121,5 +134,4 @@ public class IdentityDatabaseUtil {
         }
         return connection;
     }
-
 }

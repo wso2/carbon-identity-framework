@@ -299,7 +299,7 @@ public class SessionDataStore {
         }
         Connection connection = null;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection(false);
         } catch (IdentityRuntimeException e) {
             log.error(e.getMessage(), e);
             return null;
@@ -411,8 +411,10 @@ public class SessionDataStore {
             } else {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_ORACLE;
             }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return String.format(nonFormattedQuery, deleteChunkSize);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new IdentityApplicationManagementException("Error while retrieving DB connection meta-data", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, null);
@@ -453,14 +455,13 @@ public class SessionDataStore {
                     log.debug(String.format("Removed %d expired session records.",
                             noOfDeletedRecords));
                 }
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
+                IdentityDatabaseUtil.rollbackTransaction(connection);
             }
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Deleted total of %d entries ", totalDeletedEntries));
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while removing session data from the database for nano time " + currentTime, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
@@ -533,10 +534,9 @@ public class SessionDataStore {
             preparedStatement.setLong(6, nanoTime + validityPeriodNano);
             preparedStatement.setInt(7, tenantId);
             preparedStatement.executeUpdate();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | IOException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while storing session data", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
@@ -572,10 +572,9 @@ public class SessionDataStore {
             preparedStatement.setLong(4, nanoTime);
             preparedStatement.setLong(5, timeoutNano);
             preparedStatement.executeUpdate();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (Exception e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while storing DELETE operation session data", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
@@ -607,10 +606,9 @@ public class SessionDataStore {
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             preparedStatement.executeUpdate();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (Exception e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while deleting temporary authentication context data", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
@@ -675,11 +673,10 @@ public class SessionDataStore {
             }
             statement = connection.prepareStatement(sqlDeleteSTORETask);
             statement.execute();
-            if (!connection.getAutoCommit()) {
-                connection.commit();
-            }
+            IdentityDatabaseUtil.commitTransaction(connection);
             return;
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while removing STORE operation data from the database. ", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
