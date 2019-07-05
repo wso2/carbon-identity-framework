@@ -28,8 +28,6 @@ import org.wso2.carbon.identity.user.store.configuration.stub.UserStoreConfigAdm
 import org.wso2.carbon.identity.user.store.configuration.stub.api.Properties;
 import org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO;
 
-import java.rmi.RemoteException;
-
 public class UserStoreConfigAdminServiceClient {
     private UserStoreConfigAdminServiceStub stub;
     protected static final Log log = LogFactory.getLog(UserStoreConfigAdminServiceClient.class);
@@ -54,9 +52,9 @@ public class UserStoreConfigAdminServiceClient {
     /**
      * To get all registered repository classes.
      * @return repository classes
-     * @throws RemoteException throws of an error occurswhen getting repository classes.
+     * @throws Exception throws of an error occurswhen getting repository classes.
      */
-    public String[] getRepositoryClasses() throws RemoteException {
+    public String[] getRepositoryClasses() throws Exception {
         return stub.getRepositoryClasses();
     }
 
@@ -125,8 +123,8 @@ public class UserStoreConfigAdminServiceClient {
      * @throws Exception RemoteException
      * @throws Exception UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
      */
-    public void deleteUserStoresSet(UserStoreDTO[] userStores) throws Exception,
-            UserStoreConfigAdminServiceIdentityUserStoreMgtException {
+    public void deleteUserStoresSet(UserStoreDTO[] userStores) throws Exception {
+
         stub.deleteUserStoresSetFromRepository(userStores);
     }
 
@@ -144,11 +142,11 @@ public class UserStoreConfigAdminServiceClient {
     /**
      * Delete user store from any repository.
      * @param userStoreDTO an instance of {@link UserStoreDTO}
-     * @throws RemoteException RemoteException
+     * @throws Exception RemoteException
      * @throws UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
      */
-    public void deleteUserStoreFromRepository(UserStoreDTO userStoreDTO) throws RemoteException,
-            UserStoreConfigAdminServiceIdentityUserStoreMgtException {
+    public void deleteUserStoreFromRepository(UserStoreDTO userStoreDTO) throws Exception {
+
         stub.deleteUserStoreFromRepository(userStoreDTO);
     }
 
@@ -167,13 +165,12 @@ public class UserStoreConfigAdminServiceClient {
     /**
      * Toggle user store state (enable/disable)
      *
-     * @param domain     : domain name of the user store to enable/dissable
-     * @param isDisabled : set true to disable user store
+     * @param domain            : domain name of the user store to enable/dissable
+     * @param isDisabled        : set true to disable user store
      * @param repositoryClasses : the repository where the userstore properties are persisted.
-     * @throws RemoteException if an error occured while changing the userstore state.
+     * @throws Exception if an error occured while changing the userstore state.
      */
-    public void changeUserStoreState(String domain, String isDisabled, String repositoryClasses) throws RemoteException,
-            UserStoreConfigAdminServiceIdentityUserStoreMgtException {
+    public void changeUserStoreState(String domain, String isDisabled, String repositoryClasses) throws Exception {
 
         stub.modifyUserStoreState(domain, Boolean.parseBoolean(isDisabled), repositoryClasses);
     }

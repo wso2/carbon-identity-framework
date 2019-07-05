@@ -103,7 +103,6 @@ public class UserStoreConfigComponent {
         }
         try {
             BundleContext bundleContext = ctxt.getBundleContext();
-            UserStoreConfigListenersHolder.getInstance().setBundleContext(bundleContext);
             AbstractUserStoreDAOFactory fileBasedUserStoreDAOFactory = new FileBasedUserStoreDAOFactory();
             AbstractUserStoreDAOFactory databaseBasedUserStoreDAOFactory = new DatabaseBasedUserStoreDAOFactory();
             ServiceRegistration serviceRegistration = bundleContext

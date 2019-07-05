@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.user.store.configuration.dao.impl;
 
+import com.sun.mail.iap.ConnectionException;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.io.IOUtils;
@@ -91,7 +92,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                     log.debug("The user store domain: " + domainName + "is not a valid domain name.");
                 }
             }
-        } catch (UserStoreException | XMLStreamException | SQLException e) {
+        } catch (UserStoreException | XMLStreamException e) {
             throw new IdentityUserStoreMgtException("Error occured while adding the user store with the domain: " +
                     domainName, e);
         }
@@ -133,7 +134,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         InputStream clonedStream = null;
         String userStoreProperties = null;
         UserStorePersistanceDTO userStorePersistanceDTO = new UserStorePersistanceDTO();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement
                      (UserStoreMgtDBQueries.GET_USERSTORE_PROPERTIES)) {
             prepStmt.setString(1, domainName);
@@ -187,7 +188,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         List<UserStorePersistanceDTO> userStorePersistanceDTOs = new ArrayList<>();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement
                      (GET_All_USERSTORE_PROPERTIES)) {
             prepStmt.setInt(1, tenantId);
@@ -312,28 +313,34 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     }
 
     private void addUserStoreProperties(String userStoreProperties, String domainName)
-            throws SQLException, IdentityUserStoreMgtException {
+            throws IdentityUserStoreMgtException {
 
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String errorMessage = "Error occurred while updating the user store properties for " +
+                "the userstore domain:" + domainName + "in the tenant:" + tenantId;
         try {
-            int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-                 PreparedStatement userStorePrepStmt = connection
-                         .prepareStatement(UserStoreMgtDBQueries.STORE_USERSTORE_PROPERTIES)) {
-                String uuid = String.valueOf(UUID.randomUUID());
-                userStorePrepStmt.setString(1, uuid);
-                userStorePrepStmt.setInt(2, tenantId);
-                setBlobValue(userStoreProperties, userStorePrepStmt, 3);
-                userStorePrepStmt.setString(4, domainName);
-                userStorePrepStmt.setString(5, XML);
-                userStorePrepStmt.setString(6, USERSTORE);
-                userStorePrepStmt.execute();
-                if (log.isDebugEnabled()) {
-                    log.debug("The userstore domain:" + domainName + "added for the tenant:" + tenantId);
+
+            try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+                try (PreparedStatement userStorePrepStmt = connection
+                        .prepareStatement(UserStoreMgtDBQueries.STORE_USERSTORE_PROPERTIES)) {
+                    String uuid = String.valueOf(UUID.randomUUID());
+                    userStorePrepStmt.setString(1, uuid);
+                    userStorePrepStmt.setInt(2, tenantId);
+                    setBlobValue(userStoreProperties, userStorePrepStmt, 3);
+                    userStorePrepStmt.setString(4, domainName);
+                    userStorePrepStmt.setString(5, XML);
+                    userStorePrepStmt.setString(6, USERSTORE);
+                    userStorePrepStmt.execute();
+                    if (log.isDebugEnabled()) {
+                        log.debug("The userstore domain:" + domainName + "added for the tenant:" + tenantId);
+                    }
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                } catch (SQLException e) {
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    throw new IdentityUserStoreMgtException(errorMessage, e);
                 }
-                connection.commit();
-            } catch (IOException ex) {
-                throw new IdentityUserStoreMgtException("Error occurred while updating the user store properties for " +
-                        "the userstore domain:" + domainName + "in the tenant:" + tenantId, ex);
+            } catch (IOException | SQLException ex) {
+                throw new IdentityUserStoreMgtException(errorMessage, ex);
             }
         } catch (IdentityRuntimeException e) {
             throw new IdentityUserStoreMgtException("Couldn't get a database connection.", e);
@@ -356,24 +363,28 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
     private void deleteUserStore(String domain, int tenantId) throws IdentityUserStoreMgtException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries.DELETE_USERSTORE_PROPERTIES)) {
-            ps.setString(1, domain);
-            ps.setInt(2, tenantId);
-            ps.setString(3, USERSTORE);
-            ps.executeUpdate();
-            if (log.isDebugEnabled()) {
-                log.debug("The userstore domain :" + domain + "removed for the tenant" + tenantId);
-            }
-            connection.commit();
+        String msg = "Error while removing the user store with the domain name: " + domain + " in the tenant: " + tenantId;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries.DELETE_USERSTORE_PROPERTIES)) {
+                ps.setString(1, domain);
+                ps.setInt(2, tenantId);
+                ps.setString(3, USERSTORE);
+                ps.executeUpdate();
+                if (log.isDebugEnabled()) {
+                    log.debug("The userstore domain :" + domain + "removed for the tenant" + tenantId);
+                }
+                IdentityDatabaseUtil.commitTransaction(connection);
 
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new IdentityUserStoreMgtException(msg, e);
+            }
         } catch (SQLException e) {
-            throw new IdentityUserStoreMgtException("Error while removing the user store with the domain name: " + domain
-                    + " in the tenant: " + tenantId, e);
+            throw new IdentityUserStoreMgtException(msg, e);
         }
     }
 
-    private void removeRealmFromSecondaryUserStoreManager(String domain) throws org.wso2.carbon.user.core.UserStoreException {
+        private void removeRealmFromSecondaryUserStoreManager(String domain) throws org.wso2.carbon.user.core.UserStoreException {
 
         AbstractUserStoreManager primaryUSM;UserRealm userRealm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
         primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
@@ -383,21 +394,27 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     public void deleteUserStores(String[] domains) throws IdentityUserStoreMgtException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries.DELETE_USERSTORE_PROPERTIES)) {
-            for (String domain : domains) {
-                addToBatchForDeleteUserStores(domain, tenantId, ps);
-                if (log.isDebugEnabled()) {
-                    log.debug("The userstore domain :" + domain + "in tenant :" + tenantId + " added to the batch to " +
-                            "remove.");
+        String msg = "Error while removing the user store in the tenant: " + tenantId;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries.DELETE_USERSTORE_PROPERTIES)) {
+                for (String domain : domains) {
+                    addToBatchForDeleteUserStores(domain, tenantId, ps);
+                    if (log.isDebugEnabled()) {
+                        log.debug("The userstore domain :" + domain + "in tenant :" + tenantId + " added to the batch to " +
+                                "remove.");
+                    }
+                    removeRealmFromSecondaryUserStoreManager(domain);
                 }
-                removeRealmFromSecondaryUserStoreManager(domain);
+                ps.executeBatch();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new IdentityUserStoreMgtException(msg, e);
+            } catch (UserStoreException e) {
+                throw new IdentityUserStoreMgtException(msg, e);
             }
-            ps.executeBatch();
-            connection.commit();
-
-        } catch (SQLException|UserStoreException e) {
-            throw new IdentityUserStoreMgtException("Error while removing the user store in the tenant: " + tenantId, e);
+        } catch (SQLException e) {
+            throw new IdentityUserStoreMgtException(msg, e);
         }
     }
 
@@ -405,27 +422,32 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throws IdentityUserStoreMgtException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-             PreparedStatement pst = connection.prepareStatement(UserStoreMgtDBQueries.UPDATE_USERSTORE_PROPERTIES)) {
-            setBlobValue(userStorePersistanceDTO.getUserStoreProperties(), pst, 1);
-            pst.setString(2, userStorePersistanceDTO.getUserStoreDTO().getDomainId());
-            pst.setString(3, domainName);
-            pst.setInt(4, tenantId);
-            pst.setString(5, USERSTORE);
-            pst.executeUpdate();
-            connection.commit();
-            if (log.isDebugEnabled()) {
-                log.debug("The userstore domain:" + domainName + "updated for the tenant:" + tenantId);
+        String msg = "Error occured while updating user store properties for the domain:" + domainName + "in the tenant:"
+                + tenantId;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement pst = connection.prepareStatement(UserStoreMgtDBQueries.UPDATE_USERSTORE_PROPERTIES)) {
+                setBlobValue(userStorePersistanceDTO.getUserStoreProperties(), pst, 1);
+                pst.setString(2, userStorePersistanceDTO.getUserStoreDTO().getDomainId());
+                pst.setString(3, domainName);
+                pst.setInt(4, tenantId);
+                pst.setString(5, USERSTORE);
+                pst.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("The userstore domain:" + domainName + "updated for the tenant:" + tenantId);
+                }
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new IdentityUserStoreMgtException(msg, e);
+            } catch (IOException ex) {
+                throw new IdentityUserStoreMgtException(msg, ex);
             }
-        } catch (SQLException | IOException e) {
-            String msg = "Error occured while updating user store properties for the domain:" + domainName + "in the tenant:"
-                    + tenantId;
+        } catch (SQLException e) {
             throw new IdentityUserStoreMgtException(msg);
         }
     }
 
-    private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
+        private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
 
         if (value != null) {
             InputStream inputStream = new ByteArrayInputStream(value.getBytes());
