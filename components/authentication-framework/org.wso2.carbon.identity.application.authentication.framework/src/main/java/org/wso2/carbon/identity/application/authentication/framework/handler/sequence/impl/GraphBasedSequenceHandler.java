@@ -399,20 +399,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Starting Step: " + stepConfig.getOrder());
         }
 
+        AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request
+                .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
+
         int stepNumber = context.getCurrentStep();
         if (!context.isReturning()) {
             if (stepNumber <= 0) {
                 stepNumber = 1;
-            } else {
+            } else if (flowStatus != FAIL_COMPLETED) {
                 stepNumber++;
             }
             context.setCurrentStep(stepNumber);
             context.getSequenceConfig().getStepMap().put(stepNumber, stepConfig);
         }
 
+
         FrameworkUtils.getStepHandler().handle(request, response, context);
 
-        AuthenticatorFlowStatus flowStatus = (AuthenticatorFlowStatus) request
+        flowStatus = (AuthenticatorFlowStatus) request
                 .getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS);
 
         if (flowStatus != SUCCESS_COMPLETED && flowStatus != INCOMPLETE) {
