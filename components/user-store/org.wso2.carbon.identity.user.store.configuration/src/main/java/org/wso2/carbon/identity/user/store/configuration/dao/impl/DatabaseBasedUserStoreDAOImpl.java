@@ -384,9 +384,12 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         }
     }
 
-        private void removeRealmFromSecondaryUserStoreManager(String domain) throws org.wso2.carbon.user.core.UserStoreException {
+    private void removeRealmFromSecondaryUserStoreManager(String domain) throws org.wso2.carbon.user.core.
+            UserStoreException {
 
-        AbstractUserStoreManager primaryUSM;UserRealm userRealm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+        AbstractUserStoreManager primaryUSM;
+        UserRealm userRealm = (UserRealm) CarbonContext.
+                getThreadLocalCarbonContext().getUserRealm();
         primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
         primaryUSM.removeSecondaryUserStoreManager(domain);
     }
@@ -468,14 +471,14 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         preparedStatement.addBatch();
     }
 
-    private void addRealmToSecondaryUserStoreManager(UserStorePersistanceDTO userStorePersistanceDTO) throws UserStoreException, XMLStreamException {
+    private void addRealmToSecondaryUserStoreManager(UserStorePersistanceDTO userStorePersistanceDTO) throws
+            UserStoreException, XMLStreamException {
 
-        AbstractUserStoreManager primaryUSM;
-        RealmConfiguration realmConfiguration;
         UserRealm userRealm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-        primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
+        AbstractUserStoreManager primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
         InputStream targetStream = new ByteArrayInputStream(userStorePersistanceDTO.getUserStoreProperties().getBytes());
-        realmConfiguration = getRealmConfiguration(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), targetStream);
+        RealmConfiguration realmConfiguration = getRealmConfiguration(userStorePersistanceDTO.getUserStoreDTO().
+                getDomainId(), targetStream);
         primaryUSM.addSecondaryUserStoreManager(realmConfiguration, userRealm);
     }
 }
