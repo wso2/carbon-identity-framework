@@ -800,7 +800,8 @@ public class IdentityProviderManager implements IdpManager {
                     SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
         } else if (!StringUtils.isNumeric(samlMetadataValidityPeriod) ||
                 Integer.parseInt(samlMetadataValidityPeriod) <= 0) {
-            log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value");
+            log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value " +
+                    "hence defaulting to value: 60m");
             samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
         }
