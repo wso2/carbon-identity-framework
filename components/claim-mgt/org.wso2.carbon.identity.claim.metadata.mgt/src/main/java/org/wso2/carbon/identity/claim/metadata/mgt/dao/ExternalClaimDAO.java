@@ -49,11 +49,9 @@ public class ExternalClaimDAO extends ClaimDAO {
 
         List<ExternalClaim> externalClaims = new ArrayList<>();
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
         try {
-            // Start transaction
-            connection.setAutoCommit(false);
 
             Map<Integer, Claim> externalClaimMap = getClaims(connection, externalDialectURI, tenantId);
 
@@ -70,13 +68,6 @@ public class ExternalClaimDAO extends ClaimDAO {
 
                 externalClaims.add(externalClaim);
             }
-
-            // End transaction
-            connection.commit();
-        } catch (SQLException e) {
-            rollbackTransaction(connection);
-            throw new ClaimMetadataException("Error while listing external claims for diaclect " +
-                    externalDialectURI, e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
         }
@@ -173,7 +164,7 @@ public class ExternalClaimDAO extends ClaimDAO {
 
         boolean isMappedLocalClaim = false;
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 
@@ -191,10 +182,7 @@ public class ExternalClaimDAO extends ClaimDAO {
             if (rs.next()) {
                 isMappedLocalClaim = true;
             }
-            connection.commit();
-
         } catch (SQLException e) {
-            rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while checking mapped local claim " + mappedLocalClaimURI, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);

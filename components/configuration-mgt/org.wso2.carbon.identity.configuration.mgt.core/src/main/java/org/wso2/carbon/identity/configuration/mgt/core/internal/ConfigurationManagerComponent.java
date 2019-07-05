@@ -150,7 +150,7 @@ public class ConfigurationManagerComponent {
 
     private boolean isCreatedTimeFieldExists() {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             /*
             DB scripts without CREATED_TIME field can exists for H2 and MYSQL 5.7.
@@ -162,10 +162,8 @@ public class ConfigurationManagerComponent {
                 // Following statement will throw SQLException if the column is not found
                 resultSet.findColumn(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
                 // If we are here then the column exists.
-                IdentityDatabaseUtil.commitTransaction(connection);
                 return true;
             } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
                 return false;
             }
         } catch (IdentityRuntimeException | SQLException e) {

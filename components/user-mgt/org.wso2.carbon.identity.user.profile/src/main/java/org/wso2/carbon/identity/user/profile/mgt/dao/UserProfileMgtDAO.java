@@ -177,7 +177,7 @@ public class UserProfileMgtDAO {
 
         String username = null;
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt =
                 connection.prepareStatement(Constants.SQLQueries.RETRIEVE_USER_ASSOCIATED)) {
                 prepStmt.setInt(1, tenantId);
@@ -193,10 +193,8 @@ public class UserProfileMgtDAO {
                         }
                         return username;
                     }
-                    IdentityDatabaseUtil.commitTransaction(connection);
                 }
             } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserProfileException("Error occurred while retrieving user account associated for federated "
                         + "ID: " + federatedUserId + " of IdP: " + idpId + " for tenant: " + tenantId, e1);
             }
@@ -223,7 +221,7 @@ public class UserProfileMgtDAO {
 
         List<AssociatedAccountDTO> associatedFederatedAccounts = new ArrayList<>();
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
                 try (PreparedStatement prepStmt = connection
                 .prepareStatement(Constants.SQLQueries.RETRIEVE_ASSOCIATIONS_FOR_USER)) {
                     prepStmt.setInt(1, tenantId);
@@ -235,10 +233,8 @@ public class UserProfileMgtDAO {
                             associatedFederatedAccounts.add(new AssociatedAccountDTO(resultSet.getString(1),
                                     resultSet.getString(2)));
                         }
-                        IdentityDatabaseUtil.commitTransaction(connection);
                     }
                 }catch (SQLException e1) {
-                    IdentityDatabaseUtil.rollbackTransaction(connection);
                     throw new UserProfileException("Error occurred while retrieving federated accounts associated for "
                             + "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain +
                             " in tenant: " + tenantId, e1);

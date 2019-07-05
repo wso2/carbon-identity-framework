@@ -95,7 +95,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
 
     private boolean isExistingUserDataValue(String userName, int tenantId, String key) throws SQLException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results;
         boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreInUsernameCaseSensitive(userName, tenantId);
@@ -114,10 +114,6 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             if (results.next()) {
                 return true;
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            return false;
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
             IdentityDatabaseUtil.closeConnection(connection);
@@ -189,7 +185,7 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             return dto;
         }
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
@@ -209,7 +205,6 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             while (results.next()) {
                 data.put(results.getString(1), results.getString(2));
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
             if (log.isDebugEnabled()) {
                 log.debug("Retrieved identity data for:" + tenantId + ":" + userName);
                 for (Map.Entry<String, String> dataEntry : data.entrySet()) {
@@ -225,7 +220,6 @@ public class JDBCIdentityDataStore extends InMemoryIdentityDataStore {
             }
             return dto;
         } catch (SQLException | UserStoreException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);

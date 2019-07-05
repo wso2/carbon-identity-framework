@@ -56,7 +56,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection();
+            dbConnection = getDBConnection(false);
             if(filter.startsWith(UserCoreConstants.INTERNAL_DOMAIN)){
                 sqlStmt = InternalStoreCountConstants.COUNT_INTERNAL_ONLY_ROLES_SQL;
                 filter = filter.replace(UserCoreConstants.INTERNAL_DOMAIN,"");
@@ -69,7 +69,6 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
-            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -78,7 +77,6 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             }
 
         } catch (SQLException e) {
-            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -97,7 +95,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection();
+            dbConnection = getDBConnection(false);
             sqlStmt = InternalStoreCountConstants.COUNT_INTERNAL_ROLES_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, filter);
@@ -105,7 +103,6 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             prepStmt.setQueryTimeout(searchTime);
 
             resultSet = prepStmt.executeQuery();
-            dbConnection.commit();
             if (resultSet.next()) {
                 return resultSet.getLong("RESULT");
             } else {
@@ -114,7 +111,6 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
             }
 
         } catch (SQLException e) {
-            rollbackTransaction(dbConnection);
             if (log.isDebugEnabled()) {
                 log.debug("Using sql : " + sqlStmt);
             }
@@ -126,15 +122,17 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         }
     }
 
-    private Connection getDBConnection() throws SQLException, UserStoreException {
+    private Connection getDBConnection(boolean shouldApplyTransaction) throws SQLException, UserStoreException {
 
         Connection dbConnection = IdentityDatabaseUtil.getUserDBConnection();
         if (dbConnection == null) {
             throw new UserStoreException("Could not create a database connection to User database");
         }
-        dbConnection.setAutoCommit(false);
-        if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        if(shouldApplyTransaction) {
+            dbConnection.setAutoCommit(false);
+            if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
+                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            }
         }
         return dbConnection;
     }

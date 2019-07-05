@@ -94,7 +94,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
 
         LongWaitStatus longWaitStatus = new LongWaitStatus();
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             try (PreparedStatement addPrepStmt = connection.prepareStatement(query)) {
                 addPrepStmt.setString(1, waitKey);
@@ -117,9 +117,7 @@ public class LongWaitStatusDAOImpl implements LongWaitStatusDAO {
                         }
                     }
                 }
-                IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new FrameworkException("Error while searching for wait status with key:" + waitKey, e);
             }
         } catch (SQLException e) {
