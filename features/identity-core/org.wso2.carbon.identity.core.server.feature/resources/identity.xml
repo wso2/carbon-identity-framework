@@ -549,6 +549,8 @@
         <SLOHostNameVerificationEnabled>true</SLOHostNameVerificationEnabled>
 
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
+        <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
+        <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
     </SSOService>
 
     <Consent>
