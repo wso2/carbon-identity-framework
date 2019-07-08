@@ -59,7 +59,7 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
 
         Connection connection;
         try {
-            connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection(false);
         } catch (IdentityRuntimeException e) {
             throw new CertificateRetrievingException("Couldn't get a database connection.", e);
         }
@@ -82,9 +82,7 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
             if (StringUtils.isNotBlank(certificateContent)) {
                 return (X509Certificate) IdentityUtil.convertPEMEncodedContentToCertificate(certificateContent);
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             String errorMessage = String.format("An error occurred while retrieving the certificate content from " +
                     "the database for the ID '%s'", certificateId);
             throw new CertificateRetrievingException(errorMessage, e);

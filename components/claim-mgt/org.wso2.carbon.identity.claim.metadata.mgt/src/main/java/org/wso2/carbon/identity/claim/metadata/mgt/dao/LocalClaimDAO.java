@@ -49,12 +49,9 @@ public class LocalClaimDAO extends ClaimDAO {
 
         List<LocalClaim> localClaims = new ArrayList<>();
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
 
         try {
-            // Start transaction
-            connection.setAutoCommit(false);
-
             Map<Integer, Claim> localClaimMap = getClaims(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
                     tenantId);
 
@@ -68,12 +65,6 @@ public class LocalClaimDAO extends ClaimDAO {
                 LocalClaim localClaim = new LocalClaim(claim.getClaimURI(), attributeMappings, claimProperties);
                 localClaims.add(localClaim);
             }
-
-            // End transaction
-            connection.commit();
-        } catch (SQLException e) {
-            rollbackTransaction(connection);
-            throw new ClaimMetadataException("Error while listing local claims", e);
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
         }

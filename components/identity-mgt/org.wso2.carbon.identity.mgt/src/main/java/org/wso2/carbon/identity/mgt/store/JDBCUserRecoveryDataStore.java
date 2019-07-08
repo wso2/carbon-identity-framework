@@ -178,7 +178,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
     @Deprecated
     public UserRecoveryDataDO[] load(String userName, int tenantId) throws IdentityException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
@@ -193,10 +193,8 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
                         results.getString(3), results.getString(4)));
             }
             UserRecoveryDataDO[] resultMetadata = new UserRecoveryDataDO[metada.size()];
-            IdentityDatabaseUtil.commitTransaction(connection);
             return metada.toArray(resultMetadata);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -208,7 +206,7 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
     @Override
     public UserRecoveryDataDO load(String code) throws IdentityException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         try {
@@ -216,7 +214,6 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
             prepStmt.setString(1, code.toLowerCase());
 
             results = prepStmt.executeQuery();
-            IdentityDatabaseUtil.commitTransaction(connection);
             if (results.next()) {
                 UserRecoveryDataDO userRecoveryDataDO = new UserRecoveryDataDO(results.getString(1), results.getInt
                         (2), results.getString(3), results.getString(4));
@@ -232,7 +229,6 @@ public class JDBCUserRecoveryDataStore implements UserRecoveryDataStore {
             return null;
 
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw IdentityException.error("Error while reading user identity data", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);

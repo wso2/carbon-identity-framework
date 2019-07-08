@@ -80,7 +80,7 @@ public class WorkflowDAO {
      */
     public Workflow getWorkflow(String workflowId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         String query = SQLConstants.GET_WORKFLOW;
@@ -105,9 +105,7 @@ public class WorkflowDAO {
 
                 break ;
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -178,7 +176,7 @@ public class WorkflowDAO {
      */
     public List<Workflow> listWorkflows(int tenantId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<Workflow> workflowList = new ArrayList<>();
@@ -201,9 +199,7 @@ public class WorkflowDAO {
                 workflowDTO.setWorkflowImplId(templateImplId);
                 workflowList.add(workflowDTO);
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -281,7 +277,7 @@ public class WorkflowDAO {
      */
     public List<Parameter> getWorkflowParams(String workflowId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<Parameter> parameterList = new ArrayList<>();

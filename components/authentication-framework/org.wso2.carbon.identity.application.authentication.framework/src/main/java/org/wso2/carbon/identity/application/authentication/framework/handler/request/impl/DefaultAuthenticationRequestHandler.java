@@ -22,6 +22,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.joda.time.DateTime;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
@@ -327,9 +328,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
-                if (context.getSelectedAcr() != null) {
-                    sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
-                }
+                populateAuthenticationContextHistory(request, context, sessionContext);
                 long updatedSessionTime = System.currentTimeMillis();
                 if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
@@ -425,9 +424,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
-                if (context.getSelectedAcr() != null) {
-                    sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
-                }
+                populateAuthenticationContextHistory(request, context, sessionContext);
 
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
@@ -480,6 +477,39 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         sendResponse(request, response, context);
+    }
+
+    /**
+     * Polulates the authentication history information and sets it as a request attribute.
+     * The inbound protocol
+     * @param request
+     * @param context
+     * @param sessionContext
+     */
+    private void populateAuthenticationContextHistory(HttpServletRequest request, AuthenticationContext context,
+                                                      SessionContext sessionContext) {
+
+        if (context.getSelectedAcr() != null) {
+            sessionContext.getSessionAuthHistory().setSelectedAcrValue(context.getSelectedAcr());
+            sessionContext.getSessionAuthHistory().setSessionCreatedTime(calculateCreatedTime(sessionContext));
+        }
+
+        request.setAttribute(FrameworkConstants.SESSION_AUTH_HISTORY, sessionContext.getSessionAuthHistory());
+    }
+
+    /**
+     * Calculates the session creted time from the available information.
+     *
+     * @param sessionContext
+     * @return DateTime object of the SSO session created. Will return current time if it can not be inferred.
+     */
+    private DateTime calculateCreatedTime(SessionContext sessionContext) {
+        Object createdTsObject = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+        if(createdTsObject != null) {
+            long createdTimeLong = Long.parseLong(createdTsObject.toString());
+            return new DateTime(createdTimeLong);
+        }
+        return DateTime.now();
     }
 
     /**

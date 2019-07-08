@@ -43,7 +43,7 @@ public class ClaimDialectDAO {
 
         List<ClaimDialect> claimDialects = new ArrayList<>();
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 
@@ -59,9 +59,7 @@ public class ClaimDialectDAO {
                 ClaimDialect claimDialect = new ClaimDialect(claimDialectURI);
                 claimDialects.add(claimDialect);
             }
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while listing claim dialects", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, prepStmt);

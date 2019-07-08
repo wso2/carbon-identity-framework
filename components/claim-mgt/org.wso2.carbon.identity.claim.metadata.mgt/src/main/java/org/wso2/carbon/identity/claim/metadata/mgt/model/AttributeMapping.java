@@ -16,10 +16,12 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.model;
 
+import java.io.Serializable;
+
 /**
  * Represents the metadata of a attribute mapping.
  */
-public class AttributeMapping {
+public class AttributeMapping implements Serializable {
     private String userStoreDomain;
     private String attributeName;
 

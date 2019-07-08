@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.mgt.endpoint;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.util.Base64;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -40,10 +41,12 @@ import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -53,6 +56,7 @@ public class IdentityManagementEndpointUtil {
 
     public static final String PADDING_CHAR = "=";
     public static final String UNDERSCORE = "_";
+    public static final String SPLITTING_CHAR = "&";
     public static final String PII_CATEGORIES = "piiCategories";
     public static final String PII_CATEGORY = "piiCategory";
     public static final String PURPOSES = "purposes";
@@ -436,31 +440,41 @@ public class IdentityManagementEndpointUtil {
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
 
-        if (StringUtils.isNotBlank(uri.getQuery())) {
-            String[] params = uri.getQuery().split("&");
-            encodedCallbackUrl.append("?");
-            boolean isFirstParam = true;
-            for (String pair : params) {
-                if (!isFirstParam) {
-                    encodedCallbackUrl.append("&");
-                } else {
-                    isFirstParam = false;
-                }
+        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(uri.getQuery());
 
-                int idx = pair.indexOf("=");
-                encodedCallbackUrl.append(Encode.forUriComponent(pair.substring(0, idx))).append("=")
-                        .append(Encode.forUriComponent(pair.substring(idx + 1)));
-            }
+        if (MapUtils.isNotEmpty(encodedQueryMap)) {
+            encodedCallbackUrl.append("?");
+            encodedCallbackUrl.append(encodedQueryMap.keySet().stream().map(key -> key + PADDING_CHAR + encodedQueryMap.get(key))
+                    .collect(Collectors.joining(SPLITTING_CHAR)));
         }
 
         return encodedCallbackUrl.toString();
     }
 
     /**
+     * Encode query params of the call back url one by one.
+     *
+     * @param queryParams String of query params.
+     * @return map of the encoded query params.
+     */
+    public static Map<String,String> getEncodedQueryParamMap(String queryParams) {
+
+        Map<String, String> encodedQueryMap = new HashMap<>();
+        if (StringUtils.isNotBlank(queryParams)) {
+            encodedQueryMap = Arrays.stream(queryParams.split(SPLITTING_CHAR))
+                    .map(entry -> entry.split(PADDING_CHAR))
+                    .collect(Collectors.toMap(entry -> Encode.forUriComponent(entry[0]),
+                            entry -> Encode.forUriComponent(entry[1])));
+        }
+
+        return encodedQueryMap;
+    }
+
+    /**
      * Construct the URL depending on the path and the resource name.
      *
      * @param path path of the url
-     * @return  endpoint url
+     * @return endpoint url
      */
     public static String buildEndpointUrl(String path) {
 
