@@ -22,12 +22,20 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
  * model is representing applications in a session.
  */
 public class Application {
+    private String appId;
     private String subject;
     private String appName;
 
     public Application(String subject, String appName) {
         this.appName = appName;
         this.subject = subject;
+    }
+
+    public Application(String appId, String appName, String subject ) {
+
+        this.appId = appId;
+        this.subject = subject;
+        this.appName = appName;
     }
 
     public String getSubject() {
@@ -38,4 +46,7 @@ public class Application {
         return appName;
     }
 
+    public String getAppId() {
+        return appId;
+    }
 }

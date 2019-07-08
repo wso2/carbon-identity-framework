@@ -103,14 +103,13 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
-    public UserSession[] getSessionsByUserId(String userId) throws SessionManagementServerException {
-        UserSession[] sessionList;
-        sessionList = getActiveSessionList(getSessionIdListByUserId(userId));
-        return sessionList;
+    public List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
+
+        return getActiveSessionList(getSessionIdListByUserId(userId));
     }
 
     @Override
-    public boolean terminateSessionsByUserId(String userId) throws SessionManagementServerException {
+    public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
         List<String> sessionIdList = getSessionIdListByUserId(userId);
         terminateSessionsOfUser(sessionIdList);
@@ -118,7 +117,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
-    public boolean terminateSessionBySessionId(String sessionId) {
+    public boolean terminateSessionBySessionId(String userId, String sessionId) {
 
         sessionManagementService.removeSession(sessionId);
         return true;
@@ -136,21 +135,20 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         try {
             return UserSessionStore.getInstance().getSessionId(userId);
         } catch (UserSessionException e) {
-            log.error("Error while ");
             throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, SessionMgtConstants.HttpStatusCode.ERROR_CODE_500, "Server " +
-                    "encountered an error while retrieving session list of user ID " + userId, e);
+                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, "Server encountered an error while retrieving session list of" +
+                    " user ID " + userId, e);
         }
     }
 
     /**
-     * Method to get active sessions from given sessionId list.
+     * Returns the active sessions from given list of session IDs
      *
      * @param sessionIdList List of sessionIds
      * @return UserSession[] Usersessions
      * @throws SessionManagementException if an error occurs when retrieving the UserSessions.
      */
-    private UserSession[] getActiveSessionList(List<String> sessionIdList) throws SessionManagementServerException {
+    private List<UserSession> getActiveSessionList(List<String> sessionIdList) throws SessionManagementServerException {
 
         List<UserSession> sessionsList = new ArrayList<>();
         for (String sessionId : sessionIdList) {
@@ -166,10 +164,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
 
-        if (!sessionsList.isEmpty()) {
-            return sessionsList.toArray(new UserSession[sessionsList.size()]);
-        }
-
-        return null;
+        return sessionsList;
     }
 }

@@ -1,5 +1,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
+import java.util.List;
+
 public class UserSession {
 
     public UserSession(){}
@@ -9,7 +11,7 @@ public class UserSession {
     private String ip;
     private String loginTime;
     private String lastAccessTime;
-    private Application[] applications;
+    private List<Application> applications;
 
     public String getUserAgent() {
         return userAgent;
@@ -43,11 +45,11 @@ public class UserSession {
         this.lastAccessTime = lastAccessTime;
     }
 
-    public Application[] getApplications() {
+    public List<Application> getApplications() {
         return applications;
     }
 
-    public void setApplications(Application[] applications) {
+    public void setApplications(List<Application> applications) {
         this.applications = applications;
     }
 

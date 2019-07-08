@@ -25,27 +25,8 @@ public class SessionMgtConstants {
 
     public enum ErrorMessages {
 
-        ERROR_CODE_TERMINATE_SESSION("SM_00001", "Error occurred while terminating session."),
-        ERROR_CODE_GET_USER_SESSION("SM_00002", "Error occurred while retrieving user session."),
-        ERROR_CODE_GET_SESSION_IDs_OF_USER_IDs("SM_00002", "Error occurred while retrieving session ids" +
-                " of user ids: %s."),
-        ERROR_CODE_GET_SESSION_OF_USER_ID_LIST("SM_00004", "Error occurred while retrieving sessions " +
-                "of user id list: %s"),
-        ERROR_CODE_GET_SESSION_ID_OF_USER_ID("SM_00005", "Error occurred while retrieving session id of " +
-                "user id: %s."),
-        ERROR_CODE_GET_SESSION_CONTEXT("SM_00006", "Error occurred while retrieving session context cache."),
-        ERROR_CODE_GET_SESSION_INFO("SM_00007", "Error occurred while retrieving session information."),
-        ERROR_CODE_GET_USER_ID("SM_00008", "Error while retrieving user Id of the user: userName: %s, Tenant Id:" +
-                " %s User domain: %s"),
-        ERROR_CODE_GET_USER_ID_LIST("SM_00009", "Error while retrieving user Id list in sessionId: %s"),
-        ERROR_CODE_UNEXPECTED("SM_00010", "Unexpected Error"),
-        ERROR_CODE_SESSION_ID_INVALID("SM_00011", "Invalid session Id: %s"),
-        ERROR_CODE_SESSION_ALREADY_TERMINATED("SM_00012", "Session already terminated"),
-        ERROR_CODE_USER_NOT_AUTHORIZED("SM_00013", "User: %s is not authorized to perform this operation."),
-        ERROR_CODE_NO_AUTH_USER_FOUND("SM_00014", "No authenticated user found to " +
-                "perform the operation"),
-        ERROR_CODE_UNABLE_TO_GET_SESSION("SM-00001", "Unable to retrieve session information"),
-        ERROR_CODE_UNABLE_TO_GET_SESSIONS("SM-00002", "Unable to retrieve sessions");
+        ERROR_CODE_UNABLE_TO_GET_SESSION("USM-00001", "Unable to retrieve session information"),
+        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-00002", "Unable to retrieve sessions");
 
         private final String code;
         private final String message;
@@ -54,12 +35,6 @@ public class SessionMgtConstants {
             this.code = code;
             this.message = message;
         }
-
-//        ErrorMessages(String code, String message, String description) {
-//            this.code = code;
-//            this.message = message;
-//            this.description = description;
-//        }
 
         public String getCode() {
             return code;
@@ -75,13 +50,5 @@ public class SessionMgtConstants {
         }
 
     }
-
-
-    public class HttpStatusCode{
-
-        public static final int ERROR_CODE_500 = 500;
-        public static final int ERROR_CODE_400 = 400;
-    }
-
 
 }

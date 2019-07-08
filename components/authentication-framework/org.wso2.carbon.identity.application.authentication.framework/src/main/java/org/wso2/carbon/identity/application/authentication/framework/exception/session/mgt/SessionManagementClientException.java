@@ -18,20 +18,28 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt;
 
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+
 /**
  * This class is used to define the client side errors which needs to be handled.
  */
 public class SessionManagementClientException extends SessionManagementException {
 
-    public SessionManagementClientException(String message, Throwable cause){
-        super(message,cause);
+    public SessionManagementClientException(SessionMgtConstants.ErrorMessages error, String
+            description, Throwable cause) {
+
+        super(error, description, cause);
+
     }
 
-//    public SessionManagementClientException(String message, String errorCode, int httpStatusCode, Throwable cause) {
-//        super(message, errorCode, httpStatusCode, cause);
-//    }
+    public SessionManagementClientException(String message, String errorCode, String description, Throwable cause) {
 
-    public SessionManagementClientException(String message, String errorCode, int httpStatusCode) {
-        super(message, errorCode, httpStatusCode);
+        super(message, errorCode, description, cause);
+    }
+
+    // The constructor is made private to avoid generating exceptions without error code and description.
+    private SessionManagementClientException(String message, Throwable cause) {
+
+        super(message, cause);
     }
 }
