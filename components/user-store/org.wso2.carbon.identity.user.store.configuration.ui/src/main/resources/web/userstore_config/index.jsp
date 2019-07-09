@@ -41,23 +41,23 @@
 		    String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
 		    ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 	        UserStoreDTO[] userStoreDTOs = null;
-
-		    try {
-
-		        String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
-		        String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
-		        ConfigurationContext configContext =
-		                (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
-		        UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
-		        userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
-		    }catch(Exception e) {
-		   
-		        userStoreDTOs = new UserStoreDTO[0];
-		        String message = resourceBundle.getString("try.again");
-		        CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
-		        forwardTo = "../admin/index.jsp";
-		    }
-	%>
+        
+        try {
+            
+            String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+            String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+            ConfigurationContext configContext =
+                    (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+            UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
+            userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
+        } catch (Exception e) {
+    
+            userStoreDTOs = new UserStoreDTO[0];
+            String message = resourceBundle.getString("try.again");
+            CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            forwardTo = "../admin/index.jsp";
+        }
+    %>
 
 
 	<script type="text/javascript">
@@ -139,13 +139,14 @@
     }
 
 
-    function edit(domain, className) {
-        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className;
+    function edit(domain, className ,repository) {
+        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className+
+            "&repositoryName=" +repository;
         document.userStoreForm.submit();
 
     }
 
-    function enableDisableDomain(domain, action) {
+    function enableDisableDomain(domain, action, repository) {
 
         $.ajax({
             type: 'POST',
@@ -153,7 +154,7 @@
             headers: {
                 Accept: "text/html"
             },
-            data: 'domain=' + domain + '&action=' + action,
+            data: 'domain=' + domain + '&action=' + action + '&repository=' + repository,
             async: false,
             success: function (responseText, status) {
                 if (status == "success") {
@@ -203,12 +204,14 @@
                 </tr>
                 </thead>
                 <tbody>
-                <% if (userStoreDTOs[0] != null) {
+                <% if (userStoreDTOs != null && userStoreDTOs[0] != null) {
                     for (UserStoreDTO userstoreDTO : userStoreDTOs) {
                         String className = userstoreDTO.getClassName();
                         String description = userstoreDTO.getDescription();
                         String domainId = userstoreDTO.getDomainId();
                         Boolean isDisabled = userstoreDTO.getDisabled();
+                        String repository = userstoreDTO.getRepositoryClass();
+                        String properties = domainId + ":" + repository;
                         if (className == null) {
                             className = "";
                         }
@@ -223,7 +226,7 @@
                 <tr id=<%=Encode.forHtmlAttribute(domainId)%>>
                     <td style="width: 5%;margin-top:10px;">
                         <input type="checkbox" name="userStores"
-                               value="<%=Encode.forHtmlAttribute(domainId)%>"
+                               value="<%=Encode.forHtmlAttribute(properties)%>"
                                onclick="resetVars()"
                                class="chkBox"/>
                     </td>
@@ -237,18 +240,21 @@
                     </td>
                     <td style="width: 45%;margin-top:10px;">
                         <a title="<fmt:message key='edit.userstore'/>"
-                           onclick="edit('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(className))%>');"
+                           onclick="edit('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(className))%>'
+                                   ,'<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');"
                            href="#" style="background-image: url(images/edit.gif);" class="icon-link">
                             <fmt:message key='edit.userstore'/></a>
                         <% if (!isDisabled) { %>
                         <a title="<fmt:message key='disable.userstore'/>"
-                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable');
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable'
+                                   ,'<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');
                                    return false;"
                            href="#" style="background-image: url(images/disable.gif);" class="icon-link">
                             <fmt:message key='disable.userstore'/></a>
                         <% } else { %>
                         <a title="<fmt:message key='enable.userstore'/>"
-                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'enable');
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>',
+                                   'enable','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');
                                    return false;"
                            href="#" style="background-image: url(images/enable.gif);" class="icon-link">
                             <fmt:message key='enable.userstore'/></a>

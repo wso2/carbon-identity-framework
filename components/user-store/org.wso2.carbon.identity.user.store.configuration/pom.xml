@@ -64,6 +64,10 @@
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.securevault</groupId>
+            <artifactId>org.wso2.securevault</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.wso2.orbit.javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
         </dependency>
@@ -93,6 +97,9 @@
                             javax.xml.transform,
                             javax.xml.transform.dom,
                             javax.xml.transform.stream,
+                            org.apache.axiom.om.impl.builder,
+
+                            org.apache.axis2.databinding.annotation,
 
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
@@ -100,7 +107,11 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.w3c.dom,
+                            org.wso2.securevault,
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.base.api; version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
@@ -113,7 +124,8 @@
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.store.configuration.internal,
