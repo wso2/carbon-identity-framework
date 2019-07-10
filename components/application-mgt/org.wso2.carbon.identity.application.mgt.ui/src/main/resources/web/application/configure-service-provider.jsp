@@ -1134,7 +1134,7 @@
                 }
             }
         } else {
-            $('#addClaimUrisLbl').text('Identity Provider Claim URIs:');
+            $('#addClaimUrisLbl').text('Service Provider Claim URIs:');
             $('#roleMappingSelection').show();
         }
     }
