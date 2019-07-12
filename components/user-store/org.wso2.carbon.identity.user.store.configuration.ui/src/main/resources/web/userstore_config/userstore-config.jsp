@@ -60,6 +60,7 @@
     private Boolean isEditing;
     private int isBoolean;
     private String existingDomains;
+    private String repository;
     private String messageID;
     private int i;
 
@@ -85,7 +86,7 @@
 %><%
     domain = "0";
     className = "0";
-
+    repository = request.getParameter("repositoryName");
     if (request.getParameter("domain") != null) {
         domain = request.getParameter("domain");
     }
@@ -97,6 +98,7 @@
     String description = null;
     int rank;
     String[] classApplies = new String[0];
+    String[] repositoryClasses = new String[0];
 
     if ("0".equals(className)) {
         selectedClassApplied = request.getParameter("classApplied");       //add
@@ -119,6 +121,7 @@
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
     UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
     classApplies = userStoreConfigAdminServiceClient.getAvailableUserStoreClasses();
+    repositoryClasses = userStoreConfigAdminServiceClient.getRepositoryClasses();
     UserStoreDTO[] userStoreDTOs;
     Map<String, Map<String, String>> userStoreManagers = new HashMap<String, Map<String, String>>();
     userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
@@ -408,6 +411,39 @@
                 </div>
             </td>
         </tr>
+    
+        <tr>
+            <td class="leftCol-small">
+                <fmt:message key="repository.class"/>
+            </td>
+            <td>
+                <%
+                    if (isEditing == false) {%>
+                <select id="repositoryName" name="repositoryName">
+                    <% for (String repositoryClass : repositoryClasses) {
+                    %>
+                    <option value="<%=Encode.forHtmlAttribute(repositoryClass)%>"
+                            selected="selected"><%=Encode.forHtmlContent(repositoryClass)%>
+                    </option>
+                    <%
+                        }%>
+                </select>
+                <% } else {
+                %>
+                    <select disabled="disabled" id="repositoryName1" name="repositoryName1">
+                        <option value="<%=Encode.forHtmlAttribute(repository)%>"
+                                selected="selected"><%=Encode.forHtmlContent(repository)%>
+                        </option>
+                    </select>
+            <td><input type="hidden" name="repositoryName" id="repositoryName"
+                       value="<%=Encode.forHtmlContent(repository)%>"/></td>
+            <%}%>
+            <div class="sectionHelp">
+                <fmt:message key="user.store.manager.repository"/>.
+            </div>
+            </td>
+        </tr>
+    
         <tr>
             <td class="leftCol-med"><fmt:message key="domain.name"/><span class="required">*</span></td>
             <%

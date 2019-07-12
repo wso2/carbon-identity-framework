@@ -23,6 +23,9 @@
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 
 <%
 	String httpMethod = request.getMethod();
@@ -49,8 +52,21 @@
 						CarbonConstants.CONFIGURATION_CONTEXT);
 		userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(
 				cookie, backendServerURL, configContext);
+		List<UserStoreDTO> userStoreDTOList = new ArrayList();
+		
+		for (String checkedItem : checkedList) {
+			String[] propertiesArr = checkedItem.split(":");
+			if (propertiesArr.length == 2) {
+				String domain = propertiesArr[0];
+				String repositoryClass = propertiesArr[1];
+				UserStoreDTO userStoreDTO = new UserStoreDTO();
+				userStoreDTO.setDomainId(domain);
+				userStoreDTO.setRepositoryClass(repositoryClass);
+				userStoreDTOList.add(userStoreDTO);
+			}
+		}
 		userStoreConfigAdminServiceClient
-				.deleteUserStoresSet(checkedList);
+				.deleteUserStoresSet(userStoreDTOList.toArray(new UserStoreDTO[0]));
 		String message = resourceBundle.getString("successful.delete");
 		CarbonUIMessage.sendCarbonUIMessage(message,
 				CarbonUIMessage.INFO, request);
