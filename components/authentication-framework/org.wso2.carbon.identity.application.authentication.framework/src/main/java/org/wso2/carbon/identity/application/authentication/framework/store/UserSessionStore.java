@@ -50,6 +50,9 @@ public class UserSessionStore {
     private static final String FEDERATED_USER_DOMAIN = "FEDERATED";
     private static final String DELETE_CHUNK_SIZE_PROPERTY = "JDBCPersistenceManager.SessionDataPersist" +
             ".UserSessionMapping.DeleteChunkSize";
+    private static final String IDN_AUTH_USER_SESSION_MAPPING = "IDN_AUTH_USER_SESSION_MAPPING";
+    private static final String IDN_AUTH_APP_SESSION_STORE = "IDN_AUTH_APP_SESSION_STORE";
+    private static final String IDN_AUTH_SESSION_META_DATA = "IDN_AUTH_SESSION_META_DATA";
 
     private int deleteChunkSize = 10000;
 
@@ -347,36 +350,55 @@ public class UserSessionStore {
     public void removeExpiredSessionRecords() {
 
         if (log.isDebugEnabled()) {
-            log.debug("Removing session to user mappings for expired and deleted sessions.");
+            log.debug("Removing information of expired and deleted sessions.");
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try {
             Set<String> terminatedAuthSessionIds = getSessionsTerminated(connection);
+            String[] sessionsToRemove = new String[terminatedAuthSessionIds.size()];
+            terminatedAuthSessionIds.toArray(sessionsToRemove);
 
             if (!terminatedAuthSessionIds.isEmpty()) {
+
                 if (log.isDebugEnabled()) {
-                    log.debug("Session to user mappings for " + terminatedAuthSessionIds.size() + " no of sessions has "
-                            + "to be removed. Removing in " + deleteChunkSize + " size batches.");
+                    log.debug(terminatedAuthSessionIds.size() + " number of sessions should be removed from the " +
+                            "database. Removing in " + deleteChunkSize + " size batches.");
                 }
 
-                deleteSessionToUserMappingsFor(terminatedAuthSessionIds, connection);
+//                deleteSessionToUserMappingsFor(terminatedAuthSessionIds, connection);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING,
+                        SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE,
+                        SQLQueries.SQL_DELETE_TERMINATED_APP_SESSION_DATA);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA,
+                        SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
+
+                IdentityDatabaseUtil.commitTransaction(connection);
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("No terminated sessions found to remove session to user mappings.");
+                    log.debug("No terminated sessions found to remove records.");
                 }
             }
-                IdentityDatabaseUtil.commitTransaction(connection);
-
-            } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                log.error("Error while removing the terminated sessions from the table "
-                                + "IDN_AUTH_USER_SESSION_STORE.", e1);
-            }
-
         } catch (SQLException e) {
-            log.error("Error while removing the terminated sessions from the table "
-                            + "IDN_AUTH_USER_SESSION_STORE.", e);
+            log.error("Error while removing the expired session information from the database.", e);
+        }
+    }
+
+    public void removeTerminatedSessionRecords(List<String> sessionIdList) {
+
+        String[] sessionsToRemove = sessionIdList.toArray(new String[0]);
+
+        try(Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING,
+                    SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE,
+                    SQLQueries.SQL_DELETE_TERMINATED_APP_SESSION_DATA);
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA,
+                    SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            log.error("Error while removing the terminated session information from the database.", e);
         }
     }
 
@@ -405,11 +427,8 @@ public class UserSessionStore {
         return terminatedSessionIds;
     }
 
-    private void deleteSessionToUserMappingsFor(Set<String> terminatedSessionIds, Connection connection) throws
-            SQLException {
-
-        String[] sessionsToRemove = new String[terminatedSessionIds.size()];
-        terminatedSessionIds.toArray(sessionsToRemove);
+    private void deleteSessionDataFromTable(String[] sessionsToRemove, Connection connection, String tableName,
+                                            String deleteQuery) throws SQLException {
 
         int totalSessionsToRemove = sessionsToRemove.length;
         int iterations = (totalSessionsToRemove / deleteChunkSize) + 1;
@@ -421,8 +440,7 @@ public class UserSessionStore {
                 endCount = totalSessionsToRemove;
             }
 
-            try (PreparedStatement preparedStatementForDelete = connection
-                    .prepareStatement(SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA)) {
+            try (PreparedStatement preparedStatementForDelete = connection.prepareStatement(deleteQuery)) {
 
                 for (int j = startCount; j < endCount; j++) {
                     preparedStatementForDelete.setString(1, sessionsToRemove[j]);
@@ -431,15 +449,14 @@ public class UserSessionStore {
                 preparedStatementForDelete.executeBatch();
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Removed  " + (endCount - startCount) + " session to user mappings.");
+                    log.debug("Removed  " + (endCount - startCount) + " records from " + tableName + ".");
                 }
             }
-
             startCount = endCount;
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed total of " + totalSessionsToRemove + " session to user mappings.");
+            log.debug("Removed total " + totalSessionsToRemove + " records from " + tableName + ".");
         }
     }
 

@@ -39,6 +39,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -113,13 +114,21 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         List<String> sessionIdList = getSessionIdListByUserId(userId);
         terminateSessionsOfUser(sessionIdList);
+        if (!sessionIdList.isEmpty()){
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+        }
         return true;
+
     }
 
     @Override
     public boolean terminateSessionBySessionId(String userId, String sessionId) {
 
         sessionManagementService.removeSession(sessionId);
+        List<String> sessionIdList = new ArrayList<>();
+        sessionIdList.add(sessionId);
+        UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+
         return true;
 
     }
