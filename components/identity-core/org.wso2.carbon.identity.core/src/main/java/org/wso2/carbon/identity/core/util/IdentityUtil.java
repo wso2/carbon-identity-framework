@@ -1060,8 +1060,7 @@ public class IdentityUtil {
      * @throws CertificateException
      */
     public static String getCertificateString(String certificateContent) {
-        String certificateContentString = StringUtils.stripEnd(StringUtils.stripStart(certificateContent,
-                PEM_BEGIN_CERTFICATE),
+        String certificateContentString = StringUtils.substringBetween(certificateContent, PEM_BEGIN_CERTFICATE,
                 PEM_END_CERTIFICATE);
         return certificateContentString;
     }
