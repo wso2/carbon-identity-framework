@@ -72,21 +72,17 @@ public class SQLQueries {
     /**
      * Query to retrieve App Id of a registered App.
      */
-
     public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
-    /**
-     * Query to store APP session data.
-     */
 
-    public static final String SQL_INSERT_APP_SESSION_STORE_OPERATION =
-            "INSERT INTO IDN_AUTH_APP_SESSION_STORE(SESSION_ID,SUBJECT,APP_ID,APP_TENANT_ID," +
-                    "INBOUND_AUTH_TYPE)VALUES (?,?,?,?,?)";
+    // Query to store APP session data.
+    public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO =
+            "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?,?,?,?)";
     /**
      * Query to retrieve user session mapping.
      */
-    public static final String SQL_SELECT_APP_SESSION =
-            "SELECT * FROM IDN_AUTH_APP_SESSION_STORE WHERE SESSION_ID =? AND SUBJECT =? " +
-                    "AND APP_ID =? AND APP_TENANT_ID =? AND INBOUND_AUTH_TYPE =?";
+    public static final String SQL_SELECT_IDN_AUTH_SESSION_APP_INFO =
+            "SELECT * FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID =? AND SUBJECT =? AND APP_ID =? AND " +
+                    "INBOUND_AUTH_TYPE =?";
 
     /**
      * Query to store session meta data.
@@ -99,15 +95,15 @@ public class SQLQueries {
      */
     public static final String UPDATE_LAST_ACCESS_TIME = "UPDATE IDN_AUTH_SESSION_META_DATA SET VALUE=? WHERE " +
             "SESSION_ID =? AND PROPERTY_TYPE=?";
+
     /**
      * Query to delete session data.
      */
     public static final String SQL_DELETE_TERMINATED_SESSION_DATA =
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
 
-
-    public static final String SQL_DELETE_TERMINATED_APP_SESSION_DATA =
-            "DELETE FROM IDN_AUTH_APP_SESSION_STORE WHERE SESSION_ID = ?";
+    public static final String SQL_DELETE_IDN_AUTH_SESSION_APP_INFO =
+            "DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID = ?";
 
     public static final String SQL_DELETE_TERMINATED_SESSION_META_DATA =
             "DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID = ?";
@@ -142,6 +138,5 @@ public class SQLQueries {
      */
     public static final String GET_LAST_ACCESS_TIME = "SELECT VALUE  FROM IDN_AUTH_" +
             "SESSION_META_DATA WHERE PROPERTY_TYPE = 'Last Access Time' AND SESSION_ID = ?";
-
 
 }

@@ -51,7 +51,7 @@ public class UserSessionStore {
     private static final String DELETE_CHUNK_SIZE_PROPERTY = "JDBCPersistenceManager.SessionDataPersist" +
             ".UserSessionMapping.DeleteChunkSize";
     private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
-    private static final String IDN_AUTH_APP_SESSION_STORE_TABLE = "IDN_AUTH_APP_SESSION_STORE";
+    private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
     private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
 
     private int deleteChunkSize = 10000;
@@ -367,8 +367,8 @@ public class UserSessionStore {
 
                 deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
                         SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
-                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE_TABLE,
-                        SQLQueries.SQL_DELETE_TERMINATED_APP_SESSION_DATA);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
+                        SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
                 deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
                         SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
 
@@ -396,8 +396,8 @@ public class UserSessionStore {
 
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
                     SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE_TABLE,
-                    SQLQueries.SQL_DELETE_TERMINATED_APP_SESSION_DATA);
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
+                    SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
                     SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
             IdentityDatabaseUtil.commitTransaction(connection);
@@ -479,25 +479,23 @@ public class UserSessionStore {
      * @param sessionId   Id of the authenticated session
      * @param subject     Username in application
      * @param appID       Id of the application
-     * @param appTenantID Tenant Id of application
      * @param inboundAuth Protocol used in app
      * @throws DataAccessException if an error occurs when storing the authenticated user details to the database
      */
-    public void storeAppSessionData(String sessionId, String subject, int appID, int appTenantID,
-                                    String inboundAuth) throws DataAccessException {
+    public void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
+            DataAccessException {
 
         if (appID != 0) {
             JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
             try {
-                jdbcTemplate.executeUpdate(SQLQueries.SQL_INSERT_APP_SESSION_STORE_OPERATION, preparedStatement -> {
+                jdbcTemplate.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
                     preparedStatement.setString(1, sessionId);
                     preparedStatement.setString(2, subject);
                     preparedStatement.setInt(3, appID);
-                    preparedStatement.setInt(4, appTenantID);
-                    preparedStatement.setString(5, inboundAuth);
+                    preparedStatement.setString(4, inboundAuth);
                 });
             } catch (DataAccessException e) {
-                throw new DataAccessException("Error while storing application session details to the database table ", e);
+                throw new DataAccessException("Error while storing application data for session in the database ", e);
             }
         }
     }
@@ -534,29 +532,27 @@ public class UserSessionStore {
      * @param sessionId   Id of the authenticated session
      * @param subject     User name of app
      * @param appID       Id of application
-     * @param appTenantID Tenant Id of application
      * @param inboundAuth Protocol used in app
      * @return whether the app session is already available or not
      * @throws UserSessionException while retrieving existing session data
      */
-    public boolean isExistingAppSession(String sessionId, String subject, int appID, int appTenantID,
-                                        String inboundAuth) throws UserSessionException {
+    public boolean isExistingAppSession(String sessionId, String subject, int appID, String inboundAuth) throws
+            UserSessionException {
 
         final boolean[] isExisting = {false};
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeQuery(SQLQueries.SQL_SELECT_APP_SESSION, (resultSet, rowNumber) -> isExisting[0] = true,
+            jdbcTemplate.executeQuery(SQLQueries.SQL_SELECT_IDN_AUTH_SESSION_APP_INFO, (resultSet, rowNumber) ->
+                            isExisting[0] = true,
                     preparedStatement -> {
                         preparedStatement.setString(1, sessionId);
                         preparedStatement.setString(2, subject);
                         preparedStatement.setInt(3, appID);
-                        preparedStatement.setInt(4, appTenantID);
-                        preparedStatement.setString(5, inboundAuth);
+                        preparedStatement.setString(4, inboundAuth);
                     });
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while retrieving existing session data: " +
-                    " of session Id: " + sessionId + ", subject" + subject + ",app Id:"
-                    + appID + ",app tenant id" + appTenantID + ",protocol:" + inboundAuth, e);
+            throw new UserSessionException("Error while retrieving application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth, e);
         }
         return isExisting[0];
     }
