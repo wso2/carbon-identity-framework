@@ -71,7 +71,7 @@ function createAppOnclick() {
     var spName = document.getElementById("spName").value;
     var description = document.getElementById("sp-description").value;
     if( spName == '') {
-        CARBON.showWarningDialog('Please provide Service Provider ID');
+        CARBON.showWarningDialog('Please provide Service Provider Name');
         location.href = '#';
     } else if (!validateTextForIllegal(document.getElementById("spName"))) {
         return false;
