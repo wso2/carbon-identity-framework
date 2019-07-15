@@ -39,7 +39,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -114,7 +113,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         List<String> sessionIdList = getSessionIdListByUserId(userId);
         terminateSessionsOfUser(sessionIdList);
-        if (!sessionIdList.isEmpty()){
+        if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
         return true;
@@ -138,6 +137,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      *
      * @param userId user id for which the sessions should be retrieved.
      * @return the list of session ids
+     * @throws SessionManagementServerException if session Ids can not be retrieved from the database.
      */
     private List<String> getSessionIdListByUserId(String userId) throws SessionManagementServerException {
 
@@ -155,7 +155,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      *
      * @param sessionIdList List of sessionIds
      * @return UserSession[] Usersessions
-     * @throws SessionManagementException if an error occurs when retrieving the UserSessions.
+     * @throws SessionManagementServerException if an error occurs when retrieving the UserSessions.
      */
     private List<UserSession> getActiveSessionList(List<String> sessionIdList) throws SessionManagementServerException {
 

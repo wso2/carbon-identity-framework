@@ -45,7 +45,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             applicationList = jdbcTemplate.executeQuery(SQLQueries.GET_APPLICATION, (resultSet, rowNumber) ->
-                            new Application(resultSet.getString(1), resultSet.getString(2)),
+                            new Application(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3)),
                     preparedStatement -> preparedStatement.setString(1, sessionId));
 
             String userAgent = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_USER_AGENT,
@@ -53,8 +53,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             preparedStatement.setString(1, sessionId));
 
             String ip = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_IP, (resultSet, rowNumber) ->
-                    resultSet.getString(1), preparedStatement -> preparedStatement.setString
-                    (1, sessionId));
+                    resultSet.getString(1), preparedStatement -> preparedStatement.setString(1, sessionId));
 
             String loginTime = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_LOGIN_TIME,
                     (resultSet, rowNumber) -> resultSet.getString(1),

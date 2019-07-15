@@ -115,9 +115,9 @@ public class SQLQueries {
     /**
      *  Query to retrieve userName and appName.
      */
-    public static final String GET_APPLICATION = "SELECT SUBJECT, APP_NAME FROM IDN_" +
-            "AUTH_APP_SESSION_STORE SESSION_STORE , SP_APP APP where SESSION_STORE." +
-            "APP_ID = APP.ID AND SESSION_ID = ?";
+    public static final String GET_APPLICATION = "SELECT SUBJECT, APP_NAME, APP_ID FROM " +
+            "IDN_AUTH_APP_SESSION_STORE SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
+            "SESSION_ID = ?";
 
     /**
      *  Query to retrieve userAgent.

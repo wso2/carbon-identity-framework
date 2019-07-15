@@ -32,17 +32,44 @@ public interface UserSessionManagementService {
     /**
      * Terminates all active sessions of the given user.
      *
-     * @param username username
+     * @param username        username
      * @param userStoreDomain userstore domain of the user
-     * @param tenantDomain tenant domain of the user
+     * @param tenantDomain    tenant domain of the user
      * @throws UserSessionException
      */
     void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
             UserSessionException;
 
-    List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException;
+    /**
+     * Get all the active sessions of the given user id.
+     *
+     * @param userId unique id of the user
+     * @throws SessionManagementException if the session retrieval fails
+     */
+    default List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
 
-    boolean terminateSessionsByUserId(String userId) throws SessionManagementException;
+        return null;
+    }
 
-    boolean terminateSessionBySessionId(String userId, String sessionId);
+    /**
+     * Terminate all the active sessions of the given user id.
+     *
+     * @param userId unique id of the user
+     * @throws SessionManagementException if the session termination fails
+     */
+    default boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
+
+        return false;
+    }
+
+    /**
+     * Terminate the session of the given id
+     *
+     * @param userId        unique id of the user
+     * @param  sessionId    unique id for the session
+     */
+    default boolean terminateSessionBySessionId(String userId, String sessionId) {
+
+        return false;
+    }
 }

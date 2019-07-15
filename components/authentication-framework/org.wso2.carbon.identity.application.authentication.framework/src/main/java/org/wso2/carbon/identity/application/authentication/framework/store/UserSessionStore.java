@@ -50,9 +50,9 @@ public class UserSessionStore {
     private static final String FEDERATED_USER_DOMAIN = "FEDERATED";
     private static final String DELETE_CHUNK_SIZE_PROPERTY = "JDBCPersistenceManager.SessionDataPersist" +
             ".UserSessionMapping.DeleteChunkSize";
-    private static final String IDN_AUTH_USER_SESSION_MAPPING = "IDN_AUTH_USER_SESSION_MAPPING";
-    private static final String IDN_AUTH_APP_SESSION_STORE = "IDN_AUTH_APP_SESSION_STORE";
-    private static final String IDN_AUTH_SESSION_META_DATA = "IDN_AUTH_SESSION_META_DATA";
+    private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
+    private static final String IDN_AUTH_APP_SESSION_STORE_TABLE = "IDN_AUTH_APP_SESSION_STORE";
+    private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
 
     private int deleteChunkSize = 10000;
 
@@ -345,7 +345,7 @@ public class UserSessionStore {
     }
 
     /**
-     * Method used to remove the expired sessions from the database table IDN_AUTH_USER_SESSION_STORE.
+     * Removes all the expired session records from relevant tables.
      */
     public void removeExpiredSessionRecords() {
 
@@ -365,12 +365,11 @@ public class UserSessionStore {
                             "database. Removing in " + deleteChunkSize + " size batches.");
                 }
 
-//                deleteSessionToUserMappingsFor(terminatedAuthSessionIds, connection);
-                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING,
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
                         SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
-                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE,
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE_TABLE,
                         SQLQueries.SQL_DELETE_TERMINATED_APP_SESSION_DATA);
-                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA,
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
                         SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
 
                 IdentityDatabaseUtil.commitTransaction(connection);
@@ -384,17 +383,22 @@ public class UserSessionStore {
         }
     }
 
+    /**
+     * Remove the session information records of a given set of session IDs from the relevant tables.
+     *
+     * @param sessionIdList list of terminated session IDs
+     */
     public void removeTerminatedSessionRecords(List<String> sessionIdList) {
 
         String[] sessionsToRemove = sessionIdList.toArray(new String[0]);
 
-        try(Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING,
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
                     SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE,
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_APP_SESSION_STORE_TABLE,
                     SQLQueries.SQL_DELETE_TERMINATED_APP_SESSION_DATA);
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA,
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
                     SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
@@ -410,7 +414,7 @@ public class UserSessionStore {
          * Retrieve only sessions which have an expiry time less than the current time.
          * As the session cleanup task deletes only entries matching the same condition, in case sessions that are
          * being marked as deleted are also retrieved that might load a huge amount of entries to the memory all the
-         * time. Yet those entries will be removed from the IDN_AUTH_USER_SESSION_MAPPING table on the first
+         * time. Yet those entries will be removed from the IDN_AUTH_USER_SESSION_MAPPING_TABLE table on the first
          * execution, and there after every time the loop will be executed and the table will be scanned for a non
          * existing entry.
          */
@@ -427,6 +431,15 @@ public class UserSessionStore {
         return terminatedSessionIds;
     }
 
+    /**
+     * This method is used to chunk-wise deletion of records of a given table.
+     *
+     * @param sessionsToRemove array of session ids which should be removed
+     * @param connection       DB connection
+     * @param tableName        table name from which the records are removed
+     * @param deleteQuery      delete query for the relevant table
+     * @throws SQLException if the DB execution fails
+     */
     private void deleteSessionDataFromTable(String[] sessionsToRemove, Connection connection, String tableName,
                                             String deleteQuery) throws SQLException {
 
@@ -468,7 +481,7 @@ public class UserSessionStore {
      * @param appID       Id of the application
      * @param appTenantID Tenant Id of application
      * @param inboundAuth Protocol used in app
-     * @throws UserSessionException if an error occurs when storing the authenticated user details to the database
+     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database
      */
     public void storeAppSessionData(String sessionId, String subject, int appID, int appTenantID,
                                     String inboundAuth) throws DataAccessException {
@@ -494,14 +507,12 @@ public class UserSessionStore {
      *
      * @param applicationName Application Name
      * @param appTenantID     App tenant id
-     * @return
+     * @return the application id
      * @throws UserSessionException if an error occurs when retrieving app id
      */
     public int getAppId(String applicationName, int appTenantID) throws UserSessionException {
 
         final int[] applicationId = {0};
-        PreparedStatement getAppIDPrepStmt = null;
-        ResultSet appIdResult = null;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_APP_ID_OF_APP,
@@ -525,7 +536,7 @@ public class UserSessionStore {
      * @param appID       Id of application
      * @param appTenantID Tenant Id of application
      * @param inboundAuth Protocol used in app
-     * @return
+     * @return whether the app session is already available or not
      * @throws UserSessionException while retrieving existing session data
      */
     public boolean isExistingAppSession(String sessionId, String subject, int appID, int appTenantID,
@@ -566,8 +577,8 @@ public class UserSessionStore {
                 preparedStatement.setString(3, value);
             }));
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while storing session meta data to the database table " +
-                    "IDN_AUTH_SESSION_META_DATA of session: " + sessionId, e);
+            throw new UserSessionException("Error while storing session meta data to the table " +
+                    IDN_AUTH_SESSION_META_DATA_TABLE + " of session: " + sessionId, e);
         }
     }
 
@@ -588,8 +599,8 @@ public class UserSessionStore {
                 preparedStatement.setString(3, "Last Access Time");
             });
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while updating last access time to the database table " +
-                    "IDN_AUTH_SESSION_META_DATA of: " + sessionId, e);
+            throw new UserSessionException("Error while updating last access time of the session to " +
+                    "table " + IDN_AUTH_SESSION_META_DATA_TABLE + " of session: " + sessionId, e);
         }
     }
 

@@ -19,9 +19,10 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 /**
- * model is representing applications in a session.
+ * This class represents an application.
  */
 public class Application {
+
     private String appId;
     private String subject;
     private String appName;
@@ -31,7 +32,7 @@ public class Application {
         this.subject = subject;
     }
 
-    public Application(String appId, String appName, String subject ) {
+    public Application(String subject, String appName, String appId) {
 
         this.appId = appId;
         this.subject = subject;
