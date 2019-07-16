@@ -69,8 +69,6 @@
                 errorMessage = error;
             }
         }
-    %>
-    <%
 
         boolean hasLocalLoginOptions = false;
         boolean isBackChannelBasicAuth = false;
@@ -83,15 +81,11 @@
             }
         }
 
-
-    %>
-    <%
         boolean reCaptchaEnabled = false;
         if (request.getParameter("reCaptcha") != null && "TRUE".equalsIgnoreCase(request.getParameter("reCaptcha"))) {
             reCaptchaEnabled = true;
         }
-    %>
-    <%
+
         String inputType = request.getParameter("inputType");
         String username = null;
     
@@ -214,18 +208,18 @@
                             <%
                                 if (localAuthenticatorNames.size() > 0) {
 
-                                    if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(OPEN_ID_AUTHENTICATOR)) {
+                                    if (localAuthenticatorNames.contains(OPEN_ID_AUTHENTICATOR)) {
                                         hasLocalLoginOptions = true;
                             %>
 
                             <%@ include file="openid.jsp" %>
                             <%
-                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(IDENTIFIER_EXECUTOR)) {
+                            } else if (localAuthenticatorNames.contains(IDENTIFIER_EXECUTOR)) {
                                 hasLocalLoginOptions = true;
                             %>
                                 <%@ include file="identifierauth.jsp" %>
                             <%
-                            } else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR) ||
+                            } else if (localAuthenticatorNames.contains(JWT_BASIC_AUTHENTICATOR) ||
                                     localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                 hasLocalLoginOptions = true;
                                 boolean includeBasicAuth = true;
@@ -239,12 +233,12 @@
                                     }
                                 } else if (localAuthenticatorNames.contains(BASIC_AUTHENTICATOR)) {
                                     isBackChannelBasicAuth = false;
-                                if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
-                                    includeBasicAuth = false;
+                                    if (TenantDataManager.isTenantListEnabled() && Boolean.parseBoolean(request.getParameter(IS_SAAS_APP))) {
+                                        includeBasicAuth = false;
 %>
                             <%@ include file="tenantauth.jsp" %>
 <%
-                            }
+                                    }
                                 }
                             
                             if (includeBasicAuth) {
@@ -254,15 +248,9 @@
                                     }
                                 }
                             }
-                            %>
 
-                            <%if (idpAuthenticatorMapping != null &&
-                                    idpAuthenticatorMapping.get(Constants.RESIDENT_IDP_RESERVED_NAME) != null) { %>
-
-                            <%} %>
-                            <%
-                                if ((hasLocalLoginOptions && localAuthenticatorNames.size() > 1) || (!hasLocalLoginOptions)
-                                        || (hasLocalLoginOptions && idpAuthenticatorMapping != null && idpAuthenticatorMapping.size() > 1)) {
+                                if ((!hasLocalLoginOptions) || (localAuthenticatorNames.size() > 1)
+                                        || (idpAuthenticatorMapping != null && idpAuthenticatorMapping.size() > 1)) {
                             %>
                             <div class="form-group">
                                 <% if (hasLocalLoginOptions) { %>
