@@ -291,7 +291,7 @@ public class ApplicationMgtUtil {
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            IdentityTenantUtil.initializeRegistry(tenantId, IdentityTenantUtil.getTenantDomain(tenantId));
+            IdentityTenantUtil.initializeRegistry(tenantId);
         } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error loading tenant registry for tenant domain: " +
                     IdentityTenantUtil.getTenantDomain(tenantId), e);

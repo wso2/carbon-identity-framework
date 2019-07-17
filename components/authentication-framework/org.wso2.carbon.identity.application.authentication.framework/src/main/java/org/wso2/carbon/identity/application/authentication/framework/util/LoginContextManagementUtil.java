@@ -113,7 +113,7 @@ public class LoginContextManagementUtil {
             tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         }
         try {
-            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+            IdentityTenantUtil.initializeRegistry(tenantId);
             Registry registry = IdentityTenantUtil.getConfigRegistry(tenantId);
             if (registry.resourceExists(SP_REDIRECT_URL_RESOURCE_PATH)) {
                 Resource resource = registry.get(SP_REDIRECT_URL_RESOURCE_PATH);

@@ -62,7 +62,7 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
         Registry registry = null;
         try {
             String tenantDomain = IdentityTenantUtil.getTenantDomain(recoveryDataDO.getTenantId());
-            IdentityTenantUtil.initializeRegistry(recoveryDataDO.getTenantId(), tenantDomain);
+            IdentityTenantUtil.initializeRegistry(recoveryDataDO.getTenantId());
             registry = IdentityMgtServiceComponent.getRegistryService().
                     getConfigSystemRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
             registry.beginTransaction();
@@ -109,7 +109,7 @@ public class RegistryRecoveryDataStore implements UserRecoveryDataStore {
         try {
             int tenantId = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
             String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+            IdentityTenantUtil.initializeRegistry(tenantId);
             registry = IdentityMgtServiceComponent.getRegistryService().
                     getConfigSystemRegistry(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
 
