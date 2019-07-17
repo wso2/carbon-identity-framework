@@ -196,10 +196,22 @@ public class IdentityTenantUtil {
         IdentityTenantUtil.bundleContext = bundleContext;
     }
 
+    /**
+     * @deprecated
+     * initializeRegistry(int tenantId, String tenantDomain)
+     *
+     * method signature changed.Will be removed fro next version.
+     * Because, tenant domain can be taken from tenantId
+     * Use ,
+     * initializeRegistry(int tenantId)
+     *
+     */
+
+    @Deprecated
+    public static void initializeRegistry(int tenantId, String tenantDomain) {}
 
     public static void initializeRegistry(int tenantId) throws IdentityException {
         String tenantDomain=getTenantDomain(tenantId);
-
 
         if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
             try {
