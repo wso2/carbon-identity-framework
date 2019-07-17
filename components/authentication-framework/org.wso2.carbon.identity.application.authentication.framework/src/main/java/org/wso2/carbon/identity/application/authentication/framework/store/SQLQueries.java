@@ -99,7 +99,7 @@ public class SQLQueries {
 
     // Retrieve data for the Application model.
     public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME, APP_ID FROM " +
-            "IDN_AUTH_APP_SESSION_STORE SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
+            "IDN_AUTH_SESSION_APP_INFO SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
             "SESSION_ID = ?";
 
 }
