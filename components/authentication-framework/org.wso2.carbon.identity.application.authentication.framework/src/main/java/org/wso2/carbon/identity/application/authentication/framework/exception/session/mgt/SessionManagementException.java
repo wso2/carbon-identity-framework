@@ -35,7 +35,6 @@ public class SessionManagementException extends IdentityException {
         super(error.getMessage(), cause);
         this.errorCode = error.getCode();
         this.description = description;
-
     }
 
     public SessionManagementException(String message, String errorCode, String description, Throwable cause) {

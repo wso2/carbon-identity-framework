@@ -44,6 +44,7 @@ public interface UserSessionManagementService {
      * Get all the active sessions of the given user id.
      *
      * @param userId unique id of the user
+     * @return list of user session objects. In the default method, null is returned.
      * @throws SessionManagementException if the session retrieval fails
      */
     default List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
@@ -55,6 +56,7 @@ public interface UserSessionManagementService {
      * Terminate all the active sessions of the given user id.
      *
      * @param userId unique id of the user
+     * @return whether the sessions termination is success or not. In default method, false is returned.
      * @throws SessionManagementException if the session termination fails
      */
     default boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
@@ -67,6 +69,7 @@ public interface UserSessionManagementService {
      *
      * @param userId        unique id of the user
      * @param  sessionId    unique id for the session
+     * @return whether the session termination is success or not. In default method, false is returned.
      */
     default boolean terminateSessionBySessionId(String userId, String sessionId) {
 

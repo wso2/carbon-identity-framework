@@ -29,7 +29,6 @@ public class SessionManagementClientException extends SessionManagementException
             description, Throwable cause) {
 
         super(error, description, cause);
-
     }
 
     public SessionManagementClientException(String message, String errorCode, String description, Throwable cause) {

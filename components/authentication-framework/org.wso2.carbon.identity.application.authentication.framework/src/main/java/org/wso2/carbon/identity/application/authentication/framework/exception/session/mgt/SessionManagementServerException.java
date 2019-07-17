@@ -29,7 +29,6 @@ public class SessionManagementServerException extends SessionManagementException
             description, Throwable cause) {
 
         super(error, description, cause);
-
     }
 
     // The constructor is made private to avoid generating exceptions without error code and description.

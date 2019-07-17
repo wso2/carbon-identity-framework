@@ -23,6 +23,11 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
  */
 public class SessionMgtConstants {
 
+    public static final String USER_AGENT = "User Agent";
+    public static final String LAST_ACCESS_TIME = "Last Access Time";
+    public static final String IP_ADDRESS = "IP";
+    public static final String LOGIN_TIME = "Login Time";
+
     public enum ErrorMessages {
 
         ERROR_CODE_UNABLE_TO_GET_SESSION("USM-00001", "Unable to retrieve session information"),
@@ -50,5 +55,4 @@ public class SessionMgtConstants {
         }
 
     }
-
 }
