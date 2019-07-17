@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.13.10-SNAPSHOT</version>
+        <version>5.13.38-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -89,6 +89,9 @@
                                         <include>balana-config.xml</include>
                                         <include>**/*.xml</include>
                                         <include>p2.inf</include>
+                                        <include>entitlement.properties.j2</include>
+                                        <include>org.wso2.carbon.identity.xacml.server.feature.default.json</include>
+                                        <include>org.wso2.carbon.identity.xacml.server.feature.unit-resolve.json</include>
                                     </includes>
                                 </resource>
                             </resources>

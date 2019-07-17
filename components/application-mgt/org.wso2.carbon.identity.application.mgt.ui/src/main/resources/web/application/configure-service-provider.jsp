@@ -547,7 +547,7 @@
     function createAppOnclick() {
         var spName = document.getElementById("spName").value;
         if (spName == '') {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             location.href = '#';
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
@@ -652,7 +652,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../sso-saml/add_service_provider.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("saml_link").href = "#"
         }
     }
@@ -662,7 +662,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../servicestore/add-step1.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("kerberos_link").href = "#"
         }
     }
@@ -672,7 +672,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../oauth/add.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("oauth_link").href = "#"
         }
     }
@@ -682,7 +682,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../generic-sts/sts.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("sts_link").href = "#"
         }
     }
@@ -707,7 +707,7 @@
         if (spName != '') {
             updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=" + spName + "&purposeGroupType=SP&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSPPurposes"));
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
         }
     }
 
@@ -716,7 +716,7 @@
         if (spName != '') {
             updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=SHARED&purposeGroupType=SYSTEM&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSharedPurposes"));
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
         }
     }
 
@@ -1134,7 +1134,7 @@
                 }
             }
         } else {
-            $('#addClaimUrisLbl').text('Identity Provider Claim URIs:');
+            $('#addClaimUrisLbl').text('Service Provider Claim URIs:');
             $('#roleMappingSelection').show();
         }
     }

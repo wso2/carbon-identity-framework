@@ -181,7 +181,7 @@ public class OpenIDUserRPDAO {
      */
     public OpenIDUserRPDO getOpenIDUserRP(String userName, String rpUrl, int tenantId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         OpenIDUserRPDO rpdo = new OpenIDUserRPDO();
         rpdo.setUserName(userName);
@@ -194,7 +194,6 @@ public class OpenIDUserRPDAO {
                 prepStmt.setInt(2, tenantId);
                 prepStmt.setString(3, rpUrl);
                 OpenIDUserRPDO openIDUserRPDO = buildUserRPDO(prepStmt.executeQuery(), userName);
-                IdentityDatabaseUtil.commitTransaction(connection);
                 return openIDUserRPDO;
             } else {
                 if(log.isDebugEnabled()) {
@@ -202,7 +201,6 @@ public class OpenIDUserRPDAO {
                 }
             }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Failed to load RP: " + rpUrl + " for user: " + userName, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -217,7 +215,7 @@ public class OpenIDUserRPDAO {
      * @return
      */
     public OpenIDUserRPDO[] getAllOpenIDUserRP() {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         OpenIDUserRPDO[] rpDOs = null;
@@ -240,9 +238,7 @@ public class OpenIDUserRPDAO {
 
             rpDOs = new OpenIDUserRPDO[rpdos.size()];
             rpDOs = rpdos.toArray(rpDOs);
-            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while accessing the database to load RPs.", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -261,7 +257,7 @@ public class OpenIDUserRPDAO {
      */
     public OpenIDUserRPDO[] getOpenIDUserRPs(String userName, int tenantId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         OpenIDUserRPDO[] rpDOs = null;
@@ -286,10 +282,7 @@ public class OpenIDUserRPDAO {
 
             rpDOs = new OpenIDUserRPDO[rpdos.size()];
             rpDOs = rpdos.toArray(rpDOs);
-            IdentityDatabaseUtil.commitTransaction(connection);
-
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Error while accessing the database to load RPs", e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(results);
@@ -309,7 +302,7 @@ public class OpenIDUserRPDAO {
      */
     public String getOpenIDDefaultUserProfile(String userName, String rpUrl, int tenantId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
 
         OpenIDUserRPDO rpdo = new OpenIDUserRPDO();
@@ -320,7 +313,6 @@ public class OpenIDUserRPDAO {
 
             if (isUserRPExist(connection, rpdo, tenantId)) {
                 prepStmt = connection.prepareStatement(OpenIDSQLQueries.LOAD_USER_RP_DEFAULT_PROFILE);
-                IdentityDatabaseUtil.commitTransaction(connection);
                 prepStmt.setString(1, userName);
                 prepStmt.setInt(2, tenantId);
                 prepStmt.setString(3, rpUrl);
@@ -331,7 +323,6 @@ public class OpenIDUserRPDAO {
                 }
             }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Failed to load RP: " + rpUrl + " for user: " + userName, e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);

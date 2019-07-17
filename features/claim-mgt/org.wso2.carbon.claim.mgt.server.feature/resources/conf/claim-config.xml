@@ -498,6 +498,14 @@
 				<Description>Account Locked</Description>
 		    </Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/accountState</ClaimURI>
+				<DisplayName>Account State</DisplayName>
+				<!-- Proper attribute Id in your user store must be configured for this -->
+				<AttributeID>accountState</AttributeID>
+				<Description>Account State</Description>
+				<ReadOnly/>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailVerified</ClaimURI>
 				<DisplayName>Email Verified</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->

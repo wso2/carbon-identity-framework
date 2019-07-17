@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework-feature</artifactId>
-        <version>5.13.10-SNAPSHOT</version>
+        <version>5.13.38-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -98,6 +98,10 @@
                                         <include>application-authentication.xml</include>
                                         <include>authenticationendpoint.war</include>
                                         <include>EndpointConfig.properties</include>
+                                        <include>application-authentication.xml.j2</include>
+                                        <include>EndpointConfig.properties.j2</include>
+                                        <include>org.wso2.carbon.identity.application.authentication.framework.server.feature.default.json</include>
+                                        <include>org.wso2.carbon.identity.application.authentication.framework.server.feature.key-mappings.json</include>
                                     </includes>
                                 </resource>
                             </resources>

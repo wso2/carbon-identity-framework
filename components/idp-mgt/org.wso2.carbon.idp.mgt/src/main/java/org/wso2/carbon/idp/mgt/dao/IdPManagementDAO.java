@@ -85,7 +85,7 @@ public class IdPManagementDAO {
         ResultSet rs = null;
         List<IdentityProvider> idps = new ArrayList<IdentityProvider>();
         if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         } else {
             dbConnInitialized = false;
         }
@@ -140,10 +140,8 @@ public class IdPManagementDAO {
                         .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             return idps;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving registered Identity " +
                     "Provider Entity IDs " + "for tenant " + tenantDomain, e);
         } finally {
@@ -1111,7 +1109,7 @@ public class IdPManagementDAO {
         IdentityProvider federatedIdp = null;
         boolean dbConnectionInitialized = true;
         if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         } else {
             dbConnectionInitialized = false;
         }
@@ -1244,10 +1242,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             return federatedIdp;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for tenant : " + tenantDomain + " and Identity Provider name : " + idPName, e);
         } finally {
@@ -1315,7 +1311,7 @@ public class IdPManagementDAO {
         IdentityProvider federatedIdp = null;
         boolean dbConnectionInitialized = true;
         if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         } else {
             dbConnectionInitialized = false;
         }
@@ -1436,10 +1432,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             return federatedIdp;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for Authenticator Property : " + property + " and value : " + value, e);
         } finally {
@@ -1470,7 +1464,7 @@ public class IdPManagementDAO {
         IdentityProvider federatedIdp = null;
         boolean dbConnectionInitialized = true;
         if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         } else {
             dbConnectionInitialized = false;
         }
@@ -1590,10 +1584,8 @@ public class IdPManagementDAO {
                 federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
 
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             return federatedIdp;
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for Authenticator Property : " + property + " and value : " + value, e);
         } finally {
@@ -1616,7 +1608,7 @@ public class IdPManagementDAO {
     public IdentityProvider getIdPByRealmId(String realmId, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         String idPName = null;
@@ -1631,11 +1623,8 @@ public class IdPManagementDAO {
             if (rs.next()) {
                 idPName = rs.getString("NAME");
             }
-
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             return getIdPByName(dbConnection, idPName, tenantId, tenantDomain);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error while retreiving Identity Provider by realm " +
                     realmId, e);
         } finally {
@@ -2035,7 +2024,7 @@ public class IdPManagementDAO {
     public boolean isIdpReferredBySP(String idPName, int tenantId)
             throws IdentityProviderManagementException {
         boolean isReffered = false;
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmtFedIdp = null;
         ResultSet rsFedIdp = null;
         PreparedStatement prepStmtProvIdp = null;
@@ -2061,9 +2050,7 @@ public class IdPManagementDAO {
                     isReffered = rsProvIdp.getInt(1) > 0;
                 }
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while searching for IDP references in SP ", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rsProvIdp, prepStmtProvIdp);
@@ -2828,7 +2815,7 @@ public class IdPManagementDAO {
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         if (dbConnection == null) {
-            dbConnection = IdentityDatabaseUtil.getDBConnection();
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         } else {
             dbConnInitialized = false;
         }
@@ -2840,13 +2827,9 @@ public class IdPManagementDAO {
             prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
             prepStmt.setString(3, idpName);
             rs = prepStmt.executeQuery();
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
             if (rs.next()) {
                 return rs.getInt(1);
             }
-        } catch (SQLException e) {
-           IdentityDatabaseUtil.rollbackTransaction(dbConnection);
-           return 0;
         } finally {
             if (dbConnInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -2906,7 +2889,7 @@ public class IdPManagementDAO {
     public boolean isIdPAvailableForAuthenticatorProperty(String authenticatorName, String propertyName, String idPEntityId, int tenantId)
             throws IdentityProviderManagementException {
         boolean isAvailable = false;
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
 
@@ -2921,9 +2904,7 @@ public class IdPManagementDAO {
             if (rs.next()) {
                 isAvailable = rs.getInt(1) > 0;
             }
-            IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException("Error occurred while searching for similar IdP EntityIds", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);

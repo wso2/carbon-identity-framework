@@ -412,7 +412,9 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
                 }
             }
 
-            log.error("Returning NULL for getClaim() for claim URI : " + claimURI);
+            if (log.isDebugEnabled()) {
+                log.error("Returning NULL for getClaim() for claim URI : " + claimURI);
+            }
             return null;
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(e.getMessage(), e);

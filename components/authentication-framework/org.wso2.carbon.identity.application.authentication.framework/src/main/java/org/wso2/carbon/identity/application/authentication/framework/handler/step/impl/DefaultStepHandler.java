@@ -586,6 +586,7 @@ public class DefaultStepHandler implements StepHandler {
                                               AuthenticatorConfig authenticatorConfig,
                                               User user) {
         context.setRequestAuthenticated(false);
+        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.FAIL_COMPLETED);
     }
 
     @Deprecated

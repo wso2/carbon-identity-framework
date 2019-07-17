@@ -50,6 +50,15 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
+     * To get all registered repository classes.
+     * @return repository classes
+     * @throws Exception throws of an error occurswhen getting repository classes.
+     */
+    public String[] getRepositoryClasses() throws Exception {
+        return stub.getRepositoryClasses();
+    }
+
+    /**
      * Get all the configured domains
      *
      * @throws Exception
@@ -99,7 +108,7 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
-     * Deletes a given list of user stores
+     * Deletes a given list of user stores from file
      *
      * @param userStores : domain names of user stores to deleted
      * @throws Exception
@@ -109,13 +118,36 @@ public class UserStoreConfigAdminServiceClient {
     }
 
     /**
+     * Deletes a given list of user stores from repository
+     * @param userStores : an instance of an array of {@link UserStoreDTO}
+     * @throws Exception RemoteException
+     * @throws Exception UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     */
+    public void deleteUserStoresSet(UserStoreDTO[] userStores) throws Exception {
+
+        stub.deleteUserStoresSetFromRepository(userStores);
+    }
+
+    /**
      * Deletes a given user store
      *
      * @param userStore : domain name of the user store to deleted
      * @throws Exception
      */
+    @Deprecated
     public void deleteUserStore(String userStore) throws Exception {
         stub.deleteUserStore(userStore);
+    }
+
+    /**
+     * Delete user store from any repository.
+     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @throws Exception RemoteException
+     * @throws UserStoreConfigAdminServiceIdentityUserStoreMgtException UserStoreConfigAdminServiceException
+     */
+    public void deleteUserStoreFromRepository(UserStoreDTO userStoreDTO) throws Exception {
+
+        stub.deleteUserStoreFromRepository(userStoreDTO);
     }
 
     /**
@@ -125,8 +157,22 @@ public class UserStoreConfigAdminServiceClient {
      * @param isDisabled : set true to disable user store
      * @throws Exception
      */
+    @Deprecated
     public void changeUserStoreState(String domain, String isDisabled) throws Exception {
         stub.changeUserStoreState(domain, Boolean.parseBoolean(isDisabled));
+    }
+
+    /**
+     * Toggle user store state (enable/disable)
+     *
+     * @param domain            : domain name of the user store to enable/dissable
+     * @param isDisabled        : set true to disable user store
+     * @param repositoryClasses : the repository where the userstore properties are persisted.
+     * @throws Exception if an error occured while changing the userstore state.
+     */
+    public void changeUserStoreState(String domain, String isDisabled, String repositoryClasses) throws Exception {
+
+        stub.modifyUserStoreState(domain, Boolean.parseBoolean(isDisabled), repositoryClasses);
     }
 
     /**
