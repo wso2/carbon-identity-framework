@@ -209,7 +209,19 @@ public class ClaimMetadataManagementAdminService {
 
 
             ExternalClaim[] externalClaims = externalClaimList.toArray(new ExternalClaim[0]);
-            return ClaimMetadataUtils.convertExternalClaimsToExternalClaimDTOs(externalClaims);
+
+            ExternalClaimDTO[] externalClaimDTOS = ClaimMetadataUtils.convertExternalClaimsToExternalClaimDTOs(externalClaims);
+
+            // Sort the external claims in the alphabetical order
+            Arrays.sort(externalClaimDTOS, new Comparator<ExternalClaimDTO>() {
+                @Override
+                public int compare(ExternalClaimDTO o1, ExternalClaimDTO o2) {
+                    return o1.getExternalClaimURI().toLowerCase().compareTo(
+                            o2.getExternalClaimURI().toLowerCase());
+                }
+            });
+
+            return externalClaimDTOS;
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             throw new ClaimMetadataException(e.getMessage(), e);
