@@ -621,8 +621,8 @@
     <script type="text/javascript" src="libs/handlebars-v4.0.11.js"></script>
     <script type="text/javascript" src="libs/jstree/dist/jstree.min.js"></script>
     <script type="text/javascript" src="libs/jstree/src/jstree-actions.js"></script>
-    <script type="text/javascript" src="assets/js/consent_template_1.js"></script>
-    <script type="text/javascript" src="assets/js/consent_template_2.js"></script>
+    <script type="text/javascript" src="js/consent_template_1.js"></script>
+    <script type="text/javascript" src="js/consent_template_2.js"></script>
     <script type="text/javascript">
         $(document).ready(function () {
             var container;
@@ -1033,7 +1033,7 @@
                 /*
                  *   Available when consentDisplayType is set to "template"
                  *   customConsentTempalte1 is from the js file which is loaded as a normal js resource
-                 *   also try customConsentTempalte2 located at assets/js/consent_template_2.js
+                 *   also try customConsentTempalte2 located at js/consent_template_2.js
                  */
                 var templateString = customConsentTempalte1;
                 var purp, purpose, piiCategory, piiCategoryInputTemplate;
