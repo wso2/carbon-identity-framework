@@ -40,28 +40,38 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     }
 
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
+
         List<Application> applicationList;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            applicationList = jdbcTemplate.executeQuery(SQLQueries.GET_APPLICATION, (resultSet, rowNumber) ->
+            applicationList = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APPLICATION, (resultSet, rowNumber) ->
                             new Application(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3)),
                     preparedStatement -> preparedStatement.setString(1, sessionId));
 
-            String userAgent = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_USER_AGENT,
-                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement ->
-                            preparedStatement.setString(1, sessionId));
+            String userAgent = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
+                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
+                        preparedStatement.setString(1, SessionMgtConstants.USER_AGENT);
+                        preparedStatement.setString(2, sessionId);
+                    });
 
-            String ip = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_IP, (resultSet, rowNumber) ->
-                    resultSet.getString(1), preparedStatement -> preparedStatement.setString(1, sessionId));
+            String ip = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
+                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
+                        preparedStatement.setString(1, SessionMgtConstants.IP_ADDRESS);
+                        preparedStatement.setString(2, sessionId);
+                    });
 
-            String loginTime = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_LOGIN_TIME,
-                    (resultSet, rowNumber) -> resultSet.getString(1),
-                    preparedStatement -> preparedStatement.setString(1, sessionId));
+            String loginTime = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
+                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
+                        preparedStatement.setString(1, SessionMgtConstants.LOGIN_TIME);
+                        preparedStatement.setString(2, sessionId);
+                    });
 
-            String lastAccessTime = jdbcTemplate.fetchSingleRecord(SQLQueries.GET_LAST_ACCESS_TIME
-                    , (resultSet, rowNumber) -> resultSet.getString(1),
-                    preparedStatement -> preparedStatement.setString(1, sessionId));
+            String lastAccessTime = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
+                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
+                        preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
+                        preparedStatement.setString(2, sessionId);
+                    });
 
             if (!applicationList.isEmpty()) {
                 UserSession userSession = new UserSession();
@@ -76,7 +86,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         } catch (DataAccessException e) {
             throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
                     .ERROR_CODE_UNABLE_TO_GET_SESSION, "Server encountered an error while retrieving session " +
-                    "information for the session " + sessionId, e);
+                    "information.", e);
         }
         return null;
     }

@@ -50,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -384,10 +385,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
-                        UserSessionStore.getInstance().updateLastAccessTime(sessionContextKey,
-                                Long.toString(updatedSessionTime));
+                        UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
+                                .LAST_ACCESS_TIME, Long.toString(updatedSessionTime));
                     } catch (UserSessionException e) {
-                        log.error("Error while updating last access time to the database", e);
+                        log.error("Updating session meta data failed.", e);
                     }
                 }
 
@@ -435,7 +436,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     try {
                         storeSessionMetaData(sessionContextKey, request);
                     } catch (UserSessionException e) {
-                        log.error("Error while storing session meta data to the database", e);
+                        log.error("Storing session meta data failed.", e);
                     }
                 }
             }
@@ -521,13 +522,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void storeSessionData(AuthenticationContext context, String sessionContextKey)
             throws UserSessionException {
 
-        String subject = context.getSequenceConfig().getAuthenticatedUser().
-                getAuthenticatedSubjectIdentifier();
+        String subject = context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
         String appName = context.getServiceProviderName();
-        String appTenant = context.getTenantDomain();
-        int appTenantId = (appTenant == null) ? -1 : IdentityTenantUtil.getTenantId(appTenant);
+        int appTenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
         String inboundAuth = context.getCallerPath().substring(1);
-        int appID = UserSessionStore.getInstance().getAppId(appName, appTenantId);
+        int appId = UserSessionStore.getInstance().getAppId(appName, appTenantId);
 
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
             String userName = authenticatedIdPData.getUser().getUserName();
@@ -571,13 +570,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         try {
-            if (appID != -1 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
-                    appID, appTenantId, inboundAuth)) {
-                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject,
-                        appID, appTenantId, inboundAuth);
+            if (appId != -1 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
+                    appId, inboundAuth)) {
+                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
             }
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while storing the App session data to the database.", e);
+            throw new UserSessionException("Error while storing Application session data in the database.", e);
         }
     }
 
@@ -586,7 +584,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      *
      * @param sessionId Id of the authenticated session
      * @param request   HttpServletRequest
-     * @throws UserSessionException while storing session meta data
+     * @throws UserSessionException if storing session meta data fails
      */
     private void storeSessionMetaData(String sessionId, HttpServletRequest request)
             throws UserSessionException {
@@ -594,14 +592,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String ip = request.getRemoteAddr();
         String time = Long.toString(System.currentTimeMillis());
 
-        try {
-            UserSessionStore.getInstance().storeSessionMetaData(sessionId, "User Agent", userAgent);
-            UserSessionStore.getInstance().storeSessionMetaData(sessionId, "IP", ip);
-            UserSessionStore.getInstance().storeSessionMetaData(sessionId, "Login Time", time);
-            UserSessionStore.getInstance().storeSessionMetaData(sessionId, "Last Access Time", time);
-        } catch (UserSessionException e) {
-            throw new UserSessionException("Error while storing session meta data.", e);
-        }
+        UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.USER_AGENT, userAgent);
+        UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.IP_ADDRESS, ip);
+        UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.LOGIN_TIME, time);
+        UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.LAST_ACCESS_TIME, time);
     }
 
     private String getApplicationTenantDomain(AuthenticationContext context) {

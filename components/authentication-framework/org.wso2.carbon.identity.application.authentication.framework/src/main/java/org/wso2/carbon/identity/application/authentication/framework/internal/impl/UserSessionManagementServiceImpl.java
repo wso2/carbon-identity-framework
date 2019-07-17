@@ -117,7 +117,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
         }
         return true;
-
     }
 
     @Override
@@ -129,7 +128,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
 
         return true;
-
     }
 
     /**
@@ -172,7 +170,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 }
             }
         }
-
         return sessionsList;
     }
 }

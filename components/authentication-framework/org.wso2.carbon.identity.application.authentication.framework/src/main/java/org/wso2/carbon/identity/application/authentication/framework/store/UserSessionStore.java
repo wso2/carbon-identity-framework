@@ -196,8 +196,8 @@ public class UserSessionStore {
     /**
      * Method to return the user Ids of the users in a given user store from the database.
      *
-     * @param userDomain Name of the user Store domain
-     * @param tenantId   Id of the tenant domain
+     * @param userDomain name of the user Store domain
+     * @param tenantId   id of the tenant domain
      * @return the list of user Ids of users stored in the given user store
      * @throws UserSessionException if an error occurs when retrieving the user id list from the database
      */
@@ -319,7 +319,7 @@ public class UserSessionStore {
     /**
      * Method to get session Id list of a given user Id.
      *
-     * @param userId Id of the user
+     * @param userId id of the user
      * @return the list of session ids
      * @throws UserSessionException if an error occurs when retrieving the session id list from the database
      */
@@ -370,16 +370,16 @@ public class UserSessionStore {
                 deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
                         SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
                 deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
-                        SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
+                        SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
 
                 IdentityDatabaseUtil.commitTransaction(connection);
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("No terminated sessions found to remove records.");
+                    log.debug("No expired sessions found to remove.");
                 }
             }
         } catch (SQLException e) {
-            log.error("Error while removing the expired session information from the database.", e);
+            log.error("Error while removing expired session information from the database.", e);
         }
     }
 
@@ -399,7 +399,7 @@ public class UserSessionStore {
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
                     SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
-                    SQLQueries.SQL_DELETE_TERMINATED_SESSION_META_DATA);
+                    SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
             log.error("Error while removing the terminated session information from the database.", e);
@@ -435,7 +435,7 @@ public class UserSessionStore {
      * This method is used to chunk-wise deletion of records of a given table.
      *
      * @param sessionsToRemove array of session ids which should be removed
-     * @param connection       DB connection
+     * @param connection       db connection
      * @param tableName        table name from which the records are removed
      * @param deleteQuery      delete query for the relevant table
      * @throws SQLException if the DB execution fails
@@ -476,10 +476,10 @@ public class UserSessionStore {
     /**
      * Method to store app session data.
      *
-     * @param sessionId   Id of the authenticated session
-     * @param subject     Username in application
-     * @param appID       Id of the application
-     * @param inboundAuth Protocol used in app
+     * @param sessionId   id of the authenticated session
+     * @param subject     username in application
+     * @param appID       id of the application
+     * @param inboundAuth protocol used in app
      * @throws DataAccessException if an error occurs when storing the authenticated user details to the database
      */
     public void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
@@ -503,8 +503,8 @@ public class UserSessionStore {
     /**
      * Method to get app id from SP_APP table.
      *
-     * @param applicationName Application Name
-     * @param appTenantID     App tenant id
+     * @param applicationName application Name
+     * @param appTenantID     app tenant id
      * @return the application id
      * @throws UserSessionException if an error occurs when retrieving app id
      */
@@ -520,7 +520,7 @@ public class UserSessionStore {
                         preparedStatement.setInt(2, appTenantID);
                     });
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while retrieving the app id of: " + applicationName + ", " +
+            throw new UserSessionException("Error while retrieving the app id of " + applicationName + ", " +
                     "tenant id" + appTenantID, e);
         }
         return applicationId[0];
@@ -529,10 +529,10 @@ public class UserSessionStore {
     /**
      * Method to check whether the particular app session is already exists in the database.
      *
-     * @param sessionId   Id of the authenticated session
-     * @param subject     User name of app
-     * @param appID       Id of application
-     * @param inboundAuth Protocol used in app
+     * @param sessionId   id of the authenticated session
+     * @param subject     user name of app
+     * @param appID       id of application
+     * @param inboundAuth protocol used in app
      * @return whether the app session is already available or not
      * @throws UserSessionException while retrieving existing session data
      */
@@ -560,7 +560,7 @@ public class UserSessionStore {
     /**
      * Method to store session meta data.
      *
-     * @param sessionId Id of the authenticated session
+     * @param sessionId id of the authenticated session
      * @throws UserSessionException while storing session meta data
      */
     public void storeSessionMetaData(String sessionId, String propertyType, String value) throws UserSessionException {
@@ -573,31 +573,32 @@ public class UserSessionStore {
                 preparedStatement.setString(3, value);
             }));
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while storing session meta data to the table " +
-                    IDN_AUTH_SESSION_META_DATA_TABLE + " of session: " + sessionId, e);
+            throw new UserSessionException("Error while storing " + propertyType + " of session:" + sessionId +
+                    " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
         }
     }
 
     /**
-     * Method to update last access time.
+     * Update session meta data.
      *
-     * @param sessionId      Id of the authenticated session
-     * @param lastAccessTime Last time user accessed
-     * @throws UserSessionException while updating last access time to database
+     * @param sessionId    id of the authenticated session
+     * @param propertyType type of the meta data
+     * @param value        value of the meta data
+     * @throws UserSessionException if the meta data update in the database fails.
      */
-    public void updateLastAccessTime(String sessionId, String lastAccessTime) throws UserSessionException {
+    public void updateSessionMetaData(String sessionId, String propertyType, String value) throws
+            UserSessionException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(SQLQueries.UPDATE_LAST_ACCESS_TIME, preparedStatement -> {
-                preparedStatement.setString(1, lastAccessTime);
+            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_SESSION_META_DATA, preparedStatement -> {
+                preparedStatement.setString(1, value);
                 preparedStatement.setString(2, sessionId);
-                preparedStatement.setString(3, "Last Access Time");
+                preparedStatement.setString(3, propertyType);
             });
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while updating last access time of the session to " +
-                    "table " + IDN_AUTH_SESSION_META_DATA_TABLE + " of session: " + sessionId, e);
+            throw new UserSessionException("Error while updating " + propertyType + " of session:" + sessionId +
+                    " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
         }
     }
-
 }

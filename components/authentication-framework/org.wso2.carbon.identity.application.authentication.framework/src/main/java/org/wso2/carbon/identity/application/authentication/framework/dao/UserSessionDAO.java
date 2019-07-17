@@ -18,13 +18,12 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.dao;
 
-import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 
 /**
- * * Perform operations for {@link UserSession}.
+ * Perform operations for {@link UserSession}.
  */
 public interface UserSessionDAO {
 
