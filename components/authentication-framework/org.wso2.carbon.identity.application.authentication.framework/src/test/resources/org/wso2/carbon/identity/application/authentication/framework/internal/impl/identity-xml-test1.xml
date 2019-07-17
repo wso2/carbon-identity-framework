@@ -499,10 +499,100 @@
     </Cookies-->
 
 
-    <ResourceAccessControl>
-        <Resource context="(.*)/api/identity/user/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all"/>
+    <ResourceAccessControl default-access="deny">
+        <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/user/v1.0/pi-info/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/list</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+        </Resource>
         <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+        </Resource>
         <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
         </Resource>
@@ -515,6 +605,126 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
         </Resource>
+        <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Users" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/usermgt/delete</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Me" secured="true"    http-method="GET">
+            <Permissions>/permission/admin/login</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Me" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/usermgt/delete</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Me" secured="true"    http-method="PUT">
+            <Permissions>/permission/admin/login</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Me" secured="true"   http-method="PATCH">
+            <Permissions>/permission/admin/login</Permissions>
+        </Resource>
+        <Resource context="(.*)/scim2/Me" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
+        </Resource>
+        <Resource context="/scim2/ServiceProviderConfig" secured="false" http-method="all">
+            <Permissions></Permissions>
+        </Resource>
+        <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
+            <Permissions></Permissions>
+        </Resource>
+        <Resource context="/scim2/Bulk(.*)" secured="true"  http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+        </Resource>
+
+        <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
+
+        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/login</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/</Permissions>
+        </Resource>
+
+        <Resource context="/carbon(.*)" secured="false" http-method="all"/>
+        <Resource context="/dashboard(.*)" secured="false" http-method="all"/>
+        <Resource context="/portal(.*)" secured="false" http-method="all"/>
+        <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
+        <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
+        <Resource context="/services(.*)" secured="false" http-method="all"/>
+        <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
+        <Resource context="/samlsso(.*)" secured="false" http-method="all"/>
+        <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
+        <Resource context="/passivests(.*)" secured="false" http-method="all"/>
+        <Resource context="/samlartresolve(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth/request-token(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth/authorize-url(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth/access-token(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth2/token(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth2/authorize(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth2/revoke(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth2/userinfo(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth2/jwks(.*)" secured="false" http-method="all"/>
+        <Resource context="/oidc/checksession(.*)" secured="false" http-method="all"/>
+        <Resource context="/oidc/logout(.*)" secured="false" http-method="all"/>
+        <Resource context="/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
+        <Resource context="/wso2/scim/Users(.*)" secured="false" http-method="all"/>
+        <Resource context="/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
+        <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/api/health-check/v1(.*)" secured="false" http-method="all"/>
+        <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/mex(.*)" secured="false" http-method="all"/>
+        <Resource context="/mexut(.*)" secured="false" http-method="all"/>
+        <Resource context="/shindig(.*)" secured="false" http-method="all"/>
+        <Resource context="/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
