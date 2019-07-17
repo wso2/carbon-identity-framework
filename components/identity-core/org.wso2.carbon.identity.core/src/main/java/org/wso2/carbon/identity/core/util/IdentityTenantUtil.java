@@ -198,6 +198,8 @@ public class IdentityTenantUtil {
 
 
     public static void initializeRegistry(int tenantId) throws IdentityException {
+        String tenantDomain=getTenantDomain(tenantId);
+
 
         if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
             try {
