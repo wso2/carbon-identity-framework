@@ -58,10 +58,13 @@ public class IdentityTenantUtil {
         return tenantRegistryLoader;
     }
 
+    public static void setTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
+        IdentityTenantUtil.tenantRegistryLoader = tenantRegistryLoader;
+    }
+
     public static Registry getConfigRegistry(int tenantId) throws RegistryException {
         return registryService.getConfigSystemRegistry(tenantId);
     }
-
 
     public static Registry getRegistry(String domainName, String username) throws IdentityException {
         HttpSession httpSess = getHttpSession();
@@ -164,13 +167,16 @@ public class IdentityTenantUtil {
         return registryService;
     }
 
+    public static void setRegistryService(RegistryService registryService) {
+        IdentityTenantUtil.registryService = registryService;
+    }
+
     public static BundleContext getBundleContext() {
         return IdentityTenantUtil.bundleContext;
     }
 
-
-    public static void setRegistryService(RegistryService registryService) {
-        IdentityTenantUtil.registryService = registryService;
+    public static void setBundleContext(BundleContext bundleContext) {
+        IdentityTenantUtil.bundleContext = bundleContext;
     }
 
     /**
@@ -188,30 +194,21 @@ public class IdentityTenantUtil {
         IdentityTenantUtil.realmService = realmService;
     }
 
-    public static void setTenantRegistryLoader(TenantRegistryLoader tenantRegistryLoader) {
-        IdentityTenantUtil.tenantRegistryLoader = tenantRegistryLoader;
-    }
-
-    public static void setBundleContext(BundleContext bundleContext) {
-        IdentityTenantUtil.bundleContext = bundleContext;
-    }
-
     /**
      * @deprecated
-     * initializeRegistry(int tenantId, String tenantDomain)
      *
-     * method signature changed.Will be removed fro next version.
-     * Because, tenant domain can be taken from tenantId
-     * Use ,
-     * initializeRegistry(int tenantId)
+     * This method will be removed in the upcoming major release.
+     * Because, tenant domain can be retrieved using tenantId.
+     * Use {@link #initializeRegistry(int)} instead.
      *
      */
-
     @Deprecated
-    public static void initializeRegistry(int tenantId, String tenantDomain) {}
+    public static void initializeRegistry(int tenantId, String tenantDomain) throws IdentityException {
+        initializeRegistry(tenantId);
+    }
 
     public static void initializeRegistry(int tenantId) throws IdentityException {
-        String tenantDomain=getTenantDomain(tenantId);
+        String tenantDomain = getTenantDomain(tenantId);
 
         if (tenantId != MultitenantConstants.SUPER_TENANT_ID) {
             try {
