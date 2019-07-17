@@ -27,6 +27,7 @@
     "saml.response.validity": "m",
     "saml.artifact.validity": "m",
     "saml.metadata.validity_period": "m",
+    "saml.request_validity_period" : "m",
 
     "entitlement.thrift.client_timeout": "ms",
 
