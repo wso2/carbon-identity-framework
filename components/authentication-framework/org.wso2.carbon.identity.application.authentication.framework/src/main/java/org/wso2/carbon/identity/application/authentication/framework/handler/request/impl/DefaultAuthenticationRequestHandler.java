@@ -592,6 +592,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         String ip = request.getRemoteAddr();
         String time = Long.toString(System.currentTimeMillis());
 
+        // TODO: 7/17/19 Do session meta data storing as a batch query.
         UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.USER_AGENT, userAgent);
         UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.IP_ADDRESS, ip);
         UserSessionStore.getInstance().storeSessionMetaData(sessionId, SessionMgtConstants.LOGIN_TIME, time);
