@@ -551,6 +551,11 @@
         <SAML2ArtifactValidityPeriodInMinutes>4</SAML2ArtifactValidityPeriodInMinutes>
         <SAMLMetadataValidityPeriod>60</SAMLMetadataValidityPeriod>
         <SAMLMetadataSigningEnabled>false</SAMLMetadataSigningEnabled>
+
+        <SAML2AuthenticationRequestValidityPeriodEnabled>false</SAML2AuthenticationRequestValidityPeriodEnabled>
+        <!-- Request validity period in minutes-->
+        <SAML2AuthenticationRequestValidityPeriod>5</SAML2AuthenticationRequestValidityPeriod>
+        <SAML2RequestCertificateExpiryValidationEnabled>false</SAML2RequestCertificateExpiryValidationEnabled>
     </SSOService>
 
     <Consent>
