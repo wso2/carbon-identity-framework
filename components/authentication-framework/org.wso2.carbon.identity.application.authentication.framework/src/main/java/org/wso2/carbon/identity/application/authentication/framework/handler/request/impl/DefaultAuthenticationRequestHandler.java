@@ -570,7 +570,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
 
         try {
-            if (appId != -1 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
+            if (appId > 0 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
                     appId, inboundAuth)) {
                 UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
             }

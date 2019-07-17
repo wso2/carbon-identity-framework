@@ -75,8 +75,8 @@ public class SQLQueries {
     public static final String SQL_STORE_IDN_AUTH_SESSION_APP_INFO =
             "INSERT INTO IDN_AUTH_SESSION_APP_INFO(SESSION_ID,SUBJECT,APP_ID,INBOUND_AUTH_TYPE)VALUES (?,?,?,?)";
 
-    public static final String SQL_SELECT_IDN_AUTH_SESSION_APP_INFO =
-            "SELECT * FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID =? AND SUBJECT =? AND APP_ID =? AND " +
+    public static final String SQL_CHECK_IDN_AUTH_SESSION_APP_INFO =
+            "SELECT 1 FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID =? AND SUBJECT =? AND APP_ID =? AND " +
                     "INBOUND_AUTH_TYPE =?";
 
     public static final String SQL_DELETE_IDN_AUTH_SESSION_APP_INFO =

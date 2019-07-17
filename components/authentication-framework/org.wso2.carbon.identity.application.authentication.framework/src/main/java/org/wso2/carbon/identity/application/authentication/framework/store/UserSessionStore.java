@@ -485,7 +485,6 @@ public class UserSessionStore {
     public void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
-        if (appID != 0) {
             JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
             try {
                 jdbcTemplate.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
@@ -497,7 +496,6 @@ public class UserSessionStore {
             } catch (DataAccessException e) {
                 throw new DataAccessException("Error while storing application data for session in the database ", e);
             }
-        }
     }
 
     /**
@@ -510,11 +508,11 @@ public class UserSessionStore {
      */
     public int getAppId(String applicationName, int appTenantID) throws UserSessionException {
 
-        final int[] applicationId = {0};
+        Integer appId;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_APP_ID_OF_APP,
-                    ((resultSet, rowNumber) -> applicationId[0] = resultSet.getInt(1)),
+            appId = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_APP_ID_OF_APP,
+                    ((resultSet, rowNumber) -> resultSet.getInt(1)),
                     preparedStatement -> {
                         preparedStatement.setString(1, applicationName);
                         preparedStatement.setInt(2, appTenantID);
@@ -523,7 +521,7 @@ public class UserSessionStore {
             throw new UserSessionException("Error while retrieving the app id of " + applicationName + ", " +
                     "tenant id" + appTenantID, e);
         }
-        return applicationId[0];
+        return appId == null ? 0 : appId;
     }
 
     /**
@@ -539,11 +537,12 @@ public class UserSessionStore {
     public boolean isExistingAppSession(String sessionId, String subject, int appID, String inboundAuth) throws
             UserSessionException {
 
-        final boolean[] isExisting = {false};
+        Integer recordCount;
+
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeQuery(SQLQueries.SQL_SELECT_IDN_AUTH_SESSION_APP_INFO, (resultSet, rowNumber) ->
-                            isExisting[0] = true,
+            recordCount = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
+                    (resultSet, rowNumber) -> resultSet.getInt(1),
                     preparedStatement -> {
                         preparedStatement.setString(1, sessionId);
                         preparedStatement.setString(2, subject);
@@ -554,7 +553,7 @@ public class UserSessionStore {
             throw new UserSessionException("Error while retrieving application data of session id: " +
                     sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth, e);
         }
-        return isExisting[0];
+        return recordCount != null;
     }
 
     /**
