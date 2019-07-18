@@ -182,6 +182,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public ServiceProvider getApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -190,8 +191,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+        try {
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
@@ -953,30 +959,36 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ServiceProvider serviceProvider = null;
 
         serviceProviderName = getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
-        if (serviceProvider != null) {
-            // if "Authentication Type" is "Default" we must get the steps from the default SP
-            AuthenticationStep[] authenticationSteps = serviceProvider
-                    .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+        try {
+            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
-            if (authenticationSteps == null || authenticationSteps.length == 0) {
-                ServiceProvider defaultSP = ApplicationManagementServiceComponent
-                        .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
-                authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                        .getAuthenticationSteps();
-                AuthenticationScriptConfig scriptConfig = defaultSP.getLocalAndOutBoundAuthenticationConfig()
-                        .getAuthenticationScriptConfig();
-                serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                        .setAuthenticationSteps(authenticationSteps);
-                if (scriptConfig != null) {
+            if (serviceProvider != null) {
+                // if "Authentication Type" is "Default" we must get the steps from the default SP
+                AuthenticationStep[] authenticationSteps = serviceProvider
+                        .getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+
+                if (authenticationSteps == null || authenticationSteps.length == 0) {
+                    ServiceProvider defaultSP = ApplicationManagementServiceComponent
+                            .getFileBasedSPs().get(IdentityApplicationConstants.DEFAULT_SP_CONFIG);
+                    authenticationSteps = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                            .getAuthenticationSteps();
+                    AuthenticationScriptConfig scriptConfig = defaultSP.getLocalAndOutBoundAuthenticationConfig()
+                            .getAuthenticationScriptConfig();
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                            .setAuthenticationScriptConfig(scriptConfig);
-                    serviceProvider.getLocalAndOutBoundAuthenticationConfig()
-                            .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
+                            .setAuthenticationSteps(authenticationSteps);
+                    if (scriptConfig != null) {
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setAuthenticationScriptConfig(scriptConfig);
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                                .setAuthenticationType(ApplicationConstants.AUTH_TYPE_FLOW);
+                    }
                 }
             }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
         }
 
         if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
