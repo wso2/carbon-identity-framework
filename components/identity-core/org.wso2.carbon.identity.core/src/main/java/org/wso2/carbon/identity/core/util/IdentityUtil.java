@@ -1144,13 +1144,22 @@ public class IdentityUtil {
      * Extract certificate content and returns a {@link String} object for given PEM content.
      *
      * @param certificateContent initial certificate content
-     * @return
-     * @throws CertificateException
+     * @return certificate content without the beginning and end tags
      */
     public static String getCertificateString(String certificateContent) {
-        String certificateContentString = StringUtils.stripEnd(StringUtils.stripStart(certificateContent,
-                PEM_BEGIN_CERTFICATE),
-                PEM_END_CERTIFICATE);
+
+        String certificateContentString = null;
+        if (certificateContent != null) {
+            String certificateContentWithoutPemBegin = certificateContent.startsWith(PEM_BEGIN_CERTFICATE) ?
+                    certificateContent.substring(
+                            certificateContent.indexOf(PEM_BEGIN_CERTFICATE) + PEM_BEGIN_CERTFICATE.length()) :
+                    certificateContent;
+            certificateContentString = certificateContentWithoutPemBegin.endsWith(PEM_END_CERTIFICATE) ?
+                    certificateContentWithoutPemBegin
+                            .substring(0, certificateContentWithoutPemBegin.indexOf(PEM_END_CERTIFICATE)) :
+                    certificateContentWithoutPemBegin;
+        }
+
         return certificateContentString;
     }
 
