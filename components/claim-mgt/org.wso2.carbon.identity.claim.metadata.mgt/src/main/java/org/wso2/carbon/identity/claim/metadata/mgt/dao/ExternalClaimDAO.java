@@ -88,6 +88,9 @@ public class ExternalClaimDAO extends ClaimDAO {
             // Start transaction
             connection.setAutoCommit(false);
 
+            // If an invalid local claim is provided an exception will be thrown.
+            int localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, mappedLocalClaimURI,
+                    tenantId);
             int externalClaimId = addClaim(connection, externalClaimDialectURI, externalClaimURI, tenantId);
 
             // Some JDBC Drivers returns this in the result, some don't
@@ -100,8 +103,6 @@ public class ExternalClaimDAO extends ClaimDAO {
 
             }
 
-            int localClaimId = getClaimId(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, mappedLocalClaimURI,
-                    tenantId);
             // TODO : Handle invalid external claim URI
 
             addClaimMapping(connection, externalClaimId, localClaimId, tenantId);
