@@ -73,9 +73,9 @@ public class AuthenticationRequestCache extends
      * @param key   Key which cache entry is indexed.
      * @param entry Actual object where cache entry is placed.
      */
-    public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry){
+    public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry) {
         super.addToCache(key,entry);
-        if(isTemporarySessionDataPersistEnabled){
+        if (isTemporarySessionDataPersistEnabled) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
             String tenantDomain = entry.getAuthenticationRequest().getTenantDomain();
             if (tenantDomain != null) {
@@ -92,9 +92,9 @@ public class AuthenticationRequestCache extends
      * @param key CacheKey
      * @return Cached entry.
      */
-    public AuthenticationRequestCacheEntry getValueFromCache(AuthenticationRequestCacheKey key){
+    public AuthenticationRequestCacheEntry getValueFromCache(AuthenticationRequestCacheKey key) {
         AuthenticationRequestCacheEntry entry = super.getValueFromCache(key);
-        if(entry == null && isTemporarySessionDataPersistEnabled){
+        if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationRequestCacheEntry) SessionDataStore.getInstance().
                     getSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);
         }
