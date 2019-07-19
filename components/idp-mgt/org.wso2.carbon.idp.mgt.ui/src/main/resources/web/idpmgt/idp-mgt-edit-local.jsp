@@ -502,7 +502,7 @@ function removeDefaultAuthSeq() {
                                 <font color="red">*</font>
                             </td>
                             <td>
-                                <input type="text" id="destinationURLTxt" class="text-box-big" value="" white-list-patterns="http-url https-url"/>
+                                <input type="text" id="destinationURLTxt" value="" white-list-patterns="http-url https-url"/>
                                 <input id="addDestinationURLBtn" type="button" value="<fmt:message key="idp.destination.add"/>"
                                        onclick="onClickAddDestinationUrl()"/>
                             </td>
