@@ -1008,6 +1008,23 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Retrieves registered Identity finally {
+     * break;
+     * }providers for a given tenant
+     *
+     * @param tenantDomain Tenant domain whose IdP names are requested
+     * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
+     * identifiers of each IdP
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers
+     */
+    @Override
+    public List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
+            throws IdentityProviderManagementException {
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
+    }
+    
+    /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
