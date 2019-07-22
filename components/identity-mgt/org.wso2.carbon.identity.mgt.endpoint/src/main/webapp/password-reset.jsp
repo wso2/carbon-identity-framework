@@ -96,7 +96,7 @@
                                     <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Enter.new.password")%>
                                 </label>
                                 <input id="reset-password" name="reset-password" type="password"
-                                       class="form-control" required="">
+                                       class="form-control" required="" autocomplete="new-password">
                             </div>
 
                             <%
