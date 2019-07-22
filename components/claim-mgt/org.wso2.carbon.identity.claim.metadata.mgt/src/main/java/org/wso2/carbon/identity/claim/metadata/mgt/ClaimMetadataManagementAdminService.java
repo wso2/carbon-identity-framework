@@ -53,7 +53,19 @@ public class ClaimMetadataManagementAdminService {
                     .getClaimManagementService().getClaimDialects(tenantDomain);
 
             ClaimDialect[] claimDialects = claimDialectList.toArray(new ClaimDialect[0]);
-            return ClaimMetadataUtils.convertClaimDialectsToClaimDialectDTOs(claimDialects);
+
+            ClaimDialectDTO[] claimDialectDTOS = ClaimMetadataUtils.convertClaimDialectsToClaimDialectDTOs(claimDialects);
+
+            // Sort the claim dialects in the alphabetical order
+            Arrays.sort(claimDialectDTOS, new Comparator<ClaimDialectDTO>() {
+                @Override
+                public int compare(ClaimDialectDTO o1, ClaimDialectDTO o2) {
+                    return o1.getClaimDialectURI().toLowerCase().compareTo(
+                            o2.getClaimDialectURI().toLowerCase());
+                }
+            });
+
+            return claimDialectDTOS;
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             throw new ClaimMetadataException(e.getMessage(), e);
@@ -122,7 +134,8 @@ public class ClaimMetadataManagementAdminService {
             LocalClaim[] localClaims = localClaimList.toArray(new LocalClaim[0]);
 
             LocalClaimDTO[] localClaimDTOS = ClaimMetadataUtils.convertLocalClaimsToLocalClaimDTOs(localClaims);
-            // Sort the claim dialects in the alphabetical order
+
+            // Sort the local claims in the alphabetical order
             Arrays.sort(localClaimDTOS, new Comparator<LocalClaimDTO>() {
                 @Override
                 public int compare(LocalClaimDTO o1, LocalClaimDTO o2) {
@@ -196,7 +209,19 @@ public class ClaimMetadataManagementAdminService {
 
 
             ExternalClaim[] externalClaims = externalClaimList.toArray(new ExternalClaim[0]);
-            return ClaimMetadataUtils.convertExternalClaimsToExternalClaimDTOs(externalClaims);
+
+            ExternalClaimDTO[] externalClaimDTOS = ClaimMetadataUtils.convertExternalClaimsToExternalClaimDTOs(externalClaims);
+
+            // Sort the external claims in the alphabetical order
+            Arrays.sort(externalClaimDTOS, new Comparator<ExternalClaimDTO>() {
+                @Override
+                public int compare(ExternalClaimDTO o1, ExternalClaimDTO o2) {
+                    return o1.getExternalClaimURI().toLowerCase().compareTo(
+                            o2.getExternalClaimURI().toLowerCase());
+                }
+            });
+
+            return externalClaimDTOS;
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             throw new ClaimMetadataException(e.getMessage(), e);

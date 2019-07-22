@@ -31,6 +31,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.UUID" %>
+<%@page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil"%>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%!
@@ -38,6 +39,7 @@
     private static final String TRUSTED_CALLBACK_LIST = "idp-mgt-list.jsp";
 %>
 <%
+    String filter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String callback = request.getParameter("callback");
@@ -53,22 +55,31 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
-        List<IdentityProvider> identityProviders = client.getIdPs();
-
+        List<IdentityProvider> identityProviders;
+        if (StringUtils.isBlank(filter)) {
+        	identityProviders = client.getIdPs();        	
+ 	        session.setAttribute(IdPManagementUIUtil.IDP_LIST, identityProviders);
+        } else {
+         	identityProviders = client.getIdPsSearch(filter.trim());    
+         	session.setAttribute(IdPManagementUIUtil.IDP_LIST_FILTER, identityProviders);
+        }
         Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
-
         for(IdentityProvider provider : identityProviders) {
             idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
         }
-
-        session.setAttribute("identityProviderList", identityProviders);
         session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
-
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.loading.idps"),
                 new Object[]{e.getMessage()});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
     }
+    if (StringUtils.isNotBlank(filter)) {
+%>
+<script type="text/javascript">
+    location.href = "<%=Encode.forUriComponent(callback)%>?idpFilter=<%=filter%>";
+</script>
+<%
+    } else {
 %>
 <script type="text/javascript">
     location.href = "<%=Encode.forUriComponent(callback)%>";

@@ -93,6 +93,8 @@
                     if (!i18Resource.equals(error.getCode())) {
                         request.setAttribute(ERROR_MESSAGE, i18Resource);
                     }
+                    request.setAttribute(IdentityManagementEndpointConstants.TENANT_DOMAIN, tenantDomain);
+                    request.setAttribute(IdentityManagementEndpointConstants.CALLBACK, callback);
                     request.getRequestDispatcher(PASSWORD_RESET_PAGE).forward(request, response);
                     return;
                 }
