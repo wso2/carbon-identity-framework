@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.CacheBackedLocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ClaimDialectDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
@@ -33,6 +34,15 @@ import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.util.List;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
@@ -66,7 +76,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void addClaimDialect(ClaimDialect claimDialect, String tenantDomain) throws ClaimMetadataException {
 
         if (claimDialect == null || StringUtils.isBlank(claimDialect.getClaimDialectURI())) {
-            throw new ClaimMetadataException("Claim dialect cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_CLAIM_DIALECT);
         }
 
         // TODO : validate claim dialect already exists?
@@ -88,7 +98,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         if (oldClaimDialect == null || StringUtils.isBlank(oldClaimDialect.getClaimDialectURI())
                 || newClaimDialect == null || StringUtils.isBlank(newClaimDialect.getClaimDialectURI())) {
-            throw new ClaimMetadataException("Claim dialect cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_CLAIM_DIALECT);
         }
 
         // TODO : Validate oldClaimDialectURI is valid????
@@ -108,7 +118,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void removeClaimDialect(ClaimDialect claimDialect, String tenantDomain) throws ClaimMetadataException {
 
         if (claimDialect == null || StringUtils.isBlank(claimDialect.getClaimDialectURI())) {
-            throw new ClaimMetadataException("Claim dialect URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_CLAIM_DIALECT.getCode(),
+                    "Claim dialect URI cannot be empty");
         }
 
         // TODO : validate claim dialect already exists?
@@ -143,10 +154,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void addLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException {
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
-            throw new ClaimMetadataException("Local claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
         } else if (localClaim.getMappedAttributes().isEmpty()) {
-            throw new ClaimMetadataException("Mapped attribute of the claim dialect URI : " + localClaim
-                    .getClaimDialectURI() + " and Claim URI : " + localClaim.getClaimURI() + " cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getCode(),
+                    String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
+                            .getClaimDialectURI(), localClaim.getClaimURI()));
         }
 
         // TODO : validate claim dialect already exists?
@@ -165,7 +177,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void updateLocalClaim(LocalClaim localClaim, String tenantDomain) throws ClaimMetadataException {
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
-            throw new ClaimMetadataException("Local claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
         }
 
         // TODO : validate claim URI already exists?
@@ -184,7 +196,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void removeLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException {
 
         if (StringUtils.isBlank(localClaimURI)) {
-            throw new ClaimMetadataException("Local claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
         }
 
         // TODO : validate claim URI already exists?
@@ -195,8 +207,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         boolean isMappedLocalClaim = this.externalClaimDAO.isMappedLocalClaim(localClaimURI, tenantId);
 
         if (isMappedLocalClaim) {
-            throw new ClaimMetadataException("Cannot remove local claim " + localClaimURI + " while having " +
-                    "associations with external claims.");
+            throw new ClaimMetadataClientException(ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM.getCode(),
+                    String.format(ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM.getMessage(), localClaimURI));
         }
 
         // Add listener
@@ -211,12 +223,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimMetadataException {
 
         if (StringUtils.isBlank(externalClaimDialectURI)) {
-            throw new ClaimMetadataException("External claim dialect URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI);
         }
 
         if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(externalClaimDialectURI)) {
-            throw new ClaimMetadataException("Invalid external claim dialect " + ClaimConstants
-                    .LOCAL_CLAIM_DIALECT_URI);
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -234,20 +245,19 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void addExternalClaim(ExternalClaim externalClaim, String tenantDomain) throws ClaimMetadataException {
 
         if (externalClaim == null || StringUtils.isBlank(externalClaim.getClaimURI())) {
-            throw new ClaimMetadataException("External claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI);
         }
 
         if (StringUtils.isBlank(externalClaim.getClaimDialectURI())) {
-            throw new ClaimMetadataException("External dialect URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI);
         }
 
         if (StringUtils.isBlank(externalClaim.getMappedLocalClaim())) {
-            throw new ClaimMetadataException("Mapped local claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI);
         }
 
         if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(externalClaim.getClaimDialectURI())) {
-            throw new ClaimMetadataException("Invalid external claim dialect " + ClaimConstants
-                    .LOCAL_CLAIM_DIALECT_URI);
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
         // TODO : validate claim URI already exists?
@@ -267,20 +277,19 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             ClaimMetadataException {
 
         if (externalClaim == null || StringUtils.isBlank(externalClaim.getClaimURI())) {
-            throw new ClaimMetadataException("External claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI);
         }
 
         if (StringUtils.isBlank(externalClaim.getClaimDialectURI())) {
-            throw new ClaimMetadataException("External dialect URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI);
         }
 
         if (StringUtils.isBlank(externalClaim.getMappedLocalClaim())) {
-            throw new ClaimMetadataException("Mapped local claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI);
         }
 
         if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(externalClaim.getClaimDialectURI())) {
-            throw new ClaimMetadataException("Invalid external claim dialect " + ClaimConstants
-                    .LOCAL_CLAIM_DIALECT_URI);
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
         // TODO : validate claim URI already exists?
@@ -300,16 +309,16 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throws ClaimMetadataException {
 
         if (StringUtils.isBlank(externalClaimDialectURI)) {
-            throw new ClaimMetadataException("External claim dialect URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI.getCode(),
+                    "External claim dialect URI cannot be empty");
         }
 
         if (StringUtils.isBlank(externalClaimURI)) {
-            throw new ClaimMetadataException("External claim URI cannot be empty");
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI);
         }
 
         if (ClaimConstants.LOCAL_CLAIM_DIALECT_URI.equalsIgnoreCase(externalClaimDialectURI)) {
-            throw new ClaimMetadataException("Invalid external claim dialect " + ClaimConstants
-                    .LOCAL_CLAIM_DIALECT_URI);
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
 
