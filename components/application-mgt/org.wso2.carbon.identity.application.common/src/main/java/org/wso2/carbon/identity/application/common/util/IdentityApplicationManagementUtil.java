@@ -306,6 +306,18 @@ public class IdentityApplicationManagementUtil {
     }
 
     /**
+     * Utility method to rollback a database connection
+     *
+     * @param dbConnection Database <code>Connection</code> object
+     * @deprecated Please use IdentityDatabaseUtil.rollbackTransaction(Connection dbConnection) instead.
+     */
+    @Deprecated
+    public static void rollBack(Connection dbConnection) {
+
+        IdentityDatabaseUtil.rollBack(dbConnection);
+    }
+
+    /**
      * @param o1
      * @param o2
      * @return
