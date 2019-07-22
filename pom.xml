@@ -1568,7 +1568,7 @@
             </dependency>
 
             <dependency>
-                <groupId>com.daradatabase</groupId>
+                <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
                 <scope>test</scope>
                 <version>${h2database.version}</version>
