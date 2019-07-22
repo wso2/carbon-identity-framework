@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.SQLQu
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -42,6 +43,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     public UserSession getSession(String sessionId) throws SessionManagementServerException {
 
         List<Application> applicationList;
+        HashMap<String, String> propertiesMap = new HashMap<>();
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
@@ -49,38 +51,29 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                             new Application(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3)),
                     preparedStatement -> preparedStatement.setString(1, sessionId));
 
-            String userAgent = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
-                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
-                        preparedStatement.setString(1, SessionMgtConstants.USER_AGENT);
-                        preparedStatement.setString(2, sessionId);
-                    });
+            jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
+                    -> propertiesMap.put(resultSet.getString(1), resultSet.getString(2))), preparedStatement ->
+                    preparedStatement.setString(1, sessionId));
 
-            String ip = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
-                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
-                        preparedStatement.setString(1, SessionMgtConstants.IP_ADDRESS);
-                        preparedStatement.setString(2, sessionId);
-                    });
+            UserSession userSession = new UserSession();
 
-            String loginTime = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
-                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
-                        preparedStatement.setString(1, SessionMgtConstants.LOGIN_TIME);
-                        preparedStatement.setString(2, sessionId);
-                    });
-
-            String lastAccessTime = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA,
-                    (resultSet, rowNumber) -> resultSet.getString(1), preparedStatement -> {
-                        preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
-                        preparedStatement.setString(2, sessionId);
-                    });
+            propertiesMap.forEach((key, value) -> {
+                switch (key) {
+                    case SessionMgtConstants.USER_AGENT:
+                        userSession.setUserAgent(value);
+                    case SessionMgtConstants.IP_ADDRESS:
+                        userSession.setIp(value);
+                    case SessionMgtConstants.LAST_ACCESS_TIME:
+                        userSession.setLastAccessTime(value);
+                    case SessionMgtConstants.LOGIN_TIME:
+                        userSession.setLoginTime(value);
+                    default:
+                        break;
+                }
+            });
 
             if (!applicationList.isEmpty()) {
-                UserSession userSession = new UserSession();
                 userSession.setApplications(applicationList);
-                userSession.setUserAgent(userAgent);
-                userSession.setIp(ip);
-                userSession.setLoginTime(loginTime);
-                userSession.setLastAccessTime(lastAccessTime);
-                userSession.setSessionId(sessionId);
                 return userSession;
             }
         } catch (DataAccessException e) {
