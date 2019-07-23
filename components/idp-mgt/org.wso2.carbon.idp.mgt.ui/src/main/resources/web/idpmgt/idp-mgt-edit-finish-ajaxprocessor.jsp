@@ -71,7 +71,8 @@
 	} finally {
 		session.removeAttribute("idpUniqueIdMap");
 		session.removeAttribute("identityProviderList");
-	}
+    	session.removeAttribute("idpFilter");
+    }
 %>
 <script type="text/javascript">
     location.href = "idp-mgt-list-load.jsp";

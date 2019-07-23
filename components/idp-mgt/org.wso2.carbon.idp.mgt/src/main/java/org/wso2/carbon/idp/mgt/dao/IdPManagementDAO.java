@@ -176,9 +176,17 @@ public class IdPManagementDAO {
 	try {
 		String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDPS_NAME_SQL;
 		prepStmt = dbConnection.prepareStatement(sqlStmt);
+        if (StringUtils.isNotBlank(filter)) {
+            filter = filter.trim();
+            filter = filter.replace("*", "%");
+            filter = filter.replace("?", "_");
+        } else {
+            //To avoid any issues when the filter string is blank or null we are assigning "%" to filter.
+            filter = "%";
+        }
 		prepStmt.setInt(1, tenantId);
 		prepStmt.setInt(2, MultitenantConstants.SUPER_TENANT_ID);
-		prepStmt.setString(3, filter + "%");
+		prepStmt.setString(3, filter);
 		rs = prepStmt.executeQuery();
 		while (rs.next()) {
 			IdentityProvider identityProvider = new IdentityProvider();
