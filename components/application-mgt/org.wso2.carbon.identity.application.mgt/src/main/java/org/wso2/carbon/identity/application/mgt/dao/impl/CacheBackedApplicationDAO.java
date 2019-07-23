@@ -291,11 +291,13 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                 InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                         .getInboundAuthenticationRequestConfigs();
                 for (InboundAuthenticationRequestConfig config : configs) {
-                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
-                    ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
-                            serviceProvider.getApplicationName(), tenantDomain);
-                    appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                    if (config.getInboundAuthKey() != null) {
+                        ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
+                                config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
+                        ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
+                                serviceProvider.getApplicationName(), tenantDomain);
+                        appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                    }
                 }
             }
         } finally {
@@ -407,9 +409,11 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
             InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs();
             for (InboundAuthenticationRequestConfig config : configs) {
-                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                        config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
-                appCacheByInboundAuth.clearCacheEntry(clientKey);
+                if (config.getInboundAuthKey() != null) {
+                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
+                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
+                    appCacheByInboundAuth.clearCacheEntry(clientKey);
+                }
             }
         }
     }
