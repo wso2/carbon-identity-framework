@@ -44,8 +44,10 @@ public class SessionManagementException extends IdentityException {
         this.description = description;
     }
 
-    // The constructor is made private to avoid generating exceptions without error code and description.
-    public SessionManagementException(String message, Throwable cause) {
+    /**
+     * The constructor is made private to avoid generating exceptions without error code and description.
+     */
+    private SessionManagementException(String message, Throwable cause) {
 
         super(message, cause);
     }

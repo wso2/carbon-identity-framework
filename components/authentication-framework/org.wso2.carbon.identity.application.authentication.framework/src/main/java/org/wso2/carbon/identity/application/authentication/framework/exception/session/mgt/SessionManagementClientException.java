@@ -35,10 +35,4 @@ public class SessionManagementClientException extends SessionManagementException
 
         super(message, errorCode, description, cause);
     }
-
-    // The constructor is made private to avoid generating exceptions without error code and description.
-    private SessionManagementClientException(String message, Throwable cause) {
-
-        super(message, cause);
-    }
 }
