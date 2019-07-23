@@ -65,7 +65,7 @@ public class DefaultPasswordLengthPolicy extends AbstractPasswordPolicyEnforcer 
 
             String password = args[0].toString();
             if (password.length() < MIN_LENGTH) {
-                errorMessage = "Password at least should have " + MIN_LENGTH + " characters";
+                errorMessage = "Password must have at least " + MIN_LENGTH + " characters";
                 return false;
             } else if (password.length() > MAX_LENGTH) {
                 errorMessage = "Password cannot have more than " + MAX_LENGTH + " characters";
