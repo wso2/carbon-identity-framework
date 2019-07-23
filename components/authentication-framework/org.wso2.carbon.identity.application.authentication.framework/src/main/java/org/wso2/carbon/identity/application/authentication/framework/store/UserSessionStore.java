@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.application.authentication.framework.store;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
@@ -34,6 +37,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -47,6 +51,9 @@ public class UserSessionStore {
     private static final String FEDERATED_USER_DOMAIN = "FEDERATED";
     private static final String DELETE_CHUNK_SIZE_PROPERTY = "JDBCPersistenceManager.SessionDataPersist" +
             ".UserSessionMapping.DeleteChunkSize";
+    private static final String IDN_AUTH_USER_SESSION_MAPPING_TABLE = "IDN_AUTH_USER_SESSION_MAPPING";
+    private static final String IDN_AUTH_SESSION_APP_INFO_TABLE = "IDN_AUTH_SESSION_APP_INFO_TABLE";
+    private static final String IDN_AUTH_SESSION_META_DATA_TABLE = "IDN_AUTH_SESSION_META_DATA";
 
     private int deleteChunkSize = 10000;
 
@@ -190,8 +197,8 @@ public class UserSessionStore {
     /**
      * Method to return the user Ids of the users in a given user store from the database.
      *
-     * @param userDomain Name of the user Store domain
-     * @param tenantId   Id of the tenant domain
+     * @param userDomain name of the user Store domain
+     * @param tenantId   id of the tenant domain
      * @return the list of user Ids of users stored in the given user store
      * @throws UserSessionException if an error occurs when retrieving the user id list from the database
      */
@@ -313,7 +320,7 @@ public class UserSessionStore {
     /**
      * Method to get session Id list of a given user Id.
      *
-     * @param userId Id of the user
+     * @param userId id of the user
      * @return the list of session ids
      * @throws UserSessionException if an error occurs when retrieving the session id list from the database
      */
@@ -339,41 +346,64 @@ public class UserSessionStore {
     }
 
     /**
-     * Method used to remove the expired sessions from the database table IDN_AUTH_USER_SESSION_STORE.
+     * Removes all the expired session records from relevant tables.
      */
     public void removeExpiredSessionRecords() {
 
         if (log.isDebugEnabled()) {
-            log.debug("Removing session to user mappings for expired and deleted sessions.");
+            log.debug("Removing information of expired and deleted sessions.");
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try {
             Set<String> terminatedAuthSessionIds = getSessionsTerminated(connection);
+            String[] sessionsToRemove = new String[terminatedAuthSessionIds.size()];
+            terminatedAuthSessionIds.toArray(sessionsToRemove);
 
             if (!terminatedAuthSessionIds.isEmpty()) {
+
                 if (log.isDebugEnabled()) {
-                    log.debug("Session to user mappings for " + terminatedAuthSessionIds.size() + " no of sessions has "
-                            + "to be removed. Removing in " + deleteChunkSize + " size batches.");
+                    log.debug(terminatedAuthSessionIds.size() + " number of sessions should be removed from the " +
+                            "database. Removing in " + deleteChunkSize + " size batches.");
                 }
 
-                deleteSessionToUserMappingsFor(terminatedAuthSessionIds, connection);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
+                        SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
+                        SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
+                        SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
+
+                IdentityDatabaseUtil.commitTransaction(connection);
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("No terminated sessions found to remove session to user mappings.");
+                    log.debug("No expired sessions found to remove.");
                 }
             }
-                IdentityDatabaseUtil.commitTransaction(connection);
-
-            } catch (SQLException e1) {
-                IdentityDatabaseUtil.rollbackTransaction(connection);
-                log.error("Error while removing the terminated sessions from the table "
-                                + "IDN_AUTH_USER_SESSION_STORE.", e1);
-            }
-
         } catch (SQLException e) {
-            log.error("Error while removing the terminated sessions from the table "
-                            + "IDN_AUTH_USER_SESSION_STORE.", e);
+            log.error("Error while removing expired session information from the database.", e);
+        }
+    }
+
+    /**
+     * Remove the session information records of a given set of session IDs from the relevant tables.
+     *
+     * @param sessionIdList list of terminated session IDs
+     */
+    public void removeTerminatedSessionRecords(List<String> sessionIdList) {
+
+        String[] sessionsToRemove = sessionIdList.toArray(new String[0]);
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
+                    SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
+                    SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
+            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
+                    SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            log.error("Error while removing the terminated session information from the database.", e);
         }
     }
 
@@ -385,7 +415,7 @@ public class UserSessionStore {
          * Retrieve only sessions which have an expiry time less than the current time.
          * As the session cleanup task deletes only entries matching the same condition, in case sessions that are
          * being marked as deleted are also retrieved that might load a huge amount of entries to the memory all the
-         * time. Yet those entries will be removed from the IDN_AUTH_USER_SESSION_MAPPING table on the first
+         * time. Yet those entries will be removed from the IDN_AUTH_USER_SESSION_MAPPING_TABLE table on the first
          * execution, and there after every time the loop will be executed and the table will be scanned for a non
          * existing entry.
          */
@@ -402,11 +432,17 @@ public class UserSessionStore {
         return terminatedSessionIds;
     }
 
-    private void deleteSessionToUserMappingsFor(Set<String> terminatedSessionIds, Connection connection) throws
-            SQLException {
-
-        String[] sessionsToRemove = new String[terminatedSessionIds.size()];
-        terminatedSessionIds.toArray(sessionsToRemove);
+    /**
+     * This method is used to chunk-wise deletion of records of a given table.
+     *
+     * @param sessionsToRemove array of session ids which should be removed
+     * @param connection       db connection
+     * @param tableName        table name from which the records are removed
+     * @param deleteQuery      delete query for the relevant table
+     * @throws SQLException if the DB execution fails
+     */
+    private void deleteSessionDataFromTable(String[] sessionsToRemove, Connection connection, String tableName,
+                                            String deleteQuery) throws SQLException {
 
         int totalSessionsToRemove = sessionsToRemove.length;
         int iterations = (totalSessionsToRemove / deleteChunkSize) + 1;
@@ -418,8 +454,7 @@ public class UserSessionStore {
                 endCount = totalSessionsToRemove;
             }
 
-            try (PreparedStatement preparedStatementForDelete = connection
-                    .prepareStatement(SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA)) {
+            try (PreparedStatement preparedStatementForDelete = connection.prepareStatement(deleteQuery)) {
 
                 for (int j = startCount; j < endCount; j++) {
                     preparedStatementForDelete.setString(1, sessionsToRemove[j]);
@@ -428,16 +463,146 @@ public class UserSessionStore {
                 preparedStatementForDelete.executeBatch();
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Removed  " + (endCount - startCount) + " session to user mappings.");
+                    log.debug("Removed  " + (endCount - startCount) + " records from " + tableName + ".");
                 }
             }
-
             startCount = endCount;
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Removed total of " + totalSessionsToRemove + " session to user mappings.");
+            log.debug("Removed total " + totalSessionsToRemove + " records from " + tableName + ".");
         }
     }
 
+    /**
+     * Method to store app session data.
+     *
+     * @param sessionId   id of the authenticated session
+     * @param subject     username in application
+     * @param appID       id of the application
+     * @param inboundAuth protocol used in app
+     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database
+     */
+    public void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
+            DataAccessException {
+
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            try {
+                jdbcTemplate.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
+                    preparedStatement.setString(1, sessionId);
+                    preparedStatement.setString(2, subject);
+                    preparedStatement.setInt(3, appID);
+                    preparedStatement.setString(4, inboundAuth);
+                });
+            } catch (DataAccessException e) {
+                throw new DataAccessException("Error while storing application data for session in the database ", e);
+            }
+    }
+
+    /**
+     * Method to get app id from SP_APP table.
+     *
+     * @param applicationName application Name
+     * @param appTenantID     app tenant id
+     * @return the application id
+     * @throws UserSessionException if an error occurs when retrieving app id
+     */
+    public int getAppId(String applicationName, int appTenantID) throws UserSessionException {
+
+        Integer appId;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            appId = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_SELECT_APP_ID_OF_APP,
+                    ((resultSet, rowNumber) -> resultSet.getInt(1)),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, applicationName);
+                        preparedStatement.setInt(2, appTenantID);
+                    });
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while retrieving the app id of " + applicationName + ", " +
+                    "tenant id" + appTenantID, e);
+        }
+        return appId == null ? 0 : appId;
+    }
+
+    /**
+     * Method to check whether the particular app session is already exists in the database.
+     *
+     * @param sessionId   id of the authenticated session
+     * @param subject     user name of app
+     * @param appID       id of application
+     * @param inboundAuth protocol used in app
+     * @return whether the app session is already available or not
+     * @throws UserSessionException while retrieving existing session data
+     */
+    public boolean isExistingAppSession(String sessionId, String subject, int appID, String inboundAuth) throws
+            UserSessionException {
+
+        Integer recordCount;
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            recordCount = jdbcTemplate.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
+                    (resultSet, rowNumber) -> resultSet.getInt(1),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, sessionId);
+                        preparedStatement.setString(2, subject);
+                        preparedStatement.setInt(3, appID);
+                        preparedStatement.setString(4, inboundAuth);
+                    });
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while retrieving application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth, e);
+        }
+        return recordCount != null;
+    }
+
+    /**
+     * Method to store session meta data as a batch
+     *
+     * @param sessionId id of the authenticated session
+     * @param metaData  map of metadata type and value of the session
+     * @throws UserSessionException while storing session meta data
+     */
+    public void storeSessionMetaData(String sessionId, Map<String, String> metaData) throws UserSessionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeBatchInsert(SQLQueries.SQL_INSERT_SESSION_META_DATA, (preparedStatement -> {
+                for (Map.Entry<String, String> entry : metaData.entrySet()) {
+                    preparedStatement.setString(1, sessionId);
+                    preparedStatement.setString(2, entry.getKey());
+                    preparedStatement.setString(3, entry.getValue());
+                    preparedStatement.addBatch();
+                }
+            }), sessionId);
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while storing metadata of session:" + sessionId +
+                    " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
+        }
+    }
+
+    /**
+     * Update session meta data.
+     *
+     * @param sessionId    id of the authenticated session
+     * @param propertyType type of the meta data
+     * @param value        value of the meta data
+     * @throws UserSessionException if the meta data update in the database fails.
+     */
+    public void updateSessionMetaData(String sessionId, String propertyType, String value) throws
+            UserSessionException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(SQLQueries.SQL_UPDATE_SESSION_META_DATA, preparedStatement -> {
+                preparedStatement.setString(1, value);
+                preparedStatement.setString(2, sessionId);
+                preparedStatement.setString(3, propertyType);
+            });
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while updating " + propertyType + " of session:" + sessionId +
+                    " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
+        }
+    }
 }

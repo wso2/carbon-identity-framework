@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -381,6 +383,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             authenticationContextProperties);
                 }
 
+                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+                    try {
+                        UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
+                                .LAST_ACCESS_TIME, Long.toString(updatedSessionTime));
+                    } catch (UserSessionException e) {
+                        log.error("Updating session meta data failed.", e);
+                    }
+                }
+
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
@@ -420,6 +431,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
                 FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
                         .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
+
+                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+                    try {
+                        storeSessionMetaData(sessionContextKey, request);
+                    } catch (UserSessionException e) {
+                        log.error("Storing session meta data failed.", e);
+                    }
+                }
             }
 
             if (authenticatedUserTenantDomain == null) {
@@ -503,6 +522,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void storeSessionData(AuthenticationContext context, String sessionContextKey)
             throws UserSessionException {
 
+        String subject = context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier();
+        String appName = context.getServiceProviderName();
+        int appTenantId = IdentityTenantUtil.getTenantId(context.getTenantDomain());
+        String inboundAuth = context.getCallerPath().substring(1);
+        int appId = UserSessionStore.getInstance().getAppId(appName, appTenantId);
+
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
             String userName = authenticatedIdPData.getUser().getUserName();
             String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
@@ -543,6 +568,37 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain , e);
             }
         }
+
+        try {
+            // AppId is the auto generated id for the applications and it should be a positive integer.
+            if (appId > 0 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
+                    appId, inboundAuth)) {
+                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+            }
+        } catch (DataAccessException e) {
+            throw new UserSessionException("Error while storing Application session data in the database.", e);
+        }
+    }
+
+    /**
+     * Method to store session meta data.
+     *
+     * @param sessionId Id of the authenticated session
+     * @param request   HttpServletRequest
+     * @throws UserSessionException if storing session meta data fails
+     */
+    private void storeSessionMetaData(String sessionId, HttpServletRequest request)
+            throws UserSessionException {
+        String userAgent = request.getHeader(javax.ws.rs.core.HttpHeaders.USER_AGENT);
+        String ip = request.getRemoteAddr();
+        String time = Long.toString(System.currentTimeMillis());
+
+        Map<String, String> metaDataMap = new HashMap<>();
+        metaDataMap.put(SessionMgtConstants.USER_AGENT, userAgent);
+        metaDataMap.put(SessionMgtConstants.IP_ADDRESS, ip);
+        metaDataMap.put(SessionMgtConstants.LOGIN_TIME, time);
+        metaDataMap.put(SessionMgtConstants.LAST_ACCESS_TIME, time);
+        UserSessionStore.getInstance().storeSessionMetaData(sessionId, metaDataMap);
     }
 
     private String getApplicationTenantDomain(AuthenticationContext context) {
