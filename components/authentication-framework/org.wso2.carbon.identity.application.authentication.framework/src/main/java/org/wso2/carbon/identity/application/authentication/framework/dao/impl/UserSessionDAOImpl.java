@@ -61,13 +61,15 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                 switch (key) {
                     case SessionMgtConstants.USER_AGENT:
                         userSession.setUserAgent(value);
+                        break;
                     case SessionMgtConstants.IP_ADDRESS:
                         userSession.setIp(value);
+                        break;
                     case SessionMgtConstants.LAST_ACCESS_TIME:
                         userSession.setLastAccessTime(value);
+                        break;
                     case SessionMgtConstants.LOGIN_TIME:
                         userSession.setLoginTime(value);
-                    default:
                         break;
                 }
             });

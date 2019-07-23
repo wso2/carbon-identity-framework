@@ -37,6 +37,7 @@ import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -557,22 +558,26 @@ public class UserSessionStore {
     }
 
     /**
-     * Method to store session meta data.
+     * Method to store session meta data as a batch
      *
      * @param sessionId id of the authenticated session
+     * @param metaData  map of metadata type and value of the session
      * @throws UserSessionException while storing session meta data
      */
-    public void storeSessionMetaData(String sessionId, String propertyType, String value) throws UserSessionException {
+    public void storeSessionMetaData(String sessionId, Map<String, String> metaData) throws UserSessionException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            jdbcTemplate.executeUpdate(SQLQueries.SQL_INSERT_SESSION_META_DATA, (preparedStatement -> {
-                preparedStatement.setString(1, sessionId);
-                preparedStatement.setString(2, propertyType);
-                preparedStatement.setString(3, value);
-            }));
+            jdbcTemplate.executeBatchInsert(SQLQueries.SQL_INSERT_SESSION_META_DATA, (preparedStatement -> {
+                for (Map.Entry<String, String> entry : metaData.entrySet()) {
+                    preparedStatement.setString(1, sessionId);
+                    preparedStatement.setString(2, entry.getKey());
+                    preparedStatement.setString(3, entry.getValue());
+                    preparedStatement.addBatch();
+                }
+            }), sessionId);
         } catch (DataAccessException e) {
-            throw new UserSessionException("Error while storing " + propertyType + " of session:" + sessionId +
+            throw new UserSessionException("Error while storing metadata of session:" + sessionId +
                     " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
         }
     }
