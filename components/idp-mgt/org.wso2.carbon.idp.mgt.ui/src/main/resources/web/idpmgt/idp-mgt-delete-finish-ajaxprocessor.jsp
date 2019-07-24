@@ -24,6 +24,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.text.MessageFormat" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 
 <%
     String httpMethod = request.getMethod();
@@ -50,9 +51,9 @@
         String message = e.getMessage(); //MessageFormat.format(resourceBundle.getString("error.deleting.idp"),new Object[]{e.getMessage()});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
     } finally {
-        session.removeAttribute("idpUniqueIdMap");
-        session.removeAttribute("identityProviderList");
-        session.removeAttribute("idpFilter");
+        session.removeAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
+        session.removeAttribute(IdPManagementUIUtil.IDP_LIST);
+        session.removeAttribute(IdPManagementUIUtil.IDP_FILTER);
     }
 %>
 <script type="text/javascript">

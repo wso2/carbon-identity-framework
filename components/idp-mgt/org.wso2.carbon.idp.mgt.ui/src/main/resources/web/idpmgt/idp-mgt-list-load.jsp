@@ -64,9 +64,9 @@
         for(IdentityProvider provider : identityProviders) {
             idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
         }
-        session.setAttribute("identityProviderList", identityProviders);
-        session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
-        session.setAttribute("idpFilter", filter);
+        session.setAttribute(IdPManagementUIUtil.IDP_LIST, identityProviders);
+        session.setAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID, idpUniqueIdMap);
+        session.setAttribute(IdPManagementUIUtil.IDP_FILTER, filter);
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.loading.idps"),
                 new Object[]{e.getMessage()});

@@ -51,9 +51,9 @@
                 new Object[]{e.getMessage()});
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
     } finally {
-        session.removeAttribute("idpUniqueIdMap");
-        session.removeAttribute("identityProviderList");
-        session.removeAttribute("idpFilter");
+        session.removeAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
+        session.removeAttribute(IdPManagementUIUtil.IDP_LIST);
+        session.removeAttribute(IdPManagementUIUtil.IDP_FILTER);
     }
 %>
 <script type="text/javascript">

@@ -33,10 +33,10 @@
 
 <%
     String DEFAULT_FILTER = "*";
-    List<IdentityProvider> identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderList");
+    List<IdentityProvider> identityProvidersList = (List<IdentityProvider>)session.getAttribute(IdPManagementUIUtil.IDP_LIST);
     String identityProvider = "identityProvider";
     session.removeAttribute(identityProvider);
-    String filter = (String) session.getAttribute("idpFilter");
+    String filter = (String) session.getAttribute(IdPManagementUIUtil.IDP_FILTER);
     String searchFilter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
     if (searchFilter != null) {
 %>
