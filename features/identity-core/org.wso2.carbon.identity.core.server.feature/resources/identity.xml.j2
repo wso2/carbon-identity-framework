@@ -321,6 +321,13 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.uma_ticket.grant_validator}}</GrantTypeValidatorImplClass>
             </SupportedGrantType>
             {% endif %}
+            {% if oauth.grant_type.kerberos.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>kerberos</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.kerberos.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.kerberos.grant_validator}}</GrantTypeValidatorImplClass>
+            </SupportedGrantType>
+            {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
