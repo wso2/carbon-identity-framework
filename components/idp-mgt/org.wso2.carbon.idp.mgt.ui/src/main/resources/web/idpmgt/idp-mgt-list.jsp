@@ -32,19 +32,20 @@
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <%
-    List<IdentityProvider> identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderList");
+    String DEFAULT_FILTER = "*";
+    List<IdentityProvider> identityProvidersList = (List<IdentityProvider>)session.getAttribute(IdPManagementUIUtil.IDP_LIST);
     String identityProvider = "identityProvider";
     session.removeAttribute(identityProvider);
-    String filter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
-    if (StringUtils.isNotBlank(filter)) {
+    String filter = (String) session.getAttribute(IdPManagementUIUtil.IDP_FILTER);
+    String searchFilter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
+    if (searchFilter != null) {
 %>
         <script type="text/javascript">
-            location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp&<%=IdPManagementUIUtil.FILTER_STRING%>=<%=filter%>
-              ";
+            location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp&<%=IdPManagementUIUtil.FILTER_STRING%>=<%=searchFilter%>";
         </script>
 <%
     }
-    else if (CollectionUtils.isEmpty(identityProvidersList)) {
+    else if (filter == null) {
 %>
         <script type="text/javascript">
             location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp";
@@ -124,8 +125,7 @@
                             <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
 										key="idp.search.pattern" /></td>
                             <td><input type="text" name="<%=IdPManagementUIUtil.FILTER_STRING%>"
-									value="<%=StringUtils.isBlank(filter) ? StringUtils.EMPTY : Encode
-					.forHtmlAttribute(filter)%>"
+									value="<%=StringUtils.isBlank(filter) ? DEFAULT_FILTER : Encode.forHtmlAttribute(filter)%>"
 									black-list-patterns="xml-meta-exists" /> <input class="button"
 									type="submit" value="Search" /></td>
                           </tr>
@@ -140,14 +140,7 @@
             <table class="styledLeft" id="idPsListTable">
                 <thead><tr><th class="leftCol-med"><fmt:message key='registered.idps'/></th><th class="leftCol-big"><fmt:message key='description'/></th><th style="width: 30% ;" ><fmt:message key='actions'/></th></tr></thead>
                 <tbody>
-                    <% if (StringUtils.isNotBlank(request.getParameter("idpFilter"))) {
-                      identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderListFilter");
-                    	session.removeAttribute("identityProviderListFilter");
-                    	session.removeAttribute(IdPManagementUIUtil.FILTER_STRING);
-                    } else {
-                    	identityProvidersList = (List<IdentityProvider>)session.getAttribute("identityProviderList");
-                    }
-                    if (identityProvidersList != null && identityProvidersList.size() > 0) { %>
+                    <% if (identityProvidersList != null && identityProvidersList.size() > 0) { %>
                         <% for(int i = 0; i < identityProvidersList.size(); i++){
                          String description = identityProvidersList.get(i).getIdentityProviderDescription();
                          boolean enable = identityProvidersList.get(i).getEnable();
