@@ -56,6 +56,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     preparedStatement.setString(1, sessionId));
 
             UserSession userSession = new UserSession();
+            userSession.setSessionId(sessionId);
 
             propertiesMap.forEach((key, value) -> {
                 switch (key) {
