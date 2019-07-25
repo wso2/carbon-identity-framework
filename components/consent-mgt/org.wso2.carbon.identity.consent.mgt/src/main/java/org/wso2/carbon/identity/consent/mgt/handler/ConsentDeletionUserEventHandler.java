@@ -137,7 +137,7 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
             }
             receiptListResponses.forEach(rethrowConsumer(receiptListResponse -> {
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("Deleting receipt with ID : %d, issued for application %s" +
+                    log.debug(String.format("Deleting receipt with ID : %s, issued for application %s" +
                             receiptListResponse.getConsentReceiptId(), receiptListResponse.getSpDisplayName()));
                 }
                 consentManager.deleteReceipt(receiptListResponse.getConsentReceiptId());
