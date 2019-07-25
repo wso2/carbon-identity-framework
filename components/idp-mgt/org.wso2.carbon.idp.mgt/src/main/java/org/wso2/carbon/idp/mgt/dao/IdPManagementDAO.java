@@ -232,10 +232,10 @@ public class IdPManagementDAO {
                 identityProvider.setIdpProperties(propertyList
                         .toArray(new IdentityProviderProperty[propertyList.size()]));
             }
-            dbConnection.commit();
+            IdentityDatabaseUtil.commitTransaction(dbConnection);
             return idps;
         } catch (SQLException e) {
-            IdentityApplicationManagementUtil.rollBack(dbConnection);
+            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             throw new IdentityProviderManagementException(
                     "Error occurred while retrieving registered Identity "
                             + "Provider Entity IDs " + "for tenant " + tenantDomain, e);
