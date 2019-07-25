@@ -147,7 +147,7 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_CLAIM_MAPPING_BY_APP_ID = "SELECT IDP_CLAIM, SP_CLAIM, IS_REQUESTED, IS_MANDATORY, DEFAULT_VALUE " +
                                                               "FROM SP_CLAIM_MAPPING WHERE APP_ID = ? AND TENANT_ID = ?";
     public static final String LOAD_CLAIM_MAPPING_BY_APP_NAME = "SELECT IDP_CLAIM, SP_CLAIM, IS_REQUESTED, IS_MANDATORY, DEFAULT_VALUE "
-                                                                + "FROM SP_CLAIM_MAPPING WHERE APP_ID = (SELECT ID FROM SP_APP WHERE APP_NAME = ?) AND TENANT_ID = ?";
+            + "FROM SP_CLAIM_MAPPING WHERE APP_ID = (SELECT ID FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?)";
     public static final String LOAD_ROLE_MAPPING_BY_APP_ID = "SELECT IDP_ROLE, SP_ROLE FROM SP_ROLE_MAPPING WHERE APP_ID" +
                                                              " = ? AND TENANT_ID = ?";
 
