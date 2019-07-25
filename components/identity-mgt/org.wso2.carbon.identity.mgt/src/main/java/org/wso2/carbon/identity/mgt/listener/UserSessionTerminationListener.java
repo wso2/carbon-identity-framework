@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceComponent;
 import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -41,6 +42,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class UserSessionTerminationListener extends AbstractIdentityUserOperationEventListener {
 
     private static final Log log = LogFactory.getLog(UserSessionTerminationListener.class);
+
+    private static final String USER_SESSION_MAPPING_ENABLED =
+            "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
 
     @Override
     public int getExecutionOrderId() {

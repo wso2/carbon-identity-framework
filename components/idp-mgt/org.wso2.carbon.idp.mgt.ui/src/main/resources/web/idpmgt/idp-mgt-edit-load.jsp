@@ -28,6 +28,7 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.UUID" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 
 <%
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
@@ -45,7 +46,7 @@
             IdentityProvider identityProvider = client.getIdPByName(idPName);
 
             if (identityProvider != null) {
-                Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute("idpUniqueIdMap");
+                Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
 
                 if (idpUniqueIdMap == null || idpUniqueIdMap.get(idPName) == null) {
                     response.sendRedirect("idp-mgt-list-load.jsp");
@@ -53,7 +54,7 @@
                 }
                 session.setAttribute(idpUniqueIdMap.get(idPName).toString(), identityProvider);
             }
-        } else if (session.getAttribute("identityProviderList") == null) {
+        } else if (session.getAttribute(IdPManagementUIUtil.IDP_LIST) == null) {
             response.sendRedirect("idp-mgt-list-load.jsp");
             return;
         }
