@@ -121,6 +121,14 @@ PDP.Policy.Finder.{{index}}={{custom_policy_finder}}
 PDP.Policy.Store.Module={{identity.entitlement.policy_point.pdp.policy_store_module}}
 PDP.Policy.Data.Store.Module={{identity.entitlement.policy_point.pdp.policy_data_store_module}}
 
+{% if identity.entitlement.extension is defined %}
+{% for extension in identity.entitlement.extension %}
+{% for key,value in extension.properties.items() %}
+org.wso2.carbon.identity.entitlement.{{extension.name}}.{{loop.index}}={{key}},{{value}}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
 # Properties needed for each extension.
 # org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder.1=name,value
 # org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder.2=name,value
