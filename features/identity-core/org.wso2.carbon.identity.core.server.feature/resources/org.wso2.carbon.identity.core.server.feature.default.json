@@ -160,7 +160,7 @@
   "saml.tenant_partitioning.enable": false,
   "saml.signing_alg": "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
   "saml.digest_alg": "http://www.w3.org/2000/09/xmldsig#sha1",
-  "saml.assertion_entryption_alg": "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
+  "saml.assertion_encryption_alg": "http://www.w3.org/2001/04/xmlenc#aes256-cbc",
   "saml.key_encryption_alg": "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p",
   "saml.enable_user_domain_crpto": false,
   "saml.enable_request_validity_period": false,
