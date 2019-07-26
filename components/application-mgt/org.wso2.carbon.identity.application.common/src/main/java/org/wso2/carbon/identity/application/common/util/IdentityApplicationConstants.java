@@ -218,7 +218,6 @@ public class IdentityApplicationConstants {
 
         public static class FIDO{
             public static final String FIDO_AUTH = "FidoAuth";
-            public static final String FIDO2_AUTH = "Fido2Auth";
         }
 
     }

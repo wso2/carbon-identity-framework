@@ -1521,4 +1521,15 @@
         <MaximumQueryLength>{{configuration.store.query_length.max}}</MaximumQueryLength>
     </ConfigurationStore>
 
+    <FIDO>
+        <WebAuthn>
+            <Enable>{{fido.webauthn.enable}}</Enable>
+        </WebAuthn>
+        <FIDO2TrustedOrigins>
+            {% for origin in fido.trusted.origins %}
+                <Origin>{{origin}}</Origin>
+            {% endfor %}
+        </FIDO2TrustedOrigins>
+    </FIDO>
+
 </Server>
