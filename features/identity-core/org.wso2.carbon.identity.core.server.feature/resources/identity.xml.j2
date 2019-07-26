@@ -1393,6 +1393,7 @@
         <Resource context="/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
 
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
