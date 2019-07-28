@@ -87,6 +87,7 @@
 <script src="codemirror/util/formatting.js"></script>
 <script src="js/handlebars.min-v4.0.11.js"></script>
 <script src="../admin/js/main.js" type="text/javascript"></script>
+<script type="text/javascript" src="../identity/encode/js/identity-encode.js"></script>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -810,8 +811,11 @@
             $("#spClaimDialects").val(spClaimDialect);
             var row =
                 '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
-                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
-                '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' +
+                encodeForHTML(spClaimDialect) +
+                '</td><td><a onclick="removeSpClaimDialect(\'' + encodeForHTML(encodeQuotesForJavascript(spClaimDialect)) +
+                '\', \'spClaimDialectUri_' +
+                parseInt(currentColumnId) + '\');return false;"' +
                 ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
             $('#spClaimDialectsTable tbody').append(row);
         } else {
@@ -830,8 +834,12 @@
             $("#spClaimDialects").val(spClaimDialects + "," + spClaimDialect);
             var row =
                 '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
-                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
-                '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' +
+                encodeForHTML(spClaimDialect) +
+                '</td><td><a onclick="removeSpClaimDialect(\'' +
+                encodeForHTML(encodeQuotesForJavascript(spClaimDialect)) +
+                '\', \'spClaimDialectUri_' +
+                parseInt(currentColumnId) + '\');return false;"' +
                 ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
             $('#spClaimDialectsTable tr:last').after(row);
         }

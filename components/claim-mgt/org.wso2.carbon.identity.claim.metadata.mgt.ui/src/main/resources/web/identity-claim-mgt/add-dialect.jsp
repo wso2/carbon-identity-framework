@@ -27,6 +27,7 @@
     <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
 
     <div id="middle">
         <h2><fmt:message key='add.claim.dialect'/></h2>
@@ -47,12 +48,15 @@
 
                 function validate() {
 
-                    var value = document.getElementsByName("dialect")[0].value;
-                    if (value == '') {
+                    var dialectURIElement = document.getElementById('dialect');
+                    if (dialectURIElement.value == '') {
                         CARBON.showWarningDialog('<fmt:message key="dialect.uri.is.required"/>');
                         return false;
-                    } else if (value.length > 100) {
+                    } else if (dialectURIElement.length > 100) {
                         CARBON.showWarningDialog('<fmt:message key="dialect.is.too.long"/>');
+                        return false;
+                    } else if (!doValidateInput(dialectURIElement,
+                        '<fmt:message key="dialect.has.unsafe.characters"/>')) {
                         return false;
                     }
 
@@ -76,7 +80,8 @@
                                     <td class="leftCol-small"><fmt:message key='dialect.uri'/><font color="red">*</font>
                                     </td>
                                     <td class="leftCol-big">
-                                        <input type="text" name="dialect" id="dialect" class="text-box-big"/>
+                                        <input type="text" name="dialect" id="dialect" class="text-box-big"
+                                               black-list-patterns="xml-meta-exists"/>
                                         <div class="sectionHelp"><fmt:message key="dialect.uri.help"/></div>
                                     </td>
                                 </tr>
