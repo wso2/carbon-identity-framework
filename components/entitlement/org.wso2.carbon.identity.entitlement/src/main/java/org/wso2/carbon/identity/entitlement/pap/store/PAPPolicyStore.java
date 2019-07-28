@@ -34,6 +34,7 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 import javax.xml.stream.XMLStreamException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -211,10 +212,12 @@ public class PAPPolicyStore {
                 newPolicy = true;
                 PolicyAttributeBuilder policyAttributeBuilder = new PolicyAttributeBuilder(policy.getPolicy());
                 Properties properties = policyAttributeBuilder.getPolicyMetaDataFromPolicy();
+                Properties resourceProperties = new Properties();
                 for (Object o : properties.keySet()) {
                     String key = o.toString();
-                    resource.setProperty(key, properties.getProperty(key));
+                    resourceProperties.put(key, Collections.singletonList(properties.get(key)));
                 }
+                resource.setProperties(resourceProperties);
             }
 
             resource.setProperty(PDPConstants.ACTIVE_POLICY, Boolean.toString(policy.isActive()));
