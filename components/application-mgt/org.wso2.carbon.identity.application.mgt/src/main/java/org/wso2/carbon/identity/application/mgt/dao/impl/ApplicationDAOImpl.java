@@ -3183,11 +3183,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 getAppNamesStmt.setInt(2, skipValue);
                 getAppNamesStmt.setInt(3, resultsPerPageInt);
             } else if (databaseProductName.contains("Oracle")){
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_ORACLE;
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_ORACLE;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, skipValue);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
+                getAppNamesStmt.setInt(2, pageNumber * resultsPerPageInt);
+                getAppNamesStmt.setInt(3, (pageNumber- 1) * resultsPerPageInt);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
@@ -3293,8 +3293,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
                 getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, skipValue);
-                getAppNamesStmt.setInt(4, resultsPerPageInt);
+                getAppNamesStmt.setInt(3, pageNumber * resultsPerPageInt);
+                getAppNamesStmt.setInt(4, (pageNumber - 1) * resultsPerPageInt);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
