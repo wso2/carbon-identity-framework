@@ -111,13 +111,13 @@
     "SESSION_TERMINATE"
   ],
   "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable": true,
-  "identity_mgt.events.schemes.OIDCLogoutHandler.module_index": "18",
-  "identity_mgt.events.schemes.OIDCLogoutHandler.subscriptions": [
-    "SESSION_TERMINATE"
-  ],
-  "identity_mgt.events.schemes.OIDCLogoutHandler.properties.enable": false,
-  "identity_mgt.events.schemes.confirmationCodesInvalidate.module_index": "19",
+  "identity_mgt.events.schemes.confirmationCodesInvalidate.module_index": "18",
   "identity_mgt.events.schemes.confirmationCodesInvalidate.subscriptions": [
     "POST_DELETE_USER"
-  ]
+  ],
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.module_index": "19",
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.subscriptions": [
+    "SESSION_TERMINATE"
+  ],
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable": true
 }
