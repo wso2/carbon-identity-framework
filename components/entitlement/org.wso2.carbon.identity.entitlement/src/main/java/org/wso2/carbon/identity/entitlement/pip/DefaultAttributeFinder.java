@@ -50,7 +50,7 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
 
     private static Log log = LogFactory.getLog(DefaultAttributeFinder.class);
     private Set<String> supportedAttrs = new HashSet<String>();
-    private boolean mapFederatedUsersToLocal = true;
+    private boolean mapFederatedUsersToLocal = false;
     private static final String MAP_FEDERATED_USERS_TO_LOCAL = "MapFederatedUsersToLocal";
 
     /**
