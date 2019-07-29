@@ -64,7 +64,7 @@
                             org.apache.xml.serialize; resolution:=optional,
                             org.apache.xerces.util; resolution:=optional,
                             org.apache.axis2; version="${axis2.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging;
                             org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
                             org.wso2.carbon.identity.core.*;
                             version="${carbon.identity.package.import.version.range}"
