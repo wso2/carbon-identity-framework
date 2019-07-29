@@ -129,6 +129,10 @@ org.wso2.carbon.identity.entitlement.{{extension.name}}.{{loop.index}}={{key}},{
 {% endfor %}
 {% endif %}
 
+{% for key,value in identity.entitlement.default_attribute_finder.properties.items() %}
+org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder.{{loop.index}}={{key}},{{value}}
+{% endfor %}
+
 # Properties needed for each extension.
 # org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder.1=name,value
 # org.wso2.carbon.identity.entitlement.pip.DefaultAttributeFinder.2=name,value
