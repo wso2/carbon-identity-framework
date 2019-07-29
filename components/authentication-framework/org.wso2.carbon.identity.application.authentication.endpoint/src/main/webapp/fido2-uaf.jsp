@@ -21,10 +21,6 @@
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
-<%
-    String authRequest = request.getParameter("data");
-%>
-
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -36,13 +32,9 @@
     <link href="libs/bootstrap_3.3.5/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
     <link href="css/custom-common.css" rel="stylesheet">
-    <!--[if lt IE 9]>
-    <script src="js/html5shiv.min.js"></script>
-    <script src="js/respond.min.js"></script>
-    <![endif]-->
 </head>
 
-<body onload='talkToDevice();'>
+<body>
 
 <!-- header -->
 <header class="header header-default">
@@ -57,31 +49,67 @@
     </div>
 </header>
 
+<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
+<script>
+    function getParameterByName(name, url) {
+        if (!url) {
+            url = window.location.href;
+        }
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return "";
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    function submitIdentifier() {
+        var username = document.getElementById("username");
+        username.value = username.value.trim();
+        if(username.value){
+            $.ajax({
+                type: "GET",
+                url: "/api/users/v1/me/webauthn/start-authentication?username=admin&tenantDomain=carbon.super&storeDomain=PRIMARY&appId=https://localhost:9443&sessionDataKey="+getParameterByName("sessionDataKey"),
+                success: function (data) {
+                    if (data) {
+                        console.log(data);
+                    }
+                },
+                cache: false
+            });
+        }
+    }
+</script>
+
 <!-- page content -->
-<div class="container-fluid body-wrapper">
+<body>
+<div class="col-md-4 col-md-offset-4 panel panel-default" style="margin-top: 10%">
+    <form onsubmit="event.preventDefault()" id="identifierForm">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
 
-    <div class="row">
-        <div class="col-md-12">
-            <!-- content -->
-            <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
-                <div>
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">
-                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "verification")%>
-                    </h2>
-                </div>
-
-                <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double">
-                    <div class="padding-bottom-double font-large">
-                        <%=AuthenticationEndpointUtil.i18n(resourceBundle, "touch.your.u2f.device")%>
-                    </div>
-                    <div> <img class="img-responsive" src="images/U2F.png"> </div>
-                </div>
-            </div>
-            <!-- /content -->
-
+            <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
+            <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
+            <input id="authType" name="authType" type="hidden" value="idf">
         </div>
-    </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
+                (request.getParameter("sessionDataKey"))%>'/>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
+            <div class="form-actions">
+                <button
+                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
+                        onclick="submitIdentifier()">
+                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "next")%>
+                </button>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </form>
 </div>
+<body>
+
 
 <!-- footer -->
 <footer class="footer">
@@ -94,9 +122,6 @@
         </p>
     </div>
 </footer>
-
-<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
-<script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
 
 <script>
 
@@ -172,38 +197,36 @@
                 id: base64url.toByteArray(credential.id),
             }));
 
-        const publicKeyCredentialRequestOptions = extend(
+        return extend(
             request, {
                 allowCredentials,
                 challenge: base64url.toByteArray(request.challenge),
             });
-
-        return publicKeyCredentialRequestOptions;
     }
 
-    function talkToDevice(){
+    function talkToDevice(authenticatorResponse){
 
-        var authRequest = '<%=Encode.forJavaScriptBlock(authRequest)%>';
+        var authRequest = authenticatorResponse;
         var jsonAuthRequest = JSON.parse(authRequest);
         console.log(jsonAuthRequest);
         navigator.credentials.get({
-          publicKey: decodePublicKeyCredentialRequestOptions(jsonAuthRequest.publicKeyCredentialRequestOptions),
-      })
-        .then(function(data) {
-            payload = {};
-            payload.requestId = jsonAuthRequest.requestId;
-            payload.credential = responseToObject(data);
-            var form = document.getElementById('form');
-            var reg = document.getElementById('tokenResponse');
-            reg.value = JSON.stringify(payload);
-            form.submit();
+            publicKey: decodePublicKeyCredentialRequestOptions(jsonAuthRequest.publicKeyCredentialRequestOptions),
         })
-        .catch(function(err) {
-            var form = document.getElementById('form');
-            var reg = document.getElementById('tokenResponse');
-            reg.value = JSON.stringify({errorCode : 400, message : err});
-            form.submit();
-        });
+            .then(function(data) {
+                payload = {};
+                payload.requestId = jsonAuthRequest.requestId;
+                payload.credential = responseToObject(data);
+                var form = document.getElementById('form');
+                var reg = document.getElementById('tokenResponse');
+                reg.value = JSON.stringify(payload);
+                form.submit();
+            })
+            .catch(function(err) {
+                var form = document.getElementById('form');
+                var reg = document.getElementById('tokenResponse');
+                reg.value = JSON.stringify({errorCode : 400, message : err});
+                form.submit();
+            });
     }
 
 </script>
