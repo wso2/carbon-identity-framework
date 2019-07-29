@@ -388,21 +388,16 @@ public class CacheBackedIdPMgtDAO {
                     "cannot be deleted as it is referred by Service Providers.");
         }
 
-        idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
-
-        if(log.isDebugEnabled()) {
-            log.debug("Removing entry for Identity Provider " + idPName + " from caches.");
-        }
-
         IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
-        IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName, tenantDomain);
-        idPCacheByName.clearCacheEntry(idPNameCacheKey);
-
-        if (identityProvider.getHomeRealmId() != null) {
-            IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
-                    identityProvider.getHomeRealmId(), tenantDomain);
-            idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
+        if (identityProvider != null) {
+            idPMgtDAO.deleteIdP(idPName, tenantId, tenantDomain);
+            clearIdpCache(idPName, tenantId, tenantDomain);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB", idPName, tenantDomain));
+            }
         }
+
 
 
     }
@@ -415,25 +410,44 @@ public class CacheBackedIdPMgtDAO {
             log.debug(String.format("Force deleting IDP:%s of tenantDomain:%s started.", idPName, tenantDomain));
         }
 
-        idPMgtDAO.forceDeleteIdP(idPName, tenantId, tenantDomain);
-
         // Remove cache entries related to the force deleted idps.
         IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
-        if (log.isDebugEnabled()) {
-            log.debug("Removing entry for Identity Provider " + idPName + " from caches.");
-        }
-        IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName, tenantDomain);
-        idPCacheByName.clearCacheEntry(idPNameCacheKey);
-
-        if (identityProvider.getHomeRealmId() != null) {
-            IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey =
-                    new IdPHomeRealmIdCacheKey(identityProvider.getHomeRealmId(), tenantDomain);
-            idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
+        if (identityProvider != null) {
+            idPMgtDAO.forceDeleteIdP(idPName, tenantId, tenantDomain);
+            clearIdpCache(idPName, tenantId, tenantDomain);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB", idPName, tenantDomain));
+            }
         }
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Force deleting IDP:%s of tenantDomain:%s completed.", idPName,
                     tenantDomain));
+        }
+    }
+
+    private void clearIdpCache(String idPName, int tenantId, String tenantDomain) throws IdentityProviderManagementException {
+
+
+        // clearing cache entries related to the deleted IDP
+        IdentityProvider identityProvider = this.getIdPByName(null, idPName, tenantId, tenantDomain);
+        if (identityProvider != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Removing entry for Identity Provider " + idPName + " of tenantDomain:" + tenantDomain +
+                        " from cache.");
+            }
+
+            IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(idPName, tenantDomain);
+            idPCacheByName.clearCacheEntry(idPNameCacheKey);
+
+            if (identityProvider.getHomeRealmId() != null) {
+                IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
+                        identityProvider.getHomeRealmId(), tenantDomain);
+                idPCacheByHRI.clearCacheEntry(idPHomeRealmIdCacheKey);
+            }
+        } else {
+            log.debug("Entry for Identity Provider " + idPName + " not found in cache or DB");
         }
     }
 
