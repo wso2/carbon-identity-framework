@@ -91,7 +91,7 @@
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            org.apache.commons.logging.*;
+                            org.apache.commons.logging.*; version="${import.package.version.commons.logging}",
                             org.apache.thrift.*; version="${libthrift.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

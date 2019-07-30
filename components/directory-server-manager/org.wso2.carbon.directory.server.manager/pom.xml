@@ -105,7 +105,7 @@
                         <Import-Package>
                             javax.naming.*,
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",

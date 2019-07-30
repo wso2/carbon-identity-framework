@@ -199,7 +199,7 @@
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.commons.codec.digest; version="${commons-codec.wso2.osgi.version.range}",
                             org.apache.commons.lang.*; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.osgi.service.http; version="${osgi.service.http.imp.pkg.version.range}",
@@ -249,6 +249,9 @@
                     <suiteXmlFiles>
                         <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
                     </suiteXmlFiles>
+                    <classpathDependencyExcludes>
+                        <classpathDependencyExclude>org.ops4j.pax.logging</classpathDependencyExclude>
+                    </classpathDependencyExcludes>
                 </configuration>
             </plugin>
             <plugin>

@@ -74,7 +74,7 @@
                             org.xml.sax,
                             org.w3c.dom,
                             org.apache.xerces.util; resolution:=optional,
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
 
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 

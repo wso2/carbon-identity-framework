@@ -158,7 +158,7 @@
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
                             org.apache.commons.httpclient; version="${commons-httpclient.wso2.osgi.version}",
                             org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.thrift.*; version="${libthrift.wso2.osgi.version.range}",
                             org.apache.xml.security.*; version="${wss4j.xml.security.imp.pkg.version.range}",
 

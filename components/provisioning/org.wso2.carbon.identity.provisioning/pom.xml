@@ -138,7 +138,7 @@
                             org.wso2.carbon.identity.entitlement.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",

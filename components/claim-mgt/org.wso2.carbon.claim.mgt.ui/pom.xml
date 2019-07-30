@@ -67,7 +67,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            org.apache.commons.logging.*;
+                            org.apache.commons.logging.*; version="${import.package.version.commons.logging}",
                             org.wso2.carbon.claim.mgt.stub.*;version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>

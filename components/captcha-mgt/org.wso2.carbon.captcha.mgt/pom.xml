@@ -60,7 +60,7 @@
                             javax.imageio,
 
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            org.apache.commons.logging.*;
+                            org.apache.commons.logging.*; version="${import.package.version.commons.logging}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.wso2.carbon.registry.core.*; version="${carbon.kernel.registry.imp.pkg.version}",

@@ -144,7 +144,7 @@
                             org.apache.commons.codec.binary; version="${commons-codec.wso2.osgi.version.range}",
                             org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.xerces.util; resolution:=optional,
                             org.apache.xml.security.utils; version="${wss4j.xml.security.imp.pkg.version.range}",
 

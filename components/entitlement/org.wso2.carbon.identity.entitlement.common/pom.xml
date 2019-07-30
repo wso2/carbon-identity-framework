@@ -97,7 +97,7 @@
                         <Import-Package>
                             javax.xml.parsers; version="${javax.xml.parsers.import.pkg.version}",
                             org.w3c.dom,
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.xerces.util; resolution:=optional,
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.registry.api; version="${carbon.kernel.registry.imp.pkg.version}",

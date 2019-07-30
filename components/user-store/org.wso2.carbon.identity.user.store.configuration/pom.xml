@@ -99,7 +99,7 @@
                             org.apache.axis2.databinding.annotation,
 
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
-                            org.apache.commons.logging;
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
 
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
