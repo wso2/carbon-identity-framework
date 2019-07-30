@@ -917,6 +917,12 @@
                        enable="{{event.default_listener.oauth_listener.enable}}">
             <Property name="Log.Token">false</Property>
         </EventListener>
+        <EventListener id="mutual_tls_authenticator"
+        			type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+        			name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.MutualTLSClientAuthenticator"
+        			orderId="{{event.default_listener.mutual_tls_authenticator.priority}}"
+        			enable="{{event.default_listener.mutual_tls_authenticator.enable}}">
+        </EventListener>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener id="user_deletion"

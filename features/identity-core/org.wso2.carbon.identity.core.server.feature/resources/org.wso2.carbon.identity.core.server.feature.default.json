@@ -271,6 +271,8 @@
   "event.default_listener.governance_identity_store.data_store": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
+  "event.default_listener.mutual_tls_authenticator.priority": "158",
+  "event.default_listener.mutual_tls_authenticator.enable": false,
   "event.default_listener.oauth_listener.priority": "12",
   "event.default_listener.oauth_listener.enable": false,
   "event.default_listener.user_deletion.priority": "98",
