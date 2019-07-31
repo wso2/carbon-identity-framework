@@ -33,5 +33,8 @@
   "identity_mgt.fail_login_attempt_validator.enable": "identity_mgt.events.schemes.failLoginAttemptValidator.properties.enable",
 
   "identity_mgt.saml_logout_handler.subscriptions": "identity_mgt.events.schemes.SAMLLogoutHandler.subscriptions",
-  "identity_mgt.saml_logout_handler.enable": "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable"
+  "identity_mgt.saml_logout_handler.enable": "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable",
+
+  "identity_mgt.oidc_logout_event_handler.subscriptions": "identity_mgt.events.schemes.OIDCLogoutEventHandler.subscriptions",
+  "identity_mgt.oidc_logout_event_handler.enable": "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable"
 }
