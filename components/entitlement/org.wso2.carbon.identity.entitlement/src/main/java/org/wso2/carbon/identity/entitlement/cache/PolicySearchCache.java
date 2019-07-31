@@ -75,7 +75,7 @@ public class PolicySearchCache extends EntitlementBaseCache<IdentityCacheKey, Se
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         if (log.isDebugEnabled()) {
-            log.debug("Trigger invalidateCache to tenant :  " + IdentityTenantUtil.getTenantDomain(tenantId));
+            log.debug("Trigger invalidate policy search cache to tenant :  " + IdentityTenantUtil.getTenantDomain(tenantId));
         }
 
         // Update local policy search cache of this node.
