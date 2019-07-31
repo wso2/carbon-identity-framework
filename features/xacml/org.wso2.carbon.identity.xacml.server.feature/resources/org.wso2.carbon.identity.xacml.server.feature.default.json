@@ -40,5 +40,6 @@
     "org.wso2.carbon.identity.entitlement.pip.DefaultResourceFinder"
   ],
   "identity.entitlement.entitlement_engine_caching_interval": "1d",
-  "identity.entitlement.JSON_shorten_form_enabled": false
+  "identity.entitlement.JSON_shorten_form_enabled": false,
+  "identity.entitlement.default_attribute_finder.properties.MapFederatedUsersToLocal": true
 }

@@ -279,4 +279,7 @@ public class PDPConstants {
 
     public static final String XACML_JSON_SHORT_FORM_ENABLED = "JSON.Shorten.Form.Enabled";
 
+    public static final String USER_CATEGORY = "http://wso2.org/identity/user";
+
+    public static final String USER_TYPE_ID = USER_CATEGORY + "/user-type";
 }

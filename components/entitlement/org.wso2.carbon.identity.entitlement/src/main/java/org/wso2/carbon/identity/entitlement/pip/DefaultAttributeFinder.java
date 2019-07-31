@@ -21,14 +21,21 @@ package org.wso2.carbon.identity.entitlement.pip;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.balana.attr.AttributeValue;
+import org.wso2.balana.attr.BagAttribute;
+import org.wso2.balana.attr.StringAttribute;
+import org.wso2.balana.cond.EvaluationResult;
+import org.wso2.balana.ctx.EvaluationCtx;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -43,6 +50,8 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
 
     private static Log log = LogFactory.getLog(DefaultAttributeFinder.class);
     private Set<String> supportedAttrs = new HashSet<String>();
+    private boolean mapFederatedUsersToLocal = false;
+    private static final String MAP_FEDERATED_USERS_TO_LOCAL = "MapFederatedUsersToLocal";
 
     /**
      * Loads all the claims defined under http://wso2.org/claims dialect.
@@ -50,6 +59,8 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
      * @throws Exception
      */
     public void init(Properties properties) throws Exception {
+
+        mapFederatedUsersToLocal = Boolean.parseBoolean(properties.getProperty(MAP_FEDERATED_USERS_TO_LOCAL));
         if (log.isDebugEnabled()) {
             log.debug("DefaultAttributeFinder is initialized successfully");
         }
@@ -60,7 +71,46 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
         return "Default Attribute Finder";
     }
 
-    /*
+    /**
+     * This method is introduced in order to check whether the user is a local or federated and if it is a
+     * federated user, prevent from obtaining user attributes from userstore.
+     * @param attributeType
+     * @param attributeId The unique id of the required attribute.
+     * @param category  The category of the required attribute.
+     * @param issuer The attribute issuer.
+     * @param evaluationCtx The evaluation context object.
+     * @return return the set of values for the required attribute.
+     * @throws Exception throws if fails.
+     */
+    @Override
+    public Set<String> getAttributeValues(URI attributeType, URI attributeId, URI category,
+                                          String issuer, EvaluationCtx evaluationCtx) throws Exception {
+
+        Set<String> values = null;
+        EvaluationResult userType = evaluationCtx.getAttribute(new URI(StringAttribute.identifier), new URI(
+                PDPConstants.USER_TYPE_ID), issuer, new URI(PDPConstants.USER_CATEGORY));
+        String userTypeId = null;
+        if (userType != null && userType.getAttributeValue() != null && userType.getAttributeValue().isBag()) {
+            BagAttribute bagAttribute = (BagAttribute) userType.getAttributeValue();
+            if (bagAttribute.size() > 0) {
+                userTypeId = ((AttributeValue) bagAttribute.iterator().next()).encode();
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("The user is a %1$s user", userTypeId));
+                }
+            }
+        }
+
+        if (!StringUtils.equalsIgnoreCase(userTypeId, "FEDERATED")) {
+            // If the user is not a federated user, user attributes should be be populated from local userstore.
+            values = super.getAttributeValues(attributeType, attributeId, category, issuer, evaluationCtx);
+        } else if (mapFederatedUsersToLocal) {
+            // If the user is federated and the MapFederatedToLocal config is enabled, then populate user attributes
+            // from userstore.
+            values = super.getAttributeValues(attributeType, attributeId, category, issuer, evaluationCtx);
+        }
+        return values;
+    }
+        /*
      * (non-Javadoc)
 	 * 
 	 * @see
