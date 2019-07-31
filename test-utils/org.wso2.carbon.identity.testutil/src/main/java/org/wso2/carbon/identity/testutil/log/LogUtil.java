@@ -39,6 +39,7 @@ public class LogUtil {
     public static void configureAndAddConsoleAppender() {
 
         final NullAppender appender = new NullAppender("NullAppender", null, null);
+        appender.start();
         final Logger logger = (Logger) LogManager.getRootLogger();
         logger.addAppender(appender);
 

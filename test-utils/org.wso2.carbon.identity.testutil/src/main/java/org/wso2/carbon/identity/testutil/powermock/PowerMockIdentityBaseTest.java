@@ -19,6 +19,7 @@
 
 package org.wso2.carbon.identity.testutil.powermock;
 
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Optional;
@@ -45,6 +46,7 @@ import org.wso2.carbon.identity.testutil.log.LogUtil;
  * @see org.wso2.carbon.identity.testutil.IdentityBaseTest
  */
 
+@PowerMockIgnore({"javax.management.*","javax.script.*"})
 public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 
 	public PowerMockIdentityBaseTest() {
@@ -52,7 +54,8 @@ public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 	}
 
 	@Parameters({"log-level"})
-	@BeforeMethod public void setUp(@Optional String logLevel) throws Exception {
+	@BeforeMethod
+	public void setUp(@Optional String logLevel) throws Exception {
 		LogUtil.configureLogLevel(logLevel);
 	}
 
