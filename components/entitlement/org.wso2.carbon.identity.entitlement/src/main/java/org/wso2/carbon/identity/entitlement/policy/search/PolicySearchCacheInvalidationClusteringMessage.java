@@ -56,10 +56,10 @@ public class PolicySearchCacheInvalidationClusteringMessage extends ClusteringMe
         }
         // We need to clear our local policy search cache of the corresponding tenant based on the received cluster
         // message from other node.
+        int tenantIdInThreadLocalContext = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
         try{
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext privilegedCarbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            privilegedCarbonContext.setTenantId(tenantId, true);
+            // Clear local cache for the tenant domain included with the cluster message.
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId, true);
 
             EntitlementEngine.getInstance().getPolicySearch().getPolicySearchCache().clearCache();
             if (log.isDebugEnabled()) {
@@ -67,7 +67,8 @@ public class PolicySearchCacheInvalidationClusteringMessage extends ClusteringMe
                         + IdentityTenantUtil.getTenantDomain(tenantId) + ".");
             }
         } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+            // Switch back to the original tenant domain used in this thread local context.
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantIdInThreadLocalContext, true);
         }
     }
 }
