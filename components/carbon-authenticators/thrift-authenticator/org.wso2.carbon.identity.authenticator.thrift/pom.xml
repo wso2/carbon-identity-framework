@@ -62,9 +62,9 @@
             <artifactId>org.wso2.carbon.utils</artifactId>
         </dependency>
         <dependency>
-    <groupId>org.ops4j.pax.logging</groupId>
-    <artifactId>pax-logging-api</artifactId>
-</dependency>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

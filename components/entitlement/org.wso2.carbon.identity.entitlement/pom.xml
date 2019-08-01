@@ -89,9 +89,9 @@
             <artifactId>javax.cache.wso2</artifactId>
         </dependency>
         <dependency>
-    <groupId>org.ops4j.pax.logging</groupId>
-    <artifactId>pax-logging-api</artifactId>
-</dependency>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>libthrift.wso2</groupId>
             <artifactId>libthrift</artifactId>
