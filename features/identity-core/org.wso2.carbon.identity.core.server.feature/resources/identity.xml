@@ -444,6 +444,11 @@
             <RequestObjectValidator>org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl</RequestObjectValidator>
         </OpenIDConnect>
 
+        <!-- Config to enable Carbon Crypto Service for token encryption, decryption, sign and verification. -->
+        <CryptoService>
+            <Enable>false</Enable>
+        </CryptoService>
+
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
