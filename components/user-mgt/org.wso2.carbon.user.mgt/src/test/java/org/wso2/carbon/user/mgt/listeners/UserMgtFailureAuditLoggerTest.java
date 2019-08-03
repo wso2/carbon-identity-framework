@@ -19,11 +19,12 @@
 package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Appender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Logger;
-import org.apache.log4j.SimpleLayout;
-import org.apache.log4j.WriterAppender;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Logger;
+
+import org.apache.logging.log4j.core.appender.WriterAppender;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
@@ -33,8 +34,11 @@ import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.user.core.constants.UserCoreErrorConstants;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
+
 import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 
 import static org.mockito.Mockito.spy;
@@ -49,11 +53,12 @@ public class UserMgtFailureAuditLoggerTest {
     private ByteArrayOutputStream out;
     private Appender appender;
     private UserMgtFailureAuditLogger userMgtFailureAuditLogger;
+    private Writer writer;
 
     @BeforeClass
     public void init() {
 
-        logger = Logger.getLogger("AUDIT_LOG");
+        logger = (Logger)LogManager.getLogger("AUDIT_LOG");
         System.setProperty(CarbonBaseConstants.CARBON_HOME, ".");
     }
 
@@ -61,8 +66,10 @@ public class UserMgtFailureAuditLoggerTest {
     public void initMethod() {
 
         out = new ByteArrayOutputStream();
-        Layout layout = new SimpleLayout();
-        appender = new WriterAppender(layout, out);
+        writer = new PrintWriter(out);
+        PatternLayout layout = PatternLayout.createDefaultLayout();
+        appender = WriterAppender.newBuilder().setName("writeLogger").setTarget(writer).setLayout(layout).build();
+        appender.start();
         logger.addAppender(appender);
         userMgtFailureAuditLogger = spy(UserMgtFailureAuditLogger.class);
         when(userMgtFailureAuditLogger.isEnable()).thenReturn(true);
