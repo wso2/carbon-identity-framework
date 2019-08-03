@@ -50,8 +50,8 @@
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
     </dependencies>
 
@@ -74,7 +74,7 @@
                             org.xml.sax,
                             org.w3c.dom,
                             org.apache.xerces.util; resolution:=optional,
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
 
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 

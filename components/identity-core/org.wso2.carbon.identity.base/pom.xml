@@ -43,8 +43,8 @@
             <artifactId>rampart-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.ws.security.wso2</groupId>
@@ -92,7 +92,7 @@
 
                             org.apache.axiom.om; version="${axiom.osgi.version.range}",
                             org.apache.axiom.om.impl.llom.util; version="${axiom.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
                             org.apache.neethi; version="${neethi.osgi.version.range}",
