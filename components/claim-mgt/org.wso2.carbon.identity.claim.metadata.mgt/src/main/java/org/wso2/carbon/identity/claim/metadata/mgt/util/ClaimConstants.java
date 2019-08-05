@@ -59,7 +59,9 @@ public class ClaimConstants {
         ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI("100007",
                 "External dialect URI cannot be empty"),
         ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI("100008",
-                "Mapped local claim URI cannot be empty");
+                "Mapped local claim URI cannot be empty"),
+        ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI("100009",
+                "Invalid Claim URI : %s for Claim Dialect : %s");
 
         private final String code;
         private final String message;
