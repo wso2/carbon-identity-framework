@@ -72,6 +72,7 @@ import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -1731,8 +1732,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             // assign new application role to the user.
             UserRealm realm = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUserRealm();
             if (realm != null) {
-                String[] roleListOfUser = realm.getUserStoreManager().getRoleListOfUser(username);
-                if (ArrayUtils.contains(roleListOfUser, roleName)) {
+                if (((AbstractUserStoreManager) realm.getUserStoreManager()).isUserInRole(username, roleName)) {
                     if (log.isDebugEnabled()) {
                         log.debug("The user: " + username + " is already having the role: " + roleName);
                     }
