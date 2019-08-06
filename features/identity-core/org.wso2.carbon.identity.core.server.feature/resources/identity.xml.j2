@@ -49,6 +49,9 @@
                 and would be deleted during cleanup task -->
                 <CleanUpTimeout>{{session_data.cleanup.expire_pre_session_data_after}}</CleanUpTimeout>
             </TempDataCleanup>
+            <UserSessionMapping>
+                <Enable>{{session_data.persistence.enable_user_session_mapping}}</Enable>
+            </UserSessionMapping>
         </SessionDataPersist>
     </JDBCPersistenceManager>
 
