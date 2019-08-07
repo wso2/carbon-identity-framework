@@ -30,7 +30,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 
 @Component(
-         name = "usermgt.component", 
+         name = "usermgt.registration.component",
          immediate = true)
 public class UserRegistrationDSComponent {
 
