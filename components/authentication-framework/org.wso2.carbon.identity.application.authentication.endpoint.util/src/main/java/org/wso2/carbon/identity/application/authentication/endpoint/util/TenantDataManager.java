@@ -29,6 +29,7 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -89,10 +90,8 @@ public class TenantDataManager {
 
                     prop.load(inputStream);
                     if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
-                        if (isSecuredPropertyAvailable(prop)) {
-                            // Resolve encrypted properties with secure vault
-                            resolveSecrets(prop);
-                        }
+                        // Resolve encrypted properties with secure vault
+                        resolveSecrets(prop);
                     }
 
                 } else {
@@ -112,46 +111,46 @@ public class TenantDataManager {
 
                 if (Boolean.parseBoolean(getPropertyValue(Constants.TenantConstants.TENANT_LIST_ENABLED))) {
 
-		        usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
+                        usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
 
-		        carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
+                        carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
 
-		        // Base64 encoded username
-		        carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
+                        // Base64 encoded username
+                        carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
 
-		        String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
-		        String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
-		                .CLIENT_TRUST_STORE));
+                        String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
+                        String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
+                                .CLIENT_TRUST_STORE));
 
-		        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
-		            TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
-		                    .TLS_PROTOCOL));
-		        }
+                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
+                            TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
+                                    .TLS_PROTOCOL));
+                        }
 
-		        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
-		            TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
-		                    .KEY_MANAGER_TYPE));
-		        }
-		        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
-		            TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
-		                    .TRUST_MANAGER_TYPE));
-		        }
+                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
+                            TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
+                                    .KEY_MANAGER_TYPE));
+                        }
+                        if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
+                            TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
+                                    .TRUST_MANAGER_TYPE));
+                        }
 
-		        TenantMgtAdminServiceClient
-		                .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
-		                        .CLIENT_KEY_STORE_PASSWORD));
-		        TenantMgtAdminServiceClient
-		                .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
-		                        .CLIENT_TRUST_STORE_PASSWORD));
-		        TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
-		                getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
+                        TenantMgtAdminServiceClient
+                                .loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
+                                        .CLIENT_KEY_STORE_PASSWORD));
+                        TenantMgtAdminServiceClient
+                                .loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
+                                        .CLIENT_TRUST_STORE_PASSWORD));
+                        TenantMgtAdminServiceClient.initMutualSSLConnection(Boolean.parseBoolean(
+                                getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
 
-		        // Build the service URL of tenant management admin service
-		        StringBuilder builder = new StringBuilder();
-		        serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL)).append(Constants.TenantConstants
-		                        .TENANT_MGT_ADMIN_SERVICE_URL).toString();
+                        // Build the service URL of tenant management admin service
+                        StringBuilder builder = new StringBuilder();
+                        serviceURL = builder.append(getPropertyValue(Constants.SERVICES_URL)).append(Constants.TenantConstants
+                                .TENANT_MGT_ADMIN_SERVICE_URL).toString();
 
-		        initialized = true;
+                        initialized = true;
                 }
             }
 
@@ -356,28 +355,35 @@ public class TenantDataManager {
      */
     private static void resolveSecrets(Properties properties) {
 
-        String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
-
-        if (StringUtils.isNotBlank(protectedTokens)) {
-            String secretProvider = (String) properties.get(SECRET_PROVIDER);
-            SecretResolver secretResolver;
-
-            if (StringUtils.isBlank(secretProvider)) {
-                properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
+                }
+                properties.put(key, value);
             }
-
-            secretResolver = SecretResolverFactory.create(properties, "");
+        }
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        if (isSecuredPropertyAvailable(properties)) {
+            SecretResolver resolver = SecretResolverFactory.create(properties, "");
+            String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
             StringTokenizer st = new StringTokenizer(protectedTokens, ",");
-
             while (st.hasMoreElements()) {
                 String element = st.nextElement().toString().trim();
 
-                if (secretResolver.isTokenProtected(element)) {
+                if (resolver.isTokenProtected(element)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Resolving and replacing secret for " + element);
                     }
                     // Replaces the original encrypted property with resolved property
-                    properties.put(element, secretResolver.resolve(element));
+                    properties.put(element, resolver.resolve(element));
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No encryption done for value with key :" + element);

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-store</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
 	    <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -44,8 +44,8 @@
             <artifactId>org.wso2.carbon.core</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -63,13 +63,18 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.securevault</groupId>
+            <artifactId>org.wso2.securevault</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -89,14 +94,21 @@
                             javax.xml.transform,
                             javax.xml.transform.dom,
                             javax.xml.transform.stream,
+                            org.apache.axiom.om.impl.builder,
+
+                            org.apache.axis2.databinding.annotation,
 
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
 
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
                             org.w3c.dom,
+                            org.wso2.securevault,
+                            org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
+                            org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
+                            org.wso2.carbon; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.base.api; version="${carbon.base.imp.pkg.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
@@ -109,7 +121,8 @@
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}"
+                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.store.configuration.internal,

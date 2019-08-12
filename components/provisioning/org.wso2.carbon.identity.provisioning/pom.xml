@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>provisioning</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -57,8 +57,8 @@
             <artifactId>axiom</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -120,10 +120,7 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -141,7 +138,7 @@
                             org.wso2.carbon.identity.entitlement.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",

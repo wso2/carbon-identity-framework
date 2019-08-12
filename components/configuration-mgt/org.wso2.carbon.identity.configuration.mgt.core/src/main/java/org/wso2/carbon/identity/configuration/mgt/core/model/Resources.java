@@ -18,6 +18,9 @@ package org.wso2.carbon.identity.configuration.mgt.core.model;
 
 import java.util.List;
 
+/**
+ * A model class representing a list of {@link Resource}.
+ */
 public class Resources {
 
     private List<Resource> resources;

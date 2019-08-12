@@ -19,6 +19,10 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+
+import java.util.List;
 
 /**
  * Defines the session management service operations.
@@ -28,11 +32,47 @@ public interface UserSessionManagementService {
     /**
      * Terminates all active sessions of the given user.
      *
-     * @param username username
+     * @param username        username
      * @param userStoreDomain userstore domain of the user
-     * @param tenantDomain tenant domain of the user
+     * @param tenantDomain    tenant domain of the user
      * @throws UserSessionException
      */
     void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
             UserSessionException;
+
+    /**
+     * Get all the active sessions of the given user id.
+     *
+     * @param userId unique id of the user
+     * @return list of user session objects. In the default method, null is returned.
+     * @throws SessionManagementException if the session retrieval fails
+     */
+    default List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
+
+        return null;
+    }
+
+    /**
+     * Terminate all the active sessions of the given user id.
+     *
+     * @param userId unique id of the user
+     * @return whether the sessions termination is success or not. In default method, false is returned.
+     * @throws SessionManagementException if the session termination fails
+     */
+    default boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
+
+        return false;
+    }
+
+    /**
+     * Terminate the session of the given id
+     *
+     * @param userId        unique id of the user
+     * @param  sessionId    unique id for the session
+     * @return whether the session termination is success or not. In default method, false is returned.
+     */
+    default boolean terminateSessionBySessionId(String userId, String sessionId) {
+
+        return false;
+    }
 }

@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>thrift-authenticator</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -62,21 +62,17 @@
             <artifactId>org.wso2.carbon.utils</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>1.4.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
@@ -89,11 +85,12 @@
                             javax.xml.namespace,
                             javax.xml.stream,
                             org.wso2.securevault,
+                            org.wso2.securevault.commons,
 
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
                             org.apache.axis2.*; version="${axis2.osgi.version.range}",
-                            org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging.*; version="${import.package.version.commons.logging}",
                             org.apache.thrift.*; version="${libthrift.wso2.osgi.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",

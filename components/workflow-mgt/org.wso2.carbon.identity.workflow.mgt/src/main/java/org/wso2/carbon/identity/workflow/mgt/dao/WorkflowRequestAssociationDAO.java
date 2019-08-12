@@ -63,8 +63,9 @@ public class WorkflowRequestAssociationDAO {
             prepStmt.setString(5, status);
             prepStmt.setInt(6, tenantId);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -80,7 +81,7 @@ public class WorkflowRequestAssociationDAO {
      */
     public String getRequestIdOfRelationship(String relationshipId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_REQUEST_ID_OF_RELATIONSHIP;
         ResultSet resultSet = null;
@@ -91,7 +92,6 @@ public class WorkflowRequestAssociationDAO {
             if (resultSet.next()) {
                 return resultSet.getString(SQLConstants.REQUEST_ID_COLUMN);
             }
-            connection.commit();
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
@@ -118,8 +118,9 @@ public class WorkflowRequestAssociationDAO {
             prepStmt.setTimestamp(2, updatedDateStamp);
             prepStmt.setString(3, relationshipId);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -146,8 +147,9 @@ public class WorkflowRequestAssociationDAO {
             prepStmt.setString(3, requestId);
             prepStmt.setString(4, WFConstant.HT_STATE_PENDING);
             prepStmt.execute();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -164,7 +166,7 @@ public class WorkflowRequestAssociationDAO {
     public List<String> getWorkflowStatesOfRequest(String requestId) throws InternalWorkflowException {
 
         List<String> states = new ArrayList<>();
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_STATES_OF_REQUEST;
         ResultSet resultSet = null;
@@ -175,7 +177,6 @@ public class WorkflowRequestAssociationDAO {
             while (resultSet.next()) {
                 states.add(resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN));
             }
-            connection.commit();
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
@@ -193,7 +194,7 @@ public class WorkflowRequestAssociationDAO {
      */
     public String getStatusOfRelationship(String relationshipId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_STATUS_OF_RELATIONSHIP;
         ResultSet resultSet = null;
@@ -204,7 +205,6 @@ public class WorkflowRequestAssociationDAO {
             if (resultSet.next()) {
                 return resultSet.getString(SQLConstants.REQUEST_STATUS_COLUMN);
             }
-            connection.commit();
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query:" + query, e);
         } finally {
@@ -222,7 +222,7 @@ public class WorkflowRequestAssociationDAO {
      */
     public WorkflowRequestAssociation[] getWorkflowsOfRequest(String requestId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_WORKFLOWS_OF_REQUEST;
         ResultSet resultSet = null;
@@ -262,7 +262,7 @@ public class WorkflowRequestAssociationDAO {
     public List<WorkflowAssociation> getWorkflowAssociationsForRequest(String eventId, int tenantId)
             throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet rs;
         List<WorkflowAssociation> associations = new ArrayList<>();

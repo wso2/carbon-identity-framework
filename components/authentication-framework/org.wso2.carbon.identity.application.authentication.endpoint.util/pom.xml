@@ -19,7 +19,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>authentication-framework</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -120,14 +120,15 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -142,9 +143,11 @@
                             version=${carbon.identity.package.export.version}
                         </Export-Package>
                         <Import-Package>
+                            javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
                             javax.xml.xpath,
                             org.wso2.carbon.securevault;version="${carbon.kernel.package.import.version.range}",
                             org.wso2.securevault,
+                            org.wso2.securevault.commons,
                             javax.net.ssl,
                             javax.xml.namespace,
                             org.w3c.dom,
@@ -153,7 +156,7 @@
                             javax.servlet.*; version="${imp.pkg.version.javax.servlet}",
                             org.apache.axiom.om.util; version="${axiom.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging.*; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging.*; version="${import.package.version.commons.logging}",
                             org.wso2.carbon.identity.user.registration.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.apache.axis2.*;version="${axis2.osgi.version.range}",
                             org.wso2.carbon.identity.core.util;resolution:=optional;version="${carbon.identity.package.import.version.range}",

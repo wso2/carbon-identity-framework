@@ -145,6 +145,8 @@ public class JsGraphBuilder {
                     this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
+                    (LoadExecutor) this::loadLocalLibrary);
             engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
             engineBindings.put("quit", (RestrictedFunction) this::quitFunction);
             JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
@@ -154,6 +156,7 @@ public class JsGraphBuilder {
                 functionMap.forEach(globalBindings::put);
             }
             Invocable invocable = (Invocable) engine;
+            engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction());
             engine.eval(script);
             invocable.invokeFunction(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST,
                     new JsAuthenticationContext(authenticationContext));

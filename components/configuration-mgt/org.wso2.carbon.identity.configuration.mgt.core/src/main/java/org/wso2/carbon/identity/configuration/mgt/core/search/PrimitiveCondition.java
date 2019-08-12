@@ -71,12 +71,16 @@ public class PrimitiveCondition implements Condition {
             throws PrimitiveConditionValidationException {
 
         PlaceholderSQL placeholderSQL = new PlaceholderSQL();
-        PrimitiveCondition dbQualifiedPrimitiveCondition =
-                primitiveConditionValidator.validate(this);
+        PrimitiveCondition dbQualifiedPrimitiveCondition = primitiveConditionValidator.validate(this);
         placeholderSQL.setQuery(
                 dbQualifiedPrimitiveCondition.getProperty() + " " + dbQualifiedPrimitiveCondition.getOperator().toSQL()
                         + " ?"
         );
+
+        /*
+        Collected data can be in different types. Ex: The condition value can be either, count = <an integer value>
+        or name = <a string value>.
+         */
         ArrayList<Object> data = new ArrayList<>();
         data.add(dbQualifiedPrimitiveCondition.getValue());
         placeholderSQL.setData(data);

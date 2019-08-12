@@ -119,9 +119,13 @@ public class ApplicationManagementServiceClient {
      * @return
      * @throws AxisFault
      */
-    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws AxisFault {
-
-        return getApplicationBasicInfo("*");
+    public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws Exception {
+        try {
+            return stub.getAllApplicationBasicInfo();
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return new ApplicationBasicInfo[0];
     }
 
     /**
@@ -139,6 +143,70 @@ public class ApplicationManagementServiceClient {
             handleException(e);
         }
         return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Get all basic application information with pagination.
+     *
+     * @return
+     * @throws AxisFault
+     */
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws Exception {
+        try {
+            return stub.getAllPaginatedApplicationBasicInfo(pageNumber);
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination.
+     *
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws AxisFault
+     */
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws AxisFault {
+
+        try {
+            return stub.getPaginatedApplicationBasicInfo(pageNumber, filter);
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Get count of all basic applications.
+     *
+     * @return
+     * @throws AxisFault
+     */
+    public int getCountOfAllApplications() throws Exception {
+        try {
+            return stub.getCountOfAllApplications();
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return 0;
+    }
+
+    /**
+     * Get count of all basic applications for a matching filter.
+     *
+     * @param filter Application name filter
+     * @return Count of applications match the filter
+     * @throws AxisFault
+     */
+    public int getCountOfApplications(String filter) throws AxisFault {
+
+        try {
+            return stub.getCountOfApplications(filter);
+        } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
+            handleException(e);
+        }
+        return 0;
     }
 
     /**

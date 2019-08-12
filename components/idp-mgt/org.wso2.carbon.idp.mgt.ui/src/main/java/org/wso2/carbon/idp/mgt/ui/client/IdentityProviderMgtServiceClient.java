@@ -130,6 +130,27 @@ public class IdentityProviderMgtServiceClient {
     }
 
     /**
+     * Retrieves registered Identity providers for a given tenant by Identity Provider name
+     * @param filter
+     * @return List of <code>FederatedIdentityProvider</code>. IdP names, primary IdP and home realm
+     * identifiers of each IdP
+     * @throws Exception Error when getting list of Identity Providers
+     */
+    public List<IdentityProvider> getIdPsSearch(String filter) throws Exception {
+        try {
+            IdentityProvider[] identityProviders = idPMgtStub.getAllIdPsSearch(filter);
+            if (identityProviders != null && identityProviders.length > 0) {
+                return Arrays.asList(identityProviders);
+            } else {
+                return new ArrayList<IdentityProvider>();
+            }
+        } catch (Exception e) {
+            log.error("Error in retrieving the Identity Provider", e);
+            throw new Exception("Error occurred while retrieving Identity Providers");
+        }
+    }
+    
+    /**
      * Retrieves Enabled registered Identity providers for a given tenant
      *
      * @return List of <code>FederatedIdentityProvider</code>. IdP names, primary IdP and home realm

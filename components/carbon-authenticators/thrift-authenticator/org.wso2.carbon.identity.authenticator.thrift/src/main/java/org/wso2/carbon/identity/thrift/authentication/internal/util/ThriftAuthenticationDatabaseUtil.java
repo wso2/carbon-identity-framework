@@ -35,15 +35,20 @@ public class ThriftAuthenticationDatabaseUtil {
 
     private static final Log log = LogFactory.getLog(ThriftAuthenticationDatabaseUtil.class);
 
+        @Deprecated
+        public static Connection getDBConnection() throws AuthenticationException {
+           return getDBConnection(true);
+        }
+
     /**
      * Get a database connection instance from the Thrift Identity Persistence Manager
      *
      * @return Database Connection
      * @throws AuthenticationException Error when getting an instance of the identity Persistence Manager
      */
-    public static Connection getDBConnection() throws AuthenticationException {
+    public static Connection getDBConnection(Boolean shouldApplyTransaction) throws AuthenticationException {
         try {
-            return ThriftAuthenticationJDBCPersistenceManager.getInstance().getDBConnection();
+            return ThriftAuthenticationJDBCPersistenceManager.getInstance().getDBConnection(shouldApplyTransaction);
         } catch (AuthenticationException e) {
             String errMsg = "Error when getting a database connection from the Thrift Identity Persistence Manager";
             log.error(errMsg, e);
@@ -90,13 +95,27 @@ public class ThriftAuthenticationDatabaseUtil {
 
     }
 
+    @Deprecated
     public static void rollBack(Connection dbConnection) {
+
+        rollbackTransaction(dbConnection);
+    }
+
+    public static void rollbackTransaction(Connection dbConnection) {
         try {
-            if (dbConnection != null) {
-                dbConnection.rollback();
-            }
-        } catch (SQLException e1) {
-            log.error("An error occurred while rolling back transactions. ", e1);
+            ThriftAuthenticationJDBCPersistenceManager.getInstance().rollbackTransaction(dbConnection);
+        } catch (AuthenticationException e) {
+            String errMsg = "Error when rollback from the Thrift Identity Persistence Manager";
+            log.error(errMsg, e);
+        }
+    }
+
+    public static void commitTransaction(Connection dbConnection) {
+        try {
+            ThriftAuthenticationJDBCPersistenceManager.getInstance().commitTransaction(dbConnection);
+        } catch (AuthenticationException e) {
+            String errMsg = "Error when rollback from the Thrift Identity Persistence Manager";
+            log.error(errMsg, e);
         }
     }
 

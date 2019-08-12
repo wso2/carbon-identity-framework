@@ -37,7 +37,6 @@
                 return;
             }
 
-        	Map<String, String> properties = new HashMap<String, String>();
             String forwardTo = "index.jsp";
             String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
             ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -45,6 +44,7 @@
             String domain = request.getParameterValues("domainId")[0];
             String previousDomain = request.getParameterValues("previousDomainId")[0];
             String description = request.getParameterValues("description")[0];
+            String repositoryClass = request.getParameterValues("repositoryName")[0];
             int defaultProperties = Integer.parseInt(request.getParameter("defaultProperties").replaceAll("[\\D]", ""));    //number of default properties
 
             UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = null;
@@ -83,6 +83,7 @@
                     userStoreDTO.setDomainId(domain);
                     userStoreDTO.setDescription(description);
                     userStoreDTO.setClassName(className);
+                    userStoreDTO.setRepositoryClass(repositoryClass);
                     userStoreDTO.setProperties(propertyList.toArray(new PropertyDTO[propertyList.size()]));
 
                     if(domain != null && domain != "" && !domain.equalsIgnoreCase(UserAdminUIConstants.INTERNAL_DOMAIN)

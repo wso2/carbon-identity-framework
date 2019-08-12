@@ -23,6 +23,10 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.testutil.Whitebox;
 
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -58,6 +62,45 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
         };
     }
 
+    @DataProvider(name = "dataForUrlEncoding")
+    public Object[][] dataForUrlEncoding() {
+
+        return new Object[][]{
+
+                {"https://localhost:9443/accountrecoveryendpoint/recoverusername.do?" +
+                        "callback=https://localhost:9443/authenticationendpoint_login.do&sp//name=TestSP123",
+                        "https://localhost:9443/accountrecoveryendpoint/recoverusername.do?sp%2F%2Fname=TestSP123&" +
+                                "callback=https%3A%2F%2Flocalhost%3A9443%2Fauthenticationendpoint_login.do"},
+                {"http://example.com/path/to/page?name=ferret&color=purple",
+                        "http://example.com/path/to/page?color=purple&name=ferret"},
+                {"http://example.com/path/to/page?name=ferret",
+                        "http://example.com/path/to/page?name=ferret"},
+                {"https://www.facebook.com/Learn-the-Net-330002341216/",
+                        "https://www.facebook.com/Learn-the-Net-330002341216/"},
+        };
+    }
+
+    @DataProvider(name = "dataForQueryParamEncoding")
+    public Object[][] dataForQueryParamEncoding() {
+
+        Map<String,String> encodedQueryMap1 = new HashMap<>();
+        Map<String,String> encodedQueryMap2 = new HashMap<>();
+        Map<String,String> encodedQueryMap3 = new HashMap<>();
+
+        encodedQueryMap1.put("sp%2F%2Fname","TestSP123");
+        encodedQueryMap1.put("callback","https%3A%2F%2Flocalhost%3A9443%2Fauthenticationendpoint_login.do");
+
+        encodedQueryMap2.put("color","purple");
+        encodedQueryMap2.put("name","ferret");
+
+        return new Object[][]{
+
+                {"callback=https://localhost:9443/authenticationendpoint_login.do&sp//name=TestSP123", encodedQueryMap1},
+                {"name=ferret&color=purple", encodedQueryMap2},
+                {"", encodedQueryMap3}
+        };
+    }
+
     @Test(dataProvider = "getEndpointUrlTestData")
     public void testBuildEndpointUrl(String serviceContextUrl, String path, String expected) throws Exception {
 
@@ -73,5 +116,19 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
         Whitebox.setInternalState(IdentityManagementServiceUtil.getInstance(), "serviceContextURL", serviceContextUrl);
         assertEquals(IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantName + path), expected);
 
+    }
+
+    @Test(dataProvider = "dataForUrlEncoding")
+    public void testEncodedCallbackUrl(String callbackUrl, String encodedCallbackUrl) throws URISyntaxException {
+
+        assertEquals(IdentityManagementEndpointUtil.getURLEncodedCallback(callbackUrl), encodedCallbackUrl,
+                "callbackUrl is not properly encoded");
+    }
+
+    @Test(dataProvider = "dataForQueryParamEncoding")
+    public void testEncodedQueryMap (String query, Map<String,String> encodedQueryMap) {
+
+        assertEquals(IdentityManagementEndpointUtil.getEncodedQueryParamMap(query), encodedQueryMap,
+                "query params are not properly encoded");
     }
 }

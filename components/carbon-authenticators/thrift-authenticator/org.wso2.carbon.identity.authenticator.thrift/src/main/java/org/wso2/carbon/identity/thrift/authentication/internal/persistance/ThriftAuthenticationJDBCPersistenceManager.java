@@ -106,14 +106,31 @@ public class ThriftAuthenticationJDBCPersistenceManager {
     /**
      * Returns an database connection for Identity data source.
      *
+     * @return dbConnection
+     * @throws AuthenticationException
+     * @Deprecated The getDBConnection should handle both transaction and non-transaction connection. Earlier it
+     * handle only the transactionConnection. Therefore this method was deprecated and changed as handle both
+     * transaction and non-transaction connection. getDBConnection(boolean shouldApplyTransaction) method used as
+     * alternative of this method.
+     */
+    @Deprecated
+    public Connection getDBConnection() throws AuthenticationException {
+        return getDBConnection(true);
+    }
+
+    /**
+     * Returns an database connection for Identity data source.
+     *
      * @return Database connection
      * @throws AuthenticationException Exception occurred when getting the data source.
      */
-    public Connection getDBConnection() throws AuthenticationException {
+    public Connection getDBConnection(Boolean shouldApplyTransaction) throws AuthenticationException {
         try {
             Connection dbConnection = dataSource.getConnection();
-            dbConnection.setAutoCommit(false);
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            if (shouldApplyTransaction) {
+                dbConnection.setAutoCommit(false);
+                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            }
             return dbConnection;
         } catch (SQLException e) {
             String errMsg = "Error when getting a database connection object from the Thrift Authentication data source.";
@@ -122,4 +139,37 @@ public class ThriftAuthenticationJDBCPersistenceManager {
         }
     }
 
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     * @throws SQLException SQL Exception.
+     */
+    public void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
+    }
+
+    /**
+     * Commit the transaction.
+     *
+     * @param dbConnection database connection.
+     * @throws SQLException SQL Exception.
+     */
+    public void commitTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.commit();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while commit transactions. ", e1);
+        }
+    }
 }

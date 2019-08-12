@@ -36,6 +36,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationBean" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.client.ApplicationManagementServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
@@ -143,18 +144,24 @@
     String jwksUri = null;
     boolean hasJWKSUri = false;
 
+    // SP bound consent skip
+    boolean skipContent = false;
+
     ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
+
     if (spProperties != null) {
         for (ServiceProviderProperty spProperty : spProperties) {
             if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
                 hasJWKSUri = true;
                 jwksUri = spProperty.getValue();
+            } else if (ApplicationMgtUIConstants.SKIP_CONSENT.equals(spProperty.getName())) {
+                skipContent = Boolean.parseBoolean(spProperty.getValue());
             }
         }
     }
 
     if (jwksUri == null) {
-        jwksUri = "";
+       jwksUri = "";
     }
 
     String authTypeReq = request.getParameter("authType");
@@ -540,7 +547,7 @@
     function createAppOnclick() {
         var spName = document.getElementById("spName").value;
         if (spName == '') {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             location.href = '#';
         } else if (!validateTextForIllegal(document.getElementById("spName"))) {
             return false;
@@ -645,7 +652,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../sso-saml/add_service_provider.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("saml_link").href = "#"
         }
     }
@@ -655,7 +662,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../servicestore/add-step1.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("kerberos_link").href = "#"
         }
     }
@@ -665,7 +672,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../oauth/add.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("oauth_link").href = "#"
         }
     }
@@ -675,7 +682,7 @@
         if (spName != '') {
             updateBeanAndRedirect("../generic-sts/sts.jsp?spName=" + spName);
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
             document.getElementById("sts_link").href = "#"
         }
     }
@@ -700,7 +707,7 @@
         if (spName != '') {
             updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=" + spName + "&purposeGroupType=SP&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSPPurposes"));
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
         }
     }
 
@@ -709,7 +716,7 @@
         if (spName != '') {
             updateBeanAndRedirect("/carbon/consent/list-purposes.jsp?purposeGroup=SHARED&purposeGroupType=SYSTEM&callback=" + encodeURIComponent("/carbon/application/configure-service-provider.jsp?spName=" + spName + "&display=consent&action=updateSharedPurposes"));
         } else {
-            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.id"/>');
+            CARBON.showWarningDialog('<fmt:message key="alert.please.provide.service.provider.name"/>');
         }
     }
 
@@ -1127,7 +1134,7 @@
                 }
             }
         } else {
-            $('#addClaimUrisLbl').text('Identity Provider Claim URIs:');
+            $('#addClaimUrisLbl').text('Service Provider Claim URIs:');
             $('#roleMappingSelection').show();
         }
     }
@@ -2762,6 +2769,14 @@
                                                         for="enable_authorization"><fmt:message
                                                         key="config.application.enable.authorization"/></label>
                                                     </td>
+                                                </tr>
+                                                <tr>
+                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= skipContent ? "checked" : ""%> value="true"/>
+                                                    <label for="skipConsent"><fmt:message key="config.application.skip.consent"/></label>
+                                                    </br>
+                                                    <div class="sectionHelp">
+                                                        <fmt:message key='help.skip.consent'/>
+                                                    </div>
                                                 </tr>
                                             </table>
 

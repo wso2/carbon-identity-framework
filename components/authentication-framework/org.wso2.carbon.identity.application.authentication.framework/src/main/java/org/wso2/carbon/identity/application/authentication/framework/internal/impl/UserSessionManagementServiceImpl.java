@@ -22,13 +22,23 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
+import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
+        .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,5 +100,76 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (UserStoreException e) {
             throw new UserSessionException("Failed to retrieve tenant id for tenant domain: " + tenantDomain);
         }
+    }
+
+    @Override
+    public List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
+
+        return getActiveSessionList(getSessionIdListByUserId(userId));
+    }
+
+    @Override
+    public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
+
+        List<String> sessionIdList = getSessionIdListByUserId(userId);
+        terminateSessionsOfUser(sessionIdList);
+        if (!sessionIdList.isEmpty()) {
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean terminateSessionBySessionId(String userId, String sessionId) {
+
+        sessionManagementService.removeSession(sessionId);
+        List<String> sessionIdList = new ArrayList<>();
+        sessionIdList.add(sessionId);
+        UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+
+        return true;
+    }
+
+    /**
+     * Returns the session id list for a given user id.
+     *
+     * @param userId user id for which the sessions should be retrieved.
+     * @return the list of session ids
+     * @throws SessionManagementServerException if session Ids can not be retrieved from the database.
+     */
+    private List<String> getSessionIdListByUserId(String userId) throws SessionManagementServerException {
+
+        try {
+            return UserSessionStore.getInstance().getSessionId(userId);
+        } catch (UserSessionException e) {
+            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, "Server encountered an error while retrieving session list of" +
+                    " user ID " + userId, e);
+        }
+    }
+
+    /**
+     * Returns the active sessions from given list of session IDs
+     *
+     * @param sessionIdList List of sessionIds
+     * @return UserSession[] Usersessions
+     * @throws SessionManagementServerException if an error occurs when retrieving the UserSessions.
+     */
+    private List<UserSession> getActiveSessionList(List<String> sessionIdList) throws SessionManagementServerException {
+
+        List<UserSession> sessionsList = new ArrayList<>();
+        for (String sessionId : sessionIdList) {
+            if (sessionId != null) {
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
+                if (sessionContext != null) {
+                    UserSessionDAO userSessionDTO = new UserSessionDAOImpl();
+                    UserSession userSession = userSessionDTO.getSession(sessionId);
+                    if (userSession != null) {
+                        sessionsList.add(userSession);
+                    }
+                }
+            }
+        }
+        return sessionsList;
     }
 }

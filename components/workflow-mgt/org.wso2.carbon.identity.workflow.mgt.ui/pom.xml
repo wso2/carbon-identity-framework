@@ -21,7 +21,7 @@
     <parent>
         <artifactId>identity-workflow-mgt</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -36,8 +36,8 @@
             <artifactId>org.wso2.carbon.ui</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
@@ -63,6 +63,10 @@
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -77,6 +81,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Import-Package>
+                            javax.xml.bind.annotation; version="[0.0.0, 1.0.0)",
                             javax.activation; version="${javax.activation.import.pkg.version}",
                             org.apache.axis2; version="${axis2.osgi.version.range}",
                             org.apache.axis2.client; version="${axis2.osgi.version.range}",
@@ -84,7 +89,7 @@
                             org.apache.axis2.transport.http; version="${axis2.osgi.version.range}",
                             org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.wso2.carbon.identity.workflow.mgt.stub.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.workflow.mgt.stub.bean.*;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.workflow.mgt.stub.mgt.*;version="${carbon.identity.package.import.version.range}",

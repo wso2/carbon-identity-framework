@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>configuration-mgt</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -44,8 +44,8 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
+            <groupId>org.ops4j.pax.logging</groupId>
+            <artifactId>pax-logging-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
@@ -107,10 +107,7 @@
     <build>
         <plugins>
             <!--osgi plugins-->
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -122,25 +119,21 @@
                         <Private-Package>org.wso2.carbon.identity.configuration.mgt.core.internal</Private-Package>
                         <Import-Package>
                             org.wso2.carbon.identity.configuration.mgt.core.*; version="${project.version}",
-
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
-
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
-                            org.wso2.carbon.utils;version="${carbon.kernel.package.import.version.range}",
-                            org.apache.axiom.*; version="${axiom.osgi.version.range}",
-                            org.wso2.securevault.*,
-                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.database.utils.*;version="${org.wso2.carbon.database.utils.version.range}",
-                            org.wso2.carbon.identity.application.authentication.framework.util.*;
-                            version="${carbon.identity.package.import.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
+                            org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.core.util; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.database.utils.jdbc; version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.database.utils.jdbc.exceptions; version="${org.wso2.carbon.database.utils.version.range}",
+                            org.wso2.carbon.identity.application.authentication.framework.util; version="${carbon.identity.package.import.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.configuration.mgt.core.internal,
                             org.wso2.carbon.identity.configuration.mgt.core.*; version="${project.version}",
                         </Export-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
             </plugin>

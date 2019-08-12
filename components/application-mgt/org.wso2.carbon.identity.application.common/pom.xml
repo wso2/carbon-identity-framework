@@ -18,12 +18,15 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>application-mgt</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.application.common</artifactId>
+    <packaging>bundle</packaging>
+    <name>WSO2 Carbon - Identity Application Common Bundle</name>
+
     <dependencies>
         <dependency>
             <groupId>org.wso2.carbon</groupId>
@@ -46,16 +49,15 @@
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+        </dependency>
     </dependencies>
-    <packaging>bundle</packaging>
-    <name>WSO2 Carbon - Identity Application Common Bundle</name>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -75,7 +77,7 @@
                             javax.xml.stream,
                             javax.xml.bind.annotation,
                             org.apache.axiom.*; version="${axiom.osgi.version.range}",
-                            org.apache.commons.logging; version="${commons-logging.osgi.version.range}",
+                            org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
 

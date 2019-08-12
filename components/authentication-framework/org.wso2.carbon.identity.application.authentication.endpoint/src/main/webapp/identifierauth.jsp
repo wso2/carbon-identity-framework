@@ -43,7 +43,7 @@
     }
 </script>
 
-<form action="<%=loginFormActionURL%>" method="post" id="identifierForm">
+<form action="<%=loginFormActionURL%>" onSubmit="event.preventDefault()" method="post" id="identifierForm">
     <%
         if (loginFormActionURL.equals(samlssoURL) || loginFormActionURL.equals(oauth2AuthorizeURL)) {
     %>

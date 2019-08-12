@@ -56,7 +56,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection();
+            dbConnection = getDBConnection(false);
             if(filter.startsWith(UserCoreConstants.INTERNAL_DOMAIN)){
                 sqlStmt = InternalStoreCountConstants.COUNT_INTERNAL_ONLY_ROLES_SQL;
                 filter = filter.replace(UserCoreConstants.INTERNAL_DOMAIN,"");
@@ -95,7 +95,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         ResultSet resultSet = null;
 
         try {
-            dbConnection = getDBConnection();
+            dbConnection = getDBConnection(false);
             sqlStmt = InternalStoreCountConstants.COUNT_INTERNAL_ROLES_SQL;
             prepStmt = dbConnection.prepareStatement(sqlStmt);
             prepStmt.setString(1, filter);
@@ -122,16 +122,34 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         }
     }
 
-    private Connection getDBConnection() throws SQLException, UserStoreException {
+    private Connection getDBConnection(boolean shouldApplyTransaction) throws SQLException, UserStoreException {
 
         Connection dbConnection = IdentityDatabaseUtil.getUserDBConnection();
         if (dbConnection == null) {
             throw new UserStoreException("Could not create a database connection to User database");
         }
-        dbConnection.setAutoCommit(false);
-        if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
-            dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+        if(shouldApplyTransaction) {
+            dbConnection.setAutoCommit(false);
+            if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
+                dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+            }
         }
         return dbConnection;
+    }
+
+    /**
+     * Revoke the transaction when catch then sql transaction errors.
+     *
+     * @param dbConnection database connection.
+     */
+    private void rollbackTransaction(Connection dbConnection) {
+
+        try {
+            if (dbConnection != null) {
+                dbConnection.rollback();
+            }
+        } catch (SQLException e1) {
+            log.error("An error occurred while rolling back transactions. ", e1);
+        }
     }
 }

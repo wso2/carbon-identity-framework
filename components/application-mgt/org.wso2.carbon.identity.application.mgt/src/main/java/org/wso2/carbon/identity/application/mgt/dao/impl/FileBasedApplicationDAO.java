@@ -82,15 +82,15 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent.getFileBasedSPs();
         List<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
-        if (StringUtils.isNotBlank(filter)) {
+        if (filter != null && filter.trim().length() != 0) {
             filter = filter.replace("*", ".*");
         } else {
             filter = ".*";
         }
         Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
 
-        for (Iterator<Entry<String, ServiceProvider>> iterator = spMap.entrySet().iterator(); iterator
-                .hasNext(); ) {
+        Iterator<Entry<String, ServiceProvider>> iterator = spMap.entrySet().iterator();
+        while (iterator.hasNext()) {
             Entry<String, ServiceProvider> entry = iterator.next();
             Matcher matcher = pattern.matcher(entry.getValue().getApplicationName());
             if (!matcher.matches()) {

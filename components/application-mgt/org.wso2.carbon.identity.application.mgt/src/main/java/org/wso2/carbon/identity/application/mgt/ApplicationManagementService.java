@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * Application management service abstract class.
  */
-public abstract class ApplicationManagementService {
+public abstract class ApplicationManagementService implements ApplicationPaginationAndSearching {
 
     /**
      * Get ApplicationManagementService instance.

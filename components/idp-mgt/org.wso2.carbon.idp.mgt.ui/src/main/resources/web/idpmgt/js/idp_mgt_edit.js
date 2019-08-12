@@ -1040,7 +1040,7 @@ jQuery('#advancedClaimMappingAddLink').click(function () {
     advancedClaimMappinRowID++;
     $("#advanced_claim_id_count").val(advancedClaimMappinRowID + 1);
     jQuery('#advancedClaimMappingAddTable').append(jQuery('<tr>' +
-        '<td><input type="text" style="width: 99%;" value="' + selectedIDPClaimName + '" id="advancnedIdpClaim_' + advancedClaimMappinRowID + '" name="advancnedIdpClaim_' + advancedClaimMappinRowID + '" readonly="readonly" /></td>' +
+        '<td><input type="text" style="width: 99%;" value="' + htmlEncode(selectedIDPClaimName) + '" id="advancnedIdpClaim_' + advancedClaimMappinRowID + '" name="advancnedIdpClaim_' + advancedClaimMappinRowID + '" readonly="readonly" /></td>' +
         '<td><input type="text" style="width: 99%;" id="advancedDefault_' + advancedClaimMappinRowID + '" name="advancedDefault_' + advancedClaimMappinRowID + '"/></td> ' +
         '<td><a onclick="deleteRow(this);return false;" href="#" class="icon-link" style="background-image: url(../images/delete.gif)"> Delete</a></td>' +
 

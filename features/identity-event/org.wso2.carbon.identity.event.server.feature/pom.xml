@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-event-feature</artifactId>
-        <version>5.12.374-SNAPSHOT</version>
+        <version>5.14.8-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -38,7 +38,7 @@
             <artifactId>org.wso2.carbon.identity.event</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.captcha.mgt</artifactId>
         </dependency>
 	<dependency>
@@ -70,6 +70,8 @@
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
                                         <include>identity-event.properties</include>
+                                        <include>identity-event.properties.j2</include>
+                                        <include>*.json</include>
                                     </includes>
                                 </resource>
                             </resources>
@@ -98,7 +100,7 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.event</bundleDef>
-                                <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.captcha.mgt</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.captcha.mgt</bundleDef>
                             	<bundleDef>kaptcha.wso2:kaptcha</bundleDef>
 			    </bundles>
                             <importFeatures>

@@ -38,4 +38,46 @@ public class ClaimConstants {
 
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
+
+    /**
+     * Enum for error messages.
+     */
+    public enum ErrorMessage {
+
+        ERROR_CODE_EMPTY_CLAIM_DIALECT("100001",
+                "Claim dialect cannot be empty"),
+        ERROR_CODE_EMPTY_LOCAL_CLAIM_URI("100002",
+                "Local claim URI cannot be empty"),
+        ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM("100003",
+                "Mapped attribute of the claim dialect URI : %s and Claim URI : %s cannot be empty"),
+        ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM("100004",
+                "Cannot remove local claim %s while having associations with external claims."),
+        ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI("100005",
+                "External claim URI cannot be empty"),
+        ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT("100006",
+                "Invalid external claim dialect " + LOCAL_CLAIM_DIALECT_URI),
+        ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI("100007",
+                "External dialect URI cannot be empty"),
+        ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI("100008",
+                "Mapped local claim URI cannot be empty"),
+        ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI("100009",
+                "Invalid Claim URI : %s for Claim Dialect : %s");
+
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }

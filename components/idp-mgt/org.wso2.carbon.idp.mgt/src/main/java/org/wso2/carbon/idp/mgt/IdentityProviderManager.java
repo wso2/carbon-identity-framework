@@ -659,28 +659,23 @@ public class IdentityProviderManager implements IdpManager {
 
         List<IdentityProviderProperty> identityProviderProperties = new ArrayList<IdentityProviderProperty>();
 
-        FederatedAuthenticatorConfig sessionTimeoutConfig = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.NAME);
-        if (sessionTimeoutConfig == null) {
-            sessionTimeoutConfig = new FederatedAuthenticatorConfig();
-            sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
-        }
+        FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
+        sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
+
         propertiesList = new ArrayList<Property>(Arrays.asList(sessionTimeoutConfig.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(sessionTimeoutConfig.getProperties(),
-                IdentityApplicationConstants.CLEAN_UP_PERIOD) == null) {
-            Property cleanUpPeriodProp = new Property();
-            cleanUpPeriodProp.setName(IdentityApplicationConstants.CLEAN_UP_PERIOD);
-            String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
-            if (StringUtils.isBlank(cleanUpPeriod)) {
-                cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
-            } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
-                log.warn("PersistanceCleanUpPeriod in identity.xml should be a numeric value");
-                cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
-            }
-            cleanUpPeriodProp.setValue(cleanUpPeriod);
-            propertiesList.add(cleanUpPeriodProp);
+
+        Property cleanUpPeriodProp = new Property();
+        cleanUpPeriodProp.setName(IdentityApplicationConstants.CLEAN_UP_PERIOD);
+        String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
+        if (StringUtils.isBlank(cleanUpPeriod)) {
+            cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
+        } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
+            log.warn("PersistanceCleanUpPeriod in identity.xml should be a numeric value");
+            cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
         }
+        cleanUpPeriodProp.setValue(cleanUpPeriod);
+        propertiesList.add(cleanUpPeriodProp);
+
         sessionTimeoutConfig.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(sessionTimeoutConfig);
 
@@ -800,9 +795,14 @@ public class IdentityProviderManager implements IdpManager {
         Property samlMetadataValidityPeriodProperty = new Property();
         String samlMetadataValidityPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.
                 SAML_METADATA_VALIDITY_PERIOD);
-        if (StringUtils.isBlank(samlMetadataValidityPeriod) || !StringUtils.isNumeric(samlMetadataValidityPeriod) ||
+        if (StringUtils.isBlank(samlMetadataValidityPeriod)) {
+            samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
+        } else if (!StringUtils.isNumeric(samlMetadataValidityPeriod) ||
                 Integer.parseInt(samlMetadataValidityPeriod) <= 0) {
-            log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value");
+            log.warn("SAMLMetadataValidityPeriod in identity.xml should be a numeric value " +
+                    "hence defaulting to value: " + IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_VALIDITY_PERIOD_DEFAULT + "m");
             samlMetadataValidityPeriod = IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_VALIDITY_PERIOD_DEFAULT;
         }
@@ -827,30 +827,6 @@ public class IdentityProviderManager implements IdpManager {
         properties = propertyList.toArray(properties);
         saml2SSOResidentAuthenticatorConfig.setProperties(properties);
 
-        FederatedAuthenticatorConfig idpPropertiesResidentAuthenticatorConfig = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
-                        IdentityApplicationConstants.NAME);
-        if (idpPropertiesResidentAuthenticatorConfig == null) {
-            idpPropertiesResidentAuthenticatorConfig = new FederatedAuthenticatorConfig();
-            idpPropertiesResidentAuthenticatorConfig.setName(IdentityApplicationConstants.NAME);
-        }
-        List<Property> propertiesList = new ArrayList<Property>(Arrays.asList(idpPropertiesResidentAuthenticatorConfig.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(idpPropertiesResidentAuthenticatorConfig.getProperties(),
-                IdentityApplicationConstants.CLEAN_UP_PERIOD) == null) {
-            Property cleanUpPeriodProp = new Property();
-            cleanUpPeriodProp.setName(IdentityApplicationConstants.CLEAN_UP_PERIOD);
-            String cleanUpPeriod = IdentityUtil.getProperty(IdentityConstants.ServerConfig.CLEAN_UP_PERIOD);
-            if (StringUtils.isBlank(cleanUpPeriod)) {
-                cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
-            } else if (!StringUtils.isNumeric(cleanUpPeriod)) {
-                log.warn("PersistanceCleanUpPeriod in identity.xml should be a numeric value");
-                cleanUpPeriod = IdentityApplicationConstants.CLEAN_UP_PERIOD_DEFAULT;
-            }
-            cleanUpPeriodProp.setValue(cleanUpPeriod);
-            propertiesList.add(cleanUpPeriodProp);
-        }
-        idpPropertiesResidentAuthenticatorConfig.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
-
         Property oidcProperty = new Property();
         oidcProperty.setName(OPENID_IDP_ENTITY_ID);
         oidcProperty.setValue(getOIDCResidentIdPEntityId());
@@ -868,7 +844,7 @@ public class IdentityProviderManager implements IdpManager {
         passiveStsAuthenticationConfig.setName(IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
 
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = {saml2SSOResidentAuthenticatorConfig,
-                idpPropertiesResidentAuthenticatorConfig, passiveStsAuthenticationConfig, oidcAuthenticationConfig};
+                passiveStsAuthenticationConfig, oidcAuthenticationConfig};
         identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
                 .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
@@ -1031,6 +1007,23 @@ public class IdentityProviderManager implements IdpManager {
 
     }
 
+    /**
+     * Retrieves registered Identity finally {
+     * break;
+     * }providers for a given tenant
+     *
+     * @param tenantDomain Tenant domain whose IdP names are requested
+     * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
+     * identifiers of each IdP
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers
+     */
+    @Override
+    public List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
+            throws IdentityProviderManagementException {
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        return dao.getIdPsSearch(null, tenantId, tenantDomain, filter);
+    }
+    
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *

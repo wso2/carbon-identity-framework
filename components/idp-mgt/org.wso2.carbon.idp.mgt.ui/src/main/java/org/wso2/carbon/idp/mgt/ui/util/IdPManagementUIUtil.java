@@ -69,6 +69,14 @@ public class IdPManagementUIUtil {
 
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
 
+    public static final String FILTER_STRING = "org.wso2.carbon.idp.mgt.filter";
+
+    public static final String IDP_FILTER = "idpFilter";
+
+    public static final String IDP_LIST = "identityProviderList";
+
+    public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
+
     /**
      * Validates an URI.
      *

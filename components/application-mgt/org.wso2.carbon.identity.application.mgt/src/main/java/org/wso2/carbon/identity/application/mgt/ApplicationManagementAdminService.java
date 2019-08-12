@@ -119,7 +119,17 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
-        return getApplicationBasicInfo("*");
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            ApplicationBasicInfo[] applicationBasicInfos =
+                    applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
+            List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+            return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        } catch (IdentityApplicationManagementException idpException) {
+            log.error("Error while retrieving all application basic info for tenant: " + getTenantDomain(),
+                    idpException);
+            throw idpException;
+        }
     }
 
     /**
@@ -132,26 +142,79 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter)
             throws IdentityApplicationManagementException {
 
-        try {
-            applicationMgtService = ApplicationManagementService.getInstance();
-            ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.
-                    getApplicationBasicInfo(getTenantDomain(), getUsername(), filter);
-            ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-            for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-                if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), getUsername())) {
-                    appInfo.add(applicationBasicInfo);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Retrieving basic information of application: " +
-                                applicationBasicInfo.getApplicationName());
-                    }
-                }
-            }
-            return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while retrieving all application basic info for tenant: " + getTenantDomain(),
-                    idpException);
-            throw idpException;
+        applicationMgtService = ApplicationManagementService.getInstance();
+        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getApplicationBasicInfo(getTenantDomain(),
+                getUsername(), filter);
+        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+    }
+
+    /**
+     * Get all basic application information with paginated manner
+     *
+     * @return Application Basic information array
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumer) throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        ApplicationBasicInfo[] applicationBasicInfos =
+                applicationMgtService.getAllPaginatedApplicationBasicInfo(getTenantDomain(), getUsername(), pageNumer);
+        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+    }
+
+    /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
+            throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getPaginatedApplicationBasicInfo(getTenantDomain(),
+                getUsername(), pageNumber, filter);
+        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+    }
+
+    /**
+     * Get count of all basic application information.
+     *
+     * @return Number of applications
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public int getCountOfAllApplications()
+            throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        int countOfAllApplications = applicationMgtService.getCountOfAllApplications(getTenantDomain(),
+                getUsername());
+        if (log.isDebugEnabled()) {
+            log.debug("Count of SP applications returned: " + countOfAllApplications + " for tenant: " + getTenantDomain());
         }
+        return countOfAllApplications;
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @return Number of applications
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public int getCountOfApplications(String filter)
+            throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        int countOfApplications = applicationMgtService.getCountOfApplications(getTenantDomain(),
+                getUsername(), filter);
+        if (log.isDebugEnabled()) {
+            log.debug("Count of SP applications returned: " + countOfApplications + " for tenant: " + getTenantDomain());
+        }
+        return countOfApplications;
     }
 
     /**

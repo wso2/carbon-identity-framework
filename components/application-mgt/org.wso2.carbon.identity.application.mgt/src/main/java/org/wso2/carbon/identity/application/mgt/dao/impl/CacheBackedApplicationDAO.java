@@ -193,7 +193,27 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException {
 
         // No need to cache the returned list.
-        return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+        return appDAO.getApplicationBasicInfo(filter);
+    }
+
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+
+        // No need to cache the returned list.
+        return appDAO.getAllPaginatedApplicationBasicInfo(pageNumber);
+    }
+
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws IdentityApplicationManagementException {
+
+        // No need to cache the returned list.
+        return appDAO.getPaginatedApplicationBasicInfo(pageNumber, filter);
+    }
+
+    public int getCountOfAllApplications() throws IdentityApplicationManagementException {
+        return appDAO.getCountOfAllApplications();
+    }
+
+    public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
+        return appDAO.getCountOfApplications(filter);
     }
 
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName, String
@@ -271,11 +291,13 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
                 InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                         .getInboundAuthenticationRequestConfigs();
                 for (InboundAuthenticationRequestConfig config : configs) {
-                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
-                    ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
-                            serviceProvider.getApplicationName(), tenantDomain);
-                    appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                    if (config.getInboundAuthKey() != null) {
+                        ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
+                                config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
+                        ServiceProviderCacheInboundAuthEntry clientEntry = new ServiceProviderCacheInboundAuthEntry(
+                                serviceProvider.getApplicationName(), tenantDomain);
+                        appCacheByInboundAuth.addToCache(clientKey, clientEntry);
+                    }
                 }
             }
         } finally {
@@ -387,9 +409,11 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
             InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs();
             for (InboundAuthenticationRequestConfig config : configs) {
-                ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
-                        config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
-                appCacheByInboundAuth.clearCacheEntry(clientKey);
+                if (config.getInboundAuthKey() != null) {
+                    ServiceProviderCacheInboundAuthKey clientKey = new ServiceProviderCacheInboundAuthKey(
+                            config.getInboundAuthKey(), config.getInboundAuthType(), tenantDomain);
+                    appCacheByInboundAuth.clearCacheEntry(clientKey);
+                }
             }
         }
     }

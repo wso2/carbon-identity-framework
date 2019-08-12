@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.SQLConstants;
@@ -30,6 +31,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI;
 
 /**
  *
@@ -122,8 +125,9 @@ public class ClaimDAO {
             prepStmt.setString(3, localClaimURI);
             prepStmt.setInt(4, tenantId);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while deleting claim " + localClaimURI + " from dialect" +
                     claimDialectURI, e);
         } finally {
@@ -161,8 +165,9 @@ public class ClaimDAO {
 
         if (claimId == 0) {
             // TODO : Throw runtime exception?
-            throw new ClaimMetadataException("Invalid Claim URI : " + claimURI + " for Claim Dialect : " +
-                    claimDialectURI);
+            throw new ClaimMetadataClientException(ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI.getCode(),
+                    String.format(ERROR_CODE_MAPPED_TO_INVALID_LOCAL_CLAIM_URI.getMessage(), claimURI,
+                            claimDialectURI));
         }
 
         return claimId;
