@@ -32,7 +32,7 @@ import org.wso2.carbon.user.core.UserRealm;
 
 public class OpenIDUserDAO extends AbstractDAO<OpenIDUserDO> {
 
-    protected Log log = LogFactory.getLog(OpenIDUserDAO.class);
+    protected static final Log log = LogFactory.getLog(OpenIDUserDAO.class);
     private UserRealm realm;
 
     public OpenIDUserDAO(Registry registry, UserRealm realm) {

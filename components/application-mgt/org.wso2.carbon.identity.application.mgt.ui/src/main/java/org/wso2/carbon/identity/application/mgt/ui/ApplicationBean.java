@@ -96,7 +96,7 @@ public class ApplicationBean {
     private ApplicationPurposes applicationPurposes;
     private Purpose[] sharedPurposes;
 
-    Log log = LogFactory.getLog(ApplicationBean.class);
+    private static final Log log = LogFactory.getLog(ApplicationBean.class);
 
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();

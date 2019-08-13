@@ -42,7 +42,7 @@ import org.wso2.carbon.user.core.service.RealmService;
         immediate = true
 )
 public class UserStoreConfigComponent {
-    private static Log log = LogFactory.getLog(UserStoreConfigComponent.class);
+    private static final Log log = LogFactory.getLog(UserStoreConfigComponent.class);
     private static RealmService realmService = null;
     private static RealmConfiguration realmConfiguration = null;
     private static ServerConfigurationService serverConfigurationService = null;

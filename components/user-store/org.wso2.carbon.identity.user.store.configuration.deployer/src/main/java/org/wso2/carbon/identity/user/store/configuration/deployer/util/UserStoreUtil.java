@@ -50,7 +50,7 @@ import java.security.cert.CertificateException;
 
 public class UserStoreUtil {
 
-    private static Log log = LogFactory.getLog(UserStoreUtil.class);
+    private static final Log log = LogFactory.getLog(UserStoreUtil.class);
     private static final String CIPHER_TRANSFORMATION_SYSTEM_PROPERTY = "org.wso2.CipherTransformation";
 
     /**

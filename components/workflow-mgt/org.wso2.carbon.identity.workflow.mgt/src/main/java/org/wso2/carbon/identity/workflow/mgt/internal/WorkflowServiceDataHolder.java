@@ -38,7 +38,7 @@ import java.util.Map;
 public class WorkflowServiceDataHolder {
 
     private static WorkflowServiceDataHolder instance = new WorkflowServiceDataHolder();
-    private static Log log = LogFactory.getLog(WorkflowServiceDataHolder.class);
+    private static final Log log = LogFactory.getLog(WorkflowServiceDataHolder.class);
 
     private RealmService realmService;
     private ConfigurationContextService configurationContextService;

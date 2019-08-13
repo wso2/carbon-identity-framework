@@ -48,7 +48,7 @@ import java.util.StringTokenizer;
  */
 public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
 
-    private static Log log = LogFactory.getLog(DefaultAttributeFinder.class);
+    private static final Log log = LogFactory.getLog(DefaultAttributeFinder.class);
     private Set<String> supportedAttrs = new HashSet<String>();
     private boolean mapFederatedUsersToLocal = false;
     private static final String MAP_FEDERATED_USERS_TO_LOCAL = "MapFederatedUsersToLocal";

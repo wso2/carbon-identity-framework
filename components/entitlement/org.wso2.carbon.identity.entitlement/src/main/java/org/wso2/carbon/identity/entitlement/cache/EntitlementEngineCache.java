@@ -45,7 +45,7 @@ public class EntitlementEngineCache {
             CachingConstants.LOCAL_CACHE_PREFIX + "ENTITLEMENT_ENGINE_CACHE";
     private static final EntitlementEngineCache instance = new EntitlementEngineCache();
     private static CacheBuilder<Integer, EntitlementEngine> cacheBuilder;
-    private static Log log = LogFactory.getLog(EntitlementEngineCache.class);
+    private static final Log log = LogFactory.getLog(EntitlementEngineCache.class);
     private static final long DEFAULT_ENTITLEMENT_ENGINE_CACHING_INTERVAL = 900;
 
     private EntitlementEngineCache(){

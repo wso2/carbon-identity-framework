@@ -43,7 +43,7 @@ public class WorkflowRequestDAO {
 
     public static final String UPDATED_AT_FILTER = "updatedAt";
     public static final String ALL_TASKS_FILTER = "allTasks";
-    private static Log log = LogFactory.getLog(WorkflowRequestDAO.class);
+    private static final Log log = LogFactory.getLog(WorkflowRequestDAO.class);
 
     /**
      * Persists WorkflowRequest to be used when workflow is completed

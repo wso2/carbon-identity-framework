@@ -61,7 +61,7 @@ import java.util.Set;
 public class CarbonAttributeFinder extends AttributeFinderModule {
 
     private Map<String, List<PIPAttributeFinder>> attrFinders = new HashMap<String, List<PIPAttributeFinder>>();
-    private static Log log = LogFactory.getLog(CarbonAttributeFinder.class);
+    private static final Log log = LogFactory.getLog(CarbonAttributeFinder.class);
     private PIPAttributeCache attributeFinderCache = null;
     protected int tenantId;
 
