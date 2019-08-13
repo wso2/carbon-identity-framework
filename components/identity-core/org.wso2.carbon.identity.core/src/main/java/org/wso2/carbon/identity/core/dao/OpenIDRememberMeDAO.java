@@ -30,7 +30,7 @@ import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 
 public class OpenIDRememberMeDAO extends AbstractDAO<OpenIDRememberMeDO> {
 
-    protected Log log = LogFactory.getLog(OpenIDRememberMeDAO.class);
+    protected static final Log log = LogFactory.getLog(OpenIDRememberMeDAO.class);
 
     public OpenIDRememberMeDAO(Registry registry) {
         this.registry = registry;

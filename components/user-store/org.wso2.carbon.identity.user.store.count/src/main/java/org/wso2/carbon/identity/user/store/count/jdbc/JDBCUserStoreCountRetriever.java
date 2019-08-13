@@ -40,7 +40,7 @@ import javax.sql.DataSource;
 
 public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever {
 
-    private static Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
+    private static final Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
     private int tenantId = MultitenantConstants.SUPER_TENANT_ID;
 

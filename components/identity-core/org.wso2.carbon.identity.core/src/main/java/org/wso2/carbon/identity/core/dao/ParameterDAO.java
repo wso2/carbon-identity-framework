@@ -28,7 +28,7 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 public class ParameterDAO extends AbstractDAO<ParameterDO> {
 
-    protected Log log = LogFactory.getLog(ParameterDAO.class);
+    protected static final Log log = LogFactory.getLog(ParameterDAO.class);
 
     /**
      * @param registry

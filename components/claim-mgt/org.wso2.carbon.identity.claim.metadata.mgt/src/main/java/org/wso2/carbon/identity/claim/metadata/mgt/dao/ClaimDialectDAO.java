@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class ClaimDialectDAO {
 
-    private static Log log = LogFactory.getLog(ClaimDialectDAO.class);
+    private static final Log log = LogFactory.getLog(ClaimDialectDAO.class);
 
     public List<ClaimDialect> getClaimDialects(int tenantId) throws ClaimMetadataException {
 

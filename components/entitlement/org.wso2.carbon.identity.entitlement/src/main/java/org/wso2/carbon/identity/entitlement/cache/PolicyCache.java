@@ -38,7 +38,7 @@ import java.util.Map;
  */
 public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicyStatus>{
 
-    private static Log log = LogFactory.getLog(PolicyCache.class);
+    private static final Log log = LogFactory.getLog(PolicyCache.class);
     private static final Object lock = new Object();
     private int myHashCode;
     private static final int INVALID_STATE = 1;

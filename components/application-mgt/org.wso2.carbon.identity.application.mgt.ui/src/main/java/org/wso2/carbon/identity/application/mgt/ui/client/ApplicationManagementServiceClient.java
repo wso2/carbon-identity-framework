@@ -46,7 +46,7 @@ import java.util.List;
 public class ApplicationManagementServiceClient {
 
     IdentityApplicationManagementServiceStub stub;
-    Log log = LogFactory.getLog(ApplicationManagementServiceClient.class);
+    private static final Log log = LogFactory.getLog(ApplicationManagementServiceClient.class);
     boolean debugEnabled = log.isErrorEnabled();
     private UserAdminStub userAdminStub;
 

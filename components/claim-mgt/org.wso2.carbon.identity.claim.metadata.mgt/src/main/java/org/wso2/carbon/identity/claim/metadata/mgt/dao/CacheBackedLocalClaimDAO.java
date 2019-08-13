@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class CacheBackedLocalClaimDAO {
 
-    private static Log log = LogFactory.getLog(CacheBackedLocalClaimDAO.class);
+    private static final Log log = LogFactory.getLog(CacheBackedLocalClaimDAO.class);
 
     LocalClaimDAO localClaimDAO;
 

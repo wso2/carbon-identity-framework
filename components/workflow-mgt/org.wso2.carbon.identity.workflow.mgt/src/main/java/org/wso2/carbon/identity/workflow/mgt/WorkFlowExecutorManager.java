@@ -54,7 +54,7 @@ public class WorkFlowExecutorManager {
 
     private static WorkFlowExecutorManager instance = new WorkFlowExecutorManager();
 
-    private static Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
+    private static final Log log = LogFactory.getLog(WorkFlowExecutorManager.class);
 
     private WorkFlowExecutorManager() {
 
