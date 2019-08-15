@@ -128,6 +128,7 @@
     String clientSecret = null;
     String authzUrl = null;
     String tokenUrl = null;
+    String logoutUrlOidc = null;
     String callBackUrl = null;
     String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
@@ -403,7 +404,7 @@
                     }
                     Property isEnableAssertionSignatureValidationProp =
                             IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                                IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
+                                    IdentityApplicationConstants.Authenticator.PassiveSTS.IS_ENABLE_ASSERTION_SIGNATURE_VALIDATION);
                     if (isEnableAssertionSignatureValidationProp != null) {
                         isEnablePassiveSTSAssertionSignatureValidation =
                                 Boolean.parseBoolean(isEnableAssertionSignatureValidationProp.getValue());
@@ -434,6 +435,11 @@
                             IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
                     if (tokenUrlProp != null) {
                         tokenUrl = tokenUrlProp.getValue();
+                    }
+                    Property logoutUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+                    if (logoutUrlProp != null) {
+                        logoutUrlOidc = logoutUrlProp.getValue();
                     }
                     Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
@@ -606,25 +612,25 @@
                     }
 
                     Property artifactBindingEnableProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
                     if (artifactBindingEnableProp != null) {
                         isArtifactBindingEnabled = Boolean.parseBoolean(artifactBindingEnableProp.getValue());
                     }
 
                     Property artifactResolveUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
                     if (artifactResolveUrlProp != null) {
                         artifactResolveUrl = artifactResolveUrlProp.getValue();
                     }
 
                     Property artifactResolveReqSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
                     if (artifactResolveReqSignedProp != null) {
                         isArtifactResolveReqSigned = Boolean.parseBoolean(artifactResolveReqSignedProp.getValue());
                     }
 
                     Property artifactResponseSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
                     if (artifactResponseSignedProp != null) {
                         isArtifactResponseSigned = Boolean.parseBoolean(artifactResponseSignedProp.getValue());
                     }
@@ -1747,11 +1753,11 @@
 
 
             var newrow = jQuery('<tr><td><input class="claimrow" style=" width: 90%; " type="text" id="claimrowid_' + claimRowId + '" name="claimrowname_' + claimRowId + '"/></td>' +
-                    '<td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +
-                    '<td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
-                    'style="background-image: url(images/delete.gif)">' +
-                    'Delete' +
-                    '</a></td></tr>');
+                '<td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +
+                '<td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
+                'style="background-image: url(images/delete.gif)">' +
+                'Delete' +
+                '</a></td></tr>');
             jQuery('.claimrow', newrow).blur(function () {
                 claimURIDropdownPopulator();
             });
@@ -1795,7 +1801,7 @@
             $(jQuery('#publicCertDiv')).toggle();
             var publicCertDiv = document.getElementById('publicCertDiv').style;
             publicCertDiv.display = 'none';
-            jQuery( '#publicCertDiv').empty();
+            jQuery('#publicCertDiv').empty();
 
             var input = document.createElement('input');
             input.type = "hidden";
@@ -1839,250 +1845,67 @@
 
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
-                        jQuery('#idPName').val() + '?';
+                    jQuery('#idPName').val() + '?';
                 if (jQuery('#certFile').val() != '') {
                     confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                 }
                 CARBON.showConfirmationDialog(confirmationMessage,
-                        function () {
-                            if (allDeletedClaimStr != "") {
-                                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                                        allDeletedClaimStr,
-                                        function () {
-                                            if (allDeletedRoleStr != "") {
-                                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                        'role(s) ' + allDeletedRoleStr,
+                    function () {
+                        if (allDeletedClaimStr != "") {
+                            CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                allDeletedClaimStr,
+                                function () {
+                                    if (allDeletedRoleStr != "") {
+                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                            'role(s) ' + allDeletedRoleStr,
+                                            function () {
+                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Claim URI Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
                                                         function () {
-                                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                                 var confirmationMessage = 'Are you sure you want to ' +
-                                                                        'delete the Claim URI Mappings of ' +
-                                                                        jQuery('#idPName').val() + '?';
-                                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                                    'delete the Role Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                                if (jQuery('#roleMappingFile').val() != '') {
                                                                     confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                                 }
                                                                 CARBON.showConfirmationDialog(confirmationMessage,
-                                                                        function () {
-                                                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                                                        'delete the Role Mappings of ' +
-                                                                                        jQuery('#idPName').val() + '?';
-                                                                                if (jQuery('#roleMappingFile').val() != '') {
-                                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                                }
-                                                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                        function () {
-                                                                                            doEditFinish();
-                                                                                        },
-                                                                                        function () {
-                                                                                            location.href =
-                                                                                                    "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                        });
-                                                                            } else {
-                                                                                doEditFinish();
-                                                                            }
-                                                                        },
-                                                                        function () {
-                                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                        });
+                                                                    function () {
+                                                                        doEditFinish();
+                                                                    },
+                                                                    function () {
+                                                                        location.href =
+                                                                            "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
                                                             } else {
-                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                                            'delete the Role Mappings of ' +
-                                                                            jQuery('#idPName').val() + '?';
-                                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                    }
-                                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                                            function () {
-                                                                                doEditFinish();
-                                                                            },
-                                                                            function () {
-                                                                                location.href =
-                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                            });
-                                                                } else {
-                                                                    doEditFinish();
-                                                                }
+                                                                doEditFinish();
                                                             }
                                                         },
                                                         function () {
                                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                         });
-                                            } else {
-                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Claim URI mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#claimMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                    }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                            function () {
-
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                            });
                                                 } else {
                                                     if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                         var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Role Mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
+                                                            'delete the Role Mappings of ' +
+                                                            jQuery('#idPName').val() + '?';
                                                         if (jQuery('#roleMappingFile').val() != '') {
                                                             confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                         }
                                                         CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    doEditFinish();
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        doEditFinish();
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        function () {
-                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                        });
-                            } else {
-                                if (allDeletedRoleStr != "") {
-                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                            'role(s) ' + allDeletedRoleStr,
-                                            function () {
-                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Claim URI mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#claimMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                    }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
-
+                                                                doEditFinish();
                                                             },
                                                             function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                location.href =
+                                                                    "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                             });
-                                                } else {
-                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Role Mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    doEditFinish();
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        doEditFinish();
-                                                    }
-                                                }
-                                            },
-                                            function () {
-                                                location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
-                                            });
-                                } else {
-                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                'delete the Claim URI mappings of ' +
-                                                jQuery('#idPName').val() + '?';
-                                        if (jQuery('#claimMappingFile').val() != '') {
-                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                        }
-                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                function () {
-                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Role Mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    doEditFinish();
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        doEditFinish();
-                                                    }
-                                                },
-                                                function () {
-                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                });
-                                    } else {
-                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                    'delete the Role Mappings of ' +
-                                                    jQuery('#idPName').val() + '?';
-                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                            }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                    function () {
-                                                        doEditFinish();
-                                                    },
-                                                    function () {
-                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                    });
-                                        } else {
-                                            doEditFinish();
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        function () {
-                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                        });
-            } else {
-                if (allDeletedClaimStr != "") {
-                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                            allDeletedClaimStr,
-                            function () {
-                                if (allDeletedRoleStr != "") {
-                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                            'role(s) ' + allDeletedRoleStr,
-                                            function () {
-                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                            'delete the Claim URI mappings of ' +
-                                                            jQuery('#idPName').val() + '?';
-                                                    if (jQuery('#claimMappingFile').val() != '') {
-                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                    }
-                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                            function () {
-
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                            });
-                                                } else {
-                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Role Mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    doEditFinish();
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
                                                     } else {
                                                         doEditFinish();
                                                     }
@@ -2091,165 +1914,348 @@
                                             function () {
                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                             });
-                                } else {
-                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                        var confirmationMessage = 'Are you sure you want to ' +
+                                    } else {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
                                                 'delete the Claim URI mappings of ' +
                                                 jQuery('#idPName').val() + '?';
-                                        if (jQuery('#claimMappingFile').val() != '') {
-                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                        }
-                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            if (jQuery('#claimMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
-                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Role Mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    doEditFinish();
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        doEditFinish();
-                                                    }
+
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                 });
-                                    } else {
-                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
+                                        } else {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
                                                     'delete the Role Mappings of ' +
                                                     jQuery('#idPName').val() + '?';
-                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                            }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
                                                         doEditFinish();
                                                     },
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                     });
-                                        } else {
-                                            doEditFinish();
-                                        }
-                                    }
-                                }
-                            },
-                            function () {
-                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                            });
-                } else {
-                    if (allDeletedRoleStr != "") {
-                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                'role(s) ' + allDeletedRoleStr,
-                                function () {
-                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                'delete the Claim URI mappings of ' +
-                                                jQuery('#idPName').val() + '?';
-                                        if (jQuery('#claimMappingFile').val() != '') {
-                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                        }
-                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                function () {
-                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Role Mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    doEditFinish();
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        doEditFinish();
-                                                    }
-                                                },
-                                                function () {
-                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                });
-                                    } else {
-                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                    'delete the Role Mappings of ' +
-                                                    jQuery('#idPName').val() + '?';
-                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            } else {
+                                                doEditFinish();
                                             }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                    function () {
-                                                        doEditFinish();
-                                                    },
-                                                    function () {
-                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                    });
-                                        } else {
-                                            doEditFinish();
                                         }
                                     }
                                 },
                                 function () {
                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                 });
-                    } else {
-                        if (jQuery('#deleteClaimMappings').val() == 'true') {
-                            var confirmationMessage = 'Are you sure you want to ' +
-                                    'delete the Claim URI mappings of ' +
-                                    jQuery('#idPName').val() + '?';
-                            if (jQuery('#claimMappingFile').val() != '') {
-                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                            }
-                            CARBON.showConfirmationDialog(confirmationMessage,
+                        } else {
+                            if (allDeletedRoleStr != "") {
+                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                    'role(s) ' + allDeletedRoleStr,
                                     function () {
-                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
                                             var confirmationMessage = 'Are you sure you want to ' +
-                                                    'delete the Role Mappings of ' +
-                                                    jQuery('#idPName').val() + '?';
-                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                'delete the Claim URI mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#claimMappingFile').val() != '') {
                                                 confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                             }
                                             CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
                                                         doEditFinish();
                                                     },
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                     });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        }
+                                    },
+                                    function () {
+                                        location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
+                                    });
+                            } else {
+                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                    var confirmationMessage = 'Are you sure you want to ' +
+                                        'delete the Claim URI mappings of ' +
+                                        jQuery('#idPName').val() + '?';
+                                    if (jQuery('#claimMappingFile').val() != '') {
+                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                    }
+                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                        function () {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
+                                } else {
+                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Role Mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#roleMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                doEditFinish();
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        doEditFinish();
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    function () {
+                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                    });
+            } else {
+                if (allDeletedClaimStr != "") {
+                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                        allDeletedClaimStr,
+                        function () {
+                            if (allDeletedRoleStr != "") {
+                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                    'role(s) ' + allDeletedRoleStr,
+                                    function () {
+                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                'delete the Claim URI mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#claimMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
                                         } else {
-                                            doEditFinish();
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                doEditFinish();
+                                            }
                                         }
                                     },
                                     function () {
                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                     });
-                        } else {
-                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                var confirmationMessage = 'Are you sure you want to ' +
-                                        'delete the Role Mappings of ' +
+                            } else {
+                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                    var confirmationMessage = 'Are you sure you want to ' +
+                                        'delete the Claim URI mappings of ' +
                                         jQuery('#idPName').val() + '?';
-                                if (jQuery('#roleMappingFile').val() != '') {
-                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                }
-                                CARBON.showConfirmationDialog(confirmationMessage,
+                                    if (jQuery('#claimMappingFile').val() != '') {
+                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                    }
+                                    CARBON.showConfirmationDialog(confirmationMessage,
                                         function () {
-                                            doEditFinish();
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                doEditFinish();
+                                            }
                                         },
                                         function () {
                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                         });
+                                } else {
+                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Role Mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#roleMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                doEditFinish();
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        doEditFinish();
+                                    }
+                                }
+                            }
+                        },
+                        function () {
+                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                        });
+                } else {
+                    if (allDeletedRoleStr != "") {
+                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                            'role(s) ' + allDeletedRoleStr,
+                            function () {
+                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                    var confirmationMessage = 'Are you sure you want to ' +
+                                        'delete the Claim URI mappings of ' +
+                                        jQuery('#idPName').val() + '?';
+                                    if (jQuery('#claimMappingFile').val() != '') {
+                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                    }
+                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                        function () {
+                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Role Mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        doEditFinish();
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                doEditFinish();
+                                            }
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
+                                } else {
+                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Role Mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#roleMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                doEditFinish();
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        doEditFinish();
+                                    }
+                                }
+                            },
+                            function () {
+                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                            });
+                    } else {
+                        if (jQuery('#deleteClaimMappings').val() == 'true') {
+                            var confirmationMessage = 'Are you sure you want to ' +
+                                'delete the Claim URI mappings of ' +
+                                jQuery('#idPName').val() + '?';
+                            if (jQuery('#claimMappingFile').val() != '') {
+                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                            }
+                            CARBON.showConfirmationDialog(confirmationMessage,
+                                function () {
+                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Role Mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#roleMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                doEditFinish();
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        doEditFinish();
+                                    }
+                                },
+                                function () {
+                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                });
+                        } else {
+                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                var confirmationMessage = 'Are you sure you want to ' +
+                                    'delete the Role Mappings of ' +
+                                    jQuery('#idPName').val() + '?';
+                                if (jQuery('#roleMappingFile').val() != '') {
+                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                }
+                                CARBON.showConfirmationDialog(confirmationMessage,
+                                    function () {
+                                        doEditFinish();
+                                    },
+                                    function () {
+                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                    });
                             } else {
                                 doEditFinish();
                             }
@@ -2259,331 +2265,133 @@
             }
         }
     }
+
     function idpMgtUpdateMetadata() {
         if (document.getElementById("meta_data_saml").value != "") {
             <%
                 if(idPName != null && !(idPName.equals(""))){
                 %>
             CARBON.showConfirmationDialog("This will delete your public certificate and SAML SSO configuration, Do you want to proceed?",
-                    function () {
-                        if (doValidation()) {
-                            var allDeletedClaimStr = "";
-                            for (var i = 0; i < deleteClaimRows.length; i++) {
-                                if (i < deleteClaimRows.length - 1) {
-                                    allDeletedClaimStr += deleteClaimRows[i] + ", ";
-                                } else {
-                                    allDeletedClaimStr += deleteClaimRows[i] + "?";
-                                }
+                function () {
+                    if (doValidation()) {
+                        var allDeletedClaimStr = "";
+                        for (var i = 0; i < deleteClaimRows.length; i++) {
+                            if (i < deleteClaimRows.length - 1) {
+                                allDeletedClaimStr += deleteClaimRows[i] + ", ";
+                            } else {
+                                allDeletedClaimStr += deleteClaimRows[i] + "?";
                             }
-                            var allDeletedRoleStr = "";
-                            for (var i = 0; i < deletedRoleRows.length; i++) {
-                                if (i < deletedRoleRows.length - 1) {
-                                    allDeletedRoleStr += deletedRoleRows[i] + ", ";
-                                } else {
-                                    allDeletedRoleStr += deletedRoleRows[i] + "?";
-                                }
+                        }
+                        var allDeletedRoleStr = "";
+                        for (var i = 0; i < deletedRoleRows.length; i++) {
+                            if (i < deletedRoleRows.length - 1) {
+                                allDeletedRoleStr += deletedRoleRows[i] + ", ";
+                            } else {
+                                allDeletedRoleStr += deletedRoleRows[i] + "?";
                             }
+                        }
 
-                            if (jQuery('#deletePublicCert').val() == 'true') {
-                                var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
-                                        jQuery('#idPName').val() + '?';
-                                if (jQuery('#certFile').val() != '') {
-                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                }
-                                CARBON.showConfirmationDialog(confirmationMessage,
-                                        function () {
-                                            if (allDeletedClaimStr != "") {
-                                                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                                                        allDeletedClaimStr,
+                        if (jQuery('#deletePublicCert').val() == 'true') {
+                            var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
+                                jQuery('#idPName').val() + '?';
+                            if (jQuery('#certFile').val() != '') {
+                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                            }
+                            CARBON.showConfirmationDialog(confirmationMessage,
+                                function () {
+                                    if (allDeletedClaimStr != "") {
+                                        CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                            allDeletedClaimStr,
+                                            function () {
+                                                if (allDeletedRoleStr != "") {
+                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                        'role(s) ' + allDeletedRoleStr,
                                                         function () {
-                                                            if (allDeletedRoleStr != "") {
-                                                                CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                                        'role(s) ' + allDeletedRoleStr,
-                                                                        function () {
-                                                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                                                        'delete the Claim URI Mappings of ' +
-                                                                                        jQuery('#idPName').val() + '?';
-                                                                                if (jQuery('#claimMappingFile').val() != '') {
-                                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                                }
-                                                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                        function () {
-                                                                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                                                                        'delete the Role Mappings of ' +
-                                                                                                        jQuery('#idPName').val() + '?';
-                                                                                                if (jQuery('#roleMappingFile').val() != '') {
-                                                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                                                }
-                                                                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                                        function () {
-                                                                                                            doEditFinish();
-                                                                                                        },
-                                                                                                        function () {
-                                                                                                            location.href =
-                                                                                                                    "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                                        });
-                                                                                            } else {
-                                                                                                doEditFinish();
-                                                                                            }
-                                                                                        },
-                                                                                        function () {
-                                                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                        });
-                                                                            } else {
-                                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                                                            'delete the Role Mappings of ' +
-                                                                                            jQuery('#idPName').val() + '?';
-                                                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                                    }
-                                                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                            function () {
-                                                                                                doEditFinish();
-                                                                                            },
-                                                                                            function () {
-                                                                                                location.href =
-                                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                            });
-                                                                                } else {
-                                                                                    doEditFinish();
-                                                                                }
-                                                                            }
-                                                                        },
-                                                                        function () {
-                                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                        });
-                                                            } else {
-                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                                            'delete the Claim URI mappings of ' +
-                                                                            jQuery('#idPName').val() + '?';
-                                                                    if (jQuery('#claimMappingFile').val() != '') {
-                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                    }
-                                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                                            function () {
-
-                                                                            },
-                                                                            function () {
-                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                            });
-                                                                } else {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                                    'delete the Claim URI Mappings of ' +
+                                                                    jQuery('#idPName').val() + '?';
+                                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                }
+                                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                                    function () {
+                                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                            var confirmationMessage = 'Are you sure you want to ' +
                                                                                 'delete the Role Mappings of ' +
                                                                                 jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                                            }
+                                                                            CARBON.showConfirmationDialog(confirmationMessage,
                                                                                 function () {
                                                                                     doEditFinish();
                                                                                 },
                                                                                 function () {
-                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                                    location.href =
+                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                                                 });
-                                                                    } else {
-                                                                        doEditFinish();
+                                                                        } else {
+                                                                            doEditFinish();
+                                                                        }
+                                                                    },
+                                                                    function () {
+                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    });
+                                                            } else {
+                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                                        'delete the Role Mappings of ' +
+                                                                        jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                                     }
+                                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                                        function () {
+                                                                            doEditFinish();
+                                                                        },
+                                                                        function () {
+                                                                            location.href =
+                                                                                "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                        });
+                                                                } else {
+                                                                    doEditFinish();
                                                                 }
                                                             }
                                                         },
                                                         function () {
                                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                         });
-                                            } else {
-                                                if (allDeletedRoleStr != "") {
-                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                            'role(s) ' + allDeletedRoleStr,
-                                                            function () {
-                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                                            'delete the Claim URI mappings of ' +
-                                                                            jQuery('#idPName').val() + '?';
-                                                                    if (jQuery('#claimMappingFile').val() != '') {
-                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                    }
-                                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                                            function () {
-
-                                                                            },
-                                                                            function () {
-                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                            });
-                                                                } else {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                                'delete the Role Mappings of ' +
-                                                                                jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                function () {
-                                                                                    doEditFinish();
-                                                                                },
-                                                                                function () {
-                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                });
-                                                                    } else {
-                                                                        doEditFinish();
-                                                                    }
-                                                                }
-                                                            },
-                                                            function () {
-                                                                location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
-                                                            });
                                                 } else {
                                                     if (jQuery('#deleteClaimMappings').val() == 'true') {
                                                         var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Claim URI mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
+                                                            'delete the Claim URI mappings of ' +
+                                                            jQuery('#idPName').val() + '?';
                                                         if (jQuery('#claimMappingFile').val() != '') {
                                                             confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                         }
                                                         CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                                'delete the Role Mappings of ' +
-                                                                                jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                function () {
-                                                                                    doEditFinish();
-                                                                                },
-                                                                                function () {
-                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                });
-                                                                    } else {
-                                                                        doEditFinish();
-                                                                    }
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            doEditFinish();
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        function () {
-                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                        });
-                            } else {
-                                if (allDeletedClaimStr != "") {
-                                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                                            allDeletedClaimStr,
-                                            function () {
-                                                if (allDeletedRoleStr != "") {
-                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                            'role(s) ' + allDeletedRoleStr,
                                                             function () {
-                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                                            'delete the Claim URI mappings of ' +
-                                                                            jQuery('#idPName').val() + '?';
-                                                                    if (jQuery('#claimMappingFile').val() != '') {
-                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                    }
-                                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                                            function () {
 
-                                                                            },
-                                                                            function () {
-                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                            });
-                                                                } else {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                                'delete the Role Mappings of ' +
-                                                                                jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                function () {
-                                                                                    doEditFinish();
-                                                                                },
-                                                                                function () {
-                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                });
-                                                                    } else {
-                                                                        doEditFinish();
-                                                                    }
-                                                                }
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                             });
-                                                } else {
-                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Claim URI mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#claimMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                                'delete the Role Mappings of ' +
-                                                                                jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                function () {
-                                                                                    doEditFinish();
-                                                                                },
-                                                                                function () {
-                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                });
-                                                                    } else {
-                                                                        doEditFinish();
-                                                                    }
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
                                                     } else {
                                                         if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                             var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
                                                             if (jQuery('#roleMappingFile').val() != '') {
                                                                 confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                             }
                                                             CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
                                                         } else {
                                                             doEditFinish();
                                                         }
@@ -2593,56 +2401,142 @@
                                             function () {
                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                             });
-                                } else {
-                                    if (allDeletedRoleStr != "") {
-                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                    } else {
+                                        if (allDeletedRoleStr != "") {
+                                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
                                                 'role(s) ' + allDeletedRoleStr,
                                                 function () {
                                                     if (jQuery('#deleteClaimMappings').val() == 'true') {
                                                         var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Claim URI mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
+                                                            'delete the Claim URI mappings of ' +
+                                                            jQuery('#idPName').val() + '?';
                                                         if (jQuery('#claimMappingFile').val() != '') {
                                                             confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                         }
                                                         CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                                'delete the Role Mappings of ' +
-                                                                                jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                function () {
-                                                                                    doEditFinish();
-                                                                                },
-                                                                                function () {
-                                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                });
-                                                                    } else {
-                                                                        doEditFinish();
-                                                                    }
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
+                                                            function () {
+
+                                                            },
+                                                            function () {
+                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                            });
                                                     } else {
                                                         if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                             var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
                                                             if (jQuery('#roleMappingFile').val() != '') {
                                                                 confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                             }
                                                             CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    }
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                function () {
+                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                });
+                        } else {
+                            if (allDeletedClaimStr != "") {
+                                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                    allDeletedClaimStr,
+                                    function () {
+                                        if (allDeletedRoleStr != "") {
+                                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                'role(s) ' + allDeletedRoleStr,
+                                                function () {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                            'delete the Claim URI mappings of ' +
+                                                            jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                                            function () {
+
+                                                            },
+                                                            function () {
+                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                            });
+                                                    } else {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
                                                         } else {
                                                             doEditFinish();
                                                         }
@@ -2651,30 +2545,30 @@
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                 });
-                                    } else {
-                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
+                                        } else {
+                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
                                                     'delete the Claim URI mappings of ' +
                                                     jQuery('#idPName').val() + '?';
-                                            if (jQuery('#claimMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                            }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
                                                         if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                             var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
                                                             if (jQuery('#roleMappingFile').val() != '') {
                                                                 confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                             }
                                                             CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
                                                         } else {
                                                             doEditFinish();
                                                         }
@@ -2682,34 +2576,147 @@
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                     });
-                                        } else {
-                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
+                                            } else {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
                                                         'delete the Role Mappings of ' +
                                                         jQuery('#idPName').val() + '?';
-                                                if (jQuery('#roleMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
                                                         function () {
                                                             doEditFinish();
                                                         },
                                                         function () {
                                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                         });
-                                            } else {
-                                                doEditFinish();
+                                                } else {
+                                                    doEditFinish();
+                                                }
                                             }
+                                        }
+                                    },
+                                    function () {
+                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                    });
+                            } else {
+                                if (allDeletedRoleStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                        'role(s) ' + allDeletedRoleStr,
+                                        function () {
+                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
+                                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                            }
+                                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                                function () {
+                                                                    doEditFinish();
+                                                                },
+                                                                function () {
+                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                });
+                                                        } else {
+                                                            doEditFinish();
+                                                        }
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
+                                            }
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
+                                } else {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Claim URI mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#claimMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                'delete the Role Mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+                                                    doEditFinish();
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            doEditFinish();
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    function () {
-                        location.href =
-                                "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                    });
+                    }
+                },
+                function () {
+                    location.href =
+                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                });
             <%
 
             }else{
@@ -2737,250 +2744,67 @@
 
                 if (jQuery('#deletePublicCert').val() == 'true') {
                     var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
-                            jQuery('#idPName').val() + '?';
+                        jQuery('#idPName').val() + '?';
                     if (jQuery('#certFile').val() != '') {
                         confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                     }
                     CARBON.showConfirmationDialog(confirmationMessage,
-                            function () {
-                                if (allDeletedClaimStr != "") {
-                                    CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                                            allDeletedClaimStr,
-                                            function () {
-                                                if (allDeletedRoleStr != "") {
-                                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                            'role(s) ' + allDeletedRoleStr,
+                        function () {
+                            if (allDeletedClaimStr != "") {
+                                CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                                    allDeletedClaimStr,
+                                    function () {
+                                        if (allDeletedRoleStr != "") {
+                                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                                'role(s) ' + allDeletedRoleStr,
+                                                function () {
+                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                        var confirmationMessage = 'Are you sure you want to ' +
+                                                            'delete the Claim URI Mappings of ' +
+                                                            jQuery('#idPName').val() + '?';
+                                                        if (jQuery('#claimMappingFile').val() != '') {
+                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                        }
+                                                        CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
-                                                                if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                                     var confirmationMessage = 'Are you sure you want to ' +
-                                                                            'delete the Claim URI Mappings of ' +
-                                                                            jQuery('#idPName').val() + '?';
-                                                                    if (jQuery('#claimMappingFile').val() != '') {
+                                                                        'delete the Role Mappings of ' +
+                                                                        jQuery('#idPName').val() + '?';
+                                                                    if (jQuery('#roleMappingFile').val() != '') {
                                                                         confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                                     }
                                                                     CARBON.showConfirmationDialog(confirmationMessage,
-                                                                            function () {
-                                                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                                    var confirmationMessage = 'Are you sure you want to ' +
-                                                                                            'delete the Role Mappings of ' +
-                                                                                            jQuery('#idPName').val() + '?';
-                                                                                    if (jQuery('#roleMappingFile').val() != '') {
-                                                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                                    }
-                                                                                    CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                            function () {
-                                                                                                doEditFinish();
-                                                                                            },
-                                                                                            function () {
-                                                                                                location.href =
-                                                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                            });
-                                                                                } else {
-                                                                                    doEditFinish();
-                                                                                }
-                                                                            },
-                                                                            function () {
-                                                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                            });
+                                                                        function () {
+                                                                            doEditFinish();
+                                                                        },
+                                                                        function () {
+                                                                            location.href =
+                                                                                "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                        });
                                                                 } else {
-                                                                    if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                                'delete the Role Mappings of ' +
-                                                                                jQuery('#idPName').val() + '?';
-                                                                        if (jQuery('#roleMappingFile').val() != '') {
-                                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                                        }
-                                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                                function () {
-                                                                                    doEditFinish();
-                                                                                },
-                                                                                function () {
-                                                                                    location.href =
-                                                                                            "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                                });
-                                                                    } else {
-                                                                        doEditFinish();
-                                                                    }
+                                                                    doEditFinish();
                                                                 }
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                             });
-                                                } else {
-                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Claim URI mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#claimMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
                                                     } else {
                                                         if (jQuery('#deleteRoleMappings').val() == 'true') {
                                                             var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
+                                                                'delete the Role Mappings of ' +
+                                                                jQuery('#idPName').val() + '?';
                                                             if (jQuery('#roleMappingFile').val() != '') {
                                                                 confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                             }
                                                             CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            doEditFinish();
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            function () {
-                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                            });
-                                } else {
-                                    if (allDeletedRoleStr != "") {
-                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                'role(s) ' + allDeletedRoleStr,
-                                                function () {
-                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Claim URI mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#claimMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
                                                                 function () {
-
+                                                                    doEditFinish();
                                                                 },
                                                                 function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                                    location.href =
+                                                                        "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                                 });
-                                                    } else {
-                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            doEditFinish();
-                                                        }
-                                                    }
-                                                },
-                                                function () {
-                                                    location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
-                                                });
-                                    } else {
-                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                    'delete the Claim URI mappings of ' +
-                                                    jQuery('#idPName').val() + '?';
-                                            if (jQuery('#claimMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                            }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                    function () {
-                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            doEditFinish();
-                                                        }
-                                                    },
-                                                    function () {
-                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                    });
-                                        } else {
-                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                        'delete the Role Mappings of ' +
-                                                        jQuery('#idPName').val() + '?';
-                                                if (jQuery('#roleMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                        function () {
-                                                            doEditFinish();
-                                                        },
-                                                        function () {
-                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                        });
-                                            } else {
-                                                doEditFinish();
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            function () {
-                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                            });
-                } else {
-                    if (allDeletedClaimStr != "") {
-                        CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
-                                allDeletedClaimStr,
-                                function () {
-                                    if (allDeletedRoleStr != "") {
-                                        CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                                'role(s) ' + allDeletedRoleStr,
-                                                function () {
-                                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                                        var confirmationMessage = 'Are you sure you want to ' +
-                                                                'delete the Claim URI mappings of ' +
-                                                                jQuery('#idPName').val() + '?';
-                                                        if (jQuery('#claimMappingFile').val() != '') {
-                                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                        }
-                                                        CARBON.showConfirmationDialog(confirmationMessage,
-                                                                function () {
-
-                                                                },
-                                                                function () {
-                                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                });
-                                                    } else {
-                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
                                                         } else {
                                                             doEditFinish();
                                                         }
@@ -2989,165 +2813,348 @@
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                 });
-                                    } else {
-                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
+                                        } else {
+                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
                                                     'delete the Claim URI mappings of ' +
                                                     jQuery('#idPName').val() + '?';
-                                            if (jQuery('#claimMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                            }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
-                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            doEditFinish();
-                                                        }
+
                                                     },
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                     });
-                                        } else {
-                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
+                                            } else {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
                                                         'delete the Role Mappings of ' +
                                                         jQuery('#idPName').val() + '?';
-                                                if (jQuery('#roleMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
                                                         function () {
                                                             doEditFinish();
                                                         },
                                                         function () {
                                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                         });
-                                            } else {
-                                                doEditFinish();
-                                            }
-                                        }
-                                    }
-                                },
-                                function () {
-                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                });
-                    } else {
-                        if (allDeletedRoleStr != "") {
-                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
-                                    'role(s) ' + allDeletedRoleStr,
-                                    function () {
-                                        if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                    'delete the Claim URI mappings of ' +
-                                                    jQuery('#idPName').val() + '?';
-                                            if (jQuery('#claimMappingFile').val() != '') {
-                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                            }
-                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                    function () {
-                                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                            var confirmationMessage = 'Are you sure you want to ' +
-                                                                    'delete the Role Mappings of ' +
-                                                                    jQuery('#idPName').val() + '?';
-                                                            if (jQuery('#roleMappingFile').val() != '') {
-                                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                                            }
-                                                            CARBON.showConfirmationDialog(confirmationMessage,
-                                                                    function () {
-                                                                        doEditFinish();
-                                                                    },
-                                                                    function () {
-                                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                                    });
-                                                        } else {
-                                                            doEditFinish();
-                                                        }
-                                                    },
-                                                    function () {
-                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                    });
-                                        } else {
-                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                                var confirmationMessage = 'Are you sure you want to ' +
-                                                        'delete the Role Mappings of ' +
-                                                        jQuery('#idPName').val() + '?';
-                                                if (jQuery('#roleMappingFile').val() != '') {
-                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                } else {
+                                                    doEditFinish();
                                                 }
-                                                CARBON.showConfirmationDialog(confirmationMessage,
-                                                        function () {
-                                                            doEditFinish();
-                                                        },
-                                                        function () {
-                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
-                                                        });
-                                            } else {
-                                                doEditFinish();
                                             }
                                         }
                                     },
                                     function () {
                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                     });
-                        } else {
-                            if (jQuery('#deleteClaimMappings').val() == 'true') {
-                                var confirmationMessage = 'Are you sure you want to ' +
-                                        'delete the Claim URI mappings of ' +
-                                        jQuery('#idPName').val() + '?';
-                                if (jQuery('#claimMappingFile').val() != '') {
-                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                }
-                                CARBON.showConfirmationDialog(confirmationMessage,
+                            } else {
+                                if (allDeletedRoleStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                        'role(s) ' + allDeletedRoleStr,
                                         function () {
-                                            if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
                                                 var confirmationMessage = 'Are you sure you want to ' +
-                                                        'delete the Role Mappings of ' +
-                                                        jQuery('#idPName').val() + '?';
-                                                if (jQuery('#roleMappingFile').val() != '') {
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#claimMappingFile').val() != '') {
                                                     confirmationMessage = confirmationMessage.replace("delete", "re-upload");
                                                 }
                                                 CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
+                                            } else {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
                                                         function () {
                                                             doEditFinish();
                                                         },
                                                         function () {
                                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                                         });
+                                                } else {
+                                                    doEditFinish();
+                                                }
+                                            }
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=Encode.forUriComponent(idPName)%>";
+                                        });
+                                } else {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Claim URI mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#claimMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                'delete the Role Mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+                                                    doEditFinish();
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            doEditFinish();
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        function () {
+                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                        });
+                } else {
+                    if (allDeletedClaimStr != "") {
+                        CARBON.showConfirmationDialog('Are you sure you want to delete the claim URI(s) ' +
+                            allDeletedClaimStr,
+                            function () {
+                                if (allDeletedRoleStr != "") {
+                                    CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                        'role(s) ' + allDeletedRoleStr,
+                                        function () {
+                                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                                var confirmationMessage = 'Are you sure you want to ' +
+                                                    'delete the Claim URI mappings of ' +
+                                                    jQuery('#idPName').val() + '?';
+                                                if (jQuery('#claimMappingFile').val() != '') {
+                                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                }
+                                                CARBON.showConfirmationDialog(confirmationMessage,
+                                                    function () {
+
+                                                    },
+                                                    function () {
+                                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                    });
                                             } else {
-                                                doEditFinish();
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
                                             }
                                         },
                                         function () {
                                             location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                         });
-                            } else {
-                                if (jQuery('#deleteRoleMappings').val() == 'true') {
-                                    var confirmationMessage = 'Are you sure you want to ' +
-                                            'delete the Role Mappings of ' +
+                                } else {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Claim URI mappings of ' +
                                             jQuery('#idPName').val() + '?';
-                                    if (jQuery('#roleMappingFile').val() != '') {
-                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
-                                    }
-                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                        if (jQuery('#claimMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
                                             function () {
-                                                doEditFinish();
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
                                             },
                                             function () {
                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                                             });
+                                    } else {
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                'delete the Role Mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+                                                    doEditFinish();
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            doEditFinish();
+                                        }
+                                    }
+                                }
+                            },
+                            function () {
+                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                            });
+                    } else {
+                        if (allDeletedRoleStr != "") {
+                            CARBON.showConfirmationDialog('Are you sure you want to delete the ' +
+                                'role(s) ' + allDeletedRoleStr,
+                                function () {
+                                    if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                        var confirmationMessage = 'Are you sure you want to ' +
+                                            'delete the Claim URI mappings of ' +
+                                            jQuery('#idPName').val() + '?';
+                                        if (jQuery('#claimMappingFile').val() != '') {
+                                            confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                        }
+                                        CARBON.showConfirmationDialog(confirmationMessage,
+                                            function () {
+                                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                                    var confirmationMessage = 'Are you sure you want to ' +
+                                                        'delete the Role Mappings of ' +
+                                                        jQuery('#idPName').val() + '?';
+                                                    if (jQuery('#roleMappingFile').val() != '') {
+                                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                                    }
+                                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                                        function () {
+                                                            doEditFinish();
+                                                        },
+                                                        function () {
+                                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                        });
+                                                } else {
+                                                    doEditFinish();
+                                                }
+                                            },
+                                            function () {
+                                                location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                            });
+                                    } else {
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                'delete the Role Mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+                                                    doEditFinish();
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            doEditFinish();
+                                        }
+                                    }
+                                },
+                                function () {
+                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                });
+                        } else {
+                            if (jQuery('#deleteClaimMappings').val() == 'true') {
+                                var confirmationMessage = 'Are you sure you want to ' +
+                                    'delete the Claim URI mappings of ' +
+                                    jQuery('#idPName').val() + '?';
+                                if (jQuery('#claimMappingFile').val() != '') {
+                                    confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                }
+                                CARBON.showConfirmationDialog(confirmationMessage,
+                                    function () {
+                                        if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                            var confirmationMessage = 'Are you sure you want to ' +
+                                                'delete the Role Mappings of ' +
+                                                jQuery('#idPName').val() + '?';
+                                            if (jQuery('#roleMappingFile').val() != '') {
+                                                confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                            }
+                                            CARBON.showConfirmationDialog(confirmationMessage,
+                                                function () {
+                                                    doEditFinish();
+                                                },
+                                                function () {
+                                                    location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                                });
+                                        } else {
+                                            doEditFinish();
+                                        }
+                                    },
+                                    function () {
+                                        location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                    });
+                            } else {
+                                if (jQuery('#deleteRoleMappings').val() == 'true') {
+                                    var confirmationMessage = 'Are you sure you want to ' +
+                                        'delete the Role Mappings of ' +
+                                        jQuery('#idPName').val() + '?';
+                                    if (jQuery('#roleMappingFile').val() != '') {
+                                        confirmationMessage = confirmationMessage.replace("delete", "re-upload");
+                                    }
+                                    CARBON.showConfirmationDialog(confirmationMessage,
+                                        function () {
+                                            doEditFinish();
+                                        },
+                                        function () {
+                                            location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
+                                        });
                                 } else {
                                     doEditFinish();
                                 }
@@ -3195,9 +3202,9 @@
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
-        <% if ( idPName != null && idPName != "") { %>
+        <% if (idPName != null && idPName != "") { %>
         <h2>
-            <fmt:message key = 'identity.provider'/>
+            <fmt:message key='identity.provider'/>
         </h2>
         <% } else { %>
         <h2>
@@ -3288,21 +3295,22 @@
                                 <label style="display:block">
                                     <input type="radio" id="choose_jwks_uri" name="choose_certificate_type"
                                            value="choose_jwks_uri" <% if (hasJWKSUri || (!hasJWKSUri && ArrayUtils
-                                           .isEmpty(certDataArr))) { %>
+                                            .isEmpty(certDataArr))) { %>
                                            checked="checked" <% } %>
-                                           onclick="selectJWKS('<%=(ArrayUtils.isNotEmpty(certDataArr))%>');" />
+                                           onclick="selectJWKS('<%=(ArrayUtils.isNotEmpty(certDataArr))%>');"/>
                                     Use IDP JWKS endpoint
                                 </label>
                                 <label style="display:block">
                                     <input type="radio" id="choose_upload_certificate" name="choose_certificate_type"
                                             <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> checked="checked" <% } %>
                                            value="choose_upload_certificate"
-                                           onclick="selectCertificate()" />
+                                           onclick="selectCertificate()"/>
                                     Upload IDP certificate
                                 </label>
                             </td>
                         </tr>
-                        <tr id="upload_certificate" <% if (ArrayUtils.isEmpty(certDataArr)) { %> style="display:none" <% } %>>
+                        <tr id="upload_certificate" <% if (ArrayUtils.isEmpty(certDataArr)) { %>
+                            style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='certificate'/>:</td>
                             <td>
                                 <input id="certFile" name="certFile" type="file"/>
@@ -3311,8 +3319,8 @@
                                     <fmt:message key='certificate.help'/>
                                 </div>
 
-                                    <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
-                                
+                                <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
+
                                 <div class="publicCertDiv">
                                     <div style="clear:both"></div>
                                     <table class="styledLeft" id="certTableData">
@@ -3390,10 +3398,12 @@
                                     } %>
                             </td>
                         </tr>
-                        <tr id="use_jwks_uri" <% if (ArrayUtils.isNotEmpty(certDataArr)) { %> style="display:none" <% } %>>
+                        <tr id="use_jwks_uri" <% if (ArrayUtils.isNotEmpty(certDataArr)) { %>
+                            style="display:none" <% } %>>
                             <td class="leftCol-med labelField"><fmt:message key='jwks.uri'/>:</td>
                             <td>
-                                <input id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                                <input id="jwksUri" name="jwksUri" type="text"
+                                       value="<%=Encode.forHtmlAttribute(jwksUri)%>"
                                        autofocus/>
 
                                 <div class="sectionHelp">
@@ -3479,8 +3489,8 @@
                                         %>
                                         <script>
                                             $(
-                                                    jQuery('#claimAddTable'))
-                                                    .toggle();
+                                                jQuery('#claimAddTable'))
+                                                .toggle();
                                         </script>
                                         <% for (int i = 0; i < claimMappings.length; i++) { %>
                                         <tr>
@@ -3605,8 +3615,8 @@
                                         %>
                                         <script>
                                             $(
-                                                    jQuery('#advancedClaimMappingAddTable'))
-                                                    .show();
+                                                jQuery('#advancedClaimMappingAddTable'))
+                                                .show();
                                         </script>
                                         <% for (int i = 0; i < claimMappings.length; i++) {
                                             if (!isCustomClaimEnabled) {
@@ -3717,8 +3727,8 @@
                                     %>
                                     <script>
                                         $(
-                                                jQuery('#roleAddTable'))
-                                                .toggle();
+                                            jQuery('#roleAddTable'))
+                                            .toggle();
                                     </script>
                                     <%
                                         for (int i = 0; i < roleMappings.length; i++) {
@@ -3969,9 +3979,9 @@
                                 <tbody>
                                 <tr>
                                     <td class="leftCol-med labelField"><fmt:message key='saml.sso.select.mode'/><span
-                                            ></span></td>
+                                    ></span></td>
                                     <td>
-                                        <input type="radio" checked="checked" name="saml_ui_mode"  value="manual"
+                                        <input type="radio" checked="checked" name="saml_ui_mode" value="manual"
                                                onclick="
                                         $('#manual_section').show(); $('#metadata_section').hide();">
                                         <fmt:message key='saml.mode.manual'/>
@@ -3989,7 +3999,6 @@
                                 </tbody>
                             </table>
                         </div>
-
 
 
                         <div id="manual_section">
@@ -4149,10 +4158,13 @@
                                 <!-- Artifact Resolve Url -->
 
                                 <tr>
-                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;"><fmt:message key='attr.artifact.resolve.url'/>:</td>
+                                    <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
+                                        <fmt:message key='attr.artifact.resolve.url'/>:
+                                    </td>
                                     <td>
-                                        <input id="artifactResolveUrl" name="ArtifactResolveUrl" class="text-box-big" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>
-                                        type="text" value=<%=Encode.forHtml(artifactResolveUrl)%>>
+                                        <input id="artifactResolveUrl" name="ArtifactResolveUrl"
+                                               class="text-box-big" <%=(isArtifactBindingEnabled) ? "" : "disabled=\"disabled\""%>
+                                               type="text" value=<%=Encode.forHtml(artifactResolveUrl)%>>
 
                                         <div class="sectionHelp">
                                             <fmt:message key='attr.artifact.resolve.url.help'/>
@@ -4160,7 +4172,7 @@
                                     </td>
                                 </tr>
 
-                                 <!-- Enable Artifact Resolve Request Signing -->
+                                <!-- Enable Artifact Resolve Request Signing -->
 
                                 <tr>
                                     <td style="padding-left: 40px ! important; color: rgb(119, 119, 119); font-style: italic;">
@@ -4524,14 +4536,17 @@
                                 </tr>
 
                                 <tr>
-                                    <td class="leftCol-med labelField"><fmt:message key='authn.context.class.ref'/>:</td>
+                                    <td class="leftCol-med labelField"><fmt:message key='authn.context.class.ref'/>:
+                                    </td>
                                     <td>
                                         <label>
                                             <input type="radio" name="ResponseAuthnContextClassRef" value="default"
                                                    <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("default")){%>checked="checked"<%}%>/>Default
                                         </label>
-                                        <label><input type="radio" name="ResponseAuthnContextClassRef" value="as_response"
-                                                      <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("as_response")){%>checked="checked"<%}%>/>As Per Response
+                                        <label><input type="radio" name="ResponseAuthnContextClassRef"
+                                                      value="as_response"
+                                                      <% if(responseAuthnContextClassRef != null && responseAuthnContextClassRef.equals("as_response")){%>checked="checked"<%}%>/>As
+                                            Per Response
                                         </label>
 
                                         <div class="sectionHelp" style="margin-top: 5px">
@@ -4694,6 +4709,18 @@
 
                                     <div class="sectionHelp">
                                         <fmt:message key='token.endpoint.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>:<span
+                                        class="required">*</span></td>
+                                <td>
+                                    <input id="logoutUrlOidc" name="logoutUrlOidc" type="text"
+                                           value=<%=Encode.forHtmlAttribute(logoutUrlOidc)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='logout.endpoint.help'/>
                                     </div>
                                 </td>
                             </tr>
@@ -5287,7 +5314,8 @@
                                                name="choose_jit_type_group"
                                                value="prompt_username_password_consent" <% if (isPasswordProvisioningEnabled
                                                 && isUserNameModificationAllowed && isPromptConsent) { %>
-                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                               checked="checked" <% }
+                                            if (!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
                                         <fmt:message key='jit.prompt.username.password.consent'/>
                                     </label>
@@ -5297,7 +5325,8 @@
                                         <input type="radio" id=prompt_password_consent" name="choose_jit_type_group"
                                                value="prompt_password_consent"  <% if (isPasswordProvisioningEnabled &&
                                                 !isUserNameModificationAllowed && isPromptConsent) { %>
-                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                               checked="checked" <% }
+                                            if (!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
                                         <fmt:message key='jit.prompt.password.consent'/>
                                     </label>
@@ -5307,7 +5336,8 @@
                                         <input type="radio" id="prompt_consent" name="choose_jit_type_group"
                                                value="prompt_consent"  <% if (!isPasswordProvisioningEnabled &&
                                                 !isUserNameModificationAllowed && isPromptConsent) { %>
-                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                               checked="checked" <% }
+                                            if (!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
                                         <fmt:message key='jit.prompt.consent'/>
                                     </label>
@@ -5316,7 +5346,8 @@
                                     <label style="display:block">
                                         <input type="radio" id="do_not_prompt" name="choose_jit_type_group"
                                                value="do_not_prompt"  <% if (!isPromptConsent) { %>
-                                               checked="checked" <% } if(!isProvisioningEnabled) { %> disabled
+                                               checked="checked" <% }
+                                            if (!isProvisioningEnabled) { %> disabled
                                                 <%}%>/>
                                         <fmt:message key='jit.provision.silently'/>
                                     </label>
@@ -5670,7 +5701,8 @@
                                     <fmt:message key='scim.default.password'/>:
                                 </td>
                                 <td><input class="text-box-big" id="scim-default-pwd" <%=disableDefaultPwd%>
-                                           name="scim-default-pwd" type="text" value=<%=Encode.forHtmlAttribute(scimDefaultPwd)%>></td>
+                                           name="scim-default-pwd" type="text"
+                                           value=<%=Encode.forHtmlAttribute(scimDefaultPwd)%>></td>
                                 <%if (scimUniqueID != null) {%>
                                 <input type="hidden" id="scim-unique-id" name="scim-unique-id"
                                        value=<%=Encode.forHtmlAttribute(scimUniqueID)%>>

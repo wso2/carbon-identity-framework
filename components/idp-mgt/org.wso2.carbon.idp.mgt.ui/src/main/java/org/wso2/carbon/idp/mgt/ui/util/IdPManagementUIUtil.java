@@ -1259,7 +1259,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[9];
+        Property[] properties = new Property[10];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1276,14 +1276,19 @@ public class IdPManagementUIUtil {
         properties[2] = property;
 
         property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET);
-        property.setValue(paramMap.get("clientSecret"));
-        property.setConfidential(true);
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+        property.setValue(paramMap.get("logoutUrlOidc"));
         properties[3] = property;
 
         property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS);
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET);
+        property.setValue(paramMap.get("clientSecret"));
+        property.setConfidential(true);
         properties[4] = property;
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS);
+        properties[5] = property;
         if ("1".equals(paramMap.get("oidc_user_id_location"))) {
             property.setValue("true");
             ;
@@ -1298,17 +1303,17 @@ public class IdPManagementUIUtil {
                 && paramMap.get("oidcQueryParam").trim().length() > 0) {
             property.setValue(paramMap.get("oidcQueryParam"));
         }
-        properties[5] = property;
+        properties[6] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
         property.setValue(paramMap.get("callbackUrl"));
-        properties[6] = property;
+        properties[7] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
         property.setValue(paramMap.get("userInfoEndpoint"));
-        properties[7] = property;
+        properties[8] = property;
 
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
@@ -1317,7 +1322,7 @@ public class IdPManagementUIUtil {
         } else {
             property.setValue("false");
         }
-        properties[8] = property;
+        properties[9] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
@@ -1325,7 +1330,8 @@ public class IdPManagementUIUtil {
         if (paramMap.get("authzUrl") != null && !"".equals(paramMap.get("authzUrl"))
                 && paramMap.get("tokenUrl") != null && !"".equals(paramMap.get("tokenUrl"))
                 && paramMap.get("clientId") != null && !"".equals(paramMap.get("clientId"))
-                && paramMap.get("clientSecret") != null && !"".equals(paramMap.get("clientSecret"))) {
+                && paramMap.get("clientSecret") != null && !"".equals(paramMap.get("clientSecret"))
+                && paramMap.get("logoutUrlOidc") != null && !"".equals(paramMap.get("logoutUrlOidc"))) {
             if (authenticators == null || authenticators.length == 0) {
                 fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{oidcAuthnConfig});
             } else {
