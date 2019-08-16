@@ -1145,6 +1145,9 @@
     if (StringUtils.isBlank(tokenUrl)) {
         tokenUrl = StringUtils.EMPTY;
     }
+    if (StringUtils.isBlank(logoutUrlOidc)) {
+        logoutUrlOidc = StringUtils.EMPTY;
+    }
 
     if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
