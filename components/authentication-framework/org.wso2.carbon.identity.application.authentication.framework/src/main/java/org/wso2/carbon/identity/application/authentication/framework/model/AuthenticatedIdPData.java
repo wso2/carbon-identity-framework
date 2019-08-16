@@ -31,6 +31,8 @@ public class AuthenticatedIdPData implements Serializable {
 
     private static final long serialVersionUID = 5576595024956777804L;
 
+    private static final Log log = LogFactory.getLog(AuthenticatedIdPData.class);
+
     private String idpName;
 
     @Deprecated
@@ -72,6 +74,10 @@ public class AuthenticatedIdPData implements Serializable {
         // If the serialized authenticated data has been stored with the old class definition,
         // 'authenticator' field may be available. So that variable takes the priority over 'authenticators' list.
         if (authenticator != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Serialized and stored AuthenticatedIdPData object was initially serialized using the " +
+                        "old class definition. Handling it in a backward compatible manner");
+            }
             return authenticator;
         } else if (CollectionUtils.isNotEmpty(authenticators)) {
             // NOTE : In order to make introducing 'authenticators' field, backward compatible
@@ -126,6 +132,10 @@ public class AuthenticatedIdPData implements Serializable {
         }
 
         if (this.authenticator != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Serialized and stored AuthenticatedIdPData object was initially serialized using the " +
+                        "old class definition. Handling it in a backward compatible manner");
+            }
 
             if (authenticatorsToBeReturned == null) {
                 authenticatorsToBeReturned = new ArrayList<AuthenticatorConfig>(1);
@@ -149,9 +159,21 @@ public class AuthenticatedIdPData implements Serializable {
 
         for (AuthenticatorConfig authenticator : getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("User '%s' is already authenticated using the " +
+                                    "IDP : '%s'and the authenticator : '%s'.",
+                            user.getUserName(), idpName, authenticator.getName()));
+                }
                 return true;
             }
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("User '%s' was not authenticated using the " +
+                            "IDP : '%s'and the authenticator : '%s' before.",
+                    user.getUserName(), idpName, authenticatorName));
+        }
+
         return false;
     }
 
@@ -169,9 +191,21 @@ public class AuthenticatedIdPData implements Serializable {
             if (authenticator.getName().equals(authenticatorName)
                     || (authenticator.getApplicationAuthenticator() != null
                             && authenticator.getApplicationAuthenticator().getAuthMechanism().equals(authMechanism))) {
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format("User '%s' is already authenticated using the " +
+                                    "IDP : '%s'and the authenticator : '%s'.",
+                            user.getUserName(), idpName, authenticator.getName()));
+                }
                 return true;
             }
         }
+
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("User '%s' was not authenticated using the " +
+                            "IDP : '%s'and the authenticator : '%s' before.",
+                    user.getUserName(), idpName, authenticatorName));
+        }
+
         return false;
     }
 }
