@@ -108,6 +108,7 @@
   "authentication.authenticator.fido.name": "FIDOAuthenticator",
   "authentication.authenticator.fido.enable": true,
   "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
+  "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
 
   "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
   "authentication.authenticator.mobile_connect.enable": true,
