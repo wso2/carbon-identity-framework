@@ -17,7 +17,28 @@
   --%>
 
 <%@ page import="org.owasp.encoder.Encode" %>
+<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script>
+    // Handle form submission preventing double submission.
+    $(document).ready(function(){
+        $.fn.preventDoubleSubmission = function() {
+            $(this).on('submit',function(e){
+                var $form = $(this);
+                if ($form.data('submitted') === true) {
+                    // Previously submitted - don't submit again.
+                    e.preventDefault();
+                    console.warn("Prevented a possible double submit event");
+                } else {
+                    // Mark it so that the next submit can be ignored.
+                    $form.data('submitted', true);
+                }
+            });
 
+            return this;
+        };
+        $('#loginForm').preventDoubleSubmission();
+    });
+</script>
 <form action="<%=commonauthURL%>" method="post" id="loginForm" class="form-horizontal">
     <%
         loginFailed = request.getParameter("loginFailed");
