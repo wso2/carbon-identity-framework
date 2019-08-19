@@ -22,9 +22,11 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.xml.XMLObject;
+// import org.opensaml.Configuration; Previous Version (New Version Below)
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+// import org.opensaml.DefaultBootstrap; Previous Version (New Version Below)
+import org.opensaml.core.config.InitializationService;
+import org.opensaml.core.xml.XMLObject;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.reflect.Whitebox;
@@ -83,7 +85,7 @@ import static org.testng.Assert.assertTrue;
 
 
 @PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
-        IdentityCoreServiceComponent.class, NetworkUtils.class, Configuration.class, IdentityTenantUtil.class})
+        IdentityCoreServiceComponent.class, NetworkUtils.class, XMLObjectProviderRegistrySupport.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
         ".*", "org.apache.xerces.*"})
 public class IdentityUtilTest {
@@ -435,7 +437,40 @@ public class IdentityUtilTest {
 
     @Test
     public void testUnmarshall() throws Exception {
-        DefaultBootstrap.bootstrap();
+        Thread thread = Thread.currentThread();
+        ClassLoader loader = thread.getContextClassLoader();
+        thread.setContextClassLoader(InitializationService.class.getClassLoader());
+
+        try {
+            InitializationService.initialize();
+
+            org.opensaml.saml.config.SAMLConfigurationInitializer initializer_1 = new org.opensaml.saml.config.SAMLConfigurationInitializer();
+            initializer_1.init();
+
+            org.opensaml.saml.config.XMLObjectProviderInitializer initializer_2 = new org.opensaml.saml.config.XMLObjectProviderInitializer();
+            initializer_2.init();
+
+            org.opensaml.core.xml.config.XMLObjectProviderInitializer initializer_3 = new org.opensaml.core.xml.config.XMLObjectProviderInitializer();
+            initializer_3.init();
+
+            org.opensaml.core.xml.config.GlobalParserPoolInitializer initializer_4 = new org.opensaml.core.xml.config.GlobalParserPoolInitializer();
+            initializer_4.init();
+
+//            org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_5 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+//            initializer_5.init();
+//
+//            org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_6 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
+//            initializer_6.init();
+//
+//            org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_7 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
+//            initializer_7.init();
+
+        } catch (org.opensaml.core.config.InitializationException e) {
+
+        } finally {
+            thread.setContextClassLoader(loader);
+        }
+
         String xmlString = "<saml:Audience xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">https://sp.example.com/SAML2</saml:Audience>";
         XMLObject xmlObject = IdentityUtil.unmarshall(xmlString);
         assertEquals(xmlObject.getElementQName().getLocalPart(), "Audience", "Unmarshalled object doesn't match the " +
