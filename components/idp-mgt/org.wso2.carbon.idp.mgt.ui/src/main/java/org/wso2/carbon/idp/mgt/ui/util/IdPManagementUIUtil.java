@@ -1291,7 +1291,7 @@ public class IdPManagementUIUtil {
         properties[5] = property;
         if ("1".equals(paramMap.get("oidc_user_id_location"))) {
             property.setValue("true");
-            ;
+
         } else {
             property.setValue("false");
         }
