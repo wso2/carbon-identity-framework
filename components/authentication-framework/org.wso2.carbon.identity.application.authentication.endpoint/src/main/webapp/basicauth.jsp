@@ -55,11 +55,11 @@
                     console.warn("Prevented a possible double submit event");
                 } else {
                     e.preventDefault();
-                    // Mark it so that the next submit can be ignored.
-                    $form.data('submitted', true);
                     var userName = document.getElementById("username");
                     userName.value = userName.value.trim();
                     if(userName.value){
+                        // Mark it so that the next submit can be ignored.
+                        $form.data('submitted', true);
                         document.getElementById("loginForm").submit();
                     }
                 }
