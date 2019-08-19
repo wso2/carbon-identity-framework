@@ -38,20 +38,37 @@
 
 <jsp:directive.include file="init-loginform-action-url.jsp"/>
 
-
+<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
 <script>
-        function submitCredentials (e) {
-            e.preventDefault();
-            var userName = document.getElementById("username");
-            userName.value = userName.value.trim();
-            if(userName.value){
-                document.getElementById("loginForm").submit();
-            }
-        }
+    function goBack() {
+        window.history.back();
+    }
+    
+    // Handle form submission preventing double submission.
+    $(document).ready(function(){
+        $.fn.preventDoubleSubmission = function() {
+            $(this).on('submit',function(e){
+                var $form = $(this);
+                if ($form.data('submitted') === true) {
+                    // Previously submitted - don't submit again.
+                    e.preventDefault();
+                    console.warn("Prevented a possible double submit event");
+                } else {
+                    e.preventDefault();
+                    // Mark it so that the next submit can be ignored.
+                    $form.data('submitted', true);
+                    var userName = document.getElementById("username");
+                    userName.value = userName.value.trim();
+                    if(userName.value){
+                        document.getElementById("loginForm").submit();
+                    }
+                }
+            });
 
-        function goBack() {
-            window.history.back();
-        }
+            return this;
+        };
+        $('#loginForm').preventDoubleSubmission();
+    });
 </script>
 
 <%!
@@ -193,7 +210,7 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
-                    type="submit" onclick="submitCredentials(event)">
+                    type="submit">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
