@@ -42,7 +42,7 @@
                         <private-package>org.wso2.carbon.identity.template.mgt.internal</private-package>
                         <Export-Package>
                             !org.wso2.carbon.identity.template.mgt.internal,
-                            org.wso2.carbon.identity.template.mgt.*
+                            org.wso2.carbon.identity.template.mgt.*; version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
