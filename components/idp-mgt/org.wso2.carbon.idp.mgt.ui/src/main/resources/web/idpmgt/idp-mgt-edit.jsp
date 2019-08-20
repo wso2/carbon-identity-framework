@@ -88,6 +88,7 @@
     boolean isPasswordProvisioningEnabled = false;
     boolean isUserNameModificationAllowed = false;
     boolean isPromptConsent = false;
+
     String provisioningUserStoreId = null;
     boolean isOpenIdEnabled = false;
     boolean isOpenIdDefault = false;
@@ -102,6 +103,7 @@
     boolean isAuthnRequestSigned = false;
     boolean isEnableAssertionEncription = false;
     boolean isEnableAssertionSigning = false;
+
     String signatureAlgorithm = IdentityApplicationConstants.XML.SignatureAlgorithm.RSA_SHA1;
     String digestAlgorithm = IdentityApplicationConstants.XML.DigestAlgorithm.SHA1;
     String authenticationContextClass = IdentityApplicationConstants.SAML2.AuthnContextClass.PASSWORD_PROTECTED_TRANSPORT;
@@ -112,6 +114,7 @@
     boolean includeNameIdPolicy = false;
     boolean includeProtocolBinding = false;
     boolean includeCert = false;
+
     String requestMethod = "redirect";
     boolean isSLOEnabled = false;
     boolean isLogoutRequestSigned = false;
@@ -149,14 +152,17 @@
     String fbUserInfoEndpoint = null;
     String fbCallBackUrl = null;
     String responseAuthnContextClassRef = "default";
+
     // To check for existence of authenticator bundles
     boolean isOpenidAuthenticatorActive = false;
     boolean isSamlssoAuthenticatorActive = false;
     boolean isOpenidconnectAuthenticatorActive = false;
     boolean isPassivestsAuthenticatorActive = false;
     boolean isFacebookAuthenticatorActive = false;
+
     // Claims
     String[] claimUris = new String[0];
+
     // Provisioning
     boolean isGoogleProvEnabled = false;
     boolean isGoogleProvDefault = false;
@@ -172,7 +178,9 @@
     String googleProvPattern = null;
     String googleProvisioningSeparator = null;
     String googleProvPrivateKeyData = null;
+
     boolean isSfProvEnabled = false;
+
     boolean isScimProvEnabled = false;
     boolean isScimProvDefault = false;
     String scimUserName = null;
@@ -184,6 +192,7 @@
     String scimDefaultPwd = null;
     String disableDefaultPwd = "";
     String scimUniqueID = null;
+
     boolean isSpmlProvEnabled = false;
     boolean isSpmlProvDefault = false;
     String spmlUserName = null;
@@ -191,41 +200,55 @@
     String spmlEndpoint = null;
     String spmlObjectClass = null;
     String spmlUniqueID = null;
+
     String oidcQueryParam = "";
     String samlQueryParam = "";
     String passiveSTSQueryParam = "";
     String openidQueryParam = "";
+
     boolean isArtifactBindingEnabled = false;
     String artifactResolveUrl = "";
     boolean isArtifactResolveReqSigned = false;
     boolean isArtifactResponseSigned = false;
+
     String provisioningRole = null;
     Map<String, ProvisioningConnectorConfig> customProvisioningConnectors = null;
+
     Set<String> signatureAlgorithms = IdentityApplicationManagementUtil.getXMLSignatureAlgorithmNames();
     Set<String> digestAlgorithms = IdentityApplicationManagementUtil.getXMLDigestAlgorithmNames();
     Set<String> authenticationContextClasses = IdentityApplicationManagementUtil.getSAMLAuthnContextClassNames();
     List<String> authenticationContextComparisonLevels = IdentityApplicationManagementUtil
             .getSAMLAuthnContextComparisonLevels();
+
     String[] idpClaims = new String[]{"admin", "Internal/everyone"};//appBean.getSystemClaims();
+
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
+
     if (idpUniqueIdMap == null) {
         idpUniqueIdMap = new HashMap<String, UUID>();
     }
+
     IdentityProvider identityProvider = null;
+
     if (idPName != null && idpUniqueIdMap.get(idPName) != null) {
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
+
     List<IdentityProvider> identityProvidersList =
             (List<IdentityProvider>) session.getAttribute(IdPManagementUIUtil.IDP_LIST);
+
     Map<String, FederatedAuthenticatorConfig> allFedAuthConfigs = new HashMap<String, FederatedAuthenticatorConfig>();
+
     String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
     String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
     ConfigurationContext configContext =
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
     IdentityProviderMgtServiceClient client =
             new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
+
     allFedAuthConfigs = client.getAllFederatedAuthenticators();
     customProvisioningConnectors = client.getCustomProvisioningConnectors();
+
     if (identityProvidersList == null) {
 %>
 <script type="text/javascript">
@@ -265,18 +288,26 @@
                 }
             }
         }
+
         identityProviderClaims = identityProvider.getClaimConfig().getIdpClaims();
+
         userIdClaimURI = identityProvider.getClaimConfig().getUserClaimURI();
         roleClaimURI = identityProvider.getClaimConfig().getRoleClaimURI();
+
         claimMappings = identityProvider.getClaimConfig().getClaimMappings();
+
         if (identityProviderClaims != null && identityProviderClaims.length != 0) {
             isCustomClaimEnabled = true;
         } else {
             isCustomClaimEnabled = false;
         }
+
+
         roles = identityProvider.getPermissionAndRoleConfig().getIdpRoles();
         roleMappings = identityProvider.getPermissionAndRoleConfig().getRoleMappings();
+
         FederatedAuthenticatorConfig[] fedAuthnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+
         if (fedAuthnConfigs != null && fedAuthnConfigs.length > 0) {
             for (FederatedAuthenticatorConfig fedAuthnConfig : fedAuthnConfigs) {
                 if (fedAuthnConfig.getProperties() == null) {
@@ -286,15 +317,18 @@
                     isOpenidAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
                     isOpenIdEnabled = fedAuthnConfig.getEnabled();
+
                     Property openIdUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OpenID.OPEN_ID_URL);
                     if (openIdUrlProp != null) {
                         openIdUrl = openIdUrlProp.getValue();
                     }
+
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
                     if (queryParamProp != null) {
                         openidQueryParam = queryParamProp.getValue();
                     }
+
                     Property isOpenIdUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OpenID.IS_USER_ID_IN_CLAIMS);
                     if (isOpenIdUserIdInClaimsProp != null) {
@@ -382,10 +416,12 @@
                         isEnablePassiveSTSAssertionAudienceValidation =
                                 Boolean.parseBoolean(isEnableAssertionAudienceValidationProp.getValue());
                     }
+
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
                     if (queryParamProp != null) {
                         passiveSTSQueryParam = queryParamProp.getValue();
                     }
+
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
                     isOpenidconnectAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
@@ -410,11 +446,13 @@
                     if (callBackURLProp != null) {
                         callBackUrl = callBackURLProp.getValue();
                     }
+
                     Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
                     if (userInfoEndpointProp != null) {
                         userInfoEndpoint = userInfoEndpointProp.getValue();
                     }
+
                     Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
                     if (clientIdProp != null) {
@@ -430,15 +468,18 @@
                     if (isOIDCUserIdInClaimsProp != null) {
                         isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
                     }
+
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
                     if (queryParamProp != null) {
                         oidcQueryParam = queryParamProp.getValue();
                     }
+
                     Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
                     if (basicAuthEnabledProp != null) {
                         isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
                     }
+
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
                     isSamlssoAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
@@ -468,16 +509,19 @@
                     if (isAuthnRequestSignedProp != null) {
                         isAuthnRequestSigned = Boolean.parseBoolean(isAuthnRequestSignedProp.getValue());
                     }
+
                     Property isEnableAssertionSigningProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_SIGNING);
                     if (isEnableAssertionSigningProp != null) {
                         isEnableAssertionSigning = Boolean.parseBoolean(isEnableAssertionSigningProp.getValue());
                     }
+
                     Property isEnableAssersionEncriptionProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ENABLE_ASSERTION_ENCRYPTION);
                     if (isEnableAssersionEncriptionProp != null) {
                         isEnableAssertionEncription = Boolean.parseBoolean(isEnableAssersionEncriptionProp.getValue());
                     }
+
                     Property isSLOEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_ENABLED);
                     if (isSLOEnabledProp != null) {
@@ -498,16 +542,19 @@
                     if (isAuthnResponseSignedProp != null) {
                         isAuthnResponseSigned = Boolean.parseBoolean(isAuthnResponseSignedProp.getValue());
                     }
+
                     Property signatureAlgoProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM);
                     if (signatureAlgoProp != null) {
                         signatureAlgorithm = signatureAlgoProp.getValue();
                     }
+
                     Property digestAlgoProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.DIGEST_ALGORITHM);
                     if (digestAlgoProp != null) {
                         digestAlgorithm = digestAlgoProp.getValue();
                     }
+
                     Property includeAuthnContextProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_AUTHN_CONTEXT);
                     if (includeAuthnContextProp != null) {
@@ -515,6 +562,7 @@
                     } else {
                         includeAuthenticationContext = "yes";
                     }
+
                     Property authnContextRefClassProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
                     if (authnContextRefClassProp != null) {
@@ -522,6 +570,7 @@
                     } else {
                         authenticationContextClass = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
                     }
+
                     Property authnContextCompLevelProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_COMPARISON_LEVEL);
                     if (authnContextCompLevelProp != null) {
@@ -529,21 +578,25 @@
                     } else {
                         authenticationContextComparisonLevel = "Exact";
                     }
+
                     Property includeNameIdPolicyProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_NAME_ID_POLICY);
                     if (includeNameIdPolicyProp != null) {
                         includeNameIdPolicy = Boolean.parseBoolean(includeNameIdPolicyProp.getValue());
                     }
+
                     Property includeCertProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_CERT);
                     if (includeCertProp != null) {
                         includeCert = Boolean.parseBoolean(includeCertProp.getValue());
                     }
+
                     Property includeProtocolBindingProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.INCLUDE_PROTOCOL_BINDING);
                     if (includeProtocolBindingProp != null) {
                         includeProtocolBinding = Boolean.parseBoolean(includeProtocolBindingProp.getValue());
                     }
+
                     Property forceAuthProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.FORCE_AUTHENTICATION);
                     if (forceAuthProp != null) {
@@ -551,31 +604,37 @@
                     } else {
                         forceAuthentication = "as_request";
                     }
+
                     Property attributeConsumingServiceIndexProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CONSUMING_SERVICE_INDEX);
                     if (attributeConsumingServiceIndexProp != null) {
                         attributeConsumingServiceIndex = attributeConsumingServiceIndexProp.getValue();
                     }
+
                     Property artifactBindingEnableProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_BINDING_ENABLED);
                     if (artifactBindingEnableProp != null) {
                         isArtifactBindingEnabled = Boolean.parseBoolean(artifactBindingEnableProp.getValue());
                     }
+
                     Property artifactResolveUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
                     if (artifactResolveUrlProp != null) {
                         artifactResolveUrl = artifactResolveUrlProp.getValue();
                     }
+
                     Property artifactResolveReqSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESOLVE_REQ_SIGNED);
                     if (artifactResolveReqSignedProp != null) {
                         isArtifactResolveReqSigned = Boolean.parseBoolean(artifactResolveReqSignedProp.getValue());
                     }
+
                     Property artifactResponseSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_ARTIFACT_RESPONSE_SIGNED);
                     if (artifactResponseSignedProp != null) {
                         isArtifactResponseSigned = Boolean.parseBoolean(artifactResponseSignedProp.getValue());
                     }
+
                     Property requestMethodProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.REQUEST_METHOD);
                     if (requestMethodProp != null) {
@@ -583,6 +642,7 @@
                     } else {
                         requestMethod = "redirect";
                     }
+
                     Property responseAuthnContextClassRefProp = IdPManagementUIUtil.getProperty(fedAuthnConfig
                             .getProperties(), IdentityApplicationConstants.Authenticator.SAML2SSO
                             .RESPONSE_AUTHN_CONTEXT_CLASS_REF);
@@ -591,11 +651,13 @@
                     } else {
                         responseAuthnContextClassRef = "default";
                     }
+
                     Property isSAMLSSOUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_USER_ID_IN_CLAIMS);
                     if (isSAMLSSOUserIdInClaimsProp != null) {
                         isSAMLSSOUserIdInClaims = Boolean.parseBoolean(isSAMLSSOUserIdInClaimsProp.getValue());
                     }
+
                     Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
                     if (queryParamProp != null) {
                         samlQueryParam = queryParamProp.getValue();
@@ -605,6 +667,7 @@
                     if (customConfig != null) {
                         Property[] properties = fedAuthnConfig.getProperties();
                         Property[] customProperties = customConfig.getProperties();
+
                         if (properties != null && properties.length > 0 && customProperties != null && customProperties.length > 0) {
                             for (Property property : properties) {
                                 for (Property customProperty : customProperties) {
@@ -615,12 +678,15 @@
                                 }
                             }
                         }
+
                         customConfig.setEnabled(fedAuthnConfig.getEnabled());
                         allFedAuthConfigs.put(fedAuthnConfig.getName(), customConfig);
                     }
                 }
             }
         }
+
+
         idPAlias = identityProvider.getAlias();
         isProvisioningEnabled = identityProvider.getJustInTimeProvisioningConfig().getProvisioningEnabled();
         provisioningUserStoreId = identityProvider.getJustInTimeProvisioningConfig().getProvisioningUserStore();
@@ -628,36 +694,44 @@
                 identityProvider.getJustInTimeProvisioningConfig().getPasswordProvisioningEnabled();
         isUserNameModificationAllowed = identityProvider.getJustInTimeProvisioningConfig().getModifyUserNameAllowed();
         isPromptConsent = identityProvider.getJustInTimeProvisioningConfig().getPromptConsent();
+
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
             isOpenIdDefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
                     IdentityApplicationConstants.Authenticator.OpenID.NAME);
         }
+
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
             isSAMLSSODefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
                     IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
         }
+
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
             isOIDCDefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
                     IdentityApplicationConstants.Authenticator.OIDC.NAME);
         }
+
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
             isPassiveSTSDefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
                     IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
         }
+
         if (identityProvider.getDefaultAuthenticatorConfig() != null
                 && identityProvider.getDefaultAuthenticatorConfig().getName() != null) {
             isFBAuthDefault = identityProvider.getDefaultAuthenticatorConfig().getDisplayName().equals(
                     IdentityApplicationConstants.Authenticator.Facebook.NAME);
         }
+
         ProvisioningConnectorConfig[] provisioningConnectors = identityProvider.getProvisioningConnectorConfigs();
+
         ProvisioningConnectorConfig googleApps = null;
         ProvisioningConnectorConfig salesforce = null;
         ProvisioningConnectorConfig scim = null;
         ProvisioningConnectorConfig spml = null;
+
         if (provisioningConnectors != null) {
             for (ProvisioningConnectorConfig provisioningConnector : provisioningConnectors) {
                 if (provisioningConnector != null && "scim".equals(provisioningConnector.getName())) {
@@ -670,10 +744,13 @@
                     googleApps = provisioningConnector;
                 } else {
                     if (customProvisioningConnectors.containsKey(provisioningConnector.getName())) {
+
                         ProvisioningConnectorConfig customConfig = customProvisioningConnectors.get(provisioningConnector.getName());
                         Property[] properties = provisioningConnector.getProvisioningProperties();
                         Property[] customProperties = customConfig.getProvisioningProperties();
+
                         customConfig.setEnabled(provisioningConnector.getEnabled());
+
                         if (properties != null && properties.length > 0 && customProperties != null && customProperties.length > 0) {
                             for (Property property : properties) {
                                 for (Property customProperty : customProperties) {
@@ -688,11 +765,14 @@
                 }
             }
         }
+
         if (scim != null) {
+
             if (identityProvider.getDefaultProvisioningConnectorConfig() != null
                     && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
                 isScimProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(scim.getName());
             }
+
             Property[] scimProperties = scim.getProvisioningProperties();
             if (scimProperties != null && scimProperties.length > 0) {
                 for (Property scimProperty : scimProperties) {
@@ -718,10 +798,13 @@
                     }
                 }
             }
+
             if (scim.getEnabled()) {
                 isScimProvEnabled = true;
             }
+
         }
+
         // Provisioning
         isGoogleProvEnabled = false;
         isGoogleProvDefault = false;
@@ -736,11 +819,14 @@
         googleProvApplicationName = "";
         googleProvPattern = "";
         googleProvisioningSeparator = "";
+
         if (googleApps != null) {
+
             if (identityProvider.getDefaultProvisioningConnectorConfig() != null
                     && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
                 isGoogleProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(googleApps.getName());
             }
+
             Property[] googleProperties = googleApps.getProvisioningProperties();
             if (googleProperties != null && googleProperties.length > 0) {
                 for (Property googleProperty : googleProperties) {
@@ -774,15 +860,19 @@
                     }
                 }
             }
+
             if (googleApps.getEnabled()) {
                 isGoogleProvEnabled = true;
             }
         }
+
         if (spml != null) {
+
             if (identityProvider.getDefaultProvisioningConnectorConfig() != null
                     && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
                 isSpmlProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(spml.getName());
             }
+
             Property[] spmlProperties = spml.getProvisioningProperties();
             if (spmlProperties != null && spmlProperties.length > 0) {
                 for (Property spmlProperty : spmlProperties) {
@@ -801,32 +891,40 @@
                     }
                 }
             }
+
             if (spml.getEnabled()) {
                 isSpmlProvEnabled = true;
             }
         }
     }
+
     if (idPName == null) {
         idPName = "";
     }
+
     if (realmId == null) {
         realmId = "";
     }
+
     if (jwksUri == null) {
         jwksUri = "";
     }
+
     if (idpDisplayName == null) {
         idpDisplayName = "";
     }
     if (description == null) {
         description = "";
     }
+
     if (provisioningRole == null) {
         provisioningRole = "";
     }
+
     if (passiveSTSQueryParam == null) {
         passiveSTSQueryParam = "";
     }
+
     if (oidcQueryParam == null) {
         oidcQueryParam = "";
     }
@@ -845,7 +943,9 @@
     }
     userStoreDomains.addAll(Arrays.asList(client.getUserStoreDomains()));
     userStoreDomains.add(IdentityApplicationConstants.AS_IN_USERNAME_USERSTORE_FOR_JIT);
+
     claimUris = client.getAllLocalClaimUris();
+
     Iterator<FederatedAuthenticatorConfig> fedAuthConfigIterator = allFedAuthConfigs.values().iterator();
     while (fedAuthConfigIterator.hasNext()) {
         FederatedAuthenticatorConfig fedAuthConfig = fedAuthConfigIterator.next();
@@ -866,6 +966,7 @@
             fedAuthConfigIterator.remove();
         }
     }
+
     String openIdEnabledChecked = "";
     String openIdDefaultDisabled = "";
     if (identityProvider != null) {
@@ -876,6 +977,7 @@
         }
     }
     String openIdDefaultChecked = "";
+
     if (identityProvider != null) {
         if (isOpenIdDefault) {
             openIdDefaultChecked = "checked=\'checked\'";
@@ -885,6 +987,7 @@
     if (StringUtils.isBlank(openIdUrl)) {
         openIdUrl = StringUtils.EMPTY;
     }
+
     String saml2SSOEnabledChecked = "";
     String saml2SSODefaultDisabled = "";
     if (identityProvider != null) {
@@ -907,19 +1010,24 @@
     if (spEntityId == null) {
         spEntityId = "";
     }
+
     if (StringUtils.isBlank(nameIdFormat)) {
+
         // check whether a global default value for NameIdType is set in the application-authentication.xml file
         AuthenticatorConfig authenticatorConfig = FileBasedConfigurationBuilder.getInstance()
                 .getAuthenticatorConfigMap().get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME);
+
         if (authenticatorConfig != null) {
             nameIdFormat = authenticatorConfig.getParameterMap()
                     .get(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME_ID_TYPE);
         }
+
         if (StringUtils.isBlank(nameIdFormat)) {
             // Going with the default value
             nameIdFormat = IdentityApplicationConstants.Authenticator.SAML2SSO.UNSPECIFIED_NAME_ID_FORMAT;
         }
     }
+
     if (StringUtils.isBlank(ssoUrl)) {
         ssoUrl = StringUtils.EMPTY;
     }
@@ -929,18 +1037,21 @@
             authnRequestSignedChecked = "checked=\'checked\'";
         }
     }
+
     String enableAssertinEncriptionChecked = "";
     if (identityProvider != null) {
         if (isEnableAssertionEncription) {
             enableAssertinEncriptionChecked = "checked=\'checked\'";
         }
     }
+
     String enableAssertionSigningChecked = "";
     if (identityProvider != null) {
         if (isEnableAssertionSigning) {
             enableAssertionSigningChecked = "checked=\'checked\'";
         }
     }
+
     String sloEnabledChecked = "";
     if (identityProvider != null) {
         if (isSLOEnabled) {
@@ -962,41 +1073,49 @@
             authnResponseSignedChecked = "checked=\'checked\'";
         }
     }
+
     String signAlgoDropdownDisabled = "";
     if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
+
     String digestAlgoDropdownDisabled = "";
     if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
+
     String authnContextClassRefDropdownDisabled = "";
     String authnContextComparisonDropdownDisabled = "";
     if ("no".equals(includeAuthenticationContext)) {
         authnContextClassRefDropdownDisabled = "disabled=\'disabled\'";
         authnContextComparisonDropdownDisabled = "disabled=\'disabled\'";
     }
+
     String includeNameIdPolicyChecked = "";
     if (identityProvider != null) {
         if (includeNameIdPolicy) {
             includeNameIdPolicyChecked = "checked=\'checked\'";
         }
     }
+
     String includeCertChecked = "";
     if (identityProvider != null) {
         if (includeCert) {
             includeCertChecked = "checked=\'checked\'";
         }
     }
+
     String includeProtocolBindingChecked = "";
     if (identityProvider != null) {
         if (includeProtocolBinding) {
             includeProtocolBindingChecked = "checked=\'checked\'";
         }
     }
+
     if (attributeConsumingServiceIndex == null) {
         attributeConsumingServiceIndex = "";
     }
+
     String oidcEnabledChecked = "";
     String oidcDefaultDisabled = "";
     if (identityProvider != null) {
@@ -1007,6 +1126,7 @@
         }
     }
     String oidcDefaultChecked = "";
+
     if (identityProvider != null) {
         if (isOIDCDefault) {
             oidcDefaultChecked = "checked=\'checked\'";
@@ -1028,16 +1148,20 @@
     if (StringUtils.isBlank(logoutUrlOidc)) {
         logoutUrlOidc = StringUtils.EMPTY;
     }
+
     if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
     }
+
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
     }
+
     String oidcBasicAuthEnabledChecked = "";
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
+
     String passiveSTSEnabledChecked = "";
     String passiveSTSDefaultDisabled = "";
     if (identityProvider != null) {
@@ -1060,20 +1184,24 @@
     if (StringUtils.isBlank(passiveSTSUrl)) {
         passiveSTSUrl = StringUtils.EMPTY;
     }
+
     String enablePassiveSTSAssertionSignatureValidationChecked = "";
     if (identityProvider != null) {
         if (isEnablePassiveSTSAssertionSignatureValidation) {
             enablePassiveSTSAssertionSignatureValidationChecked = "checked=\'checked\'";
         }
     }
+
     String enablePassiveSTSAssertionAudienceValidationChecked = "";
     if (identityProvider != null) {
         if (isEnablePassiveSTSAssertionAudienceValidation) {
             enablePassiveSTSAssertionAudienceValidationChecked = "checked=\'checked\'";
         }
     }
+
     String fbAuthEnabledChecked = "";
     String fbAuthDefaultDisabled = "";
+
     if (identityProvider != null) {
         if (isFBAuthEnabled) {
             fbAuthEnabledChecked = "checked=\'checked\'";
@@ -1118,10 +1246,13 @@
     if (fbUserInfoEndpoint == null) {
         fbUserInfoEndpoint = IdentityApplicationConstants.FB_USER_INFO_URL;
     }
+
+
     // Out-bound Provisioning
     String googleProvEnabledChecked = "";
     String googleProvDefaultDisabled = "";
     String googleProvDefaultChecked = "disabled=\'disabled\'";
+
     if (identityProvider != null) {
         if (isGoogleProvEnabled) {
             googleProvEnabledChecked = "checked=\'checked\'";
@@ -1131,6 +1262,7 @@
             }
         }
     }
+
     if (googleDomainName == null) {
         googleDomainName = "";
     }
@@ -1152,15 +1284,20 @@
     if (googleProvApplicationName == null) {
         googleProvApplicationName = "";
     }
+
     if (googleProvPattern == null) {
         googleProvPattern = "";
     }
+
     if (googleProvisioningSeparator == null) {
         googleProvisioningSeparator = "";
     }
+
     String spmlProvEnabledChecked = "";
     String spmlProvDefaultDisabled = "";
     String spmlProvDefaultChecked = "disabled=\'disabled\'";
+
+
     if (identityProvider != null) {
         if (isSpmlProvEnabled) {
             spmlProvEnabledChecked = "checked=\'checked\'";
@@ -1170,6 +1307,7 @@
             }
         }
     }
+
     if (spmlUserName == null) {
         spmlUserName = "";
     }
@@ -1182,6 +1320,7 @@
     if (spmlObjectClass == null) {
         spmlObjectClass = "";
     }
+
     String scimProvEnabledChecked = "";
     String scimProvDefaultDisabled = "";
     String scimPwdProvEnabledChecked = "";
@@ -1199,27 +1338,32 @@
             disableDefaultPwd = "disabled=\'disabled\'";
         }
     }
+
     if (artifactResolveUrl == null) {
         artifactResolveUrl = "";
     }
+
     String isArtifactBindingEnabledChecked = "";
     if (identityProvider != null) {
         if (isArtifactBindingEnabled) {
             isArtifactBindingEnabledChecked = "checked=\'checked\'";
         }
     }
+
     String isArtifactResolveReqSignedChecked = "";
     if (identityProvider != null) {
         if (isArtifactResolveReqSigned) {
             isArtifactResolveReqSignedChecked = "checked=\'checked\'";
         }
     }
+
     String isArtifactResponseSignedChecked = "";
     if (identityProvider != null) {
         if (isArtifactResponseSigned) {
             isArtifactResponseSignedChecked = "checked=\'checked\'";
         }
     }
+
     // If SCIM Provisioning has not been Configured at all,
     // make password provisioning enable by default.
     // Since scimUserName is a required field,
@@ -1244,23 +1388,29 @@
     if (scimDefaultPwd == null) {
         scimDefaultPwd = "";
     }
+
 %>
 
 <script>
+
     var claimMappinRowID = -1;
     var claimMappinRowIDSPML = -1;
     var advancedClaimMappinRowID = -1;
     var roleRowId = -1;
     var claimRowId = -1;
+
     <% if(identityProviderClaims != null){ %>
     claimRowId = <%=identityProviderClaims.length-1%>;
     <% } %>
+
     <% if(roles != null){ %>
     roleRowId = <%=roles.length-1%>;
     <% } %>
+
     <% if(claimMappings != null){ %>
     advancedClaimMappinRowID = <%=claimMappings.length-1%>;
     <% } %>
+
     function disableArtifactBinding(chkbx) {
         if ($(chkbx).is(':checked')) {
             $("#artifactResolveUrl").prop('disabled', false);
@@ -1272,6 +1422,7 @@
             $("#artifactResponseSigned").prop('disabled', true);
         }
     }
+
     var claimURIDropdownPopulator = function () {
         var $user_id_claim_dropdown = jQuery('#user_id_claim_dropdown');
         var $role_claim_dropdown = jQuery('#role_claim_dropdown');
@@ -1279,38 +1430,49 @@
         var $google_prov_familyname_claim_dropdown = jQuery('#google_prov_familyname_claim_dropdown');
         var $google_prov_givenname_claim_dropdown = jQuery('#google_prov_givenname_claim_dropdown');
         var $idpClaimsList2 = jQuery('#idpClaimsList2');
+
+
         $user_id_claim_dropdown.empty();
         $role_claim_dropdown.empty();
         $google_prov_email_claim_dropdown.empty();
         $google_prov_familyname_claim_dropdown.empty();
         $google_prov_givenname_claim_dropdown.empty();
         $idpClaimsList2.empty();
+
+
         if ('<%=Encode.forJavaScript(userIdClaimURI)%>' == '') {
             $user_id_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $user_id_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
+
         if ('<%=Encode.forJavaScript(roleClaimURI)%>' == '') {
             $role_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $role_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
+
+
         if ('<%=Encode.forJavaScript(googlePrimaryEmailClaim)%>' == '') {
             $google_prov_email_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_email_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
+
         if ('<%=Encode.forJavaScript(googleFamilyNameClaim)%>' == '') {
             $google_prov_familyname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_familyname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
+
         if ('<%=Encode.forJavaScript(googleGivenNameClaim)%>' == '') {
             $google_prov_givenname_claim_dropdown.append('<option value = "">--- Select Claim URI ---</option>');
         } else {
             $google_prov_givenname_claim_dropdown.append('<option selected="selected" value = "">--- Select Claim URI ---</option>');
         }
+
         $idpClaimsList2.append('<option value = "" >--- Select Claim URI ---</option>');
+
         jQuery('#claimAddTable .claimrow').each(function () {
             var val = htmlEncode($(this).val());
             if (val.trim() != "") {
@@ -1324,29 +1486,36 @@
                 } else {
                     $role_claim_dropdown.append('<option>' + val + '</option>');
                 }
+
                 if (val === decodeURI('<%=Encode.forJavaScript(googlePrimaryEmailClaim)%>')) {
                     $google_prov_email_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_email_claim_dropdown.append('<option>' + val + '</option>');
                 }
+
                 if (val == decodeURI('<%=Encode.forJavaScript(googleFamilyNameClaim)%>')) {
                     $google_prov_familyname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_familyname_claim_dropdown.append('<option>' + val + '</option>');
                 }
+
                 if (val == decodeURI('<%=Encode.forJavaScript(googleGivenNameClaim)%>')) {
                     $google_prov_givenname_claim_dropdown.append('<option selected="selected">' + val + '</option>');
                 } else {
                     $google_prov_givenname_claim_dropdown.append('<option>' + val + '</option>');
                 }
+
                 $idpClaimsList2.append('<option>' + val + '</option>');
+
             }
         })
+
         var selectedVal = "";
         var selected = $("input[type='radio'][name='choose_dialet_type_group']:checked");
         if (selected.length > 0) {
             selectedVal = selected.val();
         }
+
         if (selectedVal == "choose_dialet_type1") {
             $(".customClaim").hide();
             var option = '<option value="">---Select Claim URI ---</option>';
@@ -1356,73 +1525,108 @@
             $google_prov_familyname_claim_dropdown.empty();
             $google_prov_givenname_claim_dropdown.empty();
             $idpClaimsList2.empty();
+
+
             var user_id_option = '<option value="">---Select Claim URI ---</option>';
+
             <% for(int i =0 ; i< claimUris.length ; i++){
+
            		 if(claimUris[i].equals(userIdClaimURI)){  %>
             user_id_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
             user_id_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
+
+
             var google_prov_email_option = '<option value="">---Select Claim URI ---</option>';
+
             <% for(int i =0 ; i< claimUris.length ; i++){
+
            		 if(claimUris[i].equals(googlePrimaryEmailClaim)){  %>
             google_prov_email_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
             google_prov_email_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
+
+
             var google_prov_family_email_option = '<option value="">---Select Claim URI ---</option>';
+
             <% for(int i =0 ; i< claimUris.length ; i++){
+
            		 if(claimUris[i].equals(googleFamilyNameClaim)){  %>
             google_prov_family_email_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
             google_prov_family_email_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
+
+
             var google_prov_givenname_option = '<option value="">---Select Claim URI ---</option>';
+
             <% for(int i =0 ; i< claimUris.length ; i++){
+
            		 if(claimUris[i].equals(googleGivenNameClaim)){  %>
             google_prov_givenname_option += '<option  selected="selected" value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <% 	 } else {  %>
             google_prov_givenname_option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
             <%	 }
             }%>
+
+
             <% for(int i =0 ; i< claimUris.length ; i++){%>
             option += '<option value="' + "<%=Encode.forHtml(claimUris[i])%>" + '">' + "<%=Encode.forHtml(claimUris[i])%>" + '</option>';
+
             <%}%>
+
+
             $user_id_claim_dropdown.append(user_id_option);
             $role_claim_dropdown.append('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>');
             $google_prov_email_claim_dropdown.append(google_prov_email_option);
             $google_prov_familyname_claim_dropdown.append(google_prov_family_email_option);
             $google_prov_givenname_claim_dropdown.append(google_prov_givenname_option);
             $idpClaimsList2.append(option);
+
+
             $(".role_claim").hide();
             $(jQuery('#claimAddTable')).hide();
+
             if ($(jQuery('#advancedClaimMappingAddTable tr')).length > 1) {
                 $(jQuery('#advancedClaimMappingAddTable')).show();
             }
         }
+
         if (selectedVal == "choose_dialet_type2") {
             var option = '';
+
             <% for(int i =0 ; i< claimUris.length ; i++){%>
             option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+
             <%}%>
+
             $user_id_claim_dropdown.replace($option, "");
             $role_claim_dropdown.replace('<option value="http://wso2.org/claims/role">http://wso2.org/claims/role</option>', "");
             $google_prov_email_claim_dropdown.replace($option, "");
             $google_prov_familyname_claim_dropdown.replace($option, "");
             $google_prov_givenname_claim_dropdown.replace($option, "");
             $idpClaimsList2.replace($option, "");
+
+
             $(".role_claim").show();
+
             if ($(jQuery('#claimAddTable tr')).length == 2) {
                 $(jQuery('#claimAddTable')).toggle();
             }
+
             if ($(jQuery('#advancedClaimMappingAddTable tr')).length > 1) {
                 $(jQuery('#advancedClaimMappingAddTable')).show();
             }
+
         }
     };
+
+
     jQuery(document).ready(function () {
         jQuery('#outBoundAuth').hide();
         jQuery('#inBoundProvisioning').hide();
@@ -1450,52 +1654,64 @@
         jQuery('#oidcDefault').attr('disabled', 'disabled');
         jQuery('#passiveSTSDefault').attr('disabled', 'disabled');
         jQuery('#fbAuthDefault').attr('disabled', 'disabled');
+
         if ($(jQuery('#claimMappingAddTable tr')).length < 2) {
             $(jQuery('#claimMappingAddTable')).hide();
         }
+
         if ($(jQuery('#claimMappingAddTableSPML tr')).length < 2) {
             $(jQuery('#claimMappingAddTableSPML')).hide();
         }
+
+
         if (<%=isOpenIdEnabled%>) {
             jQuery('#openid_enable_logo').show();
         } else {
             jQuery('#openid_enable_logo').hide();
         }
+
         if (<%=isSAML2SSOEnabled%>) {
             jQuery('#sampl2sso_enable_logo').show();
         } else {
             jQuery('#sampl2sso_enable_logo').hide();
         }
+
         if (<%=isOIDCEnabled%>) {
             jQuery('#oAuth2_enable_logo').show();
         } else {
             jQuery('#oAuth2_enable_logo').hide();
         }
+
         if (<%=isPassiveSTSEnabled%>) {
             jQuery('#wsfederation_enable_logo').show();
         } else {
             jQuery('#wsfederation_enable_logo').hide();
         }
+
         if (<%=isFBAuthEnabled%>) {
             jQuery('#fecebook_enable_logo').show();
         } else {
             jQuery('#fecebook_enable_logo').hide();
         }
+
         if (<%=isGoogleProvEnabled%>) {
             jQuery('#google_enable_logo').show();
         } else {
             jQuery('#google_enable_logo').hide();
         }
+
         if (<%=isScimProvEnabled%>) {
             jQuery('#scim_enable_logo').show();
         } else {
             jQuery('#scim_enable_logo').hide();
         }
+
         if (<%=isSpmlProvEnabled%>) {
             jQuery('#spml_enable_logo').show();
         } else {
             jQuery('#spml_enable_logo').hide();
         }
+
         jQuery('h2.trigger').click(function () {
             if (jQuery(this).next().is(":visible")) {
                 this.className = "active trigger";
@@ -1511,6 +1727,7 @@
                 jQuery('#certTableData').hide();
             }
             if (!jQuery('#deletePublicCert').length) {
+
                 var inputForDelete = document.createElement('input');
                 inputForDelete.type = "hidden";
                 inputForDelete.name = "deletePublicCert";
@@ -1526,12 +1743,18 @@
             document.forms['idp-mgt-edit-form'].appendChild(inputForCertificateVal);
         })
         jQuery('#claimAddLink').click(function () {
+
             claimRowId++;
             var option = '<option value="">---Select Claim URI ---</option>';
+
             <% for(int i =0 ; i< claimUris.length ; i++){%>
             option += '<option value="' + "<%=claimUris[i]%>" + '">' + "<%=claimUris[i]%>" + '</option>';
+
             <%}%>
+
             $("#claimrow_id_count").val(claimRowId + 1);
+
+
             var newrow = jQuery('<tr><td><input class="claimrow" style=" width: 90%; " type="text" id="claimrowid_' + claimRowId + '" name="claimrowname_' + claimRowId + '"/></td>' +
                 '<td><select class="claimrow_wso2" name="claimrow_name_wso2_' + claimRowId + '">' + option + '</select></td> ' +
                 '<td><a onclick="deleteClaimRow(this)" class="icon-link" ' +
@@ -1545,12 +1768,16 @@
             if ($(jQuery('#claimAddTable tr')).length == 2) {
                 $(jQuery('#claimAddTable')).toggle();
             }
+
         })
+
         claimURIDropdownPopulator();
+
         var $signature_algorithem_dropdown = jQuery('#signature_algorithem_dropdown');
         var $digest_algorithem_dropdown = jQuery('#digest_algorithem_dropdown');
         var $authentication_context_class_dropdown = jQuery('#authentication_context_class_dropdown');
         var $auth_context_comparison_level_dropdown = jQuery('#auth_context_comparison_level_dropdown');
+
         jQuery('#authentication_context_class_dropdown').change(function () {
             var selectedClass = $("#authentication_context_class_dropdown").val();
             if (selectedClass == '<%=IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION%>') {
@@ -1561,11 +1788,13 @@
             }
         });
     })
+
     function selectJWKS(certDataNotNull) {
         var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
         useJWKSUriStype.display = 'table-row';
         var uploadCertType = document.getElementById('upload_certificate').style;
         uploadCertType.display = 'none';
+
         // delete certificates if jwks_uri is selected.
         if (jQuery('#certFile').val() != '') {
             jQuery('#certFile').val('');
@@ -1576,6 +1805,7 @@
             var publicCertDiv = document.getElementById('publicCertDiv').style;
             publicCertDiv.display = 'none';
             jQuery( '#publicCertDiv').empty();
+
             var input = document.createElement('input');
             input.type = "hidden";
             input.name = "deletePublicCert";
@@ -1584,6 +1814,7 @@
             document.forms['idp-mgt-edit-form'].appendChild(input);
         }
     }
+
     function selectCertificate() {
         var useJWKSUriStype = document.getElementById('use_jwks_uri').style;
         useJWKSUriStype.display = 'none';
@@ -1594,6 +1825,7 @@
         }
         $('#jwksUri').val("");
     }
+
     function idpMgtUpdate() {
         document.getElementById("meta_data_saml").value = "";
         if (doValidation()) {
@@ -1613,6 +1845,7 @@
                     allDeletedRoleStr += deletedRoleRows[i] + "?";
                 }
             }
+
             if (jQuery('#deletePublicCert').val() == 'true') {
                 var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                     jQuery('#idPName').val() + '?';
@@ -1694,6 +1927,7 @@
                                             }
                                             CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
+
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -1736,6 +1970,7 @@
                                             }
                                             CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
+
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -1837,6 +2072,7 @@
                                             }
                                             CARBON.showConfirmationDialog(confirmationMessage,
                                                 function () {
+
                                                 },
                                                 function () {
                                                     location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2056,6 +2292,7 @@
                                 allDeletedRoleStr += deletedRoleRows[i] + "?";
                             }
                         }
+
                         if (jQuery('#deletePublicCert').val() == 'true') {
                             var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                                 jQuery('#idPName').val() + '?';
@@ -2137,6 +2374,7 @@
                                                         }
                                                         CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
+
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2179,6 +2417,7 @@
                                                         }
                                                         CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
+
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2280,6 +2519,7 @@
                                                         }
                                                         CARBON.showConfirmationDialog(confirmationMessage,
                                                             function () {
+
                                                             },
                                                             function () {
                                                                 location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2480,7 +2720,11 @@
                         "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
                 });
             <%
+
             }else{
+
+
+
         %>
             if (doValidation()) {
                 var allDeletedClaimStr = "";
@@ -2499,6 +2743,7 @@
                         allDeletedRoleStr += deletedRoleRows[i] + "?";
                     }
                 }
+
                 if (jQuery('#deletePublicCert').val() == 'true') {
                     var confirmationMessage = 'Are you sure you want to delete the public certificate of ' +
                         jQuery('#idPName').val() + '?';
@@ -2580,6 +2825,7 @@
                                                 }
                                                 CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
+
                                                     },
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2622,6 +2868,7 @@
                                                 }
                                                 CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
+
                                                     },
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2723,6 +2970,7 @@
                                                 }
                                                 CARBON.showConfirmationDialog(confirmationMessage,
                                                     function () {
+
                                                     },
                                                     function () {
                                                         location.href = "idp-mgt-edit.jsp?idPName=<%=Encode.forUriComponent(idPName)%>";
@@ -2917,12 +3165,14 @@
                     }
                 }
             }
+
             <%}%>
         } else {
             CARBON.showWarningDialog('Select a valid IDP metadata file');
             return false;
         }
     }
+
     function doEditFinish() {
         jQuery('#primary').removeAttr('disabled');
         jQuery('#openIdEnabled').removeAttr('disabled');
@@ -2939,6 +3189,7 @@
         jQuery('#spmlProvDefault').removeAttr('disabled');
         jQuery('#sfProvDefault').removeAttr('disabled');
         jQuery('#scimProvDefault').removeAttr('disabled');
+
         for (id in getEnabledCustomAuth()) {
             var defId = '#' + id.replace("_Enabled", "_Default");
             jQuery(defId).removeAttr('disabled');
@@ -2948,6 +3199,7 @@
         <% } %>
         jQuery('#idp-mgt-edit-form').submit();
     }
+
 </script>
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
@@ -3388,6 +3640,7 @@
                                         </tr>
 
                                         <% } else {
+
                                             if (claimMappings[i].getRequested()) {
                                         %>
                                         <tr>
@@ -3412,7 +3665,9 @@
 
                                         <%
                                                     }
+
                                                 }
+
                                             }%>
                                         <% } %>
 
@@ -4348,6 +4603,7 @@
 
                     </div>
                     <script type="text/javascript">
+
                         function doCancel() {
                             document.getElementById("meta_data_saml").value = '';
                         }
@@ -4808,29 +5064,40 @@
                     <% } %>
 
                     <%
+
                         if (allFedAuthConfigs != null && allFedAuthConfigs.size() > 0) {
+
                             for (Map.Entry<String, FederatedAuthenticatorConfig> entry : allFedAuthConfigs.entrySet()) {
                                 FederatedAuthenticatorConfig fedConfig = entry.getValue();
                                 if (fedConfig != null) {
                                     boolean isEnabled = fedConfig.getEnabled();
+
                                     boolean isDefault = false;
+
                                     if (identityProvider != null && identityProvider.getDefaultAuthenticatorConfig() != null && identityProvider.getDefaultAuthenticatorConfig().getDisplayName() != null
                                             && identityProvider.getDefaultAuthenticatorConfig().getName().equals(fedConfig.getName())) {
                                         isDefault = true;
                                     }
+
+
                                     String valueChecked = "";
                                     String valueDefaultDisabled = "";
+
                                     String enableChecked = "";
                                     String enableDefaultDisabled = "";
+
                                     if (isDefault) {
                                         valueChecked = "checked=\'checked\'";
                                         valueDefaultDisabled = "disabled=\'disabled\'";
                                     }
+
                                     if (isEnabled) {
                                         enableChecked = "checked=\'checked\'";
                                         enableDefaultDisabled = "disabled=\'disabled\'";
                                     }
+
                                     if (fedConfig.getDisplayName() != null && fedConfig.getDisplayName().trim().length() > 0) {
+
                     %>
 
                     <h2 id="custom_auth_head_"<%=fedConfig.getDisplayName() %> class="sectionSeperator trigger active"
@@ -4887,6 +5154,7 @@
                             </tr>
 
                             <% Property[] properties = fedConfig.getProperties();
+
                                 if (properties != null && properties.length > 0) {
                                     Arrays.sort(properties, new Comparator<Property>() {
                                         public int compare(Property obj1, Property obj2) {
@@ -5078,16 +5346,22 @@
                         </tr>
                     </table>
                 </div>
+
+
                 <!-- Outbound Provisioning UI -->
                 <h2 id="out_bound_provisioning_head" class="sectionSeperator trigger active">
                     <a href="#"><fmt:message key="out.bound.provisioning.config"/></a>
                 </h2>
+
+
                 <div class="toggle_container sectionSub"
                      style="margin-bottom: 10px; display: none;" id="outBoundProv">
+
                     <!-- Google Connector -->
                     <h2 id="google_prov_head" class="sectionSeperator trigger active"
                         style="background-color: beige;">
                         <a href="#"><fmt:message key="google.provisioning.connector"/></a>
+
                         <div id="google_enable_logo" class="enablelogo"
                              style="float:right;padding-right: 5px;padding-top: 5px;"><img
                                 src="images/ok.png" alt="enable" width="16" height="16"></div>
@@ -5128,6 +5402,7 @@
                                     </div>
                                 </td>
                             </tr>
+
                             <tr>
                                 <td class="leftCol-med labelField"><fmt:message
                                         key='google.provisioning.domain.name'/>:<span class="required">*</span></td>
@@ -5514,16 +5789,23 @@
                     </div>
 
                     <%
+
                         if (customProvisioningConnectors != null && customProvisioningConnectors.size() > 0) {
+
                             for (Map.Entry<String, ProvisioningConnectorConfig> entry : customProvisioningConnectors.entrySet()) {
                                 ProvisioningConnectorConfig fedConfig = entry.getValue();
                                 if (fedConfig != null) {
                                     boolean isEnabled = fedConfig.getEnabled();
+
+
                                     String enableChecked = "";
+
                                     if (isEnabled) {
                                         enableChecked = "checked=\'checked\'";
                                     }
+
                                     if (fedConfig.getName() != null && fedConfig.getName().trim().length() > 0) {
+
                     %>
 
                     <h2 id="custom_pro_head_"<%=fedConfig.getName() %> class="sectionSeperator trigger active"
