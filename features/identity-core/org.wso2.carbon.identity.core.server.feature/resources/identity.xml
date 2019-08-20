@@ -70,6 +70,7 @@
         <KeyStoresDir>${carbon.home}/conf/keystores</KeyStoresDir>
         <KeyManagerType>SunX509</KeyManagerType>
         <TrustManagerType>SunX509</TrustManagerType>
+        <UserStorePasswordEncryption>InternalKeyStore</UserStorePasswordEncryption>
     </Security>
 
     <Identity>
