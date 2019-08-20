@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class WSWorkflowCallBackService {
 
-    private static Log log = LogFactory.getLog(WSWorkflowCallBackService.class);
+    private static final Log log = LogFactory.getLog(WSWorkflowCallBackService.class);
 
     /**
      * The callback operation to be called on the completion of the workflow executor service

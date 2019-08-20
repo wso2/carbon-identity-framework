@@ -114,8 +114,14 @@
         </AuthenticatorConfig>
         <AuthenticatorConfig  name="FIDOAuthenticator" enabled="true">
             <Parameter name="FidoAuth">/authenticationendpoint/fido-auth.jsp</Parameter>
+            <Parameter name="Fido2Auth">/authenticationendpoint/fido2-auth.jsp</Parameter>
                        <!--Please uncomment the following property and define AppID if you are using proxy configurations-->
                        <!--<Parameter name="AppID">https://localhost</Parameter>-->
+        </AuthenticatorConfig>
+        <AuthenticatorConfig  name="FIDO2Authenticator" enabled="true">
+            <Parameter name="FidoAuth">/authenticationendpoint/fido2-uaf.jsp</Parameter>
+            <!--Please uncomment the following property and define AppID if you are using proxy configurations-->
+            <!--<Parameter name="AppID">https://localhost</Parameter>-->
         </AuthenticatorConfig>
         <AuthenticatorConfig name="YahooOAuth2Authenticator" enabled="true">
             <Parameter name="YahooTokenEndpoint">https://api.login.yahoo.com/oauth2/get_token</Parameter>

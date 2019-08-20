@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.entitlement.policy.search.SearchResult;
  */
 public class PolicySearchCache extends EntitlementBaseCache<IdentityCacheKey, SearchResult> {
 
-    private static Log log = LogFactory.getLog(PolicySearchCache.class);
+    private static final Log log = LogFactory.getLog(PolicySearchCache.class);
 
     public PolicySearchCache(int timeOut) {
         super(CachingConstants.LOCAL_CACHE_PREFIX + PDPConstants.POLICY_SEARCH_CACHE, timeOut);

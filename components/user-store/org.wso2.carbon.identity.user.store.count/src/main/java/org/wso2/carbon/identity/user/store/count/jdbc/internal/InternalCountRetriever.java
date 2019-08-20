@@ -36,7 +36,7 @@ import java.sql.SQLException;
  * Class that retrieve the role counts from internal domains
  */
 public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
-    private static Log log = LogFactory.getLog(InternalCountRetriever.class);
+    private static final Log log = LogFactory.getLog(InternalCountRetriever.class);
     private RealmConfiguration realmConfiguration = null;
     private int tenantId = -1234;
 

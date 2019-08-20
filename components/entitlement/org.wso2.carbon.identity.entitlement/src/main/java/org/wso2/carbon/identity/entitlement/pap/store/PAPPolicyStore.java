@@ -42,7 +42,7 @@ import java.util.Properties;
 public class PAPPolicyStore {
 
     // The logger we'll use for all messages
-    private static Log log = LogFactory.getLog(PAPPolicyStore.class);
+    private static final Log log = LogFactory.getLog(PAPPolicyStore.class);
     private Registry registry;
 
     public PAPPolicyStore() {

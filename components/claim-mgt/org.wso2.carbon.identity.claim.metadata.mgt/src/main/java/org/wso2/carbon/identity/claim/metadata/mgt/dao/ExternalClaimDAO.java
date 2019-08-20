@@ -41,7 +41,7 @@ import java.util.Map;
  */
 public class ExternalClaimDAO extends ClaimDAO {
 
-    private static Log log = LogFactory.getLog(ExternalClaimDAO.class);
+    private static final Log log = LogFactory.getLog(ExternalClaimDAO.class);
 
 
     public List<ExternalClaim> getExternalClaims(String externalDialectURI, int tenantId) throws

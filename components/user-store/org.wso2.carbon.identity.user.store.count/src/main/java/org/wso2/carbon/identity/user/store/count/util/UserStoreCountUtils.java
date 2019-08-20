@@ -43,7 +43,7 @@ import java.util.Set;
  */
 public class UserStoreCountUtils {
     public static final String countRetrieverClass = "CountRetrieverClass";
-    private static Log log = LogFactory.getLog(UserStoreCountUtils.class);
+    private static final Log log = LogFactory.getLog(UserStoreCountUtils.class);
 
     /**
      * Get the available list of user store domains

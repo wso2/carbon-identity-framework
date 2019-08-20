@@ -64,7 +64,7 @@ import java.util.Iterator;
 public class UserStoreConfigurationDeployer extends AbstractDeployer {
 
 
-    private static Log log = LogFactory.getLog(UserStoreConfigurationDeployer.class);
+    private static final Log log = LogFactory.getLog(UserStoreConfigurationDeployer.class);
     private AxisConfiguration axisConfig;
 
     /**

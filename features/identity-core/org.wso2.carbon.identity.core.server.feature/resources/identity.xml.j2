@@ -1228,7 +1228,7 @@
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
         </Resource>
-        <Resource context="(.*)/.well-known(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/.well-known(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
         </Resource>
@@ -1537,5 +1537,16 @@
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLength>{{configuration.store.query_length.max}}</MaximumQueryLength>
     </ConfigurationStore>
+
+    <FIDO>
+        <WebAuthn>
+            <Enable>{{fido.webauthn.enable}}</Enable>
+        </WebAuthn>
+        <FIDO2TrustedOrigins>
+            {% for origin in fido.trusted.origins %}
+                <Origin>{{origin}}</Origin>
+            {% endfor %}
+        </FIDO2TrustedOrigins>
+    </FIDO>
 
 </Server>

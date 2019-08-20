@@ -329,7 +329,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
-                populateAuthenticationContextHistory(request, context, sessionContext);
+                populateAuthenticationContextHistory(authenticationResult, context, sessionContext);
                 long updatedSessionTime = System.currentTimeMillis();
                 if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
@@ -425,7 +425,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
-                populateAuthenticationContextHistory(request, context, sessionContext);
+                populateAuthenticationContextHistory(authenticationResult, context, sessionContext);
 
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
@@ -483,11 +483,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     /**
      * Polulates the authentication history information and sets it as a request attribute.
      * The inbound protocol
-     * @param request
+     * @param authenticationResult
      * @param context
      * @param sessionContext
      */
-    private void populateAuthenticationContextHistory(HttpServletRequest request, AuthenticationContext context,
+    private void populateAuthenticationContextHistory(AuthenticationResult authenticationResult,
+                                                      AuthenticationContext context,
                                                       SessionContext sessionContext) {
 
         if (context.getSelectedAcr() != null) {
@@ -495,7 +496,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             sessionContext.getSessionAuthHistory().setSessionCreatedTime(calculateCreatedTime(sessionContext));
         }
 
-        request.setAttribute(FrameworkConstants.SESSION_AUTH_HISTORY, sessionContext.getSessionAuthHistory());
+        authenticationResult.addProperty(FrameworkConstants.SESSION_AUTH_HISTORY,
+                sessionContext.getSessionAuthHistory());
     }
 
     /**

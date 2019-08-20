@@ -41,7 +41,7 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
  */
 public class ClaimDAO {
 
-    private static Log log = LogFactory.getLog(ClaimDAO.class);
+    private static final Log log = LogFactory.getLog(ClaimDAO.class);
 
     public Map<Integer, Claim> getClaims(Connection connection, String claimDialectURI, int tenantId) throws
             ClaimMetadataException {

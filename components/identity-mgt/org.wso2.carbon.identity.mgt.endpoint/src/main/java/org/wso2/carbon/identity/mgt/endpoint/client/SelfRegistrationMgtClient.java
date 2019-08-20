@@ -57,7 +57,7 @@ import static org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointCo
 public class SelfRegistrationMgtClient {
 
     private static final String CLIENT = "Client ";
-    private final Log log = LogFactory.getLog(SelfRegistrationMgtClient.class);
+    private static final Log log = LogFactory.getLog(SelfRegistrationMgtClient.class);
     private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
     private static final String PURPOSE_ID = "purposeId";

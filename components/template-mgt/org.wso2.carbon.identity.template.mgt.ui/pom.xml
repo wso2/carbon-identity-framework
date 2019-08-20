@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>template-mgt</artifactId>
-        <version>5.14.8-SNAPSHOT</version>
+        <version>5.14.18-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -43,7 +43,7 @@
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Export-Package>
-                            org.wso2.carbon.identity.template.mgt.ui.*,
+                            org.wso2.carbon.identity.template.mgt.ui.*; version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.http,

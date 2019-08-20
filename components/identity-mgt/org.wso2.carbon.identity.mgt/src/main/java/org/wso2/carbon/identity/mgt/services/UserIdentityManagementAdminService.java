@@ -62,7 +62,7 @@ import java.util.Set;
  */
 public class UserIdentityManagementAdminService {
 
-    private static Log log = LogFactory.getLog(UserIdentityManagementAdminService.class);
+    private static final Log log = LogFactory.getLog(UserIdentityManagementAdminService.class);
 
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>carbon-service-stubs</artifactId>
-        <version>5.14.8-SNAPSHOT</version>
+        <version>5.14.18-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -54,9 +54,6 @@
                                 <java classname="org.apache.axis2.wsdl.WSDL2Java" fork="true">
                                     <arg line="-uri src/main/resources/IdentityProviderMgtService.wsdl -u -uw -o target/generated-code -p org.wso2.carbon.idp.mgt.stub -ns2p http://mgt.idp.carbon.wso2.org=org.wso2.carbon.idp.mgt.stub,http://dto.mgt.idp.carbon.wso2.org/xsd=org.wso2.carbon.idp.mgt.stub.dto,http://mgt.idp.carbon.wso2.org/xsd=org.wso2.carbon.idp.mgt.stub.types,http://org.apache.axis2/xsd=org.wso2.carbon.idp.mgt.stub.types.axis2,http://model.common.application.identity.carbon.wso2.org/xsd=org.wso2.carbon.identity.application.common.model.idp.xsd" />
                                     <classpath refid="wsdl2java.classpath" />
-                                    <classpath refid="maven.dependency.classpath" />
-                                    <classpath refid="maven.compile.classpath" />
-                                    <classpath refid="maven.runtime.classpath" />
                                 </java>
                             </tasks>
                         </configuration>

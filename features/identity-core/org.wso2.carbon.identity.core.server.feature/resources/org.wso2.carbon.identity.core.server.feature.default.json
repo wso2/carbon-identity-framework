@@ -426,5 +426,10 @@
   "authentication.adaptive.long_wait.prompt": false,
 
   "federated.idp.role_claim_value_attribute_separator": ",",
-  "configuration.store.query_length.max": "4194304"
+  "configuration.store.query_length.max": "4194304",
+
+  "fido.webauthn.enable": true,
+  "fido.trusted.origins": [
+    "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
+  ]
 }

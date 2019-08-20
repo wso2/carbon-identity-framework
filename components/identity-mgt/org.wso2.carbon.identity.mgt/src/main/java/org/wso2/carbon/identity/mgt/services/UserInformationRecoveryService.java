@@ -73,7 +73,7 @@ import java.util.Map;
  */
 public class UserInformationRecoveryService {
 
-    Log log = LogFactory.getLog(UserInformationRecoveryService.class);
+    private static final Log log = LogFactory.getLog(UserInformationRecoveryService.class);
 
     public CaptchaInfoBean getCaptcha() throws IdentityMgtServiceException {
 

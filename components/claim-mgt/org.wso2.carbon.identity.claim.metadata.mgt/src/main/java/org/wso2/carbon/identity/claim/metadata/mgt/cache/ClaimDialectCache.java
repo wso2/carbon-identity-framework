@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class ClaimDialectCache {
 
-    private static Log log = LogFactory.getLog(ClaimDialectCache.class);
+    private static final Log log = LogFactory.getLog(ClaimDialectCache.class);
 
     private static final String CACHE_NAME = "ClaimDialectCache";
     private static final BaseCache<Integer, Serializable> cacheImpl = new BaseCache<>(CACHE_NAME);

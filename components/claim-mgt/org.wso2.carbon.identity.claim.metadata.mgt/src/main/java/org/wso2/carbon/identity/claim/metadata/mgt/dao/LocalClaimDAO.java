@@ -42,7 +42,7 @@ import java.util.Map;
  */
 public class LocalClaimDAO extends ClaimDAO {
 
-    private static Log log = LogFactory.getLog(LocalClaimDAO.class);
+    private static final Log log = LogFactory.getLog(LocalClaimDAO.class);
 
 
     public List<LocalClaim> getLocalClaims(int tenantId) throws ClaimMetadataException {
