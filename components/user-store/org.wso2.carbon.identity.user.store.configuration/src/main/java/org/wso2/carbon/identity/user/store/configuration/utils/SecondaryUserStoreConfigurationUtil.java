@@ -95,6 +95,12 @@ public class SecondaryUserStoreConfigurationUtil {
     private static final String SERVER_KEYSTORE_PASSWORD = "Security.KeyStore.Password";
     private static final String SERVER_KEYSTORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
     private static final String CIPHER_TRANSFORMATION_SYSTEM_PROPERTY = "org.wso2.CipherTransformation";
+    private static final String SERVER_INTERNAL_KEYSTORE_FILE = "Security.InternalKeyStore.Location";
+    private static final String SERVER_INTERNAL_KEYSTORE_TYPE = "Security.InternalKeyStore.Type";
+    private static final String SERVER_INTERNAL_KEYSTORE_PASSWORD = "Security.InternalKeyStore.Password";
+    private static final String SERVER_INTERNAL_KEYSTORE_KEY_ALIAS = "Security.InternalKeyStore.KeyAlias";
+    private static final String ENCRYPTION_KEYSTORE = "Security.UserStorePasswordEncryption";
+    private static final String INTERNAL_KEYSTORE = "InternalKeystore";
     private static Cipher cipher = null;
     private static String cipherTransformation = null;
     private static Certificate certificate = null;
@@ -115,10 +121,20 @@ public class SecondaryUserStoreConfigurationUtil {
                     UserStoreConfigComponent.getServerConfigurationService();
 
             if (config != null) {
+                String encryptionKeyStore = config.getFirstProperty(ENCRYPTION_KEYSTORE);
+
                 String filePath = config.getFirstProperty(SERVER_KEYSTORE_FILE);
                 String keyStoreType = config.getFirstProperty(SERVER_KEYSTORE_TYPE);
                 String password = config.getFirstProperty(SERVER_KEYSTORE_PASSWORD);
                 String keyAlias = config.getFirstProperty(SERVER_KEYSTORE_KEY_ALIAS);
+
+                //use internal keystore
+                if (INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
+                    filePath = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_FILE);
+                    keyStoreType = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_TYPE);
+                    password = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_PASSWORD);
+                    keyAlias = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_KEY_ALIAS);
+                }
 
                 KeyStore store;
                 InputStream inputStream = null;
