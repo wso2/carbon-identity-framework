@@ -172,7 +172,7 @@
     <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 
     <!-- Override carbon jquery from latest release of it, because this tokenizer support for latest one -->
-    <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+    <script type="text/javascript" src="js/jquery-3.4.1.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.11.1.min.js"></script>
     <script type="text/javascript" src="js/tokenizer.js"></script>
     <link rel="stylesheet" type="text/css" href="css/input_style.css">
