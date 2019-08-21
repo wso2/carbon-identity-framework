@@ -3015,7 +3015,7 @@ public class IdPManagementDAO {
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while searching for similar IdP EntityIds", e);
         } finally {
-            IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
         }
         return isAvailable;
     }
