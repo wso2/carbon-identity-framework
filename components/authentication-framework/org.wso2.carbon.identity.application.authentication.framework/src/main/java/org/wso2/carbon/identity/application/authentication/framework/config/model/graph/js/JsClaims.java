@@ -217,7 +217,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
 
         String authenticatorDialect = null;
         Map<String, String> localToIdpClaimMapping = null;
-        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String tenantDomain = getContext().getTenantDomain();
         try {
             // Check if the IDP use an standard dialect (like oidc), If it does, dialect claim mapping are
             // prioritized over IdP claim mapping
@@ -235,7 +235,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
                         (authenticatorDialect, remoteClaimsMap.keySet(), tenantDomain, true);
             } else {
                 localToIdpClaimMapping = IdentityProviderManager.getInstance().getMappedIdPClaimsMap
-                        (idp, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(), Collections
+                        (idp, tenantDomain, Collections
                                 .singletonList(localClaim));
 
             }
