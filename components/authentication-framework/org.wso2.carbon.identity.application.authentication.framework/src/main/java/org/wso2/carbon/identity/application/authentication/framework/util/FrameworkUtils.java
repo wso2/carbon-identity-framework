@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.hrd
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.CallBackHandlerFactory;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
@@ -103,6 +104,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -471,6 +473,29 @@ public class FrameworkUtils {
         }
 
         return provisioningHandler;
+    }
+
+    /**
+     * Create the user store preference order supplier from the configured call back handler factory.
+     */
+    public static UserStorePreferenceOrderSupplier<List<String>> getUserStorePreferenceOrderSupplier
+    (AuthenticationContext context, ServiceProvider serviceProvider) {
+
+        return getCallBackHandlerFactory().createUserStorePreferenceOrderSupplier(context, serviceProvider);
+    }
+
+    private static CallBackHandlerFactory getCallBackHandlerFactory() {
+
+        // Retrieve tha call back handler configured at application-authentication.xml file.
+        CallBackHandlerFactory userStorePreferenceCallbackHandlerFactory;
+        Object obj = ConfigurationFacade.getInstance().getExtensions().get(FrameworkConstants.Config
+                .QNAME_EXT_USER_STORE_ORDER_CALLBACK_HANDLER);
+        if (obj != null) {
+            userStorePreferenceCallbackHandlerFactory = (CallBackHandlerFactory) obj;
+        } else {
+            userStorePreferenceCallbackHandlerFactory = new CallBackHandlerFactory();
+        }
+        return userStorePreferenceCallbackHandlerFactory;
     }
 
     /**
