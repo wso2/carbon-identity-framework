@@ -42,6 +42,7 @@ public class UserStoreConfigurationConstant {
     public static final String deploymentDirectory = CarbonUtils.getCarbonRepository() + USERSTORES;
     public static final String PERIOD = ".";
     public static final String DISABLED = "Disabled";
+    public static final String FILE_EXTENSION_XML = ".xml";
 
     private UserStoreConfigurationConstant() {
 

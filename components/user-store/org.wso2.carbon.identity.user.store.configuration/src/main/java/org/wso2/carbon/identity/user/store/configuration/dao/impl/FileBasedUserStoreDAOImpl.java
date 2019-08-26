@@ -25,8 +25,6 @@ import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
-import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
-import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
@@ -58,6 +56,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.writeUserMgtXMLFile;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
 
@@ -323,13 +322,15 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
             createUserStoreDirectory(null, fileName, false);
-            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + ".xml");
-            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + FILE_EXTENSION_XML);
+            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + FILE_EXTENSION_XML);
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
             createUserStoreDirectory(tenantFilePath, fileName, true);
-            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), fileName + ".xml");
-            previousUserStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES,
+                    fileName + FILE_EXTENSION_XML);
+            previousUserStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES,
+                    previousFileName + FILE_EXTENSION_XML);
         }
         if (!Files.exists(previousUserStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. Previous domain name " + previousDomainName +

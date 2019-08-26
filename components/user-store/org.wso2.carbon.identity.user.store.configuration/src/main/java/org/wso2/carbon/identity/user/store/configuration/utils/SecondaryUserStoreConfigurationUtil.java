@@ -47,7 +47,6 @@ import org.wso2.carbon.user.core.UserStoreConfigConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.crypto.Cipher;
@@ -65,7 +64,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,6 +78,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
 
@@ -236,31 +235,22 @@ public class SecondaryUserStoreConfigurationUtil {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
             userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
         }
-        return getUserStoreConfigFile(true, userStore, fileName);
+        return getUserStoreConfigFile(userStore, fileName);
     }
 
-    private static Path getUserStoreConfigFile(Boolean isTenant, Path userStore, String fileName) {
+    private static Path getUserStoreConfigFile(Path userStore, String fileName) {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         if (!Files.exists(userStore)) {
             try {
-
                 Files.createDirectory(userStore);
-                if (isTenant) {
-                    log.info("folder 'userstores' created to store configurations for tenant = " + tenantId);
-                } else {
-                    log.info("folder 'userstores' created to store configurations for super tenant");
-                }
+                log.info("folder 'userstores' created to store configurations for tenant = " + tenantId);
             } catch (IOException e) {
-                log.error("Error while creating 'userstores' directory to store configurations for super tenant");
+                log.error("Error while creating 'userstores' directory to store configurations for tenant = "
+                        + tenantId);
             }
         }
-        if (isTenant) {
-            return Paths.get(deploymentDirectory, fileName + ".xml");
-        } else {
-            String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
-            return Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES, fileName + ".xml");
-        }
+        return Paths.get(userStore.toString(), fileName + FILE_EXTENSION_XML);
     }
 
     /**
