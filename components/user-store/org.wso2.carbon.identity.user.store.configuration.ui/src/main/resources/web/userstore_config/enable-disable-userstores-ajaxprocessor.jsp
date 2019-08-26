@@ -19,7 +19,8 @@
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.client.UserStoreConfigAdminServiceClient" %>
 
-<%@page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@page import="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -34,7 +35,11 @@
     String forwardTo = null;
     String action = request.getParameter("action");
     String domain = request.getParameter("domain");
-    String repositoryClass = request.getParameter("repository");
+    
+    String repositoryClass = null;
+    if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+        repositoryClass = request.getParameter("repository");
+    }
     
     String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -49,12 +54,20 @@
 
         try {
             if (action.equals("enable")) {
-                userStoreConfigAdminServiceClient.changeUserStoreState(domain, "false", repositoryClass);
+                if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+                    userStoreConfigAdminServiceClient.changeUserStoreState(domain, "false", repositoryClass);
+                } else {
+                    userStoreConfigAdminServiceClient.changeUserStoreState(domain, "false");
+                }
                 String message = resourceBundle.getString("successful.enable");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
             }
             if (action.equals("disable")) {
-                userStoreConfigAdminServiceClient.changeUserStoreState(domain, "true", repositoryClass);
+                if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+                    userStoreConfigAdminServiceClient.changeUserStoreState(domain, "true", repositoryClass);
+                } else {
+                    userStoreConfigAdminServiceClient.changeUserStoreState(domain, "true");
+                }
                 String message = resourceBundle.getString("successful.disable");
                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
             }

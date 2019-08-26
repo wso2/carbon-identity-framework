@@ -47,7 +47,6 @@ import org.wso2.carbon.user.core.UserStoreConfigConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.crypto.Cipher;
@@ -65,7 +64,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -708,5 +706,18 @@ public class SecondaryUserStoreConfigurationUtil {
             userStoreConfigListener.onUserStorePreDelete(CarbonContext.getThreadLocalCarbonContext().getTenantId
                     (), domainName);
         }
+    }
+
+    /**
+     * Checks whether having user stores based on separate repositories are supported.
+     *
+     * @return True if repository separation is enabled.
+     */
+    public static boolean isUserStoreRepositorySeparationEnabled() {
+
+        // Support for user stores based on different repositories is
+        // disabled as the feature has on going improvements.
+        // https://github.com/wso2/product-is/issues/5673
+        return false;
     }
 }

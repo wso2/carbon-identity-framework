@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDA
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
+import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
@@ -64,6 +65,9 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
 public class UserStoreConfigAdminService extends AbstractAdmin {
     public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
 
+    private static final String FILE_BASED_REPOSITORY_CLASS =
+            "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
+
     /**
      * Get details of current secondary user store configurations
      *
@@ -92,13 +96,21 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public UserStoreDTO[] getSecondaryRealmConfigurationsOnRepository(String repositoryClassName)
             throws IdentityUserStoreMgtException {
 
-        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-                getInstance().getUserStoreDAOFactories();
+        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+            Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                    getInstance().getUserStoreDAOFactories();
 
-        AbstractUserStoreDAOFactory userStoreDAOFactory = userStoreDAOFactories.get(repositoryClassName);
-        if (userStoreDAOFactory != null) {
-            return userStoreDAOFactory.getInstance().getUserStores();
+            AbstractUserStoreDAOFactory userStoreDAOFactory = userStoreDAOFactories.get(repositoryClassName);
+            if (userStoreDAOFactory != null) {
+                return userStoreDAOFactory.getInstance().getUserStores();
+            } else {
+                return new UserStoreDTO[0];
+            }
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Returning empty " +
+                        "UserStoreDTO array.");
+            }
             return new UserStoreDTO[0];
         }
     }
@@ -160,11 +172,18 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
-            if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
+            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
                         getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().addUserStore(userStoreDTO);
             } else {
+                if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Repository separation of user-stores has been disabled. Adding user-store " +
+                                userStoreDTO.getDomainId() + " with file-based configuration.");
+                    }
+                }
                 getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
         } catch (UserStoreException e) {
@@ -182,10 +201,24 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
-            if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
                         getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, false);
+            } else if (StringUtils.equals(userStoreDTO.getRepositoryClass(), FILE_BASED_REPOSITORY_CLASS)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Repository separation of user-stores has been disabled. Editing user-store " +
+                            userStoreDTO.getDomainId() + " with file-based configuration.");
+                }
+                getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, false);
+            } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Repository separation of user-stores has been disabled. Unable to edit " +
+                            "user-store " + userStoreDTO.getDomainId() + " with repository class " +
+                            userStoreDTO.getRepositoryClass());
+                }
             } else {
                 getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, false);
             }
@@ -215,10 +248,23 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
         try {
             validateForFederatedDomain(domainName);
-            if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
                         getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().updateUserStoreDomainName(previousDomainName, userStoreDTO);
+            } else if (StringUtils.equals(userStoreDTO.getRepositoryClass(), FILE_BASED_REPOSITORY_CLASS)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Repository separation of user-stores has been disabled. Updating user-store " +
+                            "domain name " + userStoreDTO.getDomainId() + " with file-based configuration.");
+                }
+                getFileBasedUserStoreDAOFactory().updateUserStoreDomainName(previousDomainName, userStoreDTO);
+            } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Repository separation of user-stores has been disabled. Unable to update " +
+                            "user-store domain name " + userStoreDTO.getDomainId() + " with repository class " +
+                            userStoreDTO.getRepositoryClass());
+                }
             } else {
                 getFileBasedUserStoreDAOFactory().updateUserStoreDomainName(previousDomainName, userStoreDTO);
             }
@@ -235,11 +281,19 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public String[] getRepositoryClasses() {
 
-        Map<String, AbstractUserStoreDAOFactory> userStoreFactories = UserStoreConfigListenersHolder.getInstance().
-                getUserStoreDAOFactories();
-        Object[] repositoryArr = userStoreFactories.keySet().toArray(new String[0]);;
-        String[] repositoryClasses = Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
-        return repositoryClasses;
+        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+            Map<String, AbstractUserStoreDAOFactory> userStoreFactories = UserStoreConfigListenersHolder.getInstance().
+                    getUserStoreDAOFactories();
+            Object[] repositoryArr = userStoreFactories.keySet().toArray(new String[0]);
+            String[] repositoryClasses = Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
+            return repositoryClasses;
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Returning empty " +
+                        "repository class array.");
+            }
+            return new String[0];
+        }
     }
 
     /**
@@ -293,18 +347,34 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void deleteUserStoresSetFromRepository(UserStoreDTO[] userStoreDTOs) throws IdentityUserStoreMgtException {
 
-        for (String repositoryClass : UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories().keySet()) {
-            List<String> domains = new ArrayList<>();
-            for (UserStoreDTO userStoreDTO : userStoreDTOs) {
-                if (repositoryClass.equals(userStoreDTO.getRepositoryClass())) {
-                    domains.add(userStoreDTO.getDomainId());
+        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+            for (String repositoryClass :
+                    UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories().keySet()) {
+                List<String> domains = new ArrayList<>();
+                for (UserStoreDTO userStoreDTO : userStoreDTOs) {
+                    if (repositoryClass.equals(userStoreDTO.getRepositoryClass())) {
+                        domains.add(userStoreDTO.getDomainId());
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(domains)) {
+                    AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
+                            getUserStoreDAOFactories().get(repositoryClass);
+                    userStoreDAOFactory.getInstance().deleteUserStores(domains.toArray(new String[domains.size()]));
                 }
             }
-            if (CollectionUtils.isNotEmpty(domains)) {
-                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                        getUserStoreDAOFactories().get(repositoryClass);
-                userStoreDAOFactory.getInstance().deleteUserStores(domains.toArray(new String[domains.size()]));
+        } else {
+            List<String> domainList = new ArrayList<>();
+            for (UserStoreDTO userStoreDTO : userStoreDTOs) {
+                if (StringUtils.equals(userStoreDTO.getRepositoryClass(), FILE_BASED_REPOSITORY_CLASS)) {
+                    domainList.add(userStoreDTO.getDomainId());
+                }
             }
+            String[] domains = domainList.toArray(new String[0]);
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Attempting to remove " +
+                        "user-stores with file-based configurations. For user-stores " + String.join(",", domainList));
+            }
+            deleteUserStoresSet(domains);
         }
     }
 
@@ -357,11 +427,24 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         validateDomain(domain, isDisable);
         UserStoreDTO userStoreDTO;
-        if (StringUtils.isNotEmpty(repositoryClass)) {
+        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                StringUtils.isNotEmpty(repositoryClass)) {
             AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
                     getUserStoreDAOFactories().get(repositoryClass);
             userStoreDTO = getUserStoreDTO(domain, isDisable, repositoryClass);
             userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, true);
+        } else if (StringUtils.equals(repositoryClass, FILE_BASED_REPOSITORY_CLASS)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Modifying state for " +
+                        "user-store " + domain + " with file-based configuration.");
+            }
+            userStoreDTO = getUserStoreDTO(domain, isDisable, null);
+            updateTheStateInFileRepository(userStoreDTO);
+        } else if (StringUtils.isNotEmpty(repositoryClass)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Unable to modify state " +
+                        "for user-store " + domain + " with repository class " + repositoryClass);
+            }
         } else {
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
             updateTheStateInFileRepository(userStoreDTO);
