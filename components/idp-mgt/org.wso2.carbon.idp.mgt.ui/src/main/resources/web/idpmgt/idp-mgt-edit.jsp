@@ -5955,5 +5955,3 @@
     <script type="text/javascript" src="js/idp_mgt_edit.js"></script>
 
 </fmt:bundle>
-
-		   
