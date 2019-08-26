@@ -128,7 +128,7 @@
     String clientSecret = null;
     String authzUrl = null;
     String tokenUrl = null;
-    String logoutUrlOidc = null;
+    String logoutUrlOIDC = null;
     String callBackUrl = null;
     String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
@@ -439,7 +439,7 @@
                     Property logoutUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
                     if (logoutUrlProp != null) {
-                        logoutUrlOidc = logoutUrlProp.getValue();
+                        logoutUrlOIDC = logoutUrlProp.getValue();
                     }
                     Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
@@ -1145,8 +1145,8 @@
     if (StringUtils.isBlank(tokenUrl)) {
         tokenUrl = StringUtils.EMPTY;
     }
-    if (StringUtils.isBlank(logoutUrlOidc)) {
-        logoutUrlOidc = StringUtils.EMPTY;
+    if (StringUtils.isBlank(logoutUrlOIDC)) {
+        logoutUrlOIDC = StringUtils.EMPTY;
     }
 
     if (StringUtils.isBlank(callBackUrl)) {
@@ -4711,7 +4711,7 @@
                                         class="required">*</span></td>
                                 <td>
                                     <input id="logoutUrlOidc" name="logoutUrlOidc" type="text"
-                                           value=<%=Encode.forHtmlAttribute(logoutUrlOidc)%>>
+                                           value=<%=Encode.forHtmlAttribute(logoutUrlOIDC)%>>
 
                                     <div class="sectionHelp">
                                         <fmt:message key='logout.endpoint.help'/>
