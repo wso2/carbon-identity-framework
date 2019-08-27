@@ -37,7 +37,7 @@
     
     String authAPIURL = application.getInitParameter(Constants.AUTHENTICATION_REST_ENDPOINT_URL);
     if (StringUtils.isBlank(authAPIURL)) {
-        authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.1/", true, true);
+        authAPIURL = IdentityUtil.getServerURL("/api/identity/auth/v1.2/", true, true);
     }
     if (!authAPIURL.endsWith("/")) {
         authAPIURL += "/";
