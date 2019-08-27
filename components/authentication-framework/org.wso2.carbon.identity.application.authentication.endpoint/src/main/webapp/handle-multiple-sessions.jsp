@@ -49,7 +49,7 @@
     Map data = gson.fromJson(contextProperties, Map.class);
     
     if (request.getParameter("terminateActiveSessionsAction") != null && request.getParameter("sessionsToTerminate") != null) {
-        String[] sessionIds = request.getParameter("sessionsToTerminate").split(",");
+        String[] sessionIds = request.getParameterValues("sessionsToTerminate");
         String deleteSessionAPIUrl;
         for (String sessionId : sessionIds) {
             deleteSessionAPIUrl = IdentityUtil.getServerURL("/api/users/v1/" + data.get("encodedUsername") + "/sessions/" + sessionId, true, true);
@@ -175,9 +175,9 @@
                               onsubmit="return validateForm(this.submitted)">
                             <h4 class="text-center padding-double">
                                 You currently have <fmt:formatNumber value='${requestScope.data["maxSessionCount"]}'/>
-                                active sessions.
+                                active session(s).
                                 You are not allowed to have more than <fmt:formatNumber
-                                    value='${requestScope.data["maxSessionCount"]}'/> active sessions.
+                                    value='${requestScope.data["maxSessionCount"]}'/> active session(s).
                             </h4>
                             <table class="table table-striped table-bordered">
                                 <thead>
