@@ -33,6 +33,7 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
 
     private static final long serialVersionUID = -5644595996095910601L;
     private String templateId;
+    private String redirectUrl;
     private Map<String, Serializable> data;
     private Map<String, Object> parameters;
     private Map<String, SerializableJsFunction> handlerMap = new HashMap<>();
@@ -45,6 +46,16 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
     public void setTemplateId(String templateId) {
 
         this.templateId = templateId;
+    }
+
+    public String getRedirectUrl() {
+
+        return redirectUrl;
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+
+        this.redirectUrl = redirectUrl;
     }
 
     public Map<String, Serializable> getData() {
@@ -78,6 +89,7 @@ public class ShowPromptNode extends DynamicDecisionNode implements AuthGraphNode
     }
 
     public void addHandler(String outcome, SerializableJsFunction function) {
+
         handlerMap.put(outcome, function);
     }
 
