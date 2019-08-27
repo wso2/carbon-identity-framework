@@ -699,4 +699,17 @@ public class SecondaryUserStoreConfigurationUtil {
                     (), domainName);
         }
     }
+
+    /**
+     * Checks whether having user stores based on separate repositories are supported.
+     *
+     * @return True if repository separation is enabled.
+     */
+    public static boolean isUserStoreRepositorySeparationEnabled() {
+
+        // Support for user stores based on different repositories is
+        // disabled as the feature has on going improvements.
+        // https://github.com/wso2/product-is/issues/5673
+        return false;
+    }
 }
