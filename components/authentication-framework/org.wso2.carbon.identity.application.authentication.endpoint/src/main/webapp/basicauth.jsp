@@ -38,7 +38,7 @@
 
 <jsp:directive.include file="init-loginform-action-url.jsp"/>
 
-<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script>
     function goBack() {
         window.history.back();
