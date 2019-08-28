@@ -1430,6 +1430,26 @@
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/fileupload(.*)" secured="false" http-method="all"/>
+        <Resource context="/filedownload(.*)" secured="false" http-method="all"/>
+        <Resource context="/logincontext(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/resourceContent(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/resource(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/tags(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/atom(.*)" secured="false" http-method="all"/>
+        <Resource context="/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(*).js" secured="false" http-method="all"/>
+        <Resource context="(*).ico" secured="false" http-method="all"/>
+        <Resource context="(*).PNG" secured="false" http-method="all"/>
+        <Resource context="(*).png" secured="false" http-method="all"/>
+        <Resource context="(*).xsl" secured="false" http-method="all"/>
+        <Resource context="(*).JPG" secured="false" http-method="all"/>
+        <Resource context="(*).jpg" secured="false" http-method="all"/>
+        <Resource context="(*).GIF" secured="false" http-method="all"/>
+        <Resource context="(*).gif" secured="false" http-method="all"/>
+        <Resource context="(*).css" secured="false" http-method="all"/>
+        <Resource context="(*).xslt" secured="false" http-method="all"/>
 
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
