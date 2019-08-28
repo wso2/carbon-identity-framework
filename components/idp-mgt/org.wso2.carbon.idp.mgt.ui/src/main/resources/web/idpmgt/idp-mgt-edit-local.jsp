@@ -773,10 +773,11 @@ function removeDefaultAuthSeq() {
                     <%
                     org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();
-                            String displayName = connectorProperties[k].getDisplayName();
-                            String name = connectorProperties[k].getName();
-                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) {%>
+                            if (connectorProperties[k] != null) {
+                                String value = connectorProperties[k].getValue();
+                                String displayName = connectorProperties[k].getDisplayName();
+                                String name = connectorProperties[k].getName();
+                                if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) {%>
 
                     <tr>
                         <td style="width: 500px;">
@@ -797,51 +798,54 @@ function removeDefaultAuthSeq() {
 
 
                     <% } else { %>
-                        <tr>
-                            <td style="width: 500px;">
-                                <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
-                            </td>
+                    <tr>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
+                        </td>
+                        <%
+                            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                // assume as boolean value. But actually this must be sent from backend.
+                                // will fix for next release.
+                        %>
+                        <td>
+                            <input class="sectionCheckbox" type="checkbox"
+                                   onclick="setBooleanValueToTextBox(this)"
+                                    <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                   value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
                             <%
-                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-                                    // assume as boolean value. But actually this must be sent from backend.
-                                    // will fix for next release.
-                            %>
-                            <td>
-                                <input class="sectionCheckbox" type="checkbox"
-                                       onclick="setBooleanValueToTextBox(this)"
-                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
-                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
                             <%}%>
-                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            </td>
+                            <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                   name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                   type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                        </td>
+                        <%
+                        } else {%>
+                        <td colspan="2"><input
+                                <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                type="password" autocomplete="off"
+                                <% } else {%>
+                                type="text" <%
+                            } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                        style="width:400px"
+                                value="<%=Encode.forHtmlAttribute(value)%>"/>
                             <%
-                            } else {%>
-                            <td colspan="2"><input
-                                    <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
-                                    type="password" autocomplete="off"
-                                    <% } else  {%>
-                                    type="text" <%
-                                    } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   style="width:400px"
-                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
                             <%}%>
-                            </td>
-                            <%}%>
-                        </tr>
-                    <%}}%>
+                        </td>
+                        <%}%>
+                    </tr>
+                    <%
+                                }
+                            }
+                        }%>
                         </table></div>
 <%
                 }
@@ -888,10 +892,11 @@ function removeDefaultAuthSeq() {
                     <%
                         org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();
-                            String displayName = connectorProperties[k].getDisplayName();
-                            String name = connectorProperties[k].getName();
-                            if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) { %>
+                            if (connectorProperties[k] != null) {
+                                String value = connectorProperties[k].getValue();
+                                String displayName = connectorProperties[k].getDisplayName();
+                                String name = connectorProperties[k].getName();
+                                if (StringUtils.isNotEmpty(name) && name.startsWith("_url_")) { %>
 
                     <tr>
                         <td style="width: 500px;">
@@ -913,50 +918,53 @@ function removeDefaultAuthSeq() {
 
                     <% } else { %>
                     <tr>
-                            <td style="width: 500px;">
-                                <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
-                            </td>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
+                        </td>
+                        <%
+                            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                // assume as boolean value. But actually this must be sent from backend.
+                                // will fix for next release.
+                        %>
+                        <td>
+                            <input class="sectionCheckbox" type="checkbox"
+                                   onclick="setBooleanValueToTextBox(this)"
+                                    <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                   value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
                             <%
-                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-                                    // assume as boolean value. But actually this must be sent from backend.
-                                    // will fix for next release.
-                            %>
-                            <td>
-                                <input class="sectionCheckbox" type="checkbox"
-                                       onclick="setBooleanValueToTextBox(this)"
-                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
-                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
                             <%}%>
-                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            </td>
+                            <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                   name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                   type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                        </td>
+                        <%
+                        } else {%>
+                        <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                type="password" autocomplete="off"
+                                <% } else {%>
+                                type="text" <%
+                            } %>
+                                name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                        style="width:400px"
+                                value="<%=Encode.forHtmlAttribute(value)%>"/>
                             <%
-                            } else {%>
-                            <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
-                                    type="password" autocomplete="off"
-                                    <% } else {%>
-                                    type="text" <%
-                                } %>
-                                                   name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   style="width:400px"
-                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
                             <%}%>
-                            </td>
-                            <%}%>
-                        </tr>
-                    <%}}%>
+                        </td>
+                        <%}%>
+                    </tr>
+                    <%
+                                }
+                            }
+                        }%>
                         </table></div>
 <%
                         }
@@ -978,52 +986,55 @@ function removeDefaultAuthSeq() {
                     <%
                     org.wso2.carbon.identity.governance.stub.bean.Property[] connectorProperties = connectorConfig.getProperties();
                         for (int k = 0; k < connectorProperties.length; k++) {
-                            String value = connectorProperties[k].getValue();%>
+                            if (connectorProperties[k] != null) {
+                                String value = connectorProperties[k].getValue();%>
 
-                        <tr>
-                            <td style="width: 500px;">
-                                <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
-                            </td>
+                    <tr>
+                        <td style="width: 500px;">
+                            <%=Encode.forHtmlContent(connectorProperties[k].getDisplayName())%>
+                        </td>
+                        <%
+                            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                                // assume as boolean value. But actually this must be sent from backend.
+                                // will fix for next release.
+                        %>
+                        <td>
+                            <input class="sectionCheckbox" type="checkbox"
+                                   onclick="setBooleanValueToTextBox(this)"
+                                    <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
+                                   value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
                             <%
-                                if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
-                                    // assume as boolean value. But actually this must be sent from backend.
-                                    // will fix for next release.
-                            %>
-                            <td>
-                                <input class="sectionCheckbox" type="checkbox"
-                                       onclick="setBooleanValueToTextBox(this)"
-                                        <%if (Boolean.parseBoolean(value)) {%> checked="checked" <%}%>
-                                       value="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
                             <%}%>
-                                <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
-                                       type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            </td>
+                            <input id="<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                   name="property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>"
+                                   type="hidden" value="<%=Encode.forHtmlAttribute(value)%>"/>
+                        </td>
+                        <%
+                        } else {%>
+                        <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
+                                type="password" autocomplete="off"
+                                <% } else {%>
+                                type="text" <%
+                            } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
+                                        style="width:400px"
+                                value="<%=Encode.forHtmlAttribute(value)%>"/>
                             <%
-                            } else {%>
-                            <td colspan="2"><input <%if (connectorProperties[k].getName().startsWith("__secret__")) {%>
-                                    type="password" autocomplete="off"
-                                    <% } else {%>
-                                    type="text" <%
-                                } %> name=property__<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   id=<%=Encode.forHtmlAttribute(connectorProperties[k].getName())%>
-                                                   style="width:400px"
-                                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
-                            <%
-                            if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
-                                <div class="sectionHelp">
-                                       <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
-                                </div>
+                                if (StringUtils.isNotBlank(connectorProperties[k].getDescription())) {%>
+                            <div class="sectionHelp">
+                                <%=Encode.forHtmlContent(connectorProperties[k].getDescription())%>
+                            </div>
                             <%}%>
-                            </td>
-                            <%}%>
-                        </tr>
-                    <%}%>
+                        </td>
+                        <%}%>
+                    </tr>
+                    <%
+                            }
+                        }%>
                         </table></div>
 <%
                         }
