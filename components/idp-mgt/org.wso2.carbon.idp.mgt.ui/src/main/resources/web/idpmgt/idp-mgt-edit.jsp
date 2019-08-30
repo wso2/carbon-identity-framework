@@ -436,11 +436,6 @@
                     if (tokenUrlProp != null) {
                         tokenUrl = tokenUrlProp.getValue();
                     }
-                    Property logoutUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
-                    if (logoutUrlProp != null) {
-                        logoutUrlOIDC = logoutUrlProp.getValue();
-                    }
                     Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
                     if (callBackURLProp != null) {
@@ -451,6 +446,11 @@
                             IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
                     if (userInfoEndpointProp != null) {
                         userInfoEndpoint = userInfoEndpointProp.getValue();
+                    }
+                    Property logoutUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+                    if (logoutUrlProp != null) {
+                        logoutUrlOIDC = logoutUrlProp.getValue();
                     }
 
                     Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
@@ -1145,10 +1145,6 @@
     if (StringUtils.isBlank(tokenUrl)) {
         tokenUrl = StringUtils.EMPTY;
     }
-    if (StringUtils.isBlank(logoutUrlOIDC)) {
-        logoutUrlOIDC = StringUtils.EMPTY;
-    }
-
     if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
     }
@@ -1156,6 +1152,10 @@
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
     }
+    if (StringUtils.isBlank(logoutUrlOIDC)) {
+        logoutUrlOIDC = StringUtils.EMPTY;
+    }
+
 
     String oidcBasicAuthEnabledChecked = "";
     if (isOIDCBasicAuthEnabled) {
@@ -4707,19 +4707,7 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>
-                                <td>
-                                    <input id="logoutUrlOIDC" name="logoutUrlOIDC" type="text"
-                                           value=<%=Encode.forHtmlAttribute(logoutUrlOIDC)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='logout.endpoint.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='callbackurl'/>:<span
-                                        class="required">*</span></td>
+                                <td class="leftCol-med labelField"><fmt:message key='callbackurl'/>
                                 <td>
                                     <input id="callbackUrl" name="callbackUrl" type="text"
                                            value=<%=Encode.forHtmlAttribute(callBackUrl)%>>
@@ -4738,6 +4726,17 @@
 
                                     <div class="sectionHelp">
                                         <fmt:message key='userInfoEndpoint.help'/>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>
+                                <td>
+                                    <input id="logoutUrlOIDC" name="logoutUrlOIDC" type="text"
+                                           value=<%=Encode.forHtmlAttribute(logoutUrlOIDC)%>>
+
+                                    <div class="sectionHelp">
+                                        <fmt:message key='logout.endpoint.help'/>
                                     </div>
                                 </td>
                             </tr>
