@@ -25,12 +25,19 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.
+        APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.
+        WORKFLOW_DOMAIN;
+
 
 /**
  * Common utility used by Default Sequence Handlers.
@@ -98,10 +105,9 @@ public class DefaultSequenceHandlerUtils {
 
             //if 'Use user store domain in roles' is false remove the domain from roles.
             if (isRemoveUserDomainInRole(sequenceConfig)) {
-                String[] domainRemovedRoles = UserCoreUtil.removeDomainFromNames(domainRemovedRoleList.toArray
-                        (new String[domainRemovedRoleList.size()]));
-                if (!ArrayUtils.isEmpty(domainRemovedRoles)) {
-                    spMappedRoleList.addAll(Arrays.asList(domainRemovedRoles));
+                List<String> domainRemovedRoles = removeDomainFromNamesExcludeHybrid(domainRemovedRoleList);
+                if (!domainRemovedRoles.isEmpty()) {
+                    spMappedRoleList.addAll(domainRemovedRoles);
                 }
             }
             spMappedRoles = StringUtils.join(spMappedRoleList.toArray(), FrameworkUtils.getMultiAttributeSeparator());
@@ -111,6 +117,26 @@ public class DefaultSequenceHandlerUtils {
             log.debug("Service Provider Mapped Roles: " + spMappedRoles);
         }
         return spMappedRoles;
+    }
+
+    /**
+     * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow)
+     *
+     * @param names list of roles assigned to a user
+     * @return list of roles assigned to a user with domain name removed from roles
+     */
+    private static List<String> removeDomainFromNamesExcludeHybrid(List<String> names) {
+        List<String> nameList = new ArrayList<String>();
+        for (String name : names) {
+            String userStoreDomain = IdentityUtil.extractDomainFromName(name);
+            if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain) || APPLICATION_DOMAIN
+                    .equalsIgnoreCase(userStoreDomain) || WORKFLOW_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
+                nameList.add(name);
+            } else {
+                nameList.add(UserCoreUtil.removeDomainFromName(name));
+            }
+        }
+        return nameList;
     }
 
     // Execute only if it has allowed removing userstore domain from the sp level configurations.

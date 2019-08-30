@@ -54,6 +54,9 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.Arrays;
@@ -85,7 +88,8 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-@PrepareForTest({FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class})
+@PrepareForTest({ FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class
+                })
 public class DefaultStepBasedSequenceHandlerTest {
 
     private DefaultStepBasedSequenceHandler stepBasedSequenceHandler;
@@ -104,6 +108,12 @@ public class DefaultStepBasedSequenceHandlerTest {
 
     @Mock
     private ApplicationAuthenticator authenticator;
+
+    @Mock
+    private RealmService mockRealmService;
+
+    @Mock
+    private RealmConfiguration mockRealmConfiguration;
 
     private AuthenticationContext context;
 
@@ -148,8 +158,11 @@ public class DefaultStepBasedSequenceHandlerTest {
                                                       String expectedRoles) throws Exception {
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         mockStatic(ApplicationMgtSystemConfig.class);
+        mockStatic(IdentityTenantUtil.class);
         when(ApplicationMgtSystemConfig.getInstance()).thenReturn(applicationMgtSystemConfig);
         when(applicationMgtSystemConfig.getApplicationDAO()).thenReturn(applicationDAO);
+        when(IdentityTenantUtil.getRealmService()).thenReturn(mockRealmService);
+        when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
         String mappedRoles = stepBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
         assertEquals(mappedRoles, expectedRoles, "Service Provider Mapped Role do not have the expect value.");
