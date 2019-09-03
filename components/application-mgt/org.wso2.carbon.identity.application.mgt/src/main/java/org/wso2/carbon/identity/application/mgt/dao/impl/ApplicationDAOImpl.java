@@ -2590,14 +2590,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                             .getString(5));
                     if (CollectionUtils.isNotEmpty(propertyList)) {
                         for (ServiceProviderProperty serviceProviderProperty : propertyList) {
-                            if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName()) && "TRUE".
-                                    equalsIgnoreCase(serviceProviderProperty.getValue())) {
-                                localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
-                            } else if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName()) && !"TRUE".
-                                    equalsIgnoreCase(serviceProviderProperty.getValue())) {
-                                localAndOutboundConfiguration.setUseUserstoreDomainInRoles(false);
-                            } else {
-                                localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
+                            if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName())) {
+                                if ("TRUE".equalsIgnoreCase(serviceProviderProperty.getValue())) {
+                                    localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
+                                } else if (!"TRUE".equalsIgnoreCase(serviceProviderProperty.getValue())) {
+                                    localAndOutboundConfiguration.setUseUserstoreDomainInRoles(false);
+                                } else {
+                                    localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
+                                }
                             }
                         }
                     } else {
