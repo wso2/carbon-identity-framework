@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
+import org.wso2.carbon.identity.application.common.model.User;
 
 import java.util.List;
 
@@ -67,11 +68,51 @@ public interface UserSessionManagementService {
     /**
      * Terminate the session of the given id
      *
-     * @param userId        unique id of the user
-     * @param  sessionId    unique id for the session
+     * @param userId    unique id of the user
+     * @param sessionId unique id for the session
      * @return whether the session termination is success or not. In default method, false is returned.
      */
-    default boolean terminateSessionBySessionId(String userId, String sessionId) {
+    default boolean terminateSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
+
+        return false;
+    }
+
+    /**
+     * Get all the active sessions of the user relevant to the given Idp.
+     *
+     * @param user  user object
+     * @param idpId id of the user's identity provider
+     * @return whether the sessions termination is success or not. In default method, false is returned.
+     * @throws SessionManagementException if the session termination fails
+     */
+    default List<UserSession> getSessionsByUser(User user, int idpId) throws SessionManagementException {
+
+        return null;
+    }
+
+    /**
+     * Terminate all the active sessions of the user relevant to the given Idp.
+     *
+     * @param user  user object
+     * @param idpId id of the user's identity provider
+     * @return whether the sessions termination is success or not. In default method, false is returned.
+     * @throws SessionManagementException if the session termination fails
+     */
+    default boolean terminateSessionsByUser(User user, int idpId) throws SessionManagementException {
+
+        return false;
+    }
+
+    /**
+     * Terminate the session of the given id
+     *
+     * @param user      user object
+     * @param idpId     id of the user's identity provider
+     * @param sessionId unique id for the session
+     * @return whether the session termination is success or not. In default method, false is returned.
+     */
+    default boolean terminateSessionBySessionId(User user, int idpId, String sessionId) throws
+            SessionManagementException {
 
         return false;
     }

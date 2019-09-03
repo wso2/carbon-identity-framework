@@ -31,7 +31,9 @@ public class SessionMgtConstants {
     public enum ErrorMessages {
 
         ERROR_CODE_UNABLE_TO_GET_SESSION("USM-00001", "Unable to retrieve session information"),
-        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-00002", "Unable to retrieve sessions");
+        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-00002", "Unable to retrieve sessions"),
+        ERROR_CODE_UNABLE_TO_AUTHORIZE_USER("USM-00006", "Unable to validate user"),
+        ERROR_CODE_FORBIDDEN_ACTION("USM-00007", "Action forbidden");
 
         private final String code;
         private final String message;

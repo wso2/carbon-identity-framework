@@ -20,12 +20,16 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.UserSessionDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
+        .SessionManagementClientException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
@@ -35,6 +39,8 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Se
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -48,6 +54,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
     private static final Log log = LogFactory.getLog(UserSessionManagementServiceImpl.class);
     private SessionManagementService sessionManagementService = new SessionManagementService();
+    private static final String SESSION_DELETE_PERMISSION = "/permission/admin/manage/identity/authentication" +
+            "/session/delete";
 
     @Override
     public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
@@ -68,7 +76,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private void validate(String username, String userStoreDomain, String tenantDomain) throws UserSessionException {
 
         if (StringUtils.isBlank(username) || StringUtils.isBlank(userStoreDomain) || StringUtils.isBlank(tenantDomain)) {
-            throw new UserSessionException("Usename, userstore domain or tenant domain cannot be empty");
+            throw new UserSessionException("Username, userstore domain or tenant domain cannot be empty");
         }
 
         int tenantId = getTenantId(tenantDomain);
@@ -120,14 +128,51 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     @Override
-    public boolean terminateSessionBySessionId(String userId, String sessionId) {
+    public boolean terminateSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
 
-        sessionManagementService.removeSession(sessionId);
-        List<String> sessionIdList = new ArrayList<>();
-        sessionIdList.add(sessionId);
-        UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+        if (isUserAuthorized(userId, sessionId)) {
+            sessionManagementService.removeSession(sessionId);
+            List<String> sessionIdList = new ArrayList<>();
+            sessionIdList.add(sessionId);
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+            return true;
+        } else {
+            throw new SessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION,
+                    "Session terminate action is forbidden to the user.");
+        }
+    }
 
+    @Override
+    public List<UserSession> getSessionsByUser(User user, int idpId) throws SessionManagementException {
+
+        return getActiveSessionList(getSessionIdListByUser(user, idpId));
+    }
+
+    @Override
+    public boolean terminateSessionsByUser(User user, int idpId) throws SessionManagementException {
+
+        List<String> sessionIdList = getSessionIdListByUser(user, idpId);
+        terminateSessionsOfUser(sessionIdList);
+        if (!sessionIdList.isEmpty()) {
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+        }
         return true;
+    }
+
+    @Override
+    public boolean terminateSessionBySessionId(User user, int idpId, String sessionId) throws
+            SessionManagementException {
+
+        if (isUserAuthorized(user, idpId, sessionId)) {
+            sessionManagementService.removeSession(sessionId);
+            List<String> sessionIdList = new ArrayList<>();
+            sessionIdList.add(sessionId);
+            UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
+            return true;
+        } else {
+            throw new SessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION,
+                    "Session terminate action is forbidden to the user.");
+        }
     }
 
     /**
@@ -144,7 +189,25 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         } catch (UserSessionException e) {
             throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
                     .ERROR_CODE_UNABLE_TO_GET_SESSIONS, "Server encountered an error while retrieving session list of" +
-                    " user ID " + userId, e);
+                    " user ID " + userId + ".", e);
+        }
+    }
+
+    /**
+     * Returns the session id list for a given user.
+     *
+     * @param user  user object
+     * @param idpId id of the user's idp
+     * @throws SessionManagementServerException if session Ids can not be retrieved from the database.
+     */
+    private List<String> getSessionIdListByUser(User user, int idpId) throws SessionManagementServerException {
+
+        try {
+            return UserSessionStore.getInstance().getSessionId(user, idpId);
+        } catch (UserSessionException e) {
+            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, "Server encountered an error while retrieving session list of" +
+                    " user, " + user.getUserName() + ".", e);
         }
     }
 
@@ -171,5 +234,47 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             }
         }
         return sessionsList;
+    }
+
+    private boolean isUserAuthorized(String userId, String sessionId) throws SessionManagementServerException {
+
+        boolean isUserAuthorized;
+        try {
+            isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(userId, sessionId);
+            if (!isUserAuthorized) {
+                isUserAuthorized = isActionForbidden();
+            }
+        } catch (UserSessionException | UserStoreException e) {
+            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, "Server encountered an error while authorizing the user.", e);
+        }
+        return isUserAuthorized;
+    }
+
+    private boolean isUserAuthorized(User user, int idpId, String sessionId) throws SessionManagementServerException {
+
+        boolean isUserAuthorized;
+
+        try {
+            isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(user, idpId, sessionId);
+            if (!isUserAuthorized) {
+                isUserAuthorized = isActionForbidden();
+            }
+        } catch (UserSessionException | UserStoreException e) {
+            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, "Server encountered an error while authorizing the user.", e);
+        }
+        return isUserAuthorized;
+    }
+
+    private boolean isActionForbidden() throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
+
+        AuthorizationManager authzManager = FrameworkServiceDataHolder.getInstance().getRealmService()
+                .getTenantUserRealm(tenantId).getAuthorizationManager();
+        return authzManager.isUserAuthorized(loggedInName, SESSION_DELETE_PERMISSION, CarbonConstants
+                .UI_PERMISSION_ACTION);
     }
 }
