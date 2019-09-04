@@ -145,8 +145,6 @@ public class JsGraphBuilder {
                     this::sendError);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
-            globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT_EXTERNAL,
-                    (PromptExternalExecutor) this::addShowPromptExternal);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
                     (LoadExecutor) this::loadLocalLibrary);
             engineBindings.put("exit", (RestrictedFunction) this::exitFunction);
@@ -329,74 +327,74 @@ public class JsGraphBuilder {
         Set<AuthenticatorConfig> authenticatorsToRemove = new HashSet<>();
         Map<String, AuthenticatorConfig> idpsToRemove = new HashMap<>();
         stepConfig.getAuthenticatorList().forEach(authenticatorConfig -> authenticatorConfig.getIdps()
-                .forEach((idpName, idp) -> {
-                    Set<String> authenticators = filteredOptions.get(idpName);
-                    boolean removeOption = false;
-                    if (authenticators == null) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(String.format("Authentication options didn't include idp: %s. Hence excluding from " +
-                                    "options list", idpName));
-                        }
-                        removeOption = true;
-                    } else if (!authenticators.isEmpty()) {
-                        // Both idp and authenticator present, but authenticator is given by display name due to the fact
-                        // that it is the one available at UI. Should translate the display name to actual name, and
-                        // keep/remove option
-                        removeOption = true;
+            .forEach((idpName, idp) -> {
+                Set<String> authenticators = filteredOptions.get(idpName);
+                boolean removeOption = false;
+                if (authenticators == null) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Authentication options didn't include idp: %s. Hence excluding from " +
+                            "options list", idpName));
+                    }
+                    removeOption = true;
+                } else if (!authenticators.isEmpty()) {
+                    // Both idp and authenticator present, but authenticator is given by display name due to the fact
+                    // that it is the one available at UI. Should translate the display name to actual name, and
+                    // keep/remove option
+                    removeOption = true;
 
-                        if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
-                            List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
-                                    .getInstance().getLocalAuthenticators();
-                            for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
-                                if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
-                                        authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
-                                    removeOption = false;
-                                    break;
-                                }
+                    if (FrameworkConstants.LOCAL_IDP_NAME.equals(idpName)) {
+                        List<LocalAuthenticatorConfig> localAuthenticators = ApplicationAuthenticatorService
+                            .getInstance().getLocalAuthenticators();
+                        for (LocalAuthenticatorConfig localAuthenticatorConfig : localAuthenticators) {
+                            if (authenticatorConfig.getName().equals(localAuthenticatorConfig.getName()) &&
+                                authenticators.contains(localAuthenticatorConfig.getDisplayName())) {
+                                removeOption = false;
+                                break;
                             }
-                            if (log.isDebugEnabled()) {
-                                if (removeOption) {
-                                    log.debug(String.format("Authenticator options don't match any entry for local" +
-                                            "authenticator: %s. Hence removing the option", authenticatorConfig.getName()));
-                                } else {
-                                    log.debug(String.format("Authenticator options contained a match for local " +
-                                            "authenticator: %s. Hence keeping the option", authenticatorConfig.getName()));
-                                }
-                            }
-                        } else {
-                            for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
-                                if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
-                                        authenticators.contains(federatedAuthConfig.getDisplayName())) {
-                                    removeOption = false;
-                                    break;
-                                }
-                            }
-                            if (log.isDebugEnabled()) {
-                                if (removeOption) {
-                                    log.debug(String.format("Authenticator options don't match any entry for idp: %s, " +
-                                            "authenticator: %s. Hence removing the option", idpName, authenticatorConfig
-                                            .getName()));
-                                } else {
-                                    log.debug(String.format("Authenticator options contained a match for idp: %s, " +
-                                            "authenticator: %s. Hence keeping the option", idpName, authenticatorConfig
-                                            .getName()));
-                                }
+                        }
+                        if (log.isDebugEnabled()) {
+                            if (removeOption) {
+                                log.debug(String.format("Authenticator options don't match any entry for local" +
+                                    "authenticator: %s. Hence removing the option", authenticatorConfig.getName()));
+                            } else {
+                                log.debug(String.format("Authenticator options contained a match for local " +
+                                    "authenticator: %s. Hence keeping the option", authenticatorConfig.getName()));
                             }
                         }
                     } else {
+                        for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                            if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
+                                authenticators.contains(federatedAuthConfig.getDisplayName())) {
+                                removeOption = false;
+                                break;
+                            }
+                        }
                         if (log.isDebugEnabled()) {
-                            log.debug(String.format("No authenticator filters for idp %s, hence keeping it as an option",
-                                    idpName));
+                            if (removeOption) {
+                                log.debug(String.format("Authenticator options don't match any entry for idp: %s, " +
+                                    "authenticator: %s. Hence removing the option", idpName, authenticatorConfig
+                                    .getName()));
+                            } else {
+                                log.debug(String.format("Authenticator options contained a match for idp: %s, " +
+                                    "authenticator: %s. Hence keeping the option", idpName, authenticatorConfig
+                                    .getName()));
+                            }
                         }
                     }
-                    if (removeOption) {
-                        if (authenticatorConfig.getIdps().size() > 1) {
-                            idpsToRemove.put(idpName, authenticatorConfig);
-                        } else {
-                            authenticatorsToRemove.add(authenticatorConfig);
-                        }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("No authenticator filters for idp %s, hence keeping it as an option",
+                            idpName));
                     }
-                }));
+                }
+                if (removeOption) {
+                    if (authenticatorConfig.getIdps().size() > 1) {
+                        idpsToRemove.put(idpName, authenticatorConfig);
+                    } else {
+                        authenticatorsToRemove.add(authenticatorConfig);
+                    }
+                }
+            }));
         if (stepConfig.getAuthenticatorList().size() > authenticatorsToRemove.size()) {
             idpsToRemove.forEach((idp, authenticatorConfig) -> {
                 int index = stepConfig.getAuthenticatorList().indexOf(authenticatorConfig);
@@ -416,7 +414,7 @@ public class JsGraphBuilder {
             stepConfig.getAuthenticatorList().removeAll(authenticatorsToRemove);
             if (log.isDebugEnabled()) {
                 log.debug("Removed " + authenticatorsToRemove.size() + " options which doesn't match the " +
-                        "provided authenticator options");
+                    "provided authenticator options");
             }
         } else {
             log.warn("The filtered authenticator list is empty, hence proceeding without filtering");
@@ -535,43 +533,6 @@ public class JsGraphBuilder {
 
         ShowPromptNode newNode = new ShowPromptNode();
         newNode.setTemplateId(templateId);
-
-        if (parameters.length == 2) {
-            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
-        }
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-
-        currentNode = newNode;
-        if (parameters.length > 0) {
-            if (parameters[parameters.length - 1] instanceof Map) {
-                addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1]);
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-
-        }
-    }
-
-    /**
-     * Adds a function to show an external prompt in Javascript code.
-     *
-     * @param locator    locator map containing either the templateId or the redirectUrl
-     * @param parameters parameters
-     */
-    @SuppressWarnings("unchecked")
-    public void addShowPromptExternal(Map<String, String> locator, Object... parameters) {
-
-        ShowPromptNode newNode = new ShowPromptNode();
-        if (locator.get("redirectUrl") != null) {
-            newNode.setRedirectUrl(locator.get("redirectUrl"));
-        }
-        if (locator.get("templateId") != null) {
-            newNode.setTemplateId(locator.get("templateId"));
-        }
 
         if (parameters.length == 2) {
             newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
@@ -845,12 +806,6 @@ public class JsGraphBuilder {
     }
 
     @FunctionalInterface
-    public interface PromptExternalExecutor {
-
-        void prompt(Map<String, String> locator, Object... parameterMap);
-    }
-
-    @FunctionalInterface
     public interface RestrictedFunction {
 
         void exit(Object... arg);
@@ -909,8 +864,6 @@ public class JsGraphBuilder {
                             (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
-                    globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT_EXTERNAL, (PromptExternalExecutor)
-                            graphBuilder::addShowPromptExternal);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
                             graphBuilder::loadLocalLibrary);
                     JsFunctionRegistry jsFunctionRegistry = FrameworkServiceDataHolder.getInstance()

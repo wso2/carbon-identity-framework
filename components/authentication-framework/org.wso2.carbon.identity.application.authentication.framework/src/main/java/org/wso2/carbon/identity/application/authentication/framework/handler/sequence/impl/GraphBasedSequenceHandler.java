@@ -83,7 +83,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private static final String PROMPT_ACTION_PREFIX = "action.";
     private static final String RESPONSE_HANDLED_BY_FRAMEWORK = "hasResponseHandledByFramework";
     public static final String SKIPPED_CALLBACK_NAME = "onSkip";
-    public static final String FAILED_CALLBACK_NAME = "onFail";
     public static final String STEP_IDENTIFIER_PARAM = "step";
 
     @Override
@@ -99,7 +98,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
-                .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
+            .getLocalAndOutBoundAuthenticationConfig().getAuthenticationType();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
         if (graph == null || !graph.isEnabled() || (!ApplicationConstants.AUTH_TYPE_FLOW.equals(authenticationType) &&
                 !ApplicationConstants.AUTH_TYPE_DEFAULT.equals(authenticationType))) {
@@ -178,7 +177,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
         } else if (currentNode instanceof FailNode) {
-            handleAuthFail(request, response, context, sequenceConfig, (FailNode) currentNode);
+            handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
         }
         return isInterrupt;
     }
@@ -200,11 +199,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * Handles the prompt. Make redirect to prompt handler (authentication endpoint) URL when this is initial prompt
      * state. Executes the respective event handler function when prompt is returning with user input.
      *
-     * @param request        Http servlet request
-     * @param response       Http servlet response
-     * @param context        Authentication context
+     * @param request Http servlet request
+     * @param response Http servlet response
+     * @param context Authentication context
      * @param sequenceConfig Authentication sequence config
-     * @param promptNode     Show prompt node
+     * @param promptNode Show prompt node
      * @return true if the execution needs to be stopped and show somethin to the user.
      */
     private boolean handlePrompt(HttpServletRequest request, HttpServletResponse response,
@@ -222,14 +221,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 }
             }
             action = "on" + action;
-            if (StringUtils.equals(action, FAILED_CALLBACK_NAME) && promptNode.getFunctionMap().get(FAILED_CALLBACK_NAME) == null) {
-                context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, new FailNode());
-            } else {
-                executeFunction(action, promptNode, context);
-                AuthGraphNode nextNode = promptNode.getDefaultEdge();
-                context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
-            }
-
+            executeFunction(action, promptNode, context);
+            AuthGraphNode nextNode = promptNode.getDefaultEdge();
+            context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
             context.setReturning(false);
         } else {
             if (promptNode.getHandlerMap().get(ShowPromptNode.preHandler) != null) {
@@ -254,25 +248,17 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void displayPrompt(AuthenticationContext context, HttpServletRequest request, HttpServletResponse response,
                                ShowPromptNode promptNode) throws FrameworkException {
 
-        String redirectUrl = null;
         try {
-            if (promptNode.getRedirectUrl() != null) {
-                redirectUrl = promptNode.getRedirectUrl();
-            } else if (promptNode.getTemplateId() != null) {
-                String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
-                redirectUrl = promptPage + "?templateId=" +
-                        URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&tenantDomain=" + context.getTenantDomain();
-            }
-            if (StringUtils.contains(redirectUrl, "?")) {
-                redirectUrl += "&promptId=" + context.getContextIdentifier();
-            } else {
-                redirectUrl += "?promptId=" + context.getContextIdentifier();
-            }
+
+            String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
+            String redirectUrl = promptPage + "?templateId=" +
+                    URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
+                    context.getContextIdentifier()+ "&tenantDomain=" + context.getTenantDomain();
             if (promptNode.getData() != null) {
                 context.addEndpointParams(promptNode.getData());
             }
 
-            response.sendRedirect(redirectUrl);
+                response.sendRedirect(redirectUrl);
             AuthenticationResult authenticationResult = new AuthenticationResult();
             request.setAttribute(FrameworkConstants.RequestAttribute.AUTH_RESULT, authenticationResult);
             request.setAttribute(RESPONSE_HANDLED_BY_FRAMEWORK, Boolean.TRUE);
@@ -333,12 +319,11 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
 
     /**
      * Process FailNode.
-     *
-     * @param request        HTTP Servlet request
-     * @param response       HTTP Servlet Response
-     * @param context        Authentication Context
+     * @param request HTTP Servlet request
+     * @param response HTTP Servlet Response
+     * @param context Authentication Context
      * @param sequenceConfig Sequence Config
-     * @param node           Fail Node
+     * @param node Fail Node
      * @throws FrameworkException
      */
     private void handleAuthFail(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
@@ -361,14 +346,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             throw new FrameworkException("Error when redirecting user to " + errorPage, e);
         } catch (URISyntaxException e) {
             throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
-                    + "URL.", e);
+                + "URL.", e);
         }
 
         context.setRequestAuthenticated(false);
         context.getSequenceConfig().setCompleted(true);
         request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
         throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
-                redirectURL);
+            redirectURL);
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,
@@ -427,6 +412,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             context.setCurrentStep(stepNumber);
             context.getSequenceConfig().getStepMap().put(stepNumber, stepConfig);
         }
+
 
         FrameworkUtils.getStepHandler().handle(request, response, context);
 
@@ -685,7 +671,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * @param triConsumer instances of the {@code TriConsumerWithExceptions} functional interface
      * @return an instance of the {@code BiConsumer}
      */
-    public static <T, U, V, E extends Exception> AsyncReturn rethrowTriConsumer(AsyncReturn triConsumer) {
+    public static <T, U , V , E extends Exception> AsyncReturn rethrowTriConsumer(AsyncReturn triConsumer) {
 
         return (t, u, v) -> {
             try {

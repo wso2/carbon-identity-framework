@@ -22,4 +22,5 @@
     Map<String, String> templateMap = new HashMap<>();
     templateMap.put("genericForm", "templates/genericForm.jsp");
     templateMap.put("username", "templates/username.jsp");
+    templateMap.put("multipleActiveSessions", "templates/multipleActiveSessions.jsp");
 %>

@@ -352,7 +352,6 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_ON_LOGIN_REQUEST = "onLoginRequest";
         public static final String JS_FUNC_EXECUTE_STEP = "executeStep";
         public static final String JS_FUNC_SHOW_PROMPT = "prompt";
-        public static final String JS_FUNC_SHOW_PROMPT_EXTERNAL = "promptExternalPage";
         public static final String JS_FUNC_CALL_AND_WAIT = "callAndWait";
         public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
         public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
