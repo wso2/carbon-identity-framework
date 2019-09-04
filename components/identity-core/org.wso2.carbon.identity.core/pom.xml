@@ -111,6 +111,10 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ua.parser.wso2</groupId>
+            <artifactId>ua-parser</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -177,6 +181,7 @@
 
                             org.xml.sax,
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            ua_parser.*,
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.core.internal,
