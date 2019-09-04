@@ -137,8 +137,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
-            throw new SessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION,
-                    "Session terminate action is forbidden to the user.");
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_FORBIDDEN_ACTION, userId);
         }
     }
 
@@ -170,8 +170,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
             return true;
         } else {
-            throw new SessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_FORBIDDEN_ACTION,
-                    "Session terminate action is forbidden to the user.");
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_FORBIDDEN_ACTION, user.getUserName());
         }
     }
 
@@ -187,9 +187,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         try {
             return UserSessionStore.getInstance().getSessionId(userId);
         } catch (UserSessionException e) {
-            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, "Server encountered an error while retrieving session list of" +
-                    " user ID " + userId + ".", e);
+            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, userId, e);
         }
     }
 
@@ -197,7 +196,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * Returns the session id list for a given user.
      *
      * @param user  user object
-     * @param idpId id of the user's idp
+     * @param idpId id of the user's identity provider
      * @throws SessionManagementServerException if session Ids can not be retrieved from the database.
      */
     private List<String> getSessionIdListByUser(User user, int idpId) throws SessionManagementServerException {
@@ -205,17 +204,16 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         try {
             return UserSessionStore.getInstance().getSessionId(user, idpId);
         } catch (UserSessionException e) {
-            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, "Server encountered an error while retrieving session list of" +
-                    " user, " + user.getUserName() + ".", e);
+            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_GET_SESSIONS, user.getUserName(), e);
         }
     }
 
     /**
-     * Returns the active sessions from given list of session IDs
+     * Returns the active sessions from given list of session IDs.
      *
-     * @param sessionIdList List of sessionIds
-     * @return UserSession[] Usersessions
+     * @param sessionIdList list of sessionIds
+     * @return list of user sessions
      * @throws SessionManagementServerException if an error occurs when retrieving the UserSessions.
      */
     private List<UserSession> getActiveSessionList(List<String> sessionIdList) throws SessionManagementServerException {
@@ -236,6 +234,16 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         return sessionsList;
     }
 
+    /**
+     * This method checks whether the user trying to terminate his own session. If the session does not owned by the
+     * user, then user must have "/permission/admin/manage/identity/authentication/session/delete" to terminate a
+     * session of another user.
+     *
+     * @param userId    id of the user
+     * @param sessionId id of the session
+     * @return true/false whether the user is authorized for the action
+     * @throws SessionManagementServerException if an error occurs while validating the user.
+     */
     private boolean isUserAuthorized(String userId, String sessionId) throws SessionManagementServerException {
 
         boolean isUserAuthorized;
@@ -245,24 +253,34 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 isUserAuthorized = isActionForbidden();
             }
         } catch (UserSessionException | UserStoreException e) {
-            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, "Server encountered an error while authorizing the user.", e);
+            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, userId, e);
         }
         return isUserAuthorized;
     }
 
+    /**
+     * This method checks whether the user trying to terminate his own session. If the session does not owned by the
+     * user, then user must have "/permission/admin/manage/identity/authentication/session/delete" to terminate a
+     * session of another user.
+     *
+     * @param user      user object
+     * @param idpId     id of the user's identity provider
+     * @param sessionId id of the session
+     * @return true/false whether the user is authorized for the action
+     * @throws SessionManagementServerException if an error occurs while validating the user.
+     */
     private boolean isUserAuthorized(User user, int idpId, String sessionId) throws SessionManagementServerException {
 
         boolean isUserAuthorized;
-
         try {
             isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(user, idpId, sessionId);
             if (!isUserAuthorized) {
                 isUserAuthorized = isActionForbidden();
             }
         } catch (UserSessionException | UserStoreException e) {
-            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, "Server encountered an error while authorizing the user.", e);
+            throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
+                    .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, user.getUserName(), e);
         }
         return isUserAuthorized;
     }
@@ -276,5 +294,29 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                 .getTenantUserRealm(tenantId).getAuthorizationManager();
         return authzManager.isUserAuthorized(loggedInName, SESSION_DELETE_PERMISSION, CarbonConstants
                 .UI_PERMISSION_ACTION);
+    }
+
+    private SessionManagementServerException handleSessionManagementServerException(
+            SessionMgtConstants.ErrorMessages error, String data, Throwable e) {
+
+        String description;
+        if (StringUtils.isNotBlank(data)) {
+            description = String.format(error.getDescription(), data);
+        } else {
+            description = error.getMessage();
+        }
+        return new SessionManagementServerException(error, description, e);
+    }
+
+    private SessionManagementClientException handleSessionManagementClientException(
+            SessionMgtConstants.ErrorMessages error, String data) {
+
+        String description;
+        if (StringUtils.isNotBlank(data)) {
+            description = String.format(error.getDescription(), data);
+        } else {
+            description = error.getMessage();
+        }
+        return new SessionManagementClientException(error, description);
     }
 }

@@ -497,7 +497,7 @@ public class UserSessionStore {
                     preparedStatement.setString(4, inboundAuth);
                 });
             } catch (DataAccessException e) {
-                throw new DataAccessException("Error while storing application data for session in the database ", e);
+                throw new DataAccessException("Error while storing application data for session in the database.", e);
             }
     }
 
@@ -522,7 +522,7 @@ public class UserSessionStore {
                     });
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving the app id of " + applicationName + ", " +
-                    "tenant id" + appTenantID, e);
+                    "tenant id" + appTenantID + ".", e);
         }
         return appId == null ? 0 : appId;
     }
@@ -554,7 +554,7 @@ public class UserSessionStore {
                     });
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving application data of session id: " +
-                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth, e);
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
         }
         return recordCount != null;
     }
@@ -625,18 +625,21 @@ public class UserSessionStore {
                     .prepareStatement(SQLQueries.SQL_GET_SESSIONS_BY_USER)) {
                 preparedStatement.setString(1, user.getUserName());
                 preparedStatement.setInt(2, tenantId);
-                preparedStatement.setString(3, user.getUserStoreDomain());
+                preparedStatement.setString(3, (user.getUserStoreDomain() == null) ? FEDERATED_USER_DOMAIN :
+                        user.getUserStoreDomain().toUpperCase());
                 preparedStatement.setInt(4, idpId);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     while (resultSet.next()) {
                         sessionIdList.add(resultSet.getString(1));
                     }
                 }
-            } catch (SQLException e1) {
-                throw new UserSessionException("Error while retrieving session IDs of user: " + user.getUserName(), e1);
+            } catch (SQLException ex) {
+                throw new UserSessionException("Error while retrieving session IDs of user: " +
+                        user.getUserName() + ".", ex);
             }
         } catch (SQLException e) {
-            throw new UserSessionException("Error while retrieving session IDs of user: " + user.getUserName(), e);
+            throw new UserSessionException("Error while retrieving session IDs of user: " +
+                    user.getUserName() + ".", e);
         }
         return sessionIdList;
     }
@@ -660,22 +663,21 @@ public class UserSessionStore {
                 preparedStatement.setString(1, sessionId);
                 preparedStatement.setString(2, user.getUserName());
                 preparedStatement.setInt(3, tenantId);
-                preparedStatement.setString(4, user.getUserStoreDomain());
+                preparedStatement.setString(4, (user.getUserStoreDomain() == null) ? FEDERATED_USER_DOMAIN :
+                        user.getUserStoreDomain().toUpperCase());
                 preparedStatement.setInt(5, idpId);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     if (resultSet.next()) {
                         isExisting = true;
                     }
                 }
-            } catch (SQLException e1) {
+            } catch (SQLException ex) {
                 throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                        .getUserName()
-                        + " and session Id: " + sessionId, e1);
+                        .getUserName() + " and session Id: " + sessionId + ".", ex);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving existing mapping between user : " + user
-                    .getUserName()
-                    + " and session Id: " + sessionId, e);
+                    .getUserName() + " and session Id: " + sessionId + ".", e);
         }
         return isExisting;
     }
