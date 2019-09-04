@@ -126,6 +126,7 @@ public class DefaultSequenceHandlerUtils {
      * @return list of roles assigned to a user with domain name removed from roles
      */
     private static List<String> removeDomainFromNamesExcludeHybrid(List<String> names) {
+
         List<String> nameList = new ArrayList<String>();
         for (String name : names) {
             String userStoreDomain = IdentityUtil.extractDomainFromName(name);
