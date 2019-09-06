@@ -17,15 +17,16 @@
 -->
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
 <%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.client.UserStoreConfigAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
+<%@ page import="java.util.ResourceBundle" %>
 
 <%
 	String httpMethod = request.getMethod();
@@ -52,21 +53,24 @@
 						CarbonConstants.CONFIGURATION_CONTEXT);
 		userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(
 				cookie, backendServerURL, configContext);
-		List<UserStoreDTO> userStoreDTOList = new ArrayList();
-		
-		for (String checkedItem : checkedList) {
-			String[] propertiesArr = checkedItem.split(":");
-			if (propertiesArr.length == 2) {
-				String domain = propertiesArr[0];
-				String repositoryClass = propertiesArr[1];
-				UserStoreDTO userStoreDTO = new UserStoreDTO();
-				userStoreDTO.setDomainId(domain);
-				userStoreDTO.setRepositoryClass(repositoryClass);
-				userStoreDTOList.add(userStoreDTO);
+		if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+			List<UserStoreDTO> userStoreDTOList = new ArrayList();
+			
+			for (String checkedItem : checkedList) {
+				String[] propertiesArr = checkedItem.split(":");
+				if (propertiesArr.length == 2) {
+					String domain = propertiesArr[0];
+					String repositoryClass = propertiesArr[1];
+					UserStoreDTO userStoreDTO = new UserStoreDTO();
+					userStoreDTO.setDomainId(domain);
+					userStoreDTO.setRepositoryClass(repositoryClass);
+					userStoreDTOList.add(userStoreDTO);
+				}
 			}
+			userStoreConfigAdminServiceClient.deleteUserStoresSet(userStoreDTOList.toArray(new UserStoreDTO[0]));
+		} else {
+			userStoreConfigAdminServiceClient.deleteUserStoresSet(checkedList);
 		}
-		userStoreConfigAdminServiceClient
-				.deleteUserStoresSet(userStoreDTOList.toArray(new UserStoreDTO[0]));
 		String message = resourceBundle.getString("successful.delete");
 		CarbonUIMessage.sendCarbonUIMessage(message,
 				CarbonUIMessage.INFO, request);
