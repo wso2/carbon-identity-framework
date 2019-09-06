@@ -55,6 +55,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
+import org.wso2.carbon.user.core.model.UserMgtContext;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -125,22 +128,36 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         SequenceConfig seqConfig = context.getSequenceConfig();
         List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
 
-        // if SP has request path authenticators configured and this is start of
-        // the flow
-        if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
-            // call request path sequence handler
-            FrameworkUtils.getRequestPathBasedSequenceHandler().handle(request, response, context);
+        try {
+            UserStorePreferenceOrderSupplier<List<String>> userStorePreferenceOrderSupplier =
+                    FrameworkUtils.getUserStorePreferenceOrderSupplier(context, null);
+            if (userStorePreferenceOrderSupplier != null) {
+                // Add the user store preference supplier to the container UserMgtContext.
+                UserMgtContext userMgtContext = new UserMgtContext();
+                userMgtContext.setUserStorePreferenceOrderSupplier(userStorePreferenceOrderSupplier);
+                UserCoreUtil.setUserMgtContextInThreadLocal(userMgtContext);
+            }
+
+            // if SP has request path authenticators configured and this is start of
+            // the flow
+            if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
+                // call request path sequence handler
+                FrameworkUtils.getRequestPathBasedSequenceHandler().handle(request, response, context);
+            }
+
+            // if no request path authenticators or handler returned cannot handle
+            if (!context.getSequenceConfig().isCompleted()
+                    || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
+                // To keep track of whether particular request goes through the step based sequence handler.
+                context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
+
+                // call step based sequence handler
+                FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
+            }
+        } finally {
+            UserCoreUtil.removeUserMgtContextInThreadLocal();
         }
 
-        // if no request path authenticators or handler returned cannot handle
-        if (!context.getSequenceConfig().isCompleted()
-                || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
-            // To keep track of whether particular request goes through the step based sequence handler.
-            context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
-
-            // call step based sequence handler
-            FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
-        }
         // handle post authentication
         handlePostAuthentication(request, response, context);
         // if flow completed, send response back
