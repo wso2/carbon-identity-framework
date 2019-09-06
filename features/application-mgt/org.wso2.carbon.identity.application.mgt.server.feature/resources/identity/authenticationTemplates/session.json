@@ -1,3 +1,4 @@
+
 {
   "category": "user_based",
   "name": "Concurrent-Session-Management",
@@ -9,7 +10,7 @@
   ],
   "parametersDescription": {
     "rolesToStepUp": "An array of roles of which users should be prompted for session handling.",
-    "maxSessionCount": "Maximum number of allowed concurrent sessions for the role which a particular user belongs to."
+    "MaxSessionCount": "Maximum number of allowed concurrent sessions for the role which a particular user belongs to."
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator.",
@@ -42,7 +43,15 @@
     "",
     "           if (hasRole) {",
     "               Log.info(user.username + ' Has one of Roles: ' + rolesToStepUp.toString());",
-    "               ensureMaxSessionCountNotExceededForUser(user, maxSessionCount);",
+    "                   executeStep(2, {",
+    "                       authenticatorParams: {",
+    "                            local: {",
+    "                                 SessionExecutor: {",
+    "                                      MaxSessionCount: '1'",
+    "                                 }",
+    "                            }",
+    "                       }",
+    "                   }, {});",
     "           }",
     "       }",
     "   });",
