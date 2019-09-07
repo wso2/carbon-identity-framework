@@ -34,9 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.apache.xml.security.signature.XMLSignature;
 import org.joda.time.DateTime;
-// import org.opensaml.Configuration; Previous Version (New Version Below)
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
-// import org.opensaml.DefaultBootstrap; Previous Version (New Version Below)
 import org.opensaml.core.config.InitializationService;
 import org.opensaml.saml.saml2.core.Assertion;
 import org.opensaml.saml.saml2.core.Issuer;
@@ -95,7 +93,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             .createOMNamespace("urn:oasis:names:tc:xacml:2.0:context:schema:os", "xacml-context");
 
     /**
-     * Bootstrap the OpenSAML2 library only if it is not bootstrapped.
+     * Bootstrap the OpenSAML3 library only if it is not bootstrapped.
      */
     public static void doBootstrap() {
 
@@ -131,7 +129,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
 
                 isBootStrapped = true;
             } catch (org.opensaml.core.config.InitializationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
+                log.error("Error in bootstrapping the OpenSAML3 library", e);
             } finally {
                 thread.setContextClassLoader(loader);
             }
