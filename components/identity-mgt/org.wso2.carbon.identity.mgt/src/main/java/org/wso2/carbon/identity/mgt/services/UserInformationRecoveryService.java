@@ -157,7 +157,8 @@ public class UserInformationRecoveryService {
     public VerificationBean sendRecoveryNotification(String username, String key, String notificationType)
             throws IdentityMgtServiceException {
 
-        return sendNotification(username, key, notificationType, IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY);
+        return sendNotification(username, key, notificationType,
+                IdentityMgtConstants.Notification.PASSWORD_RESET_RECOVERY);
     }
 
     public VerificationBean resendNotification(String username, String key, String notificationType)
@@ -166,8 +167,8 @@ public class UserInformationRecoveryService {
         return sendNotification(username, key, notificationType, IdentityMgtConstants.Notification.RESEND_NOTIFICATION);
     }
 
-    private VerificationBean sendNotification(String username, String key, String notificationType, String
-            notification) {
+    private VerificationBean sendNotification(String username, String key, String notificationType,
+            String notification) {
 
         UserDTO userDTO = null;
         VerificationBean bean = null;
