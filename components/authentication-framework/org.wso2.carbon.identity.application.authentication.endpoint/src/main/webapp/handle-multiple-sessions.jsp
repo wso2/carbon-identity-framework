@@ -15,14 +15,12 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
-
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
 
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.net.URLEncoder" %>
-<%@ page import="com.sun.xml.bind.v2.TODO" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@taglib prefix="e" uri="https://www.owasp.org/index.php/OWASP_Java_Encoder_Project" %>
@@ -113,11 +111,13 @@
                         <form name="sessionsForm" action="<%=commonauthURL%>" method="POST"
                               onsubmit="return validateForm(this.submitted)">
                             <h4 class="text-center padding-double">
-                                You currently have <fmt:formatNumber
-                                    value='${fn:length(requestScope.data["sessions"])}'/>
+                                You currently have <fmt:formatNumber>
+                                <e:forHtmlContent value='${fn:length(requestScope.data["sessions"])}'/>
+                            </fmt:formatNumber>
                                 active session(s).
-                                You are not allowed to have more than <fmt:formatNumber
-                                    value='${requestScope.data["MaxSessionCount"]}'/> active session(s).
+                                You are not allowed to have more than <fmt:formatNumber>
+                                <e:forHtmlContent value='${requestScope.data["MaxSessionCount"]}'/>
+                            </fmt:formatNumber> active session(s).
                             </h4>
                             <table class="table table-striped table-bordered">
                                 <thead>
@@ -133,14 +133,14 @@
                                 <tbody>
                                 <c:forEach items='${requestScope.data["sessions"]}' var="session" varStatus="loop">
                                     <tr>
-                                        <td>${loop.index + 1}</td>
-                                        <td>${session[2]}</td>
-                                        <td>${session[3]}</td>
-                                        <td id="${session[1]}">
-                                            <script>getDateFromTimestamp("${session[1]}");</script>
+                                        <td><e:forHtmlContent value="${loop.index + 1}"/></td>
+                                        <td><e:forHtmlContent value="${session[2]}"/></td>
+                                        <td><e:forHtmlContent value="${session[3]}"/></td>
+                                        <td id="<e:forHtmlAttribute value="${session[1]}"/>">
+                                            <script>getDateFromTimestamp(<e:forJavaScript value="${session[1]}"/>);</script>
                                         </td>
                                         <td><input type="checkbox" onchange="toggleMasterCheckbox()"
-                                                   value="${session[0]}"
+                                                   value="<e:forHtmlAttribute value="${session[0]}"/>"
                                                    name="sessionsToTerminate" checked></td>
                                     </tr>
                                 </c:forEach>
@@ -153,28 +153,30 @@
                             </h4>
                             
                             <input type="hidden" name="promptResp" value="true">
-                            <input type="hidden" name="promptId" value="${requestScope.promptId}">
+                            <input type="hidden" name="promptId"
+                                   value="<e:forHtmlAttribute value="${requestScope.promptId}"/>">
                             
                             <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group required">
                                 <input name="terminateActiveSessionsAction" type="submit"
-                                       onclick="this.form.submitted='terminateAction';"
+                                       onclick="this.form.submitted='terminateActiveSessionsAction';"
                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-medium"
                                        value="Terminate Selected Active Sessions & Proceed">
                             </div>
                             
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 form-group required">
-                                <input name="denyLoginAction" type="submit"
-                                       onclick="this.form.submitted='denyAction';"
+                                <input name="denyLimitActiveSessionsAction" type="submit"
+                                       onclick="this.form.submitted='denyLimitActiveSessionsAction';"
                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-medium"
                                        value="Deny Login">
                             </div>
                             
                             <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6 form-group required">
-                                <input name="refreshAction" type="submit"
-                                       onclick="this.form.submitted='refreshAction';"
+                                <input name="refreshActiveSessionsAction" type="submit"
+                                       onclick="this.form.submitted='refreshActiveSessionsAction';"
                                        class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-medium"
                                        value="Refresh Sessions">
                             </div>
+                            <input id="ActiveSessionsLimitAction" type="hidden" name="ActiveSessionsLimitAction"/>
                         </form>
                         <div class="clearfix"></div>
                     </div>
@@ -255,8 +257,9 @@
     }
 
     function validateForm(submittedAction) {
+        document.getElementById("ActiveSessionsLimitAction").setAttribute("value", submittedAction);
 
-        if (submittedAction === "terminateAction") {
+        if (submittedAction === "terminateActiveSessionsAction") {
             var checkboxes = document.sessionsForm.sessionsToTerminate;
 
             if (checkboxes instanceof RadioNodeList) {
@@ -269,7 +272,7 @@
                 return true;
             }
 
-        } else if (submittedAction === "denyAction" || submittedAction === "refreshAction") {
+        } else if (submittedAction === "denyLimitActiveSessionsAction" || submittedAction === "refreshActiveSessionsAction") {
             return true;
         }
         $('#selected_sessions_validation').modal();
