@@ -72,6 +72,10 @@
   "authentication.authenticator.user_identifier.enable": true,
   "authentication.authenticator.user_identifier.parameters.ValidateUsername": "false",
 
+  "authentication.authenticator.session_handler.name": "SessionExecutor",
+  "authentication.authenticator.session_handler.enable": true,
+  "authentication.authenticator.session_handler.parameters.MaxSessionCount": "1",
+
   "authentication.authenticator.oauth_request_path.name": "OAuthRequestPathAuthenticator",
   "authentication.authenticator.oauth_request_path.enable": true,
 
