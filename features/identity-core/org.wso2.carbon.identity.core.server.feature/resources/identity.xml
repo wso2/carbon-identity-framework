@@ -1135,7 +1135,6 @@
         <Resource context="/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/login-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
