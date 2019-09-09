@@ -119,7 +119,6 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.core</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.application.common</bundleDef>
                                 <bundleDef>ua.parser.wso2:ua-parser:${ua_parser.version}</bundleDef>
-                                <bundleDef>commons-collections.wso2:commons-collections:${apache.common.collection.version}</bundleDef>
                             </bundles>
                             <importFeatures>
                                 <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>

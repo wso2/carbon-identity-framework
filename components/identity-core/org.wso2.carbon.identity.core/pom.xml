@@ -181,7 +181,7 @@
 
                             org.xml.sax,
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
-                            ua_parser.*,
+                            ua_parser,
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.core.internal,
