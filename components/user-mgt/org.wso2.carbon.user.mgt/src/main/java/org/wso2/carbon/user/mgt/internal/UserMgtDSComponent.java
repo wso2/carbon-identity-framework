@@ -35,6 +35,8 @@ import org.wso2.carbon.user.core.listener.AuthorizationManagerListener;
 import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.mgt.RolePermissionManagementService;
+import org.wso2.carbon.user.mgt.RolePermissionManagementServiceImpl;
 import org.wso2.carbon.user.mgt.listeners.PermissionAuthorizationListener;
 import org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger;
 import org.wso2.carbon.user.mgt.listeners.UserDeletionEventListener;
@@ -163,6 +165,17 @@ public class UserMgtDSComponent {
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("UserClaimsAuditLogger successfully registered.");
+                }
+            }
+
+            ServiceRegistration rolePermissionManagementServiceRegistration = ctxt.getBundleContext()
+                    .registerService(RolePermissionManagementService.class,
+                            new RolePermissionManagementServiceImpl(), null);
+            if (rolePermissionManagementServiceRegistration == null) {
+                log.error("Error while registering UserAdminManager service.");
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("UserAdminManager service is successfully registered.");
                 }
             }
         } catch (Throwable e) {
