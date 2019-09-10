@@ -46,6 +46,9 @@ import org.wso2.carbon.identity.application.authentication.framwork.test.utils.C
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,7 +71,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class})
+@PrepareForTest({FrameworkUtils.class, ApplicationMgtSystemConfig.class, IdentityTenantUtil.class})
 public class DefaultRequestPathBasedSequenceHandlerTest {
 
 
@@ -88,6 +91,12 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
 
     @Mock
     RequestPathApplicationAuthenticator requestPathAuthenticator;
+
+    @Mock
+    private RealmService mockRealmService;
+
+    @Mock
+    private RealmConfiguration mockRealmConfiguration;
 
     @Spy
     private SequenceConfig sequenceConfig;
@@ -357,8 +366,11 @@ public class DefaultRequestPathBasedSequenceHandlerTest {
         Util.mockMultiAttributeSeparator(multiAttributeSeparator);
         SequenceConfig sequenceConfig = Util.mockSequenceConfig(spRoleMappings);
         mockStatic(ApplicationMgtSystemConfig.class);
+        mockStatic(IdentityTenantUtil.class);
         when(ApplicationMgtSystemConfig.getInstance()).thenReturn(applicationMgtSystemConfig);
         when(applicationMgtSystemConfig.getApplicationDAO()).thenReturn(applicationDAO);
+        when(IdentityTenantUtil.getRealmService()).thenReturn(mockRealmService);
+        when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
         String mappedRoles = requestPathBasedSequenceHandler.getServiceProviderMappedUserRoles(sequenceConfig, localUserRoles);
         assertEquals(mappedRoles, expectedRoles);
     }
