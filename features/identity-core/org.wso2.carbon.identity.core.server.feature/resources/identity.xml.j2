@@ -528,7 +528,19 @@
             {% if oauth.oidc.id_token.sign_with_sp_key is defined %}
             <SignJWTWithSPKey>{{oauth.oidc.id_token.sign_with_sp_key}}</SignJWTWithSPKey>
             {% else %}
-            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <SignJWTWithSPKey>true</SignJWTWithSPKey>
+            {% endif %}
+            <!-- Add tenant domain to 'realm' claim of ID Token-->
+            {% if oauth.oidc.id_token.add_tenant_domain_to_realm is defined %}
+            <AddTenantDomainToIdToken>{{oauth.oidc.id_token.add_tenant_domain_to_realm}}</AddTenantDomainToIdToken>
+            {% else %}
+            <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
+            {% endif %}
+            <!-- Add userstore domain to 'realm' claim of ID Token-->
+            % if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
+            <AddUserstoreDomainToIdToken>{{oauth.oidc.id_token.add_userstore_domain_to_realm}}</AddUserstoreDomainToIdToken>
+            {% else %}
+            <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
             {% endif %}
             <!--
                 Expiry period of the logout token used in OIDC Back Channel Logout in seconds.
