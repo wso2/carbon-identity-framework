@@ -690,18 +690,6 @@
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
         </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/view</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/update</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/delete</Permissions>
-        </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
         </Resource>
