@@ -20,9 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.UserSessionDAO;
@@ -40,7 +38,6 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.user.api.AuthorizationManager;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -54,8 +51,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
     private static final Log log = LogFactory.getLog(UserSessionManagementServiceImpl.class);
     private SessionManagementService sessionManagementService = new SessionManagementService();
-    private static final String SESSION_DELETE_PERMISSION = "/permission/admin/manage/identity/authentication" +
-            "/session/delete";
 
     @Override
     public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
@@ -113,6 +108,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving all the active sessions of user: " + userId + ".");
+        }
         return getActiveSessionList(getSessionIdListByUserId(userId));
     }
 
@@ -120,6 +118,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
         List<String> sessionIdList = getSessionIdListByUserId(userId);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminating all the active sessions of user: " + userId + ".");
+        }
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -131,6 +132,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     public boolean terminateSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
 
         if (isUserAuthorized(userId, sessionId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
+            }
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
@@ -145,6 +149,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public List<UserSession> getSessionsByUser(User user, int idpId) throws SessionManagementException {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Retrieving all the active sessions of user: " + user.getUserName() + " of user store " +
+                    "domain: " + user.getUserStoreDomain() + ".");
+        }
         return getActiveSessionList(getSessionIdListByUser(user, idpId));
     }
 
@@ -152,6 +160,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     public boolean terminateSessionsByUser(User user, int idpId) throws SessionManagementException {
 
         List<String> sessionIdList = getSessionIdListByUser(user, idpId);
+        if (log.isDebugEnabled()) {
+            log.debug("Terminating all the active sessions of user: " + user.getUserName() + " of user store " +
+                    "domain: " + user.getUserStoreDomain() + ".");
+        }
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {
             UserSessionStore.getInstance().removeTerminatedSessionRecords(sessionIdList);
@@ -164,6 +176,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             SessionManagementException {
 
         if (isUserAuthorized(user, idpId, sessionId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + user.getUserName
+                        () + " of user store domain: " + user.getUserStoreDomain() + ".");
+            }
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
             sessionIdList.add(sessionId);
@@ -185,6 +201,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<String> getSessionIdListByUserId(String userId) throws SessionManagementServerException {
 
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving the list of sessions owned by the user: " + userId + ".");
+            }
             return UserSessionStore.getInstance().getSessionId(userId);
         } catch (UserSessionException e) {
             throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
@@ -202,6 +221,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<String> getSessionIdListByUser(User user, int idpId) throws SessionManagementServerException {
 
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Retrieving the list of sessions owned by the user: " + user.getUserName() + " of user " +
+                        "store domain: " + user.getUserStoreDomain() + ".");
+            }
             return UserSessionStore.getInstance().getSessionId(user, idpId);
         } catch (UserSessionException e) {
             throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
@@ -235,9 +258,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     /**
-     * This method checks whether the user trying to terminate his own session. If the session does not owned by the
-     * user, then user must have "/permission/admin/manage/identity/authentication/session/delete" to terminate a
-     * session of another user.
+     * This method validates the session that is going to be deleted actually belongs to the provided user identified
+     * by the user id.
      *
      * @param userId    id of the user
      * @param sessionId id of the session
@@ -249,10 +271,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         boolean isUserAuthorized;
         try {
             isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(userId, sessionId);
-            if (!isUserAuthorized) {
-                isUserAuthorized = isActionForbidden();
-            }
-        } catch (UserSessionException | UserStoreException e) {
+        } catch (UserSessionException e) {
             throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
                     .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, userId, e);
         }
@@ -260,9 +279,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     }
 
     /**
-     * This method checks whether the user trying to terminate his own session. If the session does not owned by the
-     * user, then user must have "/permission/admin/manage/identity/authentication/session/delete" to terminate a
-     * session of another user.
+     * This method validates the session that is going to be deleted actually belongs to the provided user.
      *
      * @param user      user object
      * @param idpId     id of the user's identity provider
@@ -275,25 +292,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         boolean isUserAuthorized;
         try {
             isUserAuthorized = UserSessionStore.getInstance().isExistingMapping(user, idpId, sessionId);
-            if (!isUserAuthorized) {
-                isUserAuthorized = isActionForbidden();
-            }
-        } catch (UserSessionException | UserStoreException e) {
+        } catch (UserSessionException e) {
             throw handleSessionManagementServerException(SessionMgtConstants.ErrorMessages
                     .ERROR_CODE_UNABLE_TO_AUTHORIZE_USER, user.getUserName(), e);
         }
         return isUserAuthorized;
-    }
-
-    private boolean isActionForbidden() throws UserStoreException {
-
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String loggedInName = CarbonContext.getThreadLocalCarbonContext().getUsername();
-
-        AuthorizationManager authzManager = FrameworkServiceDataHolder.getInstance().getRealmService()
-                .getTenantUserRealm(tenantId).getAuthorizationManager();
-        return authzManager.isUserAuthorized(loggedInName, SESSION_DELETE_PERMISSION, CarbonConstants
-                .UI_PERMISSION_ACTION);
     }
 
     private SessionManagementServerException handleSessionManagementServerException(

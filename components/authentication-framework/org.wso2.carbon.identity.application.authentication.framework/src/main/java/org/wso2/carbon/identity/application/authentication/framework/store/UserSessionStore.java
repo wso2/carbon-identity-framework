@@ -395,6 +395,10 @@ public class UserSessionStore {
 
         String[] sessionsToRemove = sessionIdList.toArray(new String[0]);
 
+        if (log.isDebugEnabled()) {
+            log.debug("Removing meta information of the deleted sessions.");
+        }
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
