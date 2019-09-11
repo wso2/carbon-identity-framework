@@ -524,7 +524,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             String claimSeparator = realmConfiguration.getUserStoreProperty(IdentityCoreConstants
                     .MULTI_ATTRIBUTE_SEPARATOR);
             if (StringUtils.isNotBlank(claimSeparator)) {
-                spRequestedClaims.put(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
+                spRequestedClaims.putIfAbsent(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
             }
         }
     }

@@ -67,6 +67,7 @@
         <KeyStoresDir>{{key_mgt.keystore_dir}}</KeyStoresDir>
         <KeyManagerType>{{key_mgt.key_manager_type}}</KeyManagerType>
         <TrustManagerType>{{key_mgt.trust_manager_type}}</TrustManagerType>
+        <UserStorePasswordEncryption>{{key_mgt.userstore_password_encryption}}</UserStorePasswordEncryption>
     </Security>
 
     <Identity>
@@ -527,7 +528,19 @@
             {% if oauth.oidc.id_token.sign_with_sp_key is defined %}
             <SignJWTWithSPKey>{{oauth.oidc.id_token.sign_with_sp_key}}</SignJWTWithSPKey>
             {% else %}
-            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <SignJWTWithSPKey>true</SignJWTWithSPKey>
+            {% endif %}
+            <!-- Add tenant domain to 'realm' claim of ID Token-->
+            {% if oauth.oidc.id_token.add_tenant_domain_to_realm is defined %}
+            <AddTenantDomainToIdToken>{{oauth.oidc.id_token.add_tenant_domain_to_realm}}</AddTenantDomainToIdToken>
+            {% else %}
+            <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
+            {% endif %}
+            <!-- Add userstore domain to 'realm' claim of ID Token-->
+            % if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
+            <AddUserstoreDomainToIdToken>{{oauth.oidc.id_token.add_userstore_domain_to_realm}}</AddUserstoreDomainToIdToken>
+            {% else %}
+            <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
             {% endif %}
             <!--
                 Expiry period of the logout token used in OIDC Back Channel Logout in seconds.
@@ -1351,26 +1364,20 @@
         <Resource context="(.*)/api/identity/user/v1.0/validate-username(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
         </Resource>
-        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/login</Permissions>
         </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+        </Resource>
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/view</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/update</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/delete</Permissions>
+            <Permissions>/permission/admin/manage/identity</Permissions>
         </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
@@ -1403,7 +1410,6 @@
         <Resource context="/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/login-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
@@ -1413,6 +1419,22 @@
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
+        <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
+        <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/identity/cas(.*)" secured="false" http-method="all"/>
+        <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/fileupload(.*)" secured="false" http-method="all"/>
+        <Resource context="/filedownload(.*)" secured="false" http-method="all"/>
+        <Resource context="/logincontext(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/resourceContent(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/resource(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/tags(.*)" secured="false" http-method="all"/>
+        <Resource context="/registry/atom(.*)" secured="false" http-method="all"/>
+        <Resource context="/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
 
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">

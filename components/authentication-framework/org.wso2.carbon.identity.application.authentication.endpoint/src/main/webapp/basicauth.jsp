@@ -38,7 +38,7 @@
 
 <jsp:directive.include file="init-loginform-action-url.jsp"/>
 
-<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script>
     function goBack() {
         window.history.back();
@@ -58,9 +58,20 @@
                     var userName = document.getElementById("username");
                     userName.value = userName.value.trim();
                     if(userName.value){
-                        // Mark it so that the next submit can be ignored.
-                        $form.data('submitted', true);
-                        document.getElementById("loginForm").submit();
+                        $.ajax({
+                            type: "GET",
+                            url: "/logincontext?sessionDataKey=" + getParameterByName("sessionDataKey") + "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName("tenantDomain"),
+                            success: function (data) {
+                                if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
+                                    window.location.href = data.redirectUrl;
+                                } else {
+                                    // Mark it so that the next submit can be ignored.
+                                    $form.data('submitted', true);
+                                    document.getElementById("loginForm").submit();
+                                }
+                            },
+                            cache: false
+                        });
                     }
                 }
             });

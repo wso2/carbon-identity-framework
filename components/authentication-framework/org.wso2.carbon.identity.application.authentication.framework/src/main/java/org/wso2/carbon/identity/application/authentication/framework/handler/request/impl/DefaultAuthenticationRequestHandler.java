@@ -55,6 +55,9 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
+import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
+import org.wso2.carbon.user.core.model.UserMgtContext;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -125,22 +128,36 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         SequenceConfig seqConfig = context.getSequenceConfig();
         List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
 
-        // if SP has request path authenticators configured and this is start of
-        // the flow
-        if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
-            // call request path sequence handler
-            FrameworkUtils.getRequestPathBasedSequenceHandler().handle(request, response, context);
+        try {
+            UserStorePreferenceOrderSupplier<List<String>> userStorePreferenceOrderSupplier =
+                    FrameworkUtils.getUserStorePreferenceOrderSupplier(context, null);
+            if (userStorePreferenceOrderSupplier != null) {
+                // Add the user store preference supplier to the container UserMgtContext.
+                UserMgtContext userMgtContext = new UserMgtContext();
+                userMgtContext.setUserStorePreferenceOrderSupplier(userStorePreferenceOrderSupplier);
+                UserCoreUtil.setUserMgtContextInThreadLocal(userMgtContext);
+            }
+
+            // if SP has request path authenticators configured and this is start of
+            // the flow
+            if (reqPathAuthenticators != null && !reqPathAuthenticators.isEmpty() && currentStep == 0) {
+                // call request path sequence handler
+                FrameworkUtils.getRequestPathBasedSequenceHandler().handle(request, response, context);
+            }
+
+            // if no request path authenticators or handler returned cannot handle
+            if (!context.getSequenceConfig().isCompleted()
+                    || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
+                // To keep track of whether particular request goes through the step based sequence handler.
+                context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
+
+                // call step based sequence handler
+                FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
+            }
+        } finally {
+            UserCoreUtil.removeUserMgtContextInThreadLocal();
         }
 
-        // if no request path authenticators or handler returned cannot handle
-        if (!context.getSequenceConfig().isCompleted()
-                || (reqPathAuthenticators == null || reqPathAuthenticators.isEmpty())) {
-            // To keep track of whether particular request goes through the step based sequence handler.
-            context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
-
-            // call step based sequence handler
-            FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
-        }
         // handle post authentication
         handlePostAuthentication(request, response, context);
         // if flow completed, send response back
@@ -329,7 +346,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
-                populateAuthenticationContextHistory(request, context, sessionContext);
+                populateAuthenticationContextHistory(authenticationResult, context, sessionContext);
                 long updatedSessionTime = System.currentTimeMillis();
                 if (!context.isPreviousAuthTime()) {
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
@@ -425,7 +442,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
-                populateAuthenticationContextHistory(request, context, sessionContext);
+                populateAuthenticationContextHistory(authenticationResult, context, sessionContext);
 
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
@@ -483,11 +500,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     /**
      * Polulates the authentication history information and sets it as a request attribute.
      * The inbound protocol
-     * @param request
+     * @param authenticationResult
      * @param context
      * @param sessionContext
      */
-    private void populateAuthenticationContextHistory(HttpServletRequest request, AuthenticationContext context,
+    private void populateAuthenticationContextHistory(AuthenticationResult authenticationResult,
+                                                      AuthenticationContext context,
                                                       SessionContext sessionContext) {
 
         if (context.getSelectedAcr() != null) {
@@ -495,7 +513,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             sessionContext.getSessionAuthHistory().setSessionCreatedTime(calculateCreatedTime(sessionContext));
         }
 
-        request.setAttribute(FrameworkConstants.SESSION_AUTH_HISTORY, sessionContext.getSessionAuthHistory());
+        authenticationResult.addProperty(FrameworkConstants.SESSION_AUTH_HISTORY,
+                sessionContext.getSessionAuthHistory());
     }
 
     /**

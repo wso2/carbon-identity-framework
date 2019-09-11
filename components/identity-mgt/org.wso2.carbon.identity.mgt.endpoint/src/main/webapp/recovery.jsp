@@ -75,18 +75,11 @@
         List<UserClaim> claimDTOList = new ArrayList<UserClaim>();
 
         for (Claim claimDTO : claims) {
-            if (StringUtils.equals(claimDTO.getUri(),
-                    IdentityManagementEndpointConstants.ClaimURIs.FIRST_NAME_CLAIM) ||
-                    StringUtils.equals(claimDTO.getUri(),
-                            IdentityManagementEndpointConstants.ClaimURIs.LAST_NAME_CLAIM) ||
-                    StringUtils.equals(claimDTO.getUri(),
-                            IdentityManagementEndpointConstants.ClaimURIs.EMAIL_CLAIM)) {
-                if (StringUtils.isNotBlank(request.getParameter(claimDTO.getUri()))) {
-                    UserClaim userClaim = new UserClaim();
-                    userClaim.setUri(claimDTO.getUri());
-                    userClaim.setValue(request.getParameter(claimDTO.getUri()));
-                    claimDTOList.add(userClaim);
-                }
+            if (StringUtils.isNotBlank(request.getParameter(claimDTO.getUri()))) {
+                UserClaim userClaim = new UserClaim();
+                userClaim.setUri(claimDTO.getUri());
+                userClaim.setValue(request.getParameter(claimDTO.getUri()));
+                claimDTOList.add(userClaim);
             }
         }
 

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-store</artifactId>
-        <version>5.14.16-SNAPSHOT</version>
+        <version>5.14.59-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -50,6 +50,10 @@
             <groupId>org.wso2.orbit.org.owasp.encoder</groupId>
             <artifactId>encoder</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.user.store.configuration</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -77,7 +81,8 @@
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.user.store.configuration.stub.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.ui; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.ui.util; version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.identity.user.store.configuration.utils.*; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.identity.user.store.configuration.ui.*; version="${carbon.identity.package.export.version}"
