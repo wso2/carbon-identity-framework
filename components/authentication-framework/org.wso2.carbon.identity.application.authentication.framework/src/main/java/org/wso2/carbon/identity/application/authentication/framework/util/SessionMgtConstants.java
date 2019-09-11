@@ -41,7 +41,13 @@ public class SessionMgtConstants {
                 "Server encountered an error while authorizing user, %s."),
         ERROR_CODE_FORBIDDEN_ACTION("USM-00007",
                 "Action forbidden",
-                "Session terminate action is forbidden to user, %s.");
+                "Session terminate action is forbidden to user, %s."),
+        ERROR_CODE_INVALID_USER("USM-00008",
+                "Invalid user",
+                "User is not provided to perform session management tasks."),
+        ERROR_CODE_INVALID_SESSION("USM-00009",
+                "Invalid session",
+                "Session ID is not provided to perform session termination.");
 
         private final String code;
         private final String message;

@@ -108,6 +108,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public List<UserSession> getSessionsByUserId(String userId) throws SessionManagementException {
 
+        if (userId == null || userId.isEmpty()) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
+                    null);
+        }
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all the active sessions of user: " + userId + ".");
         }
@@ -117,6 +121,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionsByUserId(String userId) throws SessionManagementException {
 
+        if (userId == null || userId.isEmpty()) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
+                    null);
+        }
         List<String> sessionIdList = getSessionIdListByUserId(userId);
         if (log.isDebugEnabled()) {
             log.debug("Terminating all the active sessions of user: " + userId + ".");
@@ -131,7 +139,15 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionBySessionId(String userId, String sessionId) throws SessionManagementException {
 
-        if (isUserAuthorized(userId, sessionId)) {
+        if (userId == null || userId.isEmpty()) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
+                    null);
+        }
+        if (sessionId == null || sessionId.isEmpty()) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION,
+                    null);
+        }
+        if (isUserSessionMappingExist(userId, sessionId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + userId + ".");
             }
@@ -149,6 +165,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public List<UserSession> getSessionsByUser(User user, int idpId) throws SessionManagementException {
 
+        if (user == null) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
+                    null);
+        }
         if (log.isDebugEnabled()) {
             log.debug("Retrieving all the active sessions of user: " + user.getUserName() + " of user store " +
                     "domain: " + user.getUserStoreDomain() + ".");
@@ -159,6 +179,10 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     @Override
     public boolean terminateSessionsByUser(User user, int idpId) throws SessionManagementException {
 
+        if (user == null) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
+                    null);
+        }
         List<String> sessionIdList = getSessionIdListByUser(user, idpId);
         if (log.isDebugEnabled()) {
             log.debug("Terminating all the active sessions of user: " + user.getUserName() + " of user store " +
@@ -175,10 +199,19 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     public boolean terminateSessionBySessionId(User user, int idpId, String sessionId) throws
             SessionManagementException {
 
-        if (isUserAuthorized(user, idpId, sessionId)) {
+        if (user == null) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_USER,
+                    null);
+        }
+        if (sessionId == null || sessionId.isEmpty()) {
+            throw handleSessionManagementClientException(SessionMgtConstants.ErrorMessages.ERROR_CODE_INVALID_SESSION,
+                    null);
+        }
+
+        if (isUserSessionMappingExist(user, idpId, sessionId)) {
             if (log.isDebugEnabled()) {
-                log.debug("Terminating the session: " + sessionId + " which belongs to the user: " + user.getUserName
-                        () + " of user store domain: " + user.getUserStoreDomain() + ".");
+                log.debug("Terminating the session: " + sessionId + " which belongs to the user: " +
+                        user.getUserName() + " of user store domain: " + user.getUserStoreDomain() + ".");
             }
             sessionManagementService.removeSession(sessionId);
             List<String> sessionIdList = new ArrayList<>();
@@ -266,7 +299,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * @return true/false whether the user is authorized for the action
      * @throws SessionManagementServerException if an error occurs while validating the user.
      */
-    private boolean isUserAuthorized(String userId, String sessionId) throws SessionManagementServerException {
+    private boolean isUserSessionMappingExist(String userId, String sessionId) throws SessionManagementServerException {
 
         boolean isUserAuthorized;
         try {
@@ -287,7 +320,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
      * @return true/false whether the user is authorized for the action
      * @throws SessionManagementServerException if an error occurs while validating the user.
      */
-    private boolean isUserAuthorized(User user, int idpId, String sessionId) throws SessionManagementServerException {
+    private boolean isUserSessionMappingExist(User user, int idpId, String sessionId) throws
+            SessionManagementServerException {
 
         boolean isUserAuthorized;
         try {
@@ -306,7 +340,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (StringUtils.isNotBlank(data)) {
             description = String.format(error.getDescription(), data);
         } else {
-            description = error.getMessage();
+            description = error.getDescription();
         }
         return new SessionManagementServerException(error, description, e);
     }
@@ -318,7 +352,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (StringUtils.isNotBlank(data)) {
             description = String.format(error.getDescription(), data);
         } else {
-            description = error.getMessage();
+            description = error.getDescription();
         }
         return new SessionManagementClientException(error, description);
     }
