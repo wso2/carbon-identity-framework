@@ -2,6 +2,7 @@
   "authentication.authenticator.basic_request_path.parameters.auth_mechanism": "authentication.authenticator.basic_request_path.parameters.AuthMechanism",
   "authentication.authenticator.basic.parameters.auth_mechanism": "authentication.authenticator.basic.parameters.AuthMechanism",
   "authentication.authenticator.user_identifier.parameters.validate_username": "authentication.authenticator.user_identifier.parameters.ValidateUsername",
+  "authentication.authenticator.session_handler.parameters.max_session_count": "authentication.authenticator.session_handler.parameters.MaxSessionCount",
 
   "authentication.authenticator.google.parameters.token_endpoint" : "authentication.authenticator.google.parameters.GoogleTokenEndpoint",
   "authentication.authenticator.google.parameters.authz_endpoint" : "authentication.authenticator.google.parameters.GoogleAuthzEndpoint",

@@ -84,6 +84,9 @@
         <AuthenticatorConfig name="IdentifierExecutor" enabled="true">
             <Parameter name="ValidateUsername">false</Parameter>
         </AuthenticatorConfig>
+        <AuthenticatorConfig name="SessionExecutor" enabled="true">
+            <Parameter name="MaxSessionCount">1</Parameter>
+        </AuthenticatorConfig>
         <AuthenticatorConfig name="OAuthRequestPathAuthenticator" enabled="true"/>
         <AuthenticatorConfig name="BasicAuthRequestPathAuthenticator" enabled="true">
             <Parameter name="AuthMechanism">basic</Parameter>

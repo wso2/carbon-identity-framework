@@ -528,7 +528,19 @@
             {% if oauth.oidc.id_token.sign_with_sp_key is defined %}
             <SignJWTWithSPKey>{{oauth.oidc.id_token.sign_with_sp_key}}</SignJWTWithSPKey>
             {% else %}
-            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <SignJWTWithSPKey>true</SignJWTWithSPKey>
+            {% endif %}
+            <!-- Add tenant domain to 'realm' claim of ID Token-->
+            {% if oauth.oidc.id_token.add_tenant_domain_to_realm is defined %}
+            <AddTenantDomainToIdToken>{{oauth.oidc.id_token.add_tenant_domain_to_realm}}</AddTenantDomainToIdToken>
+            {% else %}
+            <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
+            {% endif %}
+            <!-- Add userstore domain to 'realm' claim of ID Token-->
+            % if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
+            <AddUserstoreDomainToIdToken>{{oauth.oidc.id_token.add_userstore_domain_to_realm}}</AddUserstoreDomainToIdToken>
+            {% else %}
+            <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
             {% endif %}
             <!--
                 Expiry period of the logout token used in OIDC Back Channel Logout in seconds.
@@ -1367,21 +1379,6 @@
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity</Permissions>
         </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/view</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/update</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/delete</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/workflow-engines(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
-        </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
         </Resource>
@@ -1413,7 +1410,6 @@
         <Resource context="/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/login-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
