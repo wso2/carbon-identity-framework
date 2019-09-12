@@ -94,17 +94,12 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
                 log.debug("Permission: " + node.getDisplayName() + " and resourcePath: " +
                         node.getResourcePath() + "," + " added to the permission Map");
             }
-        }
-        if (ArrayUtils.isNotEmpty(nodeList)) {
-            for (UIPermissionNode nod : nodeList) {
-                if (nod.isSelected()) {
-                    array.put(nod.getResourcePath());
-                    if (log.isDebugEnabled()) {
-                        log.debug("Permission: " + nod.getDisplayName() + " and resourcePath: " +
-                                nod.getResourcePath() + "," + " added to the permission Map");
-                    }
+            // Assuming all child nodes selected no traversing further.
+        } else {
+            if (ArrayUtils.isNotEmpty(nodeList)) {
+                for (UIPermissionNode nod : nodeList) {
+                    traverseUIPermissionTree(nod, array);
                 }
-                traverseUIPermissionTree(nod, array);
             }
         }
     }
