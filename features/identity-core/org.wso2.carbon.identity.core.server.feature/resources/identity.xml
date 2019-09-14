@@ -1054,6 +1054,9 @@
         <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
+        <Resource context="/scim2/Schemas" secured="true" http-method="all">
+            <Permissions></Permissions>
+        </Resource>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
         </Resource>
