@@ -31,6 +31,11 @@ public class SessionManagementClientException extends SessionManagementException
         super(error, description, cause);
     }
 
+    public SessionManagementClientException(SessionMgtConstants.ErrorMessages error, String description) {
+
+        super(error, description);
+    }
+
     public SessionManagementClientException(String message, String errorCode, String description, Throwable cause) {
 
         super(message, errorCode, description, cause);

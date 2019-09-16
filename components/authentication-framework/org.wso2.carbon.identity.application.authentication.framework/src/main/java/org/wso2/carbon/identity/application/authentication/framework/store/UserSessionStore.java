@@ -26,7 +26,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.D
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.sql.Connection;
@@ -393,6 +395,10 @@ public class UserSessionStore {
 
         String[] sessionsToRemove = sessionIdList.toArray(new String[0]);
 
+        if (log.isDebugEnabled()) {
+            log.debug("Removing meta information of the deleted sessions.");
+        }
+
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
@@ -495,7 +501,7 @@ public class UserSessionStore {
                     preparedStatement.setString(4, inboundAuth);
                 });
             } catch (DataAccessException e) {
-                throw new DataAccessException("Error while storing application data for session in the database ", e);
+                throw new DataAccessException("Error while storing application data for session in the database.", e);
             }
     }
 
@@ -520,7 +526,7 @@ public class UserSessionStore {
                     });
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving the app id of " + applicationName + ", " +
-                    "tenant id" + appTenantID, e);
+                    "tenant id" + appTenantID + ".", e);
         }
         return appId == null ? 0 : appId;
     }
@@ -552,7 +558,7 @@ public class UserSessionStore {
                     });
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while retrieving application data of session id: " +
-                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth, e);
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
         }
         return recordCount != null;
     }
@@ -604,5 +610,79 @@ public class UserSessionStore {
             throw new UserSessionException("Error while updating " + propertyType + " of session:" + sessionId +
                     " in table " + IDN_AUTH_SESSION_META_DATA_TABLE + ".", e);
         }
+    }
+
+    /**
+     * Method to get session Id list of a given user.
+     *
+     * @param user  user object
+     * @param idpId id of the user's idp
+     * @return the list of session ids
+     * @throws UserSessionException if an error occurs when retrieving the session id list from the database
+     */
+    public List<String> getSessionId(User user, int idpId) throws UserSessionException {
+
+        List<String> sessionIdList = new ArrayList<>();
+        int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_GET_SESSIONS_BY_USER)) {
+                preparedStatement.setString(1, user.getUserName());
+                preparedStatement.setInt(2, tenantId);
+                preparedStatement.setString(3, (user.getUserStoreDomain() == null) ? FEDERATED_USER_DOMAIN :
+                        user.getUserStoreDomain().toUpperCase());
+                preparedStatement.setInt(4, idpId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        sessionIdList.add(resultSet.getString(1));
+                    }
+                }
+            } catch (SQLException ex) {
+                throw new UserSessionException("Error while retrieving session IDs of user: " +
+                        user.getUserName() + ".", ex);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving session IDs of user: " +
+                    user.getUserName() + ".", e);
+        }
+        return sessionIdList;
+    }
+
+    /**
+     * Method to check whether a given user already has a mapping with a given session id.
+     *
+     * @param user      user object
+     * @param sessionId id of the authenticated session
+     * @return the boolean decision
+     * @throws UserSessionException if an error occurs when retrieving the mapping from the database
+     */
+    public boolean isExistingMapping(User user, int idpId, String sessionId) throws UserSessionException {
+
+        Boolean isExisting = false;
+
+        int tenantId = IdentityTenantUtil.getTenantId(user.getTenantDomain());
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_GET_SESSION_MAPPING_BY_USER)) {
+                preparedStatement.setString(1, sessionId);
+                preparedStatement.setString(2, user.getUserName());
+                preparedStatement.setInt(3, tenantId);
+                preparedStatement.setString(4, (user.getUserStoreDomain() == null) ? FEDERATED_USER_DOMAIN :
+                        user.getUserStoreDomain().toUpperCase());
+                preparedStatement.setInt(5, idpId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        isExisting = true;
+                    }
+                }
+            } catch (SQLException ex) {
+                throw new UserSessionException("Error while retrieving existing mapping between user : " + user
+                        .getUserName() + " and session Id: " + sessionId + ".", ex);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving existing mapping between user : " + user
+                    .getUserName() + " and session Id: " + sessionId + ".", e);
+        }
+        return isExisting;
     }
 }
