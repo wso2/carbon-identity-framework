@@ -23,7 +23,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%></title>
+    <!--title-->
+    <jsp:directive.include file="title.jsp"/>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -39,19 +40,8 @@
 
 <body>
 
-<!-- header -->
-<header class="header header-default">
-    <div class="container-fluid"><br></div>
-    <div class="container-fluid">
-        <div class="pull-left brand float-remove-xs text-center-xs">
-            <a href="#">
-                <img src="images/logo-inverse.svg" alt="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" class="logo">
-                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
-                </em></h1>
-            </a>
-        </div>
-    </div>
-</header>
+<!--header-->
+<jsp:directive.include file="header.jsp"/>
 
 <!-- page content -->
 <div class="row">
@@ -188,17 +178,8 @@
     </div>
 </div>
 
-<!-- footer -->
-<footer class="footer">
-    <div class="container-fluid">
-        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
-            <script>document.write(new Date().getFullYear());</script>
-            <a href="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
-            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
-        </p>
-    </div>
-</footer>
+<!--footer-->
+<jsp:directive.include file="footer.jsp"/>
 
 <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>

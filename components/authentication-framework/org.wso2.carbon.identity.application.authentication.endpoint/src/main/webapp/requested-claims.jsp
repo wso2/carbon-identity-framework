@@ -58,19 +58,9 @@
 
 <body>
 
-<!-- header -->
-<header class="header header-default">
-    <div class="container-fluid"><br></div>
-    <div class="container-fluid">
-        <div class="pull-left brand float-remove-xs text-center-xs">
-            <a href="#">
-                <img src="images/logo-inverse.svg" alt="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" class="logo">
-                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
-                </em></h1>
-            </a>
-        </div>
-    </div>
-</header>
+<!--header-->
+<jsp:directive.include file="header.jsp"/>
+
 <div class="container-fluid body-wrapper">
 
     <div class="row">
@@ -121,17 +111,8 @@
 
 </div>
 
-<!-- footer -->
-<footer class="footer">
-    <div class="container-fluid">
-        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
-            <script>document.write(new Date().getFullYear());</script>
-            <a href="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
-            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
-        </p>
-    </div>
-</footer>
+<!--footer-->
+<jsp:directive.include file="footer.jsp"/>
 
 <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>
