@@ -38,8 +38,10 @@ import org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -428,7 +430,33 @@ public class IdentityManagementEndpointUtil {
     }
 
     /**
-     * Encode query params of the call back url.
+     * Encode query params of the call back url. Method supports all URL formats supported in
+     * {@link #getURLEncodedCallback(String)} and URLs containing spaces
+     *
+     * @param callbackUrl callback url from the request.
+     * @return encoded callback url.
+     * @throws MalformedURLException Malformed URL Exception.
+     */
+    public static String encodeURL(String callbackUrl) throws MalformedURLException {
+
+        URL url = new URL(callbackUrl);
+        StringBuilder encodedCallbackUrl = new StringBuilder(
+                new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
+
+        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
+
+        if (MapUtils.isNotEmpty(encodedQueryMap)) {
+            encodedCallbackUrl.append("?");
+            encodedCallbackUrl.append(encodedQueryMap.keySet().stream().map(key -> key + PADDING_CHAR
+                    + encodedQueryMap.get(key)).collect(Collectors.joining(SPLITTING_CHAR)));
+        }
+
+        return encodedCallbackUrl.toString();
+    }
+
+    /**
+     * Encode query params of the call back url. However this method doesn't support URLs with
+     * spaces. Use {@link #encodeURL(String)} to encode URLs which contain spaces.
      *
      * @param callbackUrl callback url from the request.
      * @return encoded callback url.
