@@ -18,19 +18,19 @@
 
   "oauth.token_generation.access_token_type": {
     "self_contained": {
-      "oauth.extension.token_generator": "org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer"
+      "oauth.extensions.token_generator": "org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer"
     }
   },
 
   "oauth.token_generation.access_token_value_type": {
     "md5": {
-      "oauth.extension.token_value_generator": "org.apache.oltu.oauth2.as.issuer.MD5Generator"
+      "oauth.extensions.token_value_generator": "org.apache.oltu.oauth2.as.issuer.MD5Generator"
     },
     "sha256": {
-      "oauth.extension.token_value_generator": "org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator"
+      "oauth.extensions.token_value_generator": "org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator"
     },
     "uuid": {
-      "oauth.extension.token_value_generator": "org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator"
+      "oauth.extensions.token_value_generator": "org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator"
     }
   },
 
@@ -46,10 +46,10 @@
 
   "oauth.hash_tokens_and_secrets": {
     "true": {
-      "oauth.extensions.token_persistance_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.EncryptionDecryptionPersistenceProcessor"
+      "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.EncryptionDecryptionPersistenceProcessor"
     },
     "false": {
-      "oauth.extensions.token_persistance_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor"
+      "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor"
     }
   },
 
