@@ -148,8 +148,8 @@
              Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
              Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
         -->
-        {% if oauth.extension.token_generator is defined%}
-        <IdentityOAuthTokenGenerator>{{oauth.extension.token_generator}}</IdentityOAuthTokenGenerator>
+        {% if oauth.extensions.token_generator is defined%}
+        <IdentityOAuthTokenGenerator>{{oauth.extensions.token_generator}}</IdentityOAuthTokenGenerator>
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
         {% endif %}
@@ -167,8 +167,8 @@
              Applicable values: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator,
                                 org.apache.oltu.oauth2.as.issuer.MD5Generator,
                                 org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator-->
-        {% if oauth.extension.token_value_generator is defined %}
-        <AccessTokenValueGenerator>{{oauth.extension.token_value_generator}}</AccessTokenValueGenerator>
+        {% if oauth.extensions.token_value_generator is defined %}
+        <AccessTokenValueGenerator>{{oauth.extensions.token_value_generator}}</AccessTokenValueGenerator>
         {% else %}
         <AccessTokenValueGenerator>org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator</AccessTokenValueGenerator>
         {% endif %}
