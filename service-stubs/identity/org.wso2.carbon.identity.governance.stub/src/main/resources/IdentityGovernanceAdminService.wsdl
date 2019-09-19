@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ax2347="http://governance.identity.carbon.wso2.org/xsd" xmlns:ns="http://governance.identity.carbon.wso2.org" xmlns:ax2349="http://bean.governance.identity.carbon.wso2.org/xsd" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ax2350="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://governance.identity.carbon.wso2.org">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:ns="http://governance.identity.carbon.wso2.org" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ax2360="http://governance.identity.carbon.wso2.org/xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:ax2362="http://model.common.application.identity.carbon.wso2.org/xsd" xmlns:ns1="http://org.apache.axis2/xsd" xmlns:ax2364="http://bean.governance.identity.carbon.wso2.org/xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="http://governance.identity.carbon.wso2.org">
     <wsdl:documentation>IdentityGovernanceAdminService</wsdl:documentation>
     <wsdl:types>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://governance.identity.carbon.wso2.org/xsd">
@@ -23,14 +23,21 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2348="http://governance.identity.carbon.wso2.org/xsd" xmlns:ax2352="http://bean.governance.identity.carbon.wso2.org/xsd" xmlns:ax2353="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://governance.identity.carbon.wso2.org">
+        <xs:schema xmlns:ax2366="http://bean.governance.identity.carbon.wso2.org/xsd" xmlns:ax2361="http://governance.identity.carbon.wso2.org/xsd" xmlns:ax2363="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://governance.identity.carbon.wso2.org">
             <xs:import namespace="http://governance.identity.carbon.wso2.org/xsd"/>
-            <xs:import namespace="http://bean.governance.identity.carbon.wso2.org/xsd"/>
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
+            <xs:import namespace="http://bean.governance.identity.carbon.wso2.org/xsd"/>
             <xs:element name="IdentityGovernanceAdminServiceIdentityGovernanceException">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element minOccurs="0" name="IdentityGovernanceException" nillable="true" type="ax2347:IdentityGovernanceException"/>
+                        <xs:element minOccurs="0" name="IdentityGovernanceException" nillable="true" type="ax2360:IdentityGovernanceException"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="updateConfigurations">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="configurations" nillable="true" type="ax2362:Property"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -42,14 +49,7 @@
             <xs:element name="getConnectorListResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2349:ConnectorConfig"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="updateConfigurations">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="configurations" nillable="true" type="ax2350:Property"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2366:ConnectorConfig"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -70,7 +70,7 @@
                 </xs:sequence>
             </xs:complexType>
         </xs:schema>
-        <xs:schema xmlns:ax2351="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://bean.governance.identity.carbon.wso2.org/xsd">
+        <xs:schema xmlns:ax2365="http://model.common.application.identity.carbon.wso2.org/xsd" attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://bean.governance.identity.carbon.wso2.org/xsd">
             <xs:import namespace="http://model.common.application.identity.carbon.wso2.org/xsd"/>
             <xs:complexType name="ConnectorConfig">
                 <xs:sequence>
@@ -78,7 +78,7 @@
                     <xs:element minOccurs="0" name="friendlyName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="order" type="xs:int"/>
-                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2350:Property"/>
+                    <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2362:Property"/>
                     <xs:element minOccurs="0" name="subCategory" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
