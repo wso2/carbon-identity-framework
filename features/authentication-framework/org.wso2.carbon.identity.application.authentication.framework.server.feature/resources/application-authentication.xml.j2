@@ -151,4 +151,7 @@
         <AuthenticationEndpointRedirectParam name="{{parameter}}"/>
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
+    {% if tenant.domainDropDown.enabled is defined %}
+        <TenantDomainDropDownEnabled>{{tenant.domainDropDown.enabled}}</TenantDomainDropDownEnabled></TenantDataListenerURLs>
+    {% endif %}
 </ApplicationAuthentication>
