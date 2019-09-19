@@ -151,4 +151,8 @@
         <AuthenticationEndpointRedirectParam name="{{parameter}}"/>
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
+
+    {% if authenticator.custom.mappings is defined %}
+        <AllowCustomClaimMappingsForAuthenticators>{{authenticator.custom.mappings}}</AllowCustomClaimMappingsForAuthenticators>
+    {% endif %}
 </ApplicationAuthentication>
