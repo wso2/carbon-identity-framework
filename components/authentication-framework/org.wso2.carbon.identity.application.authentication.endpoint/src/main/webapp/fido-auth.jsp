@@ -20,6 +20,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
+<%@ page import="java.io.File"%>
 
 <%
     String authRequest = request.getParameter("data");
@@ -30,8 +31,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--title-->
-    <jsp:directive.include file="title.jsp"/>
+    <!-- title -->
+    <%
+        File titleFile = new File(getServletContext().getRealPath("extensions/title.jsp"));
+        if (titleFile.exists()) {
+    %>
+            <jsp:include page="extensions/title.jsp"/>
+    <%} else {%>
+            <jsp:directive.include file="includes/title.jsp"/>
+    <%}%>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -47,8 +55,15 @@
 
 <body onload='talkToDevice();'>
 
-<!--header-->
-<jsp:directive.include file="header.jsp"/>
+<!-- header -->
+<%
+    File headerFile = new File(getServletContext().getRealPath("extensions/header.jsp"));
+    if (headerFile.exists()) {
+%>
+        <jsp:include page="extensions/header.jsp"/>
+<%} else {%>
+        <jsp:directive.include file="includes/header.jsp"/>
+<%}%>
 
 <!-- page content -->
 <div class="container-fluid body-wrapper">
@@ -76,8 +91,15 @@
     </div>
 </div>
 
-<!--footer-->
-<jsp:directive.include file="footer.jsp"/>
+<!-- footer -->
+<%
+    File footerFile = new File(getServletContext().getRealPath("extensions/footer.jsp"));
+    if (footerFile.exists()) {
+%>
+        <jsp:include page="extensions/footer.jsp"/>
+<%} else {%>
+        <jsp:directive.include file="includes/footer.jsp"/>
+<%}%>
 
 <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>

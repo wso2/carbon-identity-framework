@@ -18,6 +18,7 @@
 
 <%@page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AdaptiveAuthUtil" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.io.File"%>
 <%@include file="localize.jsp" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <jsp:directive.include file="init-url.jsp"/>
@@ -30,8 +31,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--title-->
-    <jsp:directive.include file="title.jsp"/>
+    <!-- title -->
+    <%
+        File titleFile = new File(getServletContext().getRealPath("extensions/title.jsp"));
+        if (titleFile.exists()) {
+    %>
+            <jsp:include page="extensions/title.jsp"/>
+    <%} else {%>
+            <jsp:directive.include file="includes/title.jsp"/>
+    <%}%>
     
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">

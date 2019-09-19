@@ -16,6 +16,7 @@
   ~ under the License.
   --%>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.io.File"%>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
@@ -66,8 +67,15 @@
 
     <body>
 
-    <!--header-->
-    <jsp:directive.include file="header.jsp"/>
+    <!-- header -->
+    <%
+        File headerFile = new File(getServletContext().getRealPath("extensions/header.jsp"));
+        if (headerFile.exists()) {
+    %>
+            <jsp:include page="extensions/header.jsp"/>
+    <%} else {%>
+            <jsp:directive.include file="includes/header.jsp"/>
+    <%}%>
 
     <div class="container-fluid body-wrapper">
 
@@ -155,8 +163,15 @@
 
     </div>
 
-    <!--footer-->
-    <jsp:directive.include file="footer.jsp"/>
+    <!-- footer -->
+    <%
+        File footerFile = new File(getServletContext().getRealPath("extensions/footer.jsp"));
+        if (footerFile.exists()) {
+    %>
+            <jsp:include page="extensions/footer.jsp"/>
+    <%} else {%>
+            <jsp:directive.include file="includes/footer.jsp"/>
+    <%}%>
 
     <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
     <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>
