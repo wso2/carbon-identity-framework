@@ -595,6 +595,24 @@
 				<AttributeID>active</AttributeID>
 				<Description>Status of the account</Description>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/secretkey</ClaimURI>
+				<DisplayName>Secret Key</DisplayName>
+				<AttributeID>totpSecretkey</AttributeID>
+				<Description>Claim to store the secret key</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/emailotp_disabled</ClaimURI>
+				<DisplayName>Disable EmailOTP</DisplayName>
+				<AttributeID>emailOTPDisabled</AttributeID>
+				<Description>Claim to disable EmailOTP</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/smsotp_disabled</ClaimURI>
+				<DisplayName>Disable SMSOTP</DisplayName>
+				<AttributeID>smsOTPDisabled</AttributeID>
+				<Description>Claim to disable SMSOTP</Description>
+			</Claim>
 
 		</Dialect>
 
