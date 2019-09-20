@@ -18,7 +18,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-<%@ page import="java.io.File"%>
+<%@ page import="java.io.File" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
@@ -57,9 +57,9 @@
         if (titleFile.exists()) {
     %>
             <jsp:include page="extensions/title.jsp"/>
-    <%} else {%>
+    <% } else { %>
             <jsp:directive.include file="includes/title.jsp"/>
-    <%}%>
+    <% } %>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -88,9 +88,9 @@
     if (headerFile.exists()) {
 %>
         <jsp:include page="extensions/header.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/header.jsp"/>
-<%}%>
+<% } %>
 
 <!-- page content -->
 <div class="container-fluid body-wrapper">
@@ -200,9 +200,9 @@
     if (footerFile.exists()) {
 %>
         <jsp:include page="extensions/footer.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/footer.jsp"/>
-<%}%>
+<% } %>
 
 <div id="selected_sessions_validation" class="modal fade" tabindex="-1" role="dialog"
      aria-labelledby="mySmallModalLabel">

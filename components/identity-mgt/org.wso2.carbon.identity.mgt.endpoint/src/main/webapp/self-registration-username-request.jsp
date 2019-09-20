@@ -21,8 +21,8 @@
   ~ specific language governing permissions and limitations
   ~ under the License.
   --%>
+<%@ page import="java.io.File" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.io.File"%>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -64,9 +64,9 @@
             if (titleFile.exists()) {
         %>
                 <jsp:include page="extensions/title.jsp"/>
-        <%} else {%>
+        <% } else { %>
                 <jsp:directive.include file="includes/title.jsp"/>
-        <%}%>
+        <% } %>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -87,9 +87,9 @@
         if (headerFile.exists()) {
     %>
             <jsp:include page="extensions/header.jsp"/>
-    <%} else {%>
+    <% } else { %>
             <jsp:directive.include file="includes/header.jsp"/>
-    <%}%>
+    <% } %>
 
     <!-- page content -->
     <div class="container-fluid body-wrapper">
@@ -167,9 +167,9 @@
         if (footerFile.exists()) {
     %>
             <jsp:include page="extensions/footer.jsp"/>
-    <%} else {%>
+    <% } else { %>
             <jsp:directive.include file="includes/footer.jsp"/>
-    <%}%>
+    <% } %>
 
     <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
     <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>

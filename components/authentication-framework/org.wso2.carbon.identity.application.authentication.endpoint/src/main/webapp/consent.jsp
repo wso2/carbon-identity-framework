@@ -18,9 +18,9 @@
 
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
+<%@ page import="java.io.File" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
-<%@ page import="java.io.File"%>
 
 <%
     String[] requestedClaimList = new String[0];
@@ -46,9 +46,9 @@
         if (titleFile.exists()) {
     %>
             <jsp:include page="extensions/title.jsp"/>
-    <%} else {%>
+    <% } else { %>
             <jsp:directive.include file="includes/title.jsp"/>
-    <%}%>
+    <% } %>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -87,9 +87,9 @@
     if (headerFile.exists()) {
 %>
         <jsp:include page="extensions/header.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/header.jsp"/>
-<%}%>
+<% } %>
 
 <!-- page content -->
 <div class="container-fluid body-wrapper">
@@ -240,9 +240,9 @@
     if (footerFile.exists()) {
 %>
         <jsp:include page="extensions/footer.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/footer.jsp"/>
-<%}%>
+<% } %>
 
 <div id="modal_claim_validation" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
     <div class="modal-dialog modal-md" role="document">

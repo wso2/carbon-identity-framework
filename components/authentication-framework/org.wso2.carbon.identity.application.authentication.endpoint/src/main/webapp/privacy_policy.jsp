@@ -16,7 +16,7 @@
   ~ under the License.
   --%>
 
-<%@ page import="java.io.File"%>
+<%@ page import="java.io.File" %>
 <%@include file="localize.jsp" %>
 
 <html>
@@ -30,9 +30,9 @@
         if (titleFile.exists()) {
     %>
             <jsp:include page="extensions/title.jsp"/>
-    <%} else {%>
+    <% } else { %>
             <jsp:directive.include file="includes/title.jsp"/>
-    <%}%>
+    <% } %>
 
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -54,9 +54,9 @@
     if (headerFile.exists()) {
 %>
         <jsp:include page="extensions/header.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/header.jsp"/>
-<%}%>
+<% } %>
 
 <!-- page content -->
 <%
@@ -64,9 +64,9 @@
     if (privacyPolicyFile.exists()) {
 %>
         <jsp:include page="extensions/privacy-policy-content.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/privacy-policy-content.jsp"/>
-<%}%>
+<% } %>
 
 <!-- footer -->
 <%
@@ -74,9 +74,9 @@
     if (footerFile.exists()) {
 %>
         <jsp:include page="extensions/footer.jsp"/>
-<%} else {%>
+<% } else { %>
         <jsp:directive.include file="includes/footer.jsp"/>
-<%}%>
+<% } %>
 
 <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>
