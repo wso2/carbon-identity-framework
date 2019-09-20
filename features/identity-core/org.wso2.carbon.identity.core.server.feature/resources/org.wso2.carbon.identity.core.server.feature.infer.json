@@ -44,11 +44,14 @@
     }
   },
 
-  "oauth.hash_tokens_and_secrets": {
-    "true": {
+  "oauth.token_storage_method": {
+    "hashed": {
+      "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.HashingPersistenceProcessor"
+    },
+    "encrypted": {
       "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.EncryptionDecryptionPersistenceProcessor"
     },
-    "false": {
+    "plaintext": {
       "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor"
     }
   },
