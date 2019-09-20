@@ -18,6 +18,13 @@
 
 package org.wso2.carbon.idp.mgt.internal;
 
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.ConnectorConfig;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
+import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -35,14 +42,14 @@ public class IdpMgtServiceComponentHolder {
     }
 
 
-    private  RealmService realmService = null;
+    private RealmService realmService = null;
 
     private ConfigurationContextService configurationContextService = null;
     private volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
+    private volatile List<ConnectorConfig> identityConnectorConfigList = new ArrayList<>();
     private RegistryService registryService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
-
 
     public RealmService getRealmService() {
         return realmService;
@@ -83,10 +90,31 @@ public class IdpMgtServiceComponentHolder {
     public void setMetadataConverters(List<MetadataConverter> metadataConverters) {
         this.metadataConverters = metadataConverters;
     }
-    public void addMetadataConverter(MetadataConverter converter){
+    public void addMetadataConverter(MetadataConverter converter) {
         this.metadataConverters.add(converter);
     }
-    public void removeMetadataConverter(MetadataConverter converter){
+    public void removeMetadataConverter(MetadataConverter converter) {
         this.metadataConverters.remove(converter);
+    }
+
+    public void addConnectorConfig(ConnectorConfig identityConnectorConfig) throws IdentityProviderManagementException {
+
+        CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
+
+        dao.clearIdpCache(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME,
+                IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME),
+                MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+        this.identityConnectorConfigList.add(identityConnectorConfig);
+    }
+
+    public List<ConnectorConfig> getIdentityConnectorConfigList() {
+
+        return identityConnectorConfigList;
+    }
+
+    protected void unsetGovernanceConnector(ConnectorConfig connector) {
+
+        identityConnectorConfigList.remove(connector);
     }
 }
