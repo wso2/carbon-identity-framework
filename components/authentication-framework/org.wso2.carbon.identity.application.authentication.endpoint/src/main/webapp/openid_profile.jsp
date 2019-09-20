@@ -16,6 +16,7 @@
   ~ under the License.
   --%>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="java.io.File" %>
 <%@include file="localize.jsp" %>
 <%@include file="init-url.jsp" %>
 
@@ -67,18 +68,14 @@
     <body>
 
     <!-- header -->
-    <header class="header header-default">
-        <div class="container-fluid"><br></div>
-        <div class="container-fluid">
-            <div class="pull-left brand float-remove-xs text-center-xs">
-                <a href="#">
-                    <img src="images/logo-inverse.svg" alt="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" class="logo">
-
-                    <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%> </em></h1>
-                </a>
-            </div>
-        </div>
-    </header>
+    <%
+        File headerFile = new File(getServletContext().getRealPath("extensions/header.jsp"));
+        if (headerFile.exists()) {
+    %>
+            <jsp:include page="extensions/header.jsp"/>
+    <% } else { %>
+            <jsp:directive.include file="includes/header.jsp"/>
+    <% } %>
 
     <div class="container-fluid body-wrapper">
 
@@ -167,16 +164,14 @@
     </div>
 
     <!-- footer -->
-    <footer class="footer">
-        <div class="container-fluid">
-            <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
-                <script>document.write(new Date().getFullYear());</script>
-                <a href="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i>
-                    <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
-                </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
-            </p>
-        </div>
-    </footer>
+    <%
+        File footerFile = new File(getServletContext().getRealPath("extensions/footer.jsp"));
+        if (footerFile.exists()) {
+    %>
+            <jsp:include page="extensions/footer.jsp"/>
+    <% } else { %>
+            <jsp:directive.include file="includes/footer.jsp"/>
+    <% } %>
 
     <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
     <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>

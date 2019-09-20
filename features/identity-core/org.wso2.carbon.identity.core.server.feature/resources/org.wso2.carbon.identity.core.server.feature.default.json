@@ -369,6 +369,10 @@
   "cache.idp_cache_by_name.timeout": "900ms",
   "cache.idp_cache_by_name.capacity": "$ref{cache.default_capacity}",
 
+  "resource_access_control.introspect.secured": true,
+  "resource_access_control.introspect.permissions": [
+    "/permission/admin/manage/identity/applicationmgt/view"
+  ],
   "resource_access_control.scim2_me_get_method.secured": true,
   "resource_access_control.scim2_me_get_method.permission": "/permission/admin/login",
   "resource_access_control.scim2_me_get_method.keep_resource": true,
@@ -398,6 +402,7 @@
     "/api/identity/oauth2/v1.0/",
     "/api/identity/oauth2/uma/permission/v1.0/",
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
+    "/api/identity/config-mgt/v1.0/",
     "/api/"
   ],
   "tenant_context.rewrite.servlets": [
