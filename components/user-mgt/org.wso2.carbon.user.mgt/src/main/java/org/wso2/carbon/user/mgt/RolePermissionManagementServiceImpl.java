@@ -66,6 +66,21 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public String getAllPermissions() throws UserAdminException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        try {
+            JSONArray permissionArray = new JSONArray();
+            traverseAllUIPermissionTree(getUserAdminProxy().getAllUIPermissions(tenantId), permissionArray);
+            return permissionArray.toString();
+        } catch (UserAdminException e) {
+            log.error("An error occurred when retrieving all permissions.");
+            throw new UserAdminException("An error occurred when retrieving all permissions.", e);
+        }
+    }
 
     /**
      * Get the UserAdmin service.
@@ -78,9 +93,8 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
         return new UserRealmProxy(realm);
     }
 
-
     /**
-     * Recursively traverse through node lists.
+     * Recursively traverse through node lists, do not go through leaves if root node selected.
      *
      * @param node  UI permission list
      * @param array global JSONArray
@@ -100,6 +114,23 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
                 for (UIPermissionNode nod : nodeList) {
                     traverseUIPermissionTree(nod, array);
                 }
+            }
+        }
+    }
+
+    /**
+     * Recursively traverse through node lists.
+     *
+     * @param allUIPermissions  UI permission list
+     * @param permissionArray global JSONArray
+     */
+    private void traverseAllUIPermissionTree(UIPermissionNode allUIPermissions, JSONArray permissionArray) {
+
+        UIPermissionNode[] nodeList = allUIPermissions.getNodeList();
+        permissionArray.put(allUIPermissions.getResourcePath());
+        if (ArrayUtils.isNotEmpty(nodeList)) {
+            for (UIPermissionNode nod : nodeList) {
+                traverseAllUIPermissionTree(nod, permissionArray);
             }
         }
     }

@@ -23,6 +23,7 @@ public interface RolePermissionManagementService {
 
     /**
      * Get enabled set of permissions of a role.
+     *
      * @param roleName group name
      * @return
      */
@@ -30,8 +31,17 @@ public interface RolePermissionManagementService {
 
     /**
      * Update(add or remove) set of permissions of a group/role.
+     *
      * @param roleName group name
      * @param permissions array of permission resource paths
      */
     void updateRolePermissions(String roleName, String[] permissions) throws UserAdminException;
+
+    /**
+     * Get all set of permissions listed in the permission tree
+     *
+     * @return
+     * @throws UserAdminException
+     */
+    String getAllPermissions() throws UserAdminException;
 }
