@@ -368,7 +368,7 @@
                 {% endif %}
                 {% if property.value is defined %}
                   <Properties>
-                    {% for key,value in listener.properties.items() %}
+                    {% for key,value in OAuthCallbackHandler.properties.items() %}
                       <Properties> name="{{key}}">{{value}} </Properties>
                     {% endfor %}
                   </Properties>
