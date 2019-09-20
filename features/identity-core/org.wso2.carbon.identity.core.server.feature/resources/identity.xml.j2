@@ -361,18 +361,11 @@
         </UserConsentEnabledGrantTypes>
 
         <OAuthCallbackHandlers>
-        {% for callback_handler in oauth.extensions.callback_handlers %}
-            <OAuthCallbackHandler Class="{{callback_handler}}"/>
-        {% endfor %}
-        </OAuthCallbackHandlers>
-
-        <OAuthCallbackHandlers>
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler}}"/>
                 {% if priority.value is defined %}
                 	<Priority Value="{{priority.value}}"/>
                 {% endif %}
-
                 {% if property.value is defined %}
                   <Properties>
                     {% for key,value in listener.properties.items() %}
@@ -381,8 +374,7 @@
                   </Properties>
                  {% endif %}
            {% endfor %}
-
-         </OAuthCallbackHandlers>
+        </OAuthCallbackHandlers>
 
         <TokenValidators>
         {% if oauth.token_validator.bearer.enable %}
