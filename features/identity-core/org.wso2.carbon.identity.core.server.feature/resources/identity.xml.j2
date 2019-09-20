@@ -366,6 +366,24 @@
         {% endfor %}
         </OAuthCallbackHandlers>
 
+        <OAuthCallbackHandlers>
+           {% for callback_handler in oauth.extensions.callback_handlers %}
+              <OAuthCallbackHandler Class="{{callback_handler}}"/>
+                {% if priority.value is defined %}
+                	<Priority Value="{{priority.value}}"/>
+                {% endif %}
+
+                {% if property.value is defined %}
+                  <Properties>
+                    {% for key,value in listener.properties.items() %}
+                      <Properties> name="{{key}}">{{value}} </Properties>
+                    {% endfor %}
+                  </Properties>
+                 {% endif %}
+           {% endfor %}
+
+         </OAuthCallbackHandlers>
+
         <TokenValidators>
         {% if oauth.token_validator.bearer.enable %}
             <TokenValidator type="bearer" class="{{oauth.token_validator.bearer.class}}"/>
