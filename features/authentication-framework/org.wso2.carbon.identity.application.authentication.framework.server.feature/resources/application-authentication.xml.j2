@@ -151,7 +151,16 @@
         <AuthenticationEndpointRedirectParam name="{{parameter}}"/>
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
-    {% if tenant.domainDropDown.enabled is defined %}
-        <TenantDomainDropDownEnabled>{{tenant.domainDropDown.enabled}}</TenantDomainDropDownEnabled></TenantDataListenerURLs>
+    {% if tenant.domainDropDown.enable is defined %}
+      <TenantDomainDropDownEnabled>{{tenant.domainDropDown.enable}}</TenantDomainDropDownEnabled>
     {% endif %}
+    {% if oauth.custom_grant_type is defined %}
+      {% for listener in oauth.custom_grant_type %}
+         <TenantDataListenerURLs>
+           <TenantDataListenerURL>
+           {{listener.url}}
+           </TenantDataListenerURL>
+          </TenantDataListenerURLs>
+       {% endfor %}
+     {% endif %}
 </ApplicationAuthentication>
