@@ -5,8 +5,8 @@
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
   "server.clock_skew": "5m",
-  "session_data.persistence.enable_persistance": true,
-  "session_data.persistence.persistance_pool_size": "0",
+  "session_data.persistence.enable_persistence": true,
+  "session_data.persistence.persistence_pool_size": "0",
   "session_data.persistence.persist_temporary_data": true,
   "session_data.persistence.enable_user_session_mapping": true,
   "session_data.cleanup.enable_expired_data_cleanup": true,
@@ -51,7 +51,7 @@
   "oauth.extensions.token_context_dialect_uri": "http://wso2.org/claims",
   "oauth.token_validation.validation_response_signing_algorithm": "SHA256withRSA",
   "oauth.token.validation.validation_response_jwt_validity": "15m",
-  "oauth.token_generation.retry_count_on_persistance_failures": "5",
+  "oauth.token_generation.retry_count_on_persistence_failures": "5",
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -369,6 +369,10 @@
   "cache.idp_cache_by_name.timeout": "900ms",
   "cache.idp_cache_by_name.capacity": "$ref{cache.default_capacity}",
 
+  "resource_access_control.introspect.secured": true,
+  "resource_access_control.introspect.permissions": [
+    "/permission/admin/manage/identity/applicationmgt/view"
+  ],
   "resource_access_control.scim2_me_get_method.secured": true,
   "resource_access_control.scim2_me_get_method.permission": "/permission/admin/login",
   "resource_access_control.scim2_me_get_method.keep_resource": true,
@@ -398,6 +402,7 @@
     "/api/identity/oauth2/v1.0/",
     "/api/identity/oauth2/uma/permission/v1.0/",
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
+    "/api/identity/config-mgt/v1.0/",
     "/api/"
   ],
   "tenant_context.rewrite.servlets": [

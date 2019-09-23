@@ -18,7 +18,7 @@
 <%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthContextAPIClient" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.Constants" %>
-
+<%@ page import="java.io.File" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="java.net.URLEncoder" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
@@ -51,8 +51,16 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%>
-    </title>
+    <!-- title -->
+    <%
+        File titleFile = new File(getServletContext().getRealPath("extensions/title.jsp"));
+        if (titleFile.exists()) {
+    %>
+            <jsp:include page="extensions/title.jsp"/>
+    <% } else { %>
+            <jsp:directive.include file="includes/title.jsp"/>
+    <% } %>
+
     <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
     <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/Roboto.css" rel="stylesheet">
@@ -74,19 +82,16 @@
     }
 </script>
 
-<header class="header header-default">
-    <div class="container-fluid"><br></div>
-    <div class="container-fluid">
-        <div class="pull-left brand float-remove-xs text-center-xs">
-            <a href="#">
-                <img src="images/logo-inverse.svg" alt="wso2" title="wso2" class="logo">
-                
-                <h1><em><%=AuthenticationEndpointUtil.i18n(resourceBundle, "identity.server")%>
-                </em></h1>
-            </a>
-        </div>
-    </div>
-</header>
+<!-- header -->
+<%
+    File headerFile = new File(getServletContext().getRealPath("extensions/header.jsp"));
+    if (headerFile.exists()) {
+%>
+        <jsp:include page="extensions/header.jsp"/>
+<% } else { %>
+        <jsp:directive.include file="includes/header.jsp"/>
+<% } %>
+
 <!-- page content -->
 <div class="container-fluid body-wrapper">
     
@@ -190,16 +195,14 @@
 </div>
 
 <!-- footer -->
-<footer class="footer">
-    <div class="container-fluid">
-        <p><%=AuthenticationEndpointUtil.i18n(resourceBundle, "wso2.identity.server")%> | &copy;
-            <script>document.write(new Date().getFullYear());</script>
-            <a href="http://wso2.com/" target="_blank"><i class="icon fw fw-wso2"></i>
-                <%=AuthenticationEndpointUtil.i18n(resourceBundle, "inc")%>
-            </a>. <%=AuthenticationEndpointUtil.i18n(resourceBundle, "all.rights.reserved")%>
-        </p>
-    </div>
-</footer>
+<%
+    File footerFile = new File(getServletContext().getRealPath("extensions/footer.jsp"));
+    if (footerFile.exists()) {
+%>
+        <jsp:include page="extensions/footer.jsp"/>
+<% } else { %>
+        <jsp:directive.include file="includes/footer.jsp"/>
+<% } %>
 
 <div id="selected_sessions_validation" class="modal fade" tabindex="-1" role="dialog"
      aria-labelledby="mySmallModalLabel">

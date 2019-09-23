@@ -354,7 +354,7 @@
                                 var claimDataElements = claimData[j].split("_");
                                 if (claimDataElements.length == 2 && claimDataElements[1] === combinedValue) {
                                     duplicatedClaimUris.push(claimDataElements[0]);
-                                    if (!attributeArr.includes(combinedValue)) {
+                                    if (!(attributeArr.indexOf(combinedValue) >= 0)) {
                                          attributeArr.push(combinedValue);
                                     }
                                 }

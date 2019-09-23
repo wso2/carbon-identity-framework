@@ -67,6 +67,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
+    private static final String DB_BASED_REPOSITORY_CLASS =
+            "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
 
     /**
      * Get details of current secondary user store configurations
@@ -80,7 +82,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                 getInstance().getUserStoreDAOFactories();
+
         for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
+
+            if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
+                continue;
+            }
+
             UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
             userStoreDTOList.addAll(Arrays.asList(allUserStores));
         }

@@ -51,6 +51,9 @@
         <HomeRealmDiscoverer>{{authentication.framework.extensions.home_realm_discoverer}}</HomeRealmDiscoverer>
         <ClaimHandler>{{authentication.framework.extensions.claim_handler}}</ClaimHandler>
         <ProvisioningHandler>{{authentication.framework.extensions.provisioning_handler}}</ProvisioningHandler>
+        {% if authentication.framework.extensions.callback_factory is defined %}
+        <CallbackFactory>{{authentication.framework.extensions.callback_factory}}</CallbackFactory>
+        {% endif %}
     </Extensions>
 
     <!--
