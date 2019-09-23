@@ -33,24 +33,18 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
 
     private static final Log log = LogFactory.getLog(RolePermissionManagementServiceImpl.class);
 
-    /**
-     * {@inheritDoc}
-     */
-    public String getRolePermissions(String roleName) throws UserAdminException {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+    @Override
+    public JSONArray getRolePermissions(String roleName, int tenantId) throws UserAdminException {
+
         try {
             JSONArray permissionArray = new JSONArray();
-
-            traverseUIPermissionTree(getUserAdminProxy().getRolePermissions(roleName, tenantId), permissionArray);
-            return permissionArray.toString();
-
+            setSelectedPermissionsToArray(getUserAdminProxy().getRolePermissions(roleName, tenantId), permissionArray);
+            return permissionArray;
         } catch (UserAdminException e) {
             log.error("An error occurred when retrieving permissions of role: " + roleName);
             throw new UserAdminException("An error occurred when retrieving permissions of role: " + roleName, e);
         }
-
-
     }
 
     /**
@@ -66,16 +60,13 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public String getAllPermissions() throws UserAdminException {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+    public JSONArray getAllPermissions(int tenantId) throws UserAdminException {
+
         try {
             JSONArray permissionArray = new JSONArray();
-            traverseAllUIPermissionTree(getUserAdminProxy().getAllUIPermissions(tenantId), permissionArray);
-            return permissionArray.toString();
+            setAllPermissionsToArray(getUserAdminProxy().getAllUIPermissions(tenantId), permissionArray);
+            return permissionArray;
         } catch (UserAdminException e) {
             log.error("An error occurred when retrieving all permissions.");
             throw new UserAdminException("An error occurred when retrieving all permissions.", e);
@@ -85,7 +76,7 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
     /**
      * Get the UserAdmin service.
      *
-     * @return
+     * @return UserRealmProxy of UserAdmin service.
      */
     private static UserRealmProxy getUserAdminProxy() {
 
@@ -94,43 +85,44 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
     }
 
     /**
-     * Recursively traverse through node lists, do not go through leaves if root node selected.
+     * Recursively go through UIPermissionNode, do not go through leaves if root node selected.
      *
-     * @param node  UI permission list
-     * @param array global JSONArray
+     * @param node  UIPermissionNode of permissions.
+     * @param permissions  JSONArray of permissions.
      */
-    private void traverseUIPermissionTree(UIPermissionNode node, JSONArray array) {
+    private void setSelectedPermissionsToArray(UIPermissionNode node, JSONArray permissions) {
 
-        UIPermissionNode[] nodeList = node.getNodeList();
         if (node.isSelected()) {
-            array.put(node.getResourcePath());
+            // Assuming all child nodes selected no traversing further.
+            permissions.put(node.getResourcePath());
             if (log.isDebugEnabled()) {
                 log.debug("Permission: " + node.getDisplayName() + " and resourcePath: " +
-                        node.getResourcePath() + "," + " added to the permission Map");
+                        node.getResourcePath() + " added to the permission Map");
             }
-            // Assuming all child nodes selected no traversing further.
+
         } else {
+            UIPermissionNode[] nodeList = node.getNodeList();
             if (ArrayUtils.isNotEmpty(nodeList)) {
                 for (UIPermissionNode nod : nodeList) {
-                    traverseUIPermissionTree(nod, array);
+                    setSelectedPermissionsToArray(nod, permissions);
                 }
             }
         }
     }
 
     /**
-     * Recursively traverse through node lists.
+     * Recursively go through UIPermissionNode.
      *
      * @param allUIPermissions  UI permission list
-     * @param permissionArray global JSONArray
+     * @param permissions JSONArray of permissions.
      */
-    private void traverseAllUIPermissionTree(UIPermissionNode allUIPermissions, JSONArray permissionArray) {
+    private void setAllPermissionsToArray(UIPermissionNode allUIPermissions, JSONArray permissions) {
 
         UIPermissionNode[] nodeList = allUIPermissions.getNodeList();
-        permissionArray.put(allUIPermissions.getResourcePath());
+        permissions.put(allUIPermissions.getResourcePath());
         if (ArrayUtils.isNotEmpty(nodeList)) {
             for (UIPermissionNode nod : nodeList) {
-                traverseAllUIPermissionTree(nod, permissionArray);
+                setAllPermissionsToArray(nod, permissions);
             }
         }
     }
