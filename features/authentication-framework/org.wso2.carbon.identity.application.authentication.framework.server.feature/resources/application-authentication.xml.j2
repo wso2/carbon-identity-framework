@@ -152,7 +152,7 @@
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
 
-    {% if authenticator.custom.mappings.enable is defined %}
-            <AllowCustomClaimMappingsForAuthenticators>{{authenticator.custom.mappings.enable}}</AllowCustomClaimMappingsForAuthenticators>
+    {% if authentication.endpoint.enable_custom_claim_mappings is defined %}
+            <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}</AllowCustomClaimMappingsForAuthenticators>
     {% endif %}
 </ApplicationAuthentication>
