@@ -336,7 +336,9 @@
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{grant_type.handler_class}}</GrantTypeHandlerImplClass>
+                {% if grant_type.grant_validatoris defined %}
                 <GrantTypeValidatorImplClass>{{grant_type.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
                 {% for key,value in grant_type.properties.items() %}
                 <{{key}}>{{value}}</{{key}}>
                 {% endfor %}
