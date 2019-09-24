@@ -1544,13 +1544,19 @@ public class IdPManagementDAO {
 
                 List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
-                federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
+                if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
+                    propertyList = resolveConnectorProperties(propertyList, tenantDomain);
+                }
+                federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
 
             }
             return federatedIdp;
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for Authenticator Property : " + property + " and value : " + value, e);
+        } catch (ConnectorException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
+                    "configurations.", e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
@@ -1696,13 +1702,20 @@ public class IdPManagementDAO {
 
                 List<IdentityProviderProperty> propertyList = filterIdenityProperties(federatedIdp,
                         getIdentityPropertiesByIdpId(dbConnection, Integer.parseInt(rs.getString("ID"))));
-                federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[propertyList.size()]));
+
+                if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME.equals(idPName)) {
+                    propertyList = resolveConnectorProperties(propertyList, tenantDomain);
+                }
+                federatedIdp.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
 
             }
             return federatedIdp;
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
                     "information for Authenticator Property : " + property + " and value : " + value, e);
+        } catch (ConnectorException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving the identity connector " +
+                    "configurations.", e);
         } finally {
             if (dbConnectionInitialized) {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
