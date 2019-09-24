@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -413,5 +414,25 @@ public class IdPManagementServiceComponent {
         } catch (Throwable e) {
             throw new Exception("Error when adding Resident Identity Provider entry for super tenant ", e);
         }
+    }
+
+    @Reference(
+            name = "identity.core.ConnectorConfig",
+            service = org.wso2.carbon.identity.core.ConnectorConfig.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetGovernanceConnector")
+    protected void setIdentityGovernanceConnector(ConnectorConfig identityConnectorConfig) {
+
+        try {
+            IdpMgtServiceComponentHolder.getInstance().addConnectorConfig(identityConnectorConfig);
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error while clearing the cache with the registered connector config.");
+        }
+    }
+
+    protected void unsetGovernanceConnector(ConnectorConfig identityConnectorConfig) {
+
+        IdpMgtServiceComponentHolder.getInstance().unsetGovernanceConnector(identityConnectorConfig);
     }
 }

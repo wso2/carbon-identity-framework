@@ -427,7 +427,7 @@ public class CacheBackedIdPMgtDAO {
         }
     }
 
-    private void clearIdpCache(String idPName, int tenantId, String tenantDomain) throws IdentityProviderManagementException {
+    public void clearIdpCache(String idPName, int tenantId, String tenantDomain) throws IdentityProviderManagementException {
 
 
         // clearing cache entries related to the deleted IDP
