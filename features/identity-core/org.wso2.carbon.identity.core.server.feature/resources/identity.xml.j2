@@ -613,6 +613,10 @@
             <EnableDataProviders>{{oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection}}</EnableDataProviders>
         </Introspection>
 
+        {% if oauth.redirect_to_idp_error_page_on_error is sameas true %}
+        <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
+        {% endif %}
+
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1149,6 +1153,13 @@
                    timeout="{{cache.idp_cache_by_name.timeout}}"
                    capacity="{{cache.idp_cache_by_name.capacity}}"
                    isDistributed="false"/>
+            {% for cache in cache.manager %}
+             <Cache name="{{cache.name}}"
+                    enable="true"
+                    timeout="{{cache.timeout}}"
+                    capacity="{{cache.capacity}}"
+                    isDistributed="false"/>
+            {% endfor %}
         </CacheManager>
     </CacheConfig>
 
@@ -1157,7 +1168,18 @@
     </Cookies-->
 
 
+    {% if resource_access_control.default_access is sameas allow %}
+    <ResourceAccessControl>
+    {% else %}
     <ResourceAccessControl default-access="deny">
+    {% endif %}
+        {% for resource in resource.access_control %}
+        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
+            {% for permission in resource.permissions %}
+            <Permissions>{{permission}}</Permissions>
+            {% endfor %}
+        </Resource>
+        {% endfor %}
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
@@ -1259,8 +1281,12 @@
         <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
         </Resource>
-        <Resource context="(.*)/oauth2/introspect(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+        <Resource context="(.*)/oauth2/introspect(.*)"
+                secured="{{resource_access_control.introspect.secured}}"
+                http-method="all">
+            {% for permission in resource_access_control.introspect.permissions %}
+            <Permissions>{{permission}}</Permissions>
+            {% endfor %}
         </Resource>
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
@@ -1438,14 +1464,20 @@
         <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
 
-        {% for resource in resource.access_control %}
-        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
-            {% for permission in resource.permissions %}
-            <Permissions>{{permission}}</Permissions>
-            {% endfor %}
-        </Resource>
-        {% endfor %}
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
