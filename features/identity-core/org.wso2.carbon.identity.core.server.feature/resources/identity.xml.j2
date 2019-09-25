@@ -362,7 +362,7 @@
 
         <OAuthCallbackHandlers>
            {% for callback_handler in oauth.extensions.callback_handlers %}
-              <OAuthCallbackHandler Class="{{callback_handler.class}}"/>
+              <OAuthCallbackHandler Class="{{callback_handler.class}}">
                 {% if callback_handler.priority is defined %}
                 	<Priority Value="{{callback_handler.priority}}"/>
                 {% endif %}
@@ -373,6 +373,7 @@
                     {% endfor %}
                   </Properties>
                  {% endif %}
+               </OAuthCallbackHandler>
            {% endfor %}
         </OAuthCallbackHandlers>
 
