@@ -17,9 +17,6 @@
  */
 package org.wso2.carbon.user.mgt;
 
-import org.json.JSONArray;
-import org.wso2.carbon.user.mgt.common.UserAdminException;
-
 /**
  * OSGi service interface which use to manage role permissions.
  */
@@ -30,26 +27,26 @@ public interface RolePermissionManagementService {
      *
      * @param roleName role name.
      * @param tenantId tenant id.
-     * @return JSONArray of permissions.
-     * @throws UserAdminException
+     * @return String[] of permissions.
+     * @throws RolePermissionException
      */
-    JSONArray getRolePermissions(String roleName, int tenantId) throws UserAdminException;
+    String[] getRolePermissions(String roleName, int tenantId) throws RolePermissionException;
 
     /**
-     * Replace permissions of a role.
+     *  Set permissions of a role.
      *
      * @param roleName role name.
      * @param permissions JSONArray of permissions.
-     * @throws UserAdminException
+     * @throws RolePermissionException
      */
-    void updateRolePermissions(String roleName, String[] permissions) throws UserAdminException;
+    void setRolePermissions(String roleName, String[] permissions) throws RolePermissionException;
 
     /**
      * Get available UI permissions.
      *
      * @param tenantId tenant Id.
-     * @return JSONArray of permissions.
-     * @throws UserAdminException
+     * @return String[] of permissions.
+     * @throws RolePermissionException
      */
-    JSONArray getAllPermissions(int tenantId) throws UserAdminException;
+    String[] getAllPermissions(int tenantId) throws RolePermissionException;
 }

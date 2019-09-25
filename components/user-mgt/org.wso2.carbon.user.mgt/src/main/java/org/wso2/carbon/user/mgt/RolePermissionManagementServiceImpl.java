@@ -20,11 +20,14 @@ package org.wso2.carbon.user.mgt;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * OSGi service for Permission Management of a role.
@@ -33,43 +36,38 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
 
     private static final Log log = LogFactory.getLog(RolePermissionManagementServiceImpl.class);
 
-
     @Override
-    public JSONArray getRolePermissions(String roleName, int tenantId) throws UserAdminException {
+    public String[] getRolePermissions(String roleName, int tenantId) throws RolePermissionException {
 
         try {
-            JSONArray permissionArray = new JSONArray();
-            setSelectedPermissionsToArray(getUserAdminProxy().getRolePermissions(roleName, tenantId), permissionArray);
-            return permissionArray;
+
+            return getSelectedPermissions(getUserAdminProxy().getRolePermissions(roleName, tenantId));
+
         } catch (UserAdminException e) {
             log.error("An error occurred when retrieving permissions of role: " + roleName);
-            throw new UserAdminException("An error occurred when retrieving permissions of role: " + roleName, e);
+            throw new RolePermissionException("An error occurred when retrieving permissions of role : " + roleName, e);
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public void updateRolePermissions(String roleName, String[] permissions) throws UserAdminException {
+    @Override
+    public void setRolePermissions(String roleName, String[] permissions) throws RolePermissionException {
 
         try {
             getUserAdminProxy().setRoleUIPermission(roleName, permissions);
         } catch (UserAdminException e) {
             log.error("An error occurred when retrieving permissions of role: " + roleName);
-            throw new UserAdminException("An error occurred when retrieving permissions of role: " + roleName, e);
+            throw new RolePermissionException("An error occurred when retrieving permissions of role: " + roleName, e);
         }
     }
 
-
-    public JSONArray getAllPermissions(int tenantId) throws UserAdminException {
+    @Override
+    public String[] getAllPermissions(int tenantId) throws RolePermissionException {
 
         try {
-            JSONArray permissionArray = new JSONArray();
-            setAllPermissionsToArray(getUserAdminProxy().getAllUIPermissions(tenantId), permissionArray);
-            return permissionArray;
+            return getAllPermissions(getUserAdminProxy().getAllUIPermissions(tenantId));
         } catch (UserAdminException e) {
             log.error("An error occurred when retrieving all permissions.");
-            throw new UserAdminException("An error occurred when retrieving all permissions.", e);
+            throw new RolePermissionException("An error occurred when retrieving all permissions.", e);
         }
     }
 
@@ -78,7 +76,7 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
      *
      * @return UserRealmProxy of UserAdmin service.
      */
-    private static UserRealmProxy getUserAdminProxy() {
+    private UserRealmProxy getUserAdminProxy() {
 
         UserRealm realm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
         return new UserRealmProxy(realm);
@@ -88,42 +86,45 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
      * Recursively go through UIPermissionNode, do not go through leaves if root node selected.
      *
      * @param node  UIPermissionNode of permissions.
-     * @param permissions  JSONArray of permissions.
+     * @return String[] of permissions.
      */
-    private void setSelectedPermissionsToArray(UIPermissionNode node, JSONArray permissions) {
+    private String[] getSelectedPermissions(UIPermissionNode node) {
 
+        List<String> permissions = new ArrayList<>();
         if (node.isSelected()) {
             // Assuming all child nodes selected no traversing further.
-            permissions.put(node.getResourcePath());
+            permissions.add(node.getResourcePath());
             if (log.isDebugEnabled()) {
                 log.debug("Permission: " + node.getDisplayName() + " and resourcePath: " +
                         node.getResourcePath() + " added to the permission Map");
             }
-
         } else {
-            UIPermissionNode[] nodeList = node.getNodeList();
-            if (ArrayUtils.isNotEmpty(nodeList)) {
-                for (UIPermissionNode nod : nodeList) {
-                    setSelectedPermissionsToArray(nod, permissions);
+            UIPermissionNode[] childNodes = node.getNodeList();
+            if (ArrayUtils.isNotEmpty(childNodes)) {
+                for (UIPermissionNode childNode : childNodes) {
+                    permissions.addAll(Arrays.asList(getSelectedPermissions(childNode)));
                 }
             }
         }
+        return permissions.toArray(new String[0]);
     }
 
     /**
      * Recursively go through UIPermissionNode.
      *
-     * @param allUIPermissions  UI permission list
-     * @param permissions JSONArray of permissions.
+     * @param node UIPermissionNode of permissions.
+     * @return  String[] of permissions.
      */
-    private void setAllPermissionsToArray(UIPermissionNode allUIPermissions, JSONArray permissions) {
+    private String[] getAllPermissions(UIPermissionNode node) {
 
-        UIPermissionNode[] nodeList = allUIPermissions.getNodeList();
-        permissions.put(allUIPermissions.getResourcePath());
-        if (ArrayUtils.isNotEmpty(nodeList)) {
-            for (UIPermissionNode nod : nodeList) {
-                setAllPermissionsToArray(nod, permissions);
+        List<String> permissions = new ArrayList<>();
+        UIPermissionNode[] childNodes = node.getNodeList();
+        permissions.add(node.getResourcePath());
+        if (ArrayUtils.isNotEmpty(childNodes)) {
+            for (UIPermissionNode childNode : childNodes) {
+                permissions.addAll(Arrays.asList(getAllPermissions(childNode)));
             }
         }
+        return permissions.toArray(new String[0]);
     }
 }

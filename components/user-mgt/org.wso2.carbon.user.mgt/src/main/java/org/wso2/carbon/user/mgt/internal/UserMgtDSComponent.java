@@ -172,10 +172,10 @@ public class UserMgtDSComponent {
                     .registerService(RolePermissionManagementService.class,
                             new RolePermissionManagementServiceImpl(), null);
             if (rolePermissionManagementServiceRegistration == null) {
-                log.error("Error while registering UserAdminManager service.");
+                log.error("Error while registering RolePermissionManagementServiceImpl.");
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("UserAdminManager service is successfully registered.");
+                    log.debug("RolePermissionManagementServiceImpl is successfully registered.");
                 }
             }
         } catch (Throwable e) {

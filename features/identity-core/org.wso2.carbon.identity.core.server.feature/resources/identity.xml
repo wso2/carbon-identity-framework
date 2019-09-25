@@ -1021,19 +1021,10 @@
         <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/usermgt/delete</Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Groups/(.*)/permissions" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
-        </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
         </Resource>
-        <Resource context="(.*)/scim2/Groups/(.*)/permissions" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
-        </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
-        </Resource>
-        <Resource context="(.*)/scim2/Groups/(.*)/permissions" secured="true" http-method="PATCH">
             <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
         </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PATCH">
