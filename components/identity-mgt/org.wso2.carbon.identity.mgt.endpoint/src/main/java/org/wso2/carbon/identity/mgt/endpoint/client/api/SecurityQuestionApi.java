@@ -26,7 +26,6 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
-import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
@@ -84,7 +83,7 @@ public class SecurityQuestionApi {
      * This API is used to initiate password recovery using user challenge questions. Response will be a
      * random challenge question with a confirmation key.
      *
-     * @param username     username of the user (required)
+     * @param username     username of the user (required).
      * @param realm        &#x60;User Store Domain&#x60; which user belongs. If not specified,
      *                     it will be &#x60;PRIMARY&#x60; domain.  (optional)
      * @param tenantDomain &#x60;Tenant Domain&#x60; which user belongs. If not specified,

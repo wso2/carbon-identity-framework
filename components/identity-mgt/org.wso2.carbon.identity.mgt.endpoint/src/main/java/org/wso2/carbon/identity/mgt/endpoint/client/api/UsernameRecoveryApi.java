@@ -26,7 +26,6 @@ import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil;
-import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiClient;
 import org.wso2.carbon.identity.mgt.endpoint.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.client.Configuration;
@@ -64,11 +63,11 @@ public class UsernameRecoveryApi {
   }
 
   /**
-   * 
-   * return the recovery supported claims in the given tenant. 
+   * Return the recovery supported claims in the given tenant.
+   *
    * @param tenantDomain tenant domain. Default &#x60;carbon.super&#x60; (optional)
    * @return List<Claim>
-   * @throws ApiException if fails to make API call
+   * @throws ApiException if fails to make API call.
    */
   public List<Claim> claimsGet(String tenantDomain) throws ApiException {
 
@@ -76,11 +75,12 @@ public class UsernameRecoveryApi {
   }
 
   /**
+   * Return the recovery supported claims in the given tenant.
    *
-   * return the recovery supported claims in the given tenant.
-   * @param tenantDomain tenant domain. Default &#x60;carbon.super&#x60; (optional)
+   * @param tenantDomain          tenant domain. Default &#x60;carbon.super&#x60; (optional)
+   * @param isEndpointTenantAware Is tenant aware endpoint.
    * @return List<Claim>
-   * @throws ApiException if fails to make API call
+   * @throws ApiException if fails to make API call.
    */
   public List<Claim> claimsGet(String tenantDomain, boolean isEndpointTenantAware) throws ApiException {
 
@@ -129,16 +129,15 @@ public class UsernameRecoveryApi {
   public void recoverUsernamePost(List<UserClaim> claim, String tenantDomain, Boolean notify) throws ApiException {
 
     recoverUsernamePost(claim, tenantDomain, notify, null);
-
   }
 
   /**
-   * 
-   * This API can be used to recover forgot username.  
-   * @param claim User answers for recovery claims. (required)
+   * This API can be used to recover forgot username.
+   *
+   * @param claim        User answers for recovery claims. (required)
    * @param tenantDomain Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
-   * @param notify If notify&#x3D;true then, notifications will be internally managed. (optional)
-   * @param headers If reCaptcha respond is found, embedded in request header. (optional)
+   * @param notify       If notify&#x3D;true then, notifications will be internally managed. (optional)
+   * @param headers      If reCaptcha respond is found, embedded in request header. (optional)
    * @throws ApiException if fails to make API call
    */
   public void recoverUsernamePost(List<UserClaim> claim, String tenantDomain, Boolean notify,
@@ -192,11 +191,12 @@ public class UsernameRecoveryApi {
   }
 
   /**
-   * return the user name recovery supported claims in the given tenant.
+   * Return the user name recovery supported claims in the given tenant.
    *
-   * @param tenantDomain tenant domain. Default &#x60;carbon.super&#x60; (optional)
+   * @param tenantDomain          tenant domain. Default &#x60;carbon.super&#x60; (optional).
+   * @param isEndpointTenantAware Is tenant aware endpoint.
    * @return List<Claim>
-   * @throws ApiException if fails to make API call
+   * @throws ApiException if fails to make API call.
    */
   public List<Claim> getClaimsForUsernameRecovery(String tenantDomain, boolean isEndpointTenantAware)
           throws ApiException {
@@ -221,18 +221,16 @@ public class UsernameRecoveryApi {
     Map<String, Object> localVarFormParams = new HashMap<String, Object>();
 
     localVarQueryParams.addAll(apiClient.parameterToPairs("", "tenant-domain", tenantDomain));
-    localVarQueryParams.addAll(apiClient.parameterToPairs("", "isUsernameRecovery",
-            true));
+    localVarQueryParams.addAll(apiClient.parameterToPairs("", "isUsernameRecovery", true));
 
     final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
     final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
 
-    String[] localVarAuthNames = new String[]{};
+    String[] localVarAuthNames = new String[] {};
 
     GenericType<List<Claim>> localVarReturnType = new GenericType<List<Claim>>() {
     };
-    return apiClient.invokeAPI(localVarPath, "GET", localVarQueryParams, null,
-            localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType,
-            localVarAuthNames, localVarReturnType);
+    return apiClient.invokeAPI(localVarPath, "GET", localVarQueryParams, null, localVarHeaderParams, localVarFormParams,
+            localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
   }
 }

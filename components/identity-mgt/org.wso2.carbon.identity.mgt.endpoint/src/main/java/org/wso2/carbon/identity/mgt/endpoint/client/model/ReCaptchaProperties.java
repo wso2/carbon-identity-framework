@@ -35,8 +35,8 @@ public class ReCaptchaProperties {
     /**
      * Return object of this class after set the reCaptchaEnabled.
      *
-     * @param reCaptchaEnabled
-     * @return
+     * @param reCaptchaEnabled Is captcha enabled.
+     * @return ReCaptchaProperties.
      */
     public ReCaptchaProperties reCaptchaEnabled(boolean reCaptchaEnabled) {
 
@@ -58,8 +58,8 @@ public class ReCaptchaProperties {
     /**
      * Return object of this class after set the reCaptchaKey.
      *
-     * @param reCaptchaKey
-     * @return
+     * @param reCaptchaKey reCaptcha key.
+     * @return ReCaptchaProperties.
      */
     public ReCaptchaProperties reCaptchaKey(String reCaptchaKey) {
 
@@ -81,8 +81,8 @@ public class ReCaptchaProperties {
     /**
      * Return object of this class after set the reCaptchaAPI.
      *
-     * @param reCaptchaAPI
-     * @return
+     * @param reCaptchaAPI captcha API.
+     * @return ReCaptchaProperties.
      */
     public ReCaptchaProperties reCaptchaAPI(String reCaptchaAPI) {
 
@@ -137,6 +137,9 @@ public class ReCaptchaProperties {
     /**
      * Convert the given object to string with each line indented by 4 spaces
      * (except the first line).
+     *
+     * @param o object to convert.
+     * @return String value of converted object.
      */
     private String toIndentedString(Object o) {
 
