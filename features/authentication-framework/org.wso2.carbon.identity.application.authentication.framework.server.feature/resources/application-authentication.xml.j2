@@ -151,6 +151,11 @@
         <AuthenticationEndpointRedirectParam name="{{parameter}}"/>
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
+
+    {% if authentication.endpoint.enable_custom_claim_mappings is defined %}
+            <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}</AllowCustomClaimMappingsForAuthenticators>
+    {% endif %}
+
     {% if tenant.domain_drop_down.enable is defined %}
       <TenantDomainDropDownEnabled>{{tenant.domain_drop_down.enable}}</TenantDomainDropDownEnabled>
     {% endif %}
@@ -163,4 +168,5 @@
          {% endfor %}
        </TenantDataListenerURLs>
      {% endif %}
+  
 </ApplicationAuthentication>
