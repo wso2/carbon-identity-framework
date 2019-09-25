@@ -335,7 +335,7 @@
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{grant_type.handler_class}}</GrantTypeHandlerImplClass>
+                <GrantTypeHandlerImplClass>{{grant_type.grant_handler}}</GrantTypeHandlerImplClass>
                 {% if grant_type.grant_validator is defined %}
                 <GrantTypeValidatorImplClass>{{grant_type.grant_validator}}</GrantTypeValidatorImplClass>
                 {% endif %}
