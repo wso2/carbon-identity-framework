@@ -54,7 +54,7 @@
     "           doLogin(context);",
     "       }",
     "   });",
-    "}",
+    "};",
     "",
     "var isExceedInvalidAttempts  = function(user) {",
     "   if (user.localClaims[failedLoginAttemptsBeforeSuccessClaim] >= invalidAttemptsToStepup) {",
