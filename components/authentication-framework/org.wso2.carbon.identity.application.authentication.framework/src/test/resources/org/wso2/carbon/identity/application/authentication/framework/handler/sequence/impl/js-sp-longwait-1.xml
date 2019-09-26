@@ -80,14 +80,14 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-function onLoginRequest(context) {
+var onLoginRequest = function(context) {
     //TODO remove this executeStep and make it to work.
     executeStep(1);
     testLongWaitCall('a', 'b', 'c', {}, {
             "onSuccess" : function(){Log.info('OK Called');
         }
     });
-}
+};
 ]]></AuthenticationScript>
         <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>

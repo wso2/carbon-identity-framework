@@ -22,9 +22,9 @@ var fromStepsAddLink = false;
 var idpNumber = 0;
 var reqPathAuth = 0;
 var localAuthNumber = 0;
-var scriptStringHeader = "function onLoginRequest(context) {";
+var scriptStringHeader = "var onLoginRequest = function(context) {";
 var scriptStringContent = [];
-var scriptStringFooter = "}";
+var scriptStringFooter = "};";
 var scriptEnabled = false;
 
 $("#createApp").click(function () {
@@ -161,7 +161,7 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     var stepsInUI = getExecuteStepsInUI();
     var stepsInScript = getExecuteStepsInScript();
     var stepDifference = diffArray(stepsInUI, stepsInScript);
-    var functionRegex = new RegExp("onLoginRequest\\([a-zA-Z_0-9_$][^)]*\\)", "g");
+    var functionRegex = new RegExp("var onLoginRequest = function\\([a-zA-Z_0-9_$][^)]*\\)", "g");
     var editorContent = doc.getValue();
 
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {

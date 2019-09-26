@@ -35,7 +35,7 @@
     "// If the user is in one of the following user stores, user will be prompted 2FA",
     "var userStoresToStepUp = ['EMPLOYEES', 'CONTRACTORS'];",
     "",
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting user store domain of authenticated subject from the first step",
@@ -46,6 +46,6 @@
     "            }",
     "        }",
     "    });",
-    "}"
+    "};"
   ]
 }

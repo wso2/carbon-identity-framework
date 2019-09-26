@@ -37,11 +37,11 @@
     "",
     "var failedLoginAttemptsBeforeSuccessClaim= 'http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess';",
 
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "  doLogin(context);",
-    "}",
+    "};",
     "",
-    "function doLogin(context) {",
+    "var doLogin = function(context) {",
     "   executeStep(1, {",
     "       onSuccess : function(context){",
     "           var user = context.steps[1].subject;",
@@ -56,12 +56,12 @@
     "   });",
     "}",
     "",
-    "function isExceedInvalidAttempts(user) {",
+    "var isExceedInvalidAttempts  = function(user) {",
     "   if (user.localClaims[failedLoginAttemptsBeforeSuccessClaim] >= invalidAttemptsToStepup) {",
     "       return true;",
     "   } else {",
     "       return false;",
     "   }",
-    "}"
+    "};"
   ]
 }
