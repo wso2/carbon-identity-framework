@@ -123,7 +123,7 @@
                             </td>
                             <td>
                                 <p>To keep some messages that are shown to you in order to give you a good user experience.</p>
-                                <p>The &ldquo;nnnnnnnnnn&rdquo; reference in this coookie represents a random number e.g., MSG324935932.</p>
+                                <p>The &ldquo;nnnnnnnnnn&rdquo; reference in this cookie represents a random number e.g., MSG324935932.</p>
                             </td>
                             <td>
                                 <p>Session</p>
