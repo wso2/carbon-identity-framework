@@ -350,6 +350,24 @@ public class IdentityUtil {
         return CarbonUtils.getCarbonConfigDirPath() + File.separator + "identity";
     }
 
+    /**
+     * Get the uri path for the given endpoint by adding the proxy context path and the web context root if requested.
+     *
+     * @param endpoint            endpoint path
+     * @param addProxyContextPath whether to add the proxy context path to the url
+     * @param addWebContextRoot   whether to add the web context root to the url
+     * @return url path
+     * @throws IdentityRuntimeException
+     */
+    public static String getEndpointURIPath(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
+            throws IdentityRuntimeException {
+
+        StringBuilder serverUrl = new StringBuilder();
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+
+        return serverUrl.toString();
+    }
+
     public static String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
         String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
@@ -377,6 +395,13 @@ public class IdentityUtil {
         if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
             serverUrl.append(":").append(mgtTransportPort);
         }
+
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+        return serverUrl.toString();
+    }
+
+    private static void appendContextToUri(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot,
+                                           StringBuilder serverUrl) {
 
         // If ProxyContextPath is defined then append it
         if (addProxyContextPath) {
@@ -416,7 +441,6 @@ public class IdentityUtil {
         if (serverUrl.toString().endsWith("/")) {
             serverUrl.setLength(serverUrl.length() - 1);
         }
-        return serverUrl.toString();
     }
 
     /**
