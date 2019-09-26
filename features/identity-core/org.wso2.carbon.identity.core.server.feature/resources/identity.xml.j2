@@ -364,9 +364,20 @@
         </UserConsentEnabledGrantTypes>
 
         <OAuthCallbackHandlers>
-        {% for callback_handler in oauth.extensions.callback_handlers %}
-            <OAuthCallbackHandler Class="{{callback_handler}}"/>
-        {% endfor %}
+           {% for callback_handler in oauth.extensions.callback_handlers %}
+              <OAuthCallbackHandler Class="{{callback_handler.class}}">
+                {% if callback_handler.priority is defined %}
+                	<Priority Value="{{callback_handler.priority}}"/>
+                {% endif %}
+                {% if callback_handler.properties is defined %}
+                  <Properties>
+                    {% for key,value in callback_handler.properties.items() %}
+                      <Properties> name="{{key}}">{{value}} </Properties>
+                    {% endfor %}
+                  </Properties>
+                 {% endif %}
+               </OAuthCallbackHandler>
+           {% endfor %}
         </OAuthCallbackHandlers>
 
         <TokenValidators>
