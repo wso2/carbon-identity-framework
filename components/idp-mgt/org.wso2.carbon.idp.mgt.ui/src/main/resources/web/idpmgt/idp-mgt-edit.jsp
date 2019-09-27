@@ -4533,7 +4533,8 @@
                     <% } %>
                     <jsp:include page="idp-mgt-edit-oidc.jsp">
                         <jsp:param name="isOpenidconnectAuthenticatorActive"
-                                   value="<%=Encode.forHtmlAttribute(Boolean.toString(isOpenidconnectAuthenticatorActive))%>"/>
+                                   value="<%=Encode.forHtmlAttribute(
+                                           Boolean.toString(isOpenidconnectAuthenticatorActive))%>"/>
                         <jsp:param name="isOIDCEnabled"
                                    value="<%=Encode.forHtmlAttribute(Boolean.toString(isOIDCEnabled))%>"/>
                         <jsp:param name="isOIDCDefault"
