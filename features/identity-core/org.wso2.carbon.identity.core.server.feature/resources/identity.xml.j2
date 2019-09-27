@@ -335,7 +335,10 @@
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{grant_type.handler_class}}</GrantTypeHandlerImplClass>
+                <GrantTypeHandlerImplClass>{{grant_type.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if grant_type.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{grant_type.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
                 {% for key,value in grant_type.properties.items() %}
                 <{{key}}>{{value}}</{{key}}>
                 {% endfor %}
@@ -361,9 +364,20 @@
         </UserConsentEnabledGrantTypes>
 
         <OAuthCallbackHandlers>
-        {% for callback_handler in oauth.extensions.callback_handlers %}
-            <OAuthCallbackHandler Class="{{callback_handler}}"/>
-        {% endfor %}
+           {% for callback_handler in oauth.extensions.callback_handlers %}
+              <OAuthCallbackHandler Class="{{callback_handler.class}}">
+                {% if callback_handler.priority is defined %}
+                	<Priority Value="{{callback_handler.priority}}"/>
+                {% endif %}
+                {% if callback_handler.properties is defined %}
+                  <Properties>
+                    {% for key,value in callback_handler.properties.items() %}
+                      <Properties> name="{{key}}">{{value}} </Properties>
+                    {% endfor %}
+                  </Properties>
+                 {% endif %}
+               </OAuthCallbackHandler>
+           {% endfor %}
         </OAuthCallbackHandlers>
 
         <TokenValidators>
