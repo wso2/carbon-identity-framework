@@ -22,9 +22,9 @@ var fromStepsAddLink = false;
 var idpNumber = 0;
 var reqPathAuth = 0;
 var localAuthNumber = 0;
-var scriptStringHeader = "function onLoginRequest(context) {";
+var scriptStringHeader = "var onLoginRequest = function(context) {";
 var scriptStringContent = [];
-var scriptStringFooter = "}";
+var scriptStringFooter = "};";
 var scriptEnabled = false;
 
 $("#createApp").click(function () {
@@ -162,6 +162,7 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
     var stepsInScript = getExecuteStepsInScript();
     var stepDifference = diffArray(stepsInUI, stepsInScript);
     var functionRegex = new RegExp("onLoginRequest\\([a-zA-Z_0-9_$][^)]*\\)", "g");
+    var functionRegexForNewJDK = new RegExp("var onLoginRequest = function\\([a-zA-Z_0-9_$][^)]*\\)", "g");
     var editorContent = doc.getValue();
 
     if (stepsInUI.length < stepsInScript.length || stepsInUI.length == stepsInScript.length) {
@@ -189,7 +190,7 @@ function getStepErrorsWarnings(elementWarn, elementErr) {
         }
     }
 
-    if (!editorContent.trim().match(functionRegex)) {
+    if (!editorContent.trim().match(functionRegex) && !editorContent.trim().match(functionRegexForNewJDK)) {
         elementErr.append("<li>Missing required function: <b>onLoginRequest(parameter)</b>.</li>");
     }
 }
@@ -370,7 +371,8 @@ $('.add-template').click(function (e) {
     var templateObj = getTemplateInfo(typeName)[1];
 
     editorContent = doc.getValue();
-    if ((editorContent.length === 0 || editorContent.replace(/\s/g, '') == "functiononLoginRequest(context){}")) {
+    if (editorContent.length === 0 || editorContent.replace(/\s/g, '') === "functiononLoginRequest(context){}"
+        || editorContent.replace(/\s/g, '') === "varonLoginRequest=function(context){};") {
         doReplaceRange(typeName, templateObj, data);
     } else {
         CARBON.showConfirmationDialog('The template code will replace the existing scripts in the editor. Any of your current' +
