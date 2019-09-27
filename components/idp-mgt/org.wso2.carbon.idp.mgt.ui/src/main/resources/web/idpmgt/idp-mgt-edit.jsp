@@ -1050,49 +1050,6 @@
         attributeConsumingServiceIndex = "";
     }
 
-    String oidcEnabledChecked = "";
-    String oidcDefaultDisabled = "";
-    if (identityProvider != null) {
-        if (isOIDCEnabled) {
-            oidcEnabledChecked = "checked=\'checked\'";
-        } else {
-            oidcDefaultDisabled = "disabled=\'disabled\'";
-        }
-    }
-    String oidcDefaultChecked = "";
-
-    if (identityProvider != null) {
-        if (isOIDCDefault) {
-            oidcDefaultChecked = "checked=\'checked\'";
-            oidcDefaultDisabled = "disabled=\'disabled\'";
-        }
-    }
-    if (clientId == null) {
-        clientId = "";
-    }
-    if (clientSecret == null) {
-        clientSecret = "";
-    }
-    if (StringUtils.isBlank(authzUrl)) {
-        authzUrl = StringUtils.EMPTY;
-    }
-    if (StringUtils.isBlank(tokenUrl)) {
-        tokenUrl = StringUtils.EMPTY;
-    }
-
-    if (StringUtils.isBlank(callBackUrl)) {
-        callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
-    }
-
-    if (StringUtils.isBlank(userInfoEndpoint)) {
-        userInfoEndpoint = StringUtils.EMPTY;
-    }
-
-    String oidcBasicAuthEnabledChecked = "";
-    if (isOIDCBasicAuthEnabled) {
-        oidcBasicAuthEnabledChecked = "checked=\'checked\'";
-    }
-
     String passiveSTSEnabledChecked = "";
     String passiveSTSDefaultDisabled = "";
     if (identityProvider != null) {
@@ -4533,7 +4490,8 @@
                     <% } %>
                     <jsp:include page="idp-mgt-edit-oidc.jsp">
                         <jsp:param name="isOpenidconnectAuthenticatorActive"
-                                   value="<%=Encode.forHtmlAttribute(Boolean.toString(isOpenidconnectAuthenticatorActive))%>"/>
+                                   value="<%=Encode.forHtmlAttribute(
+                                           Boolean.toString(isOpenidconnectAuthenticatorActive))%>"/>
                         <jsp:param name="isOIDCEnabled"
                                    value="<%=Encode.forHtmlAttribute(Boolean.toString(isOIDCEnabled))%>"/>
                         <jsp:param name="isOIDCDefault"

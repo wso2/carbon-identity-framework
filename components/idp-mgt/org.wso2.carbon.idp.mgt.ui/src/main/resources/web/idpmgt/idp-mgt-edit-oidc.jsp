@@ -1,18 +1,18 @@
-/*
-* Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+<!--
+~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~ http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
 
 <%@page import="org.apache.commons.lang.StringUtils" %>
 <%@page import="org.owasp.encoder.Encode" %>
@@ -23,10 +23,10 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.Property" %>
+<%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.OIDC" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.UUID" %>
 
@@ -36,12 +36,10 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
-    String idPName = request.getParameter("idPName");
-    boolean isOpenidconnectAuthenticatorActive = Boolean.parseBoolean(request.getParameter("isOpenidconnectAuthenticatorActive"));
-    IdPManagementUIUtil.openidActive(isOpenidconnectAuthenticatorActive);
+    boolean isOpenidconnectAuthenticatorActive = Boolean.parseBoolean(request.getParameter(
+            "isOpenidconnectAuthenticatorActive"));
     boolean isOIDCEnabled = Boolean.parseBoolean(request.getParameter("isOIDCEnabled"));
     boolean isOIDCDefault = Boolean.parseBoolean(request.getParameter("isOIDCDefault"));
-    IdPManagementUIUtil.printThis(idPName);
     boolean isOIDCBasicAuthEnabled = false;
     String clientId = null;
     String clientSecret = null;
@@ -50,9 +48,15 @@
     String callBackUrl = null;
     String userInfoEndpoint = null;
     boolean isOIDCUserIdInClaims = false;
-    String oidcQueryParam = "";
+    String oidcQueryParam = StringUtils.EMPTY;
     
-    Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
+    Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
+            IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
+    
+    String idPName = request.getParameter("idPName");
+    if (idPName != null && idPName.equals("")) {
+        idPName = null;
+    }
     
     IdentityProvider identityProvider = null;
     
@@ -60,69 +64,67 @@
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
     
-    FederatedAuthenticatorConfig[] fedAuthnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
-    
-    if (fedAuthnConfigs != null && fedAuthnConfigs.length > 0) {
-        for (FederatedAuthenticatorConfig fedAuthnConfig : fedAuthnConfigs) {
-            if (fedAuthnConfig.getProperties() == null) {
-                fedAuthnConfig.setProperties(new Property[0]);
-            }
-            if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
-                IdPManagementUIUtil.printThis(IdentityApplicationConstants.Authenticator.OIDC.NAME);
-                Property authzUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
-                if (authzUrlProp != null) {
-                    authzUrl = authzUrlProp.getValue();
+    if (idPName != null && identityProvider != null) {
+        FederatedAuthenticatorConfig[] fedAuthnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+        
+        if (fedAuthnConfigs != null && fedAuthnConfigs.length > 0) {
+            for (FederatedAuthenticatorConfig fedAuthnConfig : fedAuthnConfigs) {
+                if (fedAuthnConfig.getProperties() == null) {
+                    fedAuthnConfig.setProperties(new Property[0]);
                 }
-                Property tokenUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
-                if (tokenUrlProp != null) {
-                    tokenUrl = tokenUrlProp.getValue();
-                }
-                Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
-                if (callBackURLProp != null) {
-                    callBackUrl = callBackURLProp.getValue();
-                }
-                
-                Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
-                if (userInfoEndpointProp != null) {
-                    userInfoEndpoint = userInfoEndpointProp.getValue();
-                }
-                
-                Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
-                if (clientIdProp != null) {
-                    clientId = clientIdProp.getValue();
-                }
-                Property clientSecretProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET);
-                if (clientSecretProp != null) {
-                    clientSecret = clientSecretProp.getValue();
-                }
-                Property isOIDCUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS);
-                if (isOIDCUserIdInClaimsProp != null) {
-                    isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
-                }
-                
-                Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
-                if (queryParamProp != null) {
-                    oidcQueryParam = queryParamProp.getValue();
-                }
-                
-                Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
-                if (basicAuthEnabledProp != null) {
-                    isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
+                if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
+                    Property authzUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.OAUTH2_AUTHZ_URL);
+                    if (authzUrlProp != null) {
+                        authzUrl = authzUrlProp.getValue();
+                    }
+                    Property tokenUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.OAUTH2_TOKEN_URL);
+                    if (tokenUrlProp != null) {
+                        tokenUrl = tokenUrlProp.getValue();
+                    }
+                    Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.CALLBACK_URL);
+                    if (callBackURLProp != null) {
+                        callBackUrl = callBackURLProp.getValue();
+                    }
+                    Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.USER_INFO_URL);
+                    if (userInfoEndpointProp != null) {
+                        userInfoEndpoint = userInfoEndpointProp.getValue();
+                    }
+                    Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.CLIENT_ID);
+                    if (clientIdProp != null) {
+                        clientId = clientIdProp.getValue();
+                    }
+                    Property clientSecretProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.CLIENT_SECRET);
+                    if (clientSecretProp != null) {
+                        clientSecret = clientSecretProp.getValue();
+                    }
+                    Property isOIDCUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_USER_ID_IN_CLAIMS);
+                    if (isOIDCUserIdInClaimsProp != null) {
+                        isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
+                    }
+                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            "commonAuthQueryParams");
+                    if (queryParamProp != null) {
+                        oidcQueryParam = queryParamProp.getValue();
+                    }
+                    Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_BASIC_AUTH_ENABLED);
+                    if (basicAuthEnabledProp != null) {
+                        isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
+                    }
                 }
             }
         }
     }
     
-    String oidcEnabledChecked = "";
-    String oidcDefaultDisabled = "";
+    String oidcEnabledChecked = StringUtils.EMPTY;
+    String oidcDefaultDisabled = StringUtils.EMPTY;
     if (identityProvider != null) {
         if (isOIDCEnabled) {
             oidcEnabledChecked = "checked=\'checked\'";
@@ -130,7 +132,7 @@
             oidcDefaultDisabled = "disabled=\'disabled\'";
         }
     }
-    String oidcDefaultChecked = "";
+    String oidcDefaultChecked = StringUtils.EMPTY;
     if (identityProvider != null) {
         if (isOIDCDefault) {
             oidcDefaultChecked = "checked=\'checked\'";
@@ -138,10 +140,10 @@
         }
     }
     if (clientId == null) {
-        clientId = "";
+        clientId = StringUtils.EMPTY;
     }
     if (clientSecret == null) {
-        clientSecret = "";
+        clientSecret = StringUtils.EMPTY;
     }
     if (StringUtils.isBlank(authzUrl)) {
         authzUrl = StringUtils.EMPTY;
@@ -152,23 +154,21 @@
     if (StringUtils.isBlank(callBackUrl)) {
         callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
     }
-    
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
     }
-    
-    String oidcBasicAuthEnabledChecked = "";
+    String oidcBasicAuthEnabledChecked = StringUtils.EMPTY;
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
-    
     if (oidcQueryParam == null) {
-        oidcQueryParam = "";
+        oidcQueryParam = StringUtils.EMPTY;
     }
+    
 %>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     
-    <%if (isOpenidconnectAuthenticatorActive) { %>
+    <% if (isOpenidconnectAuthenticatorActive) { %>
     
     <h2 id="oauth2_head" class="sectionSeperator trigger active" style="background-color: beige;">
         <a href="#"><fmt:message key="oidc.config"/></a>
@@ -190,7 +190,7 @@
                                onclick="checkEnabled(this);"/>
                         <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='oidc.enabled.help'/>
-                                </span>
+                        </span>
                     </div>
                 </td>
             </tr>
@@ -205,7 +205,7 @@
                                onclick="checkDefault(this);"/>
                         <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='oidc.default.help'/>
-                                </span>
+                        </span>
                     </div>
                 </td>
             </tr>
@@ -231,9 +231,9 @@
                                autocomplete="off" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                         <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
-	                        		<a style="margin-top: 5px;" class="showHideBtn"
-                                       onclick="showHidePassword(this, 'clientSecret')">Show</a>
-	                       		</span>
+                            <a style="margin-top: 5px;" class="showHideBtn"
+                               onclick="showHidePassword(this, 'clientSecret')">Show</a>
+                        </span>
                     </div>
                     <div class="sectionHelp">
                         <fmt:message key='client.secret.help'/>
@@ -275,7 +275,6 @@
                     </div>
                 </td>
             </tr>
-            
             <tr>
                 <td class="leftCol-med labelField"><fmt:message key='userInfoEndpoint'/>
                 <td>
@@ -287,7 +286,6 @@
                     </div>
                 </td>
             </tr>
-            
             <tr>
                 <td class="leftCol-med labelField"><fmt:message key='oidc.user.id.location'/>:</td>
                 <td>
@@ -328,7 +326,7 @@
                                type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
                         <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='oidc.enable.basicauth.help'/>
-                                </span>
+                        </span>
                     </div>
                 </td>
             </tr>
