@@ -150,6 +150,7 @@
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
+  "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
