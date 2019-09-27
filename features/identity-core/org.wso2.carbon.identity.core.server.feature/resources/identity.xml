@@ -1274,4 +1274,13 @@
         <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
     </ConfigurationStore>
 
+    <FIDO>
+        <WebAuthn>
+            <Enable>true</Enable>
+        </WebAuthn>
+        <FIDO2TrustedOrigins>
+            <Origin>${carbon.protocol}://${carbon.host}:${carbon.management.port}</Origin>
+        </FIDO2TrustedOrigins>
+    </FIDO>
+
 </Server>
