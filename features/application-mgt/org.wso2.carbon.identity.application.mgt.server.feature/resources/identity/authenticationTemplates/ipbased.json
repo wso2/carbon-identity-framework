@@ -36,7 +36,7 @@
     "// Configure the network ranges here",
     "var corpNetwork = ['192.168.1.0/24', '10.100.0.0/16'];",
     "",
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            var user = context.currentKnownSubject;",
@@ -49,10 +49,10 @@
     "            }",
     "        }",
     "    });",
-    "}",
+    "};",
     "",
     "// Function to convert ip address string to long value",
-    "function convertIpToLong(ip) {",
+    "var convertIpToLong = function(ip) {",
     "    var components = ip.split('.');",
     "    if (components) {",
     "        var ipAddr = 0, pow = 1;",
@@ -64,10 +64,10 @@
     "    } else {",
     "        return -1;",
     "    }",
-    "}",
+    "};",
     "",
     "// Function to check if the ip address is within the given subnet",
-    "function isCorporateIP(ip, subnets) {",
+    "var isCorporateIP = function(ip, subnets) {",
     "    var subnetLength = subnets.length;",
     "    for (var i = 0; i < subnetLength; i++) {",
     "        var subnetComponents = subnets[i].split('/');",
@@ -82,6 +82,6 @@
     "        }",
     "    }",
     "    return false;",
-    "}"
+    "};"
   ]
 }
