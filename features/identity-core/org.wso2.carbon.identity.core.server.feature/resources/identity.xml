@@ -460,6 +460,7 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>org.wso2.carbon.identity.openidconnect.RequestObjectValidatorImpl</RequestObjectValidator>
+            <RedirectToPostLogoutUriOnConsentDenial>true</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
         <!-- Configs related to OAuth2 token persistence -->
