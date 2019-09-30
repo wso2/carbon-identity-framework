@@ -3183,18 +3183,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ResultSet appNameResultSet = null;
 
         try {
-            if (StringUtils.isNotBlank(filter)) {
-                filter = filter.trim();
-                filter = filter.replace("*", "%");
-                filter = filter.replace("?", "_");
-            } else {
-                //To avoid any issues when the filter string is blank or null we are assigning "%" to filter.
-                filter = "%";
-            }
+            String filterResolvedForSQL = resolveSQLFilter(filter);
             getAppNamesStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
-            getAppNamesStmt.setString(2, filter);
+            getAppNamesStmt.setString(2, filterResolvedForSQL);
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
@@ -3232,14 +3225,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
         try {
-            if (StringUtils.isNotBlank(filter)) {
-                filter = filter.trim();
-                filter = filter.replace("*", "%");
-                filter = filter.replace("?", "_");
-            } else {
-                //To avoid any issues when the filter string is blank or null we are assigning "%" to filter.
-                filter = "%";
-            }
+            String filterResolvedForSQL = resolveSQLFilter(filter);
             getAppNamesStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
@@ -3266,34 +3252,29 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
     }
 
-    /**
-     * Get application Names for user with pagination
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber)
-            throws IdentityApplicationManagementException {
+    @Override
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+
+        validateRequestedPageNumber(pageNumber);
+
+        int limit = ApplicationMgtUtil.getItemsPerPage();
+        int offset = (pageNumber - 1) * limit;
+
+        return getApplicationBasicInfo(offset, limit);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws
+            IdentityApplicationManagementException {
+
+        validateAttributesForPagination(offset, limit);
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        int resultsPerPageInt = ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
 
-        String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(ApplicationConstants.ITEMS_PER_PAGE_PROPERTY);
-
-        try {
-            if (StringUtils.isNotBlank(resultsPerPage)) {
-                resultsPerPageInt = Integer.parseInt(resultsPerPage);
-            }
-        } catch (NumberFormatException e) {
-            // No need to handle exception since the default value is already set.
-            log.warn("Error occurred while parsing the ItemsPerPage value. Defaulting to: " + ApplicationConstants.DEFAULT_RESULTS_PER_PAGE);
-        }
-
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
         String sqlQuery;
-        int skipValue = (pageNumber - 1) * resultsPerPageInt;
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
         try {
@@ -3302,41 +3283,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, skipValue);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
-            } else if (databaseProductName.contains("Oracle")){
+                getAppNamesStmt.setInt(2, offset);
+                getAppNamesStmt.setInt(3, limit);
+            } else if (databaseProductName.contains("Oracle")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_ORACLE;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, pageNumber * resultsPerPageInt);
-                getAppNamesStmt.setInt(3, (pageNumber- 1) * resultsPerPageInt);
+                getAppNamesStmt.setInt(2, offset + limit);
+                getAppNamesStmt.setInt(3, offset);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, skipValue);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
+                getAppNamesStmt.setInt(2, offset);
+                getAppNamesStmt.setInt(3, limit);
             } else if (databaseProductName.contains("PostgreSQL")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_POSTGRESQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, resultsPerPageInt);
-                getAppNamesStmt.setInt(3, skipValue);
+                getAppNamesStmt.setInt(2, limit);
+                getAppNamesStmt.setInt(3, offset);
             } else if (databaseProductName.contains("DB2")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_DB2SQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, resultsPerPageInt);
-                getAppNamesStmt.setInt(3, skipValue);
+                getAppNamesStmt.setInt(2, limit);
+                getAppNamesStmt.setInt(3, offset);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, skipValue);
-                getAppNamesStmt.setInt(2, resultsPerPageInt);
+                getAppNamesStmt.setInt(1, offset);
+                getAppNamesStmt.setInt(2, limit);
                 getAppNamesStmt.setInt(3, tenantID);
             } else {
-                log.error("Error while getting applications from DB: Database driver could not be identified or not supported.");
-                throw new IdentityApplicationManagementException("Error while getting applications from DB: Database driver could not be identified or not supported.");
+                log.error("Error while loading applications from DB: Database driver could not be identified or " +
+                        "not supported.");
+                throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
+                        "Database driver could not be identified or not supported.");
             }
 
             appNameResultSet = getAppNamesStmt.executeQuery();
@@ -3346,20 +3329,21 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
+
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while getting applications from DB: " + e.getMessage(), e);
+            throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
+                    e.getMessage(), e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
             IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
 
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        return appInfo.toArray(new ApplicationBasicInfo[0]);
     }
 
     /**

@@ -33,6 +33,9 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,7 +158,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumer) throws IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
 
         applicationMgtService = ApplicationManagementService.getInstance();
         ApplicationBasicInfo[] applicationBasicInfos =
