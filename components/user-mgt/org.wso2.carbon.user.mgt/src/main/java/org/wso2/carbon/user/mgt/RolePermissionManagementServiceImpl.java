@@ -20,6 +20,7 @@ package org.wso2.carbon.user.mgt;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import com.google.gson.JsonObject;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
@@ -119,7 +120,10 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
 
         List<String> permissions = new ArrayList<>();
         UIPermissionNode[] childNodes = node.getNodeList();
-        permissions.add(node.getResourcePath());
+        JsonObject permission = new JsonObject();
+        permission.addProperty("displayName", node.getDisplayName());
+        permission.addProperty("resourcePath", node.getResourcePath());
+        permissions.add(permission.toString());
         if (ArrayUtils.isNotEmpty(childNodes)) {
             for (UIPermissionNode childNode : childNodes) {
                 permissions.addAll(Arrays.asList(getAllPermissions(childNode)));
