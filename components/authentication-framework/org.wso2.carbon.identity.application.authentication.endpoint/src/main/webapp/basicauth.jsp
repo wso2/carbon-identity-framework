@@ -166,7 +166,8 @@
     <% if (!isIdentifierFirstLogin(inputType)) { %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
-        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
+        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required
+               autofocus>
     </div>
     <% } else {%>
         <input id="username" name="username" type="hidden" value="<%=username%>">
