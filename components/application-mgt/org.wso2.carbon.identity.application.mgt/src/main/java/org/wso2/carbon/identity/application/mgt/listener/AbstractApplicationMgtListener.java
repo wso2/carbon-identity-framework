@@ -115,21 +115,6 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     /**
-     * Define any additional actions before getting all applications' basic information with pagination.
-     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
-     *
-     * @param tenantDomain
-     * @param username
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
-            throws IdentityApplicationManagementException {
-
-        return true;
-    }
-
-    /**
      * Define any additional actions after getting all applications' basic information with pagination.
      * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
      *
@@ -141,22 +126,6 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      */
     public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
                                                           int pageNumber) throws IdentityApplicationManagementException {
-        return true;
-    }
-
-    /**
-     * Define any additional actions before getting all applications' basic information for matching filter with pagination.
-     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
-     *
-     * @param tenantDomain
-     * @param username
-     * @param filter
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter)
-            throws IdentityApplicationManagementException {
-
         return true;
     }
 

@@ -123,7 +123,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             applicationMgtService = ApplicationManagementService.getInstance();
             ApplicationBasicInfo[] applicationBasicInfos =
                     applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
-            List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
             return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving all application basic info for tenant: " + getTenantDomain(),
@@ -145,7 +145,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         applicationMgtService = ApplicationManagementService.getInstance();
         ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getApplicationBasicInfo(getTenantDomain(),
                 getUsername(), filter);
-        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+        List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
         return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
     }
 
@@ -160,61 +160,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         applicationMgtService = ApplicationManagementService.getInstance();
         ApplicationBasicInfo[] applicationBasicInfos =
                 applicationMgtService.getAllPaginatedApplicationBasicInfo(getTenantDomain(), getUsername(), pageNumer);
-        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+        List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
         return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
-    }
-
-    /**
-     * Get all basic application information for a matching filter.
-     *
-     * @param filter Application name filter
-     * @return Application Basic Information array
-     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
-     */
-    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
-            throws IdentityApplicationManagementException {
-
-        applicationMgtService = ApplicationManagementService.getInstance();
-        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getPaginatedApplicationBasicInfo(getTenantDomain(),
-                getUsername(), pageNumber, filter);
-        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
-    }
-
-    /**
-     * Get count of all basic application information.
-     *
-     * @return Number of applications
-     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
-     */
-    public int getCountOfAllApplications()
-            throws IdentityApplicationManagementException {
-
-        applicationMgtService = ApplicationManagementService.getInstance();
-        int countOfAllApplications = applicationMgtService.getCountOfAllApplications(getTenantDomain(),
-                getUsername());
-        if (log.isDebugEnabled()) {
-            log.debug("Count of SP applications returned: " + countOfAllApplications + " for tenant: " + getTenantDomain());
-        }
-        return countOfAllApplications;
-    }
-
-    /**
-     * Get count of all basic application information for a matching filter.
-     *
-     * @return Number of applications
-     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
-     */
-    public int getCountOfApplications(String filter)
-            throws IdentityApplicationManagementException {
-
-        applicationMgtService = ApplicationManagementService.getInstance();
-        int countOfApplications = applicationMgtService.getCountOfApplications(getTenantDomain(),
-                getUsername(), filter);
-        if (log.isDebugEnabled()) {
-            log.debug("Count of SP applications returned: " + countOfApplications + " for tenant: " + getTenantDomain());
-        }
-        return countOfApplications;
     }
 
     /**
@@ -559,5 +506,22 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     getTenantDomain()), e);
             throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
         }
+    }
+
+    private ArrayList<ApplicationBasicInfo> getAuthorizedApplicationBasicInfo(
+            ApplicationBasicInfo[] applicationBasicInfos, String userName)
+            throws IdentityApplicationManagementException {
+
+        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
+        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
+                appInfo.add(applicationBasicInfo);
+                if (log.isDebugEnabled()) {
+                    log.debug("Retrieving basic information of application: " +
+                            applicationBasicInfo.getApplicationName() + "username: " + userName);
+                }
+            }
+        }
+        return appInfo;
     }
 }

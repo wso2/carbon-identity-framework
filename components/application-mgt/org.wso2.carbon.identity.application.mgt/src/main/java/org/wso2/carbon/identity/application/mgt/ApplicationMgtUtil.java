@@ -700,18 +700,4 @@ public class ApplicationMgtUtil {
 
         PrivilegedCarbonContext.endTenantFlow();
     }
-
-    public static ArrayList<ApplicationBasicInfo> processApplicationBasicInfos(ApplicationBasicInfo[] applicationBasicInfos, String userName) throws IdentityApplicationManagementException {
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
-                appInfo.add(applicationBasicInfo);
-                if (log.isDebugEnabled()) {
-                    log.debug("Retrieving basic information of application: " +
-                            applicationBasicInfo.getApplicationName() + "username: " + userName);
-                }
-            }
-        }
-        return appInfo;
-    }
 }

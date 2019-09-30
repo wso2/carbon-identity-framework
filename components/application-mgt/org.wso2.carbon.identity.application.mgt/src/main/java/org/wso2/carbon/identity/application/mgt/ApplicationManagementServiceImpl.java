@@ -106,7 +106,9 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
 import static org.wso2.carbon.identity.core.util.IdentityUtil.isValidPEMCertificate;
 
 /**
@@ -193,11 +195,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         // invoking the listeners
@@ -232,10 +234,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            startTenantFlow(tenantDomain, username);
             appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         if (!(appDAO instanceof AbstractApplicationDAOImpl)) {
@@ -252,134 +254,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
-    }
-
-    /**
-     * Get All Application Basic Information with pagination
-     *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @param pageNumber   Number of the page
-     * @return ApplicationBasicInfo[]
-     * @throws IdentityApplicationManagementException
-     */
-    @Override
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber) throws IdentityApplicationManagementException {
-        ApplicationDAO appDAO = null;
-        // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
-                    !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(tenantDomain, username, pageNumber)) {
-                return new ApplicationBasicInfo[0];
-            }
-        }
-
-        try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
-            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        } catch (Exception e) {
-            String error = "Error occurred while retrieving all the applications for the tenant: " + tenantDomain;
-            throw new IdentityApplicationManagementException(error, e);
-        } finally {
-            ApplicationMgtUtil.endTenantFlow();
-        }
-
-        // invoking the listeners
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
-                    !((AbstractApplicationMgtListener) listener).doPostGetPaginatedApplicationBasicInfo(appDAO, tenantDomain,
-                            username, pageNumber)) {
-                return new ApplicationBasicInfo[0];
-            }
-        }
-
-        return appDAO.getAllPaginatedApplicationBasicInfo(pageNumber);
-    }
-
-    /**
-     * Get all basic application information for a matching filter with pagination.
-     *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @param filter       Application name filter
-     * @param pageNumber   Number of the page
-     * @return Application Basic Information array
-     * @throws IdentityApplicationManagementException
-     */
-    @Override
-    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter) throws IdentityApplicationManagementException {
-
-        ApplicationDAO appDAO = null;
-        // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
-                .getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
-                    !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(tenantDomain, username,
-                            pageNumber, filter)) {
-                return new ApplicationBasicInfo[0];
-            }
-        }
-
-        try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
-            appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        } finally {
-            ApplicationMgtUtil.endTenantFlow();
-        }
-
-        // invoking the listeners
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
-                    !((AbstractApplicationMgtListener) listener).doPostGetPaginatedApplicationBasicInfo(appDAO, tenantDomain,
-                            username, pageNumber, filter)) {
-                return new ApplicationBasicInfo[0];
-            }
-        }
-
-        return appDAO.getPaginatedApplicationBasicInfo(pageNumber, filter);
-    }
-
-    /**
-     * Get count of all Application Basic Information.
-     *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @return int
-     * @throws IdentityApplicationManagementException
-     */
-    @Override
-    public int getCountOfAllApplications(String tenantDomain, String username) throws IdentityApplicationManagementException {
-
-        try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            return appDAO.getCountOfAllApplications();
-        } finally {
-            ApplicationMgtUtil.endTenantFlow();
-        }
-    }
-
-    /**
-     * Get count of all basic application information for a matching filter.
-     *
-     * @param tenantDomain Tenant Domain
-     * @param username     User Name
-     * @param filter       Application name filter
-     * @return int
-     * @throws IdentityApplicationManagementException
-     */
-    @Override
-    public int getCountOfApplications(String tenantDomain, String username, String filter) throws IdentityApplicationManagementException {
-
-        try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            return appDAO.getCountOfApplications(filter);
-        } finally {
-            ApplicationMgtUtil.endTenantFlow();
-        }
     }
 
     @Override
@@ -408,7 +282,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             // check whether user is authorized to update the application.
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            startTenantFlow(tenantDomain, username);
             if (!ApplicationConstants.LOCAL_SP.equals(applicationName) &&
                     !ApplicationMgtUtil.isUserAuthorized(applicationName, username,
                             serviceProvider.getApplicationID())) {
@@ -463,7 +337,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while updating the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
@@ -543,7 +417,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            startTenantFlow(tenantDomain, username);
 
             if (!ApplicationMgtUtil.isUserAuthorized(applicationName, username)) {
                 log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
@@ -586,7 +460,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while deleting the application: " + applicationName + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
@@ -601,7 +475,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             return idpdao.getIdentityProvider(federatedIdPName);
         } catch (Exception e) {
@@ -609,7 +483,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
     }
 
@@ -618,7 +492,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<IdentityProvider> fedIdpList = idpdao.getAllIdentityProviders();
             if (fedIdpList != null) {
@@ -629,7 +503,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Identity Providers" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
     }
 
@@ -638,7 +512,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
             if (localAuthenticators != null) {
@@ -649,7 +523,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Local Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
     }
 
@@ -658,7 +532,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
             List<RequestPathAuthenticatorConfig> reqPathAuthenticators = idpdao.getAllRequestPathAuthenticators();
             if (reqPathAuthenticators != null) {
@@ -669,7 +543,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error occurred while retrieving all Request Path Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
     }
 
@@ -677,7 +551,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public String[] getAllLocalClaimUris(String tenantDomain) throws IdentityApplicationManagementException {
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
             ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getClaimManager()
                     .getAllClaimMappings(claimDialect);
@@ -694,7 +568,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String error = "Error while reading system claims" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
     }
 
@@ -882,7 +756,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider = null;
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
             if (serviceProvider == null && ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(
@@ -890,7 +764,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs().get(serviceProviderName);
             }
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         // invoking the listeners
@@ -962,7 +836,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         serviceProviderName = getServiceProviderNameByClientId(clientId, clientType, tenantDomain);
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain);
+            startTenantFlow(tenantDomain);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             serviceProvider = appDAO.getApplication(serviceProviderName, tenantDomain);
 
@@ -989,7 +863,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         if (serviceProvider == null && serviceProviderName != null && ApplicationManagementServiceComponent
@@ -1684,7 +1558,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            ApplicationMgtUtil.startTenantFlow(tenantDomain, username);
+            startTenantFlow(tenantDomain, username);
 
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
@@ -1705,7 +1579,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw e;
             }
         } finally {
-            ApplicationMgtUtil.endTenantFlow();
+            endTenantFlow();
         }
 
         for (ApplicationMgtListener listener : listeners) {
