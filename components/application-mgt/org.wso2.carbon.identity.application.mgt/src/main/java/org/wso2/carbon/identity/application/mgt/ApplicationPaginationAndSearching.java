@@ -22,6 +22,9 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 
+/**
+ * Application pagination and searching API
+ */
 public interface ApplicationPaginationAndSearching {
 
     /**
@@ -33,10 +36,8 @@ public interface ApplicationPaginationAndSearching {
      * @return Application Basic Information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    default ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
-            throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
+    ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException;
 
     /**
      * Get All Application Basic Information with pagination
@@ -47,10 +48,8 @@ public interface ApplicationPaginationAndSearching {
      * @return ApplicationBasicInfo[]
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    default ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
-            throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
+    ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
+            throws IdentityApplicationManagementException;
 
     /**
      * Get all basic application information for a matching filter with pagination.
@@ -62,10 +61,8 @@ public interface ApplicationPaginationAndSearching {
      * @return Application Basic Information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    default ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter)
-            throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
+    ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter)
+            throws IdentityApplicationManagementException;
 
     /**
      * Get count of all Application Basic Information.
@@ -75,10 +72,8 @@ public interface ApplicationPaginationAndSearching {
      * @return int
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    default int getCountOfAllApplications(String tenantDomain, String username)
-            throws IdentityApplicationManagementException {
-        return 0;
-    }
+    int getCountOfAllApplications(String tenantDomain, String username)
+            throws IdentityApplicationManagementException;
 
     /**
      * Get count of all basic application information for a matching filter.
@@ -89,9 +84,7 @@ public interface ApplicationPaginationAndSearching {
      * @return int
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    default int getCountOfApplications(String tenantDomain, String username, String filter)
-            throws IdentityApplicationManagementException {
-        return 0;
-    }
+    int getCountOfApplications(String tenantDomain, String username, String filter)
+            throws IdentityApplicationManagementException;
 
 }

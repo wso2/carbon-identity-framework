@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
@@ -142,6 +143,74 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      */
     public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username, int pageNumber,
                                                  String filter) throws IdentityApplicationManagementException {
+        return true;
+    }
+
+    /**
+     * Define any additional actions before getting all applications' basic information with pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information with pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @param applicationBasicInfoList
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber,
+                                                          ApplicationBasicInfo[] applicationBasicInfoList) throws
+            IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions before getting all applications' basic information for matching filter with
+     * pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @param filter
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String
+            filter) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information for matching filter with
+     * pagination.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain
+     * @param username
+     * @param filter
+     * @param applicationBasicInfoList
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetPaginatedApplicationBasicInfo(String tenantDomain, String
+            username, int pageNumber, String filter, ApplicationBasicInfo[] applicationBasicInfoList) throws
+            IdentityApplicationManagementException {
+
         return true;
     }
 

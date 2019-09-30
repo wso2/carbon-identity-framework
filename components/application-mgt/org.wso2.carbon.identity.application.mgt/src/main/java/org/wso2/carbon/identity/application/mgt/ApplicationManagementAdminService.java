@@ -165,6 +165,51 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     }
 
     /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param filter Application name filter
+     * @return Application Basic Information array
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
+            throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getPaginatedApplicationBasicInfo(getTenantDomain(),
+                getUsername(), pageNumber, filter);
+        List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
+        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+    }
+
+    /**
+     * Get count of all basic application information.
+     *
+     * @return Number of applications
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public int getCountOfAllApplications() throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        int countOfAllApplications = applicationMgtService.getCountOfAllApplications(getTenantDomain(),
+                getUsername());
+        return countOfAllApplications;
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @return Number of applications
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
+
+        applicationMgtService = ApplicationManagementService.getInstance();
+        int countOfApplications = applicationMgtService.getCountOfApplications(getTenantDomain(),
+                getUsername(), filter);
+        return countOfApplications;
+    }
+
+    /**
      * Update application
      *
      * @param serviceProvider Service provider

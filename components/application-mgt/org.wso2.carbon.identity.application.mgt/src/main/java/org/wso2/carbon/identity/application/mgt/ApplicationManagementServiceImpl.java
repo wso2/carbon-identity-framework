@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
@@ -254,6 +255,164 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return ((AbstractApplicationDAOImpl) appDAO).getApplicationBasicInfo(filter);
+    }
+
+    /**
+     * Get All Application Basic Information with pagination
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param pageNumber   Number of the page
+     * @return ApplicationBasicInfo[]
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(String tenantDomain, String username, int
+            pageNumber) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo[] applicationBasicInfoArray;
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+            if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+
+                // invoking pre listeners
+                Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo
+                                    (tenantDomain, username, pageNumber)) {
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+
+                applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO)
+                        .getAllPaginatedApplicationBasicInfo(pageNumber);
+                // invoking post listeners
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPostGetPaginatedApplicationBasicInfo
+                                    (tenantDomain, username, pageNumber, applicationBasicInfoArray)) {
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+
+            } else {
+                throw new UnsupportedOperationException("Application pagination is not supported. Tenant domain: " +
+                        tenantDomain);
+            }
+        } finally {
+            endTenantFlow();
+        }
+
+        return applicationBasicInfoArray;
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param filter       Application name filter
+     * @param pageNumber   Number of the page
+     * @return Application Basic Information array
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int
+            pageNumber, String filter) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo[] applicationBasicInfoArray;
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            // invoking pre listeners
+            if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+                Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
+                        .getApplicationMgtListeners();
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(tenantDomain, username,
+                                    pageNumber, filter)) {
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+
+                applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO)
+                        .getPaginatedApplicationBasicInfo(pageNumber, filter);
+
+                // invoking post listeners
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPostGetPaginatedApplicationBasicInfo
+                                    (tenantDomain, username, pageNumber, filter, applicationBasicInfoArray)) {
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+            } else {
+                throw new UnsupportedOperationException("Application filtering and pagination not supported. " +
+                        "Tenant domain: " + tenantDomain);
+            }
+        } finally {
+            endTenantFlow();
+        }
+
+        return applicationBasicInfoArray;
+    }
+
+    /**
+     * Get count of all Application Basic Information.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @return int
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfAllApplications(String tenantDomain, String username) throws IdentityApplicationManagementException {
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+                return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfAllApplications();
+            } else {
+                throw new UnsupportedOperationException("Application count is not supported. " + "Tenant domain: " +
+                        tenantDomain);
+            }
+        } finally {
+            endTenantFlow();
+        }
+    }
+
+    /**
+     * Get count of all basic application information for a matching filter.
+     *
+     * @param tenantDomain Tenant Domain
+     * @param username     User Name
+     * @param filter       Application name filter
+     * @return int
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public int getCountOfApplications(String tenantDomain, String username, String filter) throws
+            IdentityApplicationManagementException {
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+                return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter);
+            } else {
+                throw new UnsupportedOperationException("Application count is not supported. " + "Tenant domain: " +
+                        tenantDomain);
+            }
+        } finally {
+            endTenantFlow();
+        }
     }
 
     @Override
