@@ -124,6 +124,8 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * @param username
      * @return
      * @throws IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link AbstractApplicationMgtListener#doPreGetApplicationBasicInfo(String, String, int, int)} method.
      */
     public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
                                                           int pageNumber) throws IdentityApplicationManagementException {
@@ -155,6 +157,7 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * @return
      * @throws IdentityApplicationManagementException
      */
+    @Deprecated
     public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
             throws IdentityApplicationManagementException {
 
@@ -170,10 +173,51 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * @param applicationBasicInfoList
      * @return
      * @throws IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link AbstractApplicationMgtListener#doPostGetApplicationBasicInfo(String, String, int, int,
+     * ApplicationBasicInfo[])} method.
      */
+    @Deprecated
     public boolean doPostGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber,
                                                           ApplicationBasicInfo[] applicationBasicInfoList) throws
             IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions before getting all applications' basic information with pagination based on the
+     * offset and limit.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return A boolean value.
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information with pagination based on the
+     * offset and limit.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain             Tenant Domain.
+     * @param username                 User name.
+     * @param offset                   Starting index of the count.
+     * @param limit                    Counting value.
+     * @param applicationBasicInfoList Array of {@link ApplicationBasicInfo} instances.
+     * @return A boolean value.
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetApplicationBasicInfo(String tenantDomain, String username, int offset, int limit
+            , ApplicationBasicInfo[] applicationBasicInfoList) throws IdentityApplicationManagementException {
 
         return true;
     }
@@ -188,7 +232,10 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * @param filter
      * @return
      * @throws IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link AbstractApplicationMgtListener#doPreGetApplicationBasicInfo(String, String, String, int, int)} method.
      */
+    @Deprecated
     public boolean doPreGetPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String
             filter) throws IdentityApplicationManagementException {
 
@@ -206,10 +253,54 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * @param applicationBasicInfoList
      * @return
      * @throws IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link AbstractApplicationMgtListener#doPostGetApplicationBasicInfo(String, String, String, int, int,
+     * ApplicationBasicInfo[])} method.
      */
+    @Deprecated
     public boolean doPostGetPaginatedApplicationBasicInfo(String tenantDomain, String
             username, int pageNumber, String filter, ApplicationBasicInfo[] applicationBasicInfoList) throws
             IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions before getting all applications' basic information for matching filter with
+     * pagination based on the offset and limit.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param filter       Application name filter.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return A boolean value.
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPreGetApplicationBasicInfo(String tenantDomain, String username, String filter, int offset,
+                                                int limit) throws IdentityApplicationManagementException {
+
+        return true;
+    }
+
+    /**
+     * Define any additional actions after getting all applications' basic information for matching filter with
+     * pagination based on the offset and limit.
+     * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
+     *
+     * @param tenantDomain             Tenant Domain.
+     * @param username                 User name.
+     * @param filter                   Application name filter.
+     * @param offset                   Starting index of the count.
+     * @param limit                    Counting value.
+     * @param applicationBasicInfoList Array of {@link ApplicationBasicInfo} instances.
+     * @return A boolean value.
+     * @throws IdentityApplicationManagementException
+     */
+    public boolean doPostGetApplicationBasicInfo(String tenantDomain, String username, String filter, int offset,
+                                                 int limit, ApplicationBasicInfo[] applicationBasicInfoList)
+            throws IdentityApplicationManagementException {
 
         return true;
     }

@@ -47,8 +47,24 @@ public interface ApplicationPaginationAndSearching {
      * @param pageNumber   Number of the page
      * @return ApplicationBasicInfo[]
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link ApplicationPaginationAndSearching#getApplicationBasicInfo(String, String, int, int)} method.
      */
+    @Deprecated
     ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber)
+            throws IdentityApplicationManagementException;
+
+    /**
+     * Get all the basic application information with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, int offset, int limit)
             throws IdentityApplicationManagementException;
 
     /**
@@ -60,9 +76,26 @@ public interface ApplicationPaginationAndSearching {
      * @param pageNumber   Number of the page
      * @return Application Basic Information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link ApplicationPaginationAndSearching#getApplicationBasicInfo(String, String, String, int, int)} method.
      */
+    @Deprecated
     ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param filter       Application name filter.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter, int offset,
+                                                   int limit) throws IdentityApplicationManagementException;
 
     /**
      * Get count of all Application Basic Information.

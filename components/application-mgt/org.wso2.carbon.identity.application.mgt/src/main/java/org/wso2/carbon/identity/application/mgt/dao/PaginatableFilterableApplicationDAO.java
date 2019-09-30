@@ -32,17 +32,46 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
      *
      * @return an array of {@link ApplicationBasicInfo} instances within the given page.
      * @throws IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link PaginatableFilterableApplicationDAO#getApplicationBasicInfo(int, int)} method.
      */
+    @Deprecated
     ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws
             IdentityApplicationManagementException;
+
+    /**
+     * Get all the basic application information based on the offset and the limit.
+     *
+     * @param offset Starting index of the count.
+     * @param limit  Count value.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws IdentityApplicationManagementException;
 
     /**
      * Get all basic application information for a matching filter that falls under the given page number.
      *
      * @return an array of {@link ApplicationBasicInfo} instances matching the given filter within the given page.
      * @throws IdentityApplicationManagementException
+     * @Deprecated The logic in pagination is improved to use an offset and a limit. Hence deprecating this method to
+     * use {@link PaginatableFilterableApplicationDAO#getApplicationBasicInfo(String, int, int)} method.
      */
+    @Deprecated
     ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws
+            IdentityApplicationManagementException;
+
+    /**
+     * Get all basic application information for a matching filter based on the offset and the limit.
+     *
+     * @param filter Application name filter.
+     * @param offset Starting index of the count.
+     * @param limit  Count value.
+     * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information based on the
+     *                                                given filter within the given limit.
+     */
+    ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
             IdentityApplicationManagementException;
 
     /**

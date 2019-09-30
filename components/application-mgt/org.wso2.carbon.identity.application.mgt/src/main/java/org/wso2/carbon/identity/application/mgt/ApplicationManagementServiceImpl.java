@@ -312,6 +312,66 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     /**
+     * Get all basic application information with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, int offset,
+                                                          int limit) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo[] applicationBasicInfoArray;
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+            if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+                // Invoking pre listeners.
+                Collection<ApplicationMgtListener> listeners =
+                        ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPreGetApplicationBasicInfo
+                                    (tenantDomain, username, offset, limit)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Invoking pre listener: " + listener.getClass().getName());
+                        }
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+
+                applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO)
+                        .getApplicationBasicInfo(offset, limit);
+
+                // Invoking post listeners.
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPostGetApplicationBasicInfo
+                                    (tenantDomain, username, offset, limit, applicationBasicInfoArray)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Invoking post listener: " + listener.getClass().getName());
+                        }
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+            } else {
+                throw new UnsupportedOperationException("Application pagination is not supported in " +
+                        appDAO.getClass().getName() + " with tenant domain: " + tenantDomain);
+            }
+        } finally {
+            endTenantFlow();
+        }
+
+        return applicationBasicInfoArray;
+    }
+
+    /**
      * Get all basic application information for a matching filter with pagination.
      *
      * @param tenantDomain Tenant Domain
@@ -356,6 +416,68 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             } else {
                 throw new UnsupportedOperationException("Application filtering and pagination not supported. " +
                         "Tenant domain: " + tenantDomain);
+            }
+        } finally {
+            endTenantFlow();
+        }
+
+        return applicationBasicInfoArray;
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param filter       Application name filter.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo[] applicationBasicInfoArray;
+
+        try {
+            startTenantFlow(tenantDomain, username);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+            if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+                // Invoking pre listeners.
+                Collection<ApplicationMgtListener> listeners =
+                        ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPreGetApplicationBasicInfo
+                                    (tenantDomain, username, filter, offset, limit)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Invoking pre listener: " + listener.getClass().getName());
+                        }
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+
+                applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO).
+                        getApplicationBasicInfo(filter, offset, limit);
+
+                // Invoking post listeners.
+                for (ApplicationMgtListener listener : listeners) {
+                    if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
+                            !((AbstractApplicationMgtListener) listener).doPostGetApplicationBasicInfo
+                                    (tenantDomain, username, filter, offset, limit, applicationBasicInfoArray)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Invoking post listener: " + listener.getClass().getName());
+                        }
+                        return new ApplicationBasicInfo[0];
+                    }
+                }
+            } else {
+                throw new UnsupportedOperationException("Application filtering and pagination not supported in " +
+                        appDAO.getClass().getName() + " with tenant domain: " + tenantDomain);
             }
         } finally {
             endTenantFlow();
