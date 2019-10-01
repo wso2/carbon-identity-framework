@@ -36,6 +36,7 @@ public class ApplicationConstants {
     public static final String LOCAL_IDP_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
     public static final String STANDARD_APPLICATION = "standardAPP";
     public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
+    public static final String SERVICE_PROVIDERS = "ServiceProviders";
 
     public static final String AUTH_TYPE_DEFAULT = "default";
     public static final String AUTH_TYPE_LOCAL = "local";
@@ -76,4 +77,6 @@ public class ApplicationConstants {
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
     public static final int DEFAULT_RESULTS_PER_PAGE = 10;
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
+    public static final int DEFAULT_FETCH_CHUNK_SIZE = 50;
+    public static final String FETCH_CHUNK_SIZE = "FetchChunkSize";
 }
