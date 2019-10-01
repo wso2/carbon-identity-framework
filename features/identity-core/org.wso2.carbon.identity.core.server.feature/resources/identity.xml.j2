@@ -84,6 +84,9 @@
     <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
     <ServiceProviders>
         <SPNameRegex>{{service_provider.sp_name_regex}}</SPNameRegex>
+        {% if service_provider.fetch_chunk_size is defined %}
+        <FetchChunkSize>{{service_provider.fetch_chunk_size}}</FetchChunkSize>
+        {% endif %}
     </ServiceProviders>
 
     <OpenID>
@@ -148,7 +151,7 @@
              Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
              Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
         -->
-        {% if oauth.extensions.token_generator is defined%}
+        {% if oauth.extensions.token_generator is defined %}
         <IdentityOAuthTokenGenerator>{{oauth.extensions.token_generator}}</IdentityOAuthTokenGenerator>
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
