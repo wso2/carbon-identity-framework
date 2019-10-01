@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -30,9 +31,10 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
-import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * This class handles the redirect URL retrieval for invalid session index.
@@ -64,7 +66,9 @@ public class LoginContextManagementUtil {
         AuthenticationContext context = FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey);
         // Valid Request
         if (context != null) {
-            context.setCurrentAuthenticator(null);
+            if (isStepHasMultiOption(context)) {
+                context.setCurrentAuthenticator(null);
+            }
             result.addProperty("status", "success");
             response.getWriter().write(result.toString());
         } else {
@@ -157,5 +161,20 @@ public class LoginContextManagementUtil {
 
         authenticationContext.setProperty(FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED,
                 true);
+    }
+
+    private static boolean isStepHasMultiOption(AuthenticationContext context) {
+
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        boolean stepHasMultiOption = false;
+
+        if (stepMap != null && !stepMap.isEmpty()) {
+            StepConfig stepConfig = stepMap.get(context.getCurrentStep());
+
+            if (stepConfig != null) {
+                stepHasMultiOption = stepConfig.isMultiOption();
+            }
+        }
+        return stepHasMultiOption;
     }
 }
