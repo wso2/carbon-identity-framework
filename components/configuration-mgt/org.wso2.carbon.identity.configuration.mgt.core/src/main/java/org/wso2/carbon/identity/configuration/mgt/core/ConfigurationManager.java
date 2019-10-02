@@ -20,10 +20,14 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Resource manager service interface.
@@ -187,5 +191,60 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     void deleteAttribute(String resourceTypeName, String resourceName, String attributeKey)
+            throws ConfigurationManagementException;
+
+
+    /**
+     * This API is used to add the given file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceName     Name of the {@link Resource}.
+     * @param fileStream       {@link InputStream} representing the file.
+     * @return 200 ok. Returns {@link ResourceFile} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    ResourceFile addFile(String resourceTypeName, String resourceName, InputStream fileStream)
+            throws ConfigurationManagementException;
+
+    /**
+     * This API is used to get all files for the given {@link Resource}
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceName     Name of the {@link Resource}.
+     * @return 200 ok. Returns a list of {@link ResourceFile} for the {@link Resource}.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    List<ResourceFile> getFiles(String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException;
+
+    /**
+     * This API is used to delete all files for the given {@link Resource}
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceName     Name of the {@link Resource}.
+     * @return 200 ok.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    void deleteFiles(String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException;
+
+    /**
+     * This API is used to get the given file.
+     *
+     * @param fileId Id representing the file.
+     * @return 200 ok. Returns {@link InputStream} of the file requested.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    InputStream getFileById(String fileId)
+            throws ConfigurationManagementException;
+
+    /**
+     * This API is used to delete the given file.
+     *
+     * @param fileId Id representing the file.
+     * @return 200 ok.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    void deleteFileById(String fileId)
             throws ConfigurationManagementException;
 }

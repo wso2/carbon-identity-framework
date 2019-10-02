@@ -68,6 +68,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_QUERY_SQL_PARSE_ERROR;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILES_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_DOES_NOT_EXISTS;
 
 /**
  * Utility functions required for configuration endpoint
@@ -224,7 +226,9 @@ public class ConfigurationEndpointUtils {
                 ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) ||
                 ERROR_CODE_RESOURCES_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) ||
                 ERROR_CODE_SEARCH_QUERY_PROPERTY_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) ||
-                ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode());
+                ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_FILE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode()) ||
+                ERROR_CODE_FILES_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode());
     }
 
     private static boolean isConflictError(ConfigurationManagementClientException e) {

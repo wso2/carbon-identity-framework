@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.dao.impl;
 
+import java.io.InputStream;
+import java.sql.Blob;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,6 +41,22 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
 import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_INSERT_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILES_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_ATTRIBUTE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_FILE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
+
+
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -960,4 +978,143 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 )
         );
     }
+
+    @Override
+    public void addFile(String fileId, String resourceId, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                    preparedStatement.setString(1, fileId);
+                    preparedStatement.setBlob(2, fileStream);
+                    preparedStatement.setString(3, resourceId);
+                });
+                template.executeUpdate(SQLConstants.UPDATE_HAS_FILE_SQL, preparedStatement -> {
+                    preparedStatement.setBoolean(1, true);
+                    preparedStatement.setString(2, resourceId);
+                });
+                template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
+                    preparedStatement.setTimestamp(1, new java.sql.Timestamp(new Date().getTime()),
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                    preparedStatement.setString(2, resourceId);
+                });
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_INSERT_FILE, fileId, e);
+        }
+    }
+
+    @Override
+    public InputStream getFileById(String fileId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
+                    (resultSet, rowNumber) -> {
+                        Blob fileBlob = resultSet.getBlob("VALUE");
+                        if (fileBlob == null) {
+                            return null;
+                        }
+                        return fileBlob.getBinaryStream();
+                    },
+                    preparedStatement -> {
+                        preparedStatement.setString(1, fileId);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
+        }
+    }
+
+    @Override
+    public void deleteFileById(String fileId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+
+                // Get resource id for the deleting file
+                String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
+                        (resultSet, rowNumber) -> resultSet.getString("RESOURCE_ID"),
+                        preparedStatement -> preparedStatement.setString(1, fileId));
+
+                template.executeUpdate(DELETE_FILE_SQL, (
+                        preparedStatement -> preparedStatement.setString(1, fileId)
+                ));
+
+                List<String> availableFilesForTheResource = template.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
+                        ((resultSet, rowNumber) -> resultSet.getString("ID")),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, resourceId);
+                        });
+                if (availableFilesForTheResource.size() == 0) {
+                    template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
+                        preparedStatement.setBoolean(1, false);
+                        preparedStatement.setString(2, resourceId);
+                    });
+                }
+
+                template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
+                    preparedStatement.setTimestamp(1, new java.sql.Timestamp(new Date().getTime()),
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                    preparedStatement.setString(2, resourceId);
+                });
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_DELETE_FILE, fileId, e);
+        }
+    }
+
+    @Override
+    public List<ResourceFile> getFiles(String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
+                    ((resultSet, rowNumber) -> {
+                        String resourceFileId = resultSet.getString("ID");
+                        return new ResourceFile(
+                                resourceFileId,
+                                getFilePath(resourceFileId)
+                        );
+                    }),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceId);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILES, resourceId, e);
+        }
+    }
+
+    @Override
+    public void deleteFiles(String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+
+                template.executeUpdate(DELETE_FILES_SQL, (
+                        preparedStatement -> preparedStatement.setString(1, resourceId)
+                ));
+
+                template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
+                    preparedStatement.setBoolean(1, false);
+                    preparedStatement.setString(2, resourceId);
+                });
+
+                template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
+                    preparedStatement.setTimestamp(1, new java.sql.Timestamp(new Date().getTime()),
+                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+                    preparedStatement.setString(2, resourceId);
+                });
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_DELETE_FILES, resourceId, e);
+        }
+    }
+
 }

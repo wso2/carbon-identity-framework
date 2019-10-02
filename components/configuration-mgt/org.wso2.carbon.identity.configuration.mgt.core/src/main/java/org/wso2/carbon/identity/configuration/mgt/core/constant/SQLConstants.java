@@ -52,12 +52,12 @@ public class SQLConstants {
             "    TENANT_ID,\n" +
             "    NAME,\n" +
             "    LAST_MODIFIED,\n" +
-            "    HAS_FILE,\n" +
-            "    HAS_ATTRIBUTE,\n" +
-            "    TYPE_ID\n" +
-            "  )\n" +
+            "    HAS_FILE," +
+            "    HAS_ATTRIBUTE," +
+            "    TYPE_ID" +
+            "  )" +
             "VALUES(?, ?, ?, ?, ?, ?, ?)";
-    public static final String INSERT_OR_UPDATE_RESOURCE_MYSQL = "INSERT INTO\n" +
+    public static final String INSERT_OR_UPDATE_RESOURCE_MYSQL = "INSERT INTO" +
             "  IDN_CONFIG_RESOURCE(\n" +
             "    ID,\n" +
             "    TENANT_ID,\n" +
@@ -302,4 +302,32 @@ public class SQLConstants {
             "  AND TYPE_ID = ?";
     public static final String UPDATE_LAST_MODIFIED_SQL = "UPDATE IDN_CONFIG_RESOURCE SET LAST_MODIFIED = ? " +
             "WHERE ID = ?";
+
+    public static final String INSERT_FILE_SQL = "INSERT INTO IDN_CONFIG_FILE(ID, VALUE, RESOURCE_ID) VALUES(?, ?, ?)";
+    public static final String GET_FILE_BY_ID_SQL = "SELECT\n" +
+            "  ID,\n" +
+            "  VALUE,\n" +
+            "  RESOURCE_ID\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_FILE\n" +
+            "WHERE\n" +
+            "  ID = ?";
+    public static final String GET_FILES_BY_RESOURCE_ID_SQL = "SELECT\n" +
+            "  ID\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_FILE\n" +
+            "WHERE\n" +
+            "  RESOURCE_ID = ?";
+    public static final String DELETE_FILE_SQL = "DELETE FROM IDN_CONFIG_FILE WHERE ID = ?";
+    public static final String DELETE_FILES_SQL = "DELETE FROM IDN_CONFIG_FILE WHERE RESOURCE_ID = ?";
+    public static final String UPDATE_HAS_FILE_SQL = "UPDATE IDN_CONFIG_RESOURCE SET HAS_FILE = ? " +
+            "WHERE ID = ?";
+    public static final String UPDATE_HAS_ATTRIBUTE_SQL = "UPDATE IDN_CONFIG_RESOURCE SET HAS_ATTRIBUTE = ? " +
+            "WHERE ID = ?";
+    public static final String GET_ATTRIBUTES_BY_RESOURCE_ID_SQL = "SELECT\n" +
+            "  ID\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_ATTRIBUTE\n" +
+            "WHERE\n" +
+            "  RESOURCE_ID = ?";
 }

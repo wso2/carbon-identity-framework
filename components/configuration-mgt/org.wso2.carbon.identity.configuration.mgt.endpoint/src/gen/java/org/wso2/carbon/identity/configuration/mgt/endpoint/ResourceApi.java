@@ -17,11 +17,16 @@
 package org.wso2.carbon.identity.configuration.mgt.endpoint;
 
 import io.swagger.annotations.ApiParam;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceDTO;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.factories.ResourceApiServiceFactory;
 
+import java.io.File;
+import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -39,6 +44,139 @@ import javax.ws.rs.core.Response;
 public class ResourceApi {
 
     private final ResourceApiService delegate = ResourceApiServiceFactory.getResourceApi();
+
+    @DELETE
+    @Path("/file/{file-id}")
+    @Consumes({"application/json"})
+    @Produces({"application/json"})
+    @io.swagger.annotations.ApiOperation(value = "Revoke the file\n", notes = "This API is used to revoke a file in " +
+            "the tenant domain given by the user.\n", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = {
+            @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
+
+            @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+
+            @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+
+            @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
+
+            @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error")})
+
+    public Response resourceFileFileIdDelete(@ApiParam(value = "This represents a file id of the file to be retrieved" +
+            ".", required = true) @PathParam("file-id") String fileId) {
+
+        return delegate.resourceFileFileIdDelete(fileId);
+    }
+
+    @GET
+    @Path("/file/{file-id}")
+    @Consumes({"application/json"})
+    @Produces({"application/octet-stream"})
+    @io.swagger.annotations.ApiOperation(value = "Retrieve the file.\n", notes = "This API is used to retrieve a file" +
+            ".\n", response = File.class)
+    @io.swagger.annotations.ApiResponses(value = {
+            @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
+
+            @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+
+            @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+
+            @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error")})
+
+    public Response resourceFileFileIdGet(@ApiParam(value = "This represents a file id of the file to be retrieved.",
+                                                    required = true) @PathParam("file-id") String fileId) {
+
+        return delegate.resourceFileFileIdGet(fileId);
+    }
+
+    @DELETE
+    @Path("/{resource-type}/{resource-name}/file")
+    @Consumes({"application/json"})
+    @Produces({"application/json"})
+    @io.swagger.annotations.ApiOperation(value = "Revoke all the files for the resource\n", notes = "This API is used" +
+            " to revoke all the files for the resource.\n", response = void.class)
+    @io.swagger.annotations.ApiResponses(value = {
+            @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
+
+            @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+
+            @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+
+            @io.swagger.annotations.ApiResponse(code = 404, message = "Not Found"),
+
+            @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error")})
+
+    public Response resourceResourceTypeResourceNameFileDelete(@ApiParam(value = "This represents the name of the " +
+            "resource to be revoked.", required = true) @PathParam("resource-name") String resourceName,
+            @ApiParam(value = "This represents the type of the " +
+                    "resource to be added and can either be the " +
+                    "name or id.", required = true) @PathParam(
+                    "resource-type") String resourceType) {
+
+        return delegate.resourceResourceTypeResourceNameFileDelete(resourceName, resourceType);
+    }
+
+    @GET
+    @Path("/{resource-type}/{resource-name}/file")
+    @Consumes({"application/json"})
+    @Produces({"application/json"})
+    @io.swagger.annotations.ApiOperation(value = "Retrieve all the files for the resource.\n", notes = "This API is " +
+            "used to retrieve all the files for the resource.\n", response = ResourceFileDTO.class,
+                                         responseContainer = "List")
+    @io.swagger.annotations.ApiResponses(value = {
+            @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
+
+            @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+
+            @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+
+            @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error")})
+
+    public Response resourceResourceTypeResourceNameFileGet(@ApiParam(value = "This represents the name of the " +
+            "resource to be retrieved.", required = true) @PathParam("resource-name") String resourceName,
+            @ApiParam(value = "This represents the type of the " +
+                    "resource to be added and can either be the name " +
+                    "or id.", required = true) @PathParam("resource" +
+                                                                  "-type") String resourceType) {
+
+        return delegate.resourceResourceTypeResourceNameFileGet(resourceName, resourceType);
+    }
+
+    @POST
+    @Path("/{resource-type}/{resource-name}/file")
+    @Consumes({"multipart/form-data"})
+    @Produces({"application/json"})
+    @io.swagger.annotations.ApiOperation(value = "Create a file\n", notes = "This API is used to store a file given " +
+            "by the user.\n", response = ResourceFileDTO.class)
+    @io.swagger.annotations.ApiResponses(value = {
+            @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
+
+            @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+
+            @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+
+            @io.swagger.annotations.ApiResponse(code = 409, message = "Conflict"),
+
+            @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error")})
+
+    public Response resourceResourceTypeResourceNameFilePost(@ApiParam(value = "This represents the name of the " +
+            "attribute to be added.", required = true) @PathParam("resource-name") String resourceName,
+            @ApiParam(value = "This represents the type of the " +
+                    "attribute to be added and can either be the " +
+                    "name or id.", required = true) @PathParam(
+                    "resource-type") String resourceType,
+            @ApiParam(value = "This represents the corresponding " +
+                    "resource file that needs to be added.") @Multipart(value = "resourceFile", required = false) InputStream resourceFileInputStream,
+            @ApiParam(value = "This represents the corresponding " +
+                    "resource file that needs to be added. : " +
+                    "details") @Multipart(value = "resourceFile",
+                                          required = false) Attachment resourceFileDetail) {
+
+        return delegate.resourceResourceTypeResourceNameFilePost(resourceName, resourceType, resourceFileInputStream,
+                resourceFileDetail);
+    }
+
+
 
     @POST
     @Path("/{resource-type}")

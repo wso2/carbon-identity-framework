@@ -177,5 +177,15 @@ public class TestUtils {
         conditions.add(attributeKeyEqFrom);
         return new ComplexCondition(ConditionType.ComplexOperator.AND, conditions);
     }
+
+    public static String getSamplesPath(String sampleName) {
+
+        if (StringUtils.isNotBlank(sampleName)) {
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "sample",
+                    sampleName).toString();
+        }
+        throw new IllegalArgumentException("Sample name cannot be empty.");
+    }
+
 }
 

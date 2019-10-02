@@ -26,6 +26,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
+    <version>5.14.94</version>
     <packaging>bundle</packaging>
     <name>WSO2 Carbon - Configuration Management Core</name>
     <description>Identity Configuration Management Core</description>

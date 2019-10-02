@@ -18,24 +18,33 @@ package org.wso2.carbon.identity.configuration.mgt.endpoint.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.ResourceApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceAddFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceDTO;
+import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceFileDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleBadRequestResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleServerErrorResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleUnexpectedServerError;
@@ -173,6 +182,90 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         }
     }
 
+    @Override
+    public Response resourceFileFileIdDelete(String fileId) {
+
+        try {
+            getConfigurationManager().deleteFileById(fileId);
+            return Response.ok().build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
+
+    @Override
+    public Response resourceFileFileIdGet(String fileId) {
+
+        try {
+            InputStream fileStream = getConfigurationManager().getFileById(fileId);
+            return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM).entity(fileStream).build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
+
+    @Override
+    public Response resourceResourceTypeResourceNameFilePost(String resourceName, String resourceType,
+            InputStream resourceFileInputStream,
+            Attachment resourceFileDetail) {
+
+        try {
+            ResourceFile resourceFile = getConfigurationManager().addFile(
+                    resourceType, resourceName, resourceFileInputStream);
+            return Response.created(getFileLocationURI(resourceType, resourceName, resourceFile)).entity(
+                    getResourceFileDTO(resourceFile)).build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
+
+    @Override
+    public Response resourceResourceTypeResourceNameFileGet(String resourceName, String resourceType) {
+
+        try {
+            List<ResourceFile> resourceFiles = getConfigurationManager().getFiles(
+                    resourceType, resourceName);
+            ResourceFileDTO[] resourceFileDTOS = resourceFiles.stream()
+                    .map(ConfigurationEndpointUtils::getResourceFileDTO)
+                    .toArray(ResourceFileDTO[]::new);
+            return Response.ok().entity(resourceFileDTOS).build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
+
+    @Override
+    public Response resourceResourceTypeResourceNameFileDelete(String resourceName, String resourceType) {
+
+        try {
+            getConfigurationManager().deleteFiles(resourceType, resourceName);
+            return Response.ok().build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
+
+
     private URI getResourceURI(String resourceType, Resource resource) throws URISyntaxException {
 
         return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceId());
@@ -182,5 +275,12 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             throws URISyntaxException {
 
         return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + attribute.getAttributeId());
+    }
+
+    private URI getFileLocationURI(String resourceType, String resourceName, ResourceFile resourceFile)
+            throws URISyntaxException {
+
+        return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE
+                + '/' + resourceFile.getId());
     }
 }

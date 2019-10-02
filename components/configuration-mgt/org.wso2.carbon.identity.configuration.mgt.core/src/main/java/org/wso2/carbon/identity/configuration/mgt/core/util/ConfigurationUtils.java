@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_FILE_BY_ID_PATH;
 
 import java.util.UUID;
 
@@ -137,5 +138,10 @@ public class ConfigurationUtils {
             message = error.getMessage();
         }
         return message;
+    }
+
+    public static String getFilePath(String resourceFileId) {
+
+        return RESOURCE_FILE_BY_ID_PATH + "/" + resourceFileId;
     }
 }

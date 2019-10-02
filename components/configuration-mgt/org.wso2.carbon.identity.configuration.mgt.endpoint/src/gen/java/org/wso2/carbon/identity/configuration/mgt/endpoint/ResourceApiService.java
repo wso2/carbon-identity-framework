@@ -16,12 +16,26 @@
 
 package org.wso2.carbon.identity.configuration.mgt.endpoint;
 
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 
+import java.io.InputStream;
 import javax.ws.rs.core.Response;
 
 public abstract class ResourceApiService {
+
+    public abstract Response resourceFileFileIdDelete(String fileId);
+
+    public abstract Response resourceFileFileIdGet(String fileId);
+
+    public abstract Response resourceResourceTypeResourceNameFileDelete(String resourceName, String resourceType);
+
+    public abstract Response resourceResourceTypeResourceNameFileGet(String resourceName, String resourceType);
+
+    public abstract Response resourceResourceTypeResourceNameFilePost(String resourceName, String resourceType,
+            InputStream resourceFileInputStream,
+            Attachment resourceFileDetail);
 
     public abstract Response resourceResourceTypePost(String resourceType, ResourceAddDTO resource);
 
