@@ -27,7 +27,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>configuration-mgt</artifactId>
     <packaging>pom</packaging>
-    <version>5.14.94</version>
     <name>WSO2 Carbon - Configuration Management Aggregator Module</name>
     <description>
         This is a Carbon bundle that represent the Identity Management Aggregator Module.

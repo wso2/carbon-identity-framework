@@ -730,7 +730,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully added.");
         }
-        return new ResourceFile(fileId, getFilePath(resourceId));
+        return new ResourceFile(fileId, getFilePath(fileId));
     }
 
     @Override

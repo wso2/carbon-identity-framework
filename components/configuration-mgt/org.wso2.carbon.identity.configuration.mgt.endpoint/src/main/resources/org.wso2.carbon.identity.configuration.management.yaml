@@ -366,15 +366,15 @@ paths:
         This API is used to retrieve a file.
       x-wso2-request: |
         curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1
-              .0/resource/<resource-type>/<resource-name>/<attribute-key>" -H "Authorization: Basic
+              .0/resource/file/<file-id>" -H "Authorization: Basic
               <Base64Encoded[username:password]>" -H "accept: application/json"
       x-wso2-curl: |
-        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/from" -H
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/cc26a039-8f08-4a4a-b533-44b5f69487fa" -H
                     "Authorization:
                     Basic
                     YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
-        {"consentReceiptId":"38279263-f385-4252-8966-40998faa95ae","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"admin","tenantDomain":"carbon.super"}
+        Hello World!
       summary: |
         Retrieve the file.
       parameters:
@@ -406,11 +406,10 @@ paths:
       description: |
         This API is used to revoke a file in the tenant domain given by the user.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/consents" -H "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"services\": [ { \"service\": \"<Service_Name>\", \"tenantDomain\": \"<Tenant_Domain_Name>\", \"purposes\": [ { \"purposeId\": <Purpose_ID>, \"purposeCategoryId\": [ <Purpose_Category_ID> ], \"consentType\": \"<Consent_Type>\", \"piiCategory\": [ { \"piiCategoryId\": <PII_Category_ID>, \"validity\": \"days:<Number_Of_Days>\" }, { \"piiCategoryId\": <PII_Category_ID>, \"validity\": \"days:<Number_Of_Days>\" } ], \"primaryPurpose\": true, \"termination\": \"days:<Number_Of_Days>\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"<Collection_Method>\", \"jurisdiction\": \"<Jurisdiction>\", \"language\": \"<Language_Abbreviation>\", \"policyURL\": \"<Service_Policy_URL>", \"properties\": [ { \"key\": \"<PII_Controller's_Public_Key>\", \"value\": \"v1\" } ]}"
+        curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/{file-id}" -H "Authorization: Basic <Base64Encoded[username:password]>"
       x-wso2-curl: |
-        curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/consents" -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json" -H "Content-Type: application/json" -d "{\"services\": [ { \"service\": \"foo-service\", \"tenantDomain\": \"carbon.super\", \"purposes\": [ { \"purposeId\": 1, \"purposeCategoryId\": [ 1 ], \"consentType\": \"EXPLICIT\", \"piiCategory\": [ { \"piiCategoryId\": 1, \"validity\": \"days:30\" }, { \"piiCategoryId\": 2, \"validity\": \"days:30\" } ], \"primaryPurpose\": true, \"termination\": \"days:30\", \"thirdPartyDisclosure\": false, \"thirdPartyName\": \"\" } ] } ], \"collectionMethod\": \"Sign-Up\", \"jurisdiction\": \"CA\", \"language\": \"EN\", \"policyURL\": \"https://foo.com/privacy\", \"properties\": [ { \"key\": \"k1\", \"value\": \"v1\" } ]}"
+        curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/fc902fd8-08fe-4531-8f9c-3703dea42698" -H "Authorization: Basic YWRtaW46YWRtaW4="
       x-wso2-response: |
-        {"consentReceiptId":"38279263-f385-4252-8966-40998faa95ae","collectionMethod":"Sign-Up","language":"EN","piiPrincipalId":"admin","tenantDomain":"carbon.super"}
       summary: |
         Revoke the file
       parameters:
@@ -452,7 +451,7 @@ paths:
       x-wso2-curl: |
         curl -k -X POST https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file -H "accept: application/json" -H "Content-Type: multipart/form-data" -H 'Authorization: Basic YWRtaW46YWRtaW4='  -F "resourceFile=@/test.txt"'
       x-wso2-response: |
-        {"id":"9921a2ac-058c-4aeb-a8f2-e126d80dbe88","path":"/resource/file/7060b0c6-000b-47ed-86ef-396ff5cb8203"}
+        {"path":"/resource/file/7060b0c6-000b-47ed-86ef-396ff5cb8203"}
       summary: |
         Create a file
       # post parameters:
