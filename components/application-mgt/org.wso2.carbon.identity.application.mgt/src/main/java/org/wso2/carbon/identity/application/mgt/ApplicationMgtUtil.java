@@ -24,11 +24,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -701,17 +701,31 @@ public class ApplicationMgtUtil {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
-    public static ArrayList<ApplicationBasicInfo> processApplicationBasicInfos(ApplicationBasicInfo[] applicationBasicInfos, String userName) throws IdentityApplicationManagementException {
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
-                appInfo.add(applicationBasicInfo);
+    /**
+     * Method to get the ItemsPerPage property configured in the carbon.xml file.
+     *
+     * @return Items per page in pagination.
+     */
+    public static int getItemsPerPage() {
+
+        String itemsPerPagePropertyValue =
+                ServerConfiguration.getInstance().getFirstProperty(ApplicationConstants.ITEMS_PER_PAGE_PROPERTY);
+
+        try {
+            if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
+                int itemsPerPage = Math.abs(Integer.parseInt(itemsPerPagePropertyValue));
                 if (log.isDebugEnabled()) {
-                    log.debug("Retrieving basic information of application: " +
-                            applicationBasicInfo.getApplicationName() + "username: " + userName);
+                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
                 }
+                return itemsPerPage;
             }
+        } catch (NumberFormatException e) {
+            // No need to handle exception since the default value is already set.
+            log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml. Defaulting to: "
+                    + ApplicationConstants.DEFAULT_RESULTS_PER_PAGE);
         }
-        return appInfo;
+
+        return ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
     }
+
 }

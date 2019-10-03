@@ -20,9 +20,9 @@ package org.wso2.carbon.user.mgt;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.google.gson.JsonObject;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.mgt.common.PermissionValue;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
@@ -62,7 +62,7 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
     }
 
     @Override
-    public String[] getAllPermissions(int tenantId) throws RolePermissionException {
+    public PermissionValue[] getAllPermissions(int tenantId) throws RolePermissionException {
 
         try {
             return getAllPermissions(getUserAdminProxy().getAllUIPermissions(tenantId));
@@ -116,19 +116,19 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
      * @param node UIPermissionNode of permissions.
      * @return  String[] of permissions.
      */
-    private String[] getAllPermissions(UIPermissionNode node) {
+    private PermissionValue[] getAllPermissions(UIPermissionNode node) {
 
-        List<String> permissions = new ArrayList<>();
+        List<PermissionValue> permissions = new ArrayList<>();
         UIPermissionNode[] childNodes = node.getNodeList();
-        JsonObject permission = new JsonObject();
-        permission.addProperty("displayName", node.getDisplayName());
-        permission.addProperty("resourcePath", node.getResourcePath());
-        permissions.add(permission.toString());
+        PermissionValue permissionValue = new PermissionValue();
+        permissionValue.setDisplayName(node.getDisplayName());
+        permissionValue.setResourcePath(node.getResourcePath());
+        permissions.add(permissionValue);
         if (ArrayUtils.isNotEmpty(childNodes)) {
             for (UIPermissionNode childNode : childNodes) {
                 permissions.addAll(Arrays.asList(getAllPermissions(childNode)));
             }
         }
-        return permissions.toArray(new String[0]);
+        return permissions.toArray(new PermissionValue[0]);
     }
 }

@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCac
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthEntry;
@@ -50,7 +51,8 @@ import java.util.Map;
  * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
  * single point of caching.
  */
-public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
+public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
+        implements PaginatableFilterableApplicationDAO {
 
     private static final Log log = LogFactory.getLog(CacheBackedApplicationDAO.class);
 
@@ -192,28 +194,81 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl {
 
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException {
 
-        // No need to cache the returned list.
-        return appDAO.getApplicationBasicInfo(filter);
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            // No need to cache the returned list.
+            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(filter);
+        } else {
+            throw new UnsupportedOperationException("Get application basic info with filter not supported.");
+        }
     }
 
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber)
+            throws IdentityApplicationManagementException {
 
-        // No need to cache the returned list.
-        return appDAO.getAllPaginatedApplicationBasicInfo(pageNumber);
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            // No need to cache the returned list.
+            return ((PaginatableFilterableApplicationDAO) appDAO).getAllPaginatedApplicationBasicInfo(pageNumber);
+        } else {
+            throw new UnsupportedOperationException("This operation only supported in" +
+                    " PaginatableFilterableApplicationDAO only.");
+        }
     }
 
-    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws IdentityApplicationManagementException {
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws IdentityApplicationManagementException {
 
-        // No need to cache the returned list.
-        return appDAO.getPaginatedApplicationBasicInfo(pageNumber, filter);
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            // No need to cache the returned list.
+            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(offset, limit);
+        } else {
+            throw new UnsupportedOperationException("This operation only supported in" +
+                    " PaginatableFilterableApplicationDAO only.");
+        }
+    }
+
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
+            throws IdentityApplicationManagementException {
+
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            // No need to cache the returned list.
+            return ((PaginatableFilterableApplicationDAO) appDAO).getPaginatedApplicationBasicInfo(pageNumber, filter);
+        } else {
+            throw new UnsupportedOperationException("This operation only supported in" +
+                    " PaginatableFilterableApplicationDAO only.");
+        }
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            // No need to cache the returned list.
+            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(filter, offset, limit);
+        } else {
+            throw new UnsupportedOperationException("This operation only supported in" +
+                    " PaginatableFilterableApplicationDAO only.");
+        }
     }
 
     public int getCountOfAllApplications() throws IdentityApplicationManagementException {
-        return appDAO.getCountOfAllApplications();
+
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfAllApplications();
+        } else {
+            throw new UnsupportedOperationException("This operation only supported in" +
+                    " PaginatableFilterableApplicationDAO only.");
+        }
     }
 
     public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
-        return appDAO.getCountOfApplications(filter);
+
+        if (appDAO instanceof PaginatableFilterableApplicationDAO) {
+            return ((PaginatableFilterableApplicationDAO) appDAO).getCountOfApplications(filter);
+        } else {
+            throw new UnsupportedOperationException("This operation only supported in" +
+                    " PaginatableFilterableApplicationDAO only.");
+        }
     }
 
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName, String

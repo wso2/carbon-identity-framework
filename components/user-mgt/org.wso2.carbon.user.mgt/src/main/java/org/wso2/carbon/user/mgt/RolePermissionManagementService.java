@@ -17,6 +17,8 @@
  */
 package org.wso2.carbon.user.mgt;
 
+import org.wso2.carbon.user.mgt.common.PermissionValue;
+
 /**
  * OSGi service interface which use to manage role permissions.
  */
@@ -45,8 +47,8 @@ public interface RolePermissionManagementService {
      * Get available UI permissions.
      *
      * @param tenantId tenant Id.
-     * @return String[] of permissions.
+     * @return PermissionValue[] of permissions.
      * @throws RolePermissionException
      */
-    String[] getAllPermissions(int tenantId) throws RolePermissionException;
+    PermissionValue[] getAllPermissions(int tenantId) throws RolePermissionException;
 }

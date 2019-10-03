@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
+import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -112,7 +113,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries
  * <li>IDN_APPMGT_ROLE_MAPPING</li>
  * </ul>
  */
-public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
+public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
 
@@ -1869,6 +1870,116 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
         }
     }
 
+
+    @Override
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws
+            IdentityApplicationManagementException {
+
+        validateRequestedPageNumber(pageNumber);
+
+        int limit = ApplicationMgtUtil.getItemsPerPage();
+        int offset = (pageNumber - 1) * limit;
+
+        return getApplicationBasicInfo(filter, offset, limit);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
+            IdentityApplicationManagementException {
+
+        validateAttributesForPagination(offset, limit);
+
+        if ("*".equals(filter)) {
+            return getApplicationBasicInfo(offset, limit);
+        }
+
+        validateAttributesForPagination(offset, limit);
+
+        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        PreparedStatement getAppNamesStmt = null;
+        ResultSet appNameResultSet = null;
+        String sqlQuery;
+        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
+
+        try {
+
+            String filterResolvedForSQL = resolveSQLFilter(filter);
+
+            String databaseProductName = connection.getMetaData().getDatabaseProductName();
+            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
+                getAppNamesStmt = connection.prepareStatement(sqlQuery);
+                getAppNamesStmt.setInt(1, tenantID);
+                getAppNamesStmt.setString(2, filterResolvedForSQL);
+                getAppNamesStmt.setInt(3, offset);
+                getAppNamesStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("Oracle")) {
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE;
+                getAppNamesStmt = connection.prepareStatement(sqlQuery);
+                getAppNamesStmt.setInt(1, tenantID);
+                getAppNamesStmt.setString(2, filterResolvedForSQL);
+                getAppNamesStmt.setInt(3, offset + limit);
+                getAppNamesStmt.setInt(4, offset);
+            } else if (databaseProductName.contains("Microsoft")) {
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
+                getAppNamesStmt = connection.prepareStatement(sqlQuery);
+                getAppNamesStmt.setInt(1, tenantID);
+                getAppNamesStmt.setString(2, filterResolvedForSQL);
+                getAppNamesStmt.setInt(3, offset);
+                getAppNamesStmt.setInt(4, limit);
+            } else if (databaseProductName.contains("PostgreSQL")) {
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL;
+                getAppNamesStmt = connection.prepareStatement(sqlQuery);
+                getAppNamesStmt.setInt(1, tenantID);
+                getAppNamesStmt.setString(2, filterResolvedForSQL);
+                getAppNamesStmt.setInt(3, limit);
+                getAppNamesStmt.setInt(4, offset);
+            } else if (databaseProductName.contains("DB2")) {
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL;
+                getAppNamesStmt = connection.prepareStatement(sqlQuery);
+                getAppNamesStmt.setInt(1, tenantID);
+                getAppNamesStmt.setString(2, filterResolvedForSQL);
+                getAppNamesStmt.setInt(3, limit);
+                getAppNamesStmt.setInt(4, offset);
+            } else if (databaseProductName.contains("INFORMIX")) {
+                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX;
+                getAppNamesStmt = connection.prepareStatement(sqlQuery);
+                getAppNamesStmt.setInt(1, tenantID);
+                getAppNamesStmt.setString(2, filterResolvedForSQL);
+                getAppNamesStmt.setInt(3, offset);
+                getAppNamesStmt.setInt(4, limit);
+            } else {
+                log.error("Error while loading applications from DB: Database driver could not be identified or " +
+                        "not supported.");
+                throw new IdentityApplicationManagementException("Error while loading applications from DB:" +
+                        "Database driver could not be identified or not supported.");
+            }
+
+            appNameResultSet = getAppNamesStmt.executeQuery();
+
+            while (appNameResultSet.next()) {
+                ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
+                    continue;
+                }
+                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                appInfo.add(basicInfo);
+            }
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
+                    e.getMessage(), e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
+            IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+
+        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+    }
+
     @Override
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
 
@@ -3029,6 +3140,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
+
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while Reading all Applications");
         } finally {
@@ -3037,7 +3149,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
 
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        return appInfo.toArray(new ApplicationBasicInfo[0]);
+    }
+
+    private String resolveSQLFilter(String filter) {
+
+        if (filter != null && filter.trim().length() != 0) {
+            filter = filter.trim();
+            filter = filter.replace("*", "%");
+            filter = filter.replace("?", "_");
+        } else {
+            //To avoid any issues when the filter string is blank or null, assigning "%" to filter.
+            filter = "%";
+        }
+        return filter;
     }
 
     /**
@@ -3061,18 +3186,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
         ResultSet appNameResultSet = null;
 
         try {
-            if (StringUtils.isNotBlank(filter)) {
-                filter = filter.trim();
-                filter = filter.replace("*", "%");
-                filter = filter.replace("?", "_");
-            } else {
-                //To avoid any issues when the filter string is blank or null we are assigning "%" to filter.
-                filter = "%";
-            }
+            String filterResolvedForSQL = resolveSQLFilter(filter);
             getAppNamesStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
-            getAppNamesStmt.setString(2, filter);
+            getAppNamesStmt.setString(2, filterResolvedForSQL);
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
@@ -3110,18 +3228,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
         try {
-            if (StringUtils.isNotBlank(filter)) {
-                filter = filter.trim();
-                filter = filter.replace("*", "%");
-                filter = filter.replace("?", "_");
-            } else {
-                //To avoid any issues when the filter string is blank or null we are assigning "%" to filter.
-                filter = "%";
-            }
+            String filterResolvedForSQL = resolveSQLFilter(filter);
             getAppNamesStmt = connection
                     .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
-            getAppNamesStmt.setString(2, filter);
+            getAppNamesStmt.setString(2, filterResolvedForSQL);
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
@@ -3141,37 +3252,32 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
 
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        return appInfo.toArray(new ApplicationBasicInfo[0]);
     }
 
-    /**
-     * Get application Names for user with pagination
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber)
-            throws IdentityApplicationManagementException {
+    @Override
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+
+        validateRequestedPageNumber(pageNumber);
+
+        int limit = ApplicationMgtUtil.getItemsPerPage();
+        int offset = (pageNumber - 1) * limit;
+
+        return getApplicationBasicInfo(offset, limit);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws
+            IdentityApplicationManagementException {
+
+        validateAttributesForPagination(offset, limit);
 
         int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        int resultsPerPageInt = ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
 
-        String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(ApplicationConstants.ITEMS_PER_PAGE_PROPERTY);
-
-        try {
-            if (StringUtils.isNotBlank(resultsPerPage)) {
-                resultsPerPageInt = Integer.parseInt(resultsPerPage);
-            }
-        } catch (NumberFormatException e) {
-            // No need to handle exception since the default value is already set.
-            log.warn("Error occurred while parsing the ItemsPerPage value. Defaulting to: " + ApplicationConstants.DEFAULT_RESULTS_PER_PAGE);
-        }
-
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
         String sqlQuery;
-        int skipValue = (pageNumber - 1) * resultsPerPageInt;
         ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
 
         try {
@@ -3180,41 +3286,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, skipValue);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
-            } else if (databaseProductName.contains("Oracle")){
+                getAppNamesStmt.setInt(2, offset);
+                getAppNamesStmt.setInt(3, limit);
+            } else if (databaseProductName.contains("Oracle")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_ORACLE;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, pageNumber * resultsPerPageInt);
-                getAppNamesStmt.setInt(3, (pageNumber- 1) * resultsPerPageInt);
+                getAppNamesStmt.setInt(2, offset + limit);
+                getAppNamesStmt.setInt(3, offset);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, skipValue);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
+                getAppNamesStmt.setInt(2, offset);
+                getAppNamesStmt.setInt(3, limit);
             } else if (databaseProductName.contains("PostgreSQL")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_POSTGRESQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, resultsPerPageInt);
-                getAppNamesStmt.setInt(3, skipValue);
+                getAppNamesStmt.setInt(2, limit);
+                getAppNamesStmt.setInt(3, offset);
             } else if (databaseProductName.contains("DB2")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_DB2SQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, resultsPerPageInt);
-                getAppNamesStmt.setInt(3, skipValue);
+                getAppNamesStmt.setInt(2, limit);
+                getAppNamesStmt.setInt(3, offset);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, skipValue);
-                getAppNamesStmt.setInt(2, resultsPerPageInt);
+                getAppNamesStmt.setInt(1, offset);
+                getAppNamesStmt.setInt(2, limit);
                 getAppNamesStmt.setInt(3, tenantID);
             } else {
-                log.error("Error while getting applications from DB: Database driver could not be identified or not supported.");
-                throw new IdentityApplicationManagementException("Error while getting applications from DB: Database driver could not be identified or not supported.");
+                log.error("Error while loading applications from DB: Database driver could not be identified or " +
+                        "not supported.");
+                throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
+                        "Database driver could not be identified or not supported.");
             }
 
             appNameResultSet = getAppNamesStmt.executeQuery();
@@ -3224,124 +3332,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
                 appInfo.add(basicInfo);
             }
+
         } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while getting applications from DB: " + e.getMessage(), e);
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
-            IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
-            IdentityApplicationManagementUtil.closeConnection(connection);
-        }
-
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
-    }
-
-    /**
-     * Get application Names for user which has the filter string with pagination
-     * @param filter
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    @Override
-    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
-            throws IdentityApplicationManagementException {
-
-        int tenantID = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        int resultsPerPageInt = ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
-
-        String resultsPerPage = ServerConfiguration.getInstance().getFirstProperty(ApplicationConstants.ITEMS_PER_PAGE_PROPERTY);
-
-        try {
-            if (StringUtils.isNotBlank(resultsPerPage)) {
-                resultsPerPageInt = Integer.parseInt(resultsPerPage);
-            }
-        } catch (NumberFormatException e) {
-            // No need to handle exception since the default value is already set.
-            log.warn("Error occurred while parsing the ItemsPerPage value. Defaulting to: " + ApplicationConstants.DEFAULT_RESULTS_PER_PAGE);
-        }
-
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement getAppNamesStmt = null;
-        ResultSet appNameResultSet = null;
-        String sqlQuery;
-        int skipValue = (pageNumber - 1) * resultsPerPageInt;
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
-
-        try {
-            if (filter != null && filter.trim().length() != 0) {
-                filter = filter.trim();
-                filter = filter.replace("*", "%");
-                filter = filter.replace("?", "_");
-            } else {
-                filter = "%";
-            }
-
-            String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
-                getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, skipValue);
-                getAppNamesStmt.setInt(4, resultsPerPageInt);
-            } else if (databaseProductName.contains("Oracle")){
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE;
-                getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, pageNumber * resultsPerPageInt);
-                getAppNamesStmt.setInt(4, (pageNumber - 1) * resultsPerPageInt);
-            } else if (databaseProductName.contains("Microsoft")) {
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
-                getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, skipValue);
-                getAppNamesStmt.setInt(4, resultsPerPageInt);
-            } else if (databaseProductName.contains("PostgreSQL")) {
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL;
-                getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
-                getAppNamesStmt.setInt(4, skipValue);
-            } else if (databaseProductName.contains("DB2")) {
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL;
-                getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, resultsPerPageInt);
-                getAppNamesStmt.setInt(4, skipValue);
-            } else if (databaseProductName.contains("INFORMIX")) {
-                sqlQuery = ApplicationMgtDBQueries.LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX;
-                getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filter);
-                getAppNamesStmt.setInt(3, skipValue);
-                getAppNamesStmt.setInt(4, resultsPerPageInt);
-            } else {
-                log.error("Error while getting applications from DB: Database driver could not be identified or not supported.");
-                throw new IdentityApplicationManagementException("Error while getting applications from DB: Database driver could not be identified or not supported.");
-            }
-
-            appNameResultSet = getAppNamesStmt.executeQuery();
-
-            while (appNameResultSet.next()) {
-                ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
-                    continue;
-                }
-                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
-                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
-                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
-                appInfo.add(basicInfo);
-            }
-        } catch (SQLException e) {
-            throw new IdentityApplicationManagementException("Error while getting applications from DB: " +
+            throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
                     e.getMessage(), e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
@@ -3349,7 +3346,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
 
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        return appInfo.toArray(new ApplicationBasicInfo[0]);
     }
 
     /**
@@ -4313,6 +4310,41 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl {
             }
         } finally {
             ApplicationMgtUtil.endTenantFlow();
+        }
+    }
+
+    /**
+     * Validates the offset and limit values for pagination.
+     *
+     * @param offset Starting index.
+     * @param limit  Count value.
+     * @throws IdentityApplicationManagementException
+     */
+    private void validateAttributesForPagination(int offset, int limit) throws IdentityApplicationManagementException {
+
+        if (offset < 0) {
+            throw new IdentityApplicationManagementException("Invalid offset requested. Offset value can be zero or "
+                    + "greater than zero.");
+        }
+
+        if (limit <= 0) {
+            throw new IdentityApplicationManagementException("Invalid limit requested. Limit value should be greater "
+                    + "than zero.");
+        }
+    }
+
+    /**
+     * Validates whether the requested page number for pagination is not zero or negative.
+     *
+     * @param pageNumber Page number.
+     * @throws IdentityApplicationManagementException
+     */
+    private void validateRequestedPageNumber(int pageNumber) throws IdentityApplicationManagementException {
+
+        // Validate whether the page number is not zero or a negative number.
+        if (pageNumber < 1) {
+            throw new IdentityApplicationManagementException("Invalid page number requested. The page number should "
+                    + "be a value greater than 0.");
         }
     }
 }
