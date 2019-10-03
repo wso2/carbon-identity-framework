@@ -440,6 +440,51 @@ paths:
       tags:
         - File
 
+  "/resource/{resource-type}/file":
+    get:
+      produces:
+        - 'application/json'
+      description: |
+        This API is used to retrieve files for resource types.
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/file" -H
+        "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/file"
+        -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
+      x-wso2-response: |
+        {
+            "path": "/resource/file/c050d8af-4277-4cf2-a43f-9dce448a8435",
+            "path": "/resource/file/g050d8af-4378-4cf3-a43f-8dce448a8485"
+        }
+      summary: |
+        Retrieve the files related to resource types.
+      parameters:
+        - name: resource-type
+          in: path
+          description: This represents a resource type of the files to be retrieved.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: file
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+        - File
+
   "/resource/{resource-type}/{resource-name}/file":
     post:
       consumes:
@@ -493,7 +538,6 @@ paths:
             $ref: '#/definitions/Error'
       tags:
         - File
-
   get:
     description: |
       This API is used to retrieve all the files for the resource.

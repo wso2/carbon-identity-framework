@@ -330,4 +330,6 @@ public class SQLConstants {
             "  IDN_CONFIG_ATTRIBUTE\n" +
             "WHERE\n" +
             "  RESOURCE_ID = ?";
+    public static final String GET_FILES_BY_RESOURCE_TYPE_ID_SQL = "SELECT F.ID FROM IDN_CONFIG_FILE AS F INNER JOIN "
+            + "IDN_CONFIG_RESOURCE AS R ON F.RESOURCE_ID = R.ID INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID where T.ID = ?";
 }

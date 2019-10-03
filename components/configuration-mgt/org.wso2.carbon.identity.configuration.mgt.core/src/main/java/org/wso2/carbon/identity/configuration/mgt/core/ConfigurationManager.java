@@ -218,6 +218,16 @@ public interface ConfigurationManager {
             throws ConfigurationManagementException;
 
     /**
+     * This API is used to get all files for the given {@link ResourceType}
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @return 200 ok. Returns a list of {@link ResourceFile} for the {@link ResourceType}.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    List<ResourceFile> getFiles(String resourceTypeName)
+            throws ConfigurationManagementException;
+
+    /**
      * This API is used to delete all files for the given {@link Resource}
      *
      * @param resourceTypeName Name of the {@link ResourceType}.

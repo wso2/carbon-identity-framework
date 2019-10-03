@@ -105,7 +105,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     /**
      * {@inheritDoc}
      */
-    public Resources getResourcesByType(String resourceType) throws ConfigurationManagementException {
+    public Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException {
 
         checkFeatureStatus();
 
@@ -399,6 +399,17 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
+    private void validateResourcesRetrieveRequest(String resourceTypeName)
+            throws ConfigurationManagementException {
+
+        if (StringUtils.isEmpty(resourceTypeName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid resource identifier with resourceTypeName: " + resourceTypeName + ".");
+            }
+            throw handleClientException(ERROR_CODE_RESOURCE_GET_REQUEST_INVALID, null);
+        }
+    }
+
     private int getTenantId() {
 
         return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
@@ -682,6 +693,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return getResource(resourceTypeName, resourceName).getResourceId();
     }
 
+    private String getResourceTypeId(String resourceTypeName) throws ConfigurationManagementException {
+
+        return getResourceType(resourceTypeName).getId();
+    }
+
     /**
      * Select highest priority Resource DAO from an already sorted list of Resource DAOs.
      *
@@ -753,6 +769,26 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     @Override
+    public List<ResourceFile> getFiles(String resourceTypeName) throws ConfigurationManagementException {
+
+        validateFilesGetRequest(resourceTypeName);
+        String resourceTypeId = getResourceTypeId(resourceTypeName);
+        List<ResourceFile> resourceFiles = getConfigurationDAO().getFilesByResourceType(resourceTypeId);
+        if (resourceFiles == null || resourceFiles.size() == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resource type: " + resourceTypeName + " does not have any files.");
+            }
+            throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceTypeName);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Files for the resource type: " + resourceTypeName + " retrieved successfully.");
+        }
+        return resourceFiles;
+    }
+
+
+    @Override
     public void deleteFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
 
         validateFilesDeleteRequest(resourceTypeName, resourceName);
@@ -802,6 +838,14 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName)) {
             String fileIdentifiers = "resourceType: " + resourceTypeName + ", resourceName: " + resourceName;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
+        }
+    }
+
+    private void validateFilesGetRequest(String resourceTypeName) throws ConfigurationManagementClientException {
+
+        if (StringUtils.isEmpty(resourceTypeName)) {
+            String fileIdentifiers = "resourceType: " + resourceTypeName;
             throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
         }
     }
