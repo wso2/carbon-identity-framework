@@ -538,49 +538,49 @@ paths:
             $ref: '#/definitions/Error'
       tags:
         - File
-  get:
-    description: |
-      This API is used to retrieve all the files for the resource.
-    x-wso2-request: |
-      curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}/{resource-name}/file" -H "accept: application/json" -H "Authorization: Basic <Base64Encoded[username:password]>"
-    x-wso2-curl: |
-      curl -k -X GET 'https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file' -H "accept: application/json" -H 'Authorization: Basic YWRtaW46YWRtaW4='
-    x-wso2-response: |
-      [{"id":"0e032695-f24e-4559-8ac5-bd51be07b250","path":"/resource/file/0e032695-f24e-4559-8ac5-bd51be07b250"},{"id":"215ec2ab-b186-45ef-8278-fc3f9999598d","path":"/resource/file/215ec2ab-b186-45ef-8278-fc3f9999598d"},{"id":"685f3edc-4dc9-4a4f-a4d7-7c3252cb621a","path":"/resource/file/685f3edc-4dc9-4a4f-a4d7-7c3252cb621a"},{"id":"9921a2ac-058c-4aeb-a8f2-e126d80dbe88","path":"/resource/file/9921a2ac-058c-4aeb-a8f2-e126d80dbe88"},{"id":"9e06ff53-1cd7-4b65-86e1-1ff4063a78a7","path":"/resource/file/9e06ff53-1cd7-4b65-86e1-1ff4063a78a7"}]
-    summary: |
-      Retrieve all the files for the resource.
-    parameters:
-      - name: resource-name
-        in: path
-        description:  This represents the name of the resource to be retrieved.
-        required: true
-        type: 'string'
-      - name: resource-type
-        in: path
-        description:  This represents the type of the resource to be added and can either be the name or id.
-        required: true
-        type: 'string'
-    responses:
-      200:
-        description: Ok
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/ResourceFile'
-      400:
-        description: Bad Request
-        schema:
-          $ref: '#/definitions/Error'
-      401:
-        description: Unauthorized
-        schema:
-          $ref: '#/definitions/Error'
-      500:
-        description: Server Error
-        schema:
-          $ref: '#/definitions/Error'
-    tags:
-      - File
+    get:
+      description: |
+        This API is used to retrieve all the files for the resource.
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}/{resource-name}/file" -H "accept: application/json" -H "Authorization: Basic <Base64Encoded[username:password]>"
+      x-wso2-curl: |
+        curl -k -X GET 'https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file' -H "accept: application/json" -H 'Authorization: Basic YWRtaW46YWRtaW4='
+      x-wso2-response: |
+        [{"id":"0e032695-f24e-4559-8ac5-bd51be07b250","path":"/resource/file/0e032695-f24e-4559-8ac5-bd51be07b250"},{"id":"215ec2ab-b186-45ef-8278-fc3f9999598d","path":"/resource/file/215ec2ab-b186-45ef-8278-fc3f9999598d"},{"id":"685f3edc-4dc9-4a4f-a4d7-7c3252cb621a","path":"/resource/file/685f3edc-4dc9-4a4f-a4d7-7c3252cb621a"},{"id":"9921a2ac-058c-4aeb-a8f2-e126d80dbe88","path":"/resource/file/9921a2ac-058c-4aeb-a8f2-e126d80dbe88"},{"id":"9e06ff53-1cd7-4b65-86e1-1ff4063a78a7","path":"/resource/file/9e06ff53-1cd7-4b65-86e1-1ff4063a78a7"}]
+      summary: |
+        Retrieve all the files for the resource.
+      parameters:
+        - name: resource-name
+          in: path
+          description:  This represents the name of the resource to be retrieved.
+          required: true
+          type: 'string'
+        - name: resource-type
+          in: path
+          description:  This represents the type of the resource to be added and can either be the name or id.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ResourceFile'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+        - File
     delete:
       description: |
         This API is used to revoke all the files for the resource.
