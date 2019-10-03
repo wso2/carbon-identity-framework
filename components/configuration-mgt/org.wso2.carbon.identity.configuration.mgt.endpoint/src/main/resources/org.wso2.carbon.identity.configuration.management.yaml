@@ -387,7 +387,7 @@ paths:
         200:
           description: Ok
           schema:
-            type: file
+            $ref: '#/definitions/ResourceFile'
         400:
           description: Bad Request
           schema:
@@ -469,7 +469,7 @@ paths:
         200:
           description: Ok
           schema:
-            type: file
+            $ref: '#/definitions/ResourceFile'
         400:
           description: Bad Request
           schema:
@@ -492,9 +492,13 @@ paths:
       description: |
         This API is used to store a file given by the user.
       x-wso2-request: |
-        curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1.0/resource/{resource-type}/{resource-name}/file" -H "accept: application/json" -H "Content-Type: multipart/form-data" -H "Authorization: Basic <Base64Encoded[username:password]>"  -F "resourceFile={file-path}""
+        curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1
+        .0/resource/{resource-type}/{resource-name}/file/{file-name}" -H "accept: application/json" -H "Content-Type:
+        multipart/form-data" -H "Authorization: Basic <Base64Encoded[username:password]>"  -F "resourceFile={file-path}""
       x-wso2-curl: |
-        curl -k -X POST https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file -H "accept: application/json" -H "Content-Type: multipart/form-data" -H 'Authorization: Basic YWRtaW46YWRtaW4='  -F "resourceFile=@/test.txt"'
+        curl -k -X POST https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file/email-publisher
+        -H "accept: application/json" -H "Content-Type: multipart/form-data" -H 'Authorization: Basic YWRtaW46YWRtaW4='
+        -F "resourceFile=@/test.txt"'
       x-wso2-response: |
         {"path":"/resource/file/7060b0c6-000b-47ed-86ef-396ff5cb8203"}
       summary: |
@@ -515,6 +519,10 @@ paths:
           in: formData
           type: file
           description: This represents the corresponding resource file that needs to be added.
+        - name: file-name
+          in: formData
+          type: 'string'
+          description: This represents the corresponding resource file name that needs to be added.
       responses:
         201:
           description: Successful response
@@ -1019,6 +1027,24 @@ definitions:
     type: object
     required:
       - path
+      - name
     properties:
       path:
+        $ref: '#/definitions/Link'
+      name:
         type: string
+
+  #-----------------------------------------------------
+  # Link object
+  #-----------------------------------------------------
+  Link:
+    type: object
+    properties:
+      href:
+        type: string
+        description: Path to the target file.
+        example: "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9"
+      rel:
+        type: string
+        description: Describes how the current context is related to the target resource.
+        example: "file"

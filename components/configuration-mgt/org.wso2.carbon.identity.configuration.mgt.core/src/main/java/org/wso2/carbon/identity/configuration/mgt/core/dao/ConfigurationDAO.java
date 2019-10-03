@@ -195,10 +195,11 @@ public interface ConfigurationDAO {
      *
      * @param fileId     Id of the file.
      * @param resourceId Id of the {@link Resource}.
+     * @param fileName   Name of the {@link ResourceFile}
      * @param fileStream {@link InputStream} representing the file.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
-    void addFile(String fileId, String resourceId, InputStream fileStream)
+    void addFile(String fileId, String resourceId, String fileName, InputStream fileStream)
             throws ConfigurationManagementException;
 
     /**

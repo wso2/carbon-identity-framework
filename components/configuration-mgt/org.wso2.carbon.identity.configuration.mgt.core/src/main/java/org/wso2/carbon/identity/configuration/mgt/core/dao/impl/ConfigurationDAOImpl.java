@@ -49,11 +49,9 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_INSERT_FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILES_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILE_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_ATTRIBUTE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_FILE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
@@ -982,7 +980,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public void addFile(String fileId, String resourceId, InputStream fileStream)
+    public void addFile(String fileId, String resourceId, String fileName, InputStream fileStream)
             throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -992,6 +990,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     preparedStatement.setString(1, fileId);
                     preparedStatement.setBlob(2, fileStream);
                     preparedStatement.setString(3, resourceId);
+                    preparedStatement.setString(4, fileName);
                 });
                 template.executeUpdate(SQLConstants.UPDATE_HAS_FILE_SQL, preparedStatement -> {
                     preparedStatement.setBoolean(1, true);
@@ -1078,9 +1077,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
                     ((resultSet, rowNumber) -> {
                         String resourceFileId = resultSet.getString("ID");
+                        String resourceFileName = resultSet.getString("NAME");
                         return new ResourceFile(
                                 resourceFileId,
-                                getFilePath(resourceFileId)
+                                getFilePath(resourceFileId),
+                                resourceFileName
                         );
                     }),
                     preparedStatement -> {
@@ -1099,9 +1100,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_TYPE_ID_SQL,
                     ((resultSet, rowNumber) -> {
                         String resourceFileId = resultSet.getString("ID");
+                        String resourceFileName = resultSet.getString("NAME");
                         return new ResourceFile(
                                 resourceFileId,
-                                getFilePath(resourceFileId)
+                                getFilePath(resourceFileId),
+                                resourceFileName
                         );
                     }),
                     preparedStatement -> {

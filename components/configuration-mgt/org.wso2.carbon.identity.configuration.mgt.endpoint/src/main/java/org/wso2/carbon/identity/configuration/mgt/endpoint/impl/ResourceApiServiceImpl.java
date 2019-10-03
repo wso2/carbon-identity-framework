@@ -231,14 +231,13 @@ public class ResourceApiServiceImpl extends ResourceApiService {
 
     @Override
     public Response resourceResourceTypeResourceNameFilePost(String resourceName, String resourceType,
-            InputStream resourceFileInputStream,
-            Attachment resourceFileDetail) {
+            InputStream resourceFileInputStream, Attachment resourceFileDetail, String fileName) {
 
         try {
-            ResourceFile resourceFile = getConfigurationManager().addFile(
-                    resourceType, resourceName, resourceFileInputStream);
-            return Response.created(getFileLocationURI(resourceType, resourceName, resourceFile)).entity(
-                    getResourceFileDTO(resourceFile)).build();
+            ResourceFile resourceFile = getConfigurationManager()
+                    .addFile(resourceType, resourceName, fileName, resourceFileInputStream);
+            return Response.created(getFileLocationURI(resourceType, resourceName, resourceFile))
+                    .entity(getResourceFileDTO(resourceFile)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {

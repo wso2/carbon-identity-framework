@@ -7,11 +7,11 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.factories.ResourceApi
 import io.swagger.annotations.ApiParam;
 
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
-import java.io.File;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
+import java.io.File;
 
 import java.util.List;
 
@@ -54,7 +54,7 @@ public class ResourceApi  {
     @Path("/file/{file-id}")
     @Consumes({ "application/json" })
     @Produces({ "application/octet-stream" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve the file.\n", notes = "This API is used to retrieve a file.\n", response = File.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve the file.\n", notes = "This API is used to retrieve a file.\n", response = ResourceFileDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
         
@@ -72,7 +72,7 @@ public class ResourceApi  {
     @Path("/{resource-type}/file")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve the files related to resource types.\n", notes = "This API is used to retrieve files for resource types.\n", response = File.class)
+    @io.swagger.annotations.ApiOperation(value = "Retrieve the files related to resource types.\n", notes = "This API is used to retrieve files for resource types.\n", response = ResourceFileDTO.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
         
@@ -248,9 +248,10 @@ public class ResourceApi  {
     public Response resourceResourceTypeResourceNameFilePost(@ApiParam(value = "This represents the name of the attribute to be added.",required=true ) @PathParam("resource-name")  String resourceName,
     @ApiParam(value = "This represents the type of the attribute to be added and can either be the name or id.",required=true ) @PathParam("resource-type")  String resourceType,
     @ApiParam(value = "This represents the corresponding resource file that needs to be added.") @Multipart(value = "resourceFile", required = false) InputStream resourceFileInputStream,
-    @ApiParam(value = "This represents the corresponding resource file that needs to be added. : details") @Multipart(value = "resourceFile" , required = false) Attachment resourceFileDetail)
+    @ApiParam(value = "This represents the corresponding resource file that needs to be added. : details") @Multipart(value = "resourceFile" , required = false) Attachment resourceFileDetail,
+    @ApiParam(value = "This represents the corresponding resource file name that needs to be added." )@Multipart(value = "fileName", required = false)  String fileName)
     {
-    return delegate.resourceResourceTypeResourceNameFilePost(resourceName,resourceType,resourceFileInputStream,resourceFileDetail);
+    return delegate.resourceResourceTypeResourceNameFilePost(resourceName,resourceType,resourceFileInputStream,resourceFileDetail,fileName);
     }
     @GET
     @Path("/{resource-type}/{resource-name}")

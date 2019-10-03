@@ -303,17 +303,20 @@ public class SQLConstants {
     public static final String UPDATE_LAST_MODIFIED_SQL = "UPDATE IDN_CONFIG_RESOURCE SET LAST_MODIFIED = ? " +
             "WHERE ID = ?";
 
-    public static final String INSERT_FILE_SQL = "INSERT INTO IDN_CONFIG_FILE(ID, VALUE, RESOURCE_ID) VALUES(?, ?, ?)";
+    public static final String INSERT_FILE_SQL = "INSERT INTO IDN_CONFIG_FILE(ID, VALUE, RESOURCE_ID, NAME) VALUES(?, "
+            + "?, ?, ?)";
     public static final String GET_FILE_BY_ID_SQL = "SELECT\n" +
             "  ID,\n" +
             "  VALUE,\n" +
             "  RESOURCE_ID\n" +
+            "  NAME\n" +
             "FROM\n" +
             "  IDN_CONFIG_FILE\n" +
             "WHERE\n" +
             "  ID = ?";
     public static final String GET_FILES_BY_RESOURCE_ID_SQL = "SELECT\n" +
             "  ID\n" +
+            "  NAME\n" +
             "FROM\n" +
             "  IDN_CONFIG_FILE\n" +
             "WHERE\n" +
@@ -330,6 +333,7 @@ public class SQLConstants {
             "  IDN_CONFIG_ATTRIBUTE\n" +
             "WHERE\n" +
             "  RESOURCE_ID = ?";
-    public static final String GET_FILES_BY_RESOURCE_TYPE_ID_SQL = "SELECT F.ID FROM IDN_CONFIG_FILE AS F INNER JOIN "
-            + "IDN_CONFIG_RESOURCE AS R ON F.RESOURCE_ID = R.ID INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID where T.ID = ?";
+    public static final String GET_FILES_BY_RESOURCE_TYPE_ID_SQL = "SELECT F.ID, F.NAME FROM IDN_CONFIG_FILE AS F "
+            + "INNER JOIN IDN_CONFIG_RESOURCE AS R ON F.RESOURCE_ID = R.ID INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID "
+            + "= T.ID where T.ID = ?";
 }

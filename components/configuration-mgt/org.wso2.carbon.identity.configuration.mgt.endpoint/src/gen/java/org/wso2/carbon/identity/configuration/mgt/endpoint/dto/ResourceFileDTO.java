@@ -1,5 +1,6 @@
 package org.wso2.carbon.identity.configuration.mgt.endpoint.dto;
 
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.LinkDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -15,18 +16,33 @@ public class ResourceFileDTO  {
   
   
   @NotNull
-  private String path = null;
+  private LinkDTO path = null;
+  
+  @NotNull
+  private String name = null;
 
   
   /**
    **/
   @ApiModelProperty(required = true, value = "")
   @JsonProperty("path")
-  public String getPath() {
+  public LinkDTO getPath() {
     return path;
   }
-  public void setPath(String path) {
+  public void setPath(LinkDTO path) {
     this.path = path;
+  }
+
+  
+  /**
+   **/
+  @ApiModelProperty(required = true, value = "")
+  @JsonProperty("name")
+  public String getName() {
+    return name;
+  }
+  public void setName(String name) {
+    this.name = name;
   }
 
   
@@ -37,6 +53,7 @@ public class ResourceFileDTO  {
     sb.append("class ResourceFileDTO {\n");
     
     sb.append("  path: ").append(path).append("\n");
+    sb.append("  name: ").append(name).append("\n");
     sb.append("}\n");
     return sb.toString();
   }

@@ -26,25 +26,24 @@ import javax.ws.rs.*;
 @io.swagger.annotations.Api(value = "/search", description = "the search API")
 public class SearchApi  {
 
-   private final SearchApiService delegate = SearchApiServiceFactory.getSearchApi();
+ private final SearchApiService delegate = SearchApiServiceFactory.getSearchApi();
 
-    @GET
-    
-    @Consumes({ "application/json" })
-    @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Retrieve tenant resources based on search parameters\n", notes = "This API is used to search resources across tenants based on search parameters given in the search query. For more information on using this API, see [Retrieving Tenant Resources Based on Search Parameters](https://docs.wso2.com/display/identity-server/Retrieving+Tenant+Resources+Based+on+Search+Parameters).\n", response = ResourcesDTO.class)
-    @io.swagger.annotations.ApiResponses(value = { 
-        @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
-        
-        @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
-        
-        @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
-        
-        @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+ @GET
 
-    public Response searchGet(@Context SearchContext searchContext)
-    {
-     return delegate.searchGet(searchContext);
-    }
+ @Consumes({ "application/json" })
+ @Produces({ "application/json" })
+ @io.swagger.annotations.ApiOperation(value = "Retrieve tenant resources based on search parameters\n", notes = "This API is used to search resources across tenants based on search parameters given in the search query. For more information on using this API, see [Retrieving Tenant Resources Based on Search Parameters](https://docs.wso2.com/display/identity-server/Retrieving+Tenant+Resources+Based+on+Search+Parameters).\n", response = ResourcesDTO.class)
+ @io.swagger.annotations.ApiResponses(value = {
+         @io.swagger.annotations.ApiResponse(code = 200, message = "Ok"),
+
+         @io.swagger.annotations.ApiResponse(code = 400, message = "Bad Request"),
+
+         @io.swagger.annotations.ApiResponse(code = 401, message = "Unauthorized"),
+
+         @io.swagger.annotations.ApiResponse(code = 500, message = "Server Error") })
+
+ public Response searchGet(@Context SearchContext searchContext)
+ {
+  return delegate.searchGet(searchContext);
+ }
 }
-

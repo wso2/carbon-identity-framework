@@ -443,7 +443,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
 
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
-                resource.getResourceName(), fileStream);
+                resource.getResourceName(), resourceName, fileStream);
         Assert.assertNotNull("Created resource file id cannot be null", resourceFile.getId());
     }
 
@@ -457,7 +457,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
 
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
-                resource.getResourceName(), fileStream);
+                resource.getResourceName(), resourceName, fileStream);
         InputStream retrievedFileStream = configurationManager.getFileById(resourceFile.getId());
         Assert.assertNotNull("Retrieved stream for the file id cannot be null", retrievedFileStream);
     }
@@ -472,7 +472,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
 
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
-                resource.getResourceName(), fileStream);
+                resource.getResourceName(), resourceName, fileStream);
 
         configurationManager.deleteFileById(resourceFile.getId());
         Assert.assertFalse(
@@ -492,8 +492,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
         InputStream fileStream1 = FileUtils.openInputStream(sampleResourceFile1);
 
-        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), fileStream);
-        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), fileStream1);
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), resourceName, fileStream);
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), resourceName, fileStream1);
 
         List<ResourceFile> resourceFiles = configurationManager.getFiles(
                 resourceType.getName(), resource.getResourceName());
@@ -513,8 +513,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
         InputStream fileStream1 = FileUtils.openInputStream(sampleResourceFile1);
 
-        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), fileStream);
-        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), fileStream1);
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), resourceName, fileStream);
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), resourceName, fileStream1);
 
         configurationManager.deleteFiles(
                 resourceType.getName(), resource.getResourceName());

@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.constant.Condition
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.LinkDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
@@ -133,7 +134,11 @@ public class ConfigurationEndpointUtils {
     public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile) {
 
         ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
-        resourceFileDTO.setPath(resourceFile.getValue());
+        LinkDTO linkDTO = new LinkDTO();
+        linkDTO.setHref(resourceFile.getValue());
+        linkDTO.setRel("file");
+        resourceFileDTO.setPath(linkDTO);
+        resourceFileDTO.setName(resourceFile.getName());
         return resourceFileDTO;
     }
 

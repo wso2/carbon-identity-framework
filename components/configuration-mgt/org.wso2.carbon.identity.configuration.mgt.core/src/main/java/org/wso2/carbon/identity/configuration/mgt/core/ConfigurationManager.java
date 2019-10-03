@@ -199,11 +199,12 @@ public interface ConfigurationManager {
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
      * @param resourceName     Name of the {@link Resource}.
+     * @param name             Name of the {@link ResourceFile}
      * @param fileStream       {@link InputStream} representing the file.
      * @return 200 ok. Returns {@link ResourceFile} created.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    ResourceFile addFile(String resourceTypeName, String resourceName, InputStream fileStream)
+    ResourceFile addFile(String resourceTypeName, String resourceName, String name, InputStream fileStream)
             throws ConfigurationManagementException;
 
     /**

@@ -17,11 +17,14 @@
 package org.wso2.carbon.identity.configuration.mgt.core.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_FILE_BY_ID_PATH;
 
 import java.util.UUID;
@@ -99,7 +102,7 @@ public class ConfigurationUtils {
      * object when an exception is thrown.
      *
      * @param error ConfigurationConstants.ErrorMessages.
-     * @param data  data to replace if message needs to be replaced.
+     * @param data  daata to replace if message needs to be replaced.
      * @return ConsentManagementRuntimeException
      */
     public static ConfigurationManagementRuntimeException handleRuntimeException(ConfigurationConstants.ErrorMessages error,
@@ -142,6 +145,7 @@ public class ConfigurationUtils {
 
     public static String getFilePath(String resourceFileId) {
 
-        return RESOURCE_FILE_BY_ID_PATH + "/" + resourceFileId;
+        return IdentityUtil.getEndpointURIPath(RESOURCE_FILE_BY_ID_PATH + "/" + resourceFileId,true,false);
+
     }
 }

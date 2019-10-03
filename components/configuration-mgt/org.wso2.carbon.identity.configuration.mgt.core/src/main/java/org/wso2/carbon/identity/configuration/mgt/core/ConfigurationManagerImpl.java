@@ -733,20 +733,20 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
      * {@inheritDoc}
      */
     @Override
-    public ResourceFile addFile(String resourceTypeName, String resourceName, InputStream fileStream)
+    public ResourceFile addFile(String resourceTypeName, String resourceName, String fileName, InputStream fileStream)
             throws ConfigurationManagementException {
 
-        validateFileAddRequest(resourceTypeName, resourceName, fileStream);
+        validateFileAddRequest(resourceTypeName, resourceName, fileName, fileStream);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         String fileId = generateUniqueID();
         if (log.isDebugEnabled()) {
             log.debug("File id generated: " + fileId);
         }
-        getConfigurationDAO().addFile(fileId, resourceId, fileStream);
+        getConfigurationDAO().addFile(fileId, resourceId, fileName, fileStream);
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully added.");
         }
-        return new ResourceFile(fileId, getFilePath(fileId));
+        return new ResourceFile(fileId, getFilePath(fileId), fileName);
     }
 
     @Override
@@ -873,10 +873,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateFileAddRequest(String resourceTypeName, String resourceName, InputStream fileStream) throws ConfigurationManagementClientException {
+    private void validateFileAddRequest(String resourceTypeName, String resourceName, String fileName, InputStream fileStream) throws ConfigurationManagementClientException {
 
-        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName)) {
-            String fileIdentifiers = "Resource type: " + resourceTypeName + ", resourceName: " + resourceName;
+        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName) || StringUtils.isEmpty(fileName)) {
+            String fileIdentifiers = "Resource type: " + resourceTypeName + ", resourceName: " + resourceName + ". "
+                    + "FileName: " + fileName;
             throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
         }
 

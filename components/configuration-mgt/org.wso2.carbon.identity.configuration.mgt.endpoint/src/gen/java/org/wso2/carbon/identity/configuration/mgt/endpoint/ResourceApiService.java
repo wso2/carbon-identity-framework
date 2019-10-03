@@ -4,11 +4,11 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.*;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.*;
 
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
-import java.io.File;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
+import java.io.File;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public abstract class ResourceApiService {
     public abstract Response resourceResourceTypeResourceNameDelete(String resourceName,String resourceType);
     public abstract Response resourceResourceTypeResourceNameFileDelete(String resourceName,String resourceType);
     public abstract Response resourceResourceTypeResourceNameFileGet(String resourceName,String resourceType);
-    public abstract Response resourceResourceTypeResourceNameFilePost(String resourceName,String resourceType,InputStream resourceFileInputStream,Attachment resourceFileDetail);
+    public abstract Response resourceResourceTypeResourceNameFilePost(String resourceName,String resourceType,InputStream resourceFileInputStream,Attachment resourceFileDetail,String fileName);
     public abstract Response resourceResourceTypeResourceNameGet(String resourceName,String resourceType);
     public abstract Response resourceResourceTypeResourceNamePost(String resourceName,String resourceType,AttributeDTO attribute);
     public abstract Response resourceResourceTypeResourceNamePut(String resourceName,String resourceType,AttributeDTO attribute);
