@@ -365,14 +365,11 @@ paths:
       description: |
         This API is used to retrieve a file.
       x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1
-              .0/resource/file/<file-id>" -H "Authorization: Basic
-              <Base64Encoded[username:password]>" -H "accept: application/json"
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/<file-id>" -H "Authorization: Basic
+        <Base64Encoded[username:password]>" -H "accept: application/json"
       x-wso2-curl: |
         curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/cc26a039-8f08-4a4a-b533-44b5f69487fa" -H
-                    "Authorization:
-                    Basic
-                    YWRtaW46YWRtaW4=" -H "accept: application/json"
+        "Authorization:Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
         Hello World!
       summary: |
@@ -387,7 +384,7 @@ paths:
         200:
           description: Ok
           schema:
-            $ref: '#/definitions/ResourceFile'
+            example: 'Hello World'
         400:
           description: Bad Request
           schema:
@@ -453,10 +450,29 @@ paths:
         curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/file"
         -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
       x-wso2-response: |
-        {
-            "path": "/resource/file/c050d8af-4277-4cf2-a43f-9dce448a8435",
-            "path": "/resource/file/g050d8af-4378-4cf3-a43f-8dce448a8485"
-        }
+        [
+          {
+                "path": {
+                  "href": "/resource/file/c206d2e5-cb21-41c8-8be6-7e592c84c855",
+                  "rel": "file"
+                },
+                "name": "EmailPublisher"
+          },
+          {
+                "path": {
+                  "href": "/resource/file/e3d05f41-e3fa-40d3-8704-87248ca718ed",
+                  "rel": "file"
+                },
+                "name": "SMSPublisher"
+          },
+              {
+                "path": {
+                  "href": "/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9",
+                  "rel": "file"
+                },
+                "name": "HTTPPublisher"
+          }
+        ]
       summary: |
         Retrieve the files related to resource types.
       parameters:
@@ -469,7 +485,14 @@ paths:
         200:
           description: Ok
           schema:
-            $ref: '#/definitions/ResourceFile'
+            type: array
+            items:
+              $ref: '#/definitions/ResourceFile'
+            example:
+              - path: '{"href": "/resource/file/0779ed83-9d44-440e-9d1f-535caad015c","rel": "file"}'
+                name: 'EmailPublisher'
+              - path: '{"href": "/resource/file/07535caad015c83-9d44-9d1f-aad015c","rel": "file"}'
+                name: 'SMSPublisher'
         400:
           description: Bad Request
           schema:
@@ -494,13 +517,14 @@ paths:
       x-wso2-request: |
         curl -k -X POST "https://localhost:9443/api/identity/config-mgt/v1
         .0/resource/{resource-type}/{resource-name}/file/{file-name}" -H "accept: application/json" -H "Content-Type:
-        multipart/form-data" -H "Authorization: Basic <Base64Encoded[username:password]>"  -F "resourceFile={file-path}""
+        multipart/form-data" -H "Authorization: Basic <Base64Encoded[username:password]>"  -F
+        "resourceFile={file-path}" -F "fileName={file-name}"
       x-wso2-curl: |
         curl -k -X POST https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file/email-publisher
-        -H "accept: application/json" -H "Content-Type: multipart/form-data" -H 'Authorization: Basic YWRtaW46YWRtaW4='
-        -F "resourceFile=@/test.txt"'
+        -H "accept: application/json" -H "Content-Type: multipart/form-data" -H 'Authorization: Basic
+        YWRtaW46YWRtaW4=' -F "resourceFile=@/test.txt" -F "fileName=EmailPublisher"'
       x-wso2-response: |
-        {"path":"/resource/file/7060b0c6-000b-47ed-86ef-396ff5cb8203"}
+
       summary: |
         Create a file
       # post parameters:
@@ -526,6 +550,10 @@ paths:
       responses:
         201:
           description: Successful response
+          headers:
+            Location:
+              type: 'string'
+              description: file location.
         400:
           description: Bad Request
           schema:
@@ -552,7 +580,29 @@ paths:
       x-wso2-curl: |
         curl -k -X GET 'https://localhost:9443/api/identity/config-mgt/v1.0/resource/e-mail/smtp/file' -H "accept: application/json" -H 'Authorization: Basic YWRtaW46YWRtaW4='
       x-wso2-response: |
-        [{"id":"0e032695-f24e-4559-8ac5-bd51be07b250","path":"/resource/file/0e032695-f24e-4559-8ac5-bd51be07b250"},{"id":"215ec2ab-b186-45ef-8278-fc3f9999598d","path":"/resource/file/215ec2ab-b186-45ef-8278-fc3f9999598d"},{"id":"685f3edc-4dc9-4a4f-a4d7-7c3252cb621a","path":"/resource/file/685f3edc-4dc9-4a4f-a4d7-7c3252cb621a"},{"id":"9921a2ac-058c-4aeb-a8f2-e126d80dbe88","path":"/resource/file/9921a2ac-058c-4aeb-a8f2-e126d80dbe88"},{"id":"9e06ff53-1cd7-4b65-86e1-1ff4063a78a7","path":"/resource/file/9e06ff53-1cd7-4b65-86e1-1ff4063a78a7"}]
+        [
+          {
+                "path": {
+                  "href": "/resource/file/c206d2e5-cb21-41c8-8be6-7e592c84c855",
+                  "rel": "file"
+                },
+                "name": "EmailPublisher"
+          },
+          {
+                "path": {
+                  "href": "/resource/file/e3d05f41-e3fa-40d3-8704-87248ca718ed",
+                  "rel": "file"
+                },
+                "name": "SMSPublisher"
+          },
+              {
+                "path": {
+                  "href": "/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9",
+                  "rel": "file"
+                },
+                "name": "HTTPPublisher"
+          }
+        ]
       summary: |
         Retrieve all the files for the resource.
       parameters:
@@ -573,6 +623,11 @@ paths:
             type: array
             items:
               $ref: '#/definitions/ResourceFile'
+            example:
+              - path: '{"href": "/resource/file/0779ed83-9d44-440e-9d1f-535caad015c","rel": "file"}'
+                name: 'EmailPublisher'
+              - path: '{"href": "/resource/file/07535caad015c83-9d44-9d1f-aad015c","rel": "file"}'
+                name: 'EmailPublisherDocs'
         400:
           description: Bad Request
           schema:
@@ -1041,7 +1096,7 @@ definitions:
       href:
         type: string
         description: Path to the target file.
-        example: "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9"
+        example: "/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9"
       rel:
         type: string
         description: Describes how the current context is related to the target resource.

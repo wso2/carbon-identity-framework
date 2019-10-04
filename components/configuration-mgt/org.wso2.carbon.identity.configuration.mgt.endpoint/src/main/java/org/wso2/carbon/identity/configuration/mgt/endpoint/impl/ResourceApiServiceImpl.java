@@ -44,7 +44,6 @@ import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.Configura
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getConfigurationManager;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceAddFromDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceDTO;
-import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getResourceFileDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleBadRequestResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleServerErrorResponse;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.handleUnexpectedServerError;
@@ -236,8 +235,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         try {
             ResourceFile resourceFile = getConfigurationManager()
                     .addFile(resourceType, resourceName, fileName, resourceFileInputStream);
-            return Response.created(getFileLocationURI(resourceType, resourceName, resourceFile))
-                    .location(getFileLocationURI(resourceType, resourceName, resourceFile)).build();
+            return Response.created(new URI(resourceFile.getValue())).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {
@@ -293,9 +291,4 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + attribute.getAttributeId());
     }
 
-    private URI getFileLocationURI(String resourceType, String resourceName, ResourceFile resourceFile)
-            throws URISyntaxException {
-
-        return new URI(RESOURCE_PATH + '/'  + FILE + '/' + resourceFile.getId());
-    }
 }
