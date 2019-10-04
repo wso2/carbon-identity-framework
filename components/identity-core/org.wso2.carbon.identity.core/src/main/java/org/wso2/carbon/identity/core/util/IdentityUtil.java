@@ -461,13 +461,6 @@ public class IdentityUtil {
      */
     public static XMLObject unmarshall(String xmlString) throws IdentityException {
 
-        System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
-                "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
-
-        Thread thread = Thread.currentThread();
-        ClassLoader loader = thread.getContextClassLoader();
-        thread.setContextClassLoader(IdentityUtil.class.getClassLoader());
-
         try {
             DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
             documentBuilderFactory.setIgnoringComments(true);
@@ -483,8 +476,6 @@ public class IdentityUtil {
         } catch (ParserConfigurationException | UnmarshallingException | SAXException | IOException e) {
             String message = "Error in constructing XML Object from the encoded String";
             throw IdentityException.error(message, e);
-        } finally {
-            thread.setContextClassLoader(loader);
         }
     }
 
