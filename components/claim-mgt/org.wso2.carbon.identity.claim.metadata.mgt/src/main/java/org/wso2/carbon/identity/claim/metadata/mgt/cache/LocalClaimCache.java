@@ -37,5 +37,4 @@ public class LocalClaimCache extends BaseCache<Integer, ArrayList<LocalClaim>> {
     public static LocalClaimCache getInstance() {
         return instance;
     }
-
 }
