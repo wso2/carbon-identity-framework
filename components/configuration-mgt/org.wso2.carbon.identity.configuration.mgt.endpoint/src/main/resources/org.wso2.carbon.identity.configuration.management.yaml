@@ -526,8 +526,6 @@ paths:
       responses:
         201:
           description: Successful response
-          schema:
-            $ref: '#/definitions/ResourceFile'
         400:
           description: Bad Request
           schema:

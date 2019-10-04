@@ -237,7 +237,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             ResourceFile resourceFile = getConfigurationManager()
                     .addFile(resourceType, resourceName, fileName, resourceFileInputStream);
             return Response.created(getFileLocationURI(resourceType, resourceName, resourceFile))
-                    .entity(getResourceFileDTO(resourceFile)).build();
+                    .location(getFileLocationURI(resourceType, resourceName, resourceFile)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {
@@ -296,7 +296,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
     private URI getFileLocationURI(String resourceType, String resourceName, ResourceFile resourceFile)
             throws URISyntaxException {
 
-        return new URI(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE
-                + '/' + resourceFile.getId());
+        return new URI(RESOURCE_PATH + '/'  + FILE + '/' + resourceFile.getId());
     }
 }

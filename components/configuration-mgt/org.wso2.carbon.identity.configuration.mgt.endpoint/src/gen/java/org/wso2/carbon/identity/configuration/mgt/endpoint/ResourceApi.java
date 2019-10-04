@@ -233,7 +233,7 @@ public class ResourceApi  {
     @Path("/{resource-type}/{resource-name}/file")
     @Consumes({ "multipart/form-data" })
     @Produces({ "application/json" })
-    @io.swagger.annotations.ApiOperation(value = "Create a file\n", notes = "This API is used to store a file given by the user.\n", response = ResourceFileDTO.class)
+    @io.swagger.annotations.ApiOperation(value = "Create a file\n", notes = "This API is used to store a file given by the user.\n", response = void.class)
     @io.swagger.annotations.ApiResponses(value = { 
         @io.swagger.annotations.ApiResponse(code = 201, message = "Successful response"),
         
