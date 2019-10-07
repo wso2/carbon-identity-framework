@@ -812,7 +812,7 @@ public class IdentityUtilTest {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
 
-    public void doBootstrap() {
+    private static void doBootstrap() {
         Thread thread = Thread.currentThread();
         ClassLoader loader = thread.getContextClassLoader();
         thread.setContextClassLoader(InitializationService.class.getClassLoader());
