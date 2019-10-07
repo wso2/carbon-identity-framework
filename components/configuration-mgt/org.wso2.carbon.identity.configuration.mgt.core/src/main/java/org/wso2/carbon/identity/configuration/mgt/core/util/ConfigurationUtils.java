@@ -102,7 +102,7 @@ public class ConfigurationUtils {
      * object when an exception is thrown.
      *
      * @param error ConfigurationConstants.ErrorMessages.
-     * @param data  daata to replace if message needs to be replaced.
+     * @param data  data to replace if message needs to be replaced.
      * @return ConsentManagementRuntimeException
      */
     public static ConfigurationManagementRuntimeException handleRuntimeException(ConfigurationConstants.ErrorMessages error,
