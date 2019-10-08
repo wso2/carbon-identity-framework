@@ -287,7 +287,7 @@ public class SecondaryUserStoreConfigurationUtil {
             String errMsg = " Error occurred during the transformation process of " + userStoreConfigFile;
             throw new IdentityUserStoreMgtException(errMsg, e);
         } catch (IOException e) {
-            String errMsg = " Error occurred during the creating output stream from " + userStoreConfigFile;
+            String errMsg = " Error occurred while creating or closing the output stream from " + userStoreConfigFile;
             throw new IdentityUserStoreMgtException(errMsg, e);
         } catch (SAXException e) {
             throw new IdentityUserStoreMgtException("Error while updating user store state", e);
@@ -339,6 +339,10 @@ public class SecondaryUserStoreConfigurationUtil {
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
+        if (log.isDebugEnabled()) {
+            log.debug("Closing the output stream from " + userStoreConfigFile);
+        }
+        result.getOutputStream().close();
 
     }
 
@@ -382,6 +386,10 @@ public class SecondaryUserStoreConfigurationUtil {
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
+        if (log.isDebugEnabled()) {
+            log.debug("Closing the output stream from " + userStoreConfigFile);
+        }
+        result.getOutputStream().close();
 
         if (log.isDebugEnabled()) {
             log.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully " +
