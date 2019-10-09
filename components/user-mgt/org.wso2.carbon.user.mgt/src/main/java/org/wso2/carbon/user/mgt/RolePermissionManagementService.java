@@ -17,7 +17,7 @@
  */
 package org.wso2.carbon.user.mgt;
 
-import org.wso2.carbon.user.mgt.common.Permission;
+import org.wso2.carbon.user.mgt.common.model.Permission;
 
 /**
  * OSGi service interface which use to manage role permissions.

@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.user.core.UserRealm;
-import org.wso2.carbon.user.mgt.common.Permission;
+import org.wso2.carbon.user.mgt.common.model.Permission;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
