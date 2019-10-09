@@ -25,29 +25,29 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementServerException;
-import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerComponentDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.sql.DataSource;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.getConnection;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.initiateH2Base;
-import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockComponentDataHolder;
+import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.spyConnection;
 
-@PrepareForTest(TemplateManagerComponentDataHolder.class)
+@PrepareForTest(IdentityDatabaseUtil.class)
 public class TemplateManagerDAOImplTest extends PowerMockTestCase {
 
     private static final Integer SAMPLE_TENANT_ID = -1234;
@@ -190,7 +190,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testAddTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             when(dataSource.getConnection()).thenReturn(connection);
@@ -207,7 +207,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testAddTemplateServerException(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             when(dataSource.getConnection()).thenReturn(connection);
@@ -223,7 +223,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testUpdateTemplate(String oldTemplateName, Object oldtemplate, Object newTemplate) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             when(dataSource.getConnection()).thenReturn(connection);
@@ -243,7 +243,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testUpdateTemplateServerException(String oldTemplateName, Object oldtemplate, Object newTemplate) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             when(dataSource.getConnection()).thenReturn(connection);
@@ -260,7 +260,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testGetTemplateByName(Object templateObject, Integer tenantId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             when(dataSource.getConnection()).thenReturn(connection);
@@ -282,7 +282,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testGetTemplateByNameDataAccessException(Object templateObject, Integer tenantId) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             when(dataSource.getConnection()).thenReturn(connection);
@@ -303,7 +303,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
         Template template3 = new Template(SAMPLE_TENANT_ID, "Template3", "Description 3", "Script 3");
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
@@ -335,7 +335,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
         Template template3 = new Template(SAMPLE_TENANT_ID, "Template3", "Description 3", "Script 3");
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
 
@@ -363,7 +363,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testDeleteTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -383,7 +383,7 @@ public class TemplateManagerDAOImplTest extends PowerMockTestCase {
     public void testDeleteTemplateDataAccessException(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
 
         try (Connection connection = getConnection()) {

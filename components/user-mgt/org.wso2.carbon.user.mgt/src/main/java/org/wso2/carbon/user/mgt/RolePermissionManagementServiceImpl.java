@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.user.core.UserRealm;
+import org.wso2.carbon.user.mgt.common.model.Permission;
 import org.wso2.carbon.user.mgt.common.UIPermissionNode;
 import org.wso2.carbon.user.mgt.common.UserAdminException;
 
@@ -61,7 +62,7 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
     }
 
     @Override
-    public String[] getAllPermissions(int tenantId) throws RolePermissionException {
+    public Permission[] getAllPermissions(int tenantId) throws RolePermissionException {
 
         try {
             return getAllPermissions(getUserAdminProxy().getAllUIPermissions(tenantId));
@@ -113,18 +114,21 @@ public class RolePermissionManagementServiceImpl implements RolePermissionManage
      * Recursively go through UIPermissionNode.
      *
      * @param node UIPermissionNode of permissions.
-     * @return  String[] of permissions.
+     * @return  Permission[] of permissions.
      */
-    private String[] getAllPermissions(UIPermissionNode node) {
+    private Permission[] getAllPermissions(UIPermissionNode node) {
 
-        List<String> permissions = new ArrayList<>();
+        List<Permission> permissions = new ArrayList<>();
         UIPermissionNode[] childNodes = node.getNodeList();
-        permissions.add(node.getResourcePath());
+        Permission permission = new Permission();
+        permission.setDisplayName(node.getDisplayName());
+        permission.setResourcePath(node.getResourcePath());
+        permissions.add(permission);
         if (ArrayUtils.isNotEmpty(childNodes)) {
             for (UIPermissionNode childNode : childNodes) {
                 permissions.addAll(Arrays.asList(getAllPermissions(childNode)));
             }
         }
-        return permissions.toArray(new String[0]);
+        return permissions.toArray(new Permission[0]);
     }
 }
