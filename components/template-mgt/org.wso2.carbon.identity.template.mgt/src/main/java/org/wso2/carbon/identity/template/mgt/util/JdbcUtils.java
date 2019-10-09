@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.template.mgt.util;
 
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
-import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerComponentDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.DB2;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.H2;
@@ -41,7 +41,7 @@ public class JdbcUtils {
      */
     public static JdbcTemplate getNewTemplate() {
 
-        return new JdbcTemplate(TemplateManagerComponentDataHolder.getInstance().getDataSource());
+        return new JdbcTemplate(IdentityDatabaseUtil.getDataSource());
     }
 
     /**
