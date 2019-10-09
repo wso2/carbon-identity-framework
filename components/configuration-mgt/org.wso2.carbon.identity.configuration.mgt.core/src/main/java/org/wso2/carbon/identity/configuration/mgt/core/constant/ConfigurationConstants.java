@@ -56,6 +56,7 @@ public class ConfigurationConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_HAS_FILE = "HAS_FILE";
     public static final String DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE = "HAS_ATTRIBUTE";
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_ID = "FILE_ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_FILE_NAME = "FILE_NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
     public static final String RESOURCE_FILE_BY_ID_PATH = "/resource/file";
     public static final String ATTRIBUTE = "attribute";

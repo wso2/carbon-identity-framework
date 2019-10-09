@@ -358,156 +358,6 @@ paths:
       tags:
         - Resource
 
-  "/resource/file/{file-id}":
-    get:
-      produces:
-        - 'application/octet-stream'
-      description: |
-        This API is used to retrieve a file.
-      x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/<file-id>" -H "Authorization: Basic
-        <Base64Encoded[username:password]>" -H "accept: application/json"
-      x-wso2-curl: |
-        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/cc26a039-8f08-4a4a-b533-44b5f69487fa" -H
-        "Authorization:Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
-      x-wso2-response: |
-        Hello World!
-      summary: |
-        Retrieve the file.
-      parameters:
-        - name: file-id
-          in: path
-          description: This represents a file id of the file to be retrieved.
-          required: true
-          type: 'string'
-      responses:
-        200:
-          description: Ok
-          schema:
-            example: 'Hello World'
-        400:
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/Error'
-        401:
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: Server Error
-          schema:
-            $ref: '#/definitions/Error'
-      tags:
-        - File
-    delete:
-      description: |
-        This API is used to revoke a file in the tenant domain given by the user.
-      x-wso2-request: |
-        curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/{file-id}" -H "Authorization: Basic <Base64Encoded[username:password]>"
-      x-wso2-curl: |
-        curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/file/fc902fd8-08fe-4531-8f9c-3703dea42698" -H "Authorization: Basic YWRtaW46YWRtaW4="
-      x-wso2-response: |
-      summary: |
-        Revoke the file
-      parameters:
-        - name: file-id
-          in: path
-          description: This represents a file id of the file to be retrieved.
-          required: true
-          type: 'string'
-      responses:
-        200:
-          description: Ok
-        404:
-          description: Not Found
-          schema:
-            $ref: '#/definitions/Error'
-        400:
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/Error'
-        401:
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: Server Error
-          schema:
-            $ref: '#/definitions/Error'
-      tags:
-        - File
-
-  "/resource/{resource-type}/file":
-    get:
-      produces:
-        - 'application/json'
-      description: |
-        This API is used to retrieve files for resource types.
-      x-wso2-request: |
-        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/file" -H
-        "Authorization: Basic <Base64Encoded[username:password]>" -H "accept: application/json"
-      x-wso2-curl: |
-        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/file"
-        -H "Authorization: Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
-      x-wso2-response: |
-        [
-          {
-                "path": {
-                  "href": "/resource/file/c206d2e5-cb21-41c8-8be6-7e592c84c855",
-                  "rel": "file"
-                },
-                "name": "EmailPublisher"
-          },
-          {
-                "path": {
-                  "href": "/resource/file/e3d05f41-e3fa-40d3-8704-87248ca718ed",
-                  "rel": "file"
-                },
-                "name": "SMSPublisher"
-          },
-              {
-                "path": {
-                  "href": "/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9",
-                  "rel": "file"
-                },
-                "name": "HTTPPublisher"
-          }
-        ]
-      summary: |
-        Retrieve the files related to resource types.
-      parameters:
-        - name: resource-type
-          in: path
-          description: This represents a resource type of the files to be retrieved.
-          required: true
-          type: 'string'
-      responses:
-        200:
-          description: Ok
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/ResourceFile'
-            example:
-              - path: '{"href": "/resource/file/0779ed83-9d44-440e-9d1f-535caad015c","rel": "file"}'
-                name: 'EmailPublisher'
-              - path: '{"href": "/resource/file/07535caad015c83-9d44-9d1f-aad015c","rel": "file"}'
-                name: 'SMSPublisher'
-        400:
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/Error'
-        401:
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: Server Error
-          schema:
-            $ref: '#/definitions/Error'
-      tags:
-        - File
-
   "/resource/{resource-type}/{resource-name}/file":
     post:
       consumes:
@@ -662,6 +512,105 @@ paths:
         - name: resource-type
           in: path
           description:  This represents the type of the resource to be added and can either be the name or id.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: Ok
+        404:
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+        - File
+
+  "/resource/{resource-type}/{resource-name}/file/{file-id}":
+    get:
+      produces:
+        - 'application/octet-stream'
+      description: |
+        This API is used to retrieve a file.
+      x-wso2-request: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/<resource-type>/<resource-name>/file/<file-id>" -H "Authorization: Basic
+        <Base64Encoded[username:password]>" -H "accept: application/json"
+      x-wso2-curl: |
+        curl -k -X GET "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/EmailPublisher/file/cc26a039-8f08-4a4a-b533-44b5f69487fa" -H
+        "Authorization:Basic YWRtaW46YWRtaW4=" -H "accept: application/json"
+      x-wso2-response: |
+        Hello World!
+      summary: |
+        Retrieve the file.
+      parameters:
+        - name: file-id
+          in: path
+          description: This represents a file id of the file to be retrieved.
+          required: true
+          type: 'string'
+        - name: resource-type
+          in: path
+          description: This represents a resource-type of the file to be retrieved.
+          required: true
+          type: 'string'
+        - name: resource-name
+          in: path
+          description: This represents a resource-name of the file to be retrieved.
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: Ok
+          schema:
+            example: 'Hello World'
+        400:
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Server Error
+          schema:
+            $ref: '#/definitions/Error'
+      tags:
+        - File
+    delete:
+      description: |
+        This API is used to revoke a file in the tenant domain given by the user.
+      x-wso2-request: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/<resource-type>/<resource-name>/file/<file-id>" -H "Authorization: Basic <Base64Encoded[username:password]>"
+      x-wso2-curl: |
+        curl -k -X DELETE "https://localhost:9443/api/identity/config-mgt/v1.0/resource/publisher/EmailPublisher/file/cc26a039-8f08-4a4a-b533-44b5f69487fa" -H "Authorization: Basic YWRtaW46YWRtaW4="
+      x-wso2-response: |
+      summary: |
+        Revoke the file
+      parameters:
+        - name: file-id
+          in: path
+          description: This represents a file id of the file to be revoked.
+          required: true
+          type: 'string'
+        - name: resource-type
+          in: path
+          description: This represents a resource-type of the file to be revoked.
+          required: true
+          type: 'string'
+        - name: resource-name
+          in: path
+          description: This represents a resource-name of the file to be revoked.
           required: true
           type: 'string'
       responses:
@@ -1050,6 +999,10 @@ definitions:
         type: string
       description:
         type: string
+      resources:
+        type: array
+        items:
+          $ref: '#/definitions/Link'
   #-----------------------------------------------------
   # Resource Type Create object
   #-----------------------------------------------------
@@ -1095,9 +1048,11 @@ definitions:
     properties:
       href:
         type: string
-        description: Path to the target file.
-        example: "/resource/file/bc110fca-a85b-4682-baec-4a86fb4079a9"
+        description: Path to the target.
+        example:
+          - "/t/abc.com/resource/email/smtp"
       rel:
         type: string
         description: Describes how the current context is related to the target resource.
-        example: "file"
+        example:
+          - "resource"

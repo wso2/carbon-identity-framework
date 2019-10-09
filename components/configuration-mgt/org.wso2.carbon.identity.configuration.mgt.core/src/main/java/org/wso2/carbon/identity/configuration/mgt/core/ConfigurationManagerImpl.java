@@ -109,10 +109,18 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         checkFeatureStatus();
 
-        if (log.isDebugEnabled()) {
-            log.debug("Get Resources by Resource Type API is not Implemented yet.");
+        validateResourcesRetrieveRequest(resourceTypeName);
+        ResourceType resourceType = getResourceType(resourceTypeName);
+        List<Resource> resourceList = this.getConfigurationDAO()
+                .getResourcesByType(getTenantId(), resourceType.getId());
+        if (resourceList == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No resource found for the resourceTypeName: " + resourceTypeName);
+            }
+            throw handleClientException(
+                    ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, resourceTypeName, null);
         }
-        return null;
+        return new Resources(resourceList);
     }
 
     /**
@@ -746,7 +754,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully added.");
         }
-        return new ResourceFile(fileId, getFilePath(fileId), fileName);
+        return new ResourceFile(fileId, getFilePath(fileId, resourceTypeName, resourceName), fileName);
     }
 
     @Override
@@ -754,7 +762,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         validateFilesDeleteRequest(resourceTypeName, resourceName);
         String resourceId = getResourceId(resourceTypeName, resourceName);
-        List<ResourceFile> resourceFiles = getConfigurationDAO().getFiles(resourceId);
+        List<ResourceFile> resourceFiles = getConfigurationDAO().getFiles(resourceId, resourceTypeName, resourceName);
         if (resourceFiles == null || resourceFiles.size() == 0) {
             if (log.isDebugEnabled()) {
                 log.debug("Resource: " + resourceName + " does not have any files.");

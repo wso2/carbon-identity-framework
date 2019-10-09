@@ -142,6 +142,7 @@ public class SQLConstants {
             "  T.NAME AS RESOURCE_TYPE,\n" +
             "  T.DESCRIPTION AS DESCRIPTION,\n" +
             "  F.ID AS FILE_ID,\n" +
+            "  F.NAME AS FILE_NAME,\n" +
             "  A.ID AS ATTR_ID,\n" +
             "  A.ATTR_KEY AS ATTR_KEY,\n" +
             "  A.ATTR_VALUE AS ATTR_VALUE\n" +
@@ -328,12 +329,18 @@ public class SQLConstants {
     public static final String UPDATE_HAS_ATTRIBUTE_SQL = "UPDATE IDN_CONFIG_RESOURCE SET HAS_ATTRIBUTE = ? " +
             "WHERE ID = ?";
     public static final String GET_ATTRIBUTES_BY_RESOURCE_ID_SQL = "SELECT\n" +
-            "  ID\n" +
-            "FROM\n" +
+            "  ID,\n" +
+            "  ATTR_KEY,\n" +
+            "  ATTR_VALUE\n" +
+            "  FROM\n" +
             "  IDN_CONFIG_ATTRIBUTE\n" +
-            "WHERE\n" +
+            "  WHERE\n" +
             "  RESOURCE_ID = ?";
-    public static final String GET_FILES_BY_RESOURCE_TYPE_ID_SQL = "SELECT F.ID, F.NAME FROM IDN_CONFIG_FILE AS F "
+    public static final String GET_FILES_BY_RESOURCE_TYPE_ID_SQL = "SELECT F.ID, F.NAME, R.NAME, T.NAME FROM "
+            + "IDN_CONFIG_FILE AS F "
             + "INNER JOIN IDN_CONFIG_RESOURCE AS R ON F.RESOURCE_ID = R.ID INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID "
             + "= T.ID where T.ID = ?";
+    public static final String GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL = "SELECT R.ID, R.TENANT_ID, R.NAME, R.LAST_"
+            + "MODIFIED, R.CREATED_TIME, R.HAS_FILE, R.HAS_ATTRIBUTE FROM IDN_CONFIG_RESOURCE AS R WHERE R"
+            + ".TYPE_ID = ? and R.TENANT_ID = ?";
 }

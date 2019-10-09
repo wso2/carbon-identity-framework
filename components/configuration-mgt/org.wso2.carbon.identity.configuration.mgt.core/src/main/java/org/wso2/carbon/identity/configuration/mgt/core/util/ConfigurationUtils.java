@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.configuration.mgt.core.util;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
@@ -143,9 +142,10 @@ public class ConfigurationUtils {
         return message;
     }
 
-    public static String getFilePath(String resourceFileId) {
+    public static String getFilePath(String fileId, String resourceTypeName, String resourceName) {
 
-        return IdentityUtil.getEndpointURIPath(RESOURCE_FILE_BY_ID_PATH + "/" + resourceFileId,true,false);
+        return IdentityUtil.getEndpointURIPath(
+                RESOURCE_FILE_BY_ID_PATH + "/" + resourceTypeName + "/" + resourceName + "/" + fileId, true, false);
 
     }
 }

@@ -213,18 +213,21 @@ public interface ConfigurationDAO {
     /**
      * Get files for the {@link Resource}.
      *
+     *
+     * @param id
+     * @param resourceTypeName
      * @param resourceId Id of the {@link Resource}.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFiles(String resourceId) throws ConfigurationManagementException;
+    List<ResourceFile> getFiles(String id, String resourceTypeName, String resourceId) throws ConfigurationManagementException;
 
     /**
      * Get files for the {@link ResourceType}.
      *
-     * @param resourceType Id of the {@link ResourceType}.
+     * @param resourceTypeId Id of the {@link ResourceType}.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFilesByResourceType(String resourceType) throws ConfigurationManagementException;
+    List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException;
 
     /**
      * Delete the file.
@@ -241,4 +244,14 @@ public interface ConfigurationDAO {
      * @return A list of {@link ResourceFile} for the given resource.
      */
     void deleteFiles(String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * Get resources for the {@link ResourceType}.
+     *
+     * @param tenantId       Id of the tenant.
+     * @param resourceTypeId of the {@link ResourceType}.
+     * @return A list of {@link Resource} for the given resource type
+     */
+    List<Resource> getResourcesByType(int tenantId, String resourceTypeId)
+            throws ConfigurationManagementException;
 }

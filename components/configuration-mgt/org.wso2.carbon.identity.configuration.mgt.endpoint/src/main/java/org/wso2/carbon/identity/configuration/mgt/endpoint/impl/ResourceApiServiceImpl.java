@@ -182,53 +182,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
     }
 
     @Override
-    public Response resourceFileFileIdDelete(String fileId) {
-
-        try {
-            getConfigurationManager().deleteFileById(fileId);
-            return Response.ok().build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
-
-    @Override
-    public Response resourceFileFileIdGet(String fileId) {
-
-        try {
-            InputStream fileStream = getConfigurationManager().getFileById(fileId);
-            return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM).entity(fileStream).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
-
-    @Override
-    public Response resourceResourceTypeFileGet(String resourceType) {
-        try {
-            List<ResourceFile> fileList = getConfigurationManager().getFiles(resourceType);
-            ResourceFileDTO[] resourceFileDTOS = fileList.stream()
-                    .map(ConfigurationEndpointUtils::getResourceFileDTO)
-                    .toArray(ResourceFileDTO[]::new);
-            return Response.ok().entity(resourceFileDTOS).build();
-        } catch (ConfigurationManagementClientException e) {
-            return handleBadRequestResponse(e, LOG);
-        } catch (ConfigurationManagementException e) {
-            return handleServerErrorResponse(e, LOG);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable, LOG);
-        }
-    }
-
-    @Override
     public Response resourceResourceTypeResourceNameFilePost(String resourceName, String resourceType,
             InputStream resourceFileInputStream, Attachment resourceFileDetail, String fileName) {
 
@@ -252,7 +205,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             List<ResourceFile> resourceFiles = getConfigurationManager().getFiles(
                     resourceType, resourceName);
             ResourceFileDTO[] resourceFileDTOS = resourceFiles.stream()
-                    .map(ConfigurationEndpointUtils::getResourceFileDTO)
+                    .map(n -> ConfigurationEndpointUtils.getResourceFileDTO(n, resourceName, resourceType))
                     .toArray(ResourceFileDTO[]::new);
             return Response.ok().entity(resourceFileDTOS).build();
         } catch (ConfigurationManagementClientException e) {
@@ -279,6 +232,37 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         }
     }
 
+    @Override
+    public Response resourceResourceTypeResourceNameFileFileIdDelete(String fileId, String resourceType,
+            String resourceName) {
+
+        try {
+            getConfigurationManager().deleteFileById(fileId);
+            return Response.ok().build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
+
+    @Override
+    public Response resourceResourceTypeResourceNameFileFileIdGet(String fileId, String resourceType,
+            String resourceName) {
+
+        try {
+            InputStream fileStream = getConfigurationManager().getFileById(fileId);
+            return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM).entity(fileStream).build();
+        } catch (ConfigurationManagementClientException e) {
+            return handleBadRequestResponse(e, LOG);
+        } catch (ConfigurationManagementException e) {
+            return handleServerErrorResponse(e, LOG);
+        } catch (Throwable throwable) {
+            return handleUnexpectedServerError(throwable, LOG);
+        }
+    }
 
     private URI getResourceURI(String resourceType, Resource resource) throws URISyntaxException {
 

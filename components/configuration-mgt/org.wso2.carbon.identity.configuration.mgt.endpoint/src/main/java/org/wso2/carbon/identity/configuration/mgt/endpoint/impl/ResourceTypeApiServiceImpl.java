@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.ResourceTypeApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceTypeAddDTO;
 
@@ -46,8 +47,9 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
         try {
             ResourceType resourceType = getConfigurationManager()
                     .addResourceType(getResourceTypeAddFromDTO(resourceTypeAddDTO));
+            Resources resourcesByType = getConfigurationManager().getResourcesByType(resourceType.getName());
             return Response.created(getResourceTypeURI(resourceType))
-                    .entity(getResourceTypeDTO(resourceType)).build();
+                    .entity(getResourceTypeDTO(resourceType, resourcesByType)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {
@@ -63,7 +65,8 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
         try {
             ResourceType resourceType =
                     getConfigurationManager().replaceResourceType(getResourceTypeAddFromDTO(resourceTypeAddDTO));
-            return Response.ok().entity(getResourceTypeDTO(resourceType)).build();
+            Resources resourcesByType = getConfigurationManager().getResourcesByType(resourceType.getName());
+            return Response.ok().entity(getResourceTypeDTO(resourceType, resourcesByType)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {
@@ -93,7 +96,8 @@ public class ResourceTypeApiServiceImpl extends ResourceTypeApiService {
 
         try {
             ResourceType resourceType = getConfigurationManager().getResourceType(resourceTypeName);
-            return Response.ok().entity(getResourceTypeDTO(resourceType)).build();
+            Resources resourcesByType = getConfigurationManager().getResourcesByType(resourceTypeName);
+            return Response.ok().entity(getResourceTypeDTO(resourceType, resourcesByType)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {

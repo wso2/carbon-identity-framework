@@ -29,9 +29,9 @@ public class ResourceFile {
 
     }
 
-    public ResourceFile(String value) {
+    public ResourceFile(String id) {
 
-        this.value = value;
+        this.id = id;
     }
 
     public ResourceFile(String id, String value, String name) {
@@ -41,6 +41,11 @@ public class ResourceFile {
         this.name = name;
     }
 
+    public ResourceFile(String fileId, String fileName) {
+
+        this.id = fileId;
+        this.name = fileName;
+    }
 
     public String getValue() {
 

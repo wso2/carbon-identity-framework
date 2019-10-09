@@ -19,8 +19,6 @@ package org.wso2.carbon.identity.configuration.mgt.endpoint.util;
 import org.apache.commons.logging.Log;
 import org.apache.cxf.jaxrs.ext.search.PrimitiveStatement;
 import org.apache.cxf.jaxrs.ext.search.SearchCondition;
-import org.apache.cxf.jaxrs.ext.search.SearchContext;
-import org.apache.cxf.jaxrs.ext.search.SearchParseException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
@@ -52,7 +50,6 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ConflictReq
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ForbiddenException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.NotFoundException;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.SearchConditionException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +68,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILES_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 
 /**
  * Utility functions required for configuration endpoint
@@ -104,7 +103,7 @@ public class ConfigurationEndpointUtils {
         resourceDTO.setFiles(resource.getFiles() != null ?
                 resource.getFiles()
                         .stream()
-                        .map(ConfigurationEndpointUtils::getResourceFileDTO)
+                        .map(n -> getResourceFileDTO(n , resource.getResourceName(), resource.getResourceType()))
                         .collect(Collectors.toList())
                 : new ArrayList<>(0)
         );
@@ -122,21 +121,25 @@ public class ConfigurationEndpointUtils {
         return resourcesDTO;
     }
 
-    public static ResourceTypeDTO getResourceTypeDTO(ResourceType resourceType) {
+    public static ResourceTypeDTO getResourceTypeDTO(ResourceType resourceType, Resources resourcesByType) {
 
         ResourceTypeDTO resourceTypeDTO = new ResourceTypeDTO();
         resourceTypeDTO.setName(resourceType.getName());
         resourceTypeDTO.setId(resourceType.getId());
         resourceTypeDTO.setDescription(resourceType.getDescription());
+        if (resourcesByType != null) {
+            resourceTypeDTO.setResources(getResourceLinkList(resourceType.getName(), resourcesByType.getResources()));
+        }
         return resourceTypeDTO;
     }
 
-    public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile) {
+    public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile, String resourceName,
+            String resourceType) {
 
         ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
         LinkDTO linkDTO = new LinkDTO();
-        linkDTO.setHref(resourceFile.getValue());
-        linkDTO.setRel("file");
+        linkDTO.setHref(getFileURI(resourceFile.getId(),resourceName,resourceType));
+        linkDTO.setRel(FILE);
         resourceFileDTO.setPath(linkDTO);
         resourceFileDTO.setName(resourceFile.getName());
         return resourceFileDTO;
@@ -408,5 +411,28 @@ public class ConfigurationEndpointUtils {
         errorDTO.setDescription("Operation is not supported.");
 
         return errorDTO;
+    }
+
+    private static  List<LinkDTO> getResourceLinkList(String resourceType, List<Resource> resources) {
+
+        List<LinkDTO> linkDTOList = new ArrayList<>();
+        for (Resource resource : resources) {
+            LinkDTO linkDTO = new LinkDTO();
+            linkDTO.setHref(getResourceURI(resourceType, resource));
+            linkDTO.setRel("resource");
+            linkDTOList.add(linkDTO);
+        }
+        return linkDTOList;
+    }
+
+    private static String getResourceURI(String resourceType, Resource resource)  {
+
+        return RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName();
+    }
+
+    private static String getFileURI(String fileId, String resourceName, String resourceType)  {
+
+        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + fileId;
+
     }
 }

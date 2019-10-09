@@ -34,6 +34,7 @@ class ConfigurationRawDataCollector {
     private String attributeValue;
     private String attributeId;
     private String fileId;
+    private String fileName;
     private boolean hasFile;
     private boolean hasAttribute;
 
@@ -52,6 +53,7 @@ class ConfigurationRawDataCollector {
         this.hasFile = builder.isHasFile();
         this.hasAttribute = builder.isHasAttribute();
         this.attributeId = builder.getAttributeId();
+        this.fileName = builder.getFileName();
     }
 
     public String getAttributeId() {
@@ -124,6 +126,10 @@ class ConfigurationRawDataCollector {
         this.createdTime = createdTime;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
     public static class ConfigurationRawDataCollectorBuilder {
 
         private int tenantId;
@@ -137,6 +143,7 @@ class ConfigurationRawDataCollector {
         private String attributeValue;
         private String attributeId;
         private String fileId;
+        private String fileName;
         private boolean hasFile;
         private boolean hasAttribute;
 
@@ -286,6 +293,15 @@ class ConfigurationRawDataCollector {
         public ConfigurationRawDataCollectorBuilder setFileId(String fileId) {
 
             this.fileId = fileId;
+            return this;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public ConfigurationRawDataCollectorBuilder setFileName(String fileName) {
+            this.fileName = fileName;
             return this;
         }
     }

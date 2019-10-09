@@ -22,9 +22,9 @@ public class LinkDTO  {
 
   
   /**
-   * Path to the target file.
+   * Path to the target.
    **/
-  @ApiModelProperty(value = "Path to the target file.")
+  @ApiModelProperty(value = "Path to the target.")
   @JsonProperty("href")
   public String getHref() {
     return href;

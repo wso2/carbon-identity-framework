@@ -1,5 +1,8 @@
 package org.wso2.carbon.identity.configuration.mgt.endpoint.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.LinkDTO;
 
 import io.swagger.annotations.*;
 import com.fasterxml.jackson.annotation.*;
@@ -22,6 +25,9 @@ public class ResourceTypeDTO  {
   
   
   private String description = null;
+  
+  
+  private List<LinkDTO> resources = new ArrayList<LinkDTO>();
 
   
   /**
@@ -60,6 +66,18 @@ public class ResourceTypeDTO  {
   }
 
   
+  /**
+   **/
+  @ApiModelProperty(value = "")
+  @JsonProperty("resources")
+  public List<LinkDTO> getResources() {
+    return resources;
+  }
+  public void setResources(List<LinkDTO> resources) {
+    this.resources = resources;
+  }
+
+  
 
   @Override
   public String toString()  {
@@ -69,6 +87,7 @@ public class ResourceTypeDTO  {
     sb.append("  name: ").append(name).append("\n");
     sb.append("  id: ").append(id).append("\n");
     sb.append("  description: ").append(description).append("\n");
+    sb.append("  resources: ").append(resources).append("\n");
     sb.append("}\n");
     return sb.toString();
   }
