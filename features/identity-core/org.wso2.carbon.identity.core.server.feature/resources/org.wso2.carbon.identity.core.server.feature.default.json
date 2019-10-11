@@ -26,7 +26,7 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
-  "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]*$",
+  "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
