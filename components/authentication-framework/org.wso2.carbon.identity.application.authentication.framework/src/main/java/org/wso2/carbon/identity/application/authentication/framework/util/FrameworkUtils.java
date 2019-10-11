@@ -1784,10 +1784,10 @@ public class FrameworkUtils {
 
     /**
      * Get the mapped URI for the IDP role mapping
-     * @param idpRoleClaimUri
-     * @param stepConfig
-     * @param context
-     * @return
+     * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
+     * @param stepConfig Relevant stepConfig
+     * @param context Relevant authentication context
+     * @return idpRole claim uri in IDPs dialect or Custom dialect
      */
     public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
                                                   AuthenticationContext context) {
