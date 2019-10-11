@@ -23,8 +23,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
+import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
@@ -48,8 +48,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -57,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler {
 
@@ -293,7 +293,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                     subjectAttributesFoundInStep = true;
 
-                    String idpRoleClaimUri = getIdpRoleClaimUri(externalIdPConfig);
+                    String idpRoleClaimUri = getIdpRoleClaimUri(stepConfig, context);
 
                     // Get the mapped user roles according to the mapping in the IDP configuration.
                     // Include the unmapped roles as it is.
@@ -526,6 +526,20 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
      */
     protected String getIdpRoleClaimUri(ExternalIdPConfig externalIdPConfig) throws FrameworkException {
         return FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);
+    }
+
+    /**
+     * Get the Role Claim Uri in IDPs dialect.
+     *
+     * @param stepConfig
+     * @param context
+     * @return
+     * @throws FrameworkException
+     */
+    protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context) throws FrameworkException {
+
+        String idpRoleClaimUri = getIdpRoleClaimUri(context.getExternalIdP());
+        return FrameworkUtils.getMappedIdpRoleClaimUri(idpRoleClaimUri, stepConfig, context);
     }
 
     /**
