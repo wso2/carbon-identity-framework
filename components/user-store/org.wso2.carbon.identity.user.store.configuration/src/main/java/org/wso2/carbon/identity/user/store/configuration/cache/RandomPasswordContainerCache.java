@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.store.configuration.cache;
 
+import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
+import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
 import org.wso2.carbon.identity.user.store.configuration.beans.RandomPasswordContainer;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 
@@ -26,6 +28,12 @@ import javax.cache.Caching;
 
 /**
  * Class to hold the reference for distributed cache object
+ *
+ * @see <a href="https://github.com/wso2/product-is/issues/6410">https://github.com/wso2/product-is/issues/6410</a>.
+ * @deprecated {@link RandomPassword}, {@link RandomPasswordContainer} and
+ * {@link org.wso2.carbon.identity.user.store.configuration.cache.RandomPasswordContainerCache} based approach in the
+ * {@link org.wso2.carbon.identity.user.store.configuration.UserStoreConfigAdminService} is identified as problematic
+ * in a clustered deployment. Therefore a new approach based {@link MaskedProperty} is used.
  */
 public class RandomPasswordContainerCache {
 
