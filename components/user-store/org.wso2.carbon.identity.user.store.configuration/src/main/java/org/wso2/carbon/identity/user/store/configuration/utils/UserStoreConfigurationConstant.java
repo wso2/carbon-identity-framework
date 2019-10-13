@@ -26,6 +26,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 
 public class UserStoreConfigurationConstant {
 
+    public static final String ENCRYPTED_PROPERTY_MASK = "ENCRYPTED PROPERTY";
     public static final String UNIQUE_ID_CONSTANT = "UniqueID";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
     public static final String ENCRYPT_TEXT = "#encrypt";
