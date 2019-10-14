@@ -23,7 +23,6 @@ import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
 import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
-import org.opensaml.core.config.InitializationService;
 import org.opensaml.core.xml.XMLObject;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
