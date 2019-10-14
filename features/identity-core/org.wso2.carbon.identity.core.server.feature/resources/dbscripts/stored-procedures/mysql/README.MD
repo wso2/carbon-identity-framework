@@ -9,7 +9,7 @@ First - Compile the stored procedure using a mysql client. Following is a sample
 Make sure to create the procedure in the identity database schema only.
 
 ```
-mysql> source \<path>\mysql-tokencleanup.sql;
+mysql> source \<path>\mysql-token-cleanup.sql;
 ```
 or
 ```

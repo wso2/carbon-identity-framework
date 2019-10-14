@@ -6,12 +6,13 @@ username='postgres'
 password='postgres'
 database='CARBON_DB'
 host='localhost'
+schema='schemaname'
 
 export PGPASSWORD=$password
 
 
 # ----------------------------------------------------
-# TOKEN BACKUP
+# TABLE BACKUP
 # ----------------------------------------------------
 
 batchStatus=$(psql \
@@ -20,12 +21,12 @@ batchStatus=$(psql \
   -U $username \
   --echo-all \
    -d $database \
-    -c "select WSO2_TOKEN_CLEANUP_SP(0)")
+    -c "select $schema.WSO2_SESSION_DATA_CLEANUP_SP(0)")
 echo ''
 
 
 # ----------------------------------------------------
-# CALCULATE TOKEN TYPES
+# CALCULATE RECORDS IDN_AUTH_SESSION_STORE
 # ----------------------------------------------------
 
 batchStatus=$(psql \
@@ -34,11 +35,11 @@ batchStatus=$(psql \
   -U $username \
   --echo-all \
    -d $database \
-    -c "select WSO2_TOKEN_CLEANUP_SP(1)")
+    -c "select $schema.WSO2_SESSION_DATA_CLEANUP_SP(1)")
 echo ''
 
 # ----------------------------------------------------
-# BATCH DELETE IDN_OAUTH2_ACCESS_TOKEN
+# BATCH DELETE IDN_AUTH_SESSION_STORE
 # ----------------------------------------------------
 
 while true
@@ -49,7 +50,7 @@ batchStatus=$(psql \
   -U $username \
   --echo-all \
    -d $database \
-    -c "select WSO2_TOKEN_CLEANUP_SP(2)")
+    -c "select $schema.WSO2_SESSION_DATA_CLEANUP_SP(2)")
 echo ''
 if [[ $batchStatus == *"FINISHED"* ]]; then
   break;
@@ -57,7 +58,7 @@ fi
 done
 
 # ----------------------------------------------------
-# CALCULATE AUTHORIZATION_CODE TYPES
+# CALCULATE OPERATIONAL RECORDS IDN_AUTH_SESSION_STORE
 # ----------------------------------------------------
 
 batchStatus=$(psql \
@@ -66,12 +67,12 @@ batchStatus=$(psql \
   -U $username \
   --echo-all \
    -d $database \
-    -c "select WSO2_TOKEN_CLEANUP_SP(3)")
+    -c "select $schema.WSO2_SESSION_DATA_CLEANUP_SP(3)")
 echo ''
 
 
 # ----------------------------------------------------
-# BATCH DELETE IDN_OAUTH2_AUTHORIZATION_CODE
+# BATCH DELETE OPERATIONAL RECORDS ON IDN_AUTH_SESSION_STORE
 # ----------------------------------------------------
 
 while true
@@ -82,26 +83,12 @@ batchStatus=$(psql \
   -U $username \
   --echo-all \
    -d $database \
-    -c "select WSO2_TOKEN_CLEANUP_SP(4)")
+    -c "select $schema.WSO2_SESSION_DATA_CLEANUP_SP(4)")
 echo ''
 if [[ $batchStatus == *"FINISHED"* ]]; then
   break;
 fi
 done
 
-# ----------------------------------------------------
-# OPTIMIZE DATAASE TABLES AFTER DELETE
-# ----------------------------------------------------
-
-batchStatus=$(psql \
-  -X \
-  -h $host \
-  -U $username \
-  --echo-all \
-   -d $database \
-    -c "select WSO2_TOKEN_CLEANUP_SP(5)")
-echo ''
-
-
-echo "WSO2 TOKEN_CLEANUP SCRIPT EXECUTION COMPLETED !"
+echo "WSO2 WSO2_SESSION_DATA_CLEANUP_SP SCRIPT EXECUTION COMPLETED !"
 exit 0

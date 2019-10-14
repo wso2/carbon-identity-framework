@@ -9,7 +9,7 @@ First - Compile the stored procedure using a Oracle client. Following is a sampl
 Make sure to create the procedure in the identity database schema only.
 
 ```
-sqlplus> @\<path>\oracle-tokencleanup.sql;
+sqlplus> @\<path>\oracle-token-cleanup.sql;
 ```
 
 **Execute the Stored Procedure.**
