@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -88,18 +87,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimeZone;
+import java.util.UUID;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.DELETE_SP_CONSENT_PURPOSES;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_SP_CONSENT_PURPOSES;
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries
-        .UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -116,6 +117,7 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries
 public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+    private static final String UTC = "UTC";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -283,6 +285,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(7, "0");
             storeAppPrepStmt.setString(8, "0");
             storeAppPrepStmt.setString(9, "0");
+            storeAppPrepStmt.setString(10, UUID.randomUUID().toString());
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -1960,13 +1963,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
-                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
-                appInfo.add(basicInfo);
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
@@ -3131,14 +3131,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
-                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
-                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
-                appInfo.add(basicInfo);
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
 
         } catch (SQLException e) {
@@ -3150,6 +3146,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return appInfo.toArray(new ApplicationBasicInfo[0]);
+    }
+
+    private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet) throws SQLException {
+
+        ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
+        basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+        basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+        basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+
+        basicInfo.setApplicationResourceId(appNameResultSet.getString("UUID"));
+        basicInfo.setImageUrl(appNameResultSet.getString("IMAGE_URL"));
+        basicInfo.setLoginUrl(appNameResultSet.getString("LOGIN_URL"));
+        basicInfo.setCreatedTime(
+                appNameResultSet.getTimestamp("TIME_CREATED", Calendar.getInstance(TimeZone.getTimeZone(UTC))));
+        basicInfo.setLastModifiedTime(appNameResultSet.getTimestamp(
+                "TIME_LAST_MODIFIED", Calendar.getInstance(TimeZone.getTimeZone(UTC))));
+        return basicInfo;
     }
 
     private String resolveSQLFilter(String filter) {
@@ -3236,13 +3249,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationName(appNameResultSet.getString(1));
-                basicInfo.setDescription(appNameResultSet.getString(2));
-                appInfo.add(basicInfo);
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while getting applications from DB with filter: " + filter, e);
@@ -3328,13 +3338,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
-                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
-                appInfo.add(basicInfo);
+                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
 
         } catch (SQLException e) {

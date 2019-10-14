@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 public class ApplicationBasicInfo implements Serializable {
 
@@ -26,6 +27,12 @@ public class ApplicationBasicInfo implements Serializable {
     private int applicationId;
     private String applicationName;
     private String description;
+
+    private String applicationResourceId;
+    private String imageUrl;
+    private String loginUrl;
+    private Timestamp createdTime;
+    private Timestamp lastModifiedTime;
 
     /**
      * Get application id.
@@ -75,4 +82,53 @@ public class ApplicationBasicInfo implements Serializable {
         this.description = description;
     }
 
+    public String getApplicationResourceId() {
+
+        return applicationResourceId;
+    }
+
+    public void setApplicationResourceId(String applicationResourceId) {
+
+        this.applicationResourceId = applicationResourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    public String getLoginUrl() {
+
+        return loginUrl;
+    }
+
+    public void setLoginUrl(String loginUrl) {
+
+        this.loginUrl = loginUrl;
+    }
+
+    public Timestamp getCreatedTime() {
+
+        return createdTime;
+    }
+
+    public void setCreatedTime(Timestamp createdTime) {
+
+        this.createdTime = createdTime;
+    }
+
+    public Timestamp getLastModifiedTime() {
+
+        return lastModifiedTime;
+    }
+
+    public void setLastModifiedTime(Timestamp lastModifiedTime) {
+
+        this.lastModifiedTime = lastModifiedTime;
+    }
 }
