@@ -120,6 +120,30 @@ public class DefaultSequenceHandlerUtils {
     }
 
     /**
+     *  Make the Roles map into a string separated by correct delimiter
+     * @param sequenceConfig Relevant config
+     * @param locallyMappedUserRoles  Roles to be appended into a string
+     * @return Mapped Roles as a single string
+     */
+    public static String getIdpMappedUserRoles(SequenceConfig sequenceConfig,
+                                               List<String> locallyMappedUserRoles) {
+
+        String idpMappedRoles;
+        List<String> idpMappedRoleList = new ArrayList<>();
+
+        if (isRemoveUserDomainInRole(sequenceConfig)) {
+            List<String> domainRemovedRoles = removeDomainFromNamesExcludeHybrid(locallyMappedUserRoles);
+            if (!domainRemovedRoles.isEmpty()) {
+                idpMappedRoleList.addAll(domainRemovedRoles);
+            }
+        } else {
+            idpMappedRoleList = locallyMappedUserRoles;
+        }
+        idpMappedRoles = StringUtils.join(idpMappedRoleList.toArray(), FrameworkUtils.getMultiAttributeSeparator());
+        return idpMappedRoles;
+    }
+
+    /**
      * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow)
      *
      * @param names list of roles assigned to a user

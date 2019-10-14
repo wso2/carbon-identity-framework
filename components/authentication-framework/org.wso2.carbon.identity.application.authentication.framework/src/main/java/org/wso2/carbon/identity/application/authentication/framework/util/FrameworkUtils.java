@@ -1832,6 +1832,29 @@ public class FrameworkUtils {
     }
 
     /**
+     *  Get the Role claim URI in SP dialect
+     * @param context Relevant context
+     * @return Role claim uri in sp dialect
+     */
+    public static String getSPRoleClaimUriMappedForLocalRoleClaim(AuthenticationContext context) {
+
+        String spRolClaimUri = context.getSequenceConfig().getApplicationConfig().getRoleClaim();
+        if (StringUtils.isBlank(spRolClaimUri) &&
+                context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING) != null) {
+
+            Map<String, String> spToCarbonClaimMappings =
+                    (Map<String, String>) context.getProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING);
+
+            for (Entry<String, String> entry : spToCarbonClaimMappings.entrySet()) {
+                if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equalsIgnoreCase(entry.getValue())) {
+                    return entry.getKey();
+                }
+            }
+        }
+        return spRolClaimUri;
+    }
+
+    /**
      * Returns the local claim uri that is mapped for the IdP role claim uri configured.
      * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
      *

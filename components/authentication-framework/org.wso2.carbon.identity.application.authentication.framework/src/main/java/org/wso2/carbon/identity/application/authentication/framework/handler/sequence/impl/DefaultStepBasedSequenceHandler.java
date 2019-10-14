@@ -300,11 +300,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                     List<String> identityProviderMappedUserRolesUnmappedInclusive = getIdentityProvideMappedUserRoles(
                             externalIdPConfig, extAttibutesValueMap, idpRoleClaimUri, returnOnlyMappedLocalRoles);
 
-                    String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
+                    String idpMappedUserRoles = DefaultSequenceHandlerUtils.getIdpMappedUserRoles(sequenceConfig,
                             identityProviderMappedUserRolesUnmappedInclusive);
                     if (StringUtils.isNotBlank(idpRoleClaimUri)
-                            && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
-                        extAttibutesValueMap.put(idpRoleClaimUri, serviceProviderMappedUserRoles);
+                            && StringUtils.isNotBlank(idpMappedUserRoles)) {
+                        extAttibutesValueMap.put(idpRoleClaimUri, idpMappedUserRoles);
                     }
 
                     if (mappedAttrs == null || mappedAttrs.isEmpty()) {
@@ -317,7 +317,17 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                         idpClaimValues = (Map<String, String>) context
                                 .getProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES);
+
+                        String spRoleClaimUri = FrameworkUtils.getSPRoleClaimUriMappedForLocalRoleClaim(context);
+
+                        String serviceProviderMappedUserRoles = getServiceProviderMappedUserRoles(sequenceConfig,
+                                identityProviderMappedUserRolesUnmappedInclusive);
+                        if (StringUtils.isNotBlank(spRoleClaimUri)
+                                && StringUtils.isNotBlank(serviceProviderMappedUserRoles)) {
+                            mappedAttrs.put(spRoleClaimUri, serviceProviderMappedUserRoles);
+                        }
                     }
+
 
                 }
 
