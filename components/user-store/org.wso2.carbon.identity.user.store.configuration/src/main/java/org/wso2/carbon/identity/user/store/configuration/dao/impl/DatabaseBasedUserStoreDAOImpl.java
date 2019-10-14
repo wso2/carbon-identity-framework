@@ -19,7 +19,6 @@
 
 package org.wso2.carbon.identity.user.store.configuration.dao.impl;
 
-import com.sun.mail.iap.ConnectionException;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.io.IOUtils;
@@ -30,12 +29,11 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
+import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
-import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -64,9 +62,11 @@ import javax.xml.stream.XMLStreamException;
 
 import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries.GET_All_USERSTORE_PROPERTIES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.XML;
 
@@ -261,19 +261,18 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             uuid = UUID.randomUUID().toString();
         }
 
-        String randomPhrase = UserStoreConfigurationConstant.RANDOM_PHRASE_PREFIX + uuid;
         String className = realmConfiguration.getUserStoreClass();
         UserStoreDTO userStoreDTO = getUserStoreDTO(realmConfiguration, userStoreProperties);
         userStoreProperties.put("Class", className);
         userStoreProperties.put(UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT, uuid);
-        RandomPassword[] randomPasswords = SecondaryUserStoreConfigurationUtil.getRandomPasswords(realmConfiguration,
-                userStoreProperties, uuid, randomPhrase, className);
+        MaskedProperty[] maskedProperties = setMaskInUserStoreProperties(realmConfiguration,
+                userStoreProperties, ENCRYPTED_PROPERTY_MASK, className);
 
         userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
 
         // Now revert back to original password.
-        for (RandomPassword randomPassword : randomPasswords) {
-            userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
+        for (MaskedProperty maskedProperty : maskedProperties) {
+            userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
         }
 
         return userStoreDTO;

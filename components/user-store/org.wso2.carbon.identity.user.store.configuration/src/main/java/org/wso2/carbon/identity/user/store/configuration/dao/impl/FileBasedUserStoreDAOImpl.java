@@ -21,7 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
+import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
@@ -51,11 +51,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getRandomPasswords;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.writeUserMgtXMLFile;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
@@ -240,17 +241,16 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 if (uuid == null) {
                     uuid = UUID.randomUUID().toString();
                 }
-                String randomPhrase = UserStoreConfigurationConstant.RANDOM_PHRASE_PREFIX + uuid;
                 String className = secondaryRealmConfiguration.getUserStoreClass();
                 UserStoreDTO userStoreDTO = getUserStoreDTO(secondaryRealmConfiguration, userStoreProperties);
                 userStoreProperties.put("Class", className);
                 userStoreProperties.put(UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT, uuid);
-                RandomPassword[] randomPasswords = getRandomPasswords(secondaryRealmConfiguration, userStoreProperties,
-                        uuid, randomPhrase, className);
+                MaskedProperty[] maskedProperties = setMaskInUserStoreProperties(secondaryRealmConfiguration,
+                        userStoreProperties, ENCRYPTED_PROPERTY_MASK, className);
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
                 // Now revert back to original password.
-                for (RandomPassword randomPassword : randomPasswords) {
-                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
+                for (MaskedProperty maskedProperty : maskedProperties) {
+                    userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
                 }
                 domains.add(userStoreDTO);
                 secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
@@ -393,18 +393,17 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 if (uuid == null) {
                     uuid = UUID.randomUUID().toString();
                 }
-                String randomPhrase = UserStoreConfigurationConstant.RANDOM_PHRASE_PREFIX + uuid;
                 String className = secondaryRealmConfiguration.getUserStoreClass();
                 UserStoreDTO userStoreDTO = getUserStoreDTO(secondaryRealmConfiguration, userStoreProperties);
                 userStoreProperties.put("Class", className);
                 userStoreProperties.put(UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT, uuid);
-                RandomPassword[] randomPasswords = getRandomPasswords(secondaryRealmConfiguration, userStoreProperties,
-                        uuid, randomPhrase, className);
+                MaskedProperty[] maskedProperties = setMaskInUserStoreProperties(secondaryRealmConfiguration,
+                        userStoreProperties, ENCRYPTED_PROPERTY_MASK, className);
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
 
                 // Now revert back to original password.
-                for (RandomPassword randomPassword : randomPasswords) {
-                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
+                for (MaskedProperty maskedProperty : maskedProperties) {
+                    userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
                 }
                 userStorePersistanceDTO.setUserStoreDTO(userStoreDTO);
                 userStorePersistanceDAOList.add(userStorePersistanceDTO);
