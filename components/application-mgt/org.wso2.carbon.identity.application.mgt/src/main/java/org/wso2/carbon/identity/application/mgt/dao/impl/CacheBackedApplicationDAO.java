@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
@@ -217,9 +218,16 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws IdentityApplicationManagementException {
 
+        return getExtendedApplicationBasicInfo(offset, limit);
+    }
+
+    @Override
+    public ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(int offset,
+                                                                          int limit) throws IdentityApplicationManagementException {
+
         if (appDAO instanceof PaginatableFilterableApplicationDAO) {
             // No need to cache the returned list.
-            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(offset, limit);
+            return ((PaginatableFilterableApplicationDAO) appDAO).getExtendedApplicationBasicInfo(offset, limit);
         } else {
             throw new UnsupportedOperationException("This operation only supported in" +
                     " PaginatableFilterableApplicationDAO only.");
@@ -242,9 +250,15 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
 
+        return getExtendedApplicationBasicInfo(filter, offset, limit);
+    }
+
+    @Override
+    public ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(String filter, int offset, int limit) throws IdentityApplicationManagementException {
+
         if (appDAO instanceof PaginatableFilterableApplicationDAO) {
             // No need to cache the returned list.
-            return ((PaginatableFilterableApplicationDAO) appDAO).getApplicationBasicInfo(filter, offset, limit);
+            return ((PaginatableFilterableApplicationDAO) appDAO).getExtendedApplicationBasicInfo(filter, offset, limit);
         } else {
             throw new UnsupportedOperationException("This operation only supported in" +
                     " PaginatableFilterableApplicationDAO only.");

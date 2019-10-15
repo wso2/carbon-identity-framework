@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 
 /**
  * Application pagination and searching API
@@ -96,6 +97,23 @@ public interface ApplicationPaginationAndSearching {
      */
     ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter, int offset,
                                                    int limit) throws IdentityApplicationManagementException;
+
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param filter       Application name filter.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return An array of {@link ApplicationBasicInfo} instances matching the given filter within the given limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(String tenantDomain, String username,
+                                                                   String filter, int offset, int limit)
+            throws IdentityApplicationManagementException;
+
 
     /**
      * Get count of all Application Basic Information.

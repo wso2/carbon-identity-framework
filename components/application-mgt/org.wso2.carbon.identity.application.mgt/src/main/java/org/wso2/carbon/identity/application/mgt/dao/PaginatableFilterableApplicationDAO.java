@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 
 /**
  * This interface defines the data access layer API for application pagination and filtering.
@@ -49,6 +50,18 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
      */
     ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws IdentityApplicationManagementException;
 
+
+    /**
+     * Get all the basic application information based on the offset and the limit.
+     *
+     * @param offset Starting index of the count.
+     * @param limit  Count value.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(int offset,
+                                                           int limit) throws IdentityApplicationManagementException;
+
     /**
      * Get all basic application information for a matching filter that falls under the given page number.
      *
@@ -73,6 +86,11 @@ public interface PaginatableFilterableApplicationDAO extends ApplicationDAO {
      */
     ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
             IdentityApplicationManagementException;
+
+
+    ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(String filter,
+                                                                   int offset,
+                                                                   int limit) throws IdentityApplicationManagementException;
 
     /**
      * Get count of applications.

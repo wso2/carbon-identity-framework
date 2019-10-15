@@ -19,12 +19,13 @@ package org.wso2.carbon.identity.application.mgt;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 
 import java.util.List;
@@ -347,6 +348,15 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      */
     public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
             throws IdentityApplicationManagementException;
+
+
+    @Override
+    public ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(String tenantDomain, String username,
+                                                                          String filter, int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        return new ExtendedApplicationBasicInfo[0];
+    }
 
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,

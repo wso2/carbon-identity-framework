@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.ConsentConfig;
 import org.wso2.carbon.identity.application.common.model.ConsentPurpose;
 import org.wso2.carbon.identity.application.common.model.ConsentPurposeConfigs;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -87,13 +88,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import static java.util.Objects.isNull;
@@ -117,7 +116,6 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
 public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
-    private static final String UTC = "UTC";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -1887,13 +1885,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
-            IdentityApplicationManagementException {
+    public ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(String filter, int offset, int limit)
+            throws IdentityApplicationManagementException {
 
         validateAttributesForPagination(offset, limit);
 
         if ("*".equals(filter)) {
-            return getApplicationBasicInfo(offset, limit);
+            return getExtendedApplicationBasicInfo(offset, limit);
         }
 
         validateAttributesForPagination(offset, limit);
@@ -1904,8 +1902,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
         String sqlQuery;
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
-
+        ArrayList<ExtendedApplicationBasicInfo> appInfo = new ArrayList<>();
         try {
 
             String filterResolvedForSQL = resolveSQLFilter(filter);
@@ -1966,7 +1963,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
+                appInfo.add(buildExtendedApplicationBasicInfo(appNameResultSet));
             }
         } catch (SQLException e) {
             throw new IdentityApplicationManagementException("Error while loading applications from DB: " +
@@ -1977,7 +1974,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
 
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        return appInfo.toArray(new ExtendedApplicationBasicInfo[0]);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
+            IdentityApplicationManagementException {
+
+        return getExtendedApplicationBasicInfo(filter, offset, limit);
     }
 
     @Override
@@ -3155,13 +3159,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
         basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
 
+        return basicInfo;
+    }
+
+    private ExtendedApplicationBasicInfo buildExtendedApplicationBasicInfo(ResultSet appNameResultSet) throws SQLException {
+
+        ExtendedApplicationBasicInfo basicInfo = new ExtendedApplicationBasicInfo();
+        basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
+        basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
+        basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+
         basicInfo.setApplicationResourceId(appNameResultSet.getString("UUID"));
         basicInfo.setImageUrl(appNameResultSet.getString("IMAGE_URL"));
         basicInfo.setLoginUrl(appNameResultSet.getString("LOGIN_URL"));
-        basicInfo.setCreatedTime(
-                appNameResultSet.getTimestamp("TIME_CREATED", Calendar.getInstance(TimeZone.getTimeZone(UTC))));
-        basicInfo.setLastModifiedTime(appNameResultSet.getTimestamp(
-                "TIME_LAST_MODIFIED", Calendar.getInstance(TimeZone.getTimeZone(UTC))));
         return basicInfo;
     }
 
@@ -3277,8 +3287,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws
-            IdentityApplicationManagementException {
+    public ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(int offset, int limit)
+            throws IdentityApplicationManagementException {
 
         validateAttributesForPagination(offset, limit);
 
@@ -3288,7 +3298,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         PreparedStatement getAppNamesStmt = null;
         ResultSet appNameResultSet = null;
         String sqlQuery;
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<ApplicationBasicInfo>();
+        ArrayList<ExtendedApplicationBasicInfo> appInfo = new ArrayList<>();
 
         try {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
@@ -3341,7 +3351,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
                     continue;
                 }
-                appInfo.add(buildApplicationBasicInfo(appNameResultSet));
+                appInfo.add(buildExtendedApplicationBasicInfo(appNameResultSet));
             }
 
         } catch (SQLException e) {
@@ -3353,7 +3363,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
 
-        return appInfo.toArray(new ApplicationBasicInfo[0]);
+        return appInfo.toArray(new ExtendedApplicationBasicInfo[0]);
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset,
+                                                          int limit) throws IdentityApplicationManagementException {
+
+        return getExtendedApplicationBasicInfo(offset, limit);
     }
 
     /**

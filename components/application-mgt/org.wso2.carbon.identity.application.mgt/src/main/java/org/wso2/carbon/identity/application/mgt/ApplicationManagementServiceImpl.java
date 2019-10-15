@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrati
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
@@ -56,7 +57,6 @@ import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.AbstractApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.FileBasedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtException;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
@@ -424,23 +424,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return applicationBasicInfoArray;
     }
 
-    /**
-     * Get all basic application information for a matching filter with pagination based on the offset and limit.
-     *
-     * @param tenantDomain Tenant Domain.
-     * @param username     User name.
-     * @param filter       Application name filter.
-     * @param offset       Starting index of the count.
-     * @param limit        Counting value.
-     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
-     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
-     */
     @Override
-    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
-                                                          int offset, int limit)
+    public ExtendedApplicationBasicInfo[] getExtendedApplicationBasicInfo(String tenantDomain, String username,
+                                                                          String filter, int offset, int limit)
             throws IdentityApplicationManagementException {
 
-        ApplicationBasicInfo[] applicationBasicInfoArray;
+        ExtendedApplicationBasicInfo[] applicationBasicInfoArray;
 
         try {
             startTenantFlow(tenantDomain, username);
@@ -457,12 +446,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         if (log.isDebugEnabled()) {
                             log.debug("Invoking pre listener: " + listener.getClass().getName());
                         }
-                        return new ApplicationBasicInfo[0];
+                        return new ExtendedApplicationBasicInfo[0];
                     }
                 }
 
                 applicationBasicInfoArray = ((PaginatableFilterableApplicationDAO) appDAO).
-                        getApplicationBasicInfo(filter, offset, limit);
+                        getExtendedApplicationBasicInfo(filter, offset, limit);
 
                 // Invoking post listeners.
                 for (ApplicationMgtListener listener : listeners) {
@@ -472,7 +461,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                         if (log.isDebugEnabled()) {
                             log.debug("Invoking post listener: " + listener.getClass().getName());
                         }
-                        return new ApplicationBasicInfo[0];
+                        return new ExtendedApplicationBasicInfo[0];
                     }
                 }
             } else {
@@ -484,6 +473,25 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         return applicationBasicInfoArray;
+    }
+
+    /**
+     * Get all basic application information for a matching filter with pagination based on the offset and limit.
+     *
+     * @param tenantDomain Tenant Domain.
+     * @param username     User name.
+     * @param filter       Application name filter.
+     * @param offset       Starting index of the count.
+     * @param limit        Counting value.
+     * @return An array of {@link ApplicationBasicInfo} instances within the limit.
+     * @throws IdentityApplicationManagementException Error in retrieving basic application information.
+     */
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        return getExtendedApplicationBasicInfo(tenantDomain, username, filter, offset, limit);
     }
 
     /**
