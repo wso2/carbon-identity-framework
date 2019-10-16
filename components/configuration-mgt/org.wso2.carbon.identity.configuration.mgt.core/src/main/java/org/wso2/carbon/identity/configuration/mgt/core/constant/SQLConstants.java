@@ -52,12 +52,12 @@ public class SQLConstants {
             "    TENANT_ID,\n" +
             "    NAME,\n" +
             "    LAST_MODIFIED,\n" +
-            "    HAS_FILE,\n" +
-            "    HAS_ATTRIBUTE,\n" +
-            "    TYPE_ID\n" +
-            "  )\n" +
+            "    HAS_FILE," +
+            "    HAS_ATTRIBUTE," +
+            "    TYPE_ID" +
+            "  )" +
             "VALUES(?, ?, ?, ?, ?, ?, ?)";
-    public static final String INSERT_OR_UPDATE_RESOURCE_MYSQL = "INSERT INTO\n" +
+    public static final String INSERT_OR_UPDATE_RESOURCE_MYSQL = "INSERT INTO" +
             "  IDN_CONFIG_RESOURCE(\n" +
             "    ID,\n" +
             "    TENANT_ID,\n" +
@@ -142,6 +142,7 @@ public class SQLConstants {
             "  T.NAME AS RESOURCE_TYPE,\n" +
             "  T.DESCRIPTION AS DESCRIPTION,\n" +
             "  F.ID AS FILE_ID,\n" +
+            "  F.NAME AS FILE_NAME,\n" +
             "  A.ID AS ATTR_ID,\n" +
             "  A.ATTR_KEY AS ATTR_KEY,\n" +
             "  A.ATTR_VALUE AS ATTR_VALUE\n" +
@@ -302,4 +303,44 @@ public class SQLConstants {
             "  AND TYPE_ID = ?";
     public static final String UPDATE_LAST_MODIFIED_SQL = "UPDATE IDN_CONFIG_RESOURCE SET LAST_MODIFIED = ? " +
             "WHERE ID = ?";
+
+    public static final String INSERT_FILE_SQL = "INSERT INTO IDN_CONFIG_FILE(ID, VALUE, RESOURCE_ID, NAME) VALUES(?, "
+            + "?, ?, ?)";
+    public static final String GET_FILE_BY_ID_SQL = "SELECT\n" +
+            "  ID,\n" +
+            "  VALUE,\n" +
+            "  RESOURCE_ID,\n" +
+            "  NAME\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_FILE\n" +
+            "WHERE\n" +
+            "  ID = ?";
+    public static final String GET_FILES_BY_RESOURCE_ID_SQL = "SELECT\n" +
+            "  ID,\n" +
+            "  NAME\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_FILE\n" +
+            "WHERE\n" +
+            "  RESOURCE_ID = ?";
+    public static final String DELETE_FILE_SQL = "DELETE FROM IDN_CONFIG_FILE WHERE ID = ?";
+    public static final String DELETE_FILES_SQL = "DELETE FROM IDN_CONFIG_FILE WHERE RESOURCE_ID = ?";
+    public static final String UPDATE_HAS_FILE_SQL = "UPDATE IDN_CONFIG_RESOURCE SET HAS_FILE = ? " +
+            "WHERE ID = ?";
+    public static final String UPDATE_HAS_ATTRIBUTE_SQL = "UPDATE IDN_CONFIG_RESOURCE SET HAS_ATTRIBUTE = ? " +
+            "WHERE ID = ?";
+    public static final String GET_ATTRIBUTES_BY_RESOURCE_ID_SQL = "SELECT\n" +
+            "  ID,\n" +
+            "  ATTR_KEY,\n" +
+            "  ATTR_VALUE\n" +
+            "  FROM\n" +
+            "  IDN_CONFIG_ATTRIBUTE\n" +
+            "  WHERE\n" +
+            "  RESOURCE_ID = ?";
+    public static final String GET_FILES_BY_RESOURCE_TYPE_ID_SQL = "SELECT F.ID, F.NAME, R.NAME, T.NAME FROM "
+            + "IDN_CONFIG_FILE AS F "
+            + "INNER JOIN IDN_CONFIG_RESOURCE AS R ON F.RESOURCE_ID = R.ID INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID "
+            + "= T.ID where T.ID = ?";
+    public static final String GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL = "SELECT R.ID, R.TENANT_ID, R.NAME, R.LAST_"
+            + "MODIFIED, R.CREATED_TIME, R.HAS_FILE, R.HAS_ATTRIBUTE FROM IDN_CONFIG_RESOURCE AS R WHERE R"
+            + ".TYPE_ID = ? and R.TENANT_ID = ?";
 }

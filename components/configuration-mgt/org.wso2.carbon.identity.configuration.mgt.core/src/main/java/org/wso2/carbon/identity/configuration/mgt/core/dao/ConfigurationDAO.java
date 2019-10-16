@@ -19,9 +19,13 @@ package org.wso2.carbon.identity.configuration.mgt.core.dao;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Perform CRUD operations for {@link Resource}.
@@ -184,5 +188,70 @@ public interface ConfigurationDAO {
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
     void deleteAttribute(String attributeId, String resourceId, String attributeKey)
+            throws ConfigurationManagementException;
+
+    /**
+     * Add a file.
+     *
+     * @param fileId     Id of the file.
+     * @param resourceId Id of the {@link Resource}.
+     * @param fileName   Name of the {@link ResourceFile}
+     * @param fileStream {@link InputStream} representing the file.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    void addFile(String fileId, String resourceId, String fileName, InputStream fileStream)
+            throws ConfigurationManagementException;
+
+    /**
+     * Get the file.
+     *
+     * @param fileId Id of the file.
+     * @return {@link InputStream} for the given file id.
+     */
+    InputStream getFileById(String fileId) throws ConfigurationManagementException;
+
+    /**
+     * Get files for the {@link Resource}.
+     *
+     *
+     * @param resourceId Id of the {@link Resource}.
+     * @param resourceTypeName Name of the {@link ResourceType}
+     * @param resourceName Name of the {@link Resource}.
+     * @return A list of {@link ResourceFile} for the given resource.
+     */
+    List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException;
+
+    /**
+     * Get files for the {@link ResourceType}.
+     *
+     * @param resourceTypeId Id of the {@link ResourceType}.
+     * @return A list of {@link ResourceFile} for the given resource.
+     */
+    List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException;
+
+    /**
+     * Delete the file.
+     *
+     * @param fileId Id of the file.
+     * @return {@link InputStream} for the given file id.
+     */
+    void deleteFileById(String fileId) throws ConfigurationManagementException;
+
+    /**
+     * Delete files for the {@link Resource}.
+     *
+     * @param resourceId Id of the {@link Resource}.
+     * @return A list of {@link ResourceFile} for the given resource.
+     */
+    void deleteFiles(String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * Get resources for the {@link ResourceType}.
+     *
+     * @param tenantId       Id of the tenant.
+     * @param resourceTypeId of the {@link ResourceType}.
+     * @return A list of {@link Resource} for the given resource type
+     */
+    List<Resource> getResourcesByType(int tenantId, String resourceTypeId)
             throws ConfigurationManagementException;
 }

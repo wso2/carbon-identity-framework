@@ -29,17 +29,22 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 
+import java.io.InputStream;
 import java.util.List;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_REQUIRED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILES_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_DAO;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS;
@@ -52,6 +57,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_NAME_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_REQUEST_INVALID;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 
@@ -99,14 +105,22 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     /**
      * {@inheritDoc}
      */
-    public Resources getResourcesByType(String resourceType) throws ConfigurationManagementException {
+    public Resources getResourcesByType(String resourceTypeName) throws ConfigurationManagementException {
 
         checkFeatureStatus();
 
-        if (log.isDebugEnabled()) {
-            log.debug("Get Resources by Resource Type API is not Implemented yet.");
+        validateResourcesRetrieveRequest(resourceTypeName);
+        ResourceType resourceType = getResourceType(resourceTypeName);
+        List<Resource> resourceList = this.getConfigurationDAO()
+                .getResourcesByType(getTenantId(), resourceType.getId());
+        if (resourceList == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No resource found for the resourceTypeName: " + resourceTypeName);
+            }
+            throw handleClientException(
+                    ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, resourceTypeName, null);
         }
-        return null;
+        return new Resources(resourceList);
     }
 
     /**
@@ -388,6 +402,17 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid resource identifier with resourceName: " + resourceName
                         + " and resourceTypeName: " + resourceTypeName + ".");
+            }
+            throw handleClientException(ERROR_CODE_RESOURCE_GET_REQUEST_INVALID, null);
+        }
+    }
+
+    private void validateResourcesRetrieveRequest(String resourceTypeName)
+            throws ConfigurationManagementException {
+
+        if (StringUtils.isEmpty(resourceTypeName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid resource identifier with resourceTypeName: " + resourceTypeName + ".");
             }
             throw handleClientException(ERROR_CODE_RESOURCE_GET_REQUEST_INVALID, null);
         }
@@ -676,6 +701,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return getResource(resourceTypeName, resourceName).getResourceId();
     }
 
+    private String getResourceTypeId(String resourceTypeName) throws ConfigurationManagementException {
+
+        return getResourceType(resourceTypeName).getId();
+    }
+
     /**
      * Select highest priority Resource DAO from an already sorted list of Resource DAOs.
      *
@@ -705,5 +735,190 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             throw new ConfigurationManagementClientException(ErrorMessages.ERROR_CODE_FEATURE_NOT_ENABLED.getMessage(),
                     ErrorMessages.ERROR_CODE_FEATURE_NOT_ENABLED.getCode());
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ResourceFile addFile(String resourceTypeName, String resourceName, String fileName, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        validateFileAddRequest(resourceTypeName, resourceName, fileName, fileStream);
+        String resourceId = getResourceId(resourceTypeName, resourceName);
+        String fileId = generateUniqueID();
+        if (log.isDebugEnabled()) {
+            log.debug("File id generated: " + fileId);
+        }
+        getConfigurationDAO().addFile(fileId, resourceId, fileName, fileStream);
+        if (log.isDebugEnabled()) {
+            log.debug("File: " + fileId + " successfully added.");
+        }
+        return new ResourceFile(fileId, getFilePath(fileId, resourceTypeName, resourceName), fileName);
+    }
+
+    @Override
+    public List<ResourceFile> getFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
+
+        validateFilesDeleteRequest(resourceTypeName, resourceName);
+        String resourceId = getResourceId(resourceTypeName, resourceName);
+        List<ResourceFile> resourceFiles = getConfigurationDAO().getFiles(resourceId, resourceTypeName, resourceName);
+        if (resourceFiles == null || resourceFiles.size() == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resource: " + resourceName + " does not have any files.");
+            }
+            throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceName);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Files for the resource: " + resourceName + " retrieved successfully.");
+        }
+        return resourceFiles;
+    }
+
+    @Override
+    public List<ResourceFile> getFiles(String resourceTypeName) throws ConfigurationManagementException {
+
+        validateFilesGetRequest(resourceTypeName);
+        String resourceTypeId = getResourceTypeId(resourceTypeName);
+        List<ResourceFile> resourceFiles = getConfigurationDAO().getFilesByResourceType(resourceTypeId);
+        if (resourceFiles == null || resourceFiles.size() == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resource type: " + resourceTypeName + " does not have any files.");
+            }
+            throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceTypeName);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Files for the resource type: " + resourceTypeName + " retrieved successfully.");
+        }
+        return resourceFiles;
+    }
+
+
+    @Override
+    public void deleteFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
+
+        validateFilesDeleteRequest(resourceTypeName, resourceName);
+        String resourceId = getResourceId(resourceTypeName, resourceName);
+        getConfigurationDAO().deleteFiles(resourceId);
+        if (log.isDebugEnabled()) {
+            log.debug("All the files were deleted in the resource: " + resourceName + ".");
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public InputStream getFileById(String fileId)
+            throws ConfigurationManagementException {
+
+        validateFileGetRequest(fileId);
+        InputStream fileStream = getConfigurationDAO().getFileById(fileId);
+        if (fileStream == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resource File: " + fileId + " does not exists.");
+            }
+            throw handleClientException(ERROR_CODE_FILE_DOES_NOT_EXISTS, fileId);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Resource file: " + fileId + " retrieved successfully.");
+        }
+        return fileStream;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteFileById(String fileId)
+            throws ConfigurationManagementException {
+
+        validateFileDeleteRequest(fileId);
+        getConfigurationDAO().deleteFileById(fileId);
+        if (log.isDebugEnabled()) {
+            log.debug("File: " + fileId + " successfully deleted.");
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFeatureEnabled() {
+
+       return ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled();
+    }
+
+    private void validateFilesGetRequest(String resourceTypeName, String resourceName) throws ConfigurationManagementClientException {
+
+        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName)) {
+            String fileIdentifiers = "resourceType: " + resourceTypeName + ", resourceName: " + resourceName;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
+        }
+    }
+
+    private void validateFilesGetRequest(String resourceTypeName) throws ConfigurationManagementClientException {
+
+        if (StringUtils.isEmpty(resourceTypeName)) {
+            String fileIdentifiers = "resourceType: " + resourceTypeName;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
+        }
+    }
+
+    private void validateFilesDeleteRequest(String resourceTypeName, String resourceName) throws ConfigurationManagementClientException {
+
+        validateFilesGetRequest(resourceTypeName, resourceName);
+    }
+
+    private void validateFileGetRequest(String fileId) throws ConfigurationManagementClientException {
+
+        if (StringUtils.isEmpty(fileId)) {
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileId: " + fileId);
+        }
+    }
+
+    private void validateFileDeleteRequest(String fileId) throws ConfigurationManagementException {
+
+        validateFileGetRequest(fileId);
+        if (!isFileExists(fileId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("A file with the id: " + fileId + " does not exists.");
+            }
+            throw handleClientException(ERROR_CODE_FILE_DOES_NOT_EXISTS, fileId);
+        }
+    }
+
+    private void validateFileAddRequest(String resourceTypeName, String resourceName, String fileName, InputStream fileStream) throws ConfigurationManagementClientException {
+
+        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName) || StringUtils.isEmpty(fileName)) {
+            String fileIdentifiers = "Resource type: " + resourceTypeName + ", resourceName: " + resourceName + ". "
+                    + "FileName: " + fileName;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
+        }
+
+        if (fileStream == null) {
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream: null");
+        }
+    }
+
+    private boolean isFileExists(String fileId)
+            throws ConfigurationManagementException {
+
+        try {
+            getFileById(fileId);
+        } catch (ConfigurationManagementClientException e) {
+            if (isFileNotExistsError(e)) {
+                return false;
+            }
+            throw e;
+        }
+        return true;
+    }
+
+    private boolean isFileNotExistsError(ConfigurationManagementClientException e) {
+
+        return ERROR_CODE_FILE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode());
     }
 }

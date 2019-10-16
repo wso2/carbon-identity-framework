@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.configuration.mgt.core;
 
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.junit.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -35,6 +36,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManage
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
@@ -43,10 +45,14 @@ import org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Collections;
+import java.util.List;
 import javax.sql.DataSource;
 
 import static org.junit.Assert.assertEquals;
@@ -76,6 +82,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.get
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleSearchCondition;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.initiateH2Base;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.spyConnection;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSamplesPath;
 
 @PrepareForTest({PrivilegedCarbonContext.class, IdentityDatabaseUtil.class, IdentityUtil.class,
         IdentityTenantUtil.class})
@@ -424,6 +431,98 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ConfigurationManagerComponentDataHolder.setUseCreatedTime(false);
         removeCreatedTimeColumn();
         testSearchMultiTenantResources();
+    }
+
+    @Test(priority = 27)
+    public void testAddFile() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+
+        File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
+        InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+
+        ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
+                resource.getResourceName(),"sample-resource-file", fileStream);
+        Assert.assertNotNull("Created resource file id cannot be null", resourceFile.getId());
+    }
+
+    @Test(priority = 28)
+    public void testGetFileById() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+
+        File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
+        InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+
+        ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
+                resource.getResourceName(), "sample-resource-file", fileStream);
+        InputStream retrievedFileStream = configurationManager.getFileById(resourceFile.getId());
+        Assert.assertNotNull("Retrieved stream for the file id cannot be null", retrievedFileStream);
+    }
+
+    @Test(priority = 29)
+    public void testDeleteFileById() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+
+        File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
+        InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+
+        ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
+                resource.getResourceName(), "sample-resource-file", fileStream);
+
+        configurationManager.deleteFileById(resourceFile.getId());
+        Assert.assertFalse(
+                "Resource should not contain any files.",
+                configurationManager.getResource(resourceType.getName(), resource.getResourceName()).isHasFile()
+        );
+    }
+
+    @Test(priority = 30)
+    public void testGetFiles() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+
+        File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
+        File sampleResourceFile1 = new File(getSamplesPath("sample-resource-file-1.txt"));
+        InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+        InputStream fileStream1 = FileUtils.openInputStream(sampleResourceFile1);
+
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), "sample-resource-file", fileStream);
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), "sample-resource-file", fileStream1);
+
+        List<ResourceFile> resourceFiles = configurationManager.getFiles(
+                resourceType.getName(), resource.getResourceName());
+
+        Assert.assertTrue("Retrieved file count should be equal to the existing value",
+                resourceFiles.size() == 2);
+    }
+
+    @Test(priority = 30)
+    public void testDeleteFiles() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
+        Resource resource = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+
+        File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
+        File sampleResourceFile1 = new File(getSamplesPath("sample-resource-file-1.txt"));
+        InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+        InputStream fileStream1 = FileUtils.openInputStream(sampleResourceFile1);
+
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), "sample-resource-file", fileStream);
+        configurationManager.addFile(resourceType.getName(), resource.getResourceName(), "sample-resource-file", fileStream1);
+
+        configurationManager.deleteFiles(
+                resourceType.getName(), resource.getResourceName());
+
+        Assert.assertFalse(
+                "Resource should not contain any files.",
+                configurationManager.getResource(resourceType.getName(), resource.getResourceName()).isHasFile()
+        );
     }
 
     private void removeCreatedTimeColumn() throws DataAccessException {
