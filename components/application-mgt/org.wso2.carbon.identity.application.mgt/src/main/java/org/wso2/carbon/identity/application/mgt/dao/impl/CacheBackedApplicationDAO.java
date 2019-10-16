@@ -337,6 +337,13 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
         return appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName, tenantDomain);
     }
 
+    @Override
+    public ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
+                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+
+        return appDAO.getExtendedApplicationBasicInfo(resourceId, tenantDomain);
+    }
+
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 

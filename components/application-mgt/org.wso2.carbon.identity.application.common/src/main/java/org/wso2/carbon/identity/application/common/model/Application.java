@@ -20,15 +20,37 @@ import javax.xml.bind.annotation.XmlTransient;
 public class Application extends ServiceProvider {
 
     @XmlTransient
-    protected String resourceId;
+    private String applicationResourceId;
+    private String imageUrl;
+    private String loginUrl;
 
-    public String getResourceId() {
+    public String getApplicationResourceId() {
 
-        return resourceId;
+        return applicationResourceId;
     }
 
-    public void setResourceId(String resourceId) {
+    public void setApplicationResourceId(String applicationResourceId) {
 
-        this.resourceId = resourceId;
+        this.applicationResourceId = applicationResourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    public String getLoginUrl() {
+
+        return loginUrl;
+    }
+
+    public void setLoginUrl(String loginUrl) {
+
+        this.loginUrl = loginUrl;
     }
 }

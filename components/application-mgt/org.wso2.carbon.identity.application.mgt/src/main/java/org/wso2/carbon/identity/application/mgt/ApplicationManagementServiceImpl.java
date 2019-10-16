@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
+import org.wso2.carbon.identity.application.common.model.Application;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.DefaultAuthenticationSequence;
@@ -2050,6 +2051,56 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationScriptConfig(
                     defaultSP.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig());
         }
+    }
+
+    @Override
+    public ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
+                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+
+        // TODO: invoking the listeners
+        try {
+            startTenantFlow(tenantDomain);
+            return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
+                    .getExtendedApplicationBasicInfo(resourceId, tenantDomain);
+        } finally {
+            endTenantFlow();
+        }
+    }
+
+    @Override
+    public Application createApplication(Application application,
+                                         String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    @Override
+    public Application createApplication(Application application,
+                                         String tenantDomain,
+                                         String templateName) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    @Override
+    public Application getApplication(String applicationResourceId,
+                                      String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    @Override
+    public Application updateApplication(String applicationResourceId,
+                                         String tenantDomain,
+                                         Application updatedApplication) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    @Override
+    public void deleteApplication(String applicationResourceId,
+                                  String tenantDomain) throws IdentityApplicationManagementException {
+
     }
 }
 

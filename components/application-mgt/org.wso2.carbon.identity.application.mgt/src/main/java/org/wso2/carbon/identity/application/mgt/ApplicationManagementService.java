@@ -34,7 +34,8 @@ import java.util.Map;
 /**
  * Application management service abstract class.
  */
-public abstract class ApplicationManagementService implements ApplicationPaginationAndSearching {
+public abstract class ApplicationManagementService implements ApplicationPaginationAndSearching,
+        ApplicationResourceManager {
 
     /**
      * Get ApplicationManagementService instance.

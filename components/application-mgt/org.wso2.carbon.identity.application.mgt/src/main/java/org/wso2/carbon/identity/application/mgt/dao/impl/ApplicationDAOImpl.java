@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.Application;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -1985,6 +1986,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
+    public Application getApplicationResource(String resourceId,
+                                              String tenantDomain) throws IdentityApplicationManagementException {
+
+        // Get internal id from the uuid...
+        // Get the service provider by the id...
+
+        return null;
+    }
+
+    @Override
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -3226,6 +3237,45 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return count;
+    }
+
+    @Override
+    public ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
+                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting application basic information for applicationResourceId: " + resourceId
+                    + " in tenantDomain: " + tenantDomain);
+        }
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement getAppNamesStmt = null;
+        ResultSet appNameResultSet = null;
+
+        ExtendedApplicationBasicInfo applicationBasicInfo = null;
+        try {
+            getAppNamesStmt = connection
+                    .prepareStatement(ApplicationMgtDBQueries.LOAD_APP_BY_TENANT_AND_UUID);
+            getAppNamesStmt.setInt(1, tenantID);
+            getAppNamesStmt.setString(2, resourceId);
+            appNameResultSet = getAppNamesStmt.executeQuery();
+
+            while (appNameResultSet.next()) {
+                applicationBasicInfo = buildExtendedApplicationBasicInfo(appNameResultSet);
+            }
+        } catch (SQLException e) {
+            String message = "Error while getting application basic information for applicationResourceId:%s in " +
+                    "tenantDomain:%s";
+            throw new IdentityApplicationManagementException(String.format(message, resourceId, tenantDomain), e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(getAppNamesStmt);
+            IdentityApplicationManagementUtil.closeResultSet(appNameResultSet);
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+
+        return applicationBasicInfo;
     }
 
     /**

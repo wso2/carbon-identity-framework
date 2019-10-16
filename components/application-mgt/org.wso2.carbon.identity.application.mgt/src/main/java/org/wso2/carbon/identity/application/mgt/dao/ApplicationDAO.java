@@ -19,7 +19,9 @@
 package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.Application;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
 import java.util.List;
@@ -130,5 +132,23 @@ public interface ApplicationDAO {
     default boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException {
 
         return false;
+    }
+
+    /**
+     * Get all basic application information for a matching filter.
+     *
+     * @param resourceId Application resourceId
+     * @return Application Basic Information array
+     * @throws IdentityApplicationManagementException
+     */
+    default ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
+                                                                 String tenantDomain) throws IdentityApplicationManagementException {
+        return null;
+    }
+
+    default Application getApplicationResource(String resourceId,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
     }
 }

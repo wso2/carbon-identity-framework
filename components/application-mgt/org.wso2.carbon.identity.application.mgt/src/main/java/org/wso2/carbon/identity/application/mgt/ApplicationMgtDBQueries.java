@@ -86,6 +86,10 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME = "SELECT ID, APP_NAME, DESCRIPTION, UUID, " +
             "IMAGE_URL, LOGIN_URL FROM SP_APP WHERE TENANT_ID = ? AND APP_NAME LIKE ? ORDER BY ID DESC";
 
+    public static final String LOAD_APP_BY_TENANT_AND_UUID = "SELECT ID, APP_NAME, DESCRIPTION, UUID, " +
+            "IMAGE_URL, LOGIN_URL FROM SP_APP WHERE TENANT_ID = ? AND UUID = ?";
+
+
     // Count number of total apps.
     public static final String LOAD_APP_COUNT_BY_TENANT = "SELECT COUNT(*) FROM SP_APP WHERE TENANT_ID = ?";
     public static final String LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME = "SELECT COUNT(*) FROM SP_APP WHERE " +
