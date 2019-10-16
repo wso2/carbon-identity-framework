@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationResourceDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
@@ -114,7 +115,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
  * <li>IDN_APPMGT_ROLE_MAPPING</li>
  * </ul>
  */
-public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO {
+public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO,
+        ApplicationResourceDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
 
@@ -1985,14 +1987,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return getExtendedApplicationBasicInfo(filter, offset, limit);
     }
 
-    @Override
-    public Application getApplicationResource(String resourceId,
-                                              String tenantDomain) throws IdentityApplicationManagementException {
+    private Application getApplicationBasicInformation(String resourceId,
+                                                       String tenantDomain) throws IdentityApplicationManagementException {
 
-        // Get internal id from the uuid...
-        // Get the service provider by the id...
+        ExtendedApplicationBasicInfo basicInfo = getExtendedApplicationBasicInfo(resourceId, tenantDomain);
 
-        return null;
+        Application application = null;
+        if (basicInfo != null) {
+            application = new Application();
+            application.setApplicationResourceId(basicInfo.getApplicationResourceId());
+            application.setApplicationID(basicInfo.getApplicationId());
+            application.setApplicationName(basicInfo.getApplicationName());
+            application.setDescription(basicInfo.getDescription());
+            application.setImageUrl(basicInfo.getImageUrl());
+            application.setLoginUrl(basicInfo.getLoginUrl());
+        }
+
+        return application;
     }
 
     @Override
@@ -2006,40 +2017,53 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (serviceProvider == null) {
                 return null;
             }
-            int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
-            List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
-            serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
-                    applicationId, connection, tenantID));
-            serviceProvider
-                    .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
-                            applicationId, connection, tenantID, propertyList));
+            addAppConfigInfo(applicationId, connection, serviceProvider);
+            return serviceProvider;
+        } catch (SQLException | CertificateRetrievingException e) {
+            throw new IdentityApplicationManagementException("Failed to update service provider "
+                    + applicationId, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
 
-            serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
-                    applicationId, connection, tenantID));
+    private void addAppConfigInfo(int applicationId, Connection connection, ServiceProvider serviceProvider)
+            throws SQLException, IdentityApplicationManagementException, CertificateRetrievingException {
 
-            serviceProvider.setOutboundProvisioningConfig(getOutboundProvisioningConfiguration(
-                    applicationId, connection, tenantID));
+        int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
+        List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
+        serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
+                applicationId, connection, tenantID));
+        serviceProvider
+                .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
+                        applicationId, connection, tenantID, propertyList));
 
-            // Load Claim Mapping
-            serviceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
-                                                                 tenantID));
+        serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
+                applicationId, connection, tenantID));
 
-            // Load Role Mappings
-            List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
-                                                                         tenantID);
-            PermissionsAndRoleConfig permissionAndRoleConfig = new PermissionsAndRoleConfig();
-            permissionAndRoleConfig.setRoleMappings(roleMappings
-                                                            .toArray(new RoleMapping[roleMappings.size()]));
-            serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
+        serviceProvider.setOutboundProvisioningConfig(getOutboundProvisioningConfiguration(
+                applicationId, connection, tenantID));
 
-            RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
-                    applicationId, connection, tenantID);
-            serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
+        // Load Claim Mapping
+        serviceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
+                                                             tenantID));
 
-            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
-            serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
+        // Load Role Mappings
+        List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
+                                                                     tenantID);
+        PermissionsAndRoleConfig permissionAndRoleConfig = new PermissionsAndRoleConfig();
+        permissionAndRoleConfig.setRoleMappings(roleMappings
+                                                        .toArray(new RoleMapping[roleMappings.size()]));
+        serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
 
-            // Will be supported with 'Advance Consent Management Feature'.
+        RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
+                applicationId, connection, tenantID);
+        serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
+
+        serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
+        serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
+
+        // Will be supported with 'Advance Consent Management Feature'.
             /*
             ConsentConfig consentConfig = serviceProvider.getConsentConfig();
             if (isNull(consentConfig)) {
@@ -2049,15 +2073,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             serviceProvider.setConsentConfig(consentConfig);
             */
 
-            String serviceProviderName = serviceProvider.getApplicationName();
-            loadApplicationPermissions(serviceProviderName, serviceProvider);
-            return serviceProvider;
-        } catch (SQLException | CertificateRetrievingException e) {
-            throw new IdentityApplicationManagementException("Failed to update service provider "
-                    + applicationId, e);
-        } finally {
-            IdentityApplicationManagementUtil.closeConnection(connection);
-        }
+        String serviceProviderName = serviceProvider.getApplicationName();
+        loadApplicationPermissions(serviceProviderName, serviceProvider);
     }
 
     /**
@@ -3789,6 +3806,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+
     /*
      * (non-Javadoc)
      *
@@ -3796,6 +3814,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO#getServiceProviderNameByClientId
      * (java.lang.String, java.lang.String, java.lang.String)
      */
+
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
@@ -3840,7 +3859,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         return applicationName;
     }
-
     /**
      * @param serviceProviderName
      * @param tenantDomain
@@ -3904,7 +3922,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     "Error while retrieving claim mapping", e);
         }
     }
-
     @Override
     public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
                                                                         String tenantDomain) throws IdentityApplicationManagementException {
@@ -4420,5 +4437,53 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Invalid page number requested. The page number should "
                     + "be a value greater than 0.");
         }
+    }
+
+    @Override
+    public Application getApplicationResource(String resourceId,
+                                              String tenantDomain) throws IdentityApplicationManagementException {
+
+        Application application = getApplicationBasicInformation(resourceId, tenantDomain);
+        // Get the service provider by the id...
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            if (application != null) {
+                addAppConfigInfo(application.getApplicationID(), connection, application);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Cannot find an application for resourceId:" + resourceId +
+                            " in tenantDomain:" + tenantDomain);
+                }
+            }
+        } catch (SQLException | CertificateRetrievingException e) {
+            throw new IdentityApplicationManagementException("Failed to retrieve application with " +
+                    "resourceId:" + resourceId + " in tenantDomain:" + tenantDomain, e);
+        }
+        return null;
+    }
+
+    @Override
+    public void createApplicationResource(Application application,
+                                          String tenantDomain) throws IdentityApplicationManagementException {
+
+    }
+
+    @Override
+    public void createApplicationResource(Application application,
+                                          String tenantDomain,
+                                          String templateName) throws IdentityApplicationManagementException {
+
+    }
+
+    @Override
+    public void updateApplicationResource(String applicationResourceId,
+                                          String tenantDomain,
+                                          Application updatedApplication) throws IdentityApplicationManagementException {
+
+    }
+
+    @Override
+    public void deleteApplicationResource(String applicationResourceId,
+                                          String tenantDomain) throws IdentityApplicationManagementException {
+
     }
 }

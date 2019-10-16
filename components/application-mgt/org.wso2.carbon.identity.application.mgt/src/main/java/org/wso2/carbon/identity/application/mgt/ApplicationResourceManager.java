@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasi
 
 public interface ApplicationResourceManager {
 
-    ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
+    ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String applicationResourceId,
                                                                  String tenantDomain) throws IdentityApplicationManagementException;
 
     Application createApplication(Application application,

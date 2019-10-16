@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.Application;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -34,6 +35,7 @@ import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCac
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheEntry;
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationResourceDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
@@ -52,8 +54,7 @@ import java.util.Map;
  * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
  * single point of caching.
  */
-public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
-        implements PaginatableFilterableApplicationDAO {
+public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
     private static final Log log = LogFactory.getLog(CacheBackedApplicationDAO.class);
 
@@ -342,6 +343,44 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
                                                                         String tenantDomain) throws IdentityApplicationManagementException {
 
         return appDAO.getExtendedApplicationBasicInfo(resourceId, tenantDomain);
+    }
+
+    @Override
+    public Application getApplicationResource(String resourceId,
+                                              String tenantDomain) throws IdentityApplicationManagementException {
+
+        return appDAO.getApplicationResource(resourceId, tenantDomain);
+    }
+
+    @Override
+    public void createApplicationResource(Application application,
+                                          String tenantDomain) throws IdentityApplicationManagementException {
+
+        appDAO.createApplicationResource(application, tenantDomain);
+    }
+
+    @Override
+    public void createApplicationResource(Application application,
+                                          String tenantDomain,
+                                          String templateName) throws IdentityApplicationManagementException {
+
+        appDAO.createApplicationResource(application, tenantDomain, templateName);
+    }
+
+    @Override
+    public void updateApplicationResource(String applicationResourceId,
+                                          String tenantDomain,
+                                          Application updatedApplication) throws IdentityApplicationManagementException {
+
+        appDAO.updateApplicationResource(applicationResourceId, tenantDomain, updatedApplication);
+    }
+
+    @Override
+    public void deleteApplicationResource(String applicationResourceId,
+                                          String tenantDomain) throws IdentityApplicationManagementException {
+
+        appDAO.deleteApplicationResource(applicationResourceId, tenantDomain);
+
     }
 
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws

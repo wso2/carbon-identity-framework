@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationResourceDAO;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
@@ -2054,14 +2055,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
+    public ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String applicationResourceId,
                                                                         String tenantDomain) throws IdentityApplicationManagementException {
 
         // TODO: invoking the listeners
         try {
             startTenantFlow(tenantDomain);
             return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                    .getExtendedApplicationBasicInfo(resourceId, tenantDomain);
+                    .getExtendedApplicationBasicInfo(applicationResourceId, tenantDomain);
         } finally {
             endTenantFlow();
         }
@@ -2086,7 +2087,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public Application getApplication(String applicationResourceId,
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
-        return null;
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+        if (appDAO instanceof ApplicationResourceDAO) {
+            return ((ApplicationResourceDAO) appDAO).getApplicationResource(applicationResourceId, tenantDomain);
+//        String applicationName = application.getApplicationName();
+
+            // TODO: Since we didn't add post listener methods to the ApplicationMgtListener API to avoid API changes, we
+            // TODO: are invoking doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain) listener
+            // TODO: method here as well.
+            // invoking the post listeners
+            // TODO: add a suitable listener...
+//        Collection<ApplicationMgtListener> listeners =
+//                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+//        for (ApplicationMgtListener listener : listeners) {
+//            if (listener.isEnable() && !listener.doPostGetServiceProvider(application, applicationName, tenantDomain)) {
+//                return null;
+//            }
+//        }
+        } else {
+            throw new UnsupportedOperationException("Application resource management is not supported. Tenant domain: " +
+                    tenantDomain);
+        }
     }
 
     @Override
