@@ -1079,7 +1079,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public List<ResourceFile> getFiles(String id, String resourceTypeName, String resourceId) throws ConfigurationManagementException {
+    public List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -1089,7 +1089,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         String resourceFileName = resultSet.getString("NAME");
                         return new ResourceFile(
                                 resourceFileId,
-                                getFilePath(resourceFileId, resourceTypeName, resourceId),
+                                getFilePath(resourceFileId, resourceTypeName, resourceName),
                                 resourceFileName
                         );
                     }),
@@ -1097,7 +1097,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         preparedStatement.setString(1, resourceId);
                     });
         } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_GET_FILES, resourceId, e);
+            throw handleServerException(ERROR_CODE_GET_FILES, resourceName, e);
         }
     }
 

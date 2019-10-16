@@ -214,12 +214,12 @@ public interface ConfigurationDAO {
      * Get files for the {@link Resource}.
      *
      *
-     * @param id
-     * @param resourceTypeName
      * @param resourceId Id of the {@link Resource}.
+     * @param resourceTypeName Name of the {@link ResourceType}
+     * @param resourceName Name of the {@link Resource}.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFiles(String id, String resourceTypeName, String resourceId) throws ConfigurationManagementException;
+    List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException;
 
     /**
      * Get files for the {@link ResourceType}.

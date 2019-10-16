@@ -258,4 +258,11 @@ public interface ConfigurationManager {
      */
     void deleteFileById(String fileId)
             throws ConfigurationManagementException;
+
+    /**
+     * This API is used to get whether configuration management rest api enabled.
+     *
+     * @return boolean.
+     */
+    boolean isFeatureEnabled();
 }

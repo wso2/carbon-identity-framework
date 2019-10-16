@@ -309,14 +309,14 @@ public class SQLConstants {
     public static final String GET_FILE_BY_ID_SQL = "SELECT\n" +
             "  ID,\n" +
             "  VALUE,\n" +
-            "  RESOURCE_ID\n" +
+            "  RESOURCE_ID,\n" +
             "  NAME\n" +
             "FROM\n" +
             "  IDN_CONFIG_FILE\n" +
             "WHERE\n" +
             "  ID = ?";
     public static final String GET_FILES_BY_RESOURCE_ID_SQL = "SELECT\n" +
-            "  ID\n" +
+            "  ID,\n" +
             "  NAME\n" +
             "FROM\n" +
             "  IDN_CONFIG_FILE\n" +

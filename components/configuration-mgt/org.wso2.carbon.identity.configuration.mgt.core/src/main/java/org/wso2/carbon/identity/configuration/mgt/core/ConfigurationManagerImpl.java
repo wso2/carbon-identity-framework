@@ -842,6 +842,15 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isFeatureEnabled() {
+
+       return ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled();
+    }
+
     private void validateFilesGetRequest(String resourceTypeName, String resourceName) throws ConfigurationManagementClientException {
 
         if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName)) {
