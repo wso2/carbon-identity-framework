@@ -121,6 +121,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
+    public static final String DOMAIN_IN_ROLES = "DOMAIN_IN_ROLES";
 
     public ApplicationDAOImpl() {
         standardInboundAuthTypes = new ArrayList<String>();
@@ -391,9 +392,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         serviceProvider.getPermissionAndRoleConfig().getPermissions());
             }
 
+            updateUseDomainNameInRolesAsSpProperty(serviceProvider);
             if (serviceProvider.getSpProperties() != null) {
                 // To update 'USE_DOMAIN_IN_ROLES' property value.
-                updateUseDomainNameInRolesAsSpProperty(serviceProvider);
                 updateServiceProviderProperties(connection, applicationId, Arrays.asList(serviceProvider
                         .getSpProperties()), tenantID);
             }
@@ -4255,20 +4256,36 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private void updateUseDomainNameInRolesAsSpProperty(ServiceProvider serviceProvider) {
 
-        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
+        ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
+
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null
+                || serviceProviderProperties == null) {
             return;
         }
-        ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
-        if (serviceProviderProperties != null) {
-            for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
-                if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName())) {
-                    if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-                        serviceProviderProperty.setValue(String.valueOf(serviceProvider.
-                                getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
-                    }
-                }
+
+        boolean isUseUserstoreDomainInRolesPropertyExist = false;
+        List<ServiceProviderProperty> serviceProviderPropertiesList = new ArrayList<>
+                (Arrays.asList(serviceProviderProperties));
+
+        for (ServiceProviderProperty serviceProviderProperty : serviceProviderPropertiesList) {
+            if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName())) {
+                isUseUserstoreDomainInRolesPropertyExist = true;
+                serviceProviderProperty.setValue(String.valueOf(serviceProvider.
+                        getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
             }
         }
+
+        if (!isUseUserstoreDomainInRolesPropertyExist) {
+            ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
+            serviceProviderProperty.setValue(String.valueOf(serviceProvider.
+                    getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
+            serviceProviderProperty.setDisplayName(DOMAIN_IN_ROLES);
+            serviceProviderProperty.setName(USE_DOMAIN_IN_ROLES);
+            serviceProviderPropertiesList.add(serviceProviderProperty);
+        }
+
+        serviceProvider.setSpProperties(serviceProviderPropertiesList.toArray
+                (new ServiceProviderProperty[serviceProviderPropertiesList.size()]));
     }
 
     private void addUseDomainNameInRolesAsSpProperty(ServiceProvider serviceProvider) {
