@@ -1089,7 +1089,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         String resourceFileName = resultSet.getString("NAME");
                         return new ResourceFile(
                                 resourceFileId,
-                                getFilePath(resourceFileId, resourceTypeName, resourceName),
+                                getFilePath(resourceFileId, resourceTypeName, resourceName).toString(),
                                 resourceFileName
                         );
                     }),
@@ -1114,7 +1114,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         String resourceTypeName = resultSet.getString(4);
                         return new ResourceFile(
                                 resourceFileId,
-                                getFilePath(resourceFileId, resourceTypeName, resourceName),
+                                getFilePath(resourceFileId, resourceTypeName, resourceName).toString(),
                                 resourceFileName
                         );
                     }),

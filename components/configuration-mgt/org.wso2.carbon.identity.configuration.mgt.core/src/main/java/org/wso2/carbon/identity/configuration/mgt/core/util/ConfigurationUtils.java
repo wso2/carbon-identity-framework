@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.configuration.mgt.core.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
@@ -26,8 +27,12 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_FILE_BY_ID_PATH;
 
+import java.net.URI;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.SERVER_API_PATH_COMPONENT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_CONTEXT_PATH_COMPONENT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_NAME_FROM_CONTEXT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
 
 /**
@@ -142,10 +147,39 @@ public class ConfigurationUtils {
         return message;
     }
 
-    public static String getFilePath(String fileId, String resourceTypeName, String resourceName) {
+    public static URI getFilePath(String fileId, String resourceTypeName, String resourceName) {
 
-        return IdentityUtil.getEndpointURIPath(
-                RESOURCE_FILE_BY_ID_PATH + "/" + resourceTypeName + "/" + resourceName + "/" + fileId, true, false);
+        return buildURIForBody(RESOURCE_FILE_BY_ID_PATH + "/" + resourceTypeName + "/" + resourceName + "/" + fileId);
 
+    }
+
+
+    /**
+     * Build URI prepending the user API context with to the endpoint.
+     * /t/<tenant-domain>/api/identity/config-mgt/v1.0/<endpoint>
+     *
+     * @param endpoint relative endpoint path.
+     * @return Fully qualified URI.
+     */
+    public static URI buildURIForBody(String endpoint) {
+
+        String tenantQualifiedRelativePath =
+                String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
+        String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, true, true);
+        return URI.create(url);
+    }
+
+    /**
+     * Retrieves loaded tenant domain from carbon context.
+     *
+     * @return tenant domain of the request is being served.
+     */
+    private static String getTenantDomainFromContext() {
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        if (IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT) != null) {
+            tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT);
+        }
+        return tenantDomain;
     }
 }

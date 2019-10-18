@@ -61,6 +61,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -563,9 +564,10 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         // Mock get maximum query length call.
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty(any(String.class))).thenReturn("4194304");
+        when(IdentityUtil.getEndpointURIPath(any(String.class), anyBoolean(), anyBoolean())).thenReturn(
+                "/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8");
         ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
-        ConfigurationManagerConfigurationHolder configurationHolder =
-                new ConfigurationManagerConfigurationHolder();
+        ConfigurationManagerConfigurationHolder configurationHolder = new ConfigurationManagerConfigurationHolder();
         ConfigurationDAO configurationDAO = new ConfigurationDAOImpl();
         configurationHolder.setConfigurationDAOS(Collections.singletonList(configurationDAO));
         mockCarbonContextForTenant(SUPER_TENANT_ID, SUPER_TENANT_DOMAIN_NAME);

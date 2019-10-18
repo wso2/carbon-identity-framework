@@ -37,6 +37,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeDTO;
 import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils.getAttributeFromDTO;
@@ -187,7 +188,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         try {
             ResourceFile resourceFile = getConfigurationManager()
                     .addFile(resourceType, resourceName, fileName, resourceFileInputStream);
-            return Response.created(new URI(resourceFile.getValue())).build();
+            return Response.created(new URI(FILE,null,resourceFile.getValue(),null)).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {

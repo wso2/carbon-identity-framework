@@ -61,6 +61,9 @@ public class ConfigurationConstants {
     public static final String RESOURCE_FILE_BY_ID_PATH = "/resource/file";
     public static final String ATTRIBUTE = "attribute";
     public static final String FILE = "file";
+    public static final String SERVER_API_PATH_COMPONENT = "/api/identity/config-mgt/v1.0";
+    public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";
+    public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),

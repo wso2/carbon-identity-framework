@@ -19,8 +19,6 @@ package org.wso2.carbon.identity.configuration.mgt.endpoint.util;
 import org.apache.commons.logging.Log;
 import org.apache.cxf.jaxrs.ext.search.PrimitiveStatement;
 import org.apache.cxf.jaxrs.ext.search.SearchCondition;
-import org.apache.cxf.jaxrs.ext.search.SearchContext;
-import org.apache.cxf.jaxrs.ext.search.SearchParseException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
@@ -38,6 +36,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
+import org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.LinkDTO;
@@ -52,8 +51,9 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ConflictReq
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ForbiddenException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.NotFoundException;
-import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.SearchConditionException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -110,7 +110,7 @@ public class ConfigurationEndpointUtils {
         LinkDTO linkDTO = new LinkDTO();
         List<LinkDTO> linkDTOList = new ArrayList<>();
         linkDTO.setRel(FILE);
-        linkDTO.setHref(getFileURI(resource.getResourceName(), resource.getResourceType()));
+        linkDTO.setHref(getFileURI(resource.getResourceName(), resource.getResourceType()).toString());
         linkDTOList.add(linkDTO);
         return linkDTOList;
     }
@@ -126,12 +126,15 @@ public class ConfigurationEndpointUtils {
         return resourcesDTO;
     }
 
-    public static ResourceTypeDTO getResourceTypeDTO(ResourceType resourceType) {
+    public static ResourceTypeDTO getResourceTypeDTO(ResourceType resourceType)
+            throws ConfigurationManagementException {
 
         ResourceTypeDTO resourceTypeDTO = new ResourceTypeDTO();
         resourceTypeDTO.setName(resourceType.getName());
         resourceTypeDTO.setId(resourceType.getId());
         resourceTypeDTO.setDescription(resourceType.getDescription());
+        resourceTypeDTO.setLinks(getResourceLinkList(resourceType.getName(),
+                getConfigurationManager().getResourcesByType(resourceType.getName()).getResources()));
         return resourceTypeDTO;
     }
 
@@ -146,7 +149,7 @@ public class ConfigurationEndpointUtils {
             String resourceType) {
 
         ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
-        resourceFileDTO.setFile(getFileURI(resourceFile.getId(),resourceName,resourceType));
+        resourceFileDTO.setFile(getFileURI(resourceFile.getId(),resourceName,resourceType).toString());
         resourceFileDTO.setName(resourceFile.getName());
         return resourceFileDTO;
     }
@@ -400,27 +403,29 @@ public class ConfigurationEndpointUtils {
         List<LinkDTO> linkDTOList = new ArrayList<>();
         for (Resource resource : resources) {
             LinkDTO linkDTO = new LinkDTO();
-            linkDTO.setHref(getResourceURI(resourceType, resource));
+            linkDTO.setHref(getResourceURI(resourceType, resource).toString());
             linkDTO.setRel("resource");
             linkDTOList.add(linkDTO);
         }
         return linkDTOList;
     }
 
-    private static String getResourceURI(String resourceType, Resource resource)  {
+    private static URI getResourceURI(String resourceType, Resource resource) {
 
-        return RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName();
+        return ConfigurationUtils
+                .buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName());
     }
 
-    private static String getFileURI(String fileId, String resourceName, String resourceType)  {
+    private static URI getFileURI(String fileId, String resourceName, String resourceType) {
 
-        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + fileId;
+        return ConfigurationUtils
+                .buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + fileId);
 
     }
 
-    private static String getFileURI(String resourceName, String resourceType)  {
+    private static URI getFileURI(String resourceName, String resourceType) {
 
-        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE;
+        return ConfigurationUtils.buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE);
 
     }
 
