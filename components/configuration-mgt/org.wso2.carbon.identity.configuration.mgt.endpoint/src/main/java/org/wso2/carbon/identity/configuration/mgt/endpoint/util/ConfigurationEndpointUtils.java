@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.constant.Condition
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
+import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.LinkDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
@@ -68,6 +69,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_QUERY_SQL_PARSE_ERROR;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 
 /**
  * Utility functions required for configuration endpoint
@@ -98,14 +101,18 @@ public class ConfigurationEndpointUtils {
                                 .collect(Collectors.toList())
                         : new ArrayList<>(0)
         );
-        resourceDTO.setFiles(resource.getFiles() != null ?
-                resource.getFiles()
-                        .stream()
-                        .map(ConfigurationEndpointUtils::getResourceFileDTO)
-                        .collect(Collectors.toList())
-                : new ArrayList<>(0)
-        );
+        resourceDTO.setFiles(geFileLinkDTOList(resource));
         return resourceDTO;
+    }
+
+    private static List<LinkDTO> geFileLinkDTOList(Resource resource) {
+
+        LinkDTO linkDTO = new LinkDTO();
+        List<LinkDTO> linkDTOList = new ArrayList<>();
+        linkDTO.setRel(FILE);
+        linkDTO.setHref(getFileURI(resource.getResourceName(), resource.getResourceType()));
+        linkDTOList.add(linkDTO);
+        return linkDTOList;
     }
 
     public static ResourcesDTO getResourcesDTO(Resources resources) {
@@ -131,7 +138,16 @@ public class ConfigurationEndpointUtils {
     public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile) {
 
         ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
-        resourceFileDTO.setPath(resourceFile.getValue());
+        resourceFileDTO.setFile(resourceFile.getValue());
+        return resourceFileDTO;
+    }
+
+    public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile, String resourceName,
+            String resourceType) {
+
+        ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
+        resourceFileDTO.setFile(getFileURI(resourceFile.getId(),resourceName,resourceType));
+        resourceFileDTO.setName(resourceFile.getName());
         return resourceFileDTO;
     }
 
@@ -377,6 +393,35 @@ public class ConfigurationEndpointUtils {
                 break;
         }
         return complexConditionType;
+    }
+
+    private static  List<LinkDTO> getResourceLinkList(String resourceType, List<Resource> resources) {
+
+        List<LinkDTO> linkDTOList = new ArrayList<>();
+        for (Resource resource : resources) {
+            LinkDTO linkDTO = new LinkDTO();
+            linkDTO.setHref(getResourceURI(resourceType, resource));
+            linkDTO.setRel("resource");
+            linkDTOList.add(linkDTO);
+        }
+        return linkDTOList;
+    }
+
+    private static String getResourceURI(String resourceType, Resource resource)  {
+
+        return RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName();
+    }
+
+    private static String getFileURI(String fileId, String resourceName, String resourceType)  {
+
+        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + fileId;
+
+    }
+
+    private static String getFileURI(String resourceName, String resourceType)  {
+
+        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE;
+
     }
 
     private static void logDebug(Log log, Throwable throwable) {
