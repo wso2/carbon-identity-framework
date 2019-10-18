@@ -319,7 +319,7 @@
                                 </div>
                                 <%} else { %>
                                 <div>
-                                <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                <a onclick="javascript: handleNoDomain(this, '<%=Encode.forJavaScriptAttribute(Encode.
                                 forUriComponent(idpName))%>',
                                         '<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(idpEntry.getValue()))%>')"
                                    href="#" id="icon-<%=iconId%>">
@@ -335,7 +335,7 @@
                                     if (localAuthenticatorNames.contains(IWA_AUTHENTICATOR)) {
                                 %>
                                 <div>
-                                <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                <a onclick="javascript: handleNoDomain(this, '<%=Encode.forJavaScriptAttribute(Encode.
                                 forUriComponent(idpEntry.getKey()))%>',
                                         'IWAAuthenticator')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
                                     <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
@@ -349,7 +349,7 @@
                                     if (localAuthenticatorNames.contains(X509_CERTIFICATE_AUTHENTICATOR)) {
                                 %>
                                 <div>
-                                    <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                    <a onclick="javascript: handleNoDomain(this, '<%=Encode.forJavaScriptAttribute(Encode.
                                 forUriComponent(idpEntry.getKey()))%>',
                                             'x509CertificateAuthenticator')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
                                         <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
@@ -364,7 +364,7 @@
                                     if (localAuthenticatorNames.contains(FIDO_AUTHENTICATOR)) {
                                 %>
                                 <div>
-                                <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                <a onclick="javascript: handleNoDomain(this, '<%=Encode.forJavaScriptAttribute(Encode.
                                 forUriComponent(idpEntry.getKey()))%>',
                                         'FIDOAuthenticator')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
                                     <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
@@ -379,7 +379,7 @@
                                     if (localAuthenticatorNames.contains("totp")) {
                                 %>
                                 <div>
-                                <a onclick="javascript: handleNoDomain('<%=Encode.forJavaScriptAttribute(Encode.
+                                <a onclick="javascript: handleNoDomain(this, '<%=Encode.forJavaScriptAttribute(Encode.
                                 forUriComponent(idpEntry.getKey()))%>',
                                         'totp')" class="main-link" style="cursor:pointer" id="icon-<%=iconId%>">
                                     <img class="idp-image" src="images/login-icon.png" data-toggle="tooltip"
@@ -475,17 +475,24 @@
             }
         }
 
-        function handleNoDomain(key, value) {
-            <%
+        function handleNoDomain(elem, key, value) {
+
+            var linkClicked = "link-clicked";
+            if ($(elem).hasClass(linkClicked)) {
+                console.warn("Preventing multi click.")
+            } else {
+                $(elem).addClass(linkClicked);
+                <%
                 String multiOptionURIParam = "";
                 if (localAuthenticatorNames.size() > 1 || idpAuthenticatorMapping != null && idpAuthenticatorMapping.size() > 1) {
                     multiOptionURIParam = "&multiOptionURI=" + Encode.forUriComponent(request.getRequestURI() +
                         (request.getQueryString() != null ? "?" + request.getQueryString() : ""));
                 }
-            %>
-            document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
+                %>
+                document.location = "<%=commonauthURL%>?idp=" + key + "&authenticator=" + value +
                     "&sessionDataKey=<%=Encode.forUriComponent(request.getParameter("sessionDataKey"))%>" +
                     "<%=multiOptionURIParam%>";
+            }
         }
 
         $('#popover').popover({
