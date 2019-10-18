@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * This interface access the data storage layer to store/update and delete application configurations.
  */
-public interface ApplicationDAO extends ApplicationResourceDAO {
+public interface ApplicationDAO {
 
     /**
      * @param applicationDTO

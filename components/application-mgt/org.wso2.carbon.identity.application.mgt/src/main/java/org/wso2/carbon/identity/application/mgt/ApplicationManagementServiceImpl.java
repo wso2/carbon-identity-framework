@@ -49,6 +49,7 @@ import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -110,6 +111,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildPermissions;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
@@ -123,6 +125,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
     private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
+    private ExtendedApplicationMgtValidator extendedApplicationMgtValidator = new ExtendedApplicationMgtValidator();
     private ThreadLocal<Boolean> isImportSP = ThreadLocal.withInitial(() -> false);
 
     /**
@@ -557,9 +560,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (IdentityApplicationManagementValidationException e) {
             log.error("Validation error when updating the application  " + serviceProvider.getApplicationName() + "@" +
                     tenantDomain);
-            for (String msg : e.getValidationMsg()) {
-                log.error(msg);
-            }
+            logValidationErrorMessages(e);
             throw e;
         }
 
@@ -733,14 +734,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
                 for (InboundAuthenticationRequestConfig config : configs) {
 
-                    if (IdentityApplicationConstants.Authenticator.SAML2SSO.NAME.
-                            equalsIgnoreCase(config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
+                    if (isSAMLInboundConfigured(config)) {
 
                         SAMLApplicationDAO samlDAO = ApplicationMgtSystemConfig.getInstance().getSAMLClientDAO();
                         samlDAO.removeServiceProviderConfiguration(config.getInboundAuthKey());
 
-                    } else if (IdentityApplicationConstants.OAuth2.NAME.equalsIgnoreCase(config.getInboundAuthType()) &&
-                            config.getInboundAuthKey() != null) {
+                    } else if (isOAuth2InboundConfigured(config)) {
                         OAuthApplicationDAO oathDAO = ApplicationMgtSystemConfig.getInstance().getOAuthOIDCClientDAO();
                         oathDAO.removeOAuthApplication(config.getInboundAuthKey());
 
@@ -760,6 +759,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+    }
+
+    private boolean isOAuth2InboundConfigured(InboundAuthenticationRequestConfig config) {
+
+        return IdentityApplicationConstants.OAuth2.NAME.equalsIgnoreCase(config.getInboundAuthType()) &&
+                config.getInboundAuthKey() != null;
     }
 
     @Override
@@ -1305,9 +1310,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (IdentityApplicationManagementValidationException e) {
             log.error("Validation error when creating the application template: " + spTemplate.getName() + " in:" +
                     tenantDomain);
-            for (String msg : e.getValidationMsg()) {
-                log.error(msg);
-            }
+            logValidationErrorMessages(e);
             throw new IdentityApplicationManagementClientException(e.getValidationMsg());
         } catch (IdentityApplicationManagementException e) {
             String errorMsg = String.format("Error when creating the application template: %s in tenant: %s",
@@ -1342,9 +1345,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             } catch (IdentityApplicationManagementValidationException e) {
                 log.error("Validation error when creating the application template:" + spTemplate.getName() +
                         "from service provider: " + serviceProvider.getApplicationName() + " in:" + tenantDomain);
-                for (String msg : e.getValidationMsg()) {
-                    log.error(msg);
-                }
+                logValidationErrorMessages(e);
                 throw new IdentityApplicationManagementClientException(e.getValidationMsg());
             } catch (IdentityApplicationManagementException e) {
                 String errorMsg = String.format("Error when creating the application template: %s from " +
@@ -1411,9 +1412,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } catch (IdentityApplicationManagementValidationException e) {
             log.error("Validation error when updating the application template: " + oldTemplateName + " in:" +
                     tenantDomain);
-            for (String msg : e.getValidationMsg()) {
-                log.error(msg);
-            }
+            logValidationErrorMessages(e);
             throw new IdentityApplicationManagementClientException(e.getValidationMsg());
         } catch (IdentityApplicationManagementException e) {
             String errorMsg = String.format("Error in updating the application template: %s in tenant: %s",
@@ -1888,6 +1887,22 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 && !CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(serviceProvider.getOwner().getUserName());
     }
 
+    private boolean isOwnerUpdateRequest(ServiceProvider storedApp, ServiceProvider updatedApp) {
+
+        User appOwnerInUpdateRequest = updatedApp.getOwner();
+        if (appOwnerInUpdateRequest != null) {
+            boolean isValidAppOwnerName = StringUtils.isNotEmpty(appOwnerInUpdateRequest.getUserName())
+                    && !CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(appOwnerInUpdateRequest.getUserName());
+
+            boolean isAppOwnerSameAsCurrentApp = storedApp.getOwner().equals(appOwnerInUpdateRequest);
+
+            return isValidAppOwnerName && !isAppOwnerSameAsCurrentApp;
+        } else {
+            // There is no app owner defined in the update request. Nothing to do there..
+            return false;
+        }
+    }
+
     private void assignApplicationRole(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
@@ -2061,16 +2076,29 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         // TODO: invoking the listeners
         try {
             startTenantFlow(tenantDomain);
-            return ApplicationMgtSystemConfig.getInstance().getApplicationDAO()
-                    .getExtendedApplicationBasicInfo(applicationResourceId, tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            if (appDAO instanceof ApplicationResourceDAO) {
+                return ((ApplicationResourceDAO) appDAO)
+                        .getExtendedApplicationBasicInfo(applicationResourceId, tenantDomain);
+            } else {
+                throw getUnsupportedOperationException(tenantDomain);
+            }
         } finally {
             endTenantFlow();
         }
     }
 
+    private UnsupportedOperationException getUnsupportedOperationException(String tenantDomain) {
+
+        return new UnsupportedOperationException(
+                "Application resource management is not supported for tenant domain: " + tenantDomain);
+    }
+
     @Override
     public Application createApplication(Application application,
                                          String tenantDomain) throws IdentityApplicationManagementException {
+
+
 
         return null;
     }
@@ -2114,15 +2142,172 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public Application updateApplication(String applicationResourceId,
                                          String tenantDomain,
-                                         Application updatedApplication) throws IdentityApplicationManagementException {
+                                         Application updatedApp) throws IdentityApplicationManagementException {
 
-        return null;
+        String userUpdatingTheApp = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        try {
+            extendedApplicationMgtValidator.validateSPConfigurations(updatedApp, tenantDomain);
+        } catch (IdentityApplicationManagementValidationException e) {
+            log.error("Validation error when updating the application  with appResourceId:" + applicationResourceId
+                    + " in tenantDomain:" + tenantDomain);
+            logValidationErrorMessages(e);
+            throw e;
+        }
+
+        // invoking the listeners
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreUpdateApplication(updatedApp, tenantDomain, userUpdatingTheApp)) {
+                throw new IdentityApplicationManagementException("Pre Update application failed");
+            }
+        }
+
+        String updateApplicationName = updatedApp.getApplicationName();
+        try {
+            // check whether user is authorized to update the application.
+            startTenantFlow(tenantDomain);
+            if (!ApplicationConstants.LOCAL_SP.equals(updateApplicationName)) {
+                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
+                        " does not have access to the application " + updateApplicationName);
+                throw new IdentityApplicationManagementException("User not authorized to update this app.");
+            }
+
+            if (!isRegexValidated(updateApplicationName)) {
+                throw new IdentityApplicationManagementException("The Application name " +
+                        updateApplicationName + " is not valid! It is not adhering " +
+                        "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
+            }
+
+            if (!isValidPEMCertificate(updatedApp.getCertificateContent())) {
+                // TODO improve logs
+                String errorMessage = "Application certificate of the updated service provider " +
+                        updatedApp.getApplicationName() + " is malformed.";
+                log.error(errorMessage);
+                throw new IdentityApplicationManagementException(errorMessage);
+            }
+
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            String storedAppName = null;
+            if (appDAO instanceof ApplicationResourceDAO) {
+                Application storedApplication =
+                        ((ApplicationResourceDAO) appDAO).getApplicationResource(applicationResourceId, tenantDomain);
+                storedAppName = storedApplication.getApplicationName();
+                ((ApplicationResourceDAO) appDAO)
+                        .updateApplicationResource(applicationResourceId, tenantDomain, updatedApp);
+
+                // Will be supported with 'Advance Consent Management Feature'.
+                // validateConsentPurposes(serviceProvider);
+                if (isOwnerUpdateRequest(storedApplication, updatedApp)) {
+                    // TODO: validate user exists..
+                    assignApplicationRole(updatedApp.getApplicationName(), updatedApp.getOwner().getUserName());
+                }
+            } else {
+                // TODO: Throw an exception and break the flow.
+            }
+
+            // TODO: if we are not supporting updating per SP permissions.. do we need to allow this update..
+            String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
+                    .PATH_SEPARATOR + storedAppName;
+            org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
+                    .getRegistry(RegistryType.USER_GOVERNANCE);
+
+            boolean exist = tenantGovReg.resourceExists(applicationNode);
+            if (exist && !StringUtils.equals(storedAppName, updateApplicationName)) {
+                ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updateApplicationName);
+            }
+
+            if (updatedApp.getPermissionAndRoleConfig() != null &&
+                    ArrayUtils.isNotEmpty(updatedApp.getPermissionAndRoleConfig().getPermissions())) {
+                ApplicationMgtUtil.updatePermissions(updateApplicationName,
+                        updatedApp.getPermissionAndRoleConfig().getPermissions());
+            }
+        } catch (Exception e) {
+            String error = "Error occurred while updating the application: " + updateApplicationName + ". " + e.getMessage();
+            throw new IdentityApplicationManagementException(error, e);
+        } finally {
+            endTenantFlow();
+        }
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable()
+                    && !listener.doPostUpdateApplication(updatedApp, tenantDomain, userUpdatingTheApp)) {
+                return null;
+            }
+        }
+
+        return getApplication(applicationResourceId, tenantDomain);
+    }
+
+    private void logValidationErrorMessages(IdentityApplicationManagementValidationException e) {
+
+        if (e.getValidationMsg() != null) {
+            log.error(StringUtils.join(e.getValidationMsg(), "\n"));
+        }
     }
 
     @Override
     public void deleteApplication(String applicationResourceId,
                                   String tenantDomain) throws IdentityApplicationManagementException {
 
+        // invoking the listeners
+        // TODO : trigger listeners.. important to clear inbound auth caches like oAuth2/saml
+        try {
+            startTenantFlow(tenantDomain);
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+            if (appDAO instanceof ApplicationResourceDAO) {
+                Application application =
+                        ((ApplicationResourceDAO) appDAO).getApplicationResource(applicationResourceId, tenantDomain);
+
+                if (application != null) {
+                    // Delete the app information from SP_APP table.
+                    ((ApplicationResourceDAO) appDAO).deleteApplicationResource(applicationResourceId, tenantDomain);
+
+                    String applicationName = application.getApplicationName();
+                    ApplicationMgtUtil.deleteAppRole(applicationName);
+                    ApplicationMgtUtil.deletePermissions(applicationName);
+
+                    // Remove OAuth and SAML inbounds.. TODO: should we do it here...
+                    if (isInboundAuthenticationConfigured(application)) {
+
+                        InboundAuthenticationRequestConfig[] configs =
+                                application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+
+                        // TODO: duplicate deletion... and should these be handled by the respective inbounds..
+                        for (InboundAuthenticationRequestConfig config : configs) {
+                            if (isSAMLInboundConfigured(config)) {
+                                SAMLApplicationDAO samlDAO =
+                                        ApplicationMgtSystemConfig.getInstance().getSAMLClientDAO();
+                                samlDAO.removeServiceProviderConfiguration(config.getInboundAuthKey());
+
+                            } else if (isOAuth2InboundConfigured(config)) {
+                                OAuthApplicationDAO oathDAO =
+                                        ApplicationMgtSystemConfig.getInstance().getOAuthOIDCClientDAO();
+                                oathDAO.removeOAuthApplication(config.getInboundAuthKey());
+                            }
+                        }
+                    }
+                } else {
+                    // TODO: should we throw an exception here..
+                }
+            }
+
+        } finally {
+            endTenantFlow();
+        }
+
+        // TODO: Trigger the post listeners...
+    }
+
+    private boolean isSAMLInboundConfigured(InboundAuthenticationRequestConfig config) {
+
+        return Authenticator.SAML2SSO.NAME.equalsIgnoreCase(config.getInboundAuthType())
+                && config.getInboundAuthKey() != null;
+    }
+
+    private boolean isInboundAuthenticationConfigured(Application application) {
+
+        return application.getInboundAuthenticationConfig() != null &&
+        application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null;
     }
 }
 

@@ -21,37 +21,23 @@ import org.wso2.carbon.identity.application.common.model.ExtendedApplicationBasi
 
 public interface ApplicationResourceDAO {
 
-    default ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String applicationResourceId,
-                                                                         String tenantDomain) throws IdentityApplicationManagementException {
+    ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String applicationResourceId,
+                                                                 String tenantDomain) throws IdentityApplicationManagementException;
 
-        return null;
-    }
+    String createApplicationResource(Application application,
+                                     String tenantDomain) throws IdentityApplicationManagementException;
 
-    default void createApplicationResource(Application application,
-                                           String tenantDomain) throws IdentityApplicationManagementException {
+    String createApplicationResource(Application application,
+                                     String tenantDomain,
+                                     String templateName) throws IdentityApplicationManagementException;
 
-    }
+    Application getApplicationResource(String applicationResourceId,
+                                       String tenantDomain) throws IdentityApplicationManagementException;
 
-    default void createApplicationResource(Application application,
+    void updateApplicationResource(String applicationResourceId,
                                            String tenantDomain,
-                                           String templateName) throws IdentityApplicationManagementException {
+                                           Application updatedApplication) throws IdentityApplicationManagementException;
 
-    }
-
-    default Application getApplicationResource(String applicationResourceId,
-                                               String tenantDomain) throws IdentityApplicationManagementException {
-
-        return null;
-    }
-
-    default void updateApplicationResource(String applicationResourceId,
-                                           String tenantDomain,
-                                           Application updatedApplication) throws IdentityApplicationManagementException {
-
-    }
-
-    default void deleteApplicationResource(String applicationResourceId,
-                                           String tenantDomain) throws IdentityApplicationManagementException {
-
-    }
+    void deleteApplicationResource(String applicationResourceId,
+                                           String tenantDomain) throws IdentityApplicationManagementException;
 }

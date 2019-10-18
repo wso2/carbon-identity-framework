@@ -342,45 +342,80 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public ExtendedApplicationBasicInfo getExtendedApplicationBasicInfo(String resourceId,
                                                                         String tenantDomain) throws IdentityApplicationManagementException {
 
-        return appDAO.getExtendedApplicationBasicInfo(resourceId, tenantDomain);
+        if (appDAO instanceof ApplicationResourceDAO) {
+            return ((ApplicationResourceDAO) appDAO).getExtendedApplicationBasicInfo(resourceId, tenantDomain);
+        } else {
+            throw new UnsupportedOperationException("Retrieving application using resourceId is not supported by "
+                    + appDAO.getClass());
+        }
     }
 
     @Override
     public Application getApplicationResource(String resourceId,
                                               String tenantDomain) throws IdentityApplicationManagementException {
 
-        return appDAO.getApplicationResource(resourceId, tenantDomain);
+        // TODO think about caching
+        if (appDAO instanceof ApplicationResourceDAO) {
+            return ((ApplicationResourceDAO) appDAO).getApplicationResource(resourceId, tenantDomain);
+        } else {
+            throw new UnsupportedOperationException("Retrieving application using resourceId is not supported by "
+                    + appDAO.getClass());
+        }
     }
 
     @Override
-    public void createApplicationResource(Application application,
+    public String createApplicationResource(Application application,
                                           String tenantDomain) throws IdentityApplicationManagementException {
 
-        appDAO.createApplicationResource(application, tenantDomain);
+        // TODO think about caching
+        if (appDAO instanceof ApplicationResourceDAO) {
+            return ((ApplicationResourceDAO) appDAO).createApplicationResource(application, tenantDomain);
+        } else {
+            throw new UnsupportedOperationException("Creating application resource is not supported by "
+                    + appDAO.getClass());
+        }
     }
 
     @Override
-    public void createApplicationResource(Application application,
-                                          String tenantDomain,
-                                          String templateName) throws IdentityApplicationManagementException {
+    public String createApplicationResource(Application application,
+                                            String tenantDomain,
+                                            String templateName) throws IdentityApplicationManagementException {
 
-        appDAO.createApplicationResource(application, tenantDomain, templateName);
+        // TODO think about caching
+        if (appDAO instanceof ApplicationResourceDAO) {
+            return ((ApplicationResourceDAO) appDAO).createApplicationResource(application, tenantDomain, templateName);
+        } else {
+            throw new UnsupportedOperationException("Creating application resource using template is not supported by "
+                    + appDAO.getClass());
+        }
     }
 
     @Override
     public void updateApplicationResource(String applicationResourceId,
                                           String tenantDomain,
-                                          Application updatedApplication) throws IdentityApplicationManagementException {
+                                          Application updatedApp) throws IdentityApplicationManagementException {
 
-        appDAO.updateApplicationResource(applicationResourceId, tenantDomain, updatedApplication);
+        // TODO think about caching
+        if (appDAO instanceof ApplicationResourceDAO) {
+            ((ApplicationResourceDAO) appDAO).updateApplicationResource(applicationResourceId, tenantDomain,
+                    updatedApp);
+        } else {
+            throw new UnsupportedOperationException("Updating application resource using resourceId is not supported " +
+                    "by " + appDAO.getClass());
+        }
     }
 
     @Override
-    public void deleteApplicationResource(String applicationResourceId,
+    public void deleteApplicationResource(String appResourceId,
                                           String tenantDomain) throws IdentityApplicationManagementException {
 
-        appDAO.deleteApplicationResource(applicationResourceId, tenantDomain);
-
+        // TODO think about caching
+        if (appDAO instanceof ApplicationResourceDAO) {
+            ((ApplicationResourceDAO) appDAO).deleteApplicationResource(appResourceId, tenantDomain);
+        } else {
+            throw new UnsupportedOperationException("Deleting application resource using resourceId is not supported " +
+                    "by " + appDAO.getClass());
+        }
     }
 
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws

@@ -22,42 +22,11 @@ package org.wso2.carbon.identity.application.common.model;
  */
 public class ExtendedApplicationBasicInfo extends ApplicationBasicInfo {
 
-    private int applicationId;
-    private String applicationName;
-    private String description;
     private String applicationResourceId;
     private String imageUrl;
     private String loginUrl;
 
-    public int getApplicationId() {
-
-        return applicationId;
-    }
-
-    public void setApplicationId(int applicationId) {
-
-        this.applicationId = applicationId;
-    }
-
-    public String getApplicationName() {
-
-        return applicationName;
-    }
-
-    public void setApplicationName(String applicationName) {
-
-        this.applicationName = applicationName;
-    }
-
-    public String getDescription() {
-
-        return description;
-    }
-
-    public void setDescription(String description) {
-
-        this.description = description;
-    }
+    private User appOwner;
 
     public String getApplicationResourceId() {
 
@@ -87,5 +56,15 @@ public class ExtendedApplicationBasicInfo extends ApplicationBasicInfo {
     public void setLoginUrl(String loginUrl) {
 
         this.loginUrl = loginUrl;
+    }
+
+    public User getAppOwner() {
+
+        return appOwner;
+    }
+
+    public void setAppOwner(User appOwner) {
+
+        this.appOwner = appOwner;
     }
 }

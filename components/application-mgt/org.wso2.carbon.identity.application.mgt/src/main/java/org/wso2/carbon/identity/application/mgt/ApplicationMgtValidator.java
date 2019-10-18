@@ -25,12 +25,12 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
+import org.wso2.carbon.identity.application.common.model.Application;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -71,12 +70,18 @@ public class ApplicationMgtValidator {
     public static final String IS_HANDLER = "IS_HANDLER";
 
 
-    public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
+    public void validateSPConfigurations(ServiceProvider serviceProvider,
+                                         String tenantDomain,
                                             String userName) throws IdentityApplicationManagementException {
 
+        validateSPConfigurations(serviceProvider, tenantDomain);
+    }
+
+    public void validateSPConfigurations(ServiceProvider serviceProvider,
+                                         String tenantDomain) throws IdentityApplicationManagementException {
+
         List<String> validationMsg = new ArrayList<>();
-        validateLocalAndOutBoundAuthenticationConfig(validationMsg, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
-                tenantDomain);
+        validateLocalAndOutBoundAuthenticationConfig(validationMsg, serviceProvider.getLocalAndOutBoundAuthenticationConfig(), tenantDomain);
         validateRequestPathAuthenticationConfig(validationMsg, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
         validateOutBoundProvisioning(validationMsg, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(validationMsg, serviceProvider.getClaimConfig(),

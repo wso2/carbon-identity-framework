@@ -45,35 +45,21 @@ public class ApplicationMgtListenerServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetApplicationMgtListenerService"
     )
-    protected synchronized void setApplicationMgtListenerService(
-            ApplicationMgtListener applicationMgtListenerService) {
+    protected synchronized void setApplicationMgtListenerService(ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.add(applicationMgtListenerService);
-        Collections.sort(applicationMgtListeners, appMgtListenerComparator);
+        applicationMgtListeners.sort(appMgtListenerComparator);
     }
 
-    protected synchronized void unsetApplicationMgtListenerService(
-            ApplicationMgtListener applicationMgtListenerService) {
+    protected synchronized void unsetApplicationMgtListenerService(ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.remove(applicationMgtListenerService);
     }
 
-    public static synchronized Collection getApplicationMgtListeners() {
+    public static synchronized Collection<ApplicationMgtListener> getApplicationMgtListeners() {
         return applicationMgtListeners;
     }
 
-    private static Comparator<ApplicationMgtListener> appMgtListenerComparator = new Comparator<ApplicationMgtListener>(){
-
-        @Override
-        public int compare(ApplicationMgtListener applicationMgtListener1,
-                           ApplicationMgtListener applicationMgtListener2) {
-            if (applicationMgtListener1.getExecutionOrderId() > applicationMgtListener2.getExecutionOrderId()) {
-                return 1;
-            } else if (applicationMgtListener1.getExecutionOrderId() < applicationMgtListener2.getExecutionOrderId()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    };
+    private static Comparator<ApplicationMgtListener> appMgtListenerComparator =
+            Comparator.comparingInt(ApplicationMgtListener::getExecutionOrderId);
 }

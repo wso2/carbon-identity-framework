@@ -79,4 +79,35 @@ public class ApplicationConstants {
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
     public static final int DEFAULT_FETCH_CHUNK_SIZE = 50;
     public static final String FETCH_CHUNK_SIZE = "FetchChunkSize";
+
+
+    public static class ApplicationTableColumns {
+
+        public static final String ID = "ID";
+        public static final String APP_NAME = "APP_NAME";
+        public static final String DESCRIPTION = "DESCRIPTION";
+
+        public static final String USERNAME = "USERNAME";
+        public static final String USER_STORE = "USER_STORE";
+        public static final String TENANT_ID = "TENANT_ID";
+
+        public static final String ROLE_CLAIM = "ROLE_CLAIM";
+        public static final String AUTH_TYPE = "AUTH_TYPE";
+        public static final String PROVISIONING_USERSTORE_DOMAIN = "PROVISIONING_USERSTORE_DOMAIN";
+
+        public static final String IS_LOCAL_CLAIM_DIALECT = "IS_LOCAL_CLAIM_DIALECT";
+        public static final String IS_SEND_LOCAL_SUBJECT_ID = "IS_SEND_LOCAL_SUBJECT_ID";
+        public static final String IS_SEND_AUTH_LIST_OF_IDPS = "IS_SEND_AUTH_LIST_OF_IDPS";
+        public static final String IS_USE_TENANT_DOMAIN_SUBJECT = "IS_USE_TENANT_DOMAIN_SUBJECT";
+        public static final String IS_USE_USER_DOMAIN_SUBJECT = "IS_USE_USER_DOMAIN_SUBJECT";
+        public static final String ENABLE_AUTHORIZATION = "ENABLE_AUTHORIZATION";
+
+        public static final String SUBJECT_CLAIM_URI = "SUBJECT_CLAIM_URI";
+        public static final String IS_SAAS_APP = "IS_SAAS_APP";
+        public static final String IS_DUMB_MODE = "IS_DUMB_MODE";
+
+        public static final String UUID = "UUID";
+        public static final String IMAGE_URL = "IMAGE_URL";
+        public static final String LOGIN_URL = "LOGIN_URL";
+    }
 }
