@@ -45,8 +45,7 @@
         <AuthenticationRequestHandler>{{authentication.framework.extensions.authentication_request_handler}}</AuthenticationRequestHandler>
         <LogoutRequestHandler>{{authentication.framework.extensions.logout_request_handler}}</LogoutRequestHandler>
         <StepBasedSequenceHandler>{{authentication.framework.extensions.step_based_sequence_handler}}</StepBasedSequenceHandler>
-        <RequestPathBasedSequenceHandler>{{authentication.framework.extensions.request_path_sequence_handler}}
-        </RequestPathBasedSequenceHandler>
+        <RequestPathBasedSequenceHandler>{{authentication.framework.extensions.request_path_sequence_handler}}</RequestPathBasedSequenceHandler>
         <StepHandler>{{authentication.framework.extensions.step_handler}}</StepHandler>
         <HomeRealmDiscoverer>{{authentication.framework.extensions.home_realm_discoverer}}</HomeRealmDiscoverer>
         <ClaimHandler>{{authentication.framework.extensions.claim_handler}}</ClaimHandler>
@@ -151,4 +150,22 @@
         <AuthenticationEndpointRedirectParam name="{{parameter}}"/>
         {% endfor %}
     </AuthenticationEndpointRedirectParams>
+
+    {% if authentication.endpoint.enable_custom_claim_mappings is defined %}
+            <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}</AllowCustomClaimMappingsForAuthenticators>
+    {% endif %}
+
+    {% if tenant.domain_drop_down.enable is defined %}
+      <TenantDomainDropDownEnabled>{{tenant.domain_drop_down.enable}}</TenantDomainDropDownEnabled>
+    {% endif %}
+    {% if tenant.data_listener_urls is defined %}
+       <TenantDataListenerURLs>
+         {% for listener in tenant.data_listener_urls %}
+           <TenantDataListenerURL>
+           {{listener}}
+           </TenantDataListenerURL>
+         {% endfor %}
+       </TenantDataListenerURLs>
+     {% endif %}
+  
 </ApplicationAuthentication>

@@ -81,7 +81,7 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
         someRandomString
-function onLoginRequest(context) {
+var onLoginRequest = function(context) {
 
     var acr = selectAcrFrom(context, ["acr1", "acr2", "acr3"]);
 
@@ -95,7 +95,7 @@ function onLoginRequest(context) {
         case "acr3" : executeStep(1); executeStep(3);  break;
         default :  executeStep(1);  executeStep(2);  executeStep(3);
     }
-}
+};
 ]]></AuthenticationScript>
         <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>

@@ -26,7 +26,7 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
-  "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]*$",
+  "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
@@ -36,7 +36,7 @@
   "oauth.token_validation.app_access_token_validity": "1h",
   "oauth.token_validation.user_access_token_validity": "1h",
   "oauth.token_validation.refresh_token_validity": "1d",
-  "oauth.timestamp_skew": "$ref{server.clock_skew}",
+  "oauth.timestamp_skew": "0m",
   "oauth.token_renewal.renew_refresh_token": true,
   "oauth.token_renewal.renew_access_token_per_request": false,
   "oauth.hash_tokens_and_secrets": false,
@@ -108,7 +108,9 @@
   "oauth.grant_type.kerberos.grant_validator": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrantValidator",
 
   "oauth.extensions.callback_handlers": [
-    "org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
+    {
+      "class":"org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
+    }
   ],
   "oauth.token_validator.bearer.enable": true,
   "oauth.token_validator.bearer.class": "org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator",
@@ -150,6 +152,7 @@
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
+  "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
@@ -369,6 +372,10 @@
   "cache.idp_cache_by_name.timeout": "900ms",
   "cache.idp_cache_by_name.capacity": "$ref{cache.default_capacity}",
 
+  "resource_access_control.introspect.secured": true,
+  "resource_access_control.introspect.permissions": [
+    "/permission/admin/manage/identity/applicationmgt/view"
+  ],
   "resource_access_control.scim2_me_get_method.secured": true,
   "resource_access_control.scim2_me_get_method.permission": "/permission/admin/login",
   "resource_access_control.scim2_me_get_method.keep_resource": true,
@@ -398,6 +405,7 @@
     "/api/identity/oauth2/v1.0/",
     "/api/identity/oauth2/uma/permission/v1.0/",
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
+    "/api/identity/config-mgt/v1.0/",
     "/api/"
   ],
   "tenant_context.rewrite.servlets": [

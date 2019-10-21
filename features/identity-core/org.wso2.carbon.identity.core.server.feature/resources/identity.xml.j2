@@ -84,6 +84,9 @@
     <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
     <ServiceProviders>
         <SPNameRegex>{{service_provider.sp_name_regex}}</SPNameRegex>
+        {% if service_provider.fetch_chunk_size is defined %}
+        <FetchChunkSize>{{service_provider.fetch_chunk_size}}</FetchChunkSize>
+        {% endif %}
     </ServiceProviders>
 
     <OpenID>
@@ -148,7 +151,7 @@
              Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
              Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
         -->
-        {% if oauth.extensions.token_generator is defined%}
+        {% if oauth.extensions.token_generator is defined %}
         <IdentityOAuthTokenGenerator>{{oauth.extensions.token_generator}}</IdentityOAuthTokenGenerator>
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
@@ -335,7 +338,10 @@
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{grant_type.handler_class}}</GrantTypeHandlerImplClass>
+                <GrantTypeHandlerImplClass>{{grant_type.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if grant_type.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{grant_type.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
                 {% for key,value in grant_type.properties.items() %}
                 <{{key}}>{{value}}</{{key}}>
                 {% endfor %}
@@ -361,9 +367,20 @@
         </UserConsentEnabledGrantTypes>
 
         <OAuthCallbackHandlers>
-        {% for callback_handler in oauth.extensions.callback_handlers %}
-            <OAuthCallbackHandler Class="{{callback_handler}}"/>
-        {% endfor %}
+           {% for callback_handler in oauth.extensions.callback_handlers %}
+              <OAuthCallbackHandler Class="{{callback_handler.class}}">
+                {% if callback_handler.priority is defined %}
+                	<Priority Value="{{callback_handler.priority}}"/>
+                {% endif %}
+                {% if callback_handler.properties is defined %}
+                  <Properties>
+                    {% for key,value in callback_handler.properties.items() %}
+                      <Properties> name="{{key}}">{{value}} </Properties>
+                    {% endfor %}
+                  </Properties>
+                 {% endif %}
+               </OAuthCallbackHandler>
+           {% endfor %}
         </OAuthCallbackHandlers>
 
         <TokenValidators>
@@ -572,6 +589,7 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
+            <RedirectToPostLogoutUriOnConsentDenial>{{oauth.oidc.redirect_to_post_logout_uri_on_consent_denial}}</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
         <!-- Configs related to OAuth2 token persistence -->
@@ -612,6 +630,10 @@
         <Introspection>
             <EnableDataProviders>{{oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection}}</EnableDataProviders>
         </Introspection>
+
+        {% if oauth.redirect_to_idp_error_page_on_error is sameas true %}
+        <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
+        {% endif %}
 
     </OAuth>
 
@@ -1149,6 +1171,13 @@
                    timeout="{{cache.idp_cache_by_name.timeout}}"
                    capacity="{{cache.idp_cache_by_name.capacity}}"
                    isDistributed="false"/>
+            {% for cache in cache.manager %}
+             <Cache name="{{cache.name}}"
+                    enable="true"
+                    timeout="{{cache.timeout}}"
+                    capacity="{{cache.capacity}}"
+                    isDistributed="false"/>
+            {% endfor %}
         </CacheManager>
     </CacheConfig>
 
@@ -1157,7 +1186,18 @@
     </Cookies-->
 
 
+    {% if resource_access_control.default_access is sameas allow %}
+    <ResourceAccessControl>
+    {% else %}
     <ResourceAccessControl default-access="deny">
+    {% endif %}
+        {% for resource in resource.access_control %}
+        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
+            {% for permission in resource.permissions %}
+            <Permissions>{{permission}}</Permissions>
+            {% endfor %}
+        </Resource>
+        {% endfor %}
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
@@ -1259,8 +1299,12 @@
         <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
         </Resource>
-        <Resource context="(.*)/oauth2/introspect(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+        <Resource context="(.*)/oauth2/introspect(.*)"
+                secured="{{resource_access_control.introspect.secured}}"
+                http-method="all">
+            {% for permission in resource_access_control.introspect.permissions %}
+            <Permissions>{{permission}}</Permissions>
+            {% endfor %}
         </Resource>
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
@@ -1356,8 +1400,8 @@
         <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
 
-        <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
 
@@ -1438,14 +1482,20 @@
         <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
         <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
 
-        {% for resource in resource.access_control %}
-        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
-            {% for permission in resource.permissions %}
-            <Permissions>{{permission}}</Permissions>
-            {% endfor %}
-        </Resource>
-        {% endfor %}
 </ResourceAccessControl>
 
     <ClientAppAuthentication>

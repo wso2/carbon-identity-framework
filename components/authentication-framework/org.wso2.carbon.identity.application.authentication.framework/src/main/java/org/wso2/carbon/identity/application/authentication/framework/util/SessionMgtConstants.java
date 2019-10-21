@@ -30,22 +30,22 @@ public class SessionMgtConstants {
 
     public enum ErrorMessages {
 
-        ERROR_CODE_UNABLE_TO_GET_SESSION("USM-00001",
+        ERROR_CODE_UNABLE_TO_GET_SESSION("USM-15001",
                 "Unable to retrieve session information",
                 "Server encountered an error while retrieving session information."),
-        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-00002",
+        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-15002",
                 "Unable to retrieve sessions",
                 "Server encountered an error while retrieving session list of user, %s."),
-        ERROR_CODE_UNABLE_TO_AUTHORIZE_USER("USM-00006",
+        ERROR_CODE_UNABLE_TO_AUTHORIZE_USER("USM-15006",
                 "Unable to validate user",
                 "Server encountered an error while authorizing user, %s."),
-        ERROR_CODE_FORBIDDEN_ACTION("USM-00007",
+        ERROR_CODE_FORBIDDEN_ACTION("USM-10007",
                 "Action forbidden",
-                "Session terminate action is forbidden to user, %s."),
-        ERROR_CODE_INVALID_USER("USM-00008",
+                "User is not authorized to terminate this session."),
+        ERROR_CODE_INVALID_USER("USM-10008",
                 "Invalid user",
                 "User is not provided to perform session management tasks."),
-        ERROR_CODE_INVALID_SESSION("USM-00009",
+        ERROR_CODE_INVALID_SESSION("USM-10009",
                 "Invalid session",
                 "Session ID is not provided to perform session termination.");
 

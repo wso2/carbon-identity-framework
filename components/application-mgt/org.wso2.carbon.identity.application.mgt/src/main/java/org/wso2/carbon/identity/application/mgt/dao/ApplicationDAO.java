@@ -59,54 +59,6 @@ public interface ApplicationDAO {
     ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException;
 
     /**
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
-
-    /**
-     * Get all paginated basic application information for a matching filter.
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
-
-    /**
-     * Get count of applications for user
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default int getCountOfAllApplications() throws IdentityApplicationManagementException {
-        return 0;
-    }
-
-    /**
-     * Get count of applications for user which has the filter string
-     *
-     * @param filter
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
-        return 0;
-    }
-
-    /**
-     * Get all basic application information for a matching filter.
-     *
-     * @param filter Application name filter
-     * @return Application Basic Information array
-     * @throws IdentityApplicationManagementException
-     */
-    ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException;
-
-    /**
      * @param applicationDTO
      * @throws IdentityApplicationManagementException
      */

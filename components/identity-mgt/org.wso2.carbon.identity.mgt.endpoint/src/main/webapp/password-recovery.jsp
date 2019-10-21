@@ -26,6 +26,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.ReCaptchaApi" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.ReCaptchaProperties" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
+<%@ page import="java.io.File" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
@@ -79,7 +80,15 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%></title>
+        <!-- title -->
+        <%
+            File titleFile = new File(getServletContext().getRealPath("extensions/title.jsp"));
+            if (titleFile.exists()) {
+        %>
+                <jsp:include page="extensions/title.jsp"/>
+        <% } else { %>
+                <jsp:directive.include file="includes/title.jsp"/>
+        <% } %>
 
         <link rel="icon" href="images/favicon.png" type="image/x-icon"/>
         <link href="libs/bootstrap_3.4.1/css/bootstrap.min.css" rel="stylesheet">
@@ -102,20 +111,14 @@
     <body>
 
     <!-- header -->
-    <header class="header header-default">
-        <div class="container-fluid"><br></div>
-        <div class="container-fluid">
-            <div class="pull-left brand float-remove-xs text-center-xs">
-                <a href="#">
-                    <img src="images/logo-inverse.svg" alt=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                 "Wso2")%> title=<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle,
-                 "Wso2")%> class="logo">
-
-                    <h1><em><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Identity.server")%></em></h1>
-                </a>
-            </div>
-        </div>
-    </header>
+    <%
+        File headerFile = new File(getServletContext().getRealPath("extensions/header.jsp"));
+        if (headerFile.exists()) {
+    %>
+            <jsp:include page="extensions/header.jsp"/>
+    <% } else { %>
+            <jsp:directive.include file="includes/header.jsp"/>
+    <% } %>
 
     <!-- page content -->
     <div class="container-fluid body-wrapper">
@@ -239,16 +242,14 @@
     </div>
 
     <!-- footer -->
-    <footer class="footer">
-        <div class="container-fluid">
-            <p><%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Wso2.identity.server")%> | &copy;
-                <script>document.write(new Date().getFullYear());</script>
-                <a href="<%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "business.homepage")%>" target="_blank"><i class="icon fw fw-wso2"></i> <%=
-                IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Inc")%></a>.
-                <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "All.rights.reserved")%>
-            </p>
-        </div>
-    </footer>
+    <%
+        File footerFile = new File(getServletContext().getRealPath("extensions/footer.jsp"));
+        if (footerFile.exists()) {
+    %>
+            <jsp:include page="extensions/footer.jsp"/>
+    <% } else { %>
+            <jsp:directive.include file="includes/footer.jsp"/>
+    <% } %>
 
     <script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
     <script src="libs/bootstrap_3.4.1/js/bootstrap.min.js"></script>

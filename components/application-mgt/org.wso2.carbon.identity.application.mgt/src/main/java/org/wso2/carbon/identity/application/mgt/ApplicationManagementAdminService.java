@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -33,9 +34,14 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Application management admin service
@@ -123,7 +129,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             applicationMgtService = ApplicationManagementService.getInstance();
             ApplicationBasicInfo[] applicationBasicInfos =
                     applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
-            List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
             return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving all application basic info for tenant: " + getTenantDomain(),
@@ -131,6 +137,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             throw idpException;
         }
     }
+
 
     /**
      * Get all basic application information for a matching filter.
@@ -145,7 +152,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         applicationMgtService = ApplicationManagementService.getInstance();
         ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getApplicationBasicInfo(getTenantDomain(),
                 getUsername(), filter);
-        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
+        List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
         return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
     }
 
@@ -155,13 +162,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumer) throws IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
 
-        applicationMgtService = ApplicationManagementService.getInstance();
-        ApplicationBasicInfo[] applicationBasicInfos =
-                applicationMgtService.getAllPaginatedApplicationBasicInfo(getTenantDomain(), getUsername(), pageNumer);
-        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        return getPaginatedApplicationBasicInfo(pageNumber, "*");
     }
 
     /**
@@ -174,47 +177,147 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
             throws IdentityApplicationManagementException {
 
-        applicationMgtService = ApplicationManagementService.getInstance();
-        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getPaginatedApplicationBasicInfo(getTenantDomain(),
-                getUsername(), pageNumber, filter);
-        List<ApplicationBasicInfo> appInfo = ApplicationMgtUtil.processApplicationBasicInfos(applicationBasicInfos, getUsername());
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        validateRequestedPageNumber(pageNumber);
+
+        String authorizedUserTenantDomain = getTenantDomain();
+        String authorizedUser = getUsername();
+        int totalFilteredUserAuthorizedAppCount = getCountOfApplications(filter);
+
+        if (totalFilteredUserAuthorizedAppCount == 0) {
+            if (log.isDebugEnabled()) {
+                log.debug("The user: " + authorizedUser + " in tenant domain: " + authorizedUserTenantDomain +
+                        ", doesn't have any authorized applications that matches the given filter: " + filter);
+            }
+            return new ApplicationBasicInfo[0];
+        }
+
+        int itemsPerPage = ApplicationMgtUtil.getItemsPerPage();
+        // Validate whether the start index of the requested page is less than the user's filtered authorized app count.
+        if (isMaxPageNumberToRequestExceeded(authorizedUser, pageNumber, totalFilteredUserAuthorizedAppCount,
+                itemsPerPage)) {
+            return new ApplicationBasicInfo[0];
+        }
+
+        // Initial offset value is set to zero.
+        int offset = 0;
+        // Total expected number of app info results needed to decide the apps to be displayed for a specific page.
+        int expectedNumberOfResults = itemsPerPage * pageNumber;
+
+        int totalFilteredSystemAppCount =
+                ApplicationManagementService.getInstance().getCountOfApplications(getTenantDomain(), getUsername(),
+                        filter);
+        // This is the chunk size configured for DB fetching.
+        int chunkSize = getFetchChunkSizeForPagination();
+        List<ApplicationBasicInfo> expectedFilteredAuthorizedAppInfoList = new ArrayList<>();
+        expectedFilteredAuthorizedAppInfoList =
+                getFilteredAuthorizedAppBasicInfo(expectedFilteredAuthorizedAppInfoList, authorizedUserTenantDomain,
+                        authorizedUser, filter, offset, chunkSize, expectedNumberOfResults,
+                        totalFilteredSystemAppCount);
+        int startIndexOfRequestedPage = (itemsPerPage * (pageNumber - 1));
+        int endIndexOfRequestedPage = expectedFilteredAuthorizedAppInfoList.size();
+        return expectedFilteredAuthorizedAppInfoList.subList(startIndexOfRequestedPage, endIndexOfRequestedPage)
+                .toArray(new ApplicationBasicInfo[0]);
     }
 
     /**
-     * Get count of all basic application information.
+     * Method to get the remaining basic application information based on a filter for a requested page.
+     *
+     * @param expectedFilteredAuthorizedAppInfoList List of filtered authorized {@link ApplicationBasicInfo} instances.
+     * @param authorizedUserTenantDomain            Tenant domain.
+     * @param authorizedUser                        Authorized user.
+     * @param filter                                Application name filter.
+     * @param offset                                Starting index of the count.
+     * @param chunkSize                             Chunk size configured for DB fetching.
+     * @param expectedAuthorizedAppInfoCount        Total filtered authorized app info count needed to decide apps to be
+     *                                              displayed for a requested page.
+     * @param totalFilteredSystemAppCount           Count of all applications in the system for a matching filter.
+     * @return List of remaining authorized {@link ApplicationBasicInfo} instances for pagination.
+     * @throws IdentityApplicationManagementException Error in getting remaining basic application information.
+     */
+    private List<ApplicationBasicInfo> getFilteredAuthorizedAppBasicInfo(
+            List<ApplicationBasicInfo> expectedFilteredAuthorizedAppInfoList, String authorizedUserTenantDomain,
+            String authorizedUser, String filter, int offset, int chunkSize, int expectedAuthorizedAppInfoCount,
+            int totalFilteredSystemAppCount) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo[] applicationBasicInfos;
+        if (expectedAuthorizedAppInfoCount > chunkSize) {
+            applicationBasicInfos =
+                    ApplicationManagementService.getInstance().getApplicationBasicInfo(authorizedUserTenantDomain,
+                            authorizedUser, filter, offset, chunkSize);
+            offset += chunkSize;
+        } else {
+            applicationBasicInfos =
+                    ApplicationManagementService.getInstance().getApplicationBasicInfo(authorizedUserTenantDomain,
+                            authorizedUser, filter, offset, expectedAuthorizedAppInfoCount);
+            offset += expectedAuthorizedAppInfoCount;
+        }
+
+        List<ApplicationBasicInfo> authorizedAppBasicInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos,
+                authorizedUser);
+
+        if (authorizedAppBasicInfo.size() == expectedAuthorizedAppInfoCount) {
+            expectedFilteredAuthorizedAppInfoList.addAll(authorizedAppBasicInfo);
+            return expectedFilteredAuthorizedAppInfoList;
+        } else if (authorizedAppBasicInfo.size() > expectedAuthorizedAppInfoCount) {
+            expectedFilteredAuthorizedAppInfoList.addAll(authorizedAppBasicInfo.subList(0,
+                    expectedAuthorizedAppInfoCount));
+            return expectedFilteredAuthorizedAppInfoList;
+        } else {
+            expectedFilteredAuthorizedAppInfoList.addAll(authorizedAppBasicInfo);
+            if(log.isDebugEnabled()) {
+                log.debug("No. of authorized app information found for user " + authorizedUser + " in tenant domain "
+                        + authorizedUserTenantDomain + ": " + expectedFilteredAuthorizedAppInfoList.size());
+            }
+
+            if (offset >= totalFilteredSystemAppCount) {
+                return expectedFilteredAuthorizedAppInfoList;
+            }
+
+            expectedAuthorizedAppInfoCount = expectedAuthorizedAppInfoCount - authorizedAppBasicInfo.size();
+            if (log.isDebugEnabled()) {
+                log.debug("No. of remaining authorized app information needed to be fetched from the DB for user "
+                        + authorizedUser + " in tenant domain " + authorizedUserTenantDomain + ": "
+                        + expectedAuthorizedAppInfoCount);
+            }
+            return getFilteredAuthorizedAppBasicInfo(expectedFilteredAuthorizedAppInfoList,
+                    authorizedUserTenantDomain, authorizedUser, filter, offset, chunkSize,
+                    expectedAuthorizedAppInfoCount, totalFilteredSystemAppCount);
+        }
+    }
+
+    /**
+     * Get count of all the applications authorized for the user.
      *
      * @return Number of applications
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public int getCountOfAllApplications()
-            throws IdentityApplicationManagementException {
+    public int getCountOfAllApplications() throws IdentityApplicationManagementException {
 
-        applicationMgtService = ApplicationManagementService.getInstance();
-        int countOfAllApplications = applicationMgtService.getCountOfAllApplications(getTenantDomain(),
-                getUsername());
-        if (log.isDebugEnabled()) {
-            log.debug("Count of SP applications returned: " + countOfAllApplications + " for tenant: " + getTenantDomain());
-        }
-        return countOfAllApplications;
+        List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+
+        return applicationRoles.size();
     }
 
     /**
-     * Get count of all basic application information for a matching filter.
+     * Get count of all the applications authorized for the user for a matching filter.
      *
      * @return Number of applications
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public int getCountOfApplications(String filter)
-            throws IdentityApplicationManagementException {
+    public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
 
-        applicationMgtService = ApplicationManagementService.getInstance();
-        int countOfApplications = applicationMgtService.getCountOfApplications(getTenantDomain(),
-                getUsername(), filter);
-        if (log.isDebugEnabled()) {
-            log.debug("Count of SP applications returned: " + countOfApplications + " for tenant: " + getTenantDomain());
+        String sanitizedFilter = getSanitizedFilter(filter);
+        Pattern pattern = Pattern.compile(sanitizedFilter, Pattern.CASE_INSENSITIVE);
+        List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+        List<String> filteredApplicationRoles = new ArrayList<>();
+        for (String applicationRole : applicationRoles) {
+            Matcher matcher = pattern.matcher(applicationRole);
+            if (matcher.matches()) {
+                filteredApplicationRoles.add(applicationRole);
+            }
         }
-        return countOfApplications;
+
+        return filteredApplicationRoles.size();
     }
 
     /**
@@ -559,5 +662,139 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     getTenantDomain()), e);
             throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
         }
+    }
+
+    private ArrayList<ApplicationBasicInfo> getAuthorizedApplicationBasicInfo(
+            ApplicationBasicInfo[] applicationBasicInfos, String userName)
+            throws IdentityApplicationManagementException {
+
+        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
+        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
+                appInfo.add(applicationBasicInfo);
+                if (log.isDebugEnabled()) {
+                    log.debug("Retrieving basic information of application: " +
+                            applicationBasicInfo.getApplicationName() + "username: " + userName);
+                }
+            }
+        }
+        return appInfo;
+    }
+
+    /**
+     * Method to get the FetchChunkSize property configured in the identity.xml file.
+     *
+     * @return FetchChunkSize property.
+     */
+    private int getFetchChunkSizeForPagination() {
+
+        String fetchChunkSizeForPagination =
+                IdentityUtil.getProperty(ApplicationConstants.SERVICE_PROVIDERS + "." +
+                        ApplicationConstants.FETCH_CHUNK_SIZE);
+
+        try {
+            if (StringUtils.isNotBlank(fetchChunkSizeForPagination)) {
+                int fetchChunkSize = Math.abs(Integer.parseInt(fetchChunkSizeForPagination));
+                if (log.isDebugEnabled()) {
+                    log.debug("Fetch chunk size property is set to : " + fetchChunkSize);
+                }
+                return fetchChunkSize;
+            }
+        } catch (NumberFormatException e) {
+            // No need to handle exception since default value is already set.
+            log.warn("Error occurred while parsing the 'FetchChunkSize' property value in identity.xml."
+                    + " Defaulting to: " + ApplicationConstants.DEFAULT_FETCH_CHUNK_SIZE);
+        }
+
+        return ApplicationConstants.DEFAULT_FETCH_CHUNK_SIZE;
+    }
+
+    /**
+     * Method to retrieve all the application roles of a user.
+     *
+     * @param username User name.
+     * @return Application role list.
+     * @throws IdentityApplicationManagementException Error in retrieving roles of a user.
+     */
+    private List<String> getApplicationRolesOfUser(String username) throws IdentityApplicationManagementException {
+
+        try {
+            String[] userRoles = CarbonContext.getThreadLocalCarbonContext().getUserRealm().
+                    getUserStoreManager().getRoleListOfUser(username);
+            List<String> applicationRoles = new ArrayList<>();
+            if (userRoles != null) {
+                String applicationRoleDomain =
+                        ApplicationConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR;
+                for (String role : userRoles) {
+                    if (role.startsWith(applicationRoleDomain)) {
+                        applicationRoles.add(role);
+                    }
+                }
+            }
+            return applicationRoles;
+        } catch (UserStoreException e) {
+            throw new IdentityApplicationManagementException("Error while retrieving application roles for user: " +
+                    username, e);
+        }
+    }
+
+    /**
+     * Validates whether the requested page number for pagination is not zero or negative.
+     *
+     * @param pageNumber Page number.
+     * @throws IdentityApplicationManagementException
+     */
+    private void validateRequestedPageNumber(int pageNumber) throws IdentityApplicationManagementException {
+
+        // Validate whether the page number is not zero or a negative number.
+        if (pageNumber < 1) {
+            throw new IdentityApplicationManagementException("Invalid page number requested. The page number should " +
+                    "be a value greater than 0.");
+        }
+    }
+
+    /**
+     * Checks whether the start index of the requested page is less than the user's total authorized app count.
+     *
+     * @param authorizedUser              Authorized user.
+     * @param pageNumber                  Page number.
+     * @param totalUserAuthorizedAppCount Total number of apps authorized for a user.
+     * @param itemsPerPage                Apps to be displayed per page.
+     * @return Whether the requested page has exceeded the maximum page value.
+     * @throws IdentityApplicationManagementException
+     */
+    private boolean isMaxPageNumberToRequestExceeded(String authorizedUser, int pageNumber,
+                                                     int totalUserAuthorizedAppCount, int itemsPerPage) {
+
+        int numberOfPages = (int) Math.ceil((double) totalUserAuthorizedAppCount / itemsPerPage);
+        // Validate whether the start index of the requested page is less than the user's total authorized app count.
+        int startIndexOfRequestedPage = (itemsPerPage * (pageNumber - 1)) + 1;
+        if (totalUserAuthorizedAppCount < startIndexOfRequestedPage) {
+            if (log.isDebugEnabled()) {
+                log.debug("The requested page number exceeds the total number of applications authorized for the " +
+                        "user: " + authorizedUser + ". Pages can be requested only upto page " + numberOfPages + ".");
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Sanitize the filter to fetch application roles.
+     *
+     * @param filter Application name filter.
+     * @return Sanitized filter string.
+     */
+    private String getSanitizedFilter(String filter) {
+
+        if (StringUtils.isNotBlank(filter)) {
+            filter = filter.replace("*", ".*");
+            filter = ApplicationConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + filter;
+        } else {
+            filter = ".*";
+        }
+
+        return filter;
     }
 }

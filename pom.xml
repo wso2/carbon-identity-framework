@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.14.71-SNAPSHOT</version>
+    <version>5.14.105-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -1433,17 +1433,6 @@
                 <artifactId>jaxb-api</artifactId>
                 <version>${version.org.wso2.orbit.javax.xml.bind}</version>
             </dependency>
-
-            <dependency>
-                <groupId>org.wso2.orbit.javax.activation</groupId>
-                <artifactId>activation</artifactId>
-                <version>${version.org.wso2.orbit.javax.activation}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.orbit.javax.xml.bind</groupId>
-                <artifactId>jaxb-api</artifactId>
-                <version>${version.org.wso2.orbit.javax.xml.bind}</version>
-            </dependency>
             <dependency>
                 <groupId>ua.parser.wso2</groupId>
                 <artifactId>ua-parser</artifactId>
@@ -1635,7 +1624,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.5.0</carbon.kernel.version>
+        <carbon.kernel.version>4.5.1</carbon.kernel.version>
         <carbon.kernel.feature.version>4.5.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1752,8 +1741,12 @@
         <orbit.version.maven-scm>1.7.0.wso2v1</orbit.version.maven-scm>
 
         <!-- Rampart -->
-        <rampart.wso2.version>1.6.1-wso2v39</rampart.wso2.version>
+        <rampart.wso2.version>1.6.1-wso2v40</rampart.wso2.version>
         <rampart.wso2.osgi.version.range>[1.6.1,2.0.0)</rampart.wso2.osgi.version.range>
+
+        <!-- Balana -->
+        <balana.version>1.2.1</balana.version>
+        <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
 
         <!-- Equinox -->
         <version.equinox.osgi.services>3.3.100.v20130513-1956</version.equinox.osgi.services>
@@ -1812,8 +1805,6 @@
         <openid4java.version>1.0.0</openid4java.version>
         <openid4java.wso2.version>1.0.0.wso2v4</openid4java.wso2.version>
         <openid4java.wso2.osgi.version.range>[1.0.0,2.0.0)</openid4java.wso2.osgi.version.range>
-        <balana.version>1.2.0</balana.version>
-        <balana.imp.pkg.version.range>[1.1.0,2.0.0)</balana.imp.pkg.version.range>
         <gdata-core.wso2.version>1.47.0.wso2v1</gdata-core.wso2.version>
         <gdata-core.imp.pkg.version.range>[1.47.0.wso2v1,2.0.0)</gdata-core.imp.pkg.version.range>
         <httpcomponents-httpclient.wso2.version>4.3.1.wso2v2</httpcomponents-httpclient.wso2.version>

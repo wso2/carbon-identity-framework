@@ -26,10 +26,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.context.CarbonContext;
+
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPasswordContainer;
-import org.wso2.carbon.identity.user.store.configuration.cache.RandomPasswordContainerCache;
+import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.PropertyDTO;
@@ -40,7 +39,9 @@ import org.wso2.carbon.user.api.Property;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -64,7 +65,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.crypto.Cipher;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
@@ -170,7 +182,7 @@ public class SecondaryUserStoreConfigurationUtil {
             String errMsg = " Error occurred during the transformation process of " + userStoreConfigFile;
             throw new IdentityUserStoreMgtException(errMsg, e);
         } catch (IOException e) {
-            String errMsg = " Error occurred during the creating output stream from " + userStoreConfigFile;
+            String errMsg = " Error occurred while creating or closing the output stream from " + userStoreConfigFile;
             throw new IdentityUserStoreMgtException(errMsg, e);
         } catch (SAXException e) {
             throw new IdentityUserStoreMgtException("Error while updating user store state", e);
@@ -203,6 +215,24 @@ public class SecondaryUserStoreConfigurationUtil {
         return userStoreProperties;
     }
 
+    public static Map<String, String> getSecondaryUserStorePropertiesFromTenantUserRealm(String userStoreDomain)
+            throws IdentityUserStoreMgtException {
+
+        Map<String, String> secondaryUserStoreProperties = null;
+        try {
+            UserStoreManager secondaryUserStoreManager = getSecondaryUserStoreManager(userStoreDomain);
+            if (secondaryUserStoreManager != null) {
+                secondaryUserStoreProperties = secondaryUserStoreManager.getRealmConfiguration()
+                        .getUserStoreProperties();
+            }
+        } catch (UserStoreException e) {
+            String errorMessage = "Error while retrieving user store configurations for user store domain: "
+                    + userStoreDomain;
+            throw new IdentityUserStoreMgtException(errorMessage, e);
+        }
+        return secondaryUserStoreProperties;
+    }
+
     private static Transformer transformProperties() throws TransformerException {
 
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -222,6 +252,10 @@ public class SecondaryUserStoreConfigurationUtil {
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
+        if (log.isDebugEnabled()) {
+            log.debug("Closing the output stream from " + userStoreConfigFile);
+        }
+        result.getOutputStream().close();
 
     }
 
@@ -239,8 +273,8 @@ public class SecondaryUserStoreConfigurationUtil {
             attrClass.setValue(userStoreDTO.getClassName());
             userStoreElement.setAttributeNode(attrClass);
             if (userStoreDTO.getClassName() != null) {
-                addProperties(userStoreDTO.getClassName(), userStoreDTO.getProperties(), doc, userStoreElement,
-                        editSecondaryUserStore);
+                addProperties(userStoreDTO.getDomainId(), userStoreDTO.getClassName(), userStoreDTO.getProperties(),
+                        doc, userStoreElement, editSecondaryUserStore);
             }
             addProperty(UserStoreConfigConstants.DOMAIN_NAME, userStoreDTO.getDomainId(), doc, userStoreElement, false);
             addProperty(UserStoreConfigurationConstant.DESCRIPTION, userStoreDTO.getDescription(), doc, userStoreElement, false);
@@ -265,6 +299,10 @@ public class SecondaryUserStoreConfigurationUtil {
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
+        if (log.isDebugEnabled()) {
+            log.debug("Closing the output stream from " + userStoreConfigFile);
+        }
+        result.getOutputStream().close();
 
         if (log.isDebugEnabled()) {
             log.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully " +
@@ -302,17 +340,6 @@ public class SecondaryUserStoreConfigurationUtil {
     }
 
     /**
-     * Get the RandomPasswordContainer object from the cache for given unique id
-     *
-     * @param uniqueID Get and Remove the unique id for that particualr cache
-     * @return RandomPasswordContainer of particular unique ID
-     */
-    private static RandomPasswordContainer getAndRemoveRandomPasswordContainer(String uniqueID) {
-
-        return RandomPasswordContainerCache.getInstance().getRandomPasswordContainerCache().getAndRemove(uniqueID);
-    }
-
-    /**
      * Obtain the UniqueID ID constant value from the propertyDTO object which was set well
      * before sending the edit request.
      *
@@ -330,29 +357,6 @@ public class SecondaryUserStoreConfigurationUtil {
             }
         }
 
-        return null;
-    }
-
-    /**
-     * Find the RandomPassword object for a given propertyName in the RandomPasswordContainer
-     * ( Which is unique per uniqueID )
-     *
-     * @param randomPasswordContainer RandomPasswordContainer object of an unique id
-     * @param propertyName            RandomPassword object to be obtained for that property
-     * @return Returns the RandomPassword object from the
-     */
-    private static RandomPassword getRandomPassword(RandomPasswordContainer randomPasswordContainer,
-                                             String propertyName) {
-
-        RandomPassword[] randomPasswords = randomPasswordContainer.getRandomPasswords();
-
-        if (randomPasswords != null) {
-            for (RandomPassword randomPassword : randomPasswords) {
-                if (randomPassword.getPropertyName().equalsIgnoreCase(propertyName)) {
-                    return randomPassword;
-                }
-            }
-        }
         return null;
     }
 
@@ -388,26 +392,22 @@ public class SecondaryUserStoreConfigurationUtil {
      * @param doc          Document
      * @param parent       Parent element of the properties to be added
      */
-    private static void addProperties(String userStoreClass, PropertyDTO[] propertyDTOs, Document doc, Element parent,
-                               boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
+    private static void addProperties(String userStoreDomain, String userStoreClass, PropertyDTO[] propertyDTOs, Document doc,
+                                      Element parent, boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
 
-        RandomPasswordContainer randomPasswordContainer = null;
         if (editSecondaryUserStore) {
             String uniqueID = getUniqueIDFromUserDTO(propertyDTOs);
             if (uniqueID == null) {
                 throw new IdentityUserStoreMgtException("UniqueID property is not provided.");
             }
-            randomPasswordContainer = getAndRemoveRandomPasswordContainer(uniqueID);
-            if (randomPasswordContainer == null) {
-                String errorMsg = "randomPasswordContainer is null for uniqueID therefore " +
-                        "proceeding without encryption=" + uniqueID;
-                log.error(errorMsg); //need this error log to further identify the reason for throwing this exception
-                throw new IdentityUserStoreMgtException("Longer delay causes the edit operation be to " +
-                        "abandoned");
-            }
         }
+
         //First check for mandatory field with #encrypt
         Property[] mandatoryProperties = getMandatoryProperties(userStoreClass);
+
+        Map<String, String> secondaryUserStoreProperties =
+                getSecondaryUserStorePropertiesFromTenantUserRealm(userStoreDomain);
+
         for (PropertyDTO propertyDTO : propertyDTOs) {
             String propertyDTOName = propertyDTO.getName();
             if (UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT.equalsIgnoreCase(propertyDTOName)) {
@@ -418,15 +418,8 @@ public class SecondaryUserStoreConfigurationUtil {
             if (propertyDTOValue != null) {
                 boolean encrypted = false;
                 if (isPropertyToBeEncrypted(mandatoryProperties, propertyDTOName)) {
-                    if (randomPasswordContainer != null) {
-                        RandomPassword randomPassword = getRandomPassword(randomPasswordContainer, propertyDTOName);
-                        if (randomPassword != null) {
-                            if (propertyDTOValue.equalsIgnoreCase(randomPassword.getRandomPhrase())) {
-                                propertyDTOValue = randomPassword.getPassword();
-                            }
-                        }
-                    }
-
+                    propertyDTOValue = getPropertyValueIfMasked(secondaryUserStoreProperties, propertyDTOName,
+                            propertyDTOValue);
                     try {
                         propertyDTOValue = SecondaryUserStoreConfigurationUtil.encryptPlainText(propertyDTOValue);
                         encrypted = true;
@@ -438,6 +431,55 @@ public class SecondaryUserStoreConfigurationUtil {
                 addProperty(propertyDTOName, propertyDTOValue, doc, parent, encrypted);
             }
         }
+    }
+
+    /**
+     * If the property value is a mask value, this method will return the corresponding property value.
+     *
+     * @param secondaryUserStoreProperties Value {@link Map} of a the secondary user store, where actual value is
+     *                                     pulled instead of the mask.
+     * @param propertyDTOName   Name of the property.
+     * @param propertyDTOValue Value of the property.
+     * @return If property value is masked, returns the actual value to be stored instead of the mask. Otherwise the
+     * same propertyDTOValue passed as the argument.
+     */
+    private static String getPropertyValueIfMasked(Map<String, String> secondaryUserStoreProperties, String propertyDTOName,
+                                            String propertyDTOValue) {
+
+        if (ENCRYPTED_PROPERTY_MASK.equalsIgnoreCase(propertyDTOValue)) {
+            propertyDTOValue = getExistingPropertyValue(secondaryUserStoreProperties, propertyDTOName);
+        }
+        return propertyDTOValue;
+    }
+
+    private static String getExistingPropertyValue(Map<String, String> secondaryUserStoreProperties, String propertyDTOName) {
+
+        String existingPropertyValue = null;
+        if (secondaryUserStoreProperties != null) {
+            existingPropertyValue = secondaryUserStoreProperties.get(propertyDTOName);
+        }
+        return existingPropertyValue;
+    }
+
+    private static UserStoreManager getSecondaryUserStoreManager(String userStoreDomain) throws UserStoreException {
+
+        UserStoreManager secondaryUserStoreManager = null;
+        UserRealm userRealm = (UserRealm) UserStoreConfigComponent.getRealmService().getTenantUserRealm(
+                getTenantIdInTheCurrentContext());
+        UserStoreManager userStoreManager = userRealm.getUserStoreManager();
+        if (userStoreManager != null) {
+            secondaryUserStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Could not locate user store manager for user store domain: " + userStoreDomain);
+            }
+        }
+        return secondaryUserStoreManager;
+    }
+
+    private static int getTenantIdInTheCurrentContext() {
+
+        return PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId();
     }
 
     /**
@@ -475,61 +517,40 @@ public class SecondaryUserStoreConfigurationUtil {
      * get random passwords generated.
      * @param secondaryRealmConfiguration realm configuration.
      * @param userStoreProperties user store properties.
-     * @param uuid random id.
-     * @param randomPhrase random phrase
+     * @param encryptPropertyMaskValue The value used as the mask.
      * @param className class name
-     * @return random password generated.
+     * @return The array of {@link MaskedProperty} for the user store.
      */
-    public static RandomPassword[] getRandomPasswords(RealmConfiguration secondaryRealmConfiguration,
-                                                Map<String, String> userStoreProperties, String uuid,
-                                                String randomPhrase, String className) {
+    public static MaskedProperty[] setMaskInUserStoreProperties(RealmConfiguration secondaryRealmConfiguration,
+                                                                Map<String, String> userStoreProperties,
+                                                                String encryptPropertyMaskValue, String className) {
 
-        RandomPassword[] randomPasswords = getRandomPasswordProperties(className, randomPhrase,
+        MaskedProperty[] maskedProperties = getMaskedProperties(className, encryptPropertyMaskValue,
                 secondaryRealmConfiguration);
-        if (randomPasswords != null) {
-            updatePasswordContainer(randomPasswords, uuid);
+
+        for (MaskedProperty maskedProperty : maskedProperties) {
+            userStoreProperties.put(maskedProperty.getName(), maskedProperty.getMask());
         }
 
-        // Replace the property with random password.
-        for (RandomPassword randomPassword : randomPasswords) {
-            userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getRandomPhrase());
-        }
-        return randomPasswords;
+        return maskedProperties;
     }
 
-    private static RandomPassword[] getRandomPasswordProperties(String userStoreClass,
-                                                                String randomPhrase, RealmConfiguration secondaryRealmConfiguration) {
+    private static MaskedProperty[] getMaskedProperties(String userStoreClass, String maskValue,
+                                                        RealmConfiguration secondaryRealmConfiguration) {
         //First check for mandatory field with #encrypt
         Property[] mandatoryProperties = getMandatoryProperties(userStoreClass);
-        ArrayList<RandomPassword> randomPasswordArrayList = new ArrayList<RandomPassword>();
+        ArrayList<MaskedProperty> maskedProperties = new ArrayList<>();
         for (Property property : mandatoryProperties) {
             String propertyName = property.getName();
             if (property.getDescription().contains(UserStoreConfigurationConstant.ENCRYPT_TEXT)) {
-                RandomPassword randomPassword = new RandomPassword();
-                randomPassword.setPropertyName(propertyName);
-                randomPassword.setPassword(secondaryRealmConfiguration.getUserStoreProperty(propertyName));
-                randomPassword.setRandomPhrase(randomPhrase);
-                randomPasswordArrayList.add(randomPassword);
+                MaskedProperty maskedProperty = new MaskedProperty();
+                maskedProperty.setName(propertyName);
+                maskedProperty.setValue(secondaryRealmConfiguration.getUserStoreProperty(propertyName));
+                maskedProperty.setMask(maskValue);
+                maskedProperties.add(maskedProperty);
             }
         }
-        return randomPasswordArrayList.toArray(new RandomPassword[randomPasswordArrayList.size()]);
-    }
-
-
-    private static void updatePasswordContainer(RandomPassword[] randomPasswords, String uuid) {
-
-        if (randomPasswords != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("updatePasswordContainer reached for number of random password properties length = " +
-                        randomPasswords.length);
-            }
-            RandomPasswordContainer randomPasswordContainer = new RandomPasswordContainer();
-            randomPasswordContainer.setRandomPasswords(randomPasswords);
-            randomPasswordContainer.setUniqueID(uuid);
-
-            RandomPasswordContainerCache.getInstance().getRandomPasswordContainerCache().put(uuid,
-                    randomPasswordContainer);
-        }
+        return maskedProperties.toArray(new MaskedProperty[0]);
     }
 
     /**

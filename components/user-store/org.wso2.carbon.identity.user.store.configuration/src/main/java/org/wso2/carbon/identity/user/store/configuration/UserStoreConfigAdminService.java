@@ -25,9 +25,6 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPasswordContainer;
-import org.wso2.carbon.identity.user.store.configuration.cache.RandomPasswordContainerCache;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
@@ -60,13 +57,17 @@ import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getSecondaryUserStorePropertiesFromTenantUserRealm;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 
 public class UserStoreConfigAdminService extends AbstractAdmin {
     public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
+    private static final String DB_BASED_REPOSITORY_CLASS =
+            "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
 
     /**
      * Get details of current secondary user store configurations
@@ -80,7 +81,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
                 getInstance().getUserStoreDAOFactories();
+
         for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
+
+            if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                    StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
+                continue;
+            }
+
             UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
             userStoreDTOList.addAll(Arrays.asList(allUserStores));
         }
@@ -489,15 +497,12 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID) throws IdentityUserStoreMgtException {
 
-        RandomPasswordContainer randomPasswordContainer;
         if (messageID != null) {
-            randomPasswordContainer = getRandomPasswordContainer(messageID);
-            if (randomPasswordContainer != null) {
-                RandomPassword randomPassword = getRandomPassword(randomPasswordContainer, JDBCRealmConstants.PASSWORD);
-                if (randomPassword != null) {
-                    if (connectionPassword.equalsIgnoreCase(randomPassword.getRandomPhrase())) {
-                        connectionPassword = randomPassword.getPassword();
-                    }
+            if (connectionPassword.equalsIgnoreCase(ENCRYPTED_PROPERTY_MASK)) {
+                Map<String, String> secondaryUserStoreProperties =
+                        getSecondaryUserStorePropertiesFromTenantUserRealm(domainName);
+                if (secondaryUserStoreProperties != null) {
+                    connectionPassword = secondaryUserStoreProperties.get(JDBCRealmConstants.PASSWORD);
                 }
             }
         }
@@ -537,38 +542,5 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 //            log.error(message, e);
             throw new IdentityUserStoreMgtException(errorMessage);
         }
-    }
-
-    /**
-     * Get the RandomPasswordContainer object from the cache for given unique id
-     *
-     * @param uniqueID Get the unique id for that particular cache
-     * @return RandomPasswordContainer of particular unique ID
-     */
-    private RandomPasswordContainer getRandomPasswordContainer(String uniqueID) {
-        return RandomPasswordContainerCache.getInstance().getRandomPasswordContainerCache().get(uniqueID);
-    }
-
-    /**
-     * Finds the RandomPassword object for a given propertyName in the RandomPasswordContainer
-     * ( Which is unique per uniqueID )
-     *
-     * @param randomPasswordContainer RandomPasswordContainer object of an unique id
-     * @param propertyName            RandomPassword object to be obtained for that property
-     * @return Returns the RandomPassword object from the
-     */
-    private RandomPassword getRandomPassword(RandomPasswordContainer randomPasswordContainer,
-                                             String propertyName) {
-
-        RandomPassword[] randomPasswords = randomPasswordContainer.getRandomPasswords();
-
-        if (randomPasswords != null) {
-            for (RandomPassword randomPassword : randomPasswords) {
-                if (randomPassword.getPropertyName().equalsIgnoreCase(propertyName)) {
-                    return randomPassword;
-                }
-            }
-        }
-        return null;
     }
 }

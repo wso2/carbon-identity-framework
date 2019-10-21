@@ -17,16 +17,19 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
 
-<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.apache.axis2.context.ConfigurationContext" %>
-<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
-<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-<%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.stub.dto.ClaimDialectDTO" %>
+<%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.client.ClaimMetadataAdminClient" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.ResourceBundle" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -40,6 +43,24 @@
     try {
         ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
         claimDialects = client.getClaimDialects();
+    
+        // Add the local claim dialect to the top.
+        if (claimDialects != null && claimDialects.length > 0) {
+            List<ClaimDialectDTO> dialectList = new ArrayList<>(Arrays.asList(claimDialects));
+            int localDialectIndex = -1;
+            for (int i = 0; i < dialectList.size(); i++) {
+                if (UserCoreConstants.DEFAULT_CARBON_DIALECT.equalsIgnoreCase(
+                        dialectList.get(i).getClaimDialectURI())) {
+                    localDialectIndex = i;
+                    break;
+                }
+            }
+            if (localDialectIndex != -1) {
+                dialectList.add(0, dialectList.remove(localDialectIndex));
+            }
+            claimDialects = dialectList.toArray(new ClaimDialectDTO[0]);
+        }
+        
     } catch (Exception e) {
         String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
         ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
