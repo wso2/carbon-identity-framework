@@ -737,9 +737,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public ResourceFile addFile(String resourceTypeName, String resourceName, String fileName, InputStream fileStream)
             throws ConfigurationManagementException {
@@ -748,13 +745,15 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         String resourceId = getResourceId(resourceTypeName, resourceName);
         String fileId = generateUniqueID();
         if (log.isDebugEnabled()) {
-            log.debug("File id generated: " + fileId);
+            log.debug("File id generated: " + fileId + "for the resource name: " + resourceName + "resource type "
+                    + "name: " + resourceTypeName);
         }
         getConfigurationDAO().addFile(fileId, resourceId, fileName, fileStream);
         if (log.isDebugEnabled()) {
-            log.debug("File: " + fileId + " successfully added.");
+            log.debug("File: " + fileId + " successfully added." + "for resource name: "+ resourceName
+                    + "resource type name: " + resourceTypeName);
         }
-        return new ResourceFile(fileId, getFilePath(fileId, resourceTypeName, resourceName).toString(), fileName);
+        return new ResourceFile(fileId, getFilePath(fileId, resourceTypeName, resourceName), fileName);
     }
 
     @Override
@@ -807,9 +806,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public InputStream getFileById(String fileId)
             throws ConfigurationManagementException {
@@ -828,9 +824,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return fileStream;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void deleteFileById(String fileId)
             throws ConfigurationManagementException {
@@ -842,9 +835,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public boolean isFeatureEnabled() {
 

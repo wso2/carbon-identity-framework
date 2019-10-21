@@ -25,11 +25,13 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_FILE_BY_ID_PATH;
 
 import java.net.URI;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.SERVER_API_PATH_COMPONENT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_CONTEXT_PATH_COMPONENT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_NAME_FROM_CONTEXT;
@@ -147,9 +149,9 @@ public class ConfigurationUtils {
         return message;
     }
 
-    public static URI getFilePath(String fileId, String resourceTypeName, String resourceName) {
+    public static String getFilePath(String fileId, String resourceName, String resourceType) {
 
-        return buildURIForBody(RESOURCE_FILE_BY_ID_PATH + "/" + resourceTypeName + "/" + resourceName + "/" + fileId);
+        return buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE + '/' + fileId).toString();
 
     }
 

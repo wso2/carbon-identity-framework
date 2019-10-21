@@ -205,7 +205,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             List<ResourceFile> resourceFiles = getConfigurationManager().getFiles(
                     resourceType, resourceName);
             ResourceFileDTO[] resourceFileDTOS = resourceFiles.stream()
-                    .map(n -> ConfigurationEndpointUtils.getResourceFileDTO(n, resourceName, resourceType))
+                    .map(n -> ConfigurationEndpointUtils.getResourceFileDTO(n))
                     .toArray(ResourceFileDTO[]::new);
             return Response.ok().entity(resourceFileDTOS).build();
         } catch (ConfigurationManagementClientException e) {

@@ -142,14 +142,6 @@ public class ConfigurationEndpointUtils {
 
         ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
         resourceFileDTO.setFile(resourceFile.getValue());
-        return resourceFileDTO;
-    }
-
-    public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile, String resourceName,
-            String resourceType) {
-
-        ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
-        resourceFileDTO.setFile(getFileURI(resourceFile.getId(),resourceName,resourceType).toString());
         resourceFileDTO.setName(resourceFile.getName());
         return resourceFileDTO;
     }
@@ -419,7 +411,7 @@ public class ConfigurationEndpointUtils {
     private static URI getFileURI(String fileId, String resourceName, String resourceType) {
 
         return ConfigurationUtils
-                .buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + fileId);
+                .buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE + '/' + fileId);
 
     }
 
