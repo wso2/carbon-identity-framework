@@ -278,6 +278,29 @@
         <jsp-file>/generic-exception-response.jsp</jsp-file>
     </servlet>
 
+
+    <servlet>
+        <servlet-name>device.do</servlet-name>
+        <jsp-file>/enter-user-code.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>device_success.do</servlet-name>
+        <jsp-file>/device-success.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>device.do</servlet-name>
+        <url-pattern>/device.do</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet-mapping>
+        <servlet-name>device_success.do</servlet-name>
+        <url-pattern>/device_success.do</url-pattern>
+    </servlet-mapping>
+
+
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
