@@ -111,7 +111,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.buildPermissions;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.endTenantFlow;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.isRegexValidated;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtUtil.startTenantFlow;
@@ -2134,8 +2133,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 //            }
 //        }
         } else {
-            throw new UnsupportedOperationException("Application resource management is not supported. Tenant domain: " +
-                    tenantDomain);
+            throw new UnsupportedOperationException(
+                    "Application resource management is not supported for tenantDomain:" + tenantDomain);
         }
     }
 
@@ -2154,6 +2153,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw e;
         }
 
+        // We need to set the internal applicationId and resourceId to the app before invoking the listeners.
+        ExtendedApplicationBasicInfo appBasicInfo =
+                getExtendedApplicationBasicInfo(applicationResourceId, tenantDomain);
+
+        if (appBasicInfo != null) {
+            updatedApp.setApplicationResourceId(applicationResourceId);
+            updatedApp.setApplicationID(appBasicInfo.getApplicationId());
+        } else {
+            // Throw an exception
+            throw new IdentityApplicationManagementClientException(new String[]{ "Cannot find an application for " +
+                    "appResourceId:" + applicationResourceId + " in tenantDomain:" + tenantDomain});
+        }
+
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -2166,9 +2178,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain);
-            if (!ApplicationConstants.LOCAL_SP.equals(updateApplicationName)) {
-                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " does not have access to the application " + updateApplicationName);
+            if (ApplicationConstants.LOCAL_SP.equals(updateApplicationName)) {
+                log.warn("Illegal Access! User " + userUpdatingTheApp +
+                        "does not have access to the application: " + updateApplicationName);
                 throw new IdentityApplicationManagementException("User not authorized to update this app.");
             }
 
@@ -2191,6 +2203,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (appDAO instanceof ApplicationResourceDAO) {
                 Application storedApplication =
                         ((ApplicationResourceDAO) appDAO).getApplicationResource(applicationResourceId, tenantDomain);
+
                 storedAppName = storedApplication.getApplicationName();
                 ((ApplicationResourceDAO) appDAO)
                         .updateApplicationResource(applicationResourceId, tenantDomain, updatedApp);
@@ -2206,23 +2219,24 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
             // TODO: if we are not supporting updating per SP permissions.. do we need to allow this update..
-            String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
-                    .PATH_SEPARATOR + storedAppName;
-            org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
-                    .getRegistry(RegistryType.USER_GOVERNANCE);
+//            String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
+//                    .PATH_SEPARATOR + storedAppName;
+//            org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
+//                    .getRegistry(RegistryType.USER_GOVERNANCE);
+//
+//            boolean exist = tenantGovReg.resourceExists(applicationNode);
+//            if (exist && !StringUtils.equals(storedAppName, updateApplicationName)) {
+//                ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updateApplicationName);
+//            }
 
-            boolean exist = tenantGovReg.resourceExists(applicationNode);
-            if (exist && !StringUtils.equals(storedAppName, updateApplicationName)) {
-                ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updateApplicationName);
-            }
-
-            if (updatedApp.getPermissionAndRoleConfig() != null &&
-                    ArrayUtils.isNotEmpty(updatedApp.getPermissionAndRoleConfig().getPermissions())) {
-                ApplicationMgtUtil.updatePermissions(updateApplicationName,
-                        updatedApp.getPermissionAndRoleConfig().getPermissions());
-            }
+//            if (updatedApp.getPermissionAndRoleConfig() != null &&
+//                    ArrayUtils.isNotEmpty(updatedApp.getPermissionAndRoleConfig().getPermissions())) {
+//                ApplicationMgtUtil.updatePermissions(updateApplicationName,
+//                        updatedApp.getPermissionAndRoleConfig().getPermissions());
+//            }
         } catch (Exception e) {
-            String error = "Error occurred while updating the application: " + updateApplicationName + ". " + e.getMessage();
+            String error = "Error occurred while updating the application with appResourceId:" + applicationResourceId
+                    + " in tenantDomain:" + tenantDomain;
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();

@@ -54,7 +54,7 @@ import java.util.Map;
  * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
  * single point of caching.
  */
-public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
+public class CacheBackedApplicationDAO extends ExtendedApplicationDAOImpl {
 
     private static final Log log = LogFactory.getLog(CacheBackedApplicationDAO.class);
 
@@ -409,7 +409,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public void deleteApplicationResource(String appResourceId,
                                           String tenantDomain) throws IdentityApplicationManagementException {
 
-        // TODO think about caching
+        // TODO : clear other caches that refer this application. For example application against app name
         if (appDAO instanceof ApplicationResourceDAO) {
             ((ApplicationResourceDAO) appDAO).deleteApplicationResource(appResourceId, tenantDomain);
         } else {

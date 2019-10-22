@@ -33,6 +33,15 @@ public class ApplicationMgtDBQueries {
             "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, " +
             "IS_SAAS_APP=?, USERNAME=?, USER_STORE=? WHERE TENANT_ID= ? AND ID = ?";
+
+    // Update app basic info
+    public static final String UPDATE_EXTENDED_BASIC_APPINFO = "UPDATE SP_APP SET APP_NAME=:APP_NAME;, " +
+            "DESCRIPTION=:DESCRIPTION;, IS_SAAS_APP=:IS_SAAS_APP;, LOGIN_URL=:LOGIN_URL;, IMAGE_URL=:IMAGE_URL; WHERE TENANT_ID=:TENANT_ID; AND ID=:ID;";
+    public static final String UPDATE_EXTENDED_BASIC_APPINFO_WITH_OWNER_UPDATE = "UPDATE SP_APP SET APP_NAME=:APP_NAME;," +
+            " DESCRIPTION=:DESCRIPTION;, LOGIN_URL=:LOGIN_URL;, IMAGE_URL=:IMAGE_URL;, IS_SAAS_APP=:IS_SAAS_APP;, " +
+            "USERNAME=:USERNAME;, USER_STORE=:USERNAME; WHERE TENANT_ID=:TENANT_ID; AND ID=:ID;";
+
+
     public static final String UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM = "UPDATE SP_APP SET ROLE_CLAIM=? WHERE TENANT_ID" +
                                                                       "= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT = "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=? " +

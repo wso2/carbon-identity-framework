@@ -80,9 +80,10 @@ public class ApplicationConstants {
     public static final int DEFAULT_FETCH_CHUNK_SIZE = 50;
     public static final String FETCH_CHUNK_SIZE = "FetchChunkSize";
 
+    public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
+    public static final String JWKS_URI_SP_PROPERTY_NAME = "jwksURI";
 
     public static class ApplicationTableColumns {
-
         public static final String ID = "ID";
         public static final String APP_NAME = "APP_NAME";
         public static final String DESCRIPTION = "DESCRIPTION";

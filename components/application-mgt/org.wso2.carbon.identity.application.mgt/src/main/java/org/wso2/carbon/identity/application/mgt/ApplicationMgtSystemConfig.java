@@ -27,12 +27,12 @@ import org.wso2.carbon.identity.application.mgt.dao.ApplicationTemplateDAO;
 import org.wso2.carbon.identity.application.mgt.dao.IdentityProviderDAO;
 import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
-import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationTemplateDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ExtendedApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.IdentityProviderDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.OAuthApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.SAMLApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -164,7 +164,7 @@ public class ApplicationMgtSystemConfig {
             }
 
         } else {
-            applicationDAO = new ApplicationDAOImpl();
+            applicationDAO = new ExtendedApplicationDAOImpl();
         }
         return new CacheBackedApplicationDAO(applicationDAO);
     }

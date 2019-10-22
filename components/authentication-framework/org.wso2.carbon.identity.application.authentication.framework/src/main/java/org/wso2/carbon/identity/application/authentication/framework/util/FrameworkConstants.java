@@ -268,6 +268,18 @@ public abstract class FrameworkConstants {
         }
     }
 
+    public static class StandardInboundProtocols {
+
+        public static final String OAUTH2 = "oauth2";
+        public static final String WS_TRUST = "wstrust";
+        public static final String SAML2 = "samlsso";
+        public static final String PASSIVE_STS = "passivests";
+
+        private StandardInboundProtocols() {
+
+        }
+    }
+
     public static class RequestType {
 
         public static final String CLAIM_TYPE_OPENID = "openid";
