@@ -128,7 +128,6 @@ public class SecondaryUserStoreConfigurator {
                 String errMsg = "ServerConfigurationService is null - this situation can't occur";
                 log.error(errMsg);
             }
-
         }
     }
 
