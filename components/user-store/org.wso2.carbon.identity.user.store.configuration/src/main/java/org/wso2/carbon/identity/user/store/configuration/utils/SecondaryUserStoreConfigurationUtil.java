@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Attr;
@@ -28,7 +27,6 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
