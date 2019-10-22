@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt;
 
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
@@ -118,6 +119,19 @@ public interface IdpManager {
     }
 
     /**
+     * Returns extended IDP with resource ID.
+     * @param resourceId            Resource ID of the IDP.
+     * @param tenantDomain          Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps   Whether to ignore file based idps or not.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    default ExtendedIdentityProvider getIdPByResourceId(String resourceId, String tenantDomain,
+                                        boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
      * @param idPName
      * @param tenantDomain
      * @param ignoreFileBasedIdps
@@ -147,6 +161,20 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException IdentityProviderManagementException.
      */
     default IdentityProvider getIdPById(String id, String tenantDomain) throws IdentityProviderManagementException {
+
+        return null;
+    }
+
+    /**
+     * Returns extended IDP with given IDP resource ID.
+     *
+     * @param resourceId    Resource ID of the IDP.
+     * @param tenantDomain  Tenant domain of the IDP.
+     * @return Identity provider with given resource ID.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    default ExtendedIdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
 
         return null;
     }
@@ -295,6 +323,19 @@ public interface IdpManager {
     void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Adds an Extended Identity Provider to the given tenant.
+     *
+     * @param identityProvider  New Identity Provider information.
+     * @param tenantDomain      Tenant domain of the IDP.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException Error when adding Identity Provider information.
+     */
+    default ExtendedIdentityProvider addIdP(ExtendedIdentityProvider identityProvider, String tenantDomain) throws
+            IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
      * Deletes an Identity Provider from a given tenant
      *
      * @param idPName Name of the IdP to be deleted
@@ -302,6 +343,15 @@ public interface IdpManager {
      *                                                information
      */
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Deletes an Identity Provider from a given tenant using its resource ID.
+     *
+     * @param resourceId    Resource ID of the IdP to be deleted
+     * @throws IdentityProviderManagementException Error when deleting Identity Provider information.
+     */
+    default void deleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {}
 
     /**
      * Updates a given Identity Provider information
@@ -313,6 +363,19 @@ public interface IdpManager {
      */
     void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
+
+    /**
+     * Updates a given Identity Provider information using its resource ID.
+     *
+     * @param resourceId          IDP resource ID.
+     * @param newIdentityProvider New IdP information.
+     * @param tenantDomain        Tenant domain of the IDP.
+     * @throws IdentityProviderManagementException Error when updating Identity Provider information.
+     */
+    default ExtendedIdentityProvider updateIdPByResourceId(String resourceId, ExtendedIdentityProvider
+            newIdentityProvider, String tenantDomain) throws IdentityProviderManagementException {
+        return null;
+    }
 
     /**
      * Get the authenticators registered in the system.

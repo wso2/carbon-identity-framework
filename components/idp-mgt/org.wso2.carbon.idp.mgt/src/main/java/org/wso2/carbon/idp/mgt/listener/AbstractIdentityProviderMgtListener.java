@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt.listener;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -61,7 +62,18 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
         return true;
     }
 
+    public boolean doPreDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
+        return true;
+    }
+
+
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
+    public boolean doPostDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
         return true;
     }
 
@@ -70,8 +82,19 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
         return true;
     }
 
+    public boolean doPreUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
     public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
+        return true;
+    }
+
+    public boolean doPostUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider oldIdentityProvider,
+                                               ExtendedIdentityProvider newIdentityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
         return true;
     }
 

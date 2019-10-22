@@ -31,4 +31,12 @@ public class IdentityProviderManagementException extends IdentityException {
     public IdentityProviderManagementException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public IdentityProviderManagementException(String errorCode, String message) {
+        super(message);
+    }
+
+    public IdentityProviderManagementException(String errorCode, String message, Throwable cause) {
+        super(message, cause);
+    }
 }

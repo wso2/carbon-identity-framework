@@ -19,6 +19,7 @@
 package org.wso2.carbon.idp.mgt.util;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
@@ -29,7 +30,9 @@ import org.wso2.carbon.identity.application.common.processors.RandomPasswordProc
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.user.api.TenantManager;
@@ -189,5 +192,61 @@ public class IdPManagementUtil {
     public static String getTenantParameter() {
 
         return tenantParameter;
+    }
+
+    /**
+     * This method can be used to generate a IdentityProviderManagementClientException from
+     * IdPManagementConstants.ErrorMessage object when no exception is thrown.
+     *
+     * @param error IdPManagementConstants.ErrorMessage.
+     * @param data  data to replace if message needs to be replaced.
+     * @return IdentityProviderManagementClientException.
+     */
+    public static IdentityProviderManagementClientException handleClientException(IdPManagementConstants.ErrorMessage
+                                                                                          error, String data) {
+
+        String message = includeData(error, data);
+        return new IdentityProviderManagementClientException(message, error.getCode());
+    }
+
+    public static IdentityProviderManagementClientException handleClientException(IdPManagementConstants.ErrorMessage
+                                                                                          error, String data,
+                                                                                  Throwable e) {
+
+        String message = includeData(error, data);
+        return new IdentityProviderManagementClientException(message, error.getCode(), e);
+    }
+
+    /**
+     * This method can be used to generate a IdentityProviderManagementServerException from
+     * IdPManagementConstants.ErrorMessage object when no exception is thrown.
+     *
+     * @param error IdPManagementConstants.ErrorMessage.
+     * @param data  data to replace if message needs to be replaced.
+     * @return IdentityProviderManagementServerException.
+     */
+    public static IdentityProviderManagementServerException handleServerException(IdPManagementConstants.ErrorMessage
+                                                                                      error, String data) {
+
+        String message = includeData(error, data);
+        return new IdentityProviderManagementServerException(message, error.getCode());
+    }
+
+    public static IdentityProviderManagementServerException handleServerException(IdPManagementConstants.ErrorMessage error,
+                                                                               String data, Throwable e) {
+
+        String message = includeData(error, data);
+        return new IdentityProviderManagementServerException(message, error.getCode(), e);
+    }
+
+    private static String includeData(IdPManagementConstants.ErrorMessage error, String data) {
+
+        String message;
+        if (StringUtils.isNotBlank(data)) {
+            message = String.format(error.getMessage(), data);
+        } else {
+            message = error.getMessage();
+        }
+        return message;
     }
 }

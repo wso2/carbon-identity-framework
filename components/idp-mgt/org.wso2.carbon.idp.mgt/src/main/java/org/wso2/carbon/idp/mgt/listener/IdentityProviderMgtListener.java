@@ -18,6 +18,7 @@
  */
 package org.wso2.carbon.idp.mgt.listener;
 
+import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
@@ -114,6 +115,18 @@ public interface IdentityProviderMgtListener {
     public boolean doPreDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Define any additional actions before deleting idp.
+     *
+     * @param resourceId    Resource ID of the idp.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    default boolean doPreDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
+        return true;
+    }
+
+    /**
      * Define any additional actions after deleting idp
      *
      * @param idPName Name of the idp
@@ -121,6 +134,18 @@ public interface IdentityProviderMgtListener {
      * @throws IdentityProviderManagementException
      */
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Define any additional actions after deleting idp
+     *
+     * @param resourceId    Resource ID of the idp.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    default boolean doPostDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
+        return true;
+    }
 
     /**
      * Define any additional actions before updating idp
@@ -134,6 +159,19 @@ public interface IdentityProviderMgtListener {
             IdentityProviderManagementException;
 
     /**
+     * Define any additional actions before updating idp
+     *
+     * @param resourceId    Resource ID of the idp.
+     * @param identityProvider Updated Identity Provider
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    default boolean doPreUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
+    /**
      * Define any additional actions after updating idp
      *
      * @param oldIdPName Name of the old idp
@@ -143,5 +181,20 @@ public interface IdentityProviderMgtListener {
      */
     public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
+
+    /**
+     * Define any additional actions after updating idp
+     *
+     * @param resourceId            Resource ID of the idp.
+     * @param oldIdentityProvider   Existing Extended Identity Provider.
+     * @param newIdentityProvider   New Extended Identity Provider.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    default boolean doPostUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider
+            oldIdentityProvider, ExtendedIdentityProvider newIdentityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
 
 }
