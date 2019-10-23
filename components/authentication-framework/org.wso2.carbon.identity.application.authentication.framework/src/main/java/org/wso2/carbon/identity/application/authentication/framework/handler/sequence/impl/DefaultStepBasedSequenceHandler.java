@@ -531,9 +531,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     /**
      * Get the Role Claim Uri in IDPs dialect.
      *
-     * @param stepConfig
-     * @param context
-     * @return
+     * @param stepConfig Relevant stepConfig.
+     * @param context Relevant AuthenticationContext.
+     * @return Role Claim Uri as String.
      * @throws FrameworkException
      */
     protected String getIdpRoleClaimUri(StepConfig stepConfig, AuthenticationContext context) throws FrameworkException {

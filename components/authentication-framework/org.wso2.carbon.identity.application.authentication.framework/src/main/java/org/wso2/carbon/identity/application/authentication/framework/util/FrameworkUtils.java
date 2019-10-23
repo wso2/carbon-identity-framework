@@ -1791,41 +1791,40 @@ public class FrameworkUtils {
      */
     public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
                                                   AuthenticationContext context) {
-
-        // Set the incoming idpClaimUri
+        // Set the incoming idpClaimUri.
         // Finally return the incoming idpClaimUri if it is in expected dialect.
         String idpRoleMappingURI = idpRoleClaimUri;
 
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
 
-        // Read the value from management console
+        // Read the value from management console.
         boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
 
-        // Read value from file based configuration
+        // Read value from file based configuration.
         boolean useLocalClaimDialectForClaimMappings =
                 FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
 
         Map<String, String> carbonToStandardClaimMapping;
 
-        // Check whether to use the default dialect or custom dialect
+        // Check whether to use the default dialect or custom dialect.
         if (useDefaultIdpDialect || useLocalClaimDialectForClaimMappings) {
             String idPStandardDialect = authenticator.getClaimDialectURI();
             try {
-                // Maps the idps dialect to standard dialect
+                // Maps the idps dialect to standard dialect.
                 carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect,
-                                null, context.getTenantDomain(),
-                                false);
-            } catch (ClaimMetadataException e) {
-                carbonToStandardClaimMapping = new HashMap<>();
-            }
-            // check for role claim uri in the idaps dialect
-            for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
-                if (idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
-                    idpRoleMappingURI = entry.getKey();
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
+                                context.getTenantDomain(), false);
+                // check for role claim uri in the idaps dialect.
+                for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
+                    if (idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
+                        idpRoleMappingURI = entry.getKey();
+                    }
                 }
+            } catch (ClaimMetadataException e) {
+                log.debug("Error in getting the mapping between idps and standard dialect");
             }
+
         }
         return idpRoleMappingURI;
     }
