@@ -1791,7 +1791,7 @@ public class FrameworkUtils {
      */
     public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
                                                   AuthenticationContext context) {
-        // Set the incoming idpClaimUri.
+
         // Finally return the incoming idpClaimUri if it is in expected dialect.
         String idpRoleMappingURI = idpRoleClaimUri;
 
@@ -1822,9 +1822,11 @@ public class FrameworkUtils {
                     }
                 }
             } catch (ClaimMetadataException e) {
-                log.debug("Error in getting the mapping between idps and standard dialect");
+                if (log.isDebugEnabled()) {
+                    log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
+                            "unmapped RoleClaimUri: " + idpRoleMappingURI);
+                }
             }
-
         }
         return idpRoleMappingURI;
     }
