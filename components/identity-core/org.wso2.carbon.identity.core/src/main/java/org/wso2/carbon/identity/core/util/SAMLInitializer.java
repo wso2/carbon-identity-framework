@@ -1,46 +1,81 @@
+/*
+ *  Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package org.wso2.carbon.identity.core.util;
 
 import org.opensaml.core.config.InitializationException;
 import org.opensaml.core.config.InitializationService;
+import org.opensaml.saml.config.SAMLConfigurationInitializer;
+import org.opensaml.core.xml.config.GlobalParserPoolInitializer;
+import org.opensaml.xmlsec.config.JavaCryptoValidationInitializer;
+import org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer;
+import org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer;
+import org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer;
 
+/**
+ * Initializes the OpenSAML 3 library at a central location to ensure that it is
+ * accessible from any component
+ */
 public class SAMLInitializer {
 
+    /**
+     * Initializes the required initializers
+     * @throws InitializationException
+     */
     public static void doBootstrap() throws InitializationException {
 
         Thread thread = Thread.currentThread();
-        ClassLoader loader = thread.getContextClassLoader();
+        ClassLoader originalClassLoader = thread.getContextClassLoader();
         thread.setContextClassLoader(InitializationService.class.getClassLoader());
 
-        InitializationService.initialize();
+        try {
 
-        org.opensaml.saml.config.SAMLConfigurationInitializer initializer_1 = new org.opensaml.saml.config.SAMLConfigurationInitializer();
-        initializer_1.init();
+            InitializationService.initialize();
 
-        org.opensaml.saml.config.XMLObjectProviderInitializer initializer_2 = new org.opensaml.saml.config.XMLObjectProviderInitializer();
-        initializer_2.init();
+            SAMLConfigurationInitializer samlConfigurationInitializer = new SAMLConfigurationInitializer();
+            samlConfigurationInitializer.init();
 
-        org.opensaml.core.xml.config.XMLObjectProviderInitializer initializer_3 = new org.opensaml.core.xml.config.XMLObjectProviderInitializer();
-        initializer_3.init();
+            org.opensaml.saml.config.XMLObjectProviderInitializer samlXMLObjectProviderInitializer = new org.opensaml.saml.config.XMLObjectProviderInitializer();
+            samlXMLObjectProviderInitializer.init();
 
-        org.opensaml.core.xml.config.GlobalParserPoolInitializer initializer_4 = new org.opensaml.core.xml.config.GlobalParserPoolInitializer();
-        initializer_4.init();
+            org.opensaml.core.xml.config.XMLObjectProviderInitializer coreXMLObjectProviderInitializer = new org.opensaml.core.xml.config.XMLObjectProviderInitializer();
+            coreXMLObjectProviderInitializer.init();
 
-        org.opensaml.xmlsec.config.JavaCryptoValidationInitializer initializer_5 = new org.opensaml.xmlsec.config.JavaCryptoValidationInitializer();
-        initializer_5.init();
+            GlobalParserPoolInitializer globalParserPoolInitializer = new GlobalParserPoolInitializer();
+            globalParserPoolInitializer.init();
 
-        org.opensaml.xmlsec.config.XMLObjectProviderInitializer initializer_6 = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
-        initializer_6.init();
+            JavaCryptoValidationInitializer javaCryptoValidationInitializer = new JavaCryptoValidationInitializer();
+            javaCryptoValidationInitializer.init();
 
-        org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer initializer_7 = new org.opensaml.xmlsec.config.ApacheXMLSecurityInitializer();
-        initializer_7.init();
+            org.opensaml.xmlsec.config.XMLObjectProviderInitializer xmlsecXMLObjectProviderInitializer = new org.opensaml.xmlsec.config.XMLObjectProviderInitializer();
+            xmlsecXMLObjectProviderInitializer.init();
 
-        org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer initializer_8 = new org.opensaml.xmlsec.config.GlobalSecurityConfigurationInitializer();
-        initializer_8.init();
+            ApacheXMLSecurityInitializer apacheXMLSecurityInitializer = new ApacheXMLSecurityInitializer();
+            apacheXMLSecurityInitializer.init();
 
-        org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer initializer_9 = new org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer();
-        initializer_9.init();
+            GlobalSecurityConfigurationInitializer globalSecurityConfigurationInitializer = new GlobalSecurityConfigurationInitializer();
+            globalSecurityConfigurationInitializer.init();
 
-        thread.setContextClassLoader(loader);
+            GlobalAlgorithmRegistryInitializer globalAlgorithmRegistryInitializer = new GlobalAlgorithmRegistryInitializer();
+            globalAlgorithmRegistryInitializer.init();
 
+        } finally {
+            thread.setContextClassLoader(originalClassLoader);
+        }
     }
 }

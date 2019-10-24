@@ -413,9 +413,9 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             SignatureValidator.validate(signature, getPublicX509CredentialImpl());
             isSignatureValid = true;
         } catch (SignatureException e) {
-            log.warn("Signature validation failed.");
+            log.warn("Signature validation failed for the public X509 credential " + getPublicX509CredentialImpl(), e);
         } catch (Exception e) {
-            throw new Exception("Error in getting public X509Credentials to validate signature. ");
+            throw new Exception("Error in getting public X509Credentials to validate signature.", e);
         }
         return isSignatureValid;
     }

@@ -91,8 +91,11 @@ public class X509CredentialImpl implements X509Credential {
         return null;
     }
 
-    public CredentialContextSet getCredentalContextSet() {
-        // TODO Auto-generated method stub
+    /***
+     * get a credential context set
+     * @return Method not supported so will return null
+     */
+    public CredentialContextSet getCredentialContextSet() {
         return null;
     }
 
@@ -117,12 +120,6 @@ public class X509CredentialImpl implements X509Credential {
     }
 
     public SecretKey getSecretKey() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public CredentialContextSet getCredentialContextSet() {
         // TODO Auto-generated method stub
         return null;
     }
