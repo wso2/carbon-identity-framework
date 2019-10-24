@@ -1,18 +1,18 @@
-/*
-* Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+<!--
+~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~ http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
 
 <%@page import="org.apache.commons.lang.StringUtils" %>
 <%@page import="org.owasp.encoder.Encode" %>
@@ -36,7 +36,6 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
-    String idPName = request.getParameter("idPName");
     boolean isOpenidconnectAuthenticatorActive = Boolean.parseBoolean(request.getParameter(
             "isOpenidconnectAuthenticatorActive"));
     boolean isOIDCEnabled = Boolean.parseBoolean(request.getParameter("isOIDCEnabled"));
@@ -55,69 +54,76 @@
     Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>)session.getAttribute(
             IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
     
+    String idPName = request.getParameter("idPName");
+    if (idPName != null && idPName.equals("")) {
+        idPName = null;
+    }
+    
     IdentityProvider identityProvider = null;
     
     if (idPName != null && idpUniqueIdMap.get(idPName) != null) {
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
     
-    FederatedAuthenticatorConfig[] fedAuthnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
-    
-    if (fedAuthnConfigs != null && fedAuthnConfigs.length > 0) {
-        for (FederatedAuthenticatorConfig fedAuthnConfig : fedAuthnConfigs) {
-            if (fedAuthnConfig.getProperties() == null) {
-                fedAuthnConfig.setProperties(new Property[0]);
-            }
-            if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
-                Property authzUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.OAUTH2_AUTHZ_URL);
-                if (authzUrlProp != null) {
-                    authzUrl = authzUrlProp.getValue();
+    if (idPName != null && identityProvider != null) {
+        FederatedAuthenticatorConfig[] fedAuthnConfigs = identityProvider.getFederatedAuthenticatorConfigs();
+        
+        if (fedAuthnConfigs != null && fedAuthnConfigs.length > 0) {
+            for (FederatedAuthenticatorConfig fedAuthnConfig : fedAuthnConfigs) {
+                if (fedAuthnConfig.getProperties() == null) {
+                    fedAuthnConfig.setProperties(new Property[0]);
                 }
-                Property tokenUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.OAUTH2_TOKEN_URL);
-                if (tokenUrlProp != null) {
-                    tokenUrl = tokenUrlProp.getValue();
-                }
-                Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.CALLBACK_URL);
-                if (callBackURLProp != null) {
-                    callBackUrl = callBackURLProp.getValue();
-                }
-                Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.USER_INFO_URL);
-                if (userInfoEndpointProp != null) {
-                    userInfoEndpoint = userInfoEndpointProp.getValue();
-                }
-                Property logoutUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
-                if (logoutUrlProp != null) {
-                    logoutUrlOIDC = logoutUrlProp.getValue();
-                }
-                Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.CLIENT_ID);
-                if (clientIdProp != null) {
-                    clientId = clientIdProp.getValue();
-                }
-                Property clientSecretProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.CLIENT_SECRET);
-                if (clientSecretProp != null) {
-                    clientSecret = clientSecretProp.getValue();
-                }
-                Property isOIDCUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                       OIDC.IS_USER_ID_IN_CLAIMS);
-                if (isOIDCUserIdInClaimsProp != null) {
-                    isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
-                }
-                Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        "commonAuthQueryParams");
-                if (queryParamProp != null) {
-                    oidcQueryParam = queryParamProp.getValue();
-                }
-                Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                        OIDC.IS_BASIC_AUTH_ENABLED);
-                if (basicAuthEnabledProp != null) {
-                    isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
+                if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.OIDC.NAME)) {
+                    Property authzUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.OAUTH2_AUTHZ_URL);
+                    if (authzUrlProp != null) {
+                        authzUrl = authzUrlProp.getValue();
+                    }
+                    Property tokenUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.OAUTH2_TOKEN_URL);
+                    if (tokenUrlProp != null) {
+                        tokenUrl = tokenUrlProp.getValue();
+                    }
+                    Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.CALLBACK_URL);
+                    if (callBackURLProp != null) {
+                        callBackUrl = callBackURLProp.getValue();
+                    }
+                    Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.USER_INFO_URL);
+                    if (userInfoEndpointProp != null) {
+                        userInfoEndpoint = userInfoEndpointProp.getValue();
+                    }
+                    Property logoutUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+                    if (logoutUrlProp != null) {
+                        logoutUrlOIDC = logoutUrlProp.getValue();
+                    }
+                    Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.CLIENT_ID);
+                    if (clientIdProp != null) {
+                        clientId = clientIdProp.getValue();
+                    }
+                    Property clientSecretProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.CLIENT_SECRET);
+                    if (clientSecretProp != null) {
+                        clientSecret = clientSecretProp.getValue();
+                    }
+                    Property isOIDCUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_USER_ID_IN_CLAIMS);
+                    if (isOIDCUserIdInClaimsProp != null) {
+                        isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
+                    }
+                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            "commonAuthQueryParams");
+                    if (queryParamProp != null) {
+                        oidcQueryParam = queryParamProp.getValue();
+                    }
+                    Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            OIDC.IS_BASIC_AUTH_ENABLED);
+                    if (basicAuthEnabledProp != null) {
+                        isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
+                    }
                 }
             }
         }
@@ -157,6 +163,9 @@
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
     }
+    if (StringUtils.isBlank(logoutUrlOIDC)) {
+        logoutUrlOIDC = StringUtils.EMPTY;
+    }
     String oidcBasicAuthEnabledChecked = StringUtils.EMPTY;
     if (isOIDCBasicAuthEnabled) {
         oidcBasicAuthEnabledChecked = "checked=\'checked\'";
@@ -167,12 +176,12 @@
     
 %>
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
-    
+
     <% if (isOpenidconnectAuthenticatorActive) { %>
-    
+
     <h2 id="oauth2_head" class="sectionSeperator trigger active" style="background-color: beige;">
         <a href="#"><fmt:message key="oidc.config"/></a>
-        
+
         <div id="oAuth2_enable_logo" class="enablelogo"
              style="float:right;padding-right: 5px;padding-top: 5px;"><img
                 src="images/ok.png" alt="enable" width="16" height="16"></div>
@@ -215,7 +224,7 @@
                 <td>
                     <input id="clientId" name="clientId" type="text"
                            value=<%=Encode.forHtmlAttribute(clientId)%>>
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='client.id.help'/>
                     </div>
@@ -246,7 +255,7 @@
                 <td>
                     <input id="authzUrl" name="authzUrl" type="text"
                            value=<%=Encode.forHtmlAttribute(authzUrl)%>>
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='authz.endpoint.help'/>
                     </div>
@@ -258,7 +267,7 @@
                 <td>
                     <input id="tokenUrl" name="tokenUrl" type="text"
                            value=<%=Encode.forHtmlAttribute(tokenUrl)%>>
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='token.endpoint.help'/>
                     </div>
@@ -269,7 +278,7 @@
                 <td>
                     <input id="callbackUrl" name="callbackUrl" type="text"
                            value=<%=Encode.forHtmlAttribute(callBackUrl)%>>
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='callbackUrl.help'/>
                     </div>
@@ -280,13 +289,13 @@
                 <td>
                     <input id="userInfoEndpoint" name="userInfoEndpoint" type="text"
                            value=<%=Encode.forHtmlAttribute(userInfoEndpoint)%>>
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='userInfoEndpoint.help'/>
                     </div>
                 </td>
             </tr>
-            <tr>
+             <tr>
                 <td class="leftCol-med labelField"><fmt:message key='logout.endpoint'/>
                 <td>
                     <input id="logoutUrlOIDC" name="logoutUrlOIDC" type="text"
@@ -312,7 +321,7 @@
                                checked="checked" <%}%> />
                         User ID found among claims
                     </label>
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='oidc.user.id.location.help'/>
                     </div>
@@ -323,7 +332,7 @@
                 <td>
                     <input id="oidcQueryParam" name="oidcQueryParam" type="text"
                            value="<%=Encode.forHtmlAttribute(oidcQueryParam)%>">
-                    
+
                     <div class="sectionHelp">
                         <fmt:message key='query.param.help'/>
                     </div>
@@ -343,6 +352,6 @@
             </tr>
         </table>
     </div>
-    
+
     <% } %>
 </fmt:bundle>
