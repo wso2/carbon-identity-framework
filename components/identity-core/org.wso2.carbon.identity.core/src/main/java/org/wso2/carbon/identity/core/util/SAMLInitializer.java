@@ -29,12 +29,12 @@ import org.opensaml.xmlsec.config.GlobalAlgorithmRegistryInitializer;
 
 /**
  * Initializes the OpenSAML 3 library at a central location to ensure that it is
- * accessible from any component
+ * accessible from any component.
  */
 public class SAMLInitializer {
 
     /**
-     * Initializes the required initializers
+     * Initializes the required initializers.
      * @throws InitializationException
      */
     public static void doBootstrap() throws InitializationException {
