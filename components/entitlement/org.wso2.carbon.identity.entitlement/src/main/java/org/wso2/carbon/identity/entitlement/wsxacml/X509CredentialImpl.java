@@ -93,7 +93,7 @@ public class X509CredentialImpl implements X509Credential {
 
     /***
      * get a credential context set
-     * @return Method not supported so will return null
+     * @return This method is not supported so, the return is null
      */
     public CredentialContextSet getCredentialContextSet() {
         return null;
