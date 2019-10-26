@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
-import org.apache.axiom.om.util.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Attr;
@@ -28,7 +27,6 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
@@ -194,22 +192,8 @@ public class SecondaryUserStoreConfigurationUtil {
      */
     public static String encryptPlainText(String plainText) throws IdentityUserStoreMgtException {
 
-        if (cipher == null) {
-            initializeKeyStore();
-        }
-
-        try {
-            byte[] encryptedKey = cipher.doFinal((plainText.getBytes()));
-            if (cipherTransformation != null) {
-                // If cipher transformation is configured via carbon.properties
-                encryptedKey = CryptoUtil.getDefaultCryptoUtil()
-                        .createSelfContainedCiphertext(encryptedKey, cipherTransformation, certificate);
-            }
-            return Base64.encode(encryptedKey);
-        } catch (GeneralSecurityException e) {
-            String errMsg = "Failed to generate the cipher text";
-            throw new IdentityUserStoreMgtException(errMsg, e);
-        }
+        SecondaryUserStoreConfigurator configurator = new SecondaryUserStoreConfigurator();
+        return configurator.encryptPlainText(plainText);
     }
 
     /**
