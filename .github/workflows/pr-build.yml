@@ -1,0 +1,30 @@
+# Triggers builds on PRs to master branch
+# Supported operating systems: ubuntu-latest, windows-latest, macOS-latest
+# Supported jdk version: 1.8, 11
+name: PR Build
+on:
+   pull_request:
+      branches:
+         - master
+jobs:
+  build:
+    name: Build on ${{matrix.os}} and jdk ${{matrix.jdk}}
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+         os: [ubuntu-latest, windows-latest, macOS-latest]
+         jdk: [1.8, 11]
+    steps:
+    - name: Allow longpaths
+      run: git config --system core.longpaths true
+      if: contains(matrix.os, 'windows')
+    - uses: actions/checkout@v1
+      with:
+        ref: master
+    - name: Set up JDK 1.8
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{matrix.jdk}}
+    - name: Build with Maven
+      run: mvn clean install
