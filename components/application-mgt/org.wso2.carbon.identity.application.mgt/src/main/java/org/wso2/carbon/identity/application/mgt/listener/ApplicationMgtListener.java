@@ -118,6 +118,20 @@ public interface ApplicationMgtListener {
             throws IdentityApplicationManagementException;
 
     /**
+     * Define any additional actions after deleting an application
+     *
+     * @param serviceProvider
+     * @param tenantDomain
+     * @param userName
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+        return true;
+    }
+
+    /**
      * Define any additional actions before getting a service provider
      *
      * @param applicationName
