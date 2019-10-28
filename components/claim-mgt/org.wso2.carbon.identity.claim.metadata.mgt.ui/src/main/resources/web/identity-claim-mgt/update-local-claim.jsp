@@ -255,9 +255,9 @@
                        resourceBundle="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript" src="./js/claim-metadata-mgt.js"></script>
 
     <div id="middle">
@@ -460,30 +460,26 @@
                     var duplicatedClaimUris = [];
                     var attributeArr = [];
 
-                    var attributeAddTable = document.getElementById('attributeAddTable').tBodies[0];
-                    var attributeAddTableRowCount = attributeAddTable.rows.length;
-
                     if (attributeAddTableRowCount > 0) {
-
-                        for (var i = 0; i < attributeAddTableRowCount; i++) {
-                            var row = attributeAddTable.rows[i];
-                            var mappedAttributeValue = row.getElementsByTagName("input")[0].value;
-                            var userstoreElem = document.getElementById("userstore_" + i);
-                            var userstoreValue = userstoreElem.options[userstoreElem.selectedIndex].value;
+                        var tRows = document.querySelectorAll('table#attributeAddTable > tbody > tr');
+                        tRows.forEach(function (elem, index) {
+                            var rowColumns = elem.querySelectorAll('td.leftCol-big');
+                            var userstoreValue = rowColumns[0].firstElementChild.value;
+                            var mappedAttributeValue = rowColumns[1].firstElementChild.value;
                             var combinedValue = userstoreValue + "/" + mappedAttributeValue;
-
+                            
                             for (var j = 0; j < claimData.length; j++) {
                                 var claimDataElements = claimData[j].split("_");
                                 if (claimDataElements.length == 2 && claimDataElements[1] === combinedValue) {
                                     duplicatedClaimUris.push(claimDataElements[0]);
                                     if (!attributeArr.includes(combinedValue)) {
-                                         attributeArr.push(combinedValue);
+                                        attributeArr.push(combinedValue);
                                     }
                                 }
                             }
-                        }
+                        })
                     }
-
+                    
                     if (duplicatedClaimUris.length > 0) {
 
                         var warnText = 'Mapped Attribute (s) "' + attributeArr + '" has also been used for the claim uris : ';
