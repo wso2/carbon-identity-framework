@@ -107,23 +107,30 @@ public interface ApplicationMgtListener {
 
     /**
      * Define any additional actions after deleting an application
+     * This method does not need to be overridden,
+     * if doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+     * is overridden.
      *
-     * @param applicationName
-     * @param tenantDomain
-     * @param userName
-     * @return
+     * @param applicationName name of the Service Provider.
+     * @param tenantDomain tenant domain of the user who created the Service Provider.
+     * @param userName userName of the user who created the Service Provider.
+     * @return whether the postDelete action is complete.
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+    @Deprecated
+    boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
             throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after deleting an application
+     * This method does not need to be overridden,
+     * if doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+     * is overridden.
      *
-     * @param serviceProvider
-     * @param tenantDomain
-     * @param userName
-     * @return
+     * @param serviceProvider created Service Provider object.
+     * @param tenantDomain tenant domain of the user who created the Service Provider.
+     * @param userName userName of the user who created the Service Provider.
+     * @return whether the postDelete action is complete.
      * @throws IdentityApplicationManagementException
      */
     default boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
