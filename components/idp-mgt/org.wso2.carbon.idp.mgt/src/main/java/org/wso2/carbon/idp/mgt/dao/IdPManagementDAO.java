@@ -28,7 +28,6 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
@@ -140,13 +139,15 @@ public class IdPManagementDAO {
                     }
 
                     identityProvider.setDisplayName(rs.getString("DISPLAY_NAME"));
-                    idps.add(identityProvider);
 
                     identityProvider.setId(rs.getString("ID"));
                     List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
                             Integer.parseInt(identityProvider.getId()));
                     identityProvider
                             .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
+                    identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
+                    identityProvider.setResourceId(rs.getString("IDP_ID"));
+                    idps.add(identityProvider);
                 }
 
             }
@@ -235,15 +236,17 @@ public class IdPManagementDAO {
                         identityProvider.setEnable(false);
                     }
                     identityProvider.setDisplayName(rs.getString("DISPLAY_NAME"));
-                    if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
-                            .equals(identityProvider.getIdentityProviderName())) {
-                        idps.add(identityProvider);
-                    }
                     identityProvider.setId(rs.getString("ID"));
                     List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(
                             dbConnection, Integer.parseInt(identityProvider.getId()));
                     identityProvider.setIdpProperties(propertyList
                             .toArray(new IdentityProviderProperty[0]));
+                    identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
+                    identityProvider.setResourceId(rs.getString("IDP_ID"));
+                    if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
+                            .equals(identityProvider.getIdentityProviderName())) {
+                        idps.add(identityProvider);
+                    }
                 }
             }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
@@ -1184,12 +1187,7 @@ public class IdPManagementDAO {
     public IdentityProvider getIdPByName(Connection dbConnection, String idPName, int tenantId,
                                          String tenantDomain) throws IdentityProviderManagementException {
 
-        ExtendedIdentityProvider extendedIdp = getIDP(dbConnection, idPName, -1, null, tenantId, tenantDomain);
-        if (extendedIdp != null) {
-            return extendedIdp.getIdentityProvider();
-        } else {
-            return null;
-        }
+        return getIDP(dbConnection, idPName, -1, null, tenantId, tenantDomain);
     }
 
     /**
@@ -1205,12 +1203,8 @@ public class IdPManagementDAO {
     public IdentityProvider getIDPbyId(Connection dbConnection, int idpId, int tenantId,
                                        String tenantDomain) throws IdentityProviderManagementException {
 
-        ExtendedIdentityProvider extendedIdp = getIDP(dbConnection, null, idpId, null, tenantId, tenantDomain);
-        if (extendedIdp != null) {
-            return extendedIdp.getIdentityProvider();
-        } else {
-            return null;
-        }
+        return getIDP(dbConnection, null, idpId, null, tenantId, tenantDomain);
+
     }
 
     /**
@@ -1223,7 +1217,7 @@ public class IdPManagementDAO {
      * @return An Identity Provider with given name.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
-    public ExtendedIdentityProvider getIDPbyResourceId(Connection dbConnection, String resourceId, int tenantId,
+    public IdentityProvider getIDPbyResourceId(Connection dbConnection, String resourceId, int tenantId,
                                        String tenantDomain) throws IdentityProviderManagementException {
 
         return getIDP(dbConnection, null, -1, resourceId, tenantId, tenantDomain);
@@ -1238,12 +1232,12 @@ public class IdPManagementDAO {
      * @return
      * @throws IdentityProviderManagementException
      */
-    private ExtendedIdentityProvider getIDP(Connection dbConnection, String idPName, int idpId, String resourceId, int
+    private IdentityProvider getIDP(Connection dbConnection, String idPName, int idpId, String resourceId, int
                                             tenantId, String tenantDomain) throws IdentityProviderManagementException {
 
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
-        ExtendedIdentityProvider federatedIdp = null;
+        IdentityProvider federatedIdp = null;
         boolean dbConnectionInitialized = true;
         if (dbConnection == null) {
             dbConnection = IdentityDatabaseUtil.getDBConnection(false);
@@ -1278,7 +1272,7 @@ public class IdPManagementDAO {
             rs = prepStmt.executeQuery();
 
             if (rs.next()) {
-                federatedIdp = new ExtendedIdentityProvider();
+                federatedIdp = new IdentityProvider();
 
                 if (StringUtils.isNotEmpty(resourceId)) {
                     idpId = rs.getInt("ID");
@@ -1292,10 +1286,14 @@ public class IdPManagementDAO {
                     federatedIdp.setId(Integer.toString(idpId));
                     federatedIdp.setIdentityProviderName(idPName);
                     federatedIdp.setDisplayName(idPName);
+                    federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
+                    federatedIdp.setResourceId(rs.getString("IDP_ID"));
                 } else {
                     idPName = rs.getString("NAME");
                     federatedIdp.setIdentityProviderName(idPName);
                     federatedIdp.setId(Integer.toString(idpId));
+                    federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
+                    federatedIdp.setResourceId(rs.getString("IDP_ID"));
                 }
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
@@ -1810,13 +1808,7 @@ public class IdPManagementDAO {
     public void addIdP(IdentityProvider identityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
-        ExtendedIdentityProvider identityProviderWithResourceId;
-        if (identityProvider instanceof ExtendedIdentityProvider) {
-            identityProviderWithResourceId = (ExtendedIdentityProvider) identityProvider;
-        } else {
-            identityProviderWithResourceId = new ExtendedIdentityProvider(identityProvider);
-        }
-        addIdPWithResourceId(identityProviderWithResourceId, tenantId);
+        addIdPWithResourceId(identityProvider, tenantId);
     }
 
     /**
@@ -1824,7 +1816,8 @@ public class IdPManagementDAO {
      * @param tenantId
      * @throws IdentityProviderManagementException
      */
-    public ExtendedIdentityProvider addIdPWithResourceId(ExtendedIdentityProvider identityProvider, int tenantId)
+    public
+    IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
@@ -1930,22 +1923,13 @@ public class IdPManagementDAO {
 
             prepStmt.setString(19, identityProvider.getImageUrl());
 
-            String resourceId;
-            try {
-                resourceId = IdentityUtil.generateUUID();
-            } catch (Exception e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Error occurred during UUID generation for IDP: " + identityProvider
-                            .getIdentityProviderName(), e);
-                }
-                resourceId = UUID.randomUUID().toString();
-            }
+            String resourceId = UUID.randomUUID().toString();
             prepStmt.setString(20, resourceId);
             prepStmt.executeUpdate();
             prepStmt.clearParameters();
 
             // get newly added Identity provider.
-            ExtendedIdentityProvider createdIDP = getIDPbyResourceId(dbConnection, resourceId, tenantId,
+            IdentityProvider createdIDP = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     IdentityTenantUtil.getTenantDomain(tenantId));
             // get the id of the just added identity provider.
             int idPId = Integer.parseInt(createdIDP.getId());
@@ -2077,21 +2061,7 @@ public class IdPManagementDAO {
                           IdentityProvider currentIdentityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
-        ExtendedIdentityProvider newIdentityProviderWithResourceId;
-        ExtendedIdentityProvider currentIdentityProviderWithResourceId;
-        if (newIdentityProvider instanceof ExtendedIdentityProvider) {
-            newIdentityProviderWithResourceId = (ExtendedIdentityProvider) newIdentityProvider;
-        } else {
-            newIdentityProviderWithResourceId = new ExtendedIdentityProvider(newIdentityProvider);
-        }
-        if (currentIdentityProvider instanceof ExtendedIdentityProvider) {
-            currentIdentityProviderWithResourceId = (ExtendedIdentityProvider) currentIdentityProvider;
-        } else {
-            currentIdentityProviderWithResourceId = new ExtendedIdentityProvider(currentIdentityProvider);
-        }
-
-        updateIdPWithResourceId(null, newIdentityProviderWithResourceId, currentIdentityProviderWithResourceId,
-                tenantId);
+        updateIdPWithResourceId(null, newIdentityProvider, currentIdentityProvider, tenantId);
     }
 
     /**
@@ -2103,8 +2073,8 @@ public class IdPManagementDAO {
      * @return
      * @throws IdentityProviderManagementException
      */
-    public ExtendedIdentityProvider updateIdPWithResourceId(String resourceId, ExtendedIdentityProvider
-            newIdentityProvider, ExtendedIdentityProvider currentIdentityProvider, int tenantId)
+    public IdentityProvider updateIdPWithResourceId(String resourceId, IdentityProvider
+            newIdentityProvider, IdentityProvider currentIdentityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
         if (StringUtils.isBlank(resourceId)) {
@@ -2283,7 +2253,7 @@ public class IdPManagementDAO {
             }
 
             // get updated Identity provider.
-            ExtendedIdentityProvider updatedIDP = null;
+            IdentityProvider updatedIDP = null;
             if (StringUtils.isNotBlank(resourceId)) {
                 updatedIDP = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                         IdentityTenantUtil.getTenantDomain(tenantId));
@@ -2383,7 +2353,7 @@ public class IdPManagementDAO {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
-            ExtendedIdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
+            IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
                 String msg = "Trying to delete non-existent Identity Provider with resource ID: %s in tenantDomain: %s";
@@ -2440,7 +2410,7 @@ public class IdPManagementDAO {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
         try {
-            ExtendedIdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
+            IdentityProvider identityProvider = getIDPbyResourceId(dbConnection, resourceId, tenantId,
                     tenantDomain);
             if (identityProvider == null) {
                 String msg = "Trying to force delete non-existent Identity Provider with resource ID: %s in " +

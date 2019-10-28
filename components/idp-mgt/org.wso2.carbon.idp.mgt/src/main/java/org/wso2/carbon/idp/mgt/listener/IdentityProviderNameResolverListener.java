@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.idp.mgt.listener;
 
-import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -30,7 +30,7 @@ import java.util.Collection;
 /**
  * Interceptor to invoke old Identity Provider related interceptors which requires IdP name to be passed.
  */
-public class ExtendedIdentityProviderMgtListener extends AbstractIdentityProviderMgtListener {
+public class IdentityProviderNameResolverListener extends AbstractIdentityProviderMgtListener {
 
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
 
@@ -44,7 +44,7 @@ public class ExtendedIdentityProviderMgtListener extends AbstractIdentityProvide
             IdentityProviderManagementException {
 
         // get IDP by resourceId
-        ExtendedIdentityProvider idp = dao.getIdPByResourceId(null, resourceId, IdentityTenantUtil.getTenantId
+        IdentityProvider idp = dao.getIdPByResourceId(resourceId, IdentityTenantUtil.getTenantId
                 (tenantDomain), tenantDomain);
         String idpName = idp.getIdentityProviderName();
         // invoking the pre listeners
@@ -61,7 +61,7 @@ public class ExtendedIdentityProviderMgtListener extends AbstractIdentityProvide
             IdentityProviderManagementException {
 
         // get IDP by resourceId
-        ExtendedIdentityProvider idp = dao.getIdPByResourceId(null, resourceId, IdentityTenantUtil.getTenantId
+        IdentityProvider idp = dao.getIdPByResourceId(resourceId, IdentityTenantUtil.getTenantId
                 (tenantDomain), tenantDomain);
         String idpName = idp.getIdentityProviderName();
 
@@ -75,11 +75,11 @@ public class ExtendedIdentityProviderMgtListener extends AbstractIdentityProvide
         return true;
     }
 
-    public boolean doPreUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider identityProvider, String
+    public boolean doPreUpdateIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
             tenantDomain) throws IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        ExtendedIdentityProvider idp = dao.getIdPByResourceId(null, resourceId, tenantId, tenantDomain);
+        IdentityProvider idp = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
         String oldIdPName = idp.getIdentityProviderName();
 
         // invoking the pre listeners
@@ -92,8 +92,8 @@ public class ExtendedIdentityProviderMgtListener extends AbstractIdentityProvide
         return true;
     }
 
-    public boolean doPostUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider oldIdentityProvider,
-                                   ExtendedIdentityProvider newIdentityProvider, String tenantDomain) throws
+    public boolean doPostUpdateIdPByResourceId(String resourceId, IdentityProvider oldIdentityProvider,
+                                               IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
         String oldIdPName = oldIdentityProvider.getIdentityProviderName();

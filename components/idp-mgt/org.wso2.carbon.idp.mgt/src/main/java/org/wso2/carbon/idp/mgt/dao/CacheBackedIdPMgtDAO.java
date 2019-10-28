@@ -21,7 +21,6 @@ package org.wso2.carbon.idp.mgt.dao;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -170,17 +169,16 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
-     * @param dbConnection Database connection.
-     * @param resourceId resource ID of the identity provider.
-     * @param tenantId Tenant ID of the identity provider.
+     * @param resourceId   resource ID of the identity provider.
+     * @param tenantId     Tenant ID of the identity provider.
      * @param tenantDomain Tenant domain of the identity provider.
-     * @return Extended Identity provider with given resource ID.
+     * @return Identity provider with given resource ID.
      * @throws IdentityProviderManagementException
      */
-    public ExtendedIdentityProvider getIdPByResourceId(Connection dbConnection, String resourceId, int tenantId,
-                                                       String tenantDomain) throws IdentityProviderManagementException {
+    public IdentityProvider getIdPByResourceId(String resourceId, int tenantId, String tenantDomain) throws
+            IdentityProviderManagementException {
 
-        ExtendedIdentityProvider identityProvider;
+        IdentityProvider identityProvider;
         IdPResourceIdCacheKey cacheKey = new IdPResourceIdCacheKey(resourceId);
         IdPCacheEntry entry = idPCacheByResourceId.getValueFromCache(cacheKey);
 
@@ -188,7 +186,7 @@ public class CacheBackedIdPMgtDAO {
             if (log.isDebugEnabled()) {
                 log.debug("Cache entry found for Identity Provider with resource ID:" + resourceId);
             }
-            identityProvider = (ExtendedIdentityProvider) entry.getIdentityProvider();
+            identityProvider = entry.getIdentityProvider();
             IdPManagementUtil.removeRandomPasswords(identityProvider, false);
             return identityProvider;
         } else {
@@ -196,15 +194,17 @@ public class CacheBackedIdPMgtDAO {
                 log.debug("Cache entry not found for Identity Provider with resource ID: " + resourceId
                         + ". Fetching entry from DB");
             }
-            identityProvider = idPMgtDAO.getIDPbyResourceId(dbConnection, resourceId,
+            identityProvider = idPMgtDAO.getIDPbyResourceId(null, resourceId,
                     tenantId, tenantDomain);
 
             if (identityProvider != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Entry fetched from DB for Identity Provider " + identityProvider.getIdentityProviderName()
-                            + ". Updating cache");
+                    log.debug(
+                            "Entry fetched from DB for Identity Provider " + identityProvider.getIdentityProviderName()
+                                    + ". Updating cache");
                 }
-                IdPNameCacheKey nameCacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName(), tenantDomain);
+                IdPNameCacheKey nameCacheKey =
+                        new IdPNameCacheKey(identityProvider.getIdentityProviderName(), tenantDomain);
                 idPCacheByName.addToCache(nameCacheKey, new IdPCacheEntry(identityProvider));
                 if (identityProvider.getHomeRealmId() != null) {
                     IdPHomeRealmIdCacheKey homeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
@@ -214,7 +214,7 @@ public class CacheBackedIdPMgtDAO {
                 IdPResourceIdCacheKey resourceIdCacheKey = new IdPResourceIdCacheKey(resourceId);
                 idPCacheByResourceId.addToCache(resourceIdCacheKey, new IdPCacheEntry(identityProvider));
             } else {
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug(String.format("No IDP found with resource ID: %s either in cache or DB", resourceId));
                 }
             }
@@ -390,39 +390,38 @@ public class CacheBackedIdPMgtDAO {
     }
 
     /**
-     * @param extendedIdentityProvider
+     * @param identityProvider
      * @param tenantId
      * @param tenantDomain
      * @throws IdentityProviderManagementException
      */
-    public ExtendedIdentityProvider addIdP(ExtendedIdentityProvider extendedIdentityProvider, int tenantId, String
+    public IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, int tenantId, String
             tenantDomain) throws IdentityProviderManagementException {
 
-        extendedIdentityProvider = idPMgtDAO.addIdPWithResourceId(extendedIdentityProvider, tenantId);
+        identityProvider = idPMgtDAO.addIdPWithResourceId(identityProvider, tenantId);
 
-        if (extendedIdentityProvider != null) {
+        if (identityProvider != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Adding new entry for Identity Provider "
-                        + extendedIdentityProvider.getIdentityProviderName() + " to cache");
+                        + identityProvider.getIdentityProviderName() + " to cache");
             }
             IdPNameCacheKey idPNameCacheKey = new IdPNameCacheKey(
-                    extendedIdentityProvider.getIdentityProviderName(), tenantDomain);
-            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(extendedIdentityProvider.getIdentityProvider
-                    ()));
-            if (extendedIdentityProvider.getHomeRealmId() != null) {
+                    identityProvider.getIdentityProviderName(), tenantDomain);
+            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(identityProvider));
+            if (identityProvider.getHomeRealmId() != null) {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
-                        extendedIdentityProvider.getHomeRealmId(), tenantDomain);
+                        identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.addToCache(idPHomeRealmIdCacheKey,
-                        new IdPCacheEntry(extendedIdentityProvider.getIdentityProvider()));
+                        new IdPCacheEntry(identityProvider));
             }
-            IdPResourceIdCacheKey idPResourceIdCacheKey = new IdPResourceIdCacheKey(extendedIdentityProvider.getResourceId());
-            idPCacheByResourceId.addToCache(idPResourceIdCacheKey, new IdPCacheEntry(extendedIdentityProvider));
+            IdPResourceIdCacheKey idPResourceIdCacheKey = new IdPResourceIdCacheKey(identityProvider.getResourceId());
+            idPCacheByResourceId.addToCache(idPResourceIdCacheKey, new IdPCacheEntry(identityProvider));
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Entry for Identity Provider not found in Database");
             }
         }
-        return extendedIdentityProvider;
+        return identityProvider;
     }
 
     /**
@@ -478,8 +477,8 @@ public class CacheBackedIdPMgtDAO {
      * @param tenantDomain
      * @throws IdentityProviderManagementException
      */
-    public ExtendedIdentityProvider updateIdP(String resourceId, ExtendedIdentityProvider newIdentityProvider,
-                          ExtendedIdentityProvider currentIdentityProvider, int tenantId, String tenantDomain)
+    public IdentityProvider updateIdP(String resourceId, IdentityProvider newIdentityProvider,
+                          IdentityProvider currentIdentityProvider, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
         if (log.isDebugEnabled()) {
@@ -499,22 +498,22 @@ public class CacheBackedIdPMgtDAO {
         IdPResourceIdCacheKey idPResourceIdCacheKey = new IdPResourceIdCacheKey(resourceId);
         idPCacheByResourceId.clearCacheEntry(idPResourceIdCacheKey);
 
-        ExtendedIdentityProvider extendedIdentityProvider = idPMgtDAO.updateIdPWithResourceId(resourceId,
+        IdentityProvider identityProvider = idPMgtDAO.updateIdPWithResourceId(resourceId,
                 newIdentityProvider, currentIdentityProvider, tenantId);
 
-        if (extendedIdentityProvider != null) {
+        if (identityProvider != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Adding new entry for Identity Provider "
                         + newIdentityProvider.getIdentityProviderName() + " to cache");
             }
-            idPNameCacheKey = new IdPNameCacheKey(extendedIdentityProvider.getIdentityProviderName(), tenantDomain);
-            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(extendedIdentityProvider.getIdentityProvider()));
-            if (extendedIdentityProvider.getHomeRealmId() != null) {
+            idPNameCacheKey = new IdPNameCacheKey(identityProvider.getIdentityProviderName(), tenantDomain);
+            idPCacheByName.addToCache(idPNameCacheKey, new IdPCacheEntry(identityProvider));
+            if (identityProvider.getHomeRealmId() != null) {
                 IdPHomeRealmIdCacheKey idPHomeRealmIdCacheKey = new IdPHomeRealmIdCacheKey(
-                        extendedIdentityProvider.getHomeRealmId(), tenantDomain);
+                        identityProvider.getHomeRealmId(), tenantDomain);
                 idPCacheByHRI.addToCache(idPHomeRealmIdCacheKey,
-                        new IdPCacheEntry(extendedIdentityProvider.getIdentityProvider()));
-                idPCacheByResourceId.addToCache(idPResourceIdCacheKey, new IdPCacheEntry(extendedIdentityProvider));
+                        new IdPCacheEntry(identityProvider));
+                idPCacheByResourceId.addToCache(idPResourceIdCacheKey, new IdPCacheEntry(identityProvider));
             }
         } else {
             if (log.isDebugEnabled()) {
@@ -522,7 +521,7 @@ public class CacheBackedIdPMgtDAO {
                         "found in DB");
             }
         }
-        return extendedIdentityProvider;
+        return identityProvider;
     }
 
     /**
@@ -562,7 +561,7 @@ public class CacheBackedIdPMgtDAO {
     public void deleteIdPByResourceId(String resourceId, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
-        ExtendedIdentityProvider identityProvider = this.getIdPByResourceId(null, resourceId, tenantId, tenantDomain);
+        IdentityProvider identityProvider = this.getIdPByResourceId(resourceId, tenantId, tenantDomain);
         if (identityProvider != null) {
             String idPName = identityProvider.getIdentityProviderName();
             if (idPMgtDAO.isIdpReferredBySP(idPName, tenantId)) {
@@ -615,7 +614,7 @@ public class CacheBackedIdPMgtDAO {
         }
 
         // Remove cache entries related to the force deleted idps.
-        ExtendedIdentityProvider identityProvider = this.getIdPByResourceId(null, resourceId, tenantId, tenantDomain);
+        IdentityProvider identityProvider = this.getIdPByResourceId(resourceId, tenantId, tenantDomain);
         if (identityProvider != null) {
             idPMgtDAO.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
             clearIdpCache(identityProvider.getIdentityProviderName(), resourceId, tenantId, tenantDomain);

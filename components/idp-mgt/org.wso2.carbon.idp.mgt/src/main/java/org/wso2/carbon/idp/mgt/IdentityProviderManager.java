@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorServi
 import org.wso2.carbon.identity.application.common.ProvisioningConnectorService;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
@@ -1116,7 +1115,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
-    public ExtendedIdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
+    public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain, boolean
             ignoreFileBasedIdps) throws IdentityProviderManagementException {
 
         if (StringUtils.isEmpty(resourceId)) {
@@ -1125,22 +1124,9 @@ public class IdentityProviderManager implements IdpManager {
                     .ERROR_CODE_IDP_GET_REQUEST_INVALID, data);
         }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        ExtendedIdentityProvider identityProvider = null;
+        IdentityProvider identityProvider;
 
-        identityProvider = dao.getIdPByResourceId(null, resourceId, tenantId, tenantDomain);
-
-        if (!ignoreFileBasedIdps) {
-
-            if (identityProvider == null) {
-                identityProvider = (ExtendedIdentityProvider) new FileBasedIdPMgtDAO().getIdPByName(resourceId,
-                        tenantDomain);
-            }
-
-            if (identityProvider == null) {
-                identityProvider = (ExtendedIdentityProvider) IdPManagementServiceComponent.getFileBasedIdPs().get(
-                        IdentityApplicationConstants.DEFAULT_IDP_CONFIG);
-            }
-        }
+        identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
         return identityProvider;
     }
 
@@ -1184,7 +1170,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     @Override
-    public ExtendedIdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) throws
+    public IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {
 
         return getIdPByResourceId(resourceId, tenantDomain, false);
@@ -1766,8 +1752,14 @@ public class IdentityProviderManager implements IdpManager {
      *                                             information
      */
     @Override
-    public ExtendedIdentityProvider addIdP(ExtendedIdentityProvider identityProvider, String tenantDomain)
+    public IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
+
+        if (IdentityProviderManager.getInstance().getIdPByName(
+                identityProvider.getIdentityProviderName(), tenantDomain, true) != null) {
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_IDP_ALREADY_EXISTS, identityProvider.getIdentityProviderName());
+        }
 
         // invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
@@ -1792,11 +1784,6 @@ public class IdentityProviderManager implements IdpManager {
             verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, identityProvider.getPermissionAndRoleConfig());
         }
 
-        if (IdentityProviderManager.getInstance().getIdPByName(
-                identityProvider.getIdentityProviderName(), tenantDomain, true) != null) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_ALREADY_EXISTS, identityProvider.getIdentityProviderName());
-        }
         String idpName = identityProvider.getIdentityProviderName();
         String metadata = handleMetadta(identityProvider);
 
@@ -1810,7 +1797,7 @@ public class IdentityProviderManager implements IdpManager {
                         data);
             }
         }
-        identityProvider = dao.addIdP(identityProvider, tenantId, tenantDomain);
+        identityProvider = dao.addIdPWithResourceId(identityProvider, tenantId, tenantDomain);
 
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -1878,7 +1865,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (SAML2SSOMetadataConverter != null) {
             String idpName = null;
-            ExtendedIdentityProvider idp = getIdPByResourceId(resourceId, tenantDomain);
+            IdentityProvider idp = getIdPByResourceId(resourceId, tenantDomain);
             if (idp != null) {
                 idpName = idp.getIdentityProviderName();
             }
@@ -1948,7 +1935,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         if (SAML2SSOMetadataConverter != null) {
             String idpName = null;
-            ExtendedIdentityProvider idp = getIdPByResourceId(resourceId, tenantDomain);
+            IdentityProvider idp = getIdPByResourceId(resourceId, tenantDomain);
             if (idp != null) {
                 idpName = idp.getIdentityProviderName();
             }
@@ -2037,7 +2024,7 @@ public class IdentityProviderManager implements IdpManager {
      *                                             information
      */
     @Override
-    public ExtendedIdentityProvider updateIdPByResourceId(String resourceId, ExtendedIdentityProvider
+    public IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider
             newIdentityProvider, String tenantDomain) throws IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -2057,7 +2044,7 @@ public class IdentityProviderManager implements IdpManager {
                     .ERROR_CODE_IDP_ALREADY_EXISTS, newIdentityProvider.getIdentityProviderName());
         }
 
-        ExtendedIdentityProvider currentIdentityProvider = this
+        IdentityProvider currentIdentityProvider = this
                 .getIdPByResourceId(resourceId, tenantDomain, true);
         if (currentIdentityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
@@ -2088,7 +2075,7 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        ExtendedIdentityProvider idp = dao.updateIdP(resourceId, newIdentityProvider, currentIdentityProvider,
+        IdentityProvider idp = dao.updateIdP(resourceId, newIdentityProvider, currentIdentityProvider,
                 tenantId, tenantDomain);
 
         // invoking the post listeners

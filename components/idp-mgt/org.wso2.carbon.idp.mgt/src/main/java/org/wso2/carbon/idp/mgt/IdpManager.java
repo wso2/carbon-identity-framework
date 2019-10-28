@@ -19,7 +19,6 @@
 package org.wso2.carbon.idp.mgt;
 
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
@@ -126,7 +125,7 @@ public interface IdpManager {
      * @return extended IDP.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
-    default ExtendedIdentityProvider getIdPByResourceId(String resourceId, String tenantDomain,
+    default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain,
                                         boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
         return null;
     }
@@ -173,7 +172,7 @@ public interface IdpManager {
      * @return Identity provider with given resource ID.
      * @throws IdentityProviderManagementException IdentityProviderManagementException.
      */
-    default ExtendedIdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) throws
+    default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {
 
         return null;
@@ -323,15 +322,15 @@ public interface IdpManager {
     void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
-     * Adds an Extended Identity Provider to the given tenant.
+     * Adds an Identity Provider to the given tenant.
      *
      * @param identityProvider  New Identity Provider information.
      * @param tenantDomain      Tenant domain of the IDP.
      * @return extended IDP.
      * @throws IdentityProviderManagementException Error when adding Identity Provider information.
      */
-    default ExtendedIdentityProvider addIdP(ExtendedIdentityProvider identityProvider, String tenantDomain) throws
-            IdentityProviderManagementException {
+    default IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
         return null;
     }
 
@@ -372,8 +371,8 @@ public interface IdpManager {
      * @param tenantDomain        Tenant domain of the IDP.
      * @throws IdentityProviderManagementException Error when updating Identity Provider information.
      */
-    default ExtendedIdentityProvider updateIdPByResourceId(String resourceId, ExtendedIdentityProvider
-            newIdentityProvider, String tenantDomain) throws IdentityProviderManagementException {
+    default IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider newIdentityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
         return null;
     }
 

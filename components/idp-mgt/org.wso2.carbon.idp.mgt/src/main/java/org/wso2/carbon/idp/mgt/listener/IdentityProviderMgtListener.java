@@ -18,7 +18,6 @@
  */
 package org.wso2.carbon.idp.mgt.listener;
 
-import org.wso2.carbon.identity.application.common.model.ExtendedIdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
@@ -166,7 +165,7 @@ public interface IdentityProviderMgtListener {
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException
      */
-    default boolean doPreUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider identityProvider, String
+    default boolean doPreUpdateIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
             tenantDomain) throws IdentityProviderManagementException {
         return true;
     }
@@ -186,13 +185,13 @@ public interface IdentityProviderMgtListener {
      * Define any additional actions after updating idp
      *
      * @param resourceId            Resource ID of the idp.
-     * @param oldIdentityProvider   Existing Extended Identity Provider.
-     * @param newIdentityProvider   New Extended Identity Provider.
+     * @param oldIdentityProvider   Existing Identity Provider.
+     * @param newIdentityProvider   New Identity Provider.
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException
      */
-    default boolean doPostUpdateIdPByResourceId(String resourceId, ExtendedIdentityProvider
-            oldIdentityProvider, ExtendedIdentityProvider newIdentityProvider, String
+    default boolean doPostUpdateIdPByResourceId(String resourceId, IdentityProvider oldIdentityProvider,
+                                                IdentityProvider newIdentityProvider, String
             tenantDomain) throws IdentityProviderManagementException {
         return true;
     }
