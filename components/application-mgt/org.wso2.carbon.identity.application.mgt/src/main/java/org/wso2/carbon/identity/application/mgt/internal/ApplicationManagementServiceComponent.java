@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProviderMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.STSApplicationMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -97,6 +99,11 @@ public class ApplicationManagementServiceComponent {
             }
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);
+
+            // Register the DefaultApplicationResourceMgtListener.
+            context.getBundleContext().registerService(ApplicationResourceManagementListener.class,
+                    new DefaultApplicationResourceMgtListener(), null);
+
             buildFileBasedSPList();
             loadAuthenticationTemplates();
 

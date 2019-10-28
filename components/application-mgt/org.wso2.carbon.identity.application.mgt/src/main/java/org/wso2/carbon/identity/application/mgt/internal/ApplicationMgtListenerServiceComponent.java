@@ -23,10 +23,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
+import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -37,6 +37,7 @@ import java.util.List;
 public class ApplicationMgtListenerServiceComponent {
 
     private static List<ApplicationMgtListener> applicationMgtListeners = new ArrayList<>();
+    private static List<ApplicationResourceManagementListener> applicationResourceMgtListeners = new ArrayList<>();
 
     @Reference(
             name = "application.mgt.event.listener.service",
@@ -45,35 +46,48 @@ public class ApplicationMgtListenerServiceComponent {
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetApplicationMgtListenerService"
     )
-    protected synchronized void setApplicationMgtListenerService(
-            ApplicationMgtListener applicationMgtListenerService) {
+    protected synchronized void setApplicationMgtListenerService(ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.add(applicationMgtListenerService);
-        Collections.sort(applicationMgtListeners, appMgtListenerComparator);
+        applicationMgtListeners.sort(appMgtListenerComparator);
     }
 
-    protected synchronized void unsetApplicationMgtListenerService(
-            ApplicationMgtListener applicationMgtListenerService) {
+    protected synchronized void unsetApplicationMgtListenerService(ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.remove(applicationMgtListenerService);
     }
 
-    public static synchronized Collection getApplicationMgtListeners() {
+    public static synchronized Collection<ApplicationMgtListener> getApplicationMgtListeners() {
+
         return applicationMgtListeners;
     }
 
-    private static Comparator<ApplicationMgtListener> appMgtListenerComparator = new Comparator<ApplicationMgtListener>(){
+    @Reference(
+            name = "application.resource.mgt.event.listener.service",
+            service = ApplicationResourceManagementListener.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetApplicationResourceMgtListener"
+    )
+    protected synchronized void setApplicationResourceMgtListener(ApplicationResourceManagementListener listener) {
 
-        @Override
-        public int compare(ApplicationMgtListener applicationMgtListener1,
-                           ApplicationMgtListener applicationMgtListener2) {
-            if (applicationMgtListener1.getExecutionOrderId() > applicationMgtListener2.getExecutionOrderId()) {
-                return 1;
-            } else if (applicationMgtListener1.getExecutionOrderId() < applicationMgtListener2.getExecutionOrderId()) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-    };
+        applicationResourceMgtListeners.add(listener);
+        applicationResourceMgtListeners.sort(appResourceMgtListenerComparator);
+    }
+
+    protected synchronized void unsetApplicationResourceMgtListener(ApplicationResourceManagementListener listener) {
+
+        applicationResourceMgtListeners.remove(listener);
+    }
+
+    public static Collection<ApplicationResourceManagementListener> getApplicationResourceMgtListeners() {
+
+        return applicationResourceMgtListeners;
+    }
+
+    private static Comparator<ApplicationMgtListener> appMgtListenerComparator =
+            Comparator.comparingInt(ApplicationMgtListener::getExecutionOrderId);
+
+    private static Comparator<ApplicationResourceManagementListener> appResourceMgtListenerComparator =
+            Comparator.comparingInt(ApplicationResourceManagementListener::getExecutionOrderId);
 }
