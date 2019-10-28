@@ -84,6 +84,13 @@ public class ServiceProvider implements Serializable {
     @XmlTransient
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
 
+    @XmlTransient
+    private String applicationResourceId;
+
+    private String imageUrl;
+
+    private String loginUrl;
+
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -380,6 +387,36 @@ public class ServiceProvider implements Serializable {
      */
     public void setCertificateContent(String certificateContent) {
         this.certificateContent = certificateContent;
+    }
+
+    public String getApplicationResourceId() {
+
+        return applicationResourceId;
+    }
+
+    public void setApplicationResourceId(String applicationResourceId) {
+
+        this.applicationResourceId = applicationResourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    public String getLoginUrl() {
+
+        return loginUrl;
+    }
+
+    public void setLoginUrl(String loginUrl) {
+
+        this.loginUrl = loginUrl;
     }
 }
 
