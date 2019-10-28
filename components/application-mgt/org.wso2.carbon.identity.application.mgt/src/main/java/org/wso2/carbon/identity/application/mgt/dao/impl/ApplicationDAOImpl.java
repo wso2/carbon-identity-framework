@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
@@ -93,6 +92,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import static java.util.Objects.isNull;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
@@ -284,6 +284,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(7, "0");
             storeAppPrepStmt.setString(8, "0");
             storeAppPrepStmt.setString(9, "0");
+            storeAppPrepStmt.setString(10, generateApplicationResourceId(serviceProvider));
+            storeAppPrepStmt.setString(11, serviceProvider.getImageUrl());
+            storeAppPrepStmt.setString(12, serviceProvider.getLoginUrl());
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -299,7 +302,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
                 applicationId = getApplicationIDByName(applicationName, tenantID, connection);
             }
+
             // To add the property "USE_DOMAIN_IN_ROLES".
+            // TODO: move this to OSGi layer.
             addUseDomainNameInRolesAsSpProperty(serviceProvider);
 
             if (serviceProvider.getSpProperties() != null) {
@@ -4363,5 +4368,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Invalid page number requested. The page number should "
                     + "be a value greater than 0.");
         }
+    }
+
+    private String generateApplicationResourceId(ServiceProvider serviceProvider) {
+
+        return UUID.randomUUID().toString();
     }
 }

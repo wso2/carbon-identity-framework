@@ -27,8 +27,8 @@ public class ApplicationMgtDBQueries {
 
     // STORE Queries
     public static final String STORE_BASIC_APPINFO = "INSERT INTO SP_APP (TENANT_ID, APP_NAME, USER_STORE, USERNAME, " +
-                                                     "DESCRIPTION, AUTH_TYPE, IS_USE_TENANT_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION,IS_USE_USER_DOMAIN_SUBJECT) " +
-                                                     "VALUES (?,?,?,?,?,?,?,?,?)";
+                                                     "DESCRIPTION, AUTH_TYPE, IS_USE_TENANT_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION,IS_USE_USER_DOMAIN_SUBJECT, UUID, IMAGE_URL, LOGIN_URL) " +
+                                                     "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
     public static final String UPDATE_BASIC_APPINFO = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, IS_SAAS_APP=? " +
             "WHERE TENANT_ID= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, " +
