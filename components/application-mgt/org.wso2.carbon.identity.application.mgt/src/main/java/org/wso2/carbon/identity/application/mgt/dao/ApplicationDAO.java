@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * This interface access the data storage layer to store/update and delete application configurations.
  */
-public interface ApplicationDAO {
+public interface ApplicationDAO extends ApplicationResourceDAO {
 
     /**
      * @param applicationDTO
@@ -130,5 +130,34 @@ public interface ApplicationDAO {
     default boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException {
 
         return false;
+    }
+
+    default ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId,
+                                                                             String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    default ServiceProvider addApplication(ServiceProvider application,
+                                       String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    default ServiceProvider getApplicationByResourceId(String resourceId,
+                                                   String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    default void updateApplicationByResourceId(String resourceId,
+                                               String tenantDomain,
+                                               ServiceProvider updatedApplication) throws IdentityApplicationManagementException {
+
+    }
+
+    default void deleteApplicationByResourceId(String resourceId,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
     }
 }

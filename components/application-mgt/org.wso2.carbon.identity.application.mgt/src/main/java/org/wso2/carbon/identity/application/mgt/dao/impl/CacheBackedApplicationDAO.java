@@ -51,8 +51,7 @@ import java.util.Map;
  * Cached DAO layer for the application management. All the DAO access has to be happen through this layer to ensure
  * single point of caching.
  */
-public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
-        implements PaginatableFilterableApplicationDAO {
+public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
     private static final Log log = LogFactory.getLog(CacheBackedApplicationDAO.class);
 
@@ -321,6 +320,49 @@ public class CacheBackedApplicationDAO extends AbstractApplicationDAOImpl
             return requestedLocalClaims;
         }
         return appDAO.getAllRequestedClaimsByServiceProvider(serviceProviderName, tenantDomain);
+    }
+
+    @Override
+    public ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+        // TODO: have a cache.
+        return appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
+    }
+
+    @Override
+    public ServiceProvider getApplicationByResourceId(String resourceId,
+                                                  String tenantDomain) throws IdentityApplicationManagementException {
+
+        // TODO: introduce a cache..
+        return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
+    }
+
+    @Override
+    public ServiceProvider addApplication(ServiceProvider application,
+                                      String tenantDomain) throws IdentityApplicationManagementException {
+
+        return appDAO.addApplication(application, tenantDomain);
+    }
+
+    @Override
+    public void updateApplicationByResourceId(String resourceId,
+                                              String tenantDomain,
+                                              ServiceProvider updatedApp) throws IdentityApplicationManagementException {
+
+        ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
+        clearAllAppCache(updatedApp, storedApp.getApplicationName(), tenantDomain);
+
+        appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
+    }
+
+    @Override
+    public void deleteApplicationByResourceId(String resourceId,
+                                              String tenantDomain) throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = getApplicationByResourceId(resourceId, tenantDomain);
+        clearAllAppCache(serviceProvider, tenantDomain);
+
+        appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
     }
 
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws
