@@ -751,12 +751,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private boolean isOAuth2InboundConfigured(InboundAuthenticationRequestConfig config) {
-
-        return IdentityApplicationConstants.OAuth2.NAME.equalsIgnoreCase(config.getInboundAuthType()) &&
-                config.getInboundAuthKey() != null;
-    }
-
     @Override
     public IdentityProvider getIdentityProvider(String federatedIdPName, String tenantDomain)
             throws IdentityApplicationManagementException {
@@ -2092,18 +2086,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider createApplication(ServiceProvider application,
-                                         String tenantDomain) throws IdentityApplicationManagementException {
+    public String createApplication(ServiceProvider application,
+                                    String tenantDomain) throws IdentityApplicationManagementException {
 
-        return null;
-    }
+        String userPerformingAction = getUserPerformingAction();
+        ServiceProvider app = createApplicationWithTemplate(application, tenantDomain, userPerformingAction, null);
+        ServiceProvider serviceProvider = getServiceProvider(app.getApplicationName(), tenantDomain);
 
-    @Override
-    public ServiceProvider createApplicationWithTemplate(ServiceProvider application,
-                                                         String tenantDomain,
-                                                         String templateName) throws IdentityApplicationManagementException {
-
-        return null;
+        return serviceProvider.getApplicationResourceId();
     }
 
     @Override
@@ -2148,8 +2138,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             logValidationErrorMessages(e);
             throw e;
         }
+
         // We need to set the internal applicationId to the app before invoking the listeners.
-        setApplicationId(resourceId, tenantDomain, updatedApp);
+        ApplicationBasicInfo appBasicInfo = getAppBasicInfo(resourceId, tenantDomain);
+        updatedApp.setApplicationResourceId(resourceId);
+        updatedApp.setApplicationID(appBasicInfo.getApplicationId());
 
         // invoking the listeners
         Collection<ApplicationResourceManagementListener> listeners =
@@ -2163,7 +2156,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         try {
-            // check whether user is authorized to update the application.
             startTenantFlow(tenantDomain);
             String updateApplicationName = updatedApp.getApplicationName();
             if (ApplicationConstants.LOCAL_SP.equals(updateApplicationName)) {
@@ -2212,17 +2204,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void setApplicationId(String resourceId,
-                                  String tenantDomain,
-                                  ServiceProvider updatedApp) throws IdentityApplicationManagementException {
+    private ApplicationBasicInfo getAppBasicInfo(String resourceId,
+                                                 String tenantDomain) throws IdentityApplicationManagementException {
 
         ApplicationBasicInfo appBasicInfo = getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
         if (appBasicInfo != null) {
-            updatedApp.setApplicationResourceId(resourceId);
-            updatedApp.setApplicationID(appBasicInfo.getApplicationId());
+           return appBasicInfo;
         } else {
             // Throw an exception
-            throw new IdentityApplicationManagementClientException(new String[]{ "Cannot find an application for " +
+            throw new IdentityApplicationManagementClientException(new String[]{"Cannot find an application for " +
                     "appResourceId:" + resourceId + " in tenantDomain:" + tenantDomain});
         }
     }
@@ -2258,10 +2248,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(tenantDomain);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             ServiceProvider application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
-
             if (application != null) {
                 String applicationName = application.getApplicationName();
-
 
                 ApplicationMgtUtil.deleteAppRole(applicationName);
                 ApplicationMgtUtil.deletePermissions(applicationName);
@@ -2303,6 +2291,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+    }
+
+    private boolean isOAuth2InboundConfigured(InboundAuthenticationRequestConfig config) {
+
+        return IdentityApplicationConstants.OAuth2.NAME.equalsIgnoreCase(config.getInboundAuthType()) &&
+                config.getInboundAuthKey() != null;
     }
 
     private boolean isSAMLInboundConfigured(InboundAuthenticationRequestConfig config) {

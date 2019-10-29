@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -84,11 +85,14 @@ public class ServiceProvider implements Serializable {
     @XmlTransient
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
 
+    @IgnoreNullElement
     @XmlTransient
     private String applicationResourceId;
 
+    @IgnoreNullElement
     private String imageUrl;
 
+    @IgnoreNullElement
     private String loginUrl;
 
 

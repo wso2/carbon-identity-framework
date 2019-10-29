@@ -86,10 +86,13 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_COUNT_BY_TENANT = "SELECT COUNT(*) FROM SP_APP WHERE TENANT_ID = ?";
     public static final String LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME = "SELECT COUNT(*) FROM SP_APP WHERE " +
             "TENANT_ID = ? AND APP_NAME LIKE ?";
-    public static final String LOAD_APP_NAMES_BY_TENANT_MYSQL = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
-            "SP_APP WHERE TENANT_ID = ? ORDER BY ID DESC LIMIT ?, ?";
-    public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
-            "SP_APP WHERE TENANT_ID = ? AND APP_NAME LIKE ? ORDER BY ID DESC LIMIT ?, ?";
+
+    // Load application basic information for listing with pagination
+    public static final String LOAD_APP_NAMES_BY_TENANT_MYSQL = "SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, " +
+            "LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = ? ORDER BY ID DESC LIMIT ?, ?";
+    public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL = "SELECT ID, APP_NAME, DESCRIPTION , UUID, " +
+            "IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = ? AND APP_NAME LIKE ? ORDER BY ID DESC LIMIT ?, ?";
+
     public static final String LOAD_APP_NAMES_BY_TENANT_ORACLE = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
             "(SELECT ID, APP_NAME, DESCRIPTION, TENANT_ID, rownum AS rnum FROM " +
             "(SELECT ID, APP_NAME, DESCRIPTION, TENANT_ID FROM SP_APP ORDER BY ID DESC) WHERE " +
@@ -98,24 +101,30 @@ public class ApplicationMgtDBQueries {
             "(SELECT ID, APP_NAME, DESCRIPTION, TENANT_ID, rownum AS rnum FROM " +
             "(SELECT ID, APP_NAME, DESCRIPTION, TENANT_ID FROM SP_APP ORDER BY ID DESC) WHERE " +
             "TENANT_ID = ? AND APP_NAME LIKE ? AND rownum <= ?) WHERE rnum > ?";
+
     public static final String LOAD_APP_NAMES_BY_TENANT_DB2SQL = "SELECT ID, APP_NAME, DESCRIPTION FROM (SELECT "
             + "ROW_NUMBER() OVER(ORDER BY ID DESC) AS rn,SP_APP.* FROM SP_APP WHERE TENANT_ID = ?)WHERE rn BETWEEN ? "
             + "AND ?";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL = "SELECT ID, APP_NAME, DESCRIPTION FROM "
             + "(SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) AS rn,SP_APP.* FROM SP_APP WHERE TENANT_ID = ? AND APP_NAME "
             + "LIKE ?)WHERE rn BETWEEN ? AND ?";
+
     public static final String LOAD_APP_NAMES_BY_TENANT_MSSQL = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
             "SP_APP WHERE TENANT_ID = ? ORDER BY ID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
             "SP_APP WHERE TENANT_ID = ? AND APP_NAME LIKE ? ORDER BY ID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
     public static final String LOAD_APP_NAMES_BY_TENANT_POSTGRESQL = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
             "SP_APP WHERE TENANT_ID = ? ORDER BY ID DESC LIMIT ? OFFSET ?";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL = "SELECT ID, APP_NAME, DESCRIPTION FROM " +
             "SP_APP WHERE TENANT_ID = ? AND APP_NAME LIKE ? ORDER BY ID DESC LIMIT ? OFFSET ?";
+
     public static final String LOAD_APP_NAMES_BY_TENANT_INFORMIX = "SELECT SKIP ? FIRST ? ID, APP_NAME, " +
             "DESCRIPTION FROM SP_APP WHERE TENANT_ID = ? ORDER BY ID DESC";
     public static final String LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX = "SELECT SKIP ? FIRST ? ID, APP_NAME, " +
             "DESCRIPTION FROM SP_APP WHERE TENANT_ID = ? AND APP_NAME LIKE ? ORDER BY ID DESC";
+
+
     public static final String LOAD_APP_ID_BY_CLIENT_ID_AND_TYPE = "SELECT APP_ID FROM SP_AUTH_STEP WHERE CLIENT_ID = ? "
                                                                    + "AND CLIENT_TYPE= ? AND TENANT_ID = ?";
     public static final String LOAD_APPLICATION_NAME_BY_CLIENT_ID_AND_TYPE = "SELECT APP_NAME "
@@ -131,12 +140,14 @@ public class ApplicationMgtDBQueries {
                                                                  "SUBJECT_CLAIM_URI, IS_SAAS_APP " +
                                                                  "FROM SP_APP WHERE APP_NAME " +
                                                                  "= ? AND TENANT_ID= ?";
+
     public static final String LOAD_BASIC_APP_INFO_BY_APP_ID = "SELECT ID, TENANT_ID, APP_NAME, USER_STORE, " +
                                                                "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
                                                                "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, " +
-                                                               "SUBJECT_CLAIM_URI, IS_SAAS_APP " +
+                                                               "SUBJECT_CLAIM_URI, IS_SAAS_APP, UUID, IMAGE_URL, LOGIN_URL " +
                                                                "FROM SP_APP WHERE ID = ?";
+
     public static final String LOAD_AUTH_TYPE_BY_APP_ID = "SELECT AUTH_TYPE FROM SP_APP WHERE ID = ? AND TENANT_ID = ?";
     public static final String LOAD_APP_NAME_BY_APP_ID = "SELECT APP_NAME FROM SP_APP WHERE ID = ? AND TENANT_ID = ?";
     public static final String LOAD_CLIENTS_INFO_BY_APP_ID = "SELECT INBOUND_AUTH_KEY, INBOUND_AUTH_TYPE, PROP_NAME, " +
@@ -271,6 +282,19 @@ public class ApplicationMgtDBQueries {
     public static final String UPDATE_DEFAULT_SEQ = "UPDATE SP_DEFAULT_AUTH_SEQ SET NAME = ?,DESCRIPTION = ?," +
             "SEQ_CONTENT = ? WHERE NAME = ? AND TENANT_ID = ?";
     public static final String DELETE_DEFAULT_SEQ = "DELETE FROM SP_DEFAULT_AUTH_SEQ WHERE NAME = ? AND TENANT_ID = ?";
+
+
+    // DB queries for application management using the resourceId
+    public static final String LOAD_APP_BY_TENANT_AND_UUID = "SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, " +
+            "LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; AND UUID = :UUID;";
+
+    public static final String LOAD_APP_ID_BY_UUID = "SELECT ID FROM SP_APP WHERE UUID = :UUID;  AND TENANT_ID = :TENANT_ID;";
+
+    public static final String REMOVE_APP_FROM_SP_APP_WITH_UUID = "DELETE FROM SP_APP WHERE UUID=:UUID; AND TENANT_ID=:TENANT_ID;";
+
+    public static final String LOAD_APP_BY_NAME_AND_TENANT = "SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, " +
+            "LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
+
 }
 
 

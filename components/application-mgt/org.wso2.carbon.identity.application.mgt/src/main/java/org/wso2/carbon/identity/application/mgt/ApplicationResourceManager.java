@@ -27,12 +27,8 @@ public interface ApplicationResourceManager {
     ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId,
                                                              String tenantDomain) throws IdentityApplicationManagementException;
 
-    ServiceProvider createApplication(ServiceProvider application,
-                                      String tenantDomain) throws IdentityApplicationManagementException;
-
-    ServiceProvider createApplicationWithTemplate(ServiceProvider application,
-                                                  String tenantDomain,
-                                                  String templateName) throws IdentityApplicationManagementException;
+    String createApplication(ServiceProvider application,
+                             String tenantDomain) throws IdentityApplicationManagementException;
 
     ServiceProvider getApplicationByResourceId(String resourceId,
                                                String tenantDomain) throws IdentityApplicationManagementException;

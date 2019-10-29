@@ -15,6 +15,8 @@
  */
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
@@ -22,6 +24,8 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 
 public class DefaultApplicationResourceMgtListener implements ApplicationResourceManagementListener {
+
+    public static final Log log = LogFactory.getLog(DefaultApplicationResourceMgtListener.class);
 
     @Override
     public int getDefaultOrderId() {
@@ -93,10 +97,19 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                       String userPerformingAction) throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
-        for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
-            if (listener.isEnable()
-                    && !listener.doPreDeleteApplication(applicationName, tenantDomain, userPerformingAction)) {
-                return false;
+        if (applicationName != null) {
+            for (ApplicationMgtListener listener :
+                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
+                if (listener.isEnable()
+                        && !listener.doPreDeleteApplication(applicationName, tenantDomain, userPerformingAction)) {
+                    return false;
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Application cannot be found for the resourceId:" + applicationResourceId +
+                        " in tenantDomain:" + tenantDomain + ". Therefore not triggering the " +
+                        "doPreDeleteApplication() of ApplicationMgtListeners.");
             }
         }
 
