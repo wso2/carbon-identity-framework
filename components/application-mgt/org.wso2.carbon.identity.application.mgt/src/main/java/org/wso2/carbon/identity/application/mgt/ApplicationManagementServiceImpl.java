@@ -690,6 +690,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public void deleteApplication(String applicationName, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
+        ServiceProvider serviceProvider;
         // invoking the listeners
         Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
@@ -708,7 +709,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+            serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
             appDAO.deleteApplication(applicationName);
 
             ApplicationMgtUtil.deleteAppRole(applicationName);
@@ -746,8 +747,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteApplication(applicationName, tenantDomain, username)) {
-                return;
+            if (listener.isEnable()) {
+                listener.doPostDeleteApplication(applicationName, tenantDomain, username);
+                listener.doPostDeleteApplication(serviceProvider, tenantDomain, username);
             }
         }
     }
