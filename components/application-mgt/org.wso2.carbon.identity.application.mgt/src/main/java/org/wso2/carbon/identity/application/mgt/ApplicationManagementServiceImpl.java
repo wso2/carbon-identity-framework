@@ -2132,8 +2132,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             applicationMgtValidator.validateSPConfigurations(updatedApp, tenantDomain, userUpdatingTheApp);
         } catch (IdentityApplicationManagementValidationException e) {
-            log.error("Validation error when updating the application  with appResourceId:" + resourceId
-                    + " in tenantDomain:" + tenantDomain);
+            log.error("Validation error when updating the application  with resourceId: " + resourceId
+                    + " in tenantDomain: " + tenantDomain);
             logValidationErrorMessages(e);
             throw e;
         }
@@ -2187,8 +2187,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             // validateConsentPurposes(serviceProvider);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
         } catch (Exception e) {
-            String error = "Error occurred while updating the application with appResourceId:" + resourceId
-                    + " in tenantDomain:" + tenantDomain;
+            String error = "Error occurred while updating the application with resourceId: " + resourceId
+                    + " in tenantDomain: " + tenantDomain;
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
@@ -2212,7 +2212,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } else {
             // Throw an exception
             throw new IdentityApplicationManagementClientException(new String[]{"Cannot find an application for " +
-                    "appResourceId:" + resourceId + " in tenantDomain:" + tenantDomain});
+                    "resourceId: " + resourceId + " in tenantDomain: " + tenantDomain});
         }
     }
 
@@ -2277,8 +2277,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Application cannot be found for appResourceId:" + resourceId +
-                            " in tenantDomain:" + tenantDomain);
+                    log.debug("Application cannot be found for resourceId:c" + resourceId +
+                            " in tenantDomain: " + tenantDomain);
                 }
             }
         } finally {
