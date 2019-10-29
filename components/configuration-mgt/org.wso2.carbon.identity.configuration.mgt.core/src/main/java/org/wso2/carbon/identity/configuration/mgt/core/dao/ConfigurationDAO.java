@@ -205,10 +205,13 @@ public interface ConfigurationDAO {
     /**
      * Get the file.
      *
+     *
+     * @param resourceType resource type name.
+     * @param resourceName resource name.
      * @param fileId Id of the file.
      * @return {@link InputStream} for the given file id.
      */
-    InputStream getFileById(String fileId) throws ConfigurationManagementException;
+    InputStream getFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException;
 
     /**
      * Get files for the {@link Resource}.
@@ -232,10 +235,13 @@ public interface ConfigurationDAO {
     /**
      * Delete the file.
      *
+     *
+     * @param resourceType resource type name.
+     * @param resourceName resource name.
      * @param fileId Id of the file.
      * @return {@link InputStream} for the given file id.
      */
-    void deleteFileById(String fileId) throws ConfigurationManagementException;
+    void deleteFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException;
 
     /**
      * Delete files for the {@link Resource}.

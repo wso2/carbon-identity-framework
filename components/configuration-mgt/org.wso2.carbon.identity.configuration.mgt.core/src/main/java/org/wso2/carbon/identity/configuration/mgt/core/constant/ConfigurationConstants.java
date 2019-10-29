@@ -58,12 +58,7 @@ public class ConfigurationConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_ID = "FILE_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_NAME = "FILE_NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
-    public static final String RESOURCE_FILE_BY_ID_PATH = "/resource/file";
-    public static final String ATTRIBUTE = "attribute";
     public static final String FILE = "file";
-    public static final String SERVER_API_PATH_COMPONENT = "/api/identity/config-mgt/v1.0";
-    public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";
-    public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),
@@ -118,7 +113,7 @@ public class ConfigurationConstants {
         ERROR_CODE_FILE_DOES_NOT_EXISTS("CONFIGM_00043", "File with the id: %s does not exists."),
         ERROR_CODE_FILES_DOES_NOT_EXISTS("CONFIGM_00044", "Resource: %s does not contain any files."),
         ERROR_CODE_FILE_IDENTIFIERS_REQUIRED("CONFIGM_00045", "File identifier validation failed for " +
-                "One or more file identifiers in: %s");
+                "one or more file identifiers in: %s");
 
         private final String code;
         private final String message;

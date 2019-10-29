@@ -242,21 +242,27 @@ public interface ConfigurationManager {
     /**
      * This API is used to get the given file.
      *
+     *
+     * @param resourceType resource type name.
+     * @param resourceName resource name.
      * @param fileId Id representing the file.
      * @return 200 ok. Returns {@link InputStream} of the file requested.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    InputStream getFileById(String fileId)
+    InputStream getFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException;
 
     /**
      * This API is used to delete the given file.
      *
+     *
+     * @param resourceType resource type name.
+     * @param resourceName resource name.
      * @param fileId Id representing the file.
      * @return 200 ok.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    void deleteFileById(String fileId)
+    void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException;
 
     /**

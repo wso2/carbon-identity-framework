@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -745,24 +746,25 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         String resourceId = getResourceId(resourceTypeName, resourceName);
         String fileId = generateUniqueID();
         if (log.isDebugEnabled()) {
-            log.debug("File id generated: " + fileId + "for the resource name: " + resourceName + "resource type "
+            log.debug("File id generated: " + fileId + " for the resource name: " + resourceName + " resource type "
                     + "name: " + resourceTypeName);
         }
         getConfigurationDAO().addFile(fileId, resourceId, fileName, fileStream);
         if (log.isDebugEnabled()) {
-            log.debug("File: " + fileId + " successfully added." + "for resource name: "+ resourceName
-                    + "resource type name: " + resourceTypeName);
+            log.debug("File: " + fileId + " successfully added for resource name: "+ resourceName
+                    + " resource type name: " + resourceTypeName);
         }
         return new ResourceFile(fileId, getFilePath(fileId, resourceTypeName, resourceName), fileName);
     }
 
     @Override
-    public List<ResourceFile> getFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
+    public List<ResourceFile> getFiles(String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException {
 
-        validateFilesDeleteRequest(resourceTypeName, resourceName);
+        validateRequest(resourceTypeName, resourceName);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         List<ResourceFile> resourceFiles = getConfigurationDAO().getFiles(resourceId, resourceTypeName, resourceName);
-        if (resourceFiles == null || resourceFiles.size() == 0) {
+        if (CollectionUtils.isEmpty(resourceFiles)) {
             if (log.isDebugEnabled()) {
                 log.debug("Resource: " + resourceName + " does not have any files.");
             }
@@ -778,10 +780,10 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     @Override
     public List<ResourceFile> getFiles(String resourceTypeName) throws ConfigurationManagementException {
 
-        validateFilesGetRequest(resourceTypeName);
+        validateRequest(resourceTypeName);
         String resourceTypeId = getResourceTypeId(resourceTypeName);
         List<ResourceFile> resourceFiles = getConfigurationDAO().getFilesByResourceType(resourceTypeId);
-        if (resourceFiles == null || resourceFiles.size() == 0) {
+        if (CollectionUtils.isEmpty(resourceFiles)) {
             if (log.isDebugEnabled()) {
                 log.debug("Resource type: " + resourceTypeName + " does not have any files.");
             }
@@ -798,7 +800,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     @Override
     public void deleteFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
 
-        validateFilesDeleteRequest(resourceTypeName, resourceName);
+        validateRequest(resourceTypeName, resourceName);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         getConfigurationDAO().deleteFiles(resourceId);
         if (log.isDebugEnabled()) {
@@ -807,11 +809,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     @Override
-    public InputStream getFileById(String fileId)
+    public InputStream getFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException {
 
-        validateFileGetRequest(fileId);
-        InputStream fileStream = getConfigurationDAO().getFileById(fileId);
+        validateRequest(resourceType,resourceName,fileId);
+        InputStream fileStream = getConfigurationDAO().getFileById(resourceType, resourceName, fileId);
         if (fileStream == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Resource File: " + fileId + " does not exists.");
@@ -825,11 +827,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     @Override
-    public void deleteFileById(String fileId)
+    public void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException {
 
-        validateFileDeleteRequest(fileId);
-        getConfigurationDAO().deleteFileById(fileId);
+        validateFileDeleteRequest(resourceType, resourceName ,fileId);
+        getConfigurationDAO().deleteFileById(resourceType, resourceName, fileId);
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully deleted.");
         }
@@ -841,7 +843,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
        return ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled();
     }
 
-    private void validateFilesGetRequest(String resourceTypeName, String resourceName) throws ConfigurationManagementClientException {
+    private void validateRequest(String resourceTypeName, String resourceName)
+            throws ConfigurationManagementClientException {
 
         if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName)) {
             String fileIdentifiers = "resourceType: " + resourceTypeName + ", resourceName: " + resourceName;
@@ -849,7 +852,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateFilesGetRequest(String resourceTypeName) throws ConfigurationManagementClientException {
+    private void validateRequest(String resourceTypeName) throws ConfigurationManagementClientException {
 
         if (StringUtils.isEmpty(resourceTypeName)) {
             String fileIdentifiers = "resourceType: " + resourceTypeName;
@@ -857,22 +860,19 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateFilesDeleteRequest(String resourceTypeName, String resourceName) throws ConfigurationManagementClientException {
+    private void validateRequest(String resourceTypeName, String resourceName, String fileId) throws ConfigurationManagementClientException {
 
-        validateFilesGetRequest(resourceTypeName, resourceName);
-    }
-
-    private void validateFileGetRequest(String fileId) throws ConfigurationManagementClientException {
-
-        if (StringUtils.isEmpty(fileId)) {
-            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileId: " + fileId);
+        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName) || StringUtils.isEmpty(fileId)) {
+            String fileIdentifiers = "resourceType: " + resourceTypeName + ", resourceName: " + resourceName + ", "
+                    + "fileId: " + fileId;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
         }
     }
 
-    private void validateFileDeleteRequest(String fileId) throws ConfigurationManagementException {
 
-        validateFileGetRequest(fileId);
-        if (!isFileExists(fileId)) {
+    private void validateFileDeleteRequest(String resourceTypeName, String resourceName, String fileId) throws ConfigurationManagementException {
+
+        if (!isFileExists(resourceTypeName, resourceName, fileId)) {
             if (log.isDebugEnabled()) {
                 log.debug("A file with the id: " + fileId + " does not exists.");
             }
@@ -880,11 +880,14 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateFileAddRequest(String resourceTypeName, String resourceName, String fileName, InputStream fileStream) throws ConfigurationManagementClientException {
+    private void validateFileAddRequest(String resourceTypeName, String resourceName, String fileName,
+            InputStream fileStream) throws ConfigurationManagementClientException {
 
-        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName) || StringUtils.isEmpty(fileName)) {
-            String fileIdentifiers = "Resource type: " + resourceTypeName + ", resourceName: " + resourceName + ". "
-                    + "FileName: " + fileName;
+        if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName) || StringUtils
+                .isEmpty(fileName)) {
+            String fileIdentifiers =
+                    "Resource type: " + resourceTypeName + ", resourceName: " + resourceName + ". " + "FileName: "
+                            + fileName;
             throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
         }
 
@@ -893,11 +896,11 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private boolean isFileExists(String fileId)
+    private boolean isFileExists(String resourceTypeName, String resourceName, String fileId)
             throws ConfigurationManagementException {
 
         try {
-            getFileById(fileId);
+            getFileById(resourceTypeName, resourceName, fileId);
         } catch (ConfigurationManagementClientException e) {
             if (isFileNotExistsError(e)) {
                 return false;

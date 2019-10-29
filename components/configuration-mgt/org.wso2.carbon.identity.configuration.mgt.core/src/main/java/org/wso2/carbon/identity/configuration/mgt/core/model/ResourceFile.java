@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.configuration.mgt.core.model;
  */
 public class ResourceFile {
 
-    private String value;
+    private String path;
     private String id;
     private String name;
 
@@ -37,7 +37,7 @@ public class ResourceFile {
     public ResourceFile(String id, String value, String name) {
 
         this.id = id;
-        this.value = value;
+        this.path = value;
         this.name = name;
     }
 
@@ -47,14 +47,14 @@ public class ResourceFile {
         this.name = fileName;
     }
 
-    public String getValue() {
+    public String getPath() {
 
-        return value;
+        return path;
     }
 
-    public void setValue(String value) {
+    public void setPath(String value) {
 
-        this.value = value;
+        this.path = value;
     }
 
     public String getId() {

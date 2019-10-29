@@ -62,12 +62,17 @@ import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
 import sun.security.provider.X509Factory;
+import org.apache.cxf.message.Message;
+import org.apache.cxf.phase.PhaseInterceptorChain;
+import org.apache.cxf.jaxrs.impl.UriInfoImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -87,6 +92,7 @@ import java.util.regex.Pattern;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -101,6 +107,9 @@ import javax.xml.xpath.XPathFactory;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.INDEXES;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.SERVER_API_PATH_COMPONENT;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.TENANT_CONTEXT_PATH_COMPONENT;
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT;
 
 public class IdentityUtil {
 
@@ -1322,5 +1331,65 @@ public class IdentityUtil {
             remainder = temp % divisor;
         }
         return (byte) remainder;
+    }
+
+    /**
+     * Build the complete URI prepending the user API context without the proxy context path, to the endpoint.
+     * Ex: https://localhost:9443/t/<tenant-domain>/api/users/<endpoint>
+     *
+     * @param endpoint relative endpoint path.
+     * @return Fully qualified and complete URI.
+     */
+    public static URI buildURIForHeader(String endpoint) {
+
+        String tenantQualifiedRelativePath =
+                String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
+        String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, false, true);
+
+        URI loc = URI.create(url);
+        if (!loc.isAbsolute()) {
+            Message currentMessage = PhaseInterceptorChain.getCurrentMessage();
+            if (currentMessage != null) {
+                UriInfo ui = new UriInfoImpl(currentMessage.getExchange().getInMessage(), null);
+                try {
+                    return new URI(ui.getBaseUri().getScheme(), ui.getBaseUri().getAuthority(), url, null, null);
+                } catch (URISyntaxException e) {
+                    log.error("Server encountered an error while building the location URL with scheme: " +
+                            ui.getBaseUri().getScheme() + ", authority: " + ui.getBaseUri().getAuthority() +
+                            ", url: " + url, e);
+                }
+            }
+        }
+        return loc;
+    }
+
+    /**
+     * Build URI prepending the user API context with to the endpoint.
+     * /t/<tenant-domain>/api/identity/config-mgt/v1.0/<endpoint>
+     *
+     * @param endpoint relative endpoint path.
+     * @return Fully qualified URI.
+     */
+    public static URI buildURIForBody(String endpoint) {
+
+        String tenantQualifiedRelativePath =
+                String.format(TENANT_CONTEXT_PATH_COMPONENT, IdentityUtil.getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
+        String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, true, true);
+        return URI.create(url);
+    }
+
+
+    /**
+     * Retrieves loaded tenant domain from carbon context.
+     *
+     * @return tenant domain of the request is being served.
+     */
+    public static String getTenantDomainFromContext() {
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        if (IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT) != null) {
+            tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT);
+        }
+        return tenantDomain;
     }
 }

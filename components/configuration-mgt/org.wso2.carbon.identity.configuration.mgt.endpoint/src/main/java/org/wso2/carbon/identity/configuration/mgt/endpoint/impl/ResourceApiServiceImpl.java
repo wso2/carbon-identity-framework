@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceAddDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ResourceFileDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.util.ConfigurationEndpointUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -188,7 +189,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
         try {
             ResourceFile resourceFile = getConfigurationManager()
                     .addFile(resourceType, resourceName, fileName, resourceFileInputStream);
-            return Response.created(new URI(FILE,null,resourceFile.getValue(),null)).build();
+            return Response.created(IdentityUtil.buildURIForHeader(resourceFile.getPath())).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
         } catch (ConfigurationManagementException e) {
@@ -205,7 +206,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             List<ResourceFile> resourceFiles = getConfigurationManager().getFiles(
                     resourceType, resourceName);
             ResourceFileDTO[] resourceFileDTOS = resourceFiles.stream()
-                    .map(n -> ConfigurationEndpointUtils.getResourceFileDTO(n))
+                    .map(ConfigurationEndpointUtils::getResourceFileDTO)
                     .toArray(ResourceFileDTO[]::new);
             return Response.ok().entity(resourceFileDTOS).build();
         } catch (ConfigurationManagementClientException e) {
@@ -237,7 +238,7 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             String resourceName) {
 
         try {
-            getConfigurationManager().deleteFileById(fileId);
+            getConfigurationManager().deleteFileById(resourceType, resourceName, fileId);
             return Response.ok().build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
@@ -253,7 +254,8 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             String resourceName) {
 
         try {
-            InputStream fileStream = getConfigurationManager().getFileById(fileId);
+            InputStream fileStream = getConfigurationManager().getFileById(resourceType,resourceName,fileId);
+            // TODO: 2019-10-28 pending on confirmation octet stream media type
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM).entity(fileStream).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);

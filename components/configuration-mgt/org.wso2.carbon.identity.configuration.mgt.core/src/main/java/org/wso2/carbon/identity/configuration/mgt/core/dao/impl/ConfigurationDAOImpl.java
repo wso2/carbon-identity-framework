@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants;
@@ -1005,11 +1006,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     preparedStatement.setBoolean(1, true);
                     preparedStatement.setString(2, resourceId);
                 });
-                template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
-                    preparedStatement.setTimestamp(1, new java.sql.Timestamp(new Date().getTime()),
-                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-                    preparedStatement.setString(2, resourceId);
-                });
+                updateResourceLastModified(template, resourceId);
                 return null;
             });
         } catch (TransactionException e) {
@@ -1018,7 +1015,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public InputStream getFileById(String fileId) throws ConfigurationManagementException {
+    public InputStream getFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -1032,6 +1029,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     },
                     preparedStatement -> {
                         preparedStatement.setString(1, fileId);
+                        preparedStatement.setString(2, resourceName);
+                        preparedStatement.setString(3, resourceType);
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
@@ -1039,7 +1038,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public void deleteFileById(String fileId) throws ConfigurationManagementException {
+    public void deleteFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -1048,7 +1047,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 // Get resource id for the deleting file
                 String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
                         (resultSet, rowNumber) -> resultSet.getString("RESOURCE_ID"),
-                        preparedStatement -> preparedStatement.setString(1, fileId));
+                        preparedStatement -> {
+                            preparedStatement.setString(1, fileId);
+                            preparedStatement.setString(2, resourceName);
+                            preparedStatement.setString(3, resourceType);
+                        });
 
                 template.executeUpdate(DELETE_FILE_SQL, (
                         preparedStatement -> preparedStatement.setString(1, fileId)
@@ -1056,21 +1059,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
                 List<String> availableFilesForTheResource = template.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
                         ((resultSet, rowNumber) -> resultSet.getString("ID")),
-                        preparedStatement -> {
-                            preparedStatement.setString(1, resourceId);
-                        });
-                if (availableFilesForTheResource.size() == 0) {
+                        preparedStatement -> preparedStatement.setString(1, resourceId));
+                if (availableFilesForTheResource.isEmpty()) {
                     template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
                         preparedStatement.setBoolean(1, false);
                         preparedStatement.setString(2, resourceId);
                     });
                 }
-
-                template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
-                    preparedStatement.setTimestamp(1, new java.sql.Timestamp(new Date().getTime()),
-                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-                    preparedStatement.setString(2, resourceId);
-                });
+                updateResourceLastModified(template, resourceId);
                 return null;
             });
         } catch (TransactionException e) {
@@ -1078,24 +1074,27 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
+    private void updateResourceLastModified(Template<Object> template, String resourceId)
+            throws DataAccessException {
+        template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
+            preparedStatement.setTimestamp(1, new Timestamp(new Date().getTime()),
+                    Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+            preparedStatement.setString(2, resourceId);
+        });
+    }
+
     @Override
-    public List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException {
+    public List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
-                    ((resultSet, rowNumber) -> {
-                        String resourceFileId = resultSet.getString("ID");
-                        String resourceFileName = resultSet.getString("NAME");
-                        return new ResourceFile(
-                                resourceFileId,
-                                getFilePath(resourceFileId, resourceTypeName, resourceName),
-                                resourceFileName
-                        );
-                    }),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, resourceId);
-                    });
+            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL, ((resultSet, rowNumber) -> {
+                String resourceFileId = resultSet.getString("ID");
+                String resourceFileName = resultSet.getString("NAME");
+                return new ResourceFile(resourceFileId, getFilePath(resourceFileId, resourceTypeName, resourceName),
+                        resourceFileName);
+            }), preparedStatement -> preparedStatement.setString(1, resourceId));
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES, resourceName, e);
         }
@@ -1108,19 +1107,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_TYPE_ID_SQL,
                     ((resultSet, rowNumber) -> {
-                        String resourceFileId = resultSet.getString(1);
-                        String resourceFileName = resultSet.getString(2);
-                        String resourceName = resultSet.getString(3);
-                        String resourceTypeName = resultSet.getString(4);
+                        String resourceFileId = resultSet.getString("ID");
+                        String resourceFileName = resultSet.getString("FILE_NAME");
+                        String resourceName = resultSet.getString("RESOURCE_NAME");
+                        String resourceTypeName = resultSet.getString("TYPE_NAME");
                         return new ResourceFile(
                                 resourceFileId,
                                 getFilePath(resourceFileId, resourceTypeName, resourceName),
                                 resourceFileName
                         );
                     }),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, resourceTypeId);
-                    });
+                    preparedStatement -> preparedStatement.setString(1, resourceTypeId));
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceTypeId, e);
         }
@@ -1142,11 +1139,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     preparedStatement.setString(2, resourceId);
                 });
 
-                template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
-                    preparedStatement.setTimestamp(1, new java.sql.Timestamp(new Date().getTime()),
-                            Calendar.getInstance(TimeZone.getTimeZone(UTC)));
-                    preparedStatement.setString(2, resourceId);
-                });
+                updateResourceLastModified(template, resourceId);
                 return null;
             });
         } catch (TransactionException e) {
@@ -1170,18 +1163,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         String resourceHasAttribute = resultSet.getString("HAS_ATTRIBUTE");
                         Resource resource = new Resource();
                         resource.setCreatedTime(resourceCreatedTime);
-                        resource.setHasAttribute(new Boolean(resourceHasAttribute));
+                        resource.setHasAttribute(Boolean.valueOf(resourceHasAttribute));
                         resource.setResourceId(resourceId);
                         resource.setResourceName(resourceName);
                         resource.setLastModified(resourceLastModified);
-                        resource.setHasFile(new Boolean(resourceHasFile));
+                        resource.setHasFile(Boolean.valueOf(resourceHasFile));
                         resource.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-
                         try {
                             resource.setFiles(getFilesByResourceType(resourceTypeId));
                             resource.setAttributes(getAttributesByResourceId(resourceId));
                         } catch (ConfigurationManagementServerException e) {
-                            e.printStackTrace();
+                            throwAsUnchecked(e);
                         }
                         return resource;
                     }),
@@ -1190,8 +1182,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         preparedStatement.setString(2, Integer.toString(tenantId));
                     });
         } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, "", e);
+            throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, e);
         }
+    }
+
+    private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
+
+        throw (E) exception;
     }
 
     private List<Attribute> getAttributesByResourceId(String resourceId)
@@ -1210,9 +1207,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 attributeId
                         );
                     }),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, resourceId);
-                    });
+                    preparedStatement -> preparedStatement.setString(1, resourceId));
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceId, e);
         }

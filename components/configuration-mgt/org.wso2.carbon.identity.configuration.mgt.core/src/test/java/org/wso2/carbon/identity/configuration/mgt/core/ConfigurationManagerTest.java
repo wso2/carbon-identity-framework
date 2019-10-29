@@ -49,6 +49,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Collections;
@@ -459,7 +460,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
                 resource.getResourceName(), "sample-resource-file", fileStream);
-        InputStream retrievedFileStream = configurationManager.getFileById(resourceFile.getId());
+        InputStream retrievedFileStream = configurationManager.getFileById(resourceType.getName(), resource.getResourceName(),
+                resourceFile.getId());
         Assert.assertNotNull("Retrieved stream for the file id cannot be null", retrievedFileStream);
     }
 
@@ -475,7 +477,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
                 resource.getResourceName(), "sample-resource-file", fileStream);
 
-        configurationManager.deleteFileById(resourceFile.getId());
+        configurationManager.deleteFileById(resourceType.getName(), resource.getResourceName(), resourceFile.getId());
         Assert.assertFalse(
                 "Resource should not contain any files.",
                 configurationManager.getResource(resourceType.getName(), resource.getResourceName()).isHasFile()
@@ -559,13 +561,17 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         return true;
     }
 
-    private void prepareConfigs() throws ConfigurationManagementException {
+    private void prepareConfigs() throws Exception {
 
         // Mock get maximum query length call.
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getProperty(any(String.class))).thenReturn("4194304");
         when(IdentityUtil.getEndpointURIPath(any(String.class), anyBoolean(), anyBoolean())).thenReturn(
                 "/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8");
+        when(IdentityUtil.buildURIForHeader(any(String.class))).thenReturn(new URI("https://localhost:9443/t/bob"
+                + ".com/api/identity/config-mgt/v1.0/resource/publisher/EmailPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8"));
+        when(IdentityUtil.buildURIForBody(any(String.class))).thenReturn(
+                new URI("/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8"));
         ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
         ConfigurationManagerConfigurationHolder configurationHolder = new ConfigurationManagerConfigurationHolder();
         ConfigurationDAO configurationDAO = new ConfigurationDAOImpl();

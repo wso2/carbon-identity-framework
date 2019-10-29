@@ -39,6 +39,11 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-service-description</artifactId>
+            <version>${apache.cxf-rt-rs-service-description.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.axis2.wso2</groupId>
             <artifactId>axis2</artifactId>
         </dependency>
