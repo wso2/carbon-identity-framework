@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * This interface access the data storage layer to store/update and delete application configurations.
  */
-public interface ApplicationDAO extends ApplicationResourceDAO {
+public interface ApplicationDAO {
 
     /**
      * @param applicationDTO
@@ -132,32 +132,31 @@ public interface ApplicationDAO extends ApplicationResourceDAO {
         return false;
     }
 
-    default ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId,
-                                                                             String tenantDomain) throws IdentityApplicationManagementException {
+    default ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         return null;
     }
 
-    default ServiceProvider addApplication(ServiceProvider application,
-                                       String tenantDomain) throws IdentityApplicationManagementException {
+    default ServiceProvider addApplication(ServiceProvider application, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         return null;
     }
 
-    default ServiceProvider getApplicationByResourceId(String resourceId,
-                                                   String tenantDomain) throws IdentityApplicationManagementException {
+    default ServiceProvider getApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         return null;
     }
 
-    default void updateApplicationByResourceId(String resourceId,
-                                               String tenantDomain,
-                                               ServiceProvider updatedApplication) throws IdentityApplicationManagementException {
+    default void updateApplicationByResourceId(String resourceId, String tenantDomain, ServiceProvider updatedApp)
+            throws IdentityApplicationManagementException {
 
     }
 
-    default void deleteApplicationByResourceId(String resourceId,
-                                               String tenantDomain) throws IdentityApplicationManagementException {
+    default void deleteApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
     }
 }

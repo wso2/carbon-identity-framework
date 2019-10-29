@@ -23,6 +23,9 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 
+/**
+ * Triggers {@link ApplicationMgtListener} listeners registered for application management operations.
+ */
 public class DefaultApplicationResourceMgtListener implements ApplicationResourceManagementListener {
 
     public static final Log log = LogFactory.getLog(DefaultApplicationResourceMgtListener.class);
@@ -107,8 +110,8 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Application cannot be found for the resourceId:" + applicationResourceId +
-                        " in tenantDomain:" + tenantDomain + ". Therefore not triggering the " +
+                log.debug("Application cannot be found for the resourceId: " + applicationResourceId +
+                        " in tenantDomain: " + tenantDomain + ". Therefore not triggering the " +
                         "doPreDeleteApplication() of ApplicationMgtListeners.");
             }
         }
@@ -117,14 +120,16 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     }
 
     @Override
-    public boolean doPostDeleteApplicationByResourceId(String applicationResourceId,
+    public boolean doPostDeleteApplicationByResourceId(ServiceProvider deletedApplication,
+                                                       String applicationResourceId,
                                                        String tenantDomain,
                                                        String userPerformingAction) throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()
-                    && !listener.doPostDeleteApplication(applicationName, tenantDomain, userPerformingAction)) {
+                    && !listener.doPostDeleteApplication(applicationName, tenantDomain, userPerformingAction)
+                    && !listener.doPostDeleteApplication(deletedApplication, tenantDomain, userPerformingAction)) {
                 return false;
             }
         }

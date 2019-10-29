@@ -2097,8 +2097,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider getApplicationByResourceId(String resourceId,
-                                                  String tenantDomain) throws IdentityApplicationManagementException {
+    public ServiceProvider getApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
@@ -2125,9 +2125,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationByResourceId(String resourceId,
-                                              String tenantDomain,
-                                              ServiceProvider updatedApp) throws IdentityApplicationManagementException {
+    public void updateApplicationByResourceId(String resourceId, String tenantDomain, ServiceProvider updatedApp)
+            throws IdentityApplicationManagementException {
 
         String userUpdatingTheApp = getUserPerformingAction();
         try {
@@ -2244,10 +2243,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
+        ServiceProvider application;
         try {
             startTenantFlow(tenantDomain);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-            ServiceProvider application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
+            application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
             if (application != null) {
                 String applicationName = application.getApplicationName();
 
@@ -2287,7 +2287,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable() &&
-                    !listener.doPostDeleteApplicationByResourceId(resourceId, tenantDomain, username)) {
+                    !listener.doPostDeleteApplicationByResourceId(application, resourceId, tenantDomain, username)) {
                 return;
             }
         }

@@ -342,8 +342,8 @@ CREATE TABLE SP_APP (
             IS_SAAS_APP CHAR(1) DEFAULT '0',
             IS_DUMB_MODE CHAR(1) DEFAULT '0',
             UUID VARCHAR (45),
-	        IMAGE_URL VARCHAR (1024),
-	        LOGIN_URL VARCHAR (1024),
+            IMAGE_URL VARCHAR (1024),
+            LOGIN_URL VARCHAR (1024),
 
             PRIMARY KEY (ID))
 /

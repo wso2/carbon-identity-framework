@@ -1953,8 +1953,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
 
     @Override
-    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws
-            IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter)
+            throws IdentityApplicationManagementException {
 
         validateRequestedPageNumber(pageNumber);
 
@@ -1965,8 +1965,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit) throws
-            IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String filter, int offset, int limit)
+            throws IdentityApplicationManagementException {
 
         validateAttributesForPagination(offset, limit);
 
@@ -4435,7 +4435,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Getting application basic information for applicationResourceId: " + resourceId
+            log.debug("Getting application basic information for resourceId: " + resourceId
                     + " in tenantDomain: " + tenantDomain);
         }
 
@@ -4453,8 +4453,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             }
         } catch (SQLException e) {
-            String message = "Error while getting application basic information for resourceId:%s in " +
-                    "tenantDomain:%s";
+            String message = "Error while getting application basic information for resourceId: %s in " +
+                    "tenantDomain: %s";
             throw new IdentityApplicationManagementException(String.format(message, resourceId, tenantDomain), e);
         }
 
@@ -4469,14 +4469,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         // Before calling update we set the appId to the application
         application.setApplicationID(applicationBasicInfo.getApplicationId());
 
-        String applicationResourceId = applicationBasicInfo.getApplicationResourceId();
-        application.setApplicationResourceId(applicationResourceId);
+        String resourceId = applicationBasicInfo.getApplicationResourceId();
+        application.setApplicationResourceId(resourceId);
 
         try {
             updateApplication(application, tenantDomain);
-        } catch(IdentityApplicationManagementException ex) {
-            // Rollback on failure. TODO: do we need this..
-            deleteApplicationByResourceId(applicationResourceId, tenantDomain);
+        } catch (IdentityApplicationManagementException ex) {
+            log.error("Error while updating the application with resourceId: " + resourceId
+                    + " in tenantDomain: " + tenantDomain + " during application creation. " +
+                    "Rolling back by deleting the partially created application information.");
+            deleteApplicationByResourceId(resourceId, tenantDomain);
         }
 
         return getApplicationByResourceId(applicationBasicInfo.getApplicationResourceId(), tenantDomain);
@@ -4501,7 +4503,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                               String tenantDomain) throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Deleting Application with appResourceId:" + resourceId + " in tenantDomain:" + tenantDomain);
+            log.debug("Deleting Application with resourceId: " + resourceId + " in tenantDomain: " + tenantDomain);
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
@@ -4523,14 +4525,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             } else {
                 if (log.isDebugEnabled()) {
-                    String msg = "Trying to delete a non-existing application with appResourceId:%s in " +
-                            "tenantDomain:%s.";
+                    String msg = "Trying to delete a non-existing application with resourceId: %s in " +
+                            "tenantDomain: %s.";
                     log.debug(String.format(msg, resourceId, tenantDomain));
                 }
             }
 
         } catch (SQLException e) {
-            String msg = "Error occurred while deleting application with applicationResourceId:%s in tenantDomain:%s.";
+            String msg = "Error occurred while deleting application with resourceId: %s in tenantDomain: %s.";
             throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain));
         }
     }
@@ -4591,7 +4593,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
 
         } catch (SQLException e) {
-            String msg = "Error while retrieving the application id for resourceId:%s in tenantDomain:%s";
+            String msg = "Error while retrieving the application id for resourceId: %s in tenantDomain:  %s";
             throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain), e);
         }
 
@@ -4616,7 +4618,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Getting application basic information for applicationResourceId: " + appName
+            log.debug("Getting application basic information for resourceId: " + appName
                     + " in tenantDomain: " + tenantDomain);
         }
 
@@ -4633,8 +4635,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 }
             }
         } catch (SQLException e) {
-            String message = "Error while getting application basic information for appName:%s in " +
-                    "tenantDomain:%s";
+            String message = "Error while getting application basic information for appName: %s in " +
+                    "tenantDomain:  %s";
             throw new IdentityApplicationManagementException(String.format(message, appName, tenantDomain), e);
         }
 
@@ -4644,13 +4646,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private ApplicationBasicInfo persistBasicAppInfo(ServiceProvider serviceProvider,
                                                      String tenantDomain) throws IdentityApplicationManagementException {
 
-        // get logged-in users tenant identifier.
-        int tenantID = MultitenantConstants.INVALID_TENANT_ID;
-
-        if (tenantDomain != null) {
-            tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
-        }
-
+        int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         String qualifiedUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
         if (ApplicationConstants.LOCAL_SP.equals(serviceProvider.getApplicationName())) {
             qualifiedUsername = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
