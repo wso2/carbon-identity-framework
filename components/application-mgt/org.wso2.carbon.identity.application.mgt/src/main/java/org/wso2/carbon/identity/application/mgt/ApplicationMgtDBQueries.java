@@ -149,7 +149,7 @@ public class ApplicationMgtDBQueries {
                                                                  "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
                                                                  "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                  "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, " +
-                                                                 "SUBJECT_CLAIM_URI, IS_SAAS_APP " +
+                                                                 "SUBJECT_CLAIM_URI, IS_SAAS_APP, UUID, IMAGE_URL, LOGIN_URL " +
                                                                  "FROM SP_APP WHERE APP_NAME " +
                                                                  "= ? AND TENANT_ID= ?";
 

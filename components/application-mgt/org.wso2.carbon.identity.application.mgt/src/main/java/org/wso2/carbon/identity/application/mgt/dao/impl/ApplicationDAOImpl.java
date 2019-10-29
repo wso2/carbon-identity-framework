@@ -1889,8 +1889,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             if (basicAppDataResultSet.next()) {
                 serviceProvider = new ServiceProvider();
                 serviceProvider.setApplicationID(basicAppDataResultSet.getInt(1));
+                serviceProvider.setApplicationResourceId(basicAppDataResultSet.getString(ApplicationTableColumns.UUID));
                 serviceProvider.setApplicationName(basicAppDataResultSet.getString(3));
                 serviceProvider.setDescription(basicAppDataResultSet.getString(6));
+                serviceProvider.setImageUrl(basicAppDataResultSet.getString(ApplicationTableColumns.IMAGE_URL));
+                serviceProvider.setLoginUrl(basicAppDataResultSet.getString(ApplicationTableColumns.LOGIN_URL));
 
                 String tenantDomain;
                 try {
