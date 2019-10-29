@@ -1009,12 +1009,12 @@
     }
 
     String signAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
+    if (!(isAuthnRequestSigned || isLogoutRequestSigned || isArtifactResolveReqSigned)) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
     String digestAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
+    if (!(isAuthnRequestSigned || isLogoutRequestSigned || isArtifactResolveReqSigned)) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
