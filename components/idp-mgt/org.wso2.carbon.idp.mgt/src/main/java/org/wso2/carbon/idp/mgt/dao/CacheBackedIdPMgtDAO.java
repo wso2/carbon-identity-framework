@@ -30,6 +30,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPCacheByName;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheEntry;
 import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
+import org.wso2.carbon.idp.mgt.util.ExpressionNode;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
@@ -84,6 +85,39 @@ public class CacheBackedIdPMgtDAO {
 		return idPMgtDAO.getIdPsSearch(dbConnection, tenantId, tenantDomain,
 				filter);
 	}
+
+    /**
+     * Get all basic identity provider information for a matching filter.
+     *
+     * @param tenantId             tenant Id of the identity provider.
+     * @param expressionConditions filter value list for IdP search.
+     * @param limit                limit per page.
+     * @param offset               offset value.
+     * @param sortOrder            order of IdP ASC/DESC.
+     * @param sortBy               the attribute need to sort.
+     * @return Identity Provider's basic information array.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     */
+    public List<IdentityProvider> getIdPsSearch(int tenantId, List<ExpressionNode> expressionConditions, int limit,
+            int offset, String sortOrder, String sortBy) throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getIdPsSearch(tenantId, expressionConditions, limit, offset, sortOrder, sortBy);
+    }
+
+    /**
+     * Get number of IdP count for a matching filter.
+     *
+     * @param tenantId             Tenant Id of the identity provider.
+     * @param expressionConditions filter value list for IdP search.
+     * @return number of IdP count for a given filter.
+     * @throws IdentityProviderManagementException Error when getting count of Identity Providers.
+     */
+    public int getCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expressionConditions)
+            throws IdentityProviderManagementException {
+
+        return idPMgtDAO.getCountOfFilteredIdPs(tenantId, expressionConditions);
+    }
+
     /**
      * @param dbConnection
      * @param idPName
