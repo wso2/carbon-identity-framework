@@ -27,6 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.configuration.mgt.endpoint</artifactId>
     <packaging>war</packaging>
+    <version>5.14.107</version>
     <name>WSO2 Carbon - Configuration Management Endpoint</name>
     <description>Identity Configuration Management Endpoint</description>
     <url>http://wso2.org</url>

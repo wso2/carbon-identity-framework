@@ -59,6 +59,10 @@ public class ConfigurationConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_NAME = "FILE_NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
     public static final String FILE = "file";
+    public static final String SERVER_API_PATH_COMPONENT = "/api/identity/config-mgt/v1.0";
+    public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";
+    public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
+
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),

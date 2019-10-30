@@ -17,8 +17,12 @@
 package org.wso2.carbon.identity.configuration.mgt.endpoint.util;
 
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.ext.search.PrimitiveStatement;
 import org.apache.cxf.jaxrs.ext.search.SearchCondition;
+import org.apache.cxf.jaxrs.impl.UriInfoImpl;
+import org.apache.cxf.message.Message;
+import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
@@ -36,7 +40,6 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
-import org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.AttributeDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.ErrorDTO;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.dto.LinkDTO;
@@ -54,10 +57,12 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.NotFoundExc
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ATTRIBUTE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS;
@@ -71,11 +76,17 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.SERVER_API_PATH_COMPONENT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_CONTEXT_PATH_COMPONENT;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.buildURIForBody;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getTenantDomainFromContext;
 
 /**
  * Utility functions required for configuration endpoint
  */
 public class ConfigurationEndpointUtils {
+
+    private static Log log = LogFactory.getLog(ConfigurationEndpointUtils.class);
 
     public static ConfigurationManager getConfigurationManager() {
 
@@ -110,7 +121,7 @@ public class ConfigurationEndpointUtils {
         LinkDTO linkDTO = new LinkDTO();
         List<LinkDTO> linkDTOList = new ArrayList<>();
         linkDTO.setRel(FILE);
-        linkDTO.setHref(getFileURI(resource.getResourceName(), resource.getResourceType()).toString());
+        linkDTO.setHref(getFileURI(resource.getResourceName(), resource.getResourceType()));
         linkDTOList.add(linkDTO);
         return linkDTOList;
     }
@@ -141,7 +152,7 @@ public class ConfigurationEndpointUtils {
     public static ResourceFileDTO getResourceFileDTO(ResourceFile resourceFile) {
 
         ResourceFileDTO resourceFileDTO = new ResourceFileDTO();
-        resourceFileDTO.setFile(resourceFile.getPath());
+        resourceFileDTO.setFile(buildURIForBody(resourceFile.getPath()));
         resourceFileDTO.setName(resourceFile.getName());
         return resourceFileDTO;
     }
@@ -395,29 +406,22 @@ public class ConfigurationEndpointUtils {
         List<LinkDTO> linkDTOList = new ArrayList<>();
         for (Resource resource : resources) {
             LinkDTO linkDTO = new LinkDTO();
-            linkDTO.setHref(getResourceURI(resourceType, resource).toString());
+            linkDTO.setHref(getResourceURI(resourceType, resource));
             linkDTO.setRel("resource");
             linkDTOList.add(linkDTO);
         }
         return linkDTOList;
     }
 
-    private static URI getResourceURI(String resourceType, Resource resource) {
+    private static String getResourceURI(String resourceType, Resource resource) {
 
-        return IdentityUtil
-                .buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName());
+        return buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName());
     }
 
-    private static URI getFileURI(String fileId, String resourceName, String resourceType) {
 
-        return IdentityUtil
-                .buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE + '/' + fileId);
+    private static String getFileURI(String resourceName, String resourceType) {
 
-    }
-
-    private static URI getFileURI(String resourceName, String resourceType) {
-
-        return IdentityUtil.buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE);
+        return buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE);
 
     }
 
@@ -441,5 +445,35 @@ public class ConfigurationEndpointUtils {
         errorDTO.setDescription("Operation is not supported.");
 
         return errorDTO;
+    }
+
+    /**
+     * Build the complete URI prepending the user API context without the proxy context path, to the endpoint.
+     * Ex: https://localhost:9443/t/<tenant-domain>/api/users/<endpoint>
+     *
+     * @param endpoint relative endpoint path.
+     * @return Fully qualified and complete URI.
+     */
+    public static URI buildURIForHeader(String endpoint) {
+
+        String tenantQualifiedRelativePath =
+                String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
+        String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, false, true);
+
+        URI loc = URI.create(url);
+        if (!loc.isAbsolute()) {
+            Message currentMessage = PhaseInterceptorChain.getCurrentMessage();
+            if (currentMessage != null) {
+                UriInfo ui = new UriInfoImpl(currentMessage.getExchange().getInMessage(), null);
+                try {
+                    return new URI(ui.getBaseUri().getScheme(), ui.getBaseUri().getAuthority(), url, null, null);
+                } catch (URISyntaxException e) {
+                    log.error("Server encountered an error while building the location URL with scheme: " +
+                            ui.getBaseUri().getScheme() + ", authority: " + ui.getBaseUri().getAuthority() +
+                            ", url: " + url, e);
+                }
+            }
+        }
+        return loc;
     }
 }

@@ -568,10 +568,6 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         when(IdentityUtil.getProperty(any(String.class))).thenReturn("4194304");
         when(IdentityUtil.getEndpointURIPath(any(String.class), anyBoolean(), anyBoolean())).thenReturn(
                 "/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8");
-        when(IdentityUtil.buildURIForHeader(any(String.class))).thenReturn(new URI("https://localhost:9443/t/bob"
-                + ".com/api/identity/config-mgt/v1.0/resource/publisher/EmailPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8"));
-        when(IdentityUtil.buildURIForBody(any(String.class))).thenReturn(
-                new URI("/t/bob.com/api/identity/config-mgt/v1.0/resource/file/publisher/SMSPublisher/9e038218-8e99-4dae-bf83-a78f5dcd73a8"));
         ConfigurationManagerComponentDataHolder.setUseCreatedTime(true);
         ConfigurationManagerConfigurationHolder configurationHolder = new ConfigurationManagerConfigurationHolder();
         ConfigurationDAO configurationDAO = new ConfigurationDAOImpl();

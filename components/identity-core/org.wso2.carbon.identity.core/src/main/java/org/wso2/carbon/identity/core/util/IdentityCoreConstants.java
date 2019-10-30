@@ -28,10 +28,6 @@ public class IdentityCoreConstants {
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
 
-    public static final String SERVER_API_PATH_COMPONENT = "/api/identity/config-mgt/v1.0";
-    public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";
-    public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
-
     public static final String PROXY_CONTEXT_PATH = "ProxyContextPath";
     public static final int DEFAULT_HTTPS_PORT = 443;
     public static final String UTF_8 = "UTF-8";
