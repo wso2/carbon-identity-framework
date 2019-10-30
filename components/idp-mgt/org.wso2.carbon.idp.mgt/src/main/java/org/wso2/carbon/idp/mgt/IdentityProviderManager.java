@@ -1058,7 +1058,7 @@ public class IdentityProviderManager implements IdpManager {
             return result;
         }
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-        validateAndSetParameters(limit, offset, sortOrder, sortBy, result);
+        setParameters(limit, offset, sortOrder, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setIdpCount(getTotalIdPCount(expressionNodes, tenantId));
         result.setIdpList(dao.getIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
@@ -1113,40 +1113,30 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Validates and Set the passing parameters as result.
+     * Set the passing parameters as result.
      *
-     * @param limit     Page limit.
+     * @param limit     page limit.
      * @param offset    offset value.
-     * @param sortOrder order of IdP ASC/DESC.
+     * @param sortOrder order of IdP(ASC/DESC).
      * @param sortBy    the column value need to sort.
      * @param result    result object.
      */
-    private void validateAndSetParameters(int limit, int offset, String sortOrder, String sortBy,
-            IdpSearchResult result) {
+    private void setParameters(int limit, int offset, String sortOrder, String sortBy, IdpSearchResult result) {
 
-        //check offset
-        if (offset < 0) {
-            offset = 0;
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid offset applied. Therefore we set the default offset value as 0.");
-            }
-        }
-        //check limit
-        if (limit > IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE) {
-            try {
-                String itemsPerPagePropertyValue = ServerConfiguration.getInstance()
-                        .getFirstProperty(IdPManagementConstants.ITEMS_PER_PAGE_PROPERTY);
-                if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
-                    limit = Integer.parseInt(itemsPerPagePropertyValue);
-                } else {
-                    limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
-                }
-            } catch (NumberFormatException e) {
-                limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
-                log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
-            }
-        }
-        //check sortBy
+        result.setLimit(validateLimit(limit));
+        result.setOffSet(validateOffset(offset));
+        result.setSortBy(validateSortBy(sortBy));
+        result.setSortOrder(validateSortOrder(sortOrder));
+    }
+
+    /**
+     * Validate sortBy.
+     *
+     * @param sortBy sortBy attribute.
+     * @return Validated sortOrder and sortBy.
+     */
+    private String validateSortBy(String sortBy) {
+
         if (StringUtils.isBlank(sortBy)) {
             sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
             if (log.isDebugEnabled()) {
@@ -1164,7 +1154,17 @@ public class IdentityProviderManager implements IdpManager {
                 log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute.");
             }
         }
-        //check sortOrder
+        return sortBy;
+    }
+
+    /**
+     * Validate sortOrder.
+     *
+     * @param sortOrder sortOrder ASC/DESC.
+     * @return Validated sortOrder and sortBy.
+     */
+    private String validateSortOrder(String sortOrder) {
+
         if (StringUtils.isBlank(sortOrder)) {
             sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
             if (log.isDebugEnabled()) {
@@ -1178,12 +1178,51 @@ public class IdentityProviderManager implements IdpManager {
                 log.debug("sortOrder is incorrect. Therefore we set the default sortOrder value as ASC.");
             }
         }
-        result.setLimit(limit);
-        result.setOffSet(offset);
-        result.setSortBy(sortBy);
-        result.setSortOrder(sortOrder);
+        return sortOrder;
     }
-    
+
+    /**
+     * Validate limit.
+     *
+     * @param limit given limit value.
+     * @return validated limit and offset value.
+     */
+    private int validateLimit(int limit) {
+
+        if (limit > IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE) {
+            try {
+                String itemsPerPagePropertyValue = ServerConfiguration.getInstance()
+                        .getFirstProperty(IdPManagementConstants.ITEMS_PER_PAGE_PROPERTY);
+                if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
+                    limit = Integer.parseInt(itemsPerPagePropertyValue);
+                } else {
+                    limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                }
+            } catch (NumberFormatException e) {
+                limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
+            }
+        }
+        return limit;
+    }
+
+    /**
+     * Validate offset.
+     *
+     * @param offset given offset value.
+     * @return validated limit and offset value.
+     */
+    private int validateOffset(int offset) {
+
+        if (offset < 0) {
+            offset = 0;
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid offset applied. Therefore we set the default offset value as 0.");
+            }
+        }
+        return offset;
+    }
+
     /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *

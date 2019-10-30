@@ -47,7 +47,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.object.ExpressionNode;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.idp.mgt.object.SqlBuilder;
+import org.wso2.carbon.idp.mgt.object.FilterQueryBuilder;
 import org.wso2.carbon.utils.DBUtils;
 
 import java.io.BufferedReader;
@@ -276,131 +276,163 @@ public class IdPManagementDAO {
     List<IdentityProvider> getIdPsSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
             String sortOrder, String sortBy) throws IdentityProviderManagementException {
 
-        List<IdentityProvider> identityProviderList = new ArrayList<>();
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        buildFilterQuery(expressionNode, filterQueryBuilder);
         String sortedOrder = sortBy + " " + sortOrder;
-        String sqlQuery;
-        String sqlTail;
-        PreparedStatement prepStmt;
-        ResultSet rs;
-        SqlBuilder sqlBuilder = new SqlBuilder();
-        buildFilterQuery(expressionNode, sqlBuilder);
-        Map<Integer, String> prepareStatements = sqlBuilder.getPrepareStatement();
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false)) {
-            String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
-                sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL;
-                sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL_TAIL, sortedOrder);
-                sqlQuery = sqlQuery + sqlBuilder.getFilterQuery() + sqlTail;
-                prepStmt = dbConnection.prepareStatement(sqlQuery);
-                for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
-                    prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
-                }
-                prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 2, offset);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 3, limit);
-            } else if (databaseProductName.contains("Oracle")) {
-                sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE, sortedOrder);
-                sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE_TAIL;
-                sqlQuery = sqlQuery + sqlBuilder.getFilterQuery() + sqlTail;
-                prepStmt = dbConnection.prepareStatement(sqlQuery);
-                for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
-                    prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
-                }
-                prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 2, offset + limit);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 3, offset);
-            } else if (databaseProductName.contains("Microsoft")) {
-                sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
-                sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL_TAIL, sortedOrder);
-                sqlQuery = sqlQuery + sqlBuilder.getFilterQuery() + sqlTail;
-                prepStmt = dbConnection.prepareStatement(sqlQuery);
-                for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
-                    prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
-                }
-                prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 2, offset);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 3, limit);
-            } else if (databaseProductName.contains("PostgreSQL")) {
-                sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL;
-                sqlTail = String
-                        .format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL_TAIL, sortedOrder);
-                sqlQuery = sqlQuery + sqlBuilder.getFilterQuery() + sqlTail;
-                prepStmt = dbConnection.prepareStatement(sqlQuery);
-                for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
-                    prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
-                }
-                prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 2, limit);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 3, offset);
-            } else if (databaseProductName.contains("DB2")) {
-                sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL;
-                sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL_TAIL, sortedOrder);
-                sqlQuery = sqlQuery + sqlBuilder.getFilterQuery() + sqlTail;
-                prepStmt = dbConnection.prepareStatement(sqlQuery);
-                for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
-                    prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
-                }
-                prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 2, limit);
-                prepStmt.setInt(prepareStatements.entrySet().size() + 3, offset);
-            } else if (databaseProductName.contains("INFORMIX")) {
-                sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX;
-                sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX_TAIL, sortedOrder);
-                sqlQuery = sqlQuery + sqlBuilder.getFilterQuery() + sqlTail;
-                prepStmt = dbConnection.prepareStatement(sqlQuery);
-                prepStmt.setInt(1, offset);
-                prepStmt.setInt(2, limit);
-                for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
-                    prepStmt.setString(prepareStatement.getKey() + 2, prepareStatement.getValue());
-                }
-                prepStmt.setInt(prepareStatements.entrySet().size() + 3, tenantId);
-            } else {
-                log.error("Error while loading Identity Provider from DB: Database driver could not be identified or "
-                        + "not supported.");
-                throw new IdentityProviderManagementException("Error while loading Identity Provider from DB: "
-                        + "Database driver could not be identified or not supported.");
-            }
-            rs = prepStmt.executeQuery();
-            while (rs.next()) {
-                IdentityProvider identityProvider = new IdentityProvider();
-                identityProvider.setIdentityProviderName(rs.getString(1));
-                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
-                    identityProvider.setPrimary(true);
-                } else {
-                    identityProvider.setPrimary(false);
-                }
-                identityProvider.setHomeRealmId(rs.getString("HOME_REALM_ID"));
-                identityProvider.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
-                // IS_FEDERATION_HUB_IDP
-                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_FEDERATION_HUB"))) {
-                    identityProvider.setFederationHub(false);
-                }
-                // IS_LOCAL_CLAIM_DIALECT
-                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_LOCAL_CLAIM_DIALECT"))) {
-                    if (identityProvider.getClaimConfig() == null) {
-                        identityProvider.setClaimConfig(new ClaimConfig());
-                    }
-                    identityProvider.getClaimConfig().setLocalClaimDialect(true);
-                }
-                // IS_ENABLE
-                if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_ENABLED"))) {
-                    identityProvider.setEnable(true);
-                } else {
-                    identityProvider.setEnable(false);
-                }
-                identityProvider.setDisplayName(rs.getString("DISPLAY_NAME"));
-                if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
-                        .equals(identityProvider.getIdentityProviderName())) {
-                    identityProviderList.add(identityProvider);
-                }
-                List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
-                        Integer.parseInt(rs.getString("ID")));
-                identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
-            }
-            return identityProviderList;
+            ResultSet resultSet = getIdpQueryResultSet(dbConnection, sortedOrder, tenantId, offset, limit,
+                    filterQueryBuilder);
+            return populateIdentityProviderList(resultSet, dbConnection);
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider.", e);
         }
+    }
+
+    /**
+     * Get the result set.
+     *
+     * @param dbConnection       database connection.
+     * @param sortedOrder        Sort order.
+     * @param tenantId           tenant Id of the identity provider.
+     * @param offset             offset value.
+     * @param limit              limit per page.
+     * @param filterQueryBuilder filter query buider object.
+     * @return result set of the query.
+     * @throws SQLException                        Database Exception.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     */
+    private ResultSet getIdpQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId, int offset,
+            int limit, FilterQueryBuilder filterQueryBuilder) throws SQLException, IdentityProviderManagementException {
+
+        String sqlQuery;
+        String sqlTail;
+        PreparedStatement prepStmt;
+        Map<Integer, String> prepareStatements = filterQueryBuilder.getFilterAttributeValue();
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 2, offset);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 3, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE, sortedOrder);
+            sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE_TAIL;
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 2, offset + limit);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 3, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 2, offset);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 3, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 2, limit);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 3, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(prepareStatements.entrySet().size() + 1, tenantId);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 2, limit);
+            prepStmt.setInt(prepareStatements.entrySet().size() + 3, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey() + 2, prepareStatement.getValue());
+            }
+            prepStmt.setInt(prepareStatements.entrySet().size() + 3, tenantId);
+        } else {
+            log.error("Error while loading Identity Provider from DB: Database driver could not be identified or "
+                    + "not supported.");
+            throw new IdentityProviderManagementException("Error while loading Identity Provider from DB: "
+                    + "Database driver could not be identified or not supported.");
+        }
+        return prepStmt.executeQuery();
+    }
+
+    /**
+     * Populate the result set.
+     *
+     * @param resultSet    resultSet.
+     * @param dbConnection database Connection.
+     * @return List of Identity Provider.
+     * @throws SQLException Database Exception.
+     */
+    private List<IdentityProvider> populateIdentityProviderList(ResultSet resultSet, Connection dbConnection)
+            throws SQLException {
+
+        List<IdentityProvider> identityProviderList = new ArrayList<>();
+        while (resultSet.next()) {
+            IdentityProvider identityProvider = new IdentityProvider();
+            identityProvider.setIdentityProviderName(resultSet.getString(1));
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_PRIMARY"))) {
+                identityProvider.setPrimary(true);
+            } else {
+                identityProvider.setPrimary(false);
+            }
+            identityProvider.setHomeRealmId(resultSet.getString("HOME_REALM_ID"));
+            identityProvider.setIdentityProviderDescription(resultSet.getString("DESCRIPTION"));
+            // IS_FEDERATION_HUB_IDP
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_FEDERATION_HUB"))) {
+                identityProvider.setFederationHub(false);
+            }
+            // IS_LOCAL_CLAIM_DIALECT
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_LOCAL_CLAIM_DIALECT"))) {
+                if (identityProvider.getClaimConfig() == null) {
+                    identityProvider.setClaimConfig(new ClaimConfig());
+                }
+                identityProvider.getClaimConfig().setLocalClaimDialect(true);
+            }
+            // IS_ENABLE
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_ENABLED"))) {
+                identityProvider.setEnable(true);
+            } else {
+                identityProvider.setEnable(false);
+            }
+            identityProvider.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+            if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
+                    .equals(identityProvider.getIdentityProviderName())) {
+                identityProviderList.add(identityProvider);
+            }
+            List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
+                    Integer.parseInt(resultSet.getString("ID")));
+            identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
+        }
+        return identityProviderList;
     }
 
     /**
@@ -415,10 +447,10 @@ public class IdPManagementDAO {
             throws IdentityProviderManagementException {
 
         String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL;
-        SqlBuilder sqlBuilder = new SqlBuilder();
-        buildFilterQuery(expressionNode, sqlBuilder);
-        Map<Integer, String> prepareStatements = sqlBuilder.getPrepareStatement();
-        sqlStmt = sqlStmt + sqlBuilder.getFilterQuery() + IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL_TAIL;
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        buildFilterQuery(expressionNode, filterQueryBuilder);
+        Map<Integer, String> prepareStatements = filterQueryBuilder.getFilterAttributeValue();
+        sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() + IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL_TAIL;
         try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
                 PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
             for (Map.Entry<Integer, String> prepareStatement : prepareStatements.entrySet()) {
@@ -438,9 +470,9 @@ public class IdPManagementDAO {
      * Create a sql query and prepared statement for filter.
      *
      * @param expressionNodes list of filters.
-     * @param SqlBuilder      Sql builder object.
+     * @param filterQueryBuilder      Sql builder object.
      */
-    private void buildFilterQuery(List<ExpressionNode> expressionNodes, SqlBuilder SqlBuilder) {
+    private void buildFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder) {
 
         StringBuilder filter = new StringBuilder();
         for (ExpressionNode expressionNode : expressionNodes) {
@@ -461,7 +493,7 @@ public class IdPManagementDAO {
                     break;
                 default:
                     log.debug("Invalid filter attribute name.");
-                    SqlBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+                    filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
                     return;
                 }
                 if ("eq".equals(operation) && "isEnabled".contains(attributeName)) {
@@ -478,26 +510,26 @@ public class IdPManagementDAO {
                     }
                 } else if ("eq".equals(operation) && !("isEnabled".contains(attributeName))) {
                     filter.append(attributeName).append(" like ? AND ");
-                    SqlBuilder.setPreparedStatement(value);
+                    filterQueryBuilder.setFilterAttributeValue(value);
                 } else if ("sw".equals(operation)) {
                     filter.append(attributeName).append(" like ? AND ");
-                    SqlBuilder.setPreparedStatement(value + "%");
+                    filterQueryBuilder.setFilterAttributeValue(value + "%");
                 } else if ("ew".equals(operation)) {
                     filter.append(attributeName).append(" like ? AND ");
-                    SqlBuilder.setPreparedStatement("%" + value);
+                    filterQueryBuilder.setFilterAttributeValue("%" + value);
                 } else if ("co".equals(operation)) {
                     filter.append(attributeName).append(" like ? AND ");
-                    SqlBuilder.setPreparedStatement("%" + value + "%");
+                    filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                 } else {
                     log.debug("Invalid filter value");
-                    SqlBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+                    filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
                 }
             }
         }
         if (StringUtils.isBlank(filter.toString())) {
-            SqlBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+            filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
         } else {
-            SqlBuilder.setFilterQuery(filter.toString());
+            filterQueryBuilder.setFilterQuery(filter.toString());
         }
     }
 

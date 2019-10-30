@@ -17,23 +17,23 @@
  */
 package org.wso2.carbon.idp.mgt.object;
 
-        import java.util.HashMap;
-        import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Create SQL builder.
  */
-public class SqlBuilder {
+public class FilterQueryBuilder {
 
     private Map<Integer, String> stringParameters = new HashMap<>();
     private int count = 1;
     private String filter;
 
-    public Map<Integer, String> getPrepareStatement() {
+    public Map<Integer, String> getFilterAttributeValue() {
         return stringParameters;
     }
 
-    public void setPreparedStatement(String value) {
+    public void setFilterAttributeValue(String value) {
         stringParameters.put(count, value);
         count++;
     }
