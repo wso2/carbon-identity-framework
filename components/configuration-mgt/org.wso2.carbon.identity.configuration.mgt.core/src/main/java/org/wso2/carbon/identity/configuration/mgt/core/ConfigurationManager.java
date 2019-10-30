@@ -193,7 +193,6 @@ public interface ConfigurationManager {
     void deleteAttribute(String resourceTypeName, String resourceName, String attributeKey)
             throws ConfigurationManagementException;
 
-
     /**
      * This API is used to add the given file.
      *

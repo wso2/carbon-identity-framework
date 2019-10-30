@@ -770,7 +770,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             }
             throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceName);
         }
-
         if (log.isDebugEnabled()) {
             log.debug("Files for the resource: " + resourceName + " retrieved successfully.");
         }
@@ -789,7 +788,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             }
             throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceTypeName);
         }
-
         if (log.isDebugEnabled()) {
             log.debug("Files for the resource type: " + resourceTypeName + " retrieved successfully.");
         }
@@ -890,7 +888,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
                             + fileName;
             throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
         }
-
         if (fileStream == null) {
             throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream: null");
         }

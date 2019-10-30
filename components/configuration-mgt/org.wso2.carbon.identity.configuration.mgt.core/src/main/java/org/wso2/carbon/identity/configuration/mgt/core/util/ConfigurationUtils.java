@@ -199,5 +199,4 @@ public class ConfigurationUtils {
         return tenantDomain;
     }
 
-
 }

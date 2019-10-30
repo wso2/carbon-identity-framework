@@ -1045,7 +1045,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
 
-                // Get resource id for the deleting file
+                //Get resource id for the deleting file.
                 String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
                         (resultSet, rowNumber) -> resultSet.getString("RESOURCE_ID"),
                         preparedStatement -> {
@@ -1053,7 +1053,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement.setString(2, resourceName);
                             preparedStatement.setString(3, resourceType);
                         });
-
                 template.executeUpdate(DELETE_FILE_SQL, (
                         preparedStatement -> preparedStatement.setString(1, fileId)
                 ));
@@ -1183,11 +1182,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
-    private static <E extends Throwable> void throwAsUnchecked(Exception exception) throws E {
-
-        throw (E) exception;
-    }
-
+    /**
+     * Get Attributes for the {@link Resource}.
+     *
+     * @param resourceId      Id of the {@link Resource}.
+     * @return A list of {@link Attribute} for the given resource.
+     */
     private List<Attribute> getAttributesByResourceId(String resourceId)
             throws ConfigurationManagementServerException {
 

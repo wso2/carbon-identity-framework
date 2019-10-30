@@ -413,16 +413,30 @@ public class ConfigurationEndpointUtils {
         return linkDTOList;
     }
 
+    /**
+     * Creates the Resource URI using the parameters.
+     *
+     * @param resourceType resourceType name.
+     * @param resource resource name.
+     * @return URI of the resource example: /t/<tenant-domain>/api/identity/config-mgt/v1
+     * .0/resource/<resource-type-name>/<resource-name>
+     */
     private static String getResourceURI(String resourceType, Resource resource) {
 
         return buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resource.getResourceName());
     }
 
-
+    /**
+     * Creates the URI of the files that belongs to resource using the parameters.
+     *
+     * @param resourceType resourceType name.
+     * @param resourceName resource name.
+     * @return URI of the files example: /t/<tenant-domain>/api/identity/config-mgt/v1
+     * .0/resource/<resource-type-name>/<resource-name>/file
+     */
     private static String getFileURI(String resourceName, String resourceType) {
 
         return buildURIForBody(RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE);
-
     }
 
     private static void logDebug(Log log, Throwable throwable) {

@@ -254,7 +254,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
 
         try {
             InputStream fileStream = getConfigurationManager().getFileById(resourceType,resourceName,fileId);
-            // TODO: 2019-10-28 pending on confirmation octet stream media type
             return Response.ok().type(MediaType.APPLICATION_OCTET_STREAM).entity(fileStream).build();
         } catch (ConfigurationManagementClientException e) {
             return handleBadRequestResponse(e, LOG);
@@ -264,7 +263,6 @@ public class ResourceApiServiceImpl extends ResourceApiService {
             return handleUnexpectedServerError(throwable, LOG);
         }
     }
-
 
     private URI getResourceURI(String resourceType, Resource resource) throws URISyntaxException {
 
