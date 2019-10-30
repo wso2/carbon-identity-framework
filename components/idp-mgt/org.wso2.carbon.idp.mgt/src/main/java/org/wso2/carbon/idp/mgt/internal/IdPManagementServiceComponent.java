@@ -213,16 +213,16 @@ public class IdPManagementServiceComponent {
                 log.error("Identity Provider Management - Error while registering Audit Logger");
             }
 
-            ServiceRegistration extendedIdPMgtListenerSR = bundleCtx.registerService(IdentityProviderMgtListener.class
+            ServiceRegistration idPNameResolverListener = bundleCtx.registerService(IdentityProviderMgtListener.class
                             .getName(), new IdentityProviderNameResolverListener(), null);
 
-            if (extendedIdPMgtListenerSR != null) {
+            if (idPNameResolverListener != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Extended Identity Provider Management Listener registered.");
+                    log.debug("Identity Provider Name Resolver Listener registered.");
                 }
             } else {
-                log.error("Identity Provider Management - Error while registering Extended Identity Provider " +
-                        "Management Listener.");
+                log.error("Identity Provider Management - Error while registering Identity Provider Name Resolver " +
+                        "Listener.");
             }
             setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
 

@@ -206,7 +206,7 @@ public class IdPManagementUtil {
                                                                                           error, String data) {
 
         String message = includeData(error, data);
-        return new IdentityProviderManagementClientException(message, error.getCode());
+        return new IdentityProviderManagementClientException(error.getCode(), message);
     }
 
     public static IdentityProviderManagementClientException handleClientException(IdPManagementConstants.ErrorMessage
@@ -214,7 +214,7 @@ public class IdPManagementUtil {
                                                                                   Throwable e) {
 
         String message = includeData(error, data);
-        return new IdentityProviderManagementClientException(message, error.getCode(), e);
+        return new IdentityProviderManagementClientException(error.getCode(), message, e);
     }
 
     /**
@@ -229,14 +229,14 @@ public class IdPManagementUtil {
                                                                                       error, String data) {
 
         String message = includeData(error, data);
-        return new IdentityProviderManagementServerException(message, error.getCode());
+        return new IdentityProviderManagementServerException(error.getCode(), message);
     }
 
     public static IdentityProviderManagementServerException handleServerException(IdPManagementConstants.ErrorMessage error,
                                                                                String data, Throwable e) {
 
         String message = includeData(error, data);
-        return new IdentityProviderManagementServerException(message, error.getCode(), e);
+        return new IdentityProviderManagementServerException(error.getCode(), message, e);
     }
 
     private static String includeData(IdPManagementConstants.ErrorMessage error, String data) {

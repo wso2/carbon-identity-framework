@@ -165,20 +165,6 @@ public interface IdpManager {
     }
 
     /**
-     * Returns extended IDP with given IDP resource ID.
-     *
-     * @param resourceId    Resource ID of the IDP.
-     * @param tenantDomain  Tenant domain of the IDP.
-     * @return Identity provider with given resource ID.
-     * @throws IdentityProviderManagementException IdentityProviderManagementException.
-     */
-    default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain) throws
-            IdentityProviderManagementException {
-
-        return null;
-    }
-
-    /**
      * @param property     IDP authenticator property (E.g.: IdPEntityId)
      * @param value        Value associated with given Property
      * @param tenantDomain

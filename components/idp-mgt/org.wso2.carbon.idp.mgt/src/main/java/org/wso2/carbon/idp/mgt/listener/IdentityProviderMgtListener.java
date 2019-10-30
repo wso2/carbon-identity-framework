@@ -137,12 +137,14 @@ public interface IdentityProviderMgtListener {
     /**
      * Define any additional actions after deleting idp
      *
-     * @param resourceId    Resource ID of the idp.
+     * @param resourceId        Resource ID of the idp.
+     * @param identityProvider  Identity Provider.
+     * @param tenantDomain      Tenant domain of IDP.
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException
      */
-    default boolean doPostDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
-            IdentityProviderManagementException {
+    default boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
         return true;
     }
 
@@ -160,8 +162,9 @@ public interface IdentityProviderMgtListener {
     /**
      * Define any additional actions before updating idp
      *
-     * @param resourceId    Resource ID of the idp.
-     * @param identityProvider Updated Identity Provider
+     * @param resourceId        Resource ID of the IDP.
+     * @param identityProvider  Updated Identity Provider.
+     * @param tenantDomain      Tenant domain of IDP.
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException
      */

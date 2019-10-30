@@ -71,8 +71,8 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
         return true;
     }
 
-    public boolean doPostDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
-            IdentityProviderManagementException {
+    public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
         return true;
     }
 

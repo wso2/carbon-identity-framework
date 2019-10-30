@@ -1273,28 +1273,13 @@ public class IdPManagementDAO {
 
             if (rs.next()) {
                 federatedIdp = new IdentityProvider();
-
-                if (StringUtils.isNotEmpty(resourceId)) {
-                    idpId = rs.getInt("ID");
-                    federatedIdp.setId(Integer.toString(idpId));
-                    idPName = rs.getString("NAME");
-                    federatedIdp.setIdentityProviderName(idPName);
-                    federatedIdp.setResourceId(resourceId);
-                    federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
-                } else if (StringUtils.isNotEmpty(idPName)) {
-                    idpId = rs.getInt("ID");
-                    federatedIdp.setId(Integer.toString(idpId));
-                    federatedIdp.setIdentityProviderName(idPName);
-                    federatedIdp.setDisplayName(idPName);
-                    federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
-                    federatedIdp.setResourceId(rs.getString("IDP_ID"));
-                } else {
-                    idPName = rs.getString("NAME");
-                    federatedIdp.setIdentityProviderName(idPName);
-                    federatedIdp.setId(Integer.toString(idpId));
-                    federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
-                    federatedIdp.setResourceId(rs.getString("IDP_ID"));
-                }
+                idpId = rs.getInt("ID");
+                federatedIdp.setId(Integer.toString(idpId));
+                idPName = rs.getString("NAME");
+                federatedIdp.setIdentityProviderName(idPName);
+                resourceId = rs.getString("IDP_ID");
+                federatedIdp.setResourceId(resourceId);
+                federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
 
                 if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_PRIMARY"))) {
                     federatedIdp.setPrimary(true);
@@ -1820,7 +1805,7 @@ public class IdPManagementDAO {
     IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection();
+        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
         PreparedStatement prepStmt = null;
         try {
             if (identityProvider.isPrimary()) {

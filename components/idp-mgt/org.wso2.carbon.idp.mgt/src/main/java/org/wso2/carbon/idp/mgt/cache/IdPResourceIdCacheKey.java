@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.common.cache.CacheKey;
  */
 public class IdPResourceIdCacheKey extends CacheKey {
 
-    private static final long serialVersionUID = 8614291529494760436L;
+    private static final long serialVersionUID = 3003445248866024631L;
     private String resourceId;
 
     public IdPResourceIdCacheKey(String resourceId) {

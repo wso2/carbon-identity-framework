@@ -43,33 +43,34 @@ public class IdentityProviderNameResolverListener extends AbstractIdentityProvid
     public boolean doPreDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {
 
-        // get IDP by resourceId
+        // Get IDP by resourceId.
         IdentityProvider idp = dao.getIdPByResourceId(resourceId, IdentityTenantUtil.getTenantId
                 (tenantDomain), tenantDomain);
-        String idpName = idp.getIdentityProviderName();
-        // invoking the pre listeners
-        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreDeleteIdP(idpName, tenantDomain)) {
-                return false;
+        if (idp != null) {
+            String idpName = idp.getIdentityProviderName();
+            // Invoking the pre-delete listeners.
+            Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+            for (IdentityProviderMgtListener listener : listeners) {
+                if (listener.isEnable() && !listener.doPreDeleteIdP(idpName, tenantDomain)) {
+                    return false;
+                }
             }
         }
         return true;
     }
 
-    public boolean doPostDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
-            IdentityProviderManagementException {
+    public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
 
-        // get IDP by resourceId
-        IdentityProvider idp = dao.getIdPByResourceId(resourceId, IdentityTenantUtil.getTenantId
-                (tenantDomain), tenantDomain);
-        String idpName = idp.getIdentityProviderName();
+        if (identityProvider != null) {
+            String idpName = identityProvider.getIdentityProviderName();
 
-        // invoking the post listeners
-        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteIdP(idpName, tenantDomain)) {
-                return false;
+            // Invoking the post-delete listeners.
+            Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+            for (IdentityProviderMgtListener listener : listeners) {
+                if (listener.isEnable() && !listener.doPostDeleteIdP(idpName, tenantDomain)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -80,13 +81,15 @@ public class IdentityProviderNameResolverListener extends AbstractIdentityProvid
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         IdentityProvider idp = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
-        String oldIdPName = idp.getIdentityProviderName();
+        if (idp != null) {
+            String oldIdPName = idp.getIdentityProviderName();
 
-        // invoking the pre listeners
-        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreUpdateIdP(oldIdPName, identityProvider, tenantDomain)) {
-                return false;
+            // invoking the pre listeners
+            Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+            for (IdentityProviderMgtListener listener : listeners) {
+                if (listener.isEnable() && !listener.doPreUpdateIdP(oldIdPName, identityProvider, tenantDomain)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -96,13 +99,15 @@ public class IdentityProviderNameResolverListener extends AbstractIdentityProvid
                                                IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
-        String oldIdPName = oldIdentityProvider.getIdentityProviderName();
+        if (oldIdentityProvider != null) {
+            String oldIdPName = oldIdentityProvider.getIdentityProviderName();
 
-        // invoking the post listeners
-        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostUpdateIdP(oldIdPName, newIdentityProvider, tenantDomain)) {
-                return false;
+            // invoking the post listeners
+            Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+            for (IdentityProviderMgtListener listener : listeners) {
+                if (listener.isEnable() && !listener.doPostUpdateIdP(oldIdPName, newIdentityProvider, tenantDomain)) {
+                    return false;
+                }
             }
         }
         return true;
