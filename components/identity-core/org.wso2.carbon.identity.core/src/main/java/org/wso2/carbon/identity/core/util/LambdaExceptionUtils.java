@@ -243,8 +243,8 @@ public final class LambdaExceptionUtils {
      * @param function implementation of mapRow in RowMapper with exceptions.
      * @return RowMapper without exceptions.
      */
-    public static RowMapper rethrowRowMapper(
-            RowMapperWithExceptions<ResultSet, Integer, Object, Exception> function) {
+    public static <T> RowMapper<T> rethrowRowMapper(
+            RowMapperWithExceptions<ResultSet, Integer, T, Exception> function) {
 
         return (t, u) -> {
             try {

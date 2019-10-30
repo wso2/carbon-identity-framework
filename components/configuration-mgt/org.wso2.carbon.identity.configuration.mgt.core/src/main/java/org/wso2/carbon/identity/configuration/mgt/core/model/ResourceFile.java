@@ -22,6 +22,8 @@ package org.wso2.carbon.identity.configuration.mgt.core.model;
 public class ResourceFile {
 
     private String path;
+    @Deprecated
+    private String value;
     private String id;
     private String name;
 
@@ -68,10 +70,24 @@ public class ResourceFile {
     }
 
     public String getName() {
+
         return name;
     }
 
     public void setName(String name) {
+
         this.name = name;
+    }
+
+    @Deprecated
+    public String getValue() {
+
+        return value;
+    }
+
+    @Deprecated
+    public void setValue(String value) {
+
+        this.value = value;
     }
 }

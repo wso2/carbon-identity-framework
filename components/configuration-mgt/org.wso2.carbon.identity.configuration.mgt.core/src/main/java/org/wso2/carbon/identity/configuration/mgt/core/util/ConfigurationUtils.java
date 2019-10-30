@@ -89,7 +89,7 @@ public class ConfigurationUtils {
     public static ConfigurationManagementServerException handleServerException(
             ConfigurationConstants.ErrorMessages error, Throwable e) {
 
-        String message = populateMessageWithData(error, "");
+        String message = populateMessageWithData(error);
         return new ConfigurationManagementServerException(message, error.getCode(), e);
     }
 
@@ -147,13 +147,12 @@ public class ConfigurationUtils {
 
     private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String data) {
 
-        String message;
-        if (StringUtils.isNotBlank(data)) {
-            message = String.format(error.getMessage(), data);
-        } else {
-            message = error.getMessage();
-        }
-        return message;
+        return String.format(error.getMessage(), data);
+    }
+
+    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error) {
+
+        return error.getMessage();
     }
 
     /**
@@ -183,7 +182,6 @@ public class ConfigurationUtils {
         String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, true, true);
         return URI.create(url).toString();
     }
-
 
     /**
      * Retrieves loaded tenant domain from carbon context.

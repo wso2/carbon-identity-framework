@@ -45,6 +45,8 @@ public class ConfigurationConstants {
     public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY = "attributeKey";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_VALUE = "attributeValue";
     public static final String DB_SCHEMA_COLUMN_NAME_ID = "ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_VALUE = "VALUE";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_ID = "RESOURCE_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_NAME = "NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_TENANT_ID = "TENANT_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED = "LAST_MODIFIED";
@@ -58,6 +60,8 @@ public class ConfigurationConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_ID = "FILE_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_NAME = "FILE_NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME = "RESOURCE_NAME";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME = "TYPE_NAME";
     public static final String FILE = "file";
     public static final String SERVER_API_PATH_COMPONENT = "/api/identity/config-mgt/v1.0";
     public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";

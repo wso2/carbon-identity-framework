@@ -297,10 +297,12 @@ class ConfigurationRawDataCollector {
         }
 
         public String getFileName() {
+
             return fileName;
         }
 
         public ConfigurationRawDataCollectorBuilder setFileName(String fileName) {
+
             this.fileName = fileName;
             return this;
         }

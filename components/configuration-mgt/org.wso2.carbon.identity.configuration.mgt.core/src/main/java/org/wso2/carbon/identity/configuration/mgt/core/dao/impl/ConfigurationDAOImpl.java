@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.RowMapper;
 import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -46,6 +47,10 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_FILE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_VALUE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILES;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILE;
@@ -64,8 +69,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
 
-
-
+import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1022,7 +1026,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
                     (resultSet, rowNumber) -> {
-                        Blob fileBlob = resultSet.getBlob("VALUE");
+                        Blob fileBlob = resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE);
                         if (fileBlob == null) {
                             return null;
                         }
@@ -1045,9 +1049,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             jdbcTemplate.withTransaction(template -> {
 
-                //Get resource id for the deleting file.
+                // Get resource id for the deleting file.
                 String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
-                        (resultSet, rowNumber) -> resultSet.getString("RESOURCE_ID"),
+                        (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_ID),
                         preparedStatement -> {
                             preparedStatement.setString(1, fileId);
                             preparedStatement.setString(2, resourceName);
@@ -1058,7 +1062,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 ));
 
                 List<String> availableFilesForTheResource = template.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
-                        ((resultSet, rowNumber) -> resultSet.getString("ID")),
+                        ((resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID)),
                         preparedStatement -> preparedStatement.setString(1, resourceId));
                 if (availableFilesForTheResource.isEmpty()) {
                     template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
@@ -1076,6 +1080,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
     private void updateResourceLastModified(Template<Object> template, String resourceId)
             throws DataAccessException {
+
         template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
             preparedStatement.setTimestamp(1, new Timestamp(new Date().getTime()),
                     Calendar.getInstance(TimeZone.getTimeZone(UTC)));
@@ -1090,8 +1095,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL, ((resultSet, rowNumber) -> {
-                String resourceFileId = resultSet.getString("ID");
-                String resourceFileName = resultSet.getString("NAME");
+                String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME);
                 return new ResourceFile(resourceFileId, getFilePath(resourceFileId, resourceTypeName, resourceName),
                         resourceFileName);
             }), preparedStatement -> preparedStatement.setString(1, resourceId));
@@ -1107,10 +1112,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_TYPE_ID_SQL,
                     ((resultSet, rowNumber) -> {
-                        String resourceFileId = resultSet.getString("ID");
-                        String resourceFileName = resultSet.getString("FILE_NAME");
-                        String resourceName = resultSet.getString("RESOURCE_NAME");
-                        String resourceTypeName = resultSet.getString("TYPE_NAME");
+                        String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_NAME);
+                        String resourceName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME);
+                        String resourceTypeName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME);
                         return new ResourceFile(
                                 resourceFileId,
                                 getFilePath(resourceFileId, resourceTypeName, resourceName),
@@ -1138,7 +1143,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     preparedStatement.setBoolean(1, false);
                     preparedStatement.setString(2, resourceId);
                 });
-
                 updateResourceLastModified(template, resourceId);
                 return null;
             });
@@ -1155,12 +1159,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             return jdbcTemplate.executeQuery(GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL,
                     (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
-                        String resourceId = resultSet.getString("ID");
-                        String resourceName = resultSet.getString("NAME");
-                        String resourceLastModified = resultSet.getString("LAST_MODIFIED");
-                        String resourceCreatedTime = resultSet.getString("CREATED_TIME");
-                        String resourceHasFile = resultSet.getString("HAS_FILE");
-                        String resourceHasAttribute = resultSet.getString("HAS_ATTRIBUTE");
+                        String resourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String resourceName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME);
+                        String resourceLastModified = resultSet.getString(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED);
+                        String resourceCreatedTime = resultSet.getString(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
+                        String resourceHasFile = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_FILE);
+                        String resourceHasAttribute = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE);
                         Resource resource = new Resource();
                         resource.setCreatedTime(resourceCreatedTime);
                         resource.setHasAttribute(Boolean.valueOf(resourceHasAttribute));
@@ -1195,9 +1199,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         try {
             return jdbcTemplate.executeQuery(GET_ATTRIBUTES_BY_RESOURCE_ID_SQL,
                     ((resultSet, rowNumber) -> {
-                        String attributeId = resultSet.getString("ID");
-                        String attributeKey = resultSet.getString("ATTR_KEY");
-                        String attributeValue = resultSet.getString("ATTR_VALUE");
+                        String attributeId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String attributeKey = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY);
+                        String attributeValue = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE);
                         return new Attribute(
                                 attributeKey,
                                 attributeValue,

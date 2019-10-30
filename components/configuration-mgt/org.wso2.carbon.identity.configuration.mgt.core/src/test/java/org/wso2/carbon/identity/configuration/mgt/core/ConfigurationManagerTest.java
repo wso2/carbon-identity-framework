@@ -29,7 +29,6 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.impl.ConfigurationDAOImpl;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
-import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ConfigurationManagerConfigurationHolder;
@@ -49,7 +48,6 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.Collections;
@@ -70,8 +68,8 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
 import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3_UPDATED;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME1;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_DOMAIN_ABC;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_ID_ABC;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestSQLConstants.REMOVE_CREATED_TIME_COLUMN_H2;
@@ -80,6 +78,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.get
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleAttribute3;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResource1Add;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResource2Add;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResourceType2Add;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleResourceTypeAdd;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.getSampleSearchCondition;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.TestUtils.initiateH2Base;
@@ -166,7 +165,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
     @Test(priority = 5, expectedExceptions = ConfigurationManagementClientException.class)
     public void testGetNonExistingResourceType() throws Exception {
 
-        configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME);
+        configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -175,7 +174,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
     public void testGetExistingResourceType() throws Exception {
 
         ResourceType resourceTypeCreated = configurationManager.addResourceType(getSampleResourceTypeAdd());
-        ResourceType resourceTypeRetrieved = configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME);
+        ResourceType resourceTypeRetrieved = configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME1);
 
         assertEquals("Existing id should be equal to the retrieved id", resourceTypeCreated.getId(),
                 resourceTypeRetrieved.getId());
@@ -184,7 +183,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
     @Test(priority = 7, expectedExceptions = ConfigurationManagementClientException.class)
     public void testDeleteNonExistingResourceType() throws Exception {
 
-        configurationManager.deleteResourceType(SAMPLE_RESOURCE_TYPE_NAME);
+        configurationManager.deleteResourceType(SAMPLE_RESOURCE_TYPE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -193,8 +192,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
     public void testDeleteExistingResourceType() throws Exception {
 
         configurationManager.addResourceType(getSampleResourceTypeAdd());
-        configurationManager.deleteResourceType(SAMPLE_RESOURCE_TYPE_NAME);
-        configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME);
+        configurationManager.deleteResourceType(SAMPLE_RESOURCE_TYPE_NAME1);
+        configurationManager.getResourceType(SAMPLE_RESOURCE_TYPE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -255,7 +254,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
 
-        configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_NAME);
+        configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -266,7 +265,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
 
         Resource resourceCreated = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
-        Resource resourceRetrieved = configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_NAME);
+        Resource resourceRetrieved = configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_NAME1);
 
         assertEquals("Existing id should be equal to the retrieved id", resourceCreated.getResourceId(),
                 resourceRetrieved.getResourceId());
@@ -277,7 +276,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
 
-        configurationManager.deleteResource(resourceType.getName(), SAMPLE_RESOURCE_NAME);
+        configurationManager.deleteResource(resourceType.getName(), SAMPLE_RESOURCE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -288,8 +287,8 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         ResourceType resourceType = configurationManager.addResourceType(getSampleResourceTypeAdd());
 
         configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
-        configurationManager.deleteResource(resourceType.getName(), SAMPLE_RESOURCE_TYPE_NAME);
-        configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_TYPE_NAME);
+        configurationManager.deleteResource(resourceType.getName(), SAMPLE_RESOURCE_TYPE_NAME1);
+        configurationManager.getResource(resourceType.getName(), SAMPLE_RESOURCE_TYPE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -369,7 +368,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
     @Test(priority = 22, expectedExceptions = ConfigurationManagementClientException.class)
     public void testGetNonExistingAttribute() throws Exception {
 
-        configurationManager.getAttribute(SAMPLE_RESOURCE_TYPE_NAME, SAMPLE_RESOURCE_NAME, SAMPLE_ATTRIBUTE_NAME1);
+        configurationManager.getAttribute(SAMPLE_RESOURCE_TYPE_NAME1, SAMPLE_RESOURCE_NAME1, SAMPLE_ATTRIBUTE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -389,7 +388,7 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
     @Test(priority = 24, expectedExceptions = ConfigurationManagementClientException.class)
     public void testDeleteNonExistingAttribute() throws Exception {
 
-        configurationManager.deleteAttribute(SAMPLE_RESOURCE_TYPE_NAME, SAMPLE_RESOURCE_NAME, SAMPLE_ATTRIBUTE_NAME1);
+        configurationManager.deleteAttribute(SAMPLE_RESOURCE_TYPE_NAME1, SAMPLE_RESOURCE_NAME1, SAMPLE_ATTRIBUTE_NAME1);
 
         fail("Expected: " + ConfigurationManagementClientException.class.getName());
     }
@@ -443,10 +442,14 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+        // Due to fileStream getting closed in file adding to database keeps a cloned file stream for comparing.
+        InputStream cloneFileStream = FileUtils.openInputStream(sampleResourceFile);
 
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
                 resource.getResourceName(),"sample-resource-file", fileStream);
-        Assert.assertNotNull("Created resource file id cannot be null", resourceFile.getId());
+        InputStream retrievedFile = configurationManager
+                .getFileById(resourceType.getName(), resource.getResourceName(), resourceFile.getId());
+        Assert.assertEquals(TestUtils.convert(retrievedFile),TestUtils.convert(cloneFileStream));
     }
 
     @Test(priority = 28)
@@ -457,12 +460,15 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         File sampleResourceFile = new File(getSamplesPath("sample-resource-file.txt"));
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
+        // Due to fileStream getting closed in file adding to database keeps a cloned file stream for comparing.
+        InputStream cloneFileStream = FileUtils.openInputStream(sampleResourceFile);
 
         ResourceFile resourceFile = configurationManager.addFile(resourceType.getName(),
                 resource.getResourceName(), "sample-resource-file", fileStream);
         InputStream retrievedFileStream = configurationManager.getFileById(resourceType.getName(), resource.getResourceName(),
                 resourceFile.getId());
-        Assert.assertNotNull("Retrieved stream for the file id cannot be null", retrievedFileStream);
+        Assert.assertEquals("Stored file and retrieved file should be the same",
+                TestUtils.convert(retrievedFileStream),TestUtils.convert(cloneFileStream));
     }
 
     @Test(priority = 29)
@@ -494,6 +500,9 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
         File sampleResourceFile1 = new File(getSamplesPath("sample-resource-file-1.txt"));
         InputStream fileStream = FileUtils.openInputStream(sampleResourceFile);
         InputStream fileStream1 = FileUtils.openInputStream(sampleResourceFile1);
+        // Due to fileStream getting closed in file adding to database keeps a cloned file stream for comparing.
+        InputStream cloneFileStream = FileUtils.openInputStream(sampleResourceFile);
+        InputStream cloneFileStream1 = FileUtils.openInputStream(sampleResourceFile1);
 
         configurationManager.addFile(resourceType.getName(), resource.getResourceName(), "sample-resource-file", fileStream);
         configurationManager.addFile(resourceType.getName(), resource.getResourceName(), "sample-resource-file", fileStream1);
@@ -503,6 +512,14 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
 
         Assert.assertTrue("Retrieved file count should be equal to the existing value",
                 resourceFiles.size() == 2);
+        InputStream retrievedFileStream1 = configurationManager
+                .getFileById(resourceType.getName(), resource.getResourceName(), resourceFiles.get(0).getId());
+        InputStream retrievedFileStream2 = configurationManager
+                .getFileById(resourceType.getName(), resource.getResourceName(), resourceFiles.get(1).getId());
+        Assert.assertEquals("Stored file and retrieved file should be the same",
+                TestUtils.convert(retrievedFileStream1), TestUtils.convert(cloneFileStream));
+        Assert.assertEquals("Stored file and retrieved file should be the same",
+                TestUtils.convert(retrievedFileStream2), TestUtils.convert(cloneFileStream1));
     }
 
     @Test(priority = 30)
@@ -526,6 +543,22 @@ public class ConfigurationManagerTest extends PowerMockTestCase {
                 "Resource should not contain any files.",
                 configurationManager.getResource(resourceType.getName(), resource.getResourceName()).isHasFile()
         );
+    }
+
+    @Test(priority = 31)
+    public void testGetResourcesByType() throws Exception {
+
+        ResourceType resourceType = configurationManager.addResourceType(getSampleResourceType2Add());
+        Resource resource1 = configurationManager.addResource(resourceType.getName(), getSampleResource1Add());
+        Resource resource2 = configurationManager.addResource(resourceType.getName(), getSampleResource2Add());
+
+        Resources resourcesByType = configurationManager.getResourcesByType(resourceType.getName());
+        Assert.assertTrue("Retrieved resource count should be equal to the added value",
+                resourcesByType.getResources().size() == 2);
+        Assert.assertEquals("Created resource name should be equal to the retrieved resource name",
+                resource1.getResourceName(), resourcesByType.getResources().get(0).getResourceName());
+        Assert.assertEquals("Created resource name should be equal to the retrieved resource name",
+                resource2.getResourceName(), resourcesByType.getResources().get(1).getResourceName());
     }
 
     private void removeCreatedTimeColumn() throws DataAccessException {

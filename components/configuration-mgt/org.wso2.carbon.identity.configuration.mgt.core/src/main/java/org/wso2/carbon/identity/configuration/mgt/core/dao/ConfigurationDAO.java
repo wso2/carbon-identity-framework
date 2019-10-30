@@ -205,7 +205,6 @@ public interface ConfigurationDAO {
     /**
      * Get the file.
      *
-     *
      * @param resourceType resource type name.
      * @param resourceName resource name.
      * @param fileId Id of the file.
@@ -215,7 +214,6 @@ public interface ConfigurationDAO {
 
     /**
      * Get files for the {@link Resource}.
-     *
      *
      * @param resourceId Id of the {@link Resource}.
      * @param resourceTypeName Name of the {@link ResourceType}
@@ -234,7 +232,6 @@ public interface ConfigurationDAO {
 
     /**
      * Delete the file.
-     *
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
@@ -258,6 +255,6 @@ public interface ConfigurationDAO {
      * @param resourceTypeId of the {@link ResourceType}.
      * @return A list of {@link Resource} for the given resource type
      */
-    List<Resource> getResourcesByType(int tenantId, String resourceTypeId)
+    List getResourcesByType(int tenantId, String resourceTypeId)
             throws ConfigurationManagementException;
 }

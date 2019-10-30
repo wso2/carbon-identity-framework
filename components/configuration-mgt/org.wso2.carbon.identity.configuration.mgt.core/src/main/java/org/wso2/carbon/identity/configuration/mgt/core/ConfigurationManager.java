@@ -241,7 +241,6 @@ public interface ConfigurationManager {
     /**
      * This API is used to get the given file.
      *
-     *
      * @param resourceType resource type name.
      * @param resourceName resource name.
      * @param fileId Id representing the file.
@@ -254,7 +253,6 @@ public interface ConfigurationManager {
     /**
      * This API is used to delete the given file.
      *
-     *
      * @param resourceType resource type name.
      * @param resourceName resource name.
      * @param fileId Id representing the file.
@@ -264,10 +262,4 @@ public interface ConfigurationManager {
     void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException;
 
-    /**
-     * This API is used to get whether configuration management rest api enabled.
-     *
-     * @return boolean.
-     */
-    boolean isFeatureEnabled();
 }

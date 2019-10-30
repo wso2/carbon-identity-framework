@@ -742,6 +742,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public ResourceFile addFile(String resourceTypeName, String resourceName, String fileName, InputStream fileStream)
             throws ConfigurationManagementException {
 
+        checkFeatureStatus();
         validateFileAddRequest(resourceTypeName, resourceName, fileName, fileStream);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         String fileId = generateUniqueID();
@@ -761,6 +762,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public List<ResourceFile> getFiles(String resourceTypeName, String resourceName)
             throws ConfigurationManagementException {
 
+        checkFeatureStatus();
         validateRequest(resourceTypeName, resourceName);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         List<ResourceFile> resourceFiles = getConfigurationDAO().getFiles(resourceId, resourceTypeName, resourceName);
@@ -779,6 +781,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     @Override
     public List<ResourceFile> getFiles(String resourceTypeName) throws ConfigurationManagementException {
 
+        checkFeatureStatus();
         validateRequest(resourceTypeName);
         String resourceTypeId = getResourceTypeId(resourceTypeName);
         List<ResourceFile> resourceFiles = getConfigurationDAO().getFilesByResourceType(resourceTypeId);
@@ -794,10 +797,10 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return resourceFiles;
     }
 
-
     @Override
     public void deleteFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
 
+        checkFeatureStatus();
         validateRequest(resourceTypeName, resourceName);
         String resourceId = getResourceId(resourceTypeName, resourceName);
         getConfigurationDAO().deleteFiles(resourceId);
@@ -810,7 +813,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     public InputStream getFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException {
 
-        validateRequest(resourceType,resourceName,fileId);
+        checkFeatureStatus();
+        validateRequest(resourceType, resourceName, fileId);
         InputStream fileStream = getConfigurationDAO().getFileById(resourceType, resourceName, fileId);
         if (fileStream == null) {
             if (log.isDebugEnabled()) {
@@ -827,18 +831,13 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     @Override
     public void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException {
-
-        validateFileDeleteRequest(resourceType, resourceName ,fileId);
+        
+        validateRequest(resourceType, resourceName, fileId);
+        validateFileExistence(resourceType, resourceName ,fileId);
         getConfigurationDAO().deleteFileById(resourceType, resourceName, fileId);
         if (log.isDebugEnabled()) {
             log.debug("File: " + fileId + " successfully deleted.");
         }
-    }
-
-    @Override
-    public boolean isFeatureEnabled() {
-
-       return ConfigurationManagerComponentDataHolder.getInstance().isConfigurationManagementEnabled();
     }
 
     private void validateRequest(String resourceTypeName, String resourceName)
@@ -867,8 +866,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-
-    private void validateFileDeleteRequest(String resourceTypeName, String resourceName, String fileId) throws ConfigurationManagementException {
+    private void validateFileExistence(String resourceTypeName, String resourceName, String fileId) throws ConfigurationManagementException {
 
         if (!isFileExists(resourceTypeName, resourceName, fileId)) {
             if (log.isDebugEnabled()) {
@@ -889,7 +887,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
         }
         if (fileStream == null) {
-            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream: null");
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream is invalid.");
         }
     }
 
