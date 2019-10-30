@@ -45,9 +45,9 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
-import org.wso2.carbon.idp.mgt.util.ExpressionNode;
+import org.wso2.carbon.idp.mgt.object.ExpressionNode;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
-import org.wso2.carbon.idp.mgt.util.SqlBuilder;
+import org.wso2.carbon.idp.mgt.object.SqlBuilder;
 import org.wso2.carbon.utils.DBUtils;
 
 import java.io.BufferedReader;

@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
-import org.wso2.carbon.idp.mgt.util.IdpSearchResult;
+import org.wso2.carbon.idp.mgt.object.IdpSearchResult;
 
 import java.io.IOException;
 import java.util.List;

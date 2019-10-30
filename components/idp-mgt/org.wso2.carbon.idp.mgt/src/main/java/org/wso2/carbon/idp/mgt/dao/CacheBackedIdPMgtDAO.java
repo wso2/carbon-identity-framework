@@ -30,7 +30,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPCacheByName;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheEntry;
 import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
-import org.wso2.carbon.idp.mgt.util.ExpressionNode;
+import org.wso2.carbon.idp.mgt.object.ExpressionNode;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;

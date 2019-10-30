@@ -50,14 +50,14 @@ import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
-import org.wso2.carbon.idp.mgt.util.ExpressionNode;
+import org.wso2.carbon.idp.mgt.object.ExpressionNode;
 import org.wso2.carbon.idp.mgt.util.FilterTreeBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
-import org.wso2.carbon.idp.mgt.util.Node;
-import org.wso2.carbon.idp.mgt.util.OperationNode;
-import org.wso2.carbon.idp.mgt.util.IdpSearchResult;
+import org.wso2.carbon.idp.mgt.object.Node;
+import org.wso2.carbon.idp.mgt.object.OperationNode;
+import org.wso2.carbon.idp.mgt.object.IdpSearchResult;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -1047,14 +1047,7 @@ public class IdentityProviderManager implements IdpManager {
             String tenantDomain) throws IdentityProviderManagementException, IOException {
 
         IdpSearchResult result = new IdpSearchResult();
-        if (limit > 0) {
-            List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-            validateAndSetParameters(limit, offset, sortOrder, sortBy, result);
-            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-            result.setIdpCount(getTotalIdPCount(expressionNodes, tenantId));
-            result.setIdpList(dao.getIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
-                    result.getSortOrder(), result.getSortBy()));
-        } else {
+        if (limit <= 0) {
             result.setLimit(limit);
             result.setOffSet(offset);
             result.setFilter(filter);
@@ -1062,7 +1055,14 @@ public class IdentityProviderManager implements IdpManager {
             result.setSortBy(sortBy);
             result.setIdpCount(0);
             result.setIdpList(null);
+            return result;
         }
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        validateAndSetParameters(limit, offset, sortOrder, sortBy, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setIdpCount(getTotalIdPCount(expressionNodes, tenantId));
+        result.setIdpList(dao.getIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
+                result.getSortOrder(), result.getSortBy()));
         return result;
     }
 

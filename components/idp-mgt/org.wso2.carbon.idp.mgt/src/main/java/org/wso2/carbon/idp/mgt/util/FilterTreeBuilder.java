@@ -2,6 +2,9 @@ package org.wso2.carbon.idp.mgt.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.idp.mgt.object.ExpressionNode;
+import org.wso2.carbon.idp.mgt.object.Node;
+import org.wso2.carbon.idp.mgt.object.OperationNode;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;
