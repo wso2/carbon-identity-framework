@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.identity.core.util;
 
+import org.wso2.carbon.database.utils.jdbc.RowMapper;
+
+import java.sql.ResultSet;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -232,6 +235,39 @@ public final class LambdaExceptionUtils {
                 return null;
             }
         };
+    }
+
+    /**
+     * This method allows a RowMapper which throws exceptions to be used in places which expects a RowMapper.
+     *
+     * @param function implementation of mapRow in RowMapper with exceptions.
+     * @return RowMapper without exceptions.
+     */
+    public static <T> RowMapper<T> rethrowRowMapper(
+            RowMapperWithExceptions<ResultSet, Integer, T, Exception> function) {
+
+        return (t, u) -> {
+            try {
+                return function.apply(t, u);
+            } catch (Exception exception) {
+                throwAsUnchecked(exception);
+                return null;
+            }
+        };
+    }
+
+    /**
+     * Represents a {@code RowMapper} interface which can throw exceptions.
+     *
+     * @param <T> Any Object.
+     * @param <U> Any Object.
+     * @param <R> Any Object.
+     * @param <E> Any Exception.
+     */
+    @FunctionalInterface
+    public interface RowMapperWithExceptions<T, U, R, E extends Exception> {
+
+        R apply(T t, U u) throws E;
     }
 
     @SuppressWarnings("unchecked")
