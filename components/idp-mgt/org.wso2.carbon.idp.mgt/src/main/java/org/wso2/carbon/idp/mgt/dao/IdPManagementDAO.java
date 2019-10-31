@@ -424,6 +424,8 @@ public class IdPManagementDAO {
                 identityProvider.setEnable(false);
             }
             identityProvider.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+            identityProvider.setImageUrl(resultSet.getString("IMAGE_URL"));
+            identityProvider.setUuid(resultSet.getString("UUID"));
             if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                     .equals(identityProvider.getIdentityProviderName())) {
                 identityProviderList.add(identityProvider);
@@ -505,23 +507,28 @@ public class IdPManagementDAO {
                         filter.append("IS_ENABLED = \'0\' AND ");
                         break;
                     default:
-                        log.debug("Invalid isEnabled value");
+                        if (log.isDebugEnabled()) {
+                            log.debug("Invalid isEnabled value. " + value);
+                        }
                         break;
                     }
-                } else if ("eq".equals(operation) && !("isEnabled".contains(attributeName))) {
+                } else if (IdPManagementConstants.EQ.equals(operation) && !(IdPManagementConstants.IS_ENABLED.contains
+                        (attributeName))) {
                     filter.append(attributeName).append(" like ? AND ");
                     filterQueryBuilder.setFilterAttributeValue(value);
-                } else if ("sw".equals(operation)) {
+                } else if (IdPManagementConstants.SW.equals(operation)) {
                     filter.append(attributeName).append(" like ? AND ");
                     filterQueryBuilder.setFilterAttributeValue(value + "%");
-                } else if ("ew".equals(operation)) {
+                } else if (IdPManagementConstants.EW.equals(operation)) {
                     filter.append(attributeName).append(" like ? AND ");
                     filterQueryBuilder.setFilterAttributeValue("%" + value);
-                } else if ("co".equals(operation)) {
+                } else if (IdPManagementConstants.CO.equals(operation)) {
                     filter.append(attributeName).append(" like ? AND ");
                     filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                 } else {
-                    log.debug("Invalid filter value");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Invalid filter value. " + operation);
+                    }
                     filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
                 }
             }

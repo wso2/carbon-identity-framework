@@ -46,4 +46,3 @@ public class FilterQueryBuilder {
         return filter;
     }
 }
-

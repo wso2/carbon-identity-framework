@@ -1034,28 +1034,23 @@ public class IdentityProviderManager implements IdpManager {
     /**
      * Get all basic identity provider information.
      *
-     * @param limit     limit per page.
-     * @param offset    offset value.
-     * @param filter    filter value for IdP search.
-     * @param sortOrder order of IdP ASC/DESC.
-     * @param sortBy    the column value need to sort.
-     * @return Identity Provider's Basic Information array.
+     * @param limit        limit per page.
+     * @param offset       offset value.
+     * @param filter       filter value for IdP search.
+     * @param sortOrder    order of IdP ASC/DESC.
+     * @param sortBy       the column value need to sort.
+     * @param tenantDomain tenant domain whose IdP names are requested.
+     * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws IOException                         Input error when getting node list.
      */
     @Override
     public IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy,
-            String tenantDomain) throws IdentityProviderManagementException, IOException {
+                                   String tenantDomain) throws IdentityProviderManagementException, IOException {
 
         IdpSearchResult result = new IdpSearchResult();
         if (limit <= 0) {
-            result.setLimit(limit);
-            result.setOffSet(offset);
-            result.setFilter(filter);
-            result.setSortOrder(sortOrder);
-            result.setSortBy(sortBy);
-            result.setIdpCount(0);
-            result.setIdpList(null);
-            return result;
+            throw new IdentityProviderManagementException("Limit should be greater than 0. limit:" + limit);
         }
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, result);
@@ -1070,6 +1065,7 @@ public class IdentityProviderManager implements IdpManager {
      * Get all IdP count for a matching filter for a tenant domain.
      *
      * @param expressionNodes filter value list for IdP search.
+     * @param tenantId        tenant Id whose IdP names are requested.
      * @return number of IdP count for a given filter.
      * @throws IdentityProviderManagementException Error when getting count of Identity Providers.
      */
@@ -1088,7 +1084,7 @@ public class IdentityProviderManager implements IdpManager {
      */
     private List<ExpressionNode> getExpressionNodes(String filter) throws IOException {
 
-        //filter=name sw "te" and name ew "st" and isEnabled eq "true"
+        // filter example : name sw "te" and name ew "st" and isEnabled eq "true".
         List<ExpressionNode> expressionNodes = new ArrayList<>();
         FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
         Node rootNode = filterTreeBuilder.buildTree();
@@ -1140,18 +1136,23 @@ public class IdentityProviderManager implements IdpManager {
         if (StringUtils.isBlank(sortBy)) {
             sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
             if (log.isDebugEnabled()) {
-                log.debug("sortBy attribute is empty. Therefore we set the default sortBy value.");
+                log.debug("sortBy attribute is empty. Therefore we set the default sortBy attribute. sortBy");
             }
-        } else if (sortBy.equals(IdPManagementConstants.IDP_NAME)) {
-            sortBy = IdPManagementConstants.NAME;
-        } else if (sortBy.equals(IdPManagementConstants.IDP_DESCRIPTION)) {
-            sortBy = IdPManagementConstants.DESCRIPTION;
-        } else if (sortBy.equals(IdPManagementConstants.IDP_HOME_REALM_ID)) {
-            sortBy = IdPManagementConstants.HOME_REALM_ID;
         } else {
-            sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
-            if (log.isDebugEnabled()) {
-                log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute.");
+            switch (sortBy) {
+                case IdPManagementConstants.IDP_NAME: sortBy = IdPManagementConstants.NAME;
+                    break;
+                case IdPManagementConstants.IDP_DESCRIPTION: sortBy = IdPManagementConstants.DESCRIPTION;
+                    break;
+                case IdPManagementConstants.IDP_HOME_REALM_ID: sortBy = IdPManagementConstants.HOME_REALM_ID;
+                    break;
+                default:
+                    sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
+                    if (log.isDebugEnabled()) {
+                        log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute. " +
+                                "sortBy: " + sortBy);
+                    }
+                    break;
             }
         }
         return sortBy;
@@ -1168,14 +1169,16 @@ public class IdentityProviderManager implements IdpManager {
         if (StringUtils.isBlank(sortOrder)) {
             sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
             if (log.isDebugEnabled()) {
-                log.debug("sortOrder is empty. Therefore we set the default sortOrder value as ASC.");
+                log.debug("sortOrder is empty. Therefore we set the default sortOrder value as ASC. SortOrder: " +
+                        sortOrder);
             }
         } else if (sortOrder.equals(IdPManagementConstants.DESC_SORT_ORDER)) {
             sortOrder = IdPManagementConstants.DESC_SORT_ORDER;
         } else {
             sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
             if (log.isDebugEnabled()) {
-                log.debug("sortOrder is incorrect. Therefore we set the default sortOrder value as ASC.");
+                log.debug("sortOrder is incorrect. Therefore we set the default sortOrder value as ASC. SortOrder: "
+                        + sortOrder);
             }
         }
         return sortOrder;
@@ -1193,10 +1196,17 @@ public class IdentityProviderManager implements IdpManager {
             try {
                 String itemsPerPagePropertyValue = ServerConfiguration.getInstance()
                         .getFirstProperty(IdPManagementConstants.ITEMS_PER_PAGE_PROPERTY);
+                if (log.isDebugEnabled()) {
+                    log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
+                            "carbon.xml. limit: " + limit);
+                }
                 if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
                     limit = Integer.parseInt(itemsPerPagePropertyValue);
                 } else {
                     limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                    if (log.isDebugEnabled()) {
+                        log.debug("limit is incorrect. Therefore we set the default limit. limit:" + limit);
+                    }
                 }
             } catch (NumberFormatException e) {
                 limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
@@ -1217,7 +1227,7 @@ public class IdentityProviderManager implements IdpManager {
         if (offset < 0) {
             offset = 0;
             if (log.isDebugEnabled()) {
-                log.debug("Invalid offset applied. Therefore we set the default offset value as 0.");
+                log.debug("Invalid offset applied. Therefore we set the default offset value as 0. offSet: " + offset);
             }
         }
         return offset;

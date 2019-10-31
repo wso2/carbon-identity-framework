@@ -98,6 +98,12 @@ public class IdentityProvider implements Serializable {
     @XmlElement(name = "HomeRealmId")
     private String homeRealmId;
 
+    @XmlElement(name = "ImageUrl")
+    private String imageUrl;
+
+    @XmlElement(name = "Uuid")
+    private String uuid;
+
     @XmlElement(name = "ProvisioningRole")
     private String provisioningRole;
 
@@ -680,6 +686,44 @@ public class IdentityProvider implements Serializable {
      */
     public void setHomeRealmId(String homeRealmId) {
         this.homeRealmId = homeRealmId;
+    }
+
+    /**
+     *  Set the ImageUrl value.
+     *
+     * @param imageUrl imageUrl value.
+     */
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    /**
+     * Set the UUID value.
+     *
+     * @param uuid uuid of the IdP.
+     */
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    /**
+     * Get the UUID value.
+     *
+     * @return get the UUID value.
+     */
+    public String getUuid() {
+
+        return uuid;
+    }
+
+    /**
+     *  Get the ImageUrl value.
+     *
+     * @return get the imageUrl value.
+     */
+    public String getImageUrl() {
+
+        return imageUrl;
     }
 
     /**

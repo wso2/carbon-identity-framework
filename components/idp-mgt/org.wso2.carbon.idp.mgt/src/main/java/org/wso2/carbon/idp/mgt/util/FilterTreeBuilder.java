@@ -33,13 +33,12 @@ import java.util.regex.Pattern;
 
 /**
  * This class is basically for creating a binary tree which preserves the precedence order with simple
- * filter (eg : userName eq vindula) expressions as terminals of the tree and all the logical operators
- * (and, or, not)as the non-terminals of the tree. ie) it sets a lists of token.
+ * filter (eg : userName eq vindula) expressions as terminals of the tree and logical operator('and')
+ * as the non-terminals of the tree. ie) it sets a lists of token.
  * <p>
  * All terminals are filter expressions hence denoted by ExpressionNodes and all non terminal nodes are operators hence
  * denoted by OperatorNodes.
  */
-
 public class FilterTreeBuilder {
 
     private static final Log log = LogFactory.getLog(FilterTreeBuilder.class);
@@ -232,11 +231,12 @@ public class FilterTreeBuilder {
      */
     private void setExpressionNodeValues(String attributeValue, String operation, String value,
             ExpressionNode expressionNode) {
-
-        expressionNode.setAttributeValue(attributeValue.trim());
-        expressionNode.setOperation(operation.trim());
-        if (value != null) {
-            expressionNode.setValue(value.trim());
+        if(StringUtils.isNotBlank(attributeValue) && StringUtils.isNotBlank(operation)) {
+            expressionNode.setAttributeValue(attributeValue.trim());
+            expressionNode.setOperation(operation.trim());
+            if (value != null) {
+                expressionNode.setValue(value.trim());
+            }
         }
     }
 
