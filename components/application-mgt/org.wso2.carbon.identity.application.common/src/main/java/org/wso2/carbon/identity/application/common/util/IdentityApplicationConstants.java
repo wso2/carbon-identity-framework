@@ -84,6 +84,9 @@ public class IdentityApplicationConstants {
     public static final String ALLOW_MODIFY_USERNAME_ELEMENT = "AllowModifyUserName";
     public static final String PROMPT_CONSENT_ELEMENT = "PromptConsent";
 
+    // Service Provider configuration options that are stored as SP properites.
+    public static final String JWKS_URI_SP_PROPERTY_NAME = "jwksURI";
+
     public static class ConfigElements {
         public static final String PROPERTIES = "Properties";
         public static final String PROPERTY = "Property";
@@ -323,6 +326,12 @@ public class IdentityApplicationConstants {
             public static final String MAXIMUM = "Maximum";
             public static final String BETTER = "Better";
         }
+    }
+
+    public static class PassiveSTS {
+
+        public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
+        public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
     }
     
     public static class XML {

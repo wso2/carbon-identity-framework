@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.mgt.ui.util;
 
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
 /**
@@ -34,7 +35,7 @@ public class ApplicationMgtUIConstants {
     public static final int DEFAULT_DISPLAY_ORDER = 0;
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
-    public static final String JWKS_URI = "jwksUri";
+    public static final String JWKS_URI = IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
     public static final String SKIP_CONSENT = IdentityConstants.SKIP_CONSENT;
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
     public static final int DEFAULT_RESULTS_PER_PAGE = 10;
