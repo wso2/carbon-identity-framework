@@ -21,22 +21,71 @@ package org.wso2.carbon.identity.configuration.mgt.core.model;
  */
 public class ResourceFile {
 
+    private String path;
+    @Deprecated
     private String value;
+    private String id;
+    private String name;
 
     public ResourceFile() {
 
     }
 
-    public ResourceFile(String value) {
+    public ResourceFile(String id) {
 
-        this.value = value;
+        this.id = id;
     }
 
+    public ResourceFile(String id, String value, String name) {
+
+        this.id = id;
+        this.path = value;
+        this.name = name;
+    }
+
+    public ResourceFile(String fileId, String fileName) {
+
+        this.id = fileId;
+        this.name = fileName;
+    }
+
+    public String getPath() {
+
+        return path;
+    }
+
+    public void setPath(String value) {
+
+        this.path = value;
+    }
+
+    public String getId() {
+
+        return id;
+    }
+
+    public void setId(String id) {
+
+        this.id = id;
+    }
+
+    public String getName() {
+
+        return name;
+    }
+
+    public void setName(String name) {
+
+        this.name = name;
+    }
+
+    @Deprecated
     public String getValue() {
 
         return value;
     }
 
+    @Deprecated
     public void setValue(String value) {
 
         this.value = value;

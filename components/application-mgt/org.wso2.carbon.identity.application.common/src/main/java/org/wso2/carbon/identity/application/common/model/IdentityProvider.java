@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -72,6 +73,7 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_CERTIFICATE = "Certificate";
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
+    private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
     private final String THUMB_PRINT = "thumbPrint";
     private final String CERT_VALUE = "certValue";
     private final String JSON_ARRAY_IDENTIFIER = "[";
@@ -142,6 +144,14 @@ public class IdentityProvider implements Serializable {
     @XmlTransient
     private IdentityProviderProperty []idpProperties = new IdentityProviderProperty[0];
     private CertificateInfo[] certificateInfoArray = new CertificateInfo[0];
+
+    @IgnoreNullElement
+    @XmlElement(name = "ImageUrl")
+    private String imageUrl;
+
+    @IgnoreNullElement
+    @XmlTransient
+    private String resourceId;
 
     public static IdentityProvider build(OMElement identityProviderOM) {
         IdentityProvider identityProvider = new IdentityProvider();
@@ -283,6 +293,8 @@ public class IdentityProvider implements Serializable {
             } else if (FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG.equals(elementName)) {
                 identityProvider.setJustInTimeProvisioningConfig(JustInTimeProvisioningConfig
                         .build(element));
+            } else if (FILE_ELEMENT_IMAGE_URL.equals(elementName)) {
+                identityProvider.setImageUrl(element.getText());
             }
 
         }
@@ -860,5 +872,25 @@ public class IdentityProvider implements Serializable {
 
     public String getId() {
         return this.id;
+    }
+
+    public String getResourceId() {
+
+        return resourceId;
+    }
+
+    public void setResourceId(String resourceId) {
+
+        this.resourceId = resourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
     }
 }

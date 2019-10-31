@@ -44,6 +44,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -210,6 +211,18 @@ public class IdPManagementServiceComponent {
                 log.debug("Identity Provider Management - Audit Logger registered");
             } else {
                 log.error("Identity Provider Management - Error while registering Audit Logger");
+            }
+
+            ServiceRegistration idPNameResolverListener = bundleCtx.registerService(IdentityProviderMgtListener.class
+                            .getName(), new IdentityProviderNameResolverListener(), null);
+
+            if (idPNameResolverListener != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Identity Provider Name Resolver Listener registered.");
+                }
+            } else {
+                log.error("Identity Provider Management - Error while registering Identity Provider Name Resolver " +
+                        "Listener.");
             }
             setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
 

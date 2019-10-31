@@ -134,6 +134,19 @@ public interface IdpManager {
     }
 
     /**
+     * Returns extended IDP with resource ID.
+     * @param resourceId            Resource ID of the IDP.
+     * @param tenantDomain          Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps   Whether to ignore file based idps or not.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain,
+                                        boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
      * @param idPName
      * @param tenantDomain
      * @param ignoreFileBasedIdps
@@ -311,6 +324,19 @@ public interface IdpManager {
     void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Adds an Identity Provider to the given tenant.
+     *
+     * @param identityProvider  New Identity Provider information.
+     * @param tenantDomain      Tenant domain of the IDP.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException Error when adding Identity Provider information.
+     */
+    default IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
      * Deletes an Identity Provider from a given tenant
      *
      * @param idPName Name of the IdP to be deleted
@@ -318,6 +344,15 @@ public interface IdpManager {
      *                                                information
      */
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Deletes an Identity Provider from a given tenant using its resource ID.
+     *
+     * @param resourceId    Resource ID of the IdP to be deleted
+     * @throws IdentityProviderManagementException Error when deleting Identity Provider information.
+     */
+    default void deleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {}
 
     /**
      * Updates a given Identity Provider information
@@ -329,6 +364,19 @@ public interface IdpManager {
      */
     void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
+
+    /**
+     * Updates a given Identity Provider information using its resource ID.
+     *
+     * @param resourceId          IDP resource ID.
+     * @param newIdentityProvider New IdP information.
+     * @param tenantDomain        Tenant domain of the IDP.
+     * @throws IdentityProviderManagementException Error when updating Identity Provider information.
+     */
+    default IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider newIdentityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return null;
+    }
 
     /**
      * Get the authenticators registered in the system.

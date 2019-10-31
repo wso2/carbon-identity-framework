@@ -27,6 +27,12 @@ public class ApplicationBasicInfo implements Serializable {
     private String applicationName;
     private String description;
 
+    private String applicationResourceId;
+    private String imageUrl;
+    private String loginUrl;
+
+    private User appOwner;
+
     /**
      * Get application id.
      *
@@ -51,6 +57,7 @@ public class ApplicationBasicInfo implements Serializable {
      * @return
      */
     public String getApplicationName() {
+
         return applicationName;
     }
 
@@ -58,6 +65,7 @@ public class ApplicationBasicInfo implements Serializable {
      * @param applicationName
      */
     public void setApplicationName(String applicationName) {
+
         this.applicationName = applicationName;
     }
 
@@ -65,6 +73,7 @@ public class ApplicationBasicInfo implements Serializable {
      * @return
      */
     public String getDescription() {
+
         return description;
     }
 
@@ -72,7 +81,47 @@ public class ApplicationBasicInfo implements Serializable {
      * @param description
      */
     public void setDescription(String description) {
+
         this.description = description;
     }
 
+    public String getApplicationResourceId() {
+
+        return applicationResourceId;
+    }
+
+    public void setApplicationResourceId(String applicationResourceId) {
+
+        this.applicationResourceId = applicationResourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    public String getLoginUrl() {
+
+        return loginUrl;
+    }
+
+    public void setLoginUrl(String loginUrl) {
+
+        this.loginUrl = loginUrl;
+    }
+
+    public User getAppOwner() {
+
+        return appOwner;
+    }
+
+    public void setAppOwner(User appOwner) {
+
+        this.appOwner = appOwner;
+    }
 }
