@@ -4511,7 +4511,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         ApplicationBasicInfo applicationBasicInfo = persistBasicAppInfo(application, tenantDomain);
 
-        // Before calling update we set the appId to the application
+        // Before calling update we set the appId to the application.
         application.setApplicationID(applicationBasicInfo.getApplicationId());
 
         String resourceId = applicationBasicInfo.getApplicationResourceId();
@@ -4524,6 +4524,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     + " in tenantDomain: " + tenantDomain + " during application creation. " +
                     "Rolling back by deleting the partially created application information.");
             deleteApplicationByResourceId(resourceId, tenantDomain);
+            throw new IdentityApplicationManagementException("Error while creating an application: "
+                    + application.getApplicationName() + " in tenantDomain: " + tenantDomain);
         }
 
         return getApplicationByResourceId(applicationBasicInfo.getApplicationResourceId(), tenantDomain);

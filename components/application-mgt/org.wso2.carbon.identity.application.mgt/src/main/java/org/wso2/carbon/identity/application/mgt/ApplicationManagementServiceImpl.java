@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -167,7 +168,24 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         initialSP.setDescription(serviceProvider.getDescription());
         updateSPFromTemplate(serviceProvider, tenantDomain, spTemplate);
 
+        doPreAddApplicationCheck(serviceProvider, tenantDomain);
+        // Invoking the listeners.
+        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
+                .getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+                return serviceProvider;
+            }
+        }
+
         ServiceProvider addedSP = doAddApplication(initialSP, tenantDomain, username);
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostCreateApplication(addedSP, tenantDomain, username)) {
+                return addedSP;
+            }
+        }
+
         serviceProvider.setApplicationID(addedSP.getApplicationID());
         serviceProvider.setOwner(getUser(tenantDomain, username));
         if (spTemplate != null && spTemplate.getContent() != null) {
@@ -1788,8 +1806,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException {
+    private void doPreAddApplicationCheck(ServiceProvider serviceProvider,
+                                          String tenantDomain) throws IdentityApplicationManagementException {
 
         if (StringUtils.isBlank(serviceProvider.getApplicationName())) {
             // check for required attributes.
@@ -1804,42 +1822,44 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throw new IdentityApplicationRegistrationFailureException(errorMsg);
         }
 
-        // Invoking the listeners.
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
-                .getApplicationMgtListeners();
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
-                return serviceProvider;
-            }
-        }
-
-        String applicationName = serviceProvider.getApplicationName();
-        if (!isRegexValidated(serviceProvider.getApplicationName())) {
-            throw new IdentityApplicationManagementException("The Application name " +
-                    serviceProvider.getApplicationName() + " is not valid! It is not adhering " +
-                    "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
-        }
-        if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(applicationName)) {
+        if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(serviceProvider.getApplicationName())) {
             throw new IdentityApplicationManagementException(
                     "Application with the same name loaded from the file system.");
         }
+    }
+
+    private void validateApplicationName(String appName) throws IdentityApplicationManagementException {
+
+        if (!isRegexValidated(appName)) {
+            throw new IdentityApplicationManagementException("The Application name '" +
+                    appName + "' is not valid! It is not adhering " +
+                    "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
+        }
+    }
+
+    private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
 
         try {
             startTenantFlow(tenantDomain, username);
 
+            String applicationName = serviceProvider.getApplicationName();
+            validateApplicationName(applicationName);
             // First we need to create a role with the application name. Only the users in this role will be able to
             // edit/update the application.
             ApplicationMgtUtil.createAppRole(applicationName, username);
             try {
-                ApplicationMgtUtil.storePermissions(applicationName, username,
-                        serviceProvider.getPermissionAndRoleConfig());
+                PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
+                ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
             } catch (IdentityApplicationManagementException e) {
                 deleteApplicationRole(applicationName);
                 throw e;
             }
             try {
-                int applicationId = appDAO.createApplication(serviceProvider, tenantDomain);
-                serviceProvider.setApplicationID(applicationId);
+
+                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+                return appDAO.addApplication(serviceProvider, tenantDomain);
+
             } catch (IdentityApplicationManagementException e) {
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);
@@ -1848,13 +1868,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         } finally {
             endTenantFlow();
         }
-
-        for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
-                return serviceProvider;
-            }
-        }
-        return serviceProvider;
     }
 
     private boolean isOwnerUpdateRequest(ServiceProvider serviceProvider) {
@@ -2078,10 +2091,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider createApplication(ServiceProvider application, String tenantDomain, String username)
+    public ServiceProvider createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        return null;
+        // Invoking the listeners.
+        Collection<ApplicationResourceManagementListener> listeners = ApplicationMgtListenerServiceComponent
+                .getApplicationResourceMgtListeners();
+        for (ApplicationResourceManagementListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+                return null;
+            }
+        }
+
+        doPreAddApplicationCheck(serviceProvider, tenantDomain);
+        ServiceProvider createdApp = doAddApplication(serviceProvider, tenantDomain, username);
+
+        for (ApplicationResourceManagementListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostCreateApplication(createdApp, tenantDomain, username)) {
+                return null;
+            }
+        }
+
+        return createdApp;
     }
 
     @Override
