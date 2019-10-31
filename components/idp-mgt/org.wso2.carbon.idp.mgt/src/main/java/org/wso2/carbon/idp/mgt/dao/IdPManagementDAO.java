@@ -146,7 +146,7 @@ public class IdPManagementDAO {
                     identityProvider
                             .setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
                     identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
-                    identityProvider.setResourceId(rs.getString("IDP_ID"));
+                    identityProvider.setResourceId(rs.getString("UUID"));
                     idps.add(identityProvider);
                 }
 
@@ -242,7 +242,7 @@ public class IdPManagementDAO {
                     identityProvider.setIdpProperties(propertyList
                             .toArray(new IdentityProviderProperty[0]));
                     identityProvider.setImageUrl(rs.getString("IMAGE_URL"));
-                    identityProvider.setResourceId(rs.getString("IDP_ID"));
+                    identityProvider.setResourceId(rs.getString("UUID"));
                     if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                             .equals(identityProvider.getIdentityProviderName())) {
                         idps.add(identityProvider);
@@ -1277,7 +1277,7 @@ public class IdPManagementDAO {
                 federatedIdp.setId(Integer.toString(idpId));
                 idPName = rs.getString("NAME");
                 federatedIdp.setIdentityProviderName(idPName);
-                resourceId = rs.getString("IDP_ID");
+                resourceId = rs.getString("UUID");
                 federatedIdp.setResourceId(resourceId);
                 federatedIdp.setImageUrl(rs.getString("IMAGE_URL"));
 
