@@ -1055,24 +1055,10 @@ public class IdentityProviderManager implements IdpManager {
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        result.setIdpCount(getTotalIdPCount(expressionNodes, tenantId));
+        result.setIdpCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
                 result.getSortOrder(), result.getSortBy()));
         return result;
-    }
-
-    /**
-     * Get all IdP count for a matching filter for a tenant domain.
-     *
-     * @param expressionNodes filter value list for IdP search.
-     * @param tenantId        tenant Id whose IdP names are requested.
-     * @return number of IdP count for a given filter.
-     * @throws IdentityProviderManagementException Error when getting count of Identity Providers.
-     */
-    private int getTotalIdPCount(List<ExpressionNode> expressionNodes, int tenantId)
-            throws IdentityProviderManagementException {
-
-        return dao.getCountOfFilteredIdPs(tenantId, expressionNodes);
     }
 
     /**

@@ -118,7 +118,7 @@ public class CacheBackedIdPMgtDAO {
      * @return number of IdP count for a given filter.
      * @throws IdentityProviderManagementException Error when getting count of Identity Providers.
      */
-    public int getCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expressionConditions)
+    public int getTotalIdPCount(int tenantId, List<ExpressionNode> expressionConditions)
             throws IdentityProviderManagementException {
 
         return idPMgtDAO.getCountOfFilteredIdPs(tenantId, expressionConditions);
