@@ -431,7 +431,7 @@ public class IdPManagementDAO {
             }
             identityProvider.setDisplayName(resultSet.getString("DISPLAY_NAME"));
             identityProvider.setImageUrl(resultSet.getString("IMAGE_URL"));
-            identityProvider.setUuid(resultSet.getString("UUID"));
+            identityProvider.setResourceId(resultSet.getString("UUID"));
             if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                     .equals(identityProvider.getIdentityProviderName())) {
                 identityProviderList.add(identityProvider);
