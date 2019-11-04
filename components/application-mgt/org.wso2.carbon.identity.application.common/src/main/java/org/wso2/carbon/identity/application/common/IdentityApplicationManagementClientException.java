@@ -46,6 +46,50 @@ public class IdentityApplicationManagementClientException extends IdentityApplic
         this.messages = msgList.toArray(new String[0]);
     }
 
+    /**
+     * Constructs a new exception with the specified message.
+     *
+     * @param message Detailed message
+     */
+    public IdentityApplicationManagementClientException(String message) {
+
+        super(message);
+    }
+
+    /**
+     * Constructs a new exception with the specified message and cause.
+     *
+     * @param message Detailed message
+     * @param e       Cause as {@link Throwable}
+     */
+    public IdentityApplicationManagementClientException(String message, Throwable e) {
+
+        super(message, e);
+    }
+
+    /**
+     * Constructs a new exception with the specified error code and cause.
+     *
+     * @param errorCode Error code
+     * @param message   Detailed message
+     */
+    public IdentityApplicationManagementClientException(String errorCode, String message) {
+
+        super(errorCode, message);
+    }
+
+    /**
+     * Constructs a new exception with the specified error code, message and cause.
+     *
+     * @param errorCode Error code
+     * @param message   Detailed message
+     * @param cause     Cause as {@link Throwable}
+     */
+    public IdentityApplicationManagementClientException(String errorCode, String message, Throwable cause) {
+
+        super(errorCode, message, cause);
+    }
+
     public String[] getMessages() {
 
         return messages;
