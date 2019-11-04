@@ -1203,6 +1203,9 @@
             {% for permission in resource.permissions %}
             <Permissions>{{permission}}</Permissions>
             {% endfor %}
+            {% for scope in resource.scopes %}
+            <Scopes>{{scope}}</Scopes>
+            {% endfor %}
         </Resource>
         {% endfor %}
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
