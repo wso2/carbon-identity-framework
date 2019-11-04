@@ -2156,17 +2156,16 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             startTenantFlow(tenantDomain);
-            String updateApplicationName = updatedApp.getApplicationName();
-            if (ApplicationConstants.LOCAL_SP.equals(updateApplicationName)) {
-                log.warn("Illegal Access! User " + userUpdatingTheApp +
-                        " does not have permission to update the application: " + updateApplicationName);
-                throw new IdentityApplicationManagementException("User not authorized to update this app.");
-            }
 
-            if (!isRegexValidated(updateApplicationName)) {
-                throw new IdentityApplicationManagementException("The Application name " +
-                        updateApplicationName + " is not valid! It is not adhering " +
-                        "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
+            String updatedAppName = updatedApp.getApplicationName();
+            String storedAppName = appBasicInfo.getApplicationName();
+
+            validateAppName(storedAppName, updatedAppName);
+
+            if (!isRegexValidated(updatedAppName)) {
+                throw new IdentityApplicationManagementException("The Application name " + updatedAppName
+                        + " is not valid! It is not adhering to the regex "
+                        + ApplicationMgtUtil.getSPValidatorRegex());
             }
 
             if (!isValidPEMCertificate(updatedApp.getCertificateContent())) {
@@ -2201,6 +2200,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 return;
             }
         }
+    }
+
+    private void validateAppName(String currentAppName,
+                                 String updatedAppName) throws IdentityApplicationManagementClientException {
+
+        if (isAppRenamed(currentAppName, updatedAppName)
+                && ApplicationConstants.LOCAL_SP.equalsIgnoreCase(updatedAppName)) {
+
+            String msg = "Cannot update an application's name to system default application's name '%s'";
+            throw new IdentityApplicationManagementClientException(
+                    new String[]{String.format(msg, ApplicationConstants.LOCAL_SP)});
+        }
+    }
+
+    private boolean isAppRenamed(String currentAppName, String updatedAppName) {
+
+        return !StringUtils.equals(currentAppName, updatedAppName);
     }
 
     private ApplicationBasicInfo getAppBasicInfo(String resourceId,
@@ -2251,6 +2267,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (application != null) {
                 String applicationName = application.getApplicationName();
 
+                if (StringUtils.equals(applicationName, ApplicationConstants.LOCAL_SP)) {
+                    String msg = "Cannot delete system default application: '%s' in tenantDomain: %s";
+                    throw new IdentityApplicationManagementClientException(
+                            new String[]{String.format(msg, applicationName, tenantDomain)});
+                }
+
                 ApplicationMgtUtil.deleteAppRole(applicationName);
                 ApplicationMgtUtil.deletePermissions(applicationName);
 
@@ -2277,7 +2299,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
             } else {
                 if (log.isDebugEnabled()) {
-                    log.debug("Application cannot be found for resourceId:c" + resourceId +
+                    log.debug("Application cannot be found for resourceId: " + resourceId +
                             " in tenantDomain: " + tenantDomain);
                 }
             }
