@@ -349,6 +349,13 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
             throws IdentityApplicationManagementException;
 
+    /**
+     * Get inbound authenticator configurations
+     *
+     * @return inbound authenticator configs
+     */
+    public abstract Map<String, AbstractInboundAuthenticatorConfig> getAllInboundAuthenticatorConfig();
+
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
                                                           int offset, int limit)
