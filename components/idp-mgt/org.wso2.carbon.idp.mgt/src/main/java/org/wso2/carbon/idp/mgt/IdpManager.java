@@ -24,7 +24,9 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.idp.mgt.object.IdpSearchResult;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +72,21 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     List<IdentityProvider> getIdPs(String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Get all basic identity provider information.
+     *
+     * @param limit     limit per page.
+     * @param offset    offset value.
+     * @param filter    filter value for IdP search.
+     * @param sortOrder order of IdP ASC/DESC.
+     * @param sortBy    the column value need to sort.
+     * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws IOException                         Input error when getting list of Identity Providers.
+     */
+    IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy,
+                            String tenantDomain) throws IdentityProviderManagementException, IOException;
 
      /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name

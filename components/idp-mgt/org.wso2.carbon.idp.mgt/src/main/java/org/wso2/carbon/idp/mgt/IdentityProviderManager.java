@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -49,6 +50,11 @@ import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.object.IdpSearchResult;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
+import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -56,6 +62,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyStore;
@@ -1005,6 +1012,210 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.getIdPs(null, tenantId, tenantDomain);
 
+    }
+
+    /**
+     * Get all basic identity provider information.
+     *
+     * @param limit        limit per page.
+     * @param offset       offset value.
+     * @param filter       filter value for IdP search.
+     * @param sortOrder    order of IdP ASC/DESC.
+     * @param sortBy       the column value need to sort.
+     * @param tenantDomain tenant domain whose IdP names are requested.
+     * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws IOException                         Input error when getting node list.
+     */
+    @Override
+    public IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain) throws IdentityProviderManagementException, IOException {
+
+        if (limit <= 0) {
+            throw new IdentityProviderManagementException("Limit should be greater than 0. limit:" + limit);
+        }
+        IdpSearchResult result = new IdpSearchResult();
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setIdpCount(dao.getTotalIdPCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
+                result.getSortOrder(), result.getSortBy()));
+        return result;
+    }
+
+    /**
+     * Get the filter node as a list.
+     *
+     * @param filter value of the filter.
+     * @return node tree.
+     * @throws IOException IOException.
+     */
+    private List<ExpressionNode> getExpressionNodes(String filter) throws IOException {
+
+        // Filter example : name sw "te" and name ew "st" and isEnabled eq "true".
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
+        Node rootNode = filterTreeBuilder.buildTree();
+        setExpressionNodeList(rootNode, expressionNodes);
+        return expressionNodes;
+    }
+
+    /**
+     * Set the node values as list of expression.
+     *
+     * @param node       filter node.
+     * @param expression list of expression.
+     */
+    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
+
+        if (node instanceof ExpressionNode) {
+            if (((ExpressionNode) node).getAttributeValue().contains(IdPManagementConstants.IDP_IS_ENABLED)) {
+                if (((ExpressionNode) node).getValue().contains("true")) {
+                    ((ExpressionNode) node).setValue(IdPManagementConstants.IS_TRUE_VALUE);
+                } else if (((ExpressionNode) node).getValue().contains("false")) {
+                    ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Invalid \'isEnabled\' value passed in the filter. It should be \'true\' or " +
+                                "\'false\' isEnabled = " + ((ExpressionNode) node).getValue());
+                    }
+                    return;
+                }
+            }
+            expression.add((ExpressionNode) node);
+        } else if (node instanceof OperationNode) {
+            setExpressionNodeList(node.getLeftNode(), expression);
+            setExpressionNodeList(node.getRightNode(), expression);
+        }
+    }
+
+    /**
+     * Set the passing parameters as result.
+     *
+     * @param limit     page limit.
+     * @param offset    offset value.
+     * @param filter    filter value for IdP search.
+     * @param sortOrder order of IdP(ASC/DESC).
+     * @param sortBy    the column value need to sort.
+     * @param result    result object.
+     */
+    private void setParameters(int limit, int offset, String filter, String sortOrder, String sortBy, IdpSearchResult
+            result) {
+
+        result.setLimit(validateLimit(limit));
+        result.setOffSet(validateOffset(offset));
+        result.setSortBy(validateSortBy(sortBy));
+        result.setSortOrder(validateSortOrder(sortOrder));
+        result.setFilter(filter);
+    }
+
+    /**
+     * Validate sortBy.
+     *
+     * @param sortBy sortBy attribute.
+     * @return Validated sortOrder and sortBy.
+     */
+    private String validateSortBy(String sortBy) {
+
+        if (StringUtils.isBlank(sortBy)) {
+            if (log.isDebugEnabled()) {
+                log.debug("sortBy attribute is empty. Therefore we set the default sortBy attribute. sortBy" + sortBy);
+            }
+            return IdPManagementConstants.DEFAULT_SORT_BY;
+        } else {
+            switch (sortBy) {
+                case IdPManagementConstants.IDP_NAME:
+                    sortBy = IdPManagementConstants.NAME;
+                    break;
+                case IdPManagementConstants.IDP_HOME_REALM_ID:
+                    sortBy = IdPManagementConstants.HOME_REALM_ID;
+                    break;
+                default:
+                    sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
+                    if (log.isDebugEnabled()) {
+                        log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute. " +
+                                "sortBy: " + sortBy);
+                    }
+                    break;
+            }
+            return sortBy;
+        }
+    }
+
+    /**
+     * Validate sortOrder.
+     *
+     * @param sortOrder sortOrder ASC/DESC.
+     * @return Validated sortOrder and sortBy.
+     */
+    private String validateSortOrder(String sortOrder) {
+
+        if (StringUtils.isBlank(sortOrder)) {
+            sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
+            if (log.isDebugEnabled()) {
+                log.debug("sortOrder is empty. Therefore we set the default sortOrder value as ASC. SortOrder: " +
+                        sortOrder);
+            }
+        } else if (sortOrder.equals(IdPManagementConstants.DESC_SORT_ORDER)) {
+            sortOrder = IdPManagementConstants.DESC_SORT_ORDER;
+        } else {
+            sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
+            if (log.isDebugEnabled()) {
+                log.debug("sortOrder is incorrect. Therefore we set the default sortOrder value as ASC. SortOrder: "
+                        + sortOrder);
+            }
+        }
+        return sortOrder;
+    }
+
+    /**
+     * Validate limit.
+     *
+     * @param limit given limit value.
+     * @return validated limit and offset value.
+     */
+    private int validateLimit(int limit) {
+
+        if (limit > IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE) {
+            try {
+                String itemsPerPagePropertyValue = ServerConfiguration.getInstance()
+                        .getFirstProperty(IdPManagementConstants.ITEMS_PER_PAGE_PROPERTY);
+                if (log.isDebugEnabled()) {
+                    log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
+                            "carbon.xml. limit: " + limit);
+                }
+                if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
+                    limit = Integer.parseInt(itemsPerPagePropertyValue);
+                } else {
+                    limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                    if (log.isDebugEnabled()) {
+                        log.debug("limit is incorrect. Therefore we set the default limit. limit:" + limit);
+                    }
+                }
+            } catch (NumberFormatException e) {
+                limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
+            }
+        }
+        return limit;
+    }
+
+    /**
+     * Validate offset.
+     *
+     * @param offset given offset value.
+     * @return validated limit and offset value.
+     */
+    private int validateOffset(int offset) {
+
+        if (offset < 0) {
+            offset = 0;
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid offset applied. Therefore we set the default offset value as 0. offSet: " + offset);
+            }
+        }
+        return offset;
     }
 
     /**
