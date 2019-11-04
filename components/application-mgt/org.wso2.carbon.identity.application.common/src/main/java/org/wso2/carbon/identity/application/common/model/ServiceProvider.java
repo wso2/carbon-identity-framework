@@ -90,9 +90,11 @@ public class ServiceProvider implements Serializable {
     private String applicationResourceId;
 
     @IgnoreNullElement
+    @XmlElement(name = "ImageUrl")
     private String imageUrl;
 
     @IgnoreNullElement
+    @XmlElement(name = "LoginUrl")
     private String loginUrl;
 
     @XmlElement(name = "IsDiscoverable")
@@ -136,6 +138,10 @@ public class ServiceProvider implements Serializable {
                     return null;
                 }
             } else if ("Description".equals(elementName)) {
+                serviceProvider.setDescription(element.getText());
+            } else if ("ImageUrl".equals(elementName)) {
+                serviceProvider.setDescription(element.getText());
+            } else if ("LoginUrl".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
             } else if( "Certificate".equals(elementName)){
                 serviceProvider.setCertificateContent(element.getText());

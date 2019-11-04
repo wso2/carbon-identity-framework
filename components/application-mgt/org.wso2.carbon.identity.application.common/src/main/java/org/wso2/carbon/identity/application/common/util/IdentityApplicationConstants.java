@@ -435,4 +435,48 @@ public class IdentityApplicationConstants {
             throw new AssertionError("Must not initiate an object of SCIM2 class");
         }
     }
+
+    private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP";
+
+    public enum ErrorMessage {
+
+        ERROR_CODE_UNEXPECTED("50001", "Unexpected Server Error."),
+        ERROR_CODE_ADD_APP("50002", "Error while adding the application: %s."),
+        ERROR_CODE_GET_APP("50003", "Error while getting the application: %s."),
+        ERROR_CODE_DELETE_APP("50004", "Error while deleting application: %s."),
+        ERROR_CODE_UPDATE_APP("50005", "Error while updating application: %s."),
+
+        ERROR_CODE_APP_ALREADY_EXISTS("40001", "Application with the name: %s already exists in tenantDomain: %s."),
+        ERROR_CODE_APP_DOES_NOT_EXIST("40002", "Application with resourceId: %s does not exists in tenantDomain: %s."),
+        ERROR_CODE_APP_ADD_REQUEST_INVALID("40003", "Application add request validation failed. %s"),
+        ERROR_CODE_APP_GET_REQUEST_INVALID("40004", "Application get request validation failed. %s"),
+        ERROR_CODE_APP_DELETE_REQUEST_INVALID("40005", "Application delete request validation failed. %s"),
+        ERROR_CODE_APP_UPDATE_REQUEST_INVALID("40006", "Application update request validation failed. %s"),
+        ERROR_CODE_SEARCH_REQUEST_INVALID("40007", "Search request validation failed. Invalid search filter. %s"),;
+
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX + "_" + code;
+        }
+
+        public String getMessage() {
+
+            return message;
+        }
+
+        @Override
+        public String toString() {
+
+            return code + ":" + message;
+        }
+    }
 }
