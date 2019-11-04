@@ -4,20 +4,7 @@ Based on the use cases sometimes the data in the database might grow fast and cl
 
 There are stored procedures available for OAuth2 token and authorization code cleanup, session data cleanup and confirmation code cleanup.
 
-Below is the directory structure of the stored procedure script files.
-
 **NOTE: Some of the scripts might not exist based on the availability**
-
-```
---stored-procedures
-  |--mysql-5.4.x
-     |--confirmation-code-cleanup.sql
-     |--session-data-cleanup.sql
-     |--tokencleanup.sql
-     |--tokencleanup-restore.sql
-  |--oracle
-```
-
 
 ## **Usage**
 
