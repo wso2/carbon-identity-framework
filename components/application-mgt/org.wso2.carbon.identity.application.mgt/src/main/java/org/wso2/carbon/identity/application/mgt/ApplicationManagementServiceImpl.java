@@ -738,7 +738,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.doPostDeleteApplication(applicationName, tenantDomain, username);
                 listener.doPostDeleteApplication(serviceProvider, tenantDomain, username);
             }
         }

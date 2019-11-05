@@ -128,7 +128,6 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()
-                    && !listener.doPostDeleteApplication(applicationName, tenantDomain, userPerformingAction)
                     && !listener.doPostDeleteApplication(deletedApplication, tenantDomain, userPerformingAction)) {
                 return false;
             }
