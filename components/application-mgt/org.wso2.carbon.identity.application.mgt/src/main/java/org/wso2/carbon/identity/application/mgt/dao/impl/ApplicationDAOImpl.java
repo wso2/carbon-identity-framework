@@ -27,7 +27,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
-import org.wso2.carbon.identity.application.common.ApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -447,7 +446,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         insertApplicationConfigurations(serviceProvider, tenantDomain, true);
     }
 
-    private void insertApplicationConfigurations(ServiceProvider serviceProvider, String tenantDomain,
+    private void insertApplicationConfigurations(ServiceProvider serviceProvider,
+                                                 String tenantDomain,
                                                  boolean deleteExistingConfigs)
             throws IdentityApplicationManagementException {
 
@@ -4548,7 +4548,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             updateApplication(updatedApp, tenantDomain);
         } catch (IdentityApplicationManagementException ex) {
-            throw new ApplicationManagementServerException("Error while updating application with resourceId: "
+            // Send error code.
+            throw new IdentityApplicationManagementServerException("Error while updating application with resourceId: "
                     + resourceId + " in tenantDomain: " + tenantDomain, ex);
         }
     }
@@ -4566,8 +4567,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             return application;
         } catch (IdentityApplicationManagementException ex) {
-            throw new ApplicationManagementServerException("Error while retrieving application with resourceId: "
-                    + resourceId + " in tenantDomain: " + tenantDomain, ex);
+            // TODO: send error code
+            throw new IdentityApplicationManagementServerException("Error while retrieving application with " +
+                    "resourceId: " + resourceId + " in tenantDomain: " + tenantDomain, ex);
         }
     }
 

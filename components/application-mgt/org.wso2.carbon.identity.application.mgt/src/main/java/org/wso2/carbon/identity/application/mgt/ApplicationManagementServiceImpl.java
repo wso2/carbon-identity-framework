@@ -28,7 +28,7 @@ import org.w3c.dom.Document;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.common.ApplicationManagementClientException;
+import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
@@ -72,6 +72,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceMana
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -2188,7 +2189,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain, String username)
+    public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain,
+                                              String username)
             throws IdentityApplicationManagementException {
 
         updatedApp.setApplicationResourceId(resourceId);
@@ -2249,6 +2251,22 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 // TODO: validate user exists..
                 assignApplicationRole(updatedApp.getApplicationName(), updatedApp.getOwner().getUserName());
             }
+
+            String applicationNode = ApplicationMgtUtil.getApplicationPermissionPath() + RegistryConstants
+                    .PATH_SEPARATOR + storedAppName;
+            org.wso2.carbon.registry.api.Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext()
+                    .getRegistry(RegistryType.USER_GOVERNANCE);
+
+            boolean exist = tenantGovReg.resourceExists(applicationNode);
+            if (exist && !StringUtils.equals(storedAppName, updatedAppName)) {
+                ApplicationMgtUtil.renameAppPermissionPathNode(storedAppName, updatedAppName);
+            }
+
+            if (updatedApp.getPermissionAndRoleConfig() != null &&
+                    ArrayUtils.isNotEmpty(updatedApp.getPermissionAndRoleConfig().getPermissions())) {
+                ApplicationMgtUtil.updatePermissions(updatedAppName,
+                        updatedApp.getPermissionAndRoleConfig().getPermissions());
+            }
             // Will be supported with 'Advance Consent Management Feature'.
             // validateConsentPurposes(serviceProvider);
             appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
@@ -2300,13 +2318,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private ApplicationManagementClientException buildClientException(ErrorMessage errorMessage, String... data) {
+    private IdentityApplicationManagementClientException buildClientException(ErrorMessage errorMessage,
+                                                                              String... data) {
 
         if (data != null) {
             String formattedMessage = String.format(errorMessage.getMessage(), data);
-            return new ApplicationManagementClientException(errorMessage.getCode(), formattedMessage);
+            return new IdentityApplicationManagementClientException(errorMessage.getCode(), formattedMessage);
         } else {
-            return new ApplicationManagementClientException(errorMessage.getCode(), errorMessage.getCode());
+            return new IdentityApplicationManagementClientException(errorMessage.getCode(), errorMessage.getCode());
         }
     }
 
