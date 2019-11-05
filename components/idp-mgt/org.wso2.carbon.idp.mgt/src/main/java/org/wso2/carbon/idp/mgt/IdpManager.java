@@ -83,10 +83,9 @@ public interface IdpManager {
      * @param sortBy    the column value need to sort.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
-     * @throws IOException                         Input error when getting list of Identity Providers.
      */
-    IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy,
-                            String tenantDomain) throws IdentityProviderManagementException, IOException;
+    IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy, String tenantDomain)
+            throws IdentityProviderManagementException;
 
      /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name
