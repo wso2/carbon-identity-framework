@@ -149,13 +149,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException {
-
-        createApplicationWithTemplate(serviceProvider, tenantDomain, username, null);
-    }
-
-    @Override
     public ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
@@ -2086,8 +2079,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider createApplicationWithResourceId(ServiceProvider application, String username,
-                                                           String tenantDomain)
+    public ServiceProvider createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         return null;
@@ -2121,8 +2113,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationByResourceId(String resourceId, String username,
-                                              String tenantDomain, ServiceProvider updatedApp)
+    public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         try {
@@ -2242,8 +2233,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     @Override
     public void deleteApplicationByResourceId(String resourceId,
-                                              String username,
-                                              String tenantDomain) throws IdentityApplicationManagementException {
+                                              String tenantDomain,
+                                              String username) throws IdentityApplicationManagementException {
 
         // Invoking listeners.
         Collection<ApplicationResourceManagementListener> listeners =

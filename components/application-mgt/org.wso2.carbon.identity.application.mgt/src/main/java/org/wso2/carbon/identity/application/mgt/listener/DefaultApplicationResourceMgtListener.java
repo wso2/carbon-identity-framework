@@ -95,11 +95,11 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     }
 
     @Override
-    public boolean doPreDeleteApplicationByResourceId(String applicationResourceId,
+    public boolean doPreDeleteApplicationByResourceId(String resourceId,
                                                       String tenantDomain,
                                                       String userPerformingAction) throws IdentityApplicationManagementException {
 
-        String applicationName = getApplicationName(applicationResourceId, tenantDomain);
+        String applicationName = getApplicationName(resourceId, tenantDomain);
         if (applicationName != null) {
             for (ApplicationMgtListener listener :
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
@@ -110,7 +110,7 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
             }
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("Application cannot be found for the resourceId: " + applicationResourceId +
+                log.debug("Application cannot be found for the resourceId: " + resourceId +
                         " in tenantDomain: " + tenantDomain + ". Therefore not triggering the " +
                         "doPreDeleteApplication() of ApplicationMgtListeners.");
             }
