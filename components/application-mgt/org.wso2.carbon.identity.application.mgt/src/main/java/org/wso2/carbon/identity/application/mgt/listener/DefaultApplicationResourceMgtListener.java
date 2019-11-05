@@ -137,9 +137,8 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     }
 
     @Override
-    public boolean doPreGetApplicationByResourceId(String applicationResourceId,
-                                                   String tenantDomain,
-                                                   String userPerformingAction) throws IdentityApplicationManagementException {
+    public boolean doPreGetApplicationByResourceId(String applicationResourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
@@ -152,12 +151,10 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     }
 
     @Override
-    public boolean doPostGetApplicationByResourceId(ServiceProvider serviceProvider,
-                                                    String applicationResourceId,
-                                                    String tenantDomain,
-                                                    String userPerformingAction) throws IdentityApplicationManagementException {
+    public boolean doPostGetApplicationByResourceId(ServiceProvider serviceProvider, String resourceId,
+                                                    String tenantDomain) throws IdentityApplicationManagementException {
 
-        String applicationName = getApplicationName(applicationResourceId, tenantDomain);
+        String applicationName = getApplicationName(resourceId, tenantDomain);
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()
                     && !listener.doPostGetServiceProvider(serviceProvider, applicationName, tenantDomain)) {
@@ -168,27 +165,25 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     }
 
     @Override
-    public boolean doPreGetApplicationBasicInfoByResourceId(String resourceId,
-                                                            String tenantDomain,
-                                                            String userPerformingAction) throws IdentityApplicationManagementException {
+    public boolean doPreGetApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         return true;
     }
 
     @Override
-    public boolean doPostGetApplicationBasicInfoByResourceId(ApplicationBasicInfo appInfo,
-                                                             String resourceId,
-                                                             String tenantDomain,
-                                                             String userPerformingAction) throws IdentityApplicationManagementException {
+    public boolean doPostGetApplicationBasicInfoByResourceId(ApplicationBasicInfo appInfo, String resourceId,
+                                                             String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         return true;
     }
 
-    private String getApplicationName(String applicationResourceId,
+    private String getApplicationName(String resourceId,
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         ApplicationBasicInfo appInfo = ApplicationManagementService.getInstance()
-                .getApplicationBasicInfoByResourceId(applicationResourceId, tenantDomain);
+                .getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
         return appInfo != null ? appInfo.getApplicationName() : null;
     }
 }

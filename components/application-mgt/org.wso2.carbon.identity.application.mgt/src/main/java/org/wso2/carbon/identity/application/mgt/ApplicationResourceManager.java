@@ -32,19 +32,24 @@ public interface ApplicationResourceManager {
      * @return ApplicationBasicInfo containing the basic app information 
      * @throws IdentityApplicationManagementException
      */
-    ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId,
-                                                             String tenantDomain) throws IdentityApplicationManagementException;
+    ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
-     * Creates an application and return the application resource id.
+     * Creates an application and returns the created application.
+     * <p>
+     * This operation persists all application configurations related to the application unlike
+     * ApplicationManagementService#createApplicationWithTemplate operation which only persists basic app information
+     * and returns the internal app id.
      *
      * @param application  Created application
+     * @param username     Tenant aware username of the user performing the operation.
      * @param tenantDomain Tenant domain of the application
      * @return unique application resource id of the application
      * @throws IdentityApplicationManagementException
      */
-    String createApplication(ServiceProvider application,
-                             String tenantDomain) throws IdentityApplicationManagementException;
+    ServiceProvider createApplicationWithResourceId(ServiceProvider application, String username, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Retrieve application information using the resourceId.
@@ -61,21 +66,23 @@ public interface ApplicationResourceManager {
      * Update an application identified by the resourceId.
      *
      * @param resourceId         Unique resource identifier of the application
+     * @param username           Tenant aware username of the user performing the operation.
      * @param tenantDomain       Tenant domain of the application
      * @param updatedApplication Updated application
      * @throws IdentityApplicationManagementException
      */
-    void updateApplicationByResourceId(String resourceId,
-                                       String tenantDomain,
-                                       ServiceProvider updatedApplication) throws IdentityApplicationManagementException;
+    void updateApplicationByResourceId(String resourceId, String username, String tenantDomain,
+                                       ServiceProvider updatedApplication)
+            throws IdentityApplicationManagementException;
 
     /**
      * Delete an application identified by the resourceId.
      *
      * @param resourceId   Unique resource identifier of the application
+     * @param username     Tenant aware username of the user performing the operation.
      * @param tenantDomain Tenant domain of the application
      * @throws IdentityApplicationManagementException
      */
-    void deleteApplicationByResourceId(String resourceId,
-                                       String tenantDomain) throws IdentityApplicationManagementException;
+    void deleteApplicationByResourceId(String resourceId, String username, String tenantDomain)
+            throws IdentityApplicationManagementException;
 }
