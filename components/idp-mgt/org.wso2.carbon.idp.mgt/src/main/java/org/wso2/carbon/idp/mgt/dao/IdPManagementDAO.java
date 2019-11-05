@@ -290,7 +290,8 @@ public class IdPManagementDAO {
                      filterQueryBuilder)) {
             return populateIdentityProviderList(resultSet, dbConnection);
         } catch (SQLException e) {
-            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider.", e);
+            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider for " +
+                    "tenant: " + IdentityTenantUtil.getTenantDomain(tenantId), e);
         }
     }
 
@@ -475,7 +476,8 @@ public class IdPManagementDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider count", e);
+            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider count " +
+                    "for a tenant : " + IdentityTenantUtil.getTenantDomain(tenantId), e);
         }
         return countOfFilteredIdp;
     }
@@ -489,7 +491,7 @@ public class IdPManagementDAO {
     private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder) {
 
         StringBuilder filter = new StringBuilder();
-        if (expressionNodes.isEmpty()) {
+        if (CollectionUtils.isEmpty(expressionNodes)) {
             filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
         } else {
             for (ExpressionNode expressionNode : expressionNodes) {

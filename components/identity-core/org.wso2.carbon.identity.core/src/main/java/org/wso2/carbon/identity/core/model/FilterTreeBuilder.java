@@ -17,8 +17,9 @@
  */
 package org.wso2.carbon.identity.core.model;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 
 import java.io.IOException;
 import java.io.StreamTokenizer;
@@ -37,7 +38,6 @@ import java.util.regex.Pattern;
  */
 public class FilterTreeBuilder {
 
-    private static final Log log = LogFactory.getLog(FilterTreeBuilder.class);
     private List<String> tokenList;
     private String symbol;
     private Node root;
@@ -82,8 +82,8 @@ public class FilterTreeBuilder {
                 tokenList.add(")");
             } else if (input.ttype == StreamTokenizer.TT_WORD) {
                 // Concatenate the string by adding spaces in between.
-                if (!(input.sval.equalsIgnoreCase("and") || input.sval.equalsIgnoreCase("or") || input.sval
-                        .equalsIgnoreCase("not")))
+                if (!(input.sval.equalsIgnoreCase(IdentityCoreConstants.AND) || input.sval.equalsIgnoreCase
+                        (IdentityCoreConstants.OR) || input.sval.equalsIgnoreCase(IdentityCoreConstants.NOT)))
                     concatenatedString.append(" ").append(input.sval);
                 else {
                     concatenatedString = new StringBuilder(concatenatedString.toString().trim());
@@ -108,7 +108,7 @@ public class FilterTreeBuilder {
      *
      * @return the filter tree as root.
      */
-    public Node buildTree() {
+    public Node buildTree() throws IdentityException {
 
         expression();
         return root;
@@ -117,11 +117,11 @@ public class FilterTreeBuilder {
     /**
      * We build the parser using the recursive descent parser technique.
      */
-    private void expression() {
+    private void expression() throws IdentityException {
 
         term();
-        while (symbol.equals(String.valueOf("or"))) {
-            OperationNode or = new OperationNode("or");
+        while (symbol.equals(String.valueOf(IdentityCoreConstants.OR))) {
+            OperationNode or = new OperationNode(IdentityCoreConstants.OR);
             or.setLeftNode(root);
             term();
             or.setRightNode(root);
@@ -132,11 +132,11 @@ public class FilterTreeBuilder {
     /**
      * We build the parser using the recursive descent parser technique.
      */
-    private void term() {
+    private void term() throws IdentityException {
 
         factor();
-        while (symbol.equals(String.valueOf("and"))) {
-            OperationNode and = new OperationNode("and");
+        while (symbol.equals(String.valueOf(IdentityCoreConstants.AND))) {
+            OperationNode and = new OperationNode(IdentityCoreConstants.AND);
             and.setLeftNode(root);
             factor();
             and.setRightNode(root);
@@ -147,11 +147,11 @@ public class FilterTreeBuilder {
     /**
      * We build the parser using the recursive descent parser technique.
      */
-    private void factor() {
+    private void factor() throws IdentityException {
 
         symbol = nextSymbol();
-        if (symbol.equals(String.valueOf("not"))) {
-            OperationNode not = new OperationNode("not");
+        if (symbol.equals(String.valueOf(IdentityCoreConstants.NOT))) {
+            OperationNode not = new OperationNode(IdentityCoreConstants.NOT);
             factor();
             not.setRightNode(root);
             root = not;
@@ -165,9 +165,8 @@ public class FilterTreeBuilder {
                 root = expressionNode;
                 symbol = nextSymbol();
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Invalid argument: Identity Provider Name value is empty");
-                }
+                throw new IdentityException("Invalid argument: Identity Provider filter name value is empty or " +
+                        "invalid.symbol: " + symbol);
             }
         }
     }
@@ -178,47 +177,70 @@ public class FilterTreeBuilder {
      * @param filterString   the filter string.
      * @param expressionNode the expression node.
      */
-    private void validateAndBuildFilterExpression(String filterString, ExpressionNode expressionNode) {
+    private void validateAndBuildFilterExpression(String filterString, ExpressionNode expressionNode)
+            throws IdentityException {
 
-        String trimmedFilter = filterString.trim();
-        String[] filterParts;
+        if (StringUtils.isNotBlank(filterString)) {
+            String trimmedFilter = filterString.trim();
+            String[] filterParts;
 
-        if (Pattern.compile(Pattern.quote(" eq "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" eq | EQ | eQ | Eq ");
-            setExpressionNodeValues(filterParts[0], " eq ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" ne "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" ne | NE | nE | Ne ");
-            setExpressionNodeValues(filterParts[0], " ne ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" co "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" co | CO | cO | Co ");
-            setExpressionNodeValues(filterParts[0], " co ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" sw "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" sw | SW | sW | Sw ");
-            setExpressionNodeValues(filterParts[0], " sw ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" ew "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" ew | EW | eW | Ew ");
-            setExpressionNodeValues(filterParts[0], " ew ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" pr"), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            //with filter PR, there should not be whitespace after.
-            filterParts = trimmedFilter.split(" pr| PR| pR| Pr");
-            setExpressionNodeValues(filterParts[0], " pr", null, expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" gt "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" gt | GT | gT | Gt ");
-            setExpressionNodeValues(filterParts[0], " gt ", filterParts[1], expressionNode);
-
-        } else if (Pattern.compile(Pattern.quote(" ge "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" ge | GE | gE | Ge ");
-            setExpressionNodeValues(filterParts[0], " ge ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" lt "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" lt | LT | lT | Lt ");
-            setExpressionNodeValues(filterParts[0], " lt ", filterParts[1], expressionNode);
-        } else if (Pattern.compile(Pattern.quote(" le "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
-            filterParts = trimmedFilter.split(" le | LE | lE | Le ");
-            setExpressionNodeValues(filterParts[0], " le ", filterParts[1], expressionNode);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Given filter operator is not supported.");
+            if (Pattern.compile(Pattern.quote(" eq "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" eq | EQ | eQ | Eq ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " eq ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" ne "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" ne | NE | nE | Ne ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " ne ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" co "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" co | CO | cO | Co ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " co ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" sw "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" sw | SW | sW | Sw ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " sw ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" ew "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" ew | EW | eW | Ew ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " ew ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" pr"), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                //with filter PR, there should not be whitespace after.
+                filterParts = trimmedFilter.split(" pr| PR| pR| Pr");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " pr", null, expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" gt "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" gt | GT | gT | Gt ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " gt ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" ge "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" ge | GE | gE | Ge ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " ge ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" lt "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" lt | LT | lT | Lt ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " lt ", filterParts[1], expressionNode);
+                }
+            } else if (Pattern.compile(Pattern.quote(" le "), Pattern.CASE_INSENSITIVE).matcher(filterString).find()) {
+                filterParts = trimmedFilter.split(" le | LE | lE | Le ");
+                if (filterParts.length >= 2) {
+                    setExpressionNodeValues(filterParts[0], " le ", filterParts[1], expressionNode);
+                }
+            } else {
+                throw new IdentityException(
+                        "Given filter operator is not supported. Filter attribute: " + filterString);
             }
+        } else {
+            throw new IdentityException("Given filter is empty. Filter attribute: " + filterString);
         }
     }
 
@@ -231,12 +253,17 @@ public class FilterTreeBuilder {
      * @param expressionNode filter index.
      */
     private void setExpressionNodeValues(String attributeValue, String operation, String value,
-                                         ExpressionNode expressionNode) {
+                                         ExpressionNode expressionNode) throws IdentityException {
 
-        expressionNode.setAttributeValue(attributeValue.trim());
-        expressionNode.setOperation(operation.trim());
-        if (value != null) {
-            expressionNode.setValue(value.trim());
+        if (StringUtils.isNotBlank(attributeValue) || StringUtils.isNotBlank(operation)) {
+            expressionNode.setAttributeValue(attributeValue.trim());
+            expressionNode.setOperation(operation.trim());
+            if (value != null) {
+                expressionNode.setValue(value.trim());
+            }
+        } else {
+            throw new IdentityException("Given filter value is empty. attributeValue: " + attributeValue +
+                    "operation: " + operation);
         }
     }
 

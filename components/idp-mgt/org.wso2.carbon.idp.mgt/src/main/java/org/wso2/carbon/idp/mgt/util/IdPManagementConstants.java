@@ -38,12 +38,12 @@ public class IdPManagementConstants {
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
     public static final String NAME = "NAME";
-    public static final String IDP_NAME = "IdpName";
+    public static final String IDP_NAME = "name";
     public static final String DESCRIPTION = "DESCRIPTION";
-    public static final String IDP_DESCRIPTION = "IdpDescription";
+    public static final String IDP_DESCRIPTION = "description";
     public static final String HOME_REALM_ID = "HOME_REALM_ID";
-    public static final String IDP_HOME_REALM_ID = "IdpHomeRealmIdentifier";
-    public static final String IDP_UUID = "IdpUUID";
+    public static final String IDP_HOME_REALM_ID = "homeRealmIdentifier";
+    public static final String IDP_UUID = "id";
     public static final String UUID = "UUID";
     public static final String IDP_IS_ENABLED = "isEnabled";
     public static final String IS_ENABLED = "IS_ENABLED";

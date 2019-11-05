@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -1025,11 +1026,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param tenantDomain tenant domain whose IdP names are requested.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
-     * @throws IOException                         Input error when getting node list.
      */
     @Override
     public IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy,
-                                   String tenantDomain) throws IdentityProviderManagementException, IOException {
+                                   String tenantDomain) throws IdentityProviderManagementException {
 
         if (limit <= 0) {
             throw new IdentityProviderManagementException("Limit should be greater than 0. limit:" + limit);
@@ -1049,15 +1049,21 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param filter value of the filter.
      * @return node tree.
-     * @throws IOException IOException.
+     * @throws IdentityProviderManagementException Error when validate filters.
      */
-    private List<ExpressionNode> getExpressionNodes(String filter) throws IOException {
+    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityProviderManagementException {
 
         // Filter example : name sw "te" and name ew "st" and isEnabled eq "true".
         List<ExpressionNode> expressionNodes = new ArrayList<>();
-        FilterTreeBuilder filterTreeBuilder = new FilterTreeBuilder(filter);
-        Node rootNode = filterTreeBuilder.buildTree();
-        setExpressionNodeList(rootNode, expressionNodes);
+        FilterTreeBuilder filterTreeBuilder;
+        try {
+            filterTreeBuilder = new FilterTreeBuilder(filter);
+            Node rootNode = filterTreeBuilder.buildTree();
+            setExpressionNodeList(rootNode, expressionNodes);
+        } catch (IOException | IdentityException e) {
+            throw new IdentityProviderManagementException("Exception occurred while validate filter, filter: " +
+                    filter, e);
+        }
         return expressionNodes;
     }
 
