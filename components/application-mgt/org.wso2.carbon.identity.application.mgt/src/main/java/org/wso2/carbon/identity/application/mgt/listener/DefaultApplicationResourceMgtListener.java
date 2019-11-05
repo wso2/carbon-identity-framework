@@ -71,7 +71,7 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                       String tenantDomain,
                                                       String userPerformingAction) throws IdentityApplicationManagementException {
 
-        int applicationId = getApplicationId(application.getApplicationResourceId(), tenantDomain);
+        int applicationId = getApplicationId(resourceId, tenantDomain);
         application.setApplicationID(applicationId);
 
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
@@ -89,7 +89,7 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                        String tenantDomain,
                                                        String userPerformingAction) throws IdentityApplicationManagementException {
 
-        int applicationId = getApplicationId(application.getApplicationResourceId(), tenantDomain);
+        int applicationId = getApplicationId(resourceId, tenantDomain);
         application.setApplicationID(applicationId);
 
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {

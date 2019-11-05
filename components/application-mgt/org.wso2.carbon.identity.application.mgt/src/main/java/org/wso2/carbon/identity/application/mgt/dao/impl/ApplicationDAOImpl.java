@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
+import org.wso2.carbon.identity.application.common.ApplicationManagementServerException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
@@ -443,6 +444,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        insertApplicationConfigurations(serviceProvider, tenantDomain, true);
+    }
+
+    private void insertApplicationConfigurations(ServiceProvider serviceProvider, String tenantDomain,
+                                                 boolean deleteExistingConfigs)
+            throws IdentityApplicationManagementException {
+
         int applicationId = serviceProvider.getApplicationID();
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
 
@@ -459,6 +467,19 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         "Application with the same name loaded from the file system.");
             }
 
+            if (deleteExistingConfigs) {
+                // delete all in-bound authentication requests.
+                deleteInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), connection);
+                // delete local and out-bound authentication configuration.
+                deleteLocalAndOutboundAuthenticationConfiguration(applicationId, connection);
+                deleteRequestPathAuthenticators(applicationId, connection);
+                deleteClaimConfiguration(applicationId, connection);
+                deleteOutboundProvisioningConfiguration(applicationId, connection);
+                deletePermissionAndRoleConfiguration(applicationId, connection);
+                // deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
+            }
+
+
             // update basic information of the application.
             // you can change application name, description, isSasApp...
             updateBasicApplicationData(serviceProvider, connection);
@@ -468,33 +489,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             updateInboundProvisioningConfiguration(applicationId, serviceProvider.getInboundProvisioningConfig(),
                     connection);
 
-            // delete all in-bound authentication requests.
-            deleteInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), connection);
-
             // update all in-bound authentication requests.
             updateInboundAuthRequestConfiguration(serviceProvider.getApplicationID(), serviceProvider
                     .getInboundAuthenticationConfig(), connection);
-
-            // delete local and out-bound authentication configuration.
-            deleteLocalAndOutboundAuthenticationConfiguration(applicationId, connection);
 
             // update local and out-bound authentication configuration.
             updateLocalAndOutboundAuthenticationConfiguration(serviceProvider.getApplicationID(),
                     serviceProvider.getLocalAndOutBoundAuthenticationConfig(), connection);
 
-            deleteRequestPathAuthenticators(applicationId, connection);
             updateRequestPathAuthenticators(applicationId, serviceProvider.getRequestPathAuthenticatorConfigs(),
                     connection);
 
-            deleteClaimConfiguration(applicationId, connection);
             updateClaimConfiguration(serviceProvider.getApplicationID(), serviceProvider.getClaimConfig(),
                     applicationId, connection);
 
-            deleteOutboundProvisioningConfiguration(applicationId, connection);
             updateOutboundProvisioningConfiguration(applicationId,
                     serviceProvider.getOutboundProvisioningConfig(), connection);
 
-            deletePermissionAndRoleConfiguration(applicationId, connection);
 
             if (serviceProvider.getPermissionAndRoleConfig() != null) {
                 updatePermissionAndRoleConfiguration(serviceProvider.getApplicationID(),
@@ -512,7 +523,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             // Will be supported with 'Advance Consent Management Feature'.
             /*
-            deleteConsentPurposeConfiguration(connection, applicationId, tenantID);
             if (serviceProvider.getConsentConfig() != null) {
                 updateConsentPurposeConfiguration(connection, applicationId, serviceProvider.getConsentConfig(),
                         tenantID);
@@ -4515,8 +4525,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             // Before calling update we set the appId and resourceId to the application.
             application.setApplicationID(applicationId);
             application.setApplicationResourceId(resourceId);
-
-            updateApplication(application, tenantDomain);
+            insertApplicationConfigurations(application, tenantDomain, false);
             return resourceId;
         } catch (Exception ex) {
             log.error("Error while creating the application with name: " + application.getApplicationName()
@@ -4528,18 +4537,38 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+    @Override
+    public void updateApplicationByResourceId(String resourceId,
+                                              String tenantDomain,
+                                              ServiceProvider updatedApp) throws IdentityApplicationManagementException {
+
+        try {
+            int appIdUsingResourceId = getAppIdUsingResourceId(resourceId, tenantDomain);
+            updatedApp.setApplicationID(appIdUsingResourceId);
+
+            updateApplication(updatedApp, tenantDomain);
+        } catch (IdentityApplicationManagementException ex) {
+            throw new ApplicationManagementServerException("Error while updating application with resourceId: "
+                    + resourceId + " in tenantDomain: " + tenantDomain, ex);
+        }
+    }
+
     public ServiceProvider getApplicationByResourceId(String resourceId,
                                                       String tenantDomain) throws IdentityApplicationManagementException {
 
-        int appId = getAppIdUsingResourceId(resourceId, tenantDomain);
-        ServiceProvider application = getApplication(appId);
-        if (application == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cannot find an application for resourceId:" + resourceId + ", tenantDomain:" + tenantDomain);
+        try {
+            int appId = getAppIdUsingResourceId(resourceId, tenantDomain);
+            ServiceProvider application = getApplication(appId);
+            if (application == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Cannot find an application for resourceId:" + resourceId + ", tenantDomain:" + tenantDomain);
+                }
             }
+            return application;
+        } catch (IdentityApplicationManagementException ex) {
+            throw new ApplicationManagementServerException("Error while retrieving application with resourceId: "
+                    + resourceId + " in tenantDomain: " + tenantDomain, ex);
         }
-
-        return application;
     }
 
     @Override
@@ -4561,8 +4590,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                              new NamedPreparedStatement(connection, REMOVE_APP_FROM_SP_APP_WITH_UUID)) {
 
                     deleteAppStatement.setString(ApplicationTableColumns.UUID, resourceId);
-                    deleteAppStatement.setInt(ApplicationTableColumns.TENANT_ID,
-                            IdentityTenantUtil.getTenantId(tenantDomain));
+                    int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+                    deleteAppStatement.setInt(ApplicationTableColumns.TENANT_ID, tenantId);
                     deleteAppStatement.execute();
 
                     IdentityDatabaseUtil.commitTransaction(connection);

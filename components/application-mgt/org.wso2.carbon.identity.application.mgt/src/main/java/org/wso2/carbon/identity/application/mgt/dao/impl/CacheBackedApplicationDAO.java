@@ -182,10 +182,9 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        String storedAppName = getApplicationName(serviceProvider.getApplicationID());
-        clearAllAppCache(serviceProvider, storedAppName, tenantDomain);
+        ServiceProvider storedApp = getApplication(serviceProvider.getApplicationID());
+        clearAllAppCache(storedApp, tenantDomain);
         appDAO.updateApplication(serviceProvider, tenantDomain);
-
     }
 
     public void deleteApplication(String applicationName) throws IdentityApplicationManagementException {
@@ -375,7 +374,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                                               ServiceProvider updatedApp) throws IdentityApplicationManagementException {
 
         ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
-        clearAllAppCache(updatedApp, storedApp.getApplicationName(), tenantDomain);
+        clearAllAppCache(storedApp, tenantDomain);
 
         appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
     }
@@ -633,12 +632,12 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
-    private void clearAllAppCache(ServiceProvider serviceProvider, String storedAppName, String tenantDomain) throws
+    private void clearAllAppCache(ServiceProvider serviceProvider, String updatedName, String tenantDomain) throws
             IdentityApplicationManagementException {
 
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(storedAppName, tenantDomain);
+            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(updatedName, tenantDomain);
             appCacheByName.clearCacheEntry(cacheKey);
 
             clearAllAppCache(serviceProvider, tenantDomain);
