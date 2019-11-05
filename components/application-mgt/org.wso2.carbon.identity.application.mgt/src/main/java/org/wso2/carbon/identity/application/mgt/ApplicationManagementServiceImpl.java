@@ -165,37 +165,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
-
-//        ServiceProvider initialSP = new ServiceProvider();
-//        initialSP.setApplicationName(serviceProvider.getApplicationName());
-//        initialSP.setDescription(serviceProvider.getDescription());
         updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
         serviceProvider.setOwner(getUser(tenantDomain, username));
-
-
-//        doPreAddApplicationCheck(serviceProvider, tenantDomain);
-//        // Invoking the listeners.
-//        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
-//                .getApplicationMgtListeners();
-//        for (ApplicationMgtListener listener : listeners) {
-//            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
-//                return serviceProvider;
-//            }
-//        }
-//
-//        ServiceProvider addedSP = doAddApplication(initialSP, tenantDomain, username);
-//
-//        for (ApplicationMgtListener listener : listeners) {
-//            if (listener.isEnable() && !listener.doPostCreateApplication(addedSP, tenantDomain, username)) {
-//                return addedSP;
-//            }
-//        }
-//
-//        serviceProvider.setApplicationID(addedSP.getApplicationID());
-//        serviceProvider.setOwner(getUser(tenantDomain, username));
-//        if (spTemplate != null && spTemplate.getContent() != null) {
-//            updateApplication(serviceProvider, tenantDomain, username);
-//        }
 
         return createApplication(serviceProvider, tenantDomain, username);
     }
@@ -1823,8 +1794,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void doPreAddApplicationCheck(ServiceProvider serviceProvider,
-                                          String tenantDomain) throws IdentityApplicationManagementException {
+    private void doPreAddApplicationChecks(ServiceProvider serviceProvider,
+                                           String tenantDomain) throws IdentityApplicationManagementException {
 
         String appName = serviceProvider.getApplicationName();
         if (StringUtils.isBlank(appName)) {
@@ -1851,8 +1822,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain,
-                                             String username, boolean persistBasicAppInfoOnly)
+    private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         try {
@@ -1872,13 +1842,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
             try {
                 ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-                if (persistBasicAppInfoOnly) {
-                    int appId = appDAO.createApplication(serviceProvider, tenantDomain);
-                    return appDAO.getApplication(appId);
-                } else {
-                    String resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
-                    return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
-                }
+                String resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
+                return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
             } catch (IdentityApplicationManagementException ex) {
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);
@@ -2129,8 +2094,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        doPreAddApplicationCheck(application, tenantDomain);
-        ServiceProvider createdApp = doAddApplication(application, tenantDomain, username, false);
+        doPreAddApplicationChecks(application, tenantDomain);
+        ServiceProvider createdApp = doAddApplication(application, tenantDomain, username);
 
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnabled()) {
