@@ -54,6 +54,9 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "Certificate")
     private String certificateContent;
 
+    @XmlElement(name = "JwksUri")
+    private String jwksUri;
+
     @XmlTransient
     private User owner;
 
@@ -145,6 +148,8 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setDescription(element.getText());
             } else if( "Certificate".equals(elementName)){
                 serviceProvider.setCertificateContent(element.getText());
+            } else if ("JwksUri".equals(elementName)) {
+                serviceProvider.setJwksUri(element.getText());
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
@@ -430,6 +435,16 @@ public class ServiceProvider implements Serializable {
     public void setLoginUrl(String loginUrl) {
 
         this.loginUrl = loginUrl;
+    }
+
+    public String getJwksUri() {
+
+        return jwksUri;
+    }
+
+    public void setJwksUri(String jwksUri) {
+
+        this.jwksUri = jwksUri;
     }
 
     public boolean isDiscoverable() {

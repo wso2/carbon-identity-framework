@@ -440,19 +440,23 @@ public class IdentityApplicationConstants {
 
     public enum ErrorMessage {
 
-        ERROR_CODE_UNEXPECTED("50001", "Unexpected Server Error."),
-        ERROR_CODE_ADD_APP("50002", "Error while adding the application: %s."),
-        ERROR_CODE_GET_APP("50003", "Error while getting the application: %s."),
-        ERROR_CODE_DELETE_APP("50004", "Error while deleting application: %s."),
-        ERROR_CODE_UPDATE_APP("50005", "Error while updating application: %s."),
+        ERROR_CODE_UNEXPECTED("65001", "Unexpected Server Error."),
+        ERROR_CODE_ADD_APP("65002", "Error while adding the application: %s."),
+        ERROR_CODE_GET_APP("65003", "Error while getting the application: %s."),
+        ERROR_CODE_DELETE_APP("65004", "Error while deleting application: %s."),
+        ERROR_CODE_UPDATE_APP("65005", "Error while updating application: %s."),
 
-        ERROR_CODE_APP_ALREADY_EXISTS("40001", "Application with the name: %s already exists in tenantDomain: %s."),
-        ERROR_CODE_APP_DOES_NOT_EXIST("40002", "Application with resourceId: %s does not exists in tenantDomain: %s."),
-        ERROR_CODE_APP_ADD_REQUEST_INVALID("40003", "Application add request validation failed. %s"),
-        ERROR_CODE_APP_GET_REQUEST_INVALID("40004", "Application get request validation failed. %s"),
-        ERROR_CODE_APP_DELETE_REQUEST_INVALID("40005", "Application delete request validation failed. %s"),
-        ERROR_CODE_APP_UPDATE_REQUEST_INVALID("40006", "Application update request validation failed. %s"),
-        ERROR_CODE_SEARCH_REQUEST_INVALID("40007", "Search request validation failed. Invalid search filter. %s"),;
+        ERROR_CODE_APP_ALREADY_EXISTS("60001", "Application with the name: %s already exists in tenantDomain: %s."),
+        ERROR_CODE_APP_RESOURCE_ID_DOES_NOT_EXIST("60002", "Application with resourceId: %s does not exists in tenantDomain: %s."),
+        ERROR_CODE_APP_ADD_REQUEST_INVALID("60003", "Application add request validation failed. %s"),
+        ERROR_CODE_APP_GET_REQUEST_INVALID("60004", "Application get request validation failed. %s"),
+        ERROR_CODE_APP_DELETE_REQUEST_INVALID("60005", "Application delete request validation failed. %s"),
+        ERROR_CODE_APP_UPDATE_REQUEST_INVALID("60006", "Application update request validation failed. %s"),
+        ERROR_CODE_SEARCH_REQUEST_INVALID("60007", "Search request validation failed. Invalid search filter. %s"),
+        ERROR_CODE_APP_ID_DOES_NOT_EXIST("60008", "Application with id: %s does not exists in tenantDomain: %s."),
+        ERROR_CODE_USER_UNAUTHORIZED("60009",
+                "User is unauthorized to perform attempted action on application: %s in tenantDomain: %s"),;
+        ;
 
         private final String code;
         private final String message;

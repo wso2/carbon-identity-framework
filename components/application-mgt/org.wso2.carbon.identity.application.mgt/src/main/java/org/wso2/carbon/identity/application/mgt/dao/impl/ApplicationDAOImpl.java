@@ -417,7 +417,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             // To add the property "USE_DOMAIN_IN_ROLES".
             // TODO: move this to OSGi layer.
             addUseDomainNameInRolesAsSpProperty(serviceProvider);
-
             if (serviceProvider.getSpProperties() != null) {
                 addServiceProviderProperties(connection, applicationId,
                         Arrays.asList(serviceProvider.getSpProperties()), tenantID);
