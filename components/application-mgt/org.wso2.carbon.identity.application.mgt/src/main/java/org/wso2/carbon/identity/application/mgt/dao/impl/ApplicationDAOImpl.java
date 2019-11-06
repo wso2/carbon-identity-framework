@@ -848,40 +848,36 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         // update the application data
-        PreparedStatement storeAppPrepStmt = null;
-        try {
-            String sql;
-            boolean isValidUserForOwnerUpdate = ApplicationMgtUtil.isValidApplicationOwner(serviceProvider);
-            if (isValidUserForOwnerUpdate) {
-                sql = UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE;
-            } else {
-                sql = UPDATE_BASIC_APPINFO;
-            }
+        boolean isValidUserForOwnerUpdate = ApplicationMgtUtil.isValidApplicationOwner(serviceProvider);
+        String sql;
+        if (isValidUserForOwnerUpdate) {
+            sql = UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE;
+        } else {
+            sql = UPDATE_BASIC_APPINFO;
+        }
 
-            storeAppPrepStmt = connection.prepareStatement(sql);
-            // SET APP_NAME=?, DESCRIPTION=? IS_SAAS_APP=? WHERE TENANT_ID= ? AND ID = ?
-            storeAppPrepStmt.setString(1, applicationName);
-            storeAppPrepStmt.setString(2, description);
-            storeAppPrepStmt.setString(3, isSaasApp ? "1" : "0");
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql)) {
+            statement.setString(ApplicationTableColumns.APP_NAME, applicationName);
+            statement.setString(ApplicationTableColumns.DESCRIPTION, description);
+            statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
+            statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
+            statement.setString(ApplicationTableColumns.LOGIN_URL, serviceProvider.getLoginUrl());
             if (isValidUserForOwnerUpdate) {
-                storeAppPrepStmt.setString(4, serviceProvider.getOwner().getUserName());
-                storeAppPrepStmt.setString(5, serviceProvider.getOwner().getUserStoreDomain());
-                storeAppPrepStmt.setInt(6, tenantID);
-                storeAppPrepStmt.setInt(7, applicationId);
-            } else {
-                storeAppPrepStmt.setInt(4, tenantID);
-                storeAppPrepStmt.setInt(5, applicationId);
+                User owner = serviceProvider.getOwner();
+                statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
+                statement.setString(ApplicationTableColumns.USER_STORE, owner.getUserStoreDomain());
             }
-            storeAppPrepStmt.executeUpdate();
+            statement.setInt(ApplicationTableColumns.TENANT_ID, tenantID);
+            statement.setInt(ApplicationTableColumns.ID, applicationId);
 
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
+            statement.executeUpdate();
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Updated Application successfully");
+            String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantID);
+            log.debug("Application with name: " + applicationName + " , id: " + applicationId + " in tenantDomain: "
+                    + tenantDomain + " updated successfully.");
         }
-
     }
 
     private List<Property> filterEmptyProperties(Property[] propertiesArray) {
