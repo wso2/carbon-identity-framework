@@ -433,8 +433,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
 
         ServiceProvider serviceProvider = null;
         try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             if (StringUtils.isNotBlank(applicationName)) {
-                ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
                 IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(
                         applicationName, tenantDomain);
                 IdentityServiceProviderCacheEntry entry = appCacheByName.getValueFromCache(cacheKey);

@@ -46,24 +46,6 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     }
 
     /**
-     * Creates a service provider with basic information.First we need to create
-     * a role with the
-     * application name. Only the users in this role will be able to edit/update
-     * the application.The
-     * user will assigned to the created role.Internal roles used.
-     *
-     * @param serviceProvider Service Provider Name
-     * @param tenantDomain Tenant Domain
-     * @param username User Name
-     * @return
-     * @throws IdentityApplicationManagementException
-     * @deprecated  This method is replaced by {@link #createApplicationWithTemplate}
-     */
-    @Deprecated
-    public abstract void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException;
-
-    /**
      * Creates a service provider with basic information and returns the created service provider. First we need to
      * create an internal role with the application name. Only the users in this role will be able to edit/update
      * the application.Then the user will assigned to the created role.

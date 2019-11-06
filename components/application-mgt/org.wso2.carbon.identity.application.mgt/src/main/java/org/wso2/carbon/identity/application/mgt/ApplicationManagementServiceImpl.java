@@ -149,13 +149,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException {
-
-        createApplicationWithTemplate(serviceProvider, tenantDomain, username, null);
-    }
-
-    @Override
     public ServiceProvider addApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
@@ -745,7 +738,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
-                listener.doPostDeleteApplication(applicationName, tenantDomain, username);
                 listener.doPostDeleteApplication(serviceProvider, tenantDomain, username);
             }
         }
@@ -2068,7 +2060,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable() &&
-                    !listener.doPreGetApplicationBasicInfoByResourceId(resourceId, tenantDomain, user)) {
+                    !listener.doPreGetApplicationBasicInfoByResourceId(resourceId, tenantDomain)) {
                 return null;
             }
         }
@@ -2084,7 +2076,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable() &&
-                    !listener.doPostGetApplicationBasicInfoByResourceId(basicAppInfo, resourceId, tenantDomain, user)) {
+                    !listener.doPostGetApplicationBasicInfoByResourceId(basicAppInfo, resourceId, tenantDomain)) {
                 return null;
             }
         }
@@ -2092,14 +2084,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public String createApplication(ServiceProvider application,
-                                    String tenantDomain) throws IdentityApplicationManagementException {
+    public ServiceProvider createApplication(ServiceProvider application, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
 
-        String userPerformingAction = getUserPerformingAction();
-        ServiceProvider app = createApplicationWithTemplate(application, tenantDomain, userPerformingAction, null);
-        ServiceProvider serviceProvider = getServiceProvider(app.getApplicationName(), tenantDomain);
-
-        return serviceProvider.getApplicationResourceId();
+        return null;
     }
 
     @Override
@@ -2109,10 +2097,9 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
 
-        String user = getUserPerformingAction();
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable() &&
-                    !listener.doPreGetApplicationByResourceId(resourceId, tenantDomain, user)) {
+                    !listener.doPreGetApplicationByResourceId(resourceId, tenantDomain)) {
                 return null;
             }
         }
@@ -2122,7 +2109,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable() &&
-                    !listener.doPostGetApplicationByResourceId(application, resourceId, tenantDomain, user)) {
+                    !listener.doPostGetApplicationByResourceId(application, resourceId, tenantDomain)) {
                 return null;
             }
         }
@@ -2131,12 +2118,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public void updateApplicationByResourceId(String resourceId, String tenantDomain, ServiceProvider updatedApp)
+    public void updateApplicationByResourceId(String resourceId, ServiceProvider updatedApp, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
-        String userUpdatingTheApp = getUserPerformingAction();
         try {
-            applicationMgtValidator.validateSPConfigurations(updatedApp, tenantDomain, userUpdatingTheApp);
+            applicationMgtValidator.validateSPConfigurations(updatedApp, tenantDomain, username);
         } catch (IdentityApplicationManagementValidationException e) {
             log.error("Validation error when updating the application  with resourceId: " + resourceId
                     + " in tenantDomain: " + tenantDomain);
@@ -2155,7 +2141,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable() &&
                     !listener.doPreUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain,
-                            userUpdatingTheApp)) {
+                            username)) {
                 throw new IdentityApplicationManagementException("Pre Update application failed");
             }
         }
@@ -2202,7 +2188,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         for (ApplicationResourceManagementListener listener : listeners) {
             if (listener.isEnable()
                     && !listener.doPostUpdateApplicationByResourceId(updatedApp, resourceId, tenantDomain,
-                    userUpdatingTheApp)) {
+                    username)) {
                 return;
             }
         }
@@ -2252,10 +2238,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     @Override
     public void deleteApplicationByResourceId(String resourceId,
-                                              String tenantDomain) throws IdentityApplicationManagementException {
+                                              String tenantDomain,
+                                              String username) throws IdentityApplicationManagementException {
 
         // Invoking listeners.
-        String username = CarbonContext.getThreadLocalCarbonContext().getUsername();
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
         for (ApplicationResourceManagementListener listener : listeners) {
