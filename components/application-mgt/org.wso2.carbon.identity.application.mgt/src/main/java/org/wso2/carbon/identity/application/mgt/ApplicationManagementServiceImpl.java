@@ -1411,12 +1411,6 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return doGetAllApplicationTemplateInfo(tenantDomain);
     }
 
-    @Override
-    public Map<String, AbstractInboundAuthenticatorConfig> getAllInboundAuthenticatorConfig() {
-
-        return ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig();
-    }
-
     /**
      * Add SP template to database and cache.
      *
