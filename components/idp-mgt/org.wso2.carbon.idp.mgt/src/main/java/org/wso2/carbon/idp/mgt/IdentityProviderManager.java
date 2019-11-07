@@ -1134,9 +1134,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param sortOrder order of IdP(ASC/DESC).
      * @param sortBy    the column value need to sort.
      * @param result    result object.
+     * @throws IdentityProviderManagementClientException Error while set offset.
      */
     private void setParameters(int limit, int offset, String filter, String sortOrder, String sortBy, IdpSearchResult
-            result) {
+            result) throws IdentityProviderManagementClientException {
 
         result.setLimit(validateLimit(limit));
         result.setOffSet(validateOffset(offset));
@@ -1243,14 +1244,15 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param offset given offset value.
      * @return validated limit and offset value.
+     * @throws IdentityProviderManagementClientException Error while set offset
      */
-    private int validateOffset(int offset) {
+    private int validateOffset(int offset) throws IdentityProviderManagementClientException {
 
         if (offset < 0) {
-            offset = 0;
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid offset applied. Therefore we set the default offset value as 0. offSet: " + offset);
-            }
+            String message = "Invalid offset applied. Offset should not negative. offSet: " +
+                    offset;
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
         }
         return offset;
     }
