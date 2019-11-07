@@ -340,6 +340,17 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
         return new ApplicationBasicInfo[0];
     }
 
+    /**
+     * Get custom inbound authenticator configurations.
+     *
+     * @return custom inbound authenticator configs maps.
+     * Ex: cas:cas -> CAS_Authenticator_Config_Object
+     */
+    public Map<String, AbstractInboundAuthenticatorConfig> getAllInboundAuthenticatorConfig() {
+
+        return ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig();
+    }
+
     @Override
     public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, int offset,
                                                           int limit) throws IdentityApplicationManagementException {
