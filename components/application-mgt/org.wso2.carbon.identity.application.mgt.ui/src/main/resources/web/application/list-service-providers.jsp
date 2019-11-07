@@ -45,9 +45,9 @@
                        resourceBundle="org.wso2.carbon.identity.application.mgt.ui.i18n.Resources"
                        topPage="true" request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
 
     <script>
         function exportSPClick() {
@@ -299,7 +299,7 @@
     </div>
     <div id='exportSPMsgDialog' title='WSO2 Carbon'>
         <div id='messagebox-confirm'>
-            <p> Do you want to export Service Provider as the file ? </p><br>
+            <p> <fmt:message key="sp.export.para"/> </p><br>
             <form id="spExportData" name="sp-export-data" method="post"
                   action="export-service-provider-finish-ajaxprocessor.jsp">
                 <input hidden id="spName" name="spName"/>

@@ -79,4 +79,80 @@ public class ApplicationConstants {
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
     public static final int DEFAULT_FETCH_CHUNK_SIZE = 50;
     public static final String FETCH_CHUNK_SIZE = "FetchChunkSize";
+
+    // Named query fields
+    public static final String OFFSET = "OFFSET";
+    public static final String LIMIT = "LIMIT";
+    public static final String ZERO_BASED_START_INDEX = "ZERO_BASED_START_INDEX";
+    public static final String ONE_BASED_START_INDEX = "ONE_BASED_START_INDEX";
+    public static final String END_INDEX = "END_INDEX";
+
+    /**
+     * Enum for application service related errors in the format of
+     * Error Code - code to identify the error
+     * Error Message - What went wrong
+     */
+    public enum ErrorMessage {
+
+        ERROR_INVALID_OFFSET("60001", "Invalid offset requested. Offset value should be zero or greater than zero."),
+        ERROR_INVALID_LIMIT("60002", "Invalid limit requested. Offset value should be greater than zero."),
+        ERROR_APPLICATION_IS_NOT_DISCOVERABLE("60003", "Requested application resource %s is not discoverable."),
+        ERROR_SORTING_NOT_IMPLEMENTED("65001", "Sorting not supported.");
+
+        public static final String APPLICATION_SERVICE_ERROR_RESPONSE_CODE_PREFIX = "APP_";
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return APPLICATION_SERVICE_ERROR_RESPONSE_CODE_PREFIX + code;
+        }
+
+        public String getMessage(Object ... data) {
+
+            return String.format(message, data);
+        }
+
+        @Override
+        public String toString() {
+
+            return code + " | " + message;
+        }
+    }
+
+    public static class ApplicationTableColumns {
+        public static final String ID = "ID";
+        public static final String APP_NAME = "APP_NAME";
+        public static final String DESCRIPTION = "DESCRIPTION";
+
+        public static final String USERNAME = "USERNAME";
+        public static final String USER_STORE = "USER_STORE";
+        public static final String TENANT_ID = "TENANT_ID";
+
+        public static final String ROLE_CLAIM = "ROLE_CLAIM";
+        public static final String AUTH_TYPE = "AUTH_TYPE";
+        public static final String PROVISIONING_USERSTORE_DOMAIN = "PROVISIONING_USERSTORE_DOMAIN";
+
+        public static final String IS_LOCAL_CLAIM_DIALECT = "IS_LOCAL_CLAIM_DIALECT";
+        public static final String IS_SEND_LOCAL_SUBJECT_ID = "IS_SEND_LOCAL_SUBJECT_ID";
+        public static final String IS_SEND_AUTH_LIST_OF_IDPS = "IS_SEND_AUTH_LIST_OF_IDPS";
+        public static final String IS_USE_TENANT_DOMAIN_SUBJECT = "IS_USE_TENANT_DOMAIN_SUBJECT";
+        public static final String IS_USE_USER_DOMAIN_SUBJECT = "IS_USE_USER_DOMAIN_SUBJECT";
+        public static final String ENABLE_AUTHORIZATION = "ENABLE_AUTHORIZATION";
+
+        public static final String SUBJECT_CLAIM_URI = "SUBJECT_CLAIM_URI";
+        public static final String IS_SAAS_APP = "IS_SAAS_APP";
+        public static final String IS_DUMB_MODE = "IS_DUMB_MODE";
+        public static final String IS_DISCOVERABLE = "IS_DISCOVERABLE";
+
+        public static final String UUID = "UUID";
+        public static final String IMAGE_URL = "IMAGE_URL";
+        public static final String LOGIN_URL = "LOGIN_URL";
+    }
 }

@@ -48,4 +48,3 @@
         </cxf:properties>
     </cxf:bus>
 </beans>
-
