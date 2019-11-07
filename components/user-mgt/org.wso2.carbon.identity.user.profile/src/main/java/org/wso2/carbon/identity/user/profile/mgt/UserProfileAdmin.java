@@ -64,6 +64,7 @@ import javax.servlet.http.HttpSession;
 
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_FEDERATED_ASSOCIATION;
+import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 
 public class UserProfileAdmin extends AbstractAdmin {
 
@@ -765,7 +766,6 @@ public class UserProfileAdmin extends AbstractAdmin {
             getFederatedAssociationManager().deleteFederatedAssociation(fullyQualifiedUserName, idpID, associatedID);
             audit(auditActionForDeleteAssociation, username, auditData, AUDIT_SUCCESS);
         } catch (FederatedAssociationManagerException e) {
-            // TODO: 11/6/19 verify this!
             // This error could be caused if federated association trying to delete does not exists for the user. In
             // order to preserve backward compatibility, this error is silently ignored.
             if (!isFederatedAssociationDoesNotExistsError(e)) {
@@ -849,50 +849,6 @@ public class UserProfileAdmin extends AbstractAdmin {
         return !StringUtils.equalsIgnoreCase(loggedInUsername, adminUsername);
     }
 
-    private void validateIfUserAccountAlreadyAssociated(int tenantId, String idpId, String federatedUserId) throws
-            UserProfileException {
-
-        String userAssociated;
-        try {
-            userAssociated = UserProfileMgtDAO.getInstance().getUserAssociatedFor(tenantId, idpId,
-                    federatedUserId);
-        } catch (UserProfileException e) {
-            String msg = "Error while retrieving user associated for federation IdP: " + idpId + " with federation " +
-                    "identifier:" + federatedUserId + " in tenant: " + getTenantDomain();
-            log.error(msg, e);
-            throw new UserProfileException(msg, e);
-        }
-
-        if (userAssociated != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Federated ID: " + federatedUserId + " for IdP: " + idpId + " is already associated " +
-                        "with the local user account: " + userAssociated + UserCoreConstants
-                        .TENANT_DOMAIN_COMBINER + getTenantDomain() + ".");
-            }
-            throw new UserProfileException("UserAlreadyAssociated: Federated ID: " + federatedUserId + " for " +
-                    "IdP:" + " " + idpId + " is already associated with a local user account.");
-        }
-    }
-
-    private void validateUser(String username) throws UserProfileException {
-
-        if (StringUtils.isBlank(username)) {
-            throw new UserProfileException("Username cannot be empty.");
-        }
-
-        try {
-            UserStoreManager userStoreManager = getUserRealm().getUserStoreManager();
-            if (!userStoreManager.isExistingUser(username)) {
-                throw new UserProfileException("UserNotFound: User: " + username + " does not exist in tenant: " +
-                        getTenantDomain());
-            }
-        } catch (UserStoreException e) {
-            String msg = "Error occurred while verifying user: " + username + " exists in tenant: " + getTenantDomain();
-            log.error(msg, e);
-            throw new UserProfileException(msg, e);
-        }
-    }
-
     private void audit(String action, String target, String data, String result) {
 
         audit_log.info(String.format(AUDIT_MESSAGE, getUsername() + UserCoreConstants.TENANT_DOMAIN_COMBINER +
@@ -926,8 +882,17 @@ public class UserProfileAdmin extends AbstractAdmin {
         User user = new User();
         user.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(domainAwareUserName));
-        user.setUserName(UserCoreUtil.removeDomainFromName(domainAwareUserName));
+        user.setUserName(removeTenantDomain(UserCoreUtil.removeDomainFromName(domainAwareUserName)));
         return user.toFullQualifiedUsername();
+    }
+
+    private String removeTenantDomain(String username) {
+
+        String tenantDomain = MultitenantUtils.getTenantDomain(username);
+        if (username.endsWith(tenantDomain)) {
+            return username.substring(0, username.lastIndexOf(TENANT_DOMAIN_COMBINER));
+        }
+        return username;
     }
 
     private boolean isFederatedAssociationDoesNotExistsError(FederatedAssociationManagerException e) {

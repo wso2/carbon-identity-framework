@@ -37,7 +37,7 @@ public class Constants {
 
         public static final String DELETE_ASSOCIATION = "DELETE FROM IDN_ASSOCIATED_ID WHERE TENANT_ID = ? AND " +
                 "IDP_ID" + " = (SELECT ID FROM IDP WHERE NAME = ? AND TENANT_ID = ? ) AND IDP_USER_ID = ? AND " +
-                "USER_NAME = ? AND " + "DOMAIN_NAME = ?";
+                "USER_NAME = ? AND DOMAIN_NAME = ?";
 
         public static final String DELETE_ALL_ASSOCIATIONS_FOR_USER = "DELETE FROM IDN_ASSOCIATED_ID WHERE TENANT_ID " +
                 "= ? AND DOMAIN_NAME = ? AND USER_NAME = ?";

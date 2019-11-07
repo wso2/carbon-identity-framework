@@ -48,7 +48,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER;
@@ -67,12 +66,6 @@ import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
     private static final Log log = LogFactory.getLog(FederatedAssociationManagerImpl.class);
-    private static final Function<AssociatedAccountDTO, FederatedAssociation>
-            convertToFederatedUserAccountAssociationDTO = AssociatedAccountDTO -> new FederatedAssociation(
-            AssociatedAccountDTO.getId(),
-            AssociatedAccountDTO.getIdentityProviderName(),
-            AssociatedAccountDTO.getUsername()
-    );
 
     @Override
     public void createFederatedAssociation(String userId, String idpName, String federatedUserId)
@@ -125,11 +118,11 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                     .getAssociatedFederatedAccountsForUser(tenantId, user.getUserStoreDomain(), user.getUserName());
             for (AssociatedAccountDTO associatedAccount : associatedAccountDTOS) {
                 String identityProviderId = getIdentityProviderId(MultitenantUtils.getTenantDomain(userId),
-                        associatedAccount);
+                        associatedAccount.getIdentityProviderName());
                 federatedAssociations.add(
                         new FederatedAssociation(
+                                associatedAccount.getId(),
                                 identityProviderId,
-                                associatedAccount.getIdentityProviderName(),
                                 associatedAccount.getUsername()
                         )
                 );
@@ -162,8 +155,6 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                         + MultitenantUtils.getTenantDomain(userId);
                 log.debug(msg);
             }
-            // TODO: 10/31/19 We cannot guarantee why UserProfileException Occurred since we dont have a client/server
-            //  child exceptions. Hence always a server error is thrown.
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER
                     , e, true);
         }
@@ -184,9 +175,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                         + ", for user: " + userName + ", in tenant: " + MultitenantUtils.getTenantDomain(userName);
                 log.debug(msg, e);
             }
-            // TODO: 10/31/19 We cannot guarantee why UserProfileException Occurred since we dont have a client/server
-            //  child exceptions. Hence always a server error is thrown.
-            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER, e,
+            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER
+                    , e,
                     true);
         }
     }
@@ -206,9 +196,8 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                         + MultitenantUtils.getTenantDomain(userName);
                 log.debug(msg, e);
             }
-            // TODO: 10/31/19 We cannot guarantee why UserProfileException Occurred since we dont have a client/server
-            //  child exceptions. Hence always a server error is thrown.
-            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER, e,
+            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER
+                    , e,
                     true);
         }
     }
@@ -457,14 +446,13 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         }
     }
 
-    private String getIdentityProviderId(String tenantDomain, AssociatedAccountDTO associatedAccount)
+    private String getIdentityProviderId(String tenantDomain, String identityProviderName)
             throws FederatedAssociationManagerServerException {
 
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider identityProvider = idpManager.getIdPByName(associatedAccount.getIdentityProviderName(),
-                        tenantDomain);
+                IdentityProvider identityProvider = idpManager.getIdPByName(identityProviderName, tenantDomain);
                 return identityProvider.getResourceId();
             } else {
                 if (log.isDebugEnabled()) {
@@ -476,7 +464,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         } catch (IdentityProviderManagementException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Could not resolve the identity provider for the name: "
-                        + associatedAccount.getIdentityProviderName() + ", in the tenant domain: " + tenantDomain);
+                        + identityProviderName + ", in the tenant domain: " + tenantDomain);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS,
                     null, true);
@@ -489,7 +477,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider identityProvider = idpManager.getIdPById(idpId, tenantDomain);
+                IdentityProvider identityProvider = idpManager.getIdPByResourceId(idpId, tenantDomain, false);
                 return identityProvider.getIdentityProviderName();
             } else {
                 if (log.isDebugEnabled()) {

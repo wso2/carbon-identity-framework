@@ -15,6 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.user.profile.mgt.association.federation.constant;
 
 public class FederatedAssociationConstants {
@@ -27,7 +28,8 @@ public class FederatedAssociationConstants {
 
         // Server errors.
         ERROR_RETRIEVING_TENANT_ID_OF_USER(15001, "Error while retrieving tenant ID of user"),
-        ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER(15002, "Error while deleting the federation association of " +
+        ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER(15002, "Error while deleting the federation association of" +
+                " " +
                 "user"),
         ERROR_WHILE_RETRIEVING_FEDERATED_ASSOCIATION_OF_USER(15003, "Database error occurred while retrieving the " +
                 "federation association of user"),
@@ -42,7 +44,6 @@ public class FederatedAssociationConstants {
         ERROR_WHILE_WORKING_WITH_FEDERATED_ASSOCIATIONS(15009, "Error occurred while working with the federated " +
                 "associations"),
         ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS(15009, "Error occurred while resolving identity providers"),
-
 
         // Client errors.
         INVALID_ATTRIBUTE_IDS_PROVIDED(10001, "Provided attribute IDs must be valid local claim URIs"),
