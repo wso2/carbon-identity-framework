@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -344,6 +345,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
                                                           int limit) throws IdentityApplicationManagementException {
 
         return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Retrieve the set of authentication templates configured from file system in JSON format.
+     *
+     * @return Authentication templates.
+     */
+    public String getAuthenticationTemplatesJSON() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
     }
 
 }
