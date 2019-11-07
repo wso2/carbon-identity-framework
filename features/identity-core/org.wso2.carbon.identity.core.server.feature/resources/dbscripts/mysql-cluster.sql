@@ -349,6 +349,7 @@ CREATE TABLE IF NOT EXISTS SP_APP (
   UUID                          VARCHAR (45),
   IMAGE_URL                     VARCHAR (1024),
   LOGIN_URL                     VARCHAR (1024),
+  IS_DISCOVERABLE               CHAR(1)               DEFAULT '0',
 
   PRIMARY KEY (ID)
 )
