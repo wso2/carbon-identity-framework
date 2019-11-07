@@ -1,20 +1,20 @@
 /*
-*  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-*  WSO2 Inc. licenses this file to you under the Apache License,
-*  Version 2.0 (the "License"); you may not use this file except
-*  in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*    http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing,
-* software distributed under the License is distributed on an
-* "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-* KIND, either express or implied.  See the License for the
-* specific language governing permissions and limitations
-* under the License.
-*/
+ *  Copyright (c) 2005-2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ *  WSO2 Inc. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.wso2.carbon.identity.user.store.configuration;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -22,9 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
@@ -32,42 +30,27 @@ import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStore
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
-import org.wso2.carbon.ndatasource.core.DataSourceManager;
-import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
-import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo.WSDataSourceDefinition;
-import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
 import org.wso2.carbon.user.api.Properties;
 import org.wso2.carbon.user.api.Property;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
-import javax.xml.transform.TransformerException;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getSecondaryUserStorePropertiesFromTenantUserRealm;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 
 public class UserStoreConfigAdminService extends AbstractAdmin {
     public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
-    private static final String DB_BASED_REPOSITORY_CLASS =
-            "org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory";
 
     /**
      * Get details of current secondary user store configurations
@@ -77,26 +60,12 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public UserStoreDTO[] getSecondaryRealmConfigurations() throws IdentityUserStoreMgtException {
 
-        List<UserStoreDTO> userStoreDTOList = new ArrayList<>();
-
-        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-                getInstance().getUserStoreDAOFactories();
-
-        for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
-
-            if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    StringUtils.equals(entry.getKey(), DB_BASED_REPOSITORY_CLASS)) {
-                continue;
-            }
-
-            UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
-            userStoreDTOList.addAll(Arrays.asList(allUserStores));
-        }
-        return userStoreDTOList.toArray(new UserStoreDTO[0]);
+        return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().getUserStores();
     }
 
     /**
      * Get user stores from all the repositories.
+     *
      * @param repositoryClassName repository class name
      * @return userstore {@link UserStoreDTO}
      * @throws IdentityUserStoreMgtException
@@ -129,7 +98,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @return: Available implementations for user store managers
      */
     public String[] getAvailableUserStoreClasses() throws IdentityUserStoreMgtException {
-        Set<String> classNames = UserStoreManagerRegistry.getUserStoreManagerClasses();
+
+        Set<String> classNames = UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
+                getAvailableUserStoreClasses();
         return classNames.toArray(new String[classNames.size()]);
     }
 
@@ -144,7 +115,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         if (properties != null && properties.getOptionalProperties() != null) {
 
-            Property[] optionalProperties =  properties.getOptionalProperties();
+            Property[] optionalProperties = properties.getOptionalProperties();
             boolean foundUniqueIDProperty = false;
             for (Property property : optionalProperties) {
                 if (UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT.equals(property.getName())) {
@@ -179,25 +150,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        try {
-            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
-                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                        getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
-                userStoreDAOFactory.getInstance().addUserStore(userStoreDTO);
-            } else {
-                if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Repository separation of user-stores has been disabled. Adding user-store " +
-                                userStoreDTO.getDomainId() + " with file-based configuration.");
-                    }
-                }
-                getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
-            }
-        } catch (UserStoreException e) {
-            String errorMessage = e.getMessage();
-            throw new IdentityUserStoreMgtException(errorMessage, e);
-        }
+        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().addUserStore(userStoreDTO);
     }
 
     /**
@@ -208,32 +161,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        try {
-            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
-
-                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                        getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
-                userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, false);
-            } else if (StringUtils.equals(userStoreDTO.getRepositoryClass(), FILE_BASED_REPOSITORY_CLASS)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Repository separation of user-stores has been disabled. Editing user-store " +
-                            userStoreDTO.getDomainId() + " with file-based configuration.");
-                }
-                getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, false);
-            } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Repository separation of user-stores has been disabled. Unable to edit " +
-                            "user-store " + userStoreDTO.getDomainId() + " with repository class " +
-                            userStoreDTO.getRepositoryClass());
-                }
-            } else {
-                getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, false);
-            }
-        } catch (UserStoreException e) {
-            String errorMessage = e.getMessage();
-            throw new IdentityUserStoreMgtException(errorMessage, e);
-        }
+        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().updateUserStore(userStoreDTO,
+                false);
     }
 
 
@@ -242,9 +171,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      *
      * @param userStoreDTO:      Represent the configuration of new user store
      * @param previousDomainName
-     * @throws DataSourceException
-     * @throws TransformerException
-     * @throws ParserConfigurationException
+     * @throws IdentityUserStoreMgtException
      */
     public void editUserStoreWithDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
@@ -256,26 +183,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
         try {
             validateForFederatedDomain(domainName);
-            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                    StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
-                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                        getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
-                userStoreDAOFactory.getInstance().updateUserStoreDomainName(previousDomainName, userStoreDTO);
-            } else if (StringUtils.equals(userStoreDTO.getRepositoryClass(), FILE_BASED_REPOSITORY_CLASS)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Repository separation of user-stores has been disabled. Updating user-store " +
-                            "domain name " + userStoreDTO.getDomainId() + " with file-based configuration.");
-                }
-                getFileBasedUserStoreDAOFactory().updateUserStoreDomainName(previousDomainName, userStoreDTO);
-            } else if (StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Repository separation of user-stores has been disabled. Unable to update " +
-                            "user-store domain name " + userStoreDTO.getDomainId() + " with repository class " +
-                            userStoreDTO.getRepositoryClass());
-                }
-            } else {
-                getFileBasedUserStoreDAOFactory().updateUserStoreDomainName(previousDomainName, userStoreDTO);
-            }
+            UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
+                    updateUserStoreByDomainName(previousDomainName, userStoreDTO);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
@@ -310,7 +219,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @param domainName: domain name of the user stores to be deleted
      */
     public void deleteUserStore(String domainName) throws IdentityUserStoreMgtException {
-        deleteUserStoresSet(new String[] {domainName});
+
+        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStore(domainName);
     }
 
     /**
@@ -323,6 +233,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         deleteUserStoresSetFromRepository(new UserStoreDTO[]{userStoreDTO});
     }
+
     /**
      * Delete the given list of user stores from file repository.
      *
@@ -330,21 +241,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void deleteUserStoresSet(String[] domains) throws IdentityUserStoreMgtException {
 
-        if (domains == null || domains.length <= 0) {
-            throw new IdentityUserStoreMgtException("No selected user stores to delete");
-        }
-
-        if (!validateDomainsForDelete(domains)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Failed to delete user store : No privileges to delete own user store configurations ");
-            }
-            throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
-        }
-        try {
-            getFileBasedUserStoreDAOFactory().deleteUserStores(domains);
-        } catch (UserStoreException e) {
-            throw new IdentityUserStoreMgtException("Error occured while deleting the user store.", e);
-        }
+        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStoreSet(domains);
     }
 
     /**
@@ -386,32 +283,20 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
     }
 
-    private boolean validateDomainsForDelete(String[] domains) {
-        String userDomain = IdentityUtil.extractDomainFromName(PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                .getUsername());
-        for (String domain : domains) {
-            if (domain.equalsIgnoreCase(userDomain)) {
-                //Trying to delete own domain
-                return false;
-            }
-        }
-        return true;
 
-    }
-
-   /*
+    /*
      * Update a domain to be disabled/enabled in file repository
      *
      * @param domain:   Name of the domain to be updated
      * @param isDisable : Whether to disable/enable domain(true/false)
      */
-   public void changeUserStoreState(String domain, Boolean isDisable) throws IdentityUserStoreMgtException,
-           TransformerConfigurationException {
+    public void changeUserStoreState(String domain, Boolean isDisable) throws IdentityUserStoreMgtException,
+            TransformerConfigurationException {
 
-       validateDomain(domain, isDisable);
-       UserStoreDTO userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-       updateTheStateInFileRepository(userStoreDTO);
-   }
+        validateDomain(domain, isDisable);
+        UserStoreDTO userStoreDTO = getUserStoreDTO(domain, isDisable, null);
+        updateTheStateInFileRepository(userStoreDTO);
+    }
 
     private void updateTheStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
@@ -425,8 +310,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     /**
      * Update the status of domain.
-     * @param domain userstore domain
-     * @param isDisable true if the userstore domain is disabled.
+     *
+     * @param domain          userstore domain
+     * @param isDisable       true if the userstore domain is disabled.
      * @param repositoryClass repository class
      * @throws IdentityUserStoreMgtException throws an error when changing the status of the user store.
      */
@@ -434,29 +320,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throws IdentityUserStoreMgtException {
 
         validateDomain(domain, isDisable);
-        UserStoreDTO userStoreDTO;
-        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
-                StringUtils.isNotEmpty(repositoryClass)) {
-            AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
-                    getUserStoreDAOFactories().get(repositoryClass);
-            userStoreDTO = getUserStoreDTO(domain, isDisable, repositoryClass);
-            userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, true);
-        } else if (StringUtils.equals(repositoryClass, FILE_BASED_REPOSITORY_CLASS)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Repository separation of user-stores has been disabled. Modifying state for " +
-                        "user-store " + domain + " with file-based configuration.");
-            }
-            userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateTheStateInFileRepository(userStoreDTO);
-        } else if (StringUtils.isNotEmpty(repositoryClass)) {
-            if (log.isDebugEnabled()) {
-                log.debug("Repository separation of user-stores has been disabled. Unable to modify state " +
-                        "for user-store " + domain + " with repository class " + repositoryClass);
-            }
-        } else {
-            userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateTheStateInFileRepository(userStoreDTO);
-        }
+        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().modifyUserStoreState(domain, isDisable,
+                repositoryClass);
     }
 
     private void validateDomain(String domain, Boolean isDisable) throws IdentityUserStoreMgtException {
@@ -485,6 +350,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
     /**
      * Check the connection heath for JDBC userstores
+     *
      * @param domainName
      * @param driverName
      * @param connectionURL
@@ -492,55 +358,12 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @param connectionPassword
      * @param messageID
      * @return
-     * @throws DataSourceException
+     * @throws IdentityUserStoreMgtException
      */
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID) throws IdentityUserStoreMgtException {
 
-        if (messageID != null) {
-            if (connectionPassword.equalsIgnoreCase(ENCRYPTED_PROPERTY_MASK)) {
-                Map<String, String> secondaryUserStoreProperties =
-                        getSecondaryUserStorePropertiesFromTenantUserRealm(domainName);
-                if (secondaryUserStoreProperties != null) {
-                    connectionPassword = secondaryUserStoreProperties.get(JDBCRealmConstants.PASSWORD);
-                }
-            }
-        }
-
-        WSDataSourceMetaInfo wSDataSourceMetaInfo = new WSDataSourceMetaInfo();
-
-        RDBMSConfiguration rdbmsConfiguration = new RDBMSConfiguration();
-        rdbmsConfiguration.setUrl(connectionURL);
-        rdbmsConfiguration.setUsername(username);
-        rdbmsConfiguration.setPassword(connectionPassword);
-        rdbmsConfiguration.setDriverClassName(driverName);
-
-        WSDataSourceDefinition wSDataSourceDefinition = new WSDataSourceDefinition();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JAXBContext context;
-        try {
-            context = JAXBContext.newInstance(RDBMSConfiguration.class);
-            Marshaller marshaller = context.createMarshaller();
-            marshaller.marshal(rdbmsConfiguration, out);
-
-        } catch (JAXBException e) {
-            String errorMessage = "Error while checking RDBMS connection health";
-            log.error(errorMessage, e);
-            throw new IdentityUserStoreMgtException(errorMessage);
-        }
-        wSDataSourceDefinition.setDsXMLConfiguration(out.toString());
-        wSDataSourceDefinition.setType("RDBMS");
-
-        wSDataSourceMetaInfo.setName(domainName);
-        wSDataSourceMetaInfo.setDefinition(wSDataSourceDefinition);
-        try {
-            return DataSourceManager.getInstance().getDataSourceRepository().testDataSourceConnection(wSDataSourceMetaInfo.
-                    extractDataSourceMetaInfo());
-        } catch (DataSourceException e) {
-            String errorMessage = e.getMessage();
-            // Does not print the error log since the log is already printed by DataSourceRepository
-//            log.error(message, e);
-            throw new IdentityUserStoreMgtException(errorMessage);
-        }
+        return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().testRDBMSConnection(domainName,
+                driverName, connectionURL, username, connectionPassword, messageID);
     }
 }

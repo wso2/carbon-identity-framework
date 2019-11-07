@@ -114,6 +114,7 @@ public class UserStoreConfigComponent {
             UserStoreConfigService userStoreConfigService = new UserStoreConfigServiceImpl();
             ctxt.getBundleContext().registerService(UserStoreConfigService.class.getName(), userStoreConfigService,
                     null);
+            UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
             if (serviceRegistration != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("FileBasedUserStoreDAOFactory is successfully registered.");
@@ -214,23 +215,4 @@ public class UserStoreConfigComponent {
 
         UserStoreConfigListenersHolder.getInstance().unsetUserStoreConfigListenerService(userStoreConfigListener);
     }
-
-    @Reference(
-            name = "user.store.config.service",
-            service = UserStoreConfigService.class,
-            cardinality = ReferenceCardinality.MULTIPLE,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetUserStoreConfigService"
-    )
-    protected void setUserStoreConfigService(UserStoreConfigService userStoreConfigService) {
-
-        UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
-    }
-
-    protected void unsetUserStoreConfigService(UserStoreConfigService userStoreConfigService) {
-
-        UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(null);
-    }
-
 }
-

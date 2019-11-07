@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
+import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
@@ -42,9 +43,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getSecondaryUserStorePropertiesFromTenantUserRealm;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -156,9 +154,10 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             throw new IdentityUserStoreMgtException("No selected user store to delete");
         }
 
-        if (!validateDomainsForDelete(domain)) {
+        if (!validateDomainsForDelete(new String[]{domain})) {
             if (log.isDebugEnabled()) {
-                log.debug("Failed to delete user store : No privileges to delete own user store configurations ");
+                log.debug("Failed to delete user store " + domain + " " +
+                        ": No privileges to delete own user store configurations ");
             }
             throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
         }
@@ -172,6 +171,26 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                     SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStore(domain);
                 }
             }
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
+        }
+    }
+
+    @Override
+    public void deleteUserStoreSet(String[] domains) throws IdentityUserStoreMgtException {
+
+        if (domains == null || domains.length <= 0) {
+            throw new IdentityUserStoreMgtException("No selected user stores to delete");
+        }
+
+        if (!validateDomainsForDelete(domains)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to delete user store : No privileges to delete own user store configurations ");
+            }
+            throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
+        }
+        try {
+            SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStores(domains);
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error occurred while deleting the user store.", e);
         }
@@ -232,10 +251,11 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
                                        String connectionPassword, String messageID)
             throws IdentityUserStoreMgtException {
+
         if (StringUtils.isNotEmpty(messageID) && StringUtils.isNotEmpty(domainName)) {
-            if (connectionPassword.equalsIgnoreCase(ENCRYPTED_PROPERTY_MASK)) {
-                Map<String, String> secondaryUserStoreProperties =
-                        getSecondaryUserStorePropertiesFromTenantUserRealm(domainName);
+            if (connectionPassword.equalsIgnoreCase(UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK)) {
+                Map<String, String> secondaryUserStoreProperties = SecondaryUserStoreConfigurationUtil
+                        .getSecondaryUserStorePropertiesFromTenantUserRealm(domainName);
                 if (secondaryUserStoreProperties != null) {
                     connectionPassword = secondaryUserStoreProperties.get(JDBCRealmConstants.PASSWORD);
                 }
@@ -279,11 +299,83 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         }
     }
 
-    private boolean validateDomainsForDelete(String domain) {
+    @Override
+    public void modifyUserStoreState(String domain, Boolean isDisable, String repositoryClass)
+            throws IdentityUserStoreMgtException {
+
+        UserStoreDTO userStoreDTO;
+        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
+                StringUtils.isNotEmpty(repositoryClass)) {
+            AbstractUserStoreDAOFactory userStoreDAOFactory = userStoreDAOFactories.get(repositoryClass);
+            userStoreDTO = getUserStoreDTO(domain, isDisable, repositoryClass);
+            userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, true);
+        } else if (StringUtils.equals(repositoryClass, FILE_BASED_REPOSITORY_CLASS)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Modifying state for " +
+                        "user-store " + domain + " with file-based configuration.");
+            }
+            userStoreDTO = getUserStoreDTO(domain, isDisable, null);
+            updateTheStateInFileRepository(userStoreDTO);
+        } else if (StringUtils.isNotEmpty(repositoryClass)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Repository separation of user-stores has been disabled. Unable to modify state " +
+                        "for user-store " + domain + " with repository class " + repositoryClass);
+            }
+        } else {
+            userStoreDTO = getUserStoreDTO(domain, isDisable, null);
+            updateTheStateInFileRepository(userStoreDTO);
+        }
+    }
+
+    /**
+     * To check the provided domain set are exists to delete.
+     *
+     * @param domains domain name array.
+     * @return true or false.
+     */
+    private boolean validateDomainsForDelete(String[] domains) {
+
         String userDomain = IdentityUtil.extractDomainFromName(PrivilegedCarbonContext.getThreadLocalCarbonContext()
                 .getUsername());
-        //Trying to delete own domain
-        return !domain.equalsIgnoreCase(userDomain);
+        for (String domain : domains) {
+            if (domain.equalsIgnoreCase(userDomain)) {
+                //Trying to delete own domain
+                return false;
+            }
+        }
+        return true;
+    }
 
+    /**
+     * To update the state in file repository.
+     *
+     * @param userStoreDTO {@link UserStoreDTO}
+     * @throws IdentityUserStoreMgtException
+     */
+    private void updateTheStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+
+        try {
+            SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, true);
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            throw new IdentityUserStoreMgtException(errorMessage);
+        }
+    }
+
+    /**
+     * To construct UserStoreDTO object to get user store details.
+     *
+     * @param domain          the domain name
+     * @param isDisable       the boolean value to specify whether user store should enable or disable
+     * @param repositoryClass the repository class
+     * @return UserStoreDTO
+     */
+    private UserStoreDTO getUserStoreDTO(String domain, Boolean isDisable, String repositoryClass) {
+
+        UserStoreDTO userStoreDTO = new UserStoreDTO();
+        userStoreDTO.setDomainId(domain);
+        userStoreDTO.setDisabled(isDisable);
+        userStoreDTO.setRepositoryClass(repositoryClass);
+        return userStoreDTO;
     }
 }
