@@ -1471,6 +1471,21 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr>
+                            <td class="leftCol-med">
+                                <label for="isDiscoverableApp"><fmt:message key="config.application.isDiscoverableApp"/></label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input type="checkbox" id="isDiscoverableApp"
+                                           name="isDiscoverableApp" <%=appBean.getServiceProvider().getDiscoverable() ? "checked" :
+                                            "" %>/>
+                                    <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='help.discoverable'/>
+                                </span>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 

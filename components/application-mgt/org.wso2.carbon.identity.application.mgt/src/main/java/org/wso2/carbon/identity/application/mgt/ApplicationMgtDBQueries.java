@@ -29,10 +29,13 @@ public class ApplicationMgtDBQueries {
     public static final String STORE_BASIC_APPINFO = "INSERT INTO SP_APP (TENANT_ID, APP_NAME, USER_STORE, USERNAME, " +
                                                      "DESCRIPTION, AUTH_TYPE, IS_USE_TENANT_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION,IS_USE_USER_DOMAIN_SUBJECT, UUID, IMAGE_URL, LOGIN_URL) " +
                                                      "VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
-    public static final String UPDATE_BASIC_APPINFO = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, IS_SAAS_APP=? " +
-            "WHERE TENANT_ID= ? AND ID = ?";
-    public static final String UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE = "UPDATE SP_APP SET APP_NAME=?, DESCRIPTION=?, " +
-            "IS_SAAS_APP=?, USERNAME=?, USER_STORE=? WHERE TENANT_ID= ? AND ID = ?";
+    public static final String UPDATE_BASIC_APPINFO = "UPDATE SP_APP SET APP_NAME=:APP_NAME;, " +
+            "DESCRIPTION=:DESCRIPTION;, IS_SAAS_APP=:IS_SAAS_APP;, IS_DISCOVERABLE=:IS_DISCOVERABLE;, " +
+            "IMAGE_URL=:IMAGE_URL;, LOGIN_URL=:LOGIN_URL; WHERE TENANT_ID=:TENANT_ID; AND ID=:ID;";
+    public static final String UPDATE_BASIC_APPINFO_WITH_OWNER_UPDATE = "UPDATE SP_APP SET APP_NAME=:APP_NAME;, " +
+            "DESCRIPTION=:DESCRIPTION;, IS_SAAS_APP=:IS_SAAS_APP;, IS_DISCOVERABLE=:IS_DISCOVERABLE;, " +
+            "USERNAME=:USERNAME;, USER_STORE=:USER_STORE;, IMAGE_URL=:IMAGE_URL;, " +
+            "LOGIN_URL=:LOGIN_URL; WHERE TENANT_ID=:TENANT_ID; AND ID=:ID;";
     public static final String UPDATE_BASIC_APPINFO_WITH_ROLE_CLAIM = "UPDATE SP_APP SET ROLE_CLAIM=? WHERE TENANT_ID" +
                                                                       "= ? AND ID = ?";
     public static final String UPDATE_BASIC_APPINFO_WITH_CLAIM_DIALEECT = "UPDATE SP_APP SET IS_LOCAL_CLAIM_DIALECT=? " +
@@ -149,7 +152,8 @@ public class ApplicationMgtDBQueries {
                                                                  "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
                                                                  "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                  "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, " +
-                                                                 "SUBJECT_CLAIM_URI, IS_SAAS_APP, UUID, IMAGE_URL, LOGIN_URL " +
+                                                                 "SUBJECT_CLAIM_URI, IS_SAAS_APP, UUID, IMAGE_URL, " +
+                                                                 "LOGIN_URL, IS_DISCOVERABLE " +
                                                                  "FROM SP_APP WHERE APP_NAME " +
                                                                  "= ? AND TENANT_ID= ?";
 
@@ -157,7 +161,8 @@ public class ApplicationMgtDBQueries {
                                                                "USERNAME, DESCRIPTION, ROLE_CLAIM, AUTH_TYPE, PROVISIONING_USERSTORE_DOMAIN, IS_LOCAL_CLAIM_DIALECT," +
                                                                "IS_SEND_LOCAL_SUBJECT_ID, IS_SEND_AUTH_LIST_OF_IDPS, IS_USE_TENANT_DOMAIN_SUBJECT, " +
                                                                "IS_USE_USER_DOMAIN_SUBJECT, ENABLE_AUTHORIZATION, " +
-                                                               "SUBJECT_CLAIM_URI, IS_SAAS_APP, UUID, IMAGE_URL, LOGIN_URL " +
+                                                               "SUBJECT_CLAIM_URI, IS_SAAS_APP, UUID, IMAGE_URL, " +
+                                                                "LOGIN_URL, IS_DISCOVERABLE " +
                                                                "FROM SP_APP WHERE ID = ?";
 
     public static final String LOAD_AUTH_TYPE_BY_APP_ID = "SELECT AUTH_TYPE FROM SP_APP WHERE ID = ? AND TENANT_ID = ?";
@@ -297,7 +302,8 @@ public class ApplicationMgtDBQueries {
 
     // DB queries for application management using the resourceId
     public static final String LOAD_APP_BY_TENANT_AND_UUID = "SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, " +
-            "LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; AND UUID = :UUID;";
+            "LOGIN_URL, IS_DISCOVERABLE, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; " +
+            "AND UUID = :UUID;";
 
     public static final String LOAD_APP_ID_BY_UUID = "SELECT ID FROM SP_APP WHERE UUID = :UUID; " +
             "AND TENANT_ID = :TENANT_ID;";
@@ -306,8 +312,82 @@ public class ApplicationMgtDBQueries {
             "AND TENANT_ID=:TENANT_ID;";
 
     public static final String LOAD_APP_BY_NAME_AND_TENANT = "SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, " +
-            "LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP " +
+            "LOGIN_URL, IS_DISCOVERABLE, USERNAME, USER_STORE, TENANT_ID FROM SP_APP " +
             "WHERE TENANT_ID = :TENANT_ID; AND APP_NAME = :APP_NAME;";
+
+    // DB queries to manage application discoverability
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL = "SELECT ID, APP_NAME, DESCRIPTION, UUID, " +
+            "IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; AND " +
+            "IS_DISCOVERABLE = '1' ORDER BY ID DESC LIMIT :OFFSET;, :LIMIT;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE = "SELECT ID, APP_NAME, " +
+            "DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "(SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID, rownum " +
+            "AS rnum FROM " +
+            "(SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, " +
+            "TENANT_ID FROM SP_APP ORDER BY ID DESC) WHERE TENANT_ID = :TENANT_ID; AND " +
+            "rownum <= :END_INDEX; AND IS_DISCOVERABLE = '1') WHERE rnum > :ZERO_BASED_START_INDEX;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_MSSQL = "SELECT ID, APP_NAME, " +
+            "DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "SP_APP WHERE TENANT_ID = :TENANT_ID; AND IS_DISCOVERABLE = '1' ORDER BY ID " +
+            "DESC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_POSTGRESQL = "SELECT ID, " +
+            "APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "SP_APP WHERE TENANT_ID = :TENANT_ID; AND IS_DISCOVERABLE = '1' ORDER BY ID " +
+            "DESC LIMIT :LIMIT; OFFSET :OFFSET;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_DB2SQL = "SELECT ID, " +
+            "APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM "
+            + "(SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) AS rn,SP_APP.* FROM SP_APP WHERE TENANT_ID = :TENANT_ID; " +
+            "AND IS_DISCOVERABLE = '1)WHERE rn BETWEEN :ONE_BASED_START_INDEX; AND :END_INDEX;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_INFORMIX = "SELECT SKIP :OFFSET; FIRST " +
+            ":LIMIT; ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "SP_APP WHERE TENANT_ID = :TENANT_ID; AND IS_DISCOVERABLE = '1' ORDER BY ID DESC";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL = "SELECT ID, APP_NAME, DESCRIPTION" +
+            " , UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM SP_APP WHERE TENANT_ID = :TENANT_ID; " +
+            "AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1' ORDER BY ID DESC LIMIT :OFFSET;, :LIMIT;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE = "SELECT ID, APP_NAME, " +
+            "DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "(SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID, rownum " +
+            "AS rnum FROM " +
+            "(SELECT ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, " +
+            "TENANT_ID FROM SP_APP ORDER BY ID DESC) WHERE TENANT_ID = :TENANT_ID; AND APP_NAME LIKE :APP_NAME; AND " +
+            "rownum <= :END_INDEX; AND IS_DISCOVERABLE = '1') WHERE rnum > :ZERO_BASED_START_INDEX;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MSSQL = "SELECT ID, APP_NAME, " +
+            "DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "SP_APP WHERE TENANT_ID = :TENANT_ID; AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1' ORDER BY ID " +
+            "DESC OFFSET :OFFSET; ROWS FETCH NEXT :LIMIT; ROWS ONLY";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_POSTGRESQL = "SELECT ID, " +
+            "APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "SP_APP WHERE TENANT_ID = :TENANT_ID; AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1' ORDER BY ID " +
+            "DESC LIMIT :LIMIT; OFFSET :OFFSET;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_DB2 = "SELECT ID, " +
+            "APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM "
+            + "(SELECT ROW_NUMBER() OVER(ORDER BY ID DESC) AS rn,SP_APP.* FROM SP_APP WHERE TENANT_ID = :TENANT_ID; " +
+            "AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1)WHERE rn BETWEEN :ONE_BASED_START_INDEX; AND " +
+            ":END_INDEX;";
+
+    public static final String LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_INFORMIX = "SELECT SKIP :OFFSET; FIRST " +
+            ":LIMIT; ID, APP_NAME, DESCRIPTION, UUID, IMAGE_URL, LOGIN_URL, USERNAME, USER_STORE, TENANT_ID FROM " +
+            "SP_APP WHERE TENANT_ID = :TENANT_ID; AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1' ORDER BY ID " +
+            "DESC";
+
+    public static final String LOAD_DISCOVERABLE_APP_COUNT_BY_APP_NAME_AND_TENANT = "SELECT COUNT(UUID) FROM SP_APP " +
+            "WHERE TENANT_ID = :TENANT_ID; AND APP_NAME LIKE :APP_NAME; AND IS_DISCOVERABLE = '1'";
+
+    public static final String LOAD_DISCOVERABLE_APP_COUNT_BY_TENANT = "SELECT COUNT(UUID) FROM SP_APP " +
+            "WHERE TENANT_ID = :TENANT_ID; AND IS_DISCOVERABLE = '1'";
+
+    public static final String IS_APP_BY_TENANT_AND_UUID_DISCOVERABLE = "SELECT COUNT(UUID) FROM SP_APP WHERE " +
+            "TENANT_ID = :TENANT_ID; AND UUID = :UUID; AND IS_DISCOVERABLE = '1'";
 
 }
 

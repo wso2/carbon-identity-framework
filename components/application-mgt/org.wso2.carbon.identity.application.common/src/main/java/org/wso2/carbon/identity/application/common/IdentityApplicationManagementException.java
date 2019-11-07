@@ -18,20 +18,61 @@
 
 package org.wso2.carbon.identity.application.common;
 
-public class IdentityApplicationManagementException extends Exception {
+import org.wso2.carbon.identity.base.IdentityException;
+
+/**
+ * Exception class that represents exceptions thrown upon application management.
+ */
+public class IdentityApplicationManagementException extends IdentityException {
 
     private String message;
 
     private static final long serialVersionUID = -1982152066401023165L;
 
+    /**
+     * Constructs a new exception with the specified message.
+     *
+     * @param message Detailed message
+     */
     public IdentityApplicationManagementException(String message) {
+
         super(message);
         this.message = message;
     }
 
+    /**
+     * Constructs a new exception with the specified message and cause.
+     *
+     * @param message Detailed message
+     * @param e       Cause as {@link Throwable}
+     */
     public IdentityApplicationManagementException(String message, Throwable e) {
+
         super(message, e);
         this.message = message;
+    }
+
+    /**
+     * Constructs a new exception with the specified error code and cause.
+     *
+     * @param errorCode Error code
+     * @param message   Detailed message
+     */
+    public IdentityApplicationManagementException(String errorCode, String message) {
+
+        super(errorCode, message);
+    }
+
+    /**
+     * Constructs a new exception with the specified error code, message and cause.
+     *
+     * @param errorCode Error code
+     * @param message   Detailed message
+     * @param cause     Cause as {@link Throwable}
+     */
+    public IdentityApplicationManagementException(String errorCode, String message, Throwable cause) {
+
+        super(errorCode, message, cause);
     }
 
     @Override

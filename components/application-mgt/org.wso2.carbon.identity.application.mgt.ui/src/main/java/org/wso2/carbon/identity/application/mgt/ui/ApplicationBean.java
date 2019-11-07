@@ -1129,6 +1129,9 @@ public class ApplicationBean {
         String isSasApp = request.getParameter("isSaasApp");
         serviceProvider.setSaasApp((isSasApp != null && "on".equals(isSasApp)) ? true : false);
 
+        String isDiscoverableApp = request.getParameter("isDiscoverableApp");
+        serviceProvider.setDiscoverable("on".equals(isDiscoverableApp));
+
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
             // create fresh one.
             serviceProvider

@@ -95,6 +95,9 @@ public class ServiceProvider implements Serializable {
     @IgnoreNullElement
     private String loginUrl;
 
+    @XmlElement(name = "IsDiscoverable")
+    private boolean isDiscoverable;
+
 
     /*
      * <ServiceProvider> <ApplicationID></ApplicationID> <Description></Description>
@@ -421,6 +424,16 @@ public class ServiceProvider implements Serializable {
     public void setLoginUrl(String loginUrl) {
 
         this.loginUrl = loginUrl;
+    }
+
+    public boolean isDiscoverable() {
+
+        return isDiscoverable;
+    }
+
+    public void setDiscoverable(boolean discoverable) {
+
+        isDiscoverable = discoverable;
     }
 }
 
