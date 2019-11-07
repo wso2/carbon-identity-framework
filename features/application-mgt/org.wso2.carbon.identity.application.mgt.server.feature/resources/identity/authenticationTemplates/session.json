@@ -13,7 +13,7 @@
     "MaxSessionCount": "Maximum number of allowed concurrent sessions for the role which a particular user belongs to."
   },
   "defaultStepsDescription": {
-    "Step 1": "Basic (Password) authenticator.",
+    "Step 1": "Basic (Password) authenticator."
   },
   "authenticationSteps":1,
   "defaultAuthenticators": {

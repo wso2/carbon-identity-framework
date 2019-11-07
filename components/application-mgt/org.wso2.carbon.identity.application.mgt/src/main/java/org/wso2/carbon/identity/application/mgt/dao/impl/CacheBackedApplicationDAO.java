@@ -365,6 +365,36 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
     }
 
+    @Override
+    public List<ApplicationBasicInfo> getDiscoverableApplicationBasicInfo(int limit, int offset, String filter,
+                                                                          String sortOrder, String sortBy, String
+                                                                                  tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        return appDAO.getDiscoverableApplicationBasicInfo(limit, offset, filter, sortOrder, sortBy, tenantDomain);
+    }
+
+    @Override
+    public int getCountOfDiscoverableApplications(String filter, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        return appDAO.getCountOfDiscoverableApplications(filter, tenantDomain);
+    }
+
+    @Override
+    public ApplicationBasicInfo getDiscoverableApplicationBasicInfoByResourceId(String resourceId, String
+            tenantDomain) throws IdentityApplicationManagementException {
+
+        return appDAO.getDiscoverableApplicationBasicInfoByResourceId(resourceId, tenantDomain);
+    }
+
+    @Override
+    public boolean isApplicationDiscoverable(String resourceId, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        return appDAO.isApplicationDiscoverable(resourceId, tenantDomain);
+    }
+
     private void addToCache(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
