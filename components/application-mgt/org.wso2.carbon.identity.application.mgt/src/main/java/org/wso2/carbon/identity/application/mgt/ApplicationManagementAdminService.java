@@ -472,7 +472,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public String getAuthenticationTemplatesJSON() {
 
-        return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
+        return applicationMgtService.getAuthenticationTemplatesJSON();
     }
 
     /**
