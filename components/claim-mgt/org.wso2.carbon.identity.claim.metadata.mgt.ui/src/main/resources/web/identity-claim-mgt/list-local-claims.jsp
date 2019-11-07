@@ -73,9 +73,9 @@
                        resourceBundle="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript">
         jQuery(document).ready(function () {
 

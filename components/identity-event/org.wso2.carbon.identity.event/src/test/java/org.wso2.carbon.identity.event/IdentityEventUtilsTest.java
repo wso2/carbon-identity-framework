@@ -56,7 +56,7 @@ public class IdentityEventUtilsTest extends IdentityBaseTest {
     public void testReadMessageTemplate() throws IOException {
 
         String identityEventUtils = IdentityEventUtils.readMessageTemplate("src/test/resources/sample-file.xml");
-        String fileContent = "<file></file>\n";
+        String fileContent = "<file></file>" + System.lineSeparator();
         Assert.assertTrue(fileContent.equals(identityEventUtils));
     }
 

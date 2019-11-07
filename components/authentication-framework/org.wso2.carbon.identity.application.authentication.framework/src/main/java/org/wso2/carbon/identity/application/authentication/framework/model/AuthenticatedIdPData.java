@@ -187,6 +187,10 @@ public class AuthenticatedIdPData implements Serializable {
      */
     public boolean isAlreadyAuthenticatedUsing(String authenticatorName, String authMechanism) {
 
+        String username = null;
+        if (user != null) {
+            username = user.getUserName();
+        }
         for (AuthenticatorConfig authenticator : getAuthenticators()) {
             if (authenticator.getName().equals(authenticatorName)
                     || (authenticator.getApplicationAuthenticator() != null
@@ -194,7 +198,7 @@ public class AuthenticatedIdPData implements Serializable {
                 if (log.isDebugEnabled()) {
                     log.debug(String.format("User '%s' is already authenticated using the " +
                                     "IDP : '%s'and the authenticator : '%s'.",
-                            user.getUserName(), idpName, authenticator.getName()));
+                            username, idpName, authenticator.getName()));
                 }
                 return true;
             }
@@ -203,7 +207,7 @@ public class AuthenticatedIdPData implements Serializable {
         if (log.isDebugEnabled()) {
             log.debug(String.format("User '%s' was not authenticated using the " +
                             "IDP : '%s'and the authenticator : '%s' before.",
-                    user.getUserName(), idpName, authenticatorName));
+                    username, idpName, authenticatorName));
         }
 
         return false;

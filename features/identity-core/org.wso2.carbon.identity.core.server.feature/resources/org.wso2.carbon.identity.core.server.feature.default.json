@@ -106,6 +106,9 @@
   "oauth.grant_type.kerberos.enable": false,
   "oauth.grant_type.kerberos.grant_handler": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrant",
   "oauth.grant_type.kerberos.grant_validator": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrantValidator",
+  "oauth.grant_type.account_switch.enable": true,
+  "oauth.grant_type.account_switch.grant_handler": "org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler",
+  "oauth.grant_type.account_switch.grant_validator": "org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator",
 
   "oauth.extensions.callback_handlers": [
     {

@@ -58,6 +58,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.net.SocketException;
+import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -382,9 +383,12 @@ public class IdentityUtilTest {
 
     @Test
     public void testGetIdentityConfigDirPath() throws Exception {
-        when(CarbonUtils.getCarbonConfigDirPath()).thenReturn("/home/mockedPath");
-        assertEquals(IdentityUtil.getIdentityConfigDirPath(), "/home/mockedPath/identity", "Config dir path doesn't " +
-                "match the expected.");
+
+        String mockedCarbonConfigDirPath = Paths.get("home", "mockedPath").toString();
+        when(CarbonUtils.getCarbonConfigDirPath()).thenReturn(mockedCarbonConfigDirPath);
+        String mockedIdentityConfigDirPath = Paths.get(mockedCarbonConfigDirPath, "identity").toString();
+        assertEquals(IdentityUtil.getIdentityConfigDirPath(), mockedIdentityConfigDirPath, "Config dir path doesn't " +
+                                                                                         "match the expected.");
     }
 
     @DataProvider

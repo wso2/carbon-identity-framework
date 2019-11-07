@@ -45,6 +45,8 @@ public class ConfigurationConstants {
     public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_KEY = "attributeKey";
     public static final String RESOURCE_SEARCH_BEAN_FIELD_ATTRIBUTE_VALUE = "attributeValue";
     public static final String DB_SCHEMA_COLUMN_NAME_ID = "ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_VALUE = "VALUE";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_ID = "RESOURCE_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_NAME = "NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_TENANT_ID = "TENANT_ID";
     public static final String DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED = "LAST_MODIFIED";
@@ -56,7 +58,15 @@ public class ConfigurationConstants {
     public static final String DB_SCHEMA_COLUMN_NAME_HAS_FILE = "HAS_FILE";
     public static final String DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE = "HAS_ATTRIBUTE";
     public static final String DB_SCHEMA_COLUMN_NAME_FILE_ID = "FILE_ID";
+    public static final String DB_SCHEMA_COLUMN_NAME_FILE_NAME = "FILE_NAME";
     public static final String DB_SCHEMA_COLUMN_NAME_CREATED_TIME = "CREATED_TIME";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME = "RESOURCE_NAME";
+    public static final String DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME = "TYPE_NAME";
+    public static final String FILE = "file";
+    public static final String SERVER_API_PATH_COMPONENT = "/api/identity/config-mgt/v1.0";
+    public static final String TENANT_CONTEXT_PATH_COMPONENT = "/t/%s";
+    public static final String TENANT_NAME_FROM_CONTEXT = "TenantNameFromContext";
+
 
     public enum ErrorMessages {
         ERROR_CODE_NO_USER_FOUND("CONFIGM_00001", "No authenticated user found to perform the operation: %s."),
@@ -102,7 +112,16 @@ public class ConfigurationConstants {
         ERROR_CODE_REPLACE_RESOURCE("CONFIGM_00034", "Error while replacing the resource : %s."),
         ERROR_CODE_REPLACE_ATTRIBUTE("CONFIGM_00035", "Error while replacing the attribute: %s."),
         ERROR_CODE_FEATURE_NOT_ENABLED("CONFIGM_00036", "Configuration management feature is not enabled."),
-        ;
+        ERROR_CODE_INSERT_FILE("CONFIGM_00037", "Error while adding the file: %s."),
+        ERROR_CODE_GET_FILE("CONFIGM_00038", "Error while retrieving the file: %s."),
+        ERROR_CODE_GET_FILES("CONFIGM_00039", "Error while retrieving files the resource: %s."),
+        ERROR_CODE_DELETE_FILES("CONFIGM_00040", "Error while deleting files for the resource id: %s."),
+        ERROR_CODE_DELETE_FILE("CONFIGM_00041", "Error while deleting the file with id: %s."),
+        ERROR_CODE_GET_FILES_BY_TYPE("CONFIGM_00042", "Error while retrieving files the resource type: %s."),
+        ERROR_CODE_FILE_DOES_NOT_EXISTS("CONFIGM_00043", "File with the id: %s does not exists."),
+        ERROR_CODE_FILES_DOES_NOT_EXISTS("CONFIGM_00044", "Resource: %s does not contain any files."),
+        ERROR_CODE_FILE_IDENTIFIERS_REQUIRED("CONFIGM_00045", "File identifier validation failed for " +
+                "one or more file identifiers in: %s");
 
         private final String code;
         private final String message;

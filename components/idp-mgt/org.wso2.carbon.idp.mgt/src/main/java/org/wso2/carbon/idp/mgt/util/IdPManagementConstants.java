@@ -38,24 +38,31 @@ public class IdPManagementConstants {
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID FROM IDP WHERE (TENANT_ID = ? OR" +
-                " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%'))";
+                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP " +
+                "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%'))";
 
         public static final String GET_IDPS_NAME_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID FROM IDP WHERE (TENANT_ID = ? OR" +
-                " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME LIKE ?";
+                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP " +
+                "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME LIKE ?";
         
-        public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, ALIAS, " +
-                "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
+        public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, " +
+                "ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, IS_FEDERATION_HUB, " +
-                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME FROM IDP WHERE (TENANT_ID = ? OR" +
-                " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME = ?";
+                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID FROM IDP " +
+                "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME = ?";
 
-        public static final String GET_IDP_BY_ID_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, ALIAS, " +
-                "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
+        public static final String GET_IDP_BY_ID_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, " +
+                "ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, IS_FEDERATION_HUB, " +
-                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME FROM IDP WHERE (TENANT_ID = ? OR" +
-                " (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND ID = ?";
+                "IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID FROM IDP WHERE " +
+                "(TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND ID = ?";
+
+        public static final String GET_IDP_BY_RESOURCE_ID_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, " +
+                "CERTIFICATE, ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, " +
+                "ROLE_CLAIM_URI, DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, " +
+                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, " +
+                "UUID FROM IDP WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) " +
+                "AND UUID = ?";
 
         public static final String GET_IDP_ID_BY_NAME_SQL = "SELECT ID "
                 + "FROM IDP WHERE TENANT_ID=? AND NAME=?";
@@ -101,6 +108,13 @@ public class IdPManagementConstants {
                 "DEFAULT_AUTHENTICATOR_NAME=?, DEFAULT_PRO_CONNECTOR_NAME=?, DESCRIPTION=?, " +
                 "IS_FEDERATION_HUB=?, IS_LOCAL_CLAIM_DIALECT=?, PROVISIONING_ROLE=?, IS_ENABLED=?, DISPLAY_NAME=?  " +
                 "WHERE TENANT_ID=? AND NAME=?";
+
+        public static final String UPDATE_IDP_BY_RESOURCE_ID_SQL = "UPDATE IDP SET NAME=?, IS_PRIMARY=?, "
+                + "HOME_REALM_ID=?, CERTIFICATE=?, ALIAS=?, INBOUND_PROV_ENABLED=?, "
+                + "INBOUND_PROV_USER_STORE_ID=?,USER_CLAIM_URI=?, ROLE_CLAIM_URI=?, " +
+                "DEFAULT_AUTHENTICATOR_NAME=?, DEFAULT_PRO_CONNECTOR_NAME=?, DESCRIPTION=?, " +
+                "IS_FEDERATION_HUB=?, IS_LOCAL_CLAIM_DIALECT=?, PROVISIONING_ROLE=?, IS_ENABLED=?, DISPLAY_NAME=?, " +
+                "IMAGE_URL=? WHERE UUID=?";
 
         public static final String UPDATE_IDP_AUTH_SQL = "UPDATE IDP_AUTHENTICATOR SET IS_ENABLED=? WHERE IDP_ID=? " +
                 "AND NAME=?";
@@ -156,8 +170,8 @@ public class IdPManagementConstants {
                 + "HOME_REALM_ID, CERTIFICATE, ALIAS, INBOUND_PROV_ENABLED, "
                 + "INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION,IS_FEDERATION_HUB,"
-                + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME) " +
-                "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?)";
+                + "IS_LOCAL_CLAIM_DIALECT,PROVISIONING_ROLE, IS_ENABLED, DISPLAY_NAME, IMAGE_URL, UUID) " +
+                "VALUES (?, ?, ?,?,?, ?, ?, ?, ?, ?,?,?, ?,?,? ,?, ?, ?, ?, ?)";
 
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
@@ -178,6 +192,8 @@ public class IdPManagementConstants {
                 + "PROV_CONFIG_IS_SECRET = ? WHERE IDP_ID=?";
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
+
+        public static final String DELETE_IDP_BY_RESOURCE_ID_SQL = "DELETE FROM IDP WHERE UUID=?";
 
         public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP WHERE " +
                 "AUTHENTICATOR_ID in (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID=(SELECT ID FROM IDP WHERE NAME=? " +
@@ -258,5 +274,46 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_METADATA = "INSERT INTO IDP_METADATA (IDP_ID, NAME, VALUE, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
+    }
+
+    public enum ErrorMessage {
+
+        ERROR_CODE_UNEXPECTED("IDP_52001", "Unexpected Error"),
+        ERROR_CODE_ADD_IDP("IDP_52002", "Error while adding the Identity Provider: %s."),
+        ERROR_CODE_IDP_ALREADY_EXISTS("IDP_42001", "Identity Provider with the name: %s already exists."),
+        ERROR_CODE_RETRIEVE_IDP("IDP_52003", "Error while getting the Identity Provider: %s."),
+        ERROR_CODE_IDP_DOES_NOT_EXIST("IDP_42002", "Identity Provider with resource ID: %s does not exists."),
+        ERROR_CODE_DELETE_IDP("IDP_52004", "Error while deleting Identity Provider: %s."),
+        ERROR_CODE_UPDATE_IDP("IDP_52005", "Error while updating Identity Provider: %s."),
+        ERROR_CODE_IDP_ADD_REQUEST_INVALID("IDP_42003", "Identity Provider add request validation failed. %s"),
+        ERROR_CODE_IDP_GET_REQUEST_INVALID("IDP_42004", "Identity Provider get request validation failed. %s"),
+        ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP_42005", "Identity Provider delete request validation failed. %s"),
+        ERROR_CODE_IDP_UPDATE_REQUEST_INVALID("IDP_42006", "Identity Provider update request validation failed. %s"),
+        ERROR_CODE_SEARCH_REQUEST_INVALID("IDP_42007", "Search request validation failed. Invalid search filter. %s"),;
+
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return code;
+        }
+
+        public String getMessage() {
+
+            return message;
+        }
+
+        @Override
+        public String toString() {
+
+            return code + ":" + message;
+        }
     }
 }

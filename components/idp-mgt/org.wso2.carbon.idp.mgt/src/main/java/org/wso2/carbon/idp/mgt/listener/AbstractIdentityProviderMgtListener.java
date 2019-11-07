@@ -61,7 +61,18 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
         return true;
     }
 
+    public boolean doPreDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {
+        return true;
+    }
+
+
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
+    public boolean doPostDeleteIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
         return true;
     }
 
@@ -70,8 +81,19 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
         return true;
     }
 
+    public boolean doPreUpdateIdPByResourceId(String resourceId, IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
     public boolean doPostUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
+        return true;
+    }
+
+    public boolean doPostUpdateIdPByResourceId(String resourceId, IdentityProvider oldIdentityProvider,
+                                               IdentityProvider newIdentityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
         return true;
     }
 
