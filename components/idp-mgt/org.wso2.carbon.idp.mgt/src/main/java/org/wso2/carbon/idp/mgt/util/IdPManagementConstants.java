@@ -35,6 +35,7 @@ public class IdPManagementConstants {
     public static final String DEFAULT_SORT_BY = "ID";
     public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
     public static final String DESC_SORT_ORDER = "DESC";
+    public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
     public static final String NAME = "NAME";
@@ -351,7 +352,8 @@ public class IdPManagementConstants {
         ERROR_CODE_IDP_GET_REQUEST_INVALID("IDP_42004", "Identity Provider get request validation failed. %s"),
         ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP_42005", "Identity Provider delete request validation failed. %s"),
         ERROR_CODE_IDP_UPDATE_REQUEST_INVALID("IDP_42006", "Identity Provider update request validation failed. %s"),
-        ERROR_CODE_SEARCH_REQUEST_INVALID("IDP_42007", "Search request validation failed. Invalid search filter. %s"),;
+        ERROR_CODE_SEARCH_REQUEST_INVALID("IDP_42007", "Search request validation failed. Invalid search filter. %s"),
+        ERROR_CODE_CONNECTING_DATABASE("IDP_42008", "Error while connecting database. %s"),;
 
         private final String code;
         private final String message;

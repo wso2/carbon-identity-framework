@@ -44,11 +44,14 @@ import org.wso2.carbon.identity.core.ConnectorException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.object.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.utils.DBUtils;
 
 import java.io.BufferedReader;
@@ -277,10 +280,12 @@ public class IdPManagementDAO {
      * @param sortOrder      order of IdP ASC/DESC.
      * @param sortBy         the attribute need to sort.
      * @return Identity Provider's Basic Information list.
-     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
     List<IdentityProvider> getIdPsSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
-                                         String sortOrder, String sortBy) throws IdentityProviderManagementException {
+                                         String sortOrder, String sortBy)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
         appendFilterQuery(expressionNode, filterQueryBuilder);
@@ -290,8 +295,10 @@ public class IdPManagementDAO {
                      filterQueryBuilder)) {
             return populateIdentityProviderList(resultSet, dbConnection);
         } catch (SQLException e) {
-            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider for " +
-                    "tenant: " + IdentityTenantUtil.getTenantDomain(tenantId), e);
+            String message = "Error occurred while retrieving Identity Provider for tenant: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
         }
     }
 
@@ -305,12 +312,12 @@ public class IdPManagementDAO {
      * @param limit              limit per page.
      * @param filterQueryBuilder filter query buider object.
      * @return result set of the query.
-     * @throws SQLException                        Database Exception.
-     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws SQLException                              Database Exception.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
      */
     private ResultSet getIdpQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId, int offset,
                                            int limit, FilterQueryBuilder filterQueryBuilder)
-            throws SQLException, IdentityProviderManagementException {
+            throws SQLException, IdentityProviderManagementServerException {
 
         String sqlQuery;
         String sqlTail;
@@ -387,8 +394,10 @@ public class IdPManagementDAO {
         } else {
             log.error("Error while loading Identity Provider from DB: Database driver could not be identified or "
                     + "not supported.");
-            throw new IdentityProviderManagementException("Error while loading Identity Provider from DB: "
-                    + "Database driver could not be identified or not supported.");
+            String message = "Error while loading Identity Provider from DB: Database driver could not be identified" +
+                    " or not supported.";
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
         }
         return prepStmt.executeQuery();
     }
@@ -452,10 +461,11 @@ public class IdPManagementDAO {
      * @param tenantId       Tenant Id of the identity provider.
      * @param expressionNode filter value list for IdP search.
      * @return number of IdP count for a given filter
-     * @throws IdentityProviderManagementException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
     int getCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expressionNode)
-            throws IdentityProviderManagementException {
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL;
         int countOfFilteredIdp = 0;
@@ -476,8 +486,10 @@ public class IdPManagementDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider count " +
-                    "for a tenant : " + IdentityTenantUtil.getTenantDomain(tenantId), e);
+            String message = "Error occurred while retrieving Identity Provider count for a tenant : " +
+                    IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
         }
         return countOfFilteredIdp;
     }
@@ -487,8 +499,10 @@ public class IdPManagementDAO {
      *
      * @param expressionNodes    list of filters.
      * @param filterQueryBuilder Sql builder object.
+     * @throws IdentityProviderManagementClientException throw invalid filer attribute exception.
      */
-    private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder) {
+    private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder)
+            throws IdentityProviderManagementClientException {
 
         StringBuilder filter = new StringBuilder();
         if (CollectionUtils.isEmpty(expressionNodes)) {
@@ -498,7 +512,7 @@ public class IdPManagementDAO {
                 String operation = expressionNode.getOperation();
                 String value = expressionNode.getValue();
                 String attributeName = expressionNode.getAttributeValue();
-                if (StringUtils.isNotBlank(attributeName) || StringUtils.isNotBlank(value) || StringUtils
+                if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
                         .isNotBlank(operation)) {
                     switch (attributeName) {
                         case IdPManagementConstants.IDP_NAME:
@@ -517,12 +531,9 @@ public class IdPManagementDAO {
                             attributeName = IdPManagementConstants.UUID;
                             break;
                         default:
-                            if (log.isDebugEnabled()) {
-                                log.debug("Invalid filter attribute name. Filter attribute : " + attributeName);
-                            }
-                            filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
-                            filterQueryBuilder.setEmptyFilterAttributeValue();
-                            return;
+                            String message = "Invalid filter attribute name. Filter attribute : " + attributeName;
+                            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                                    .ERROR_CODE_RETRIEVE_IDP, message);
                     }
                     if (IdPManagementConstants.EQ.equals(operation)) {
                         filter.append(attributeName).append(" = ? AND ");
@@ -537,10 +548,9 @@ public class IdPManagementDAO {
                         filter.append(attributeName).append(" like ? AND ");
                         filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
                     } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Invalid filter value. " + operation);
-                        }
-                        filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+                        String message = "Invalid filter value. filter: " + operation;
+                        throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                                .ERROR_CODE_RETRIEVE_IDP, message);
                     }
                 }
             }

@@ -82,10 +82,12 @@ public interface IdpManager {
      * @param sortOrder order of IdP ASC/DESC.
      * @param sortBy    the column value need to sort.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
-     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementServerException  server related error when getting list of Identity  Providers.
+     * @throws IdentityProviderManagementClientException  client related error when getting list of Identity  Providers.
      */
-    IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy, String tenantDomain)
-            throws IdentityProviderManagementException;
+     IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
 
      /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name

@@ -75,7 +75,7 @@ public class FilterTreeBuilder {
             if (input.ttype == 40) {
                 tokenList.add("(");
             } else if (input.ttype == 41) {
-                // The ttype 40 is for the ')'.
+                // The ttype 41 is for the ')'.
                 concatenatedString = new StringBuilder(concatenatedString.toString().trim());
                 tokenList.add(concatenatedString.toString());
                 concatenatedString = new StringBuilder();
@@ -166,7 +166,7 @@ public class FilterTreeBuilder {
                 symbol = nextSymbol();
             } else {
                 throw new IdentityException("Invalid argument: Identity Provider filter name value is empty or " +
-                        "invalid.symbol: " + symbol);
+                        "invalid symbol: " + symbol);
             }
         }
     }

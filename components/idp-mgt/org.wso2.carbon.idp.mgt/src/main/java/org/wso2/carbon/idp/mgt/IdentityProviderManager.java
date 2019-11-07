@@ -1025,14 +1025,19 @@ public class IdentityProviderManager implements IdpManager {
      * @param sortBy       the column value need to sort.
      * @param tenantDomain tenant domain whose IdP names are requested.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
-     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
      */
     @Override
-    public IdpSearchResult getIdPs(int limit, int offset, String filter, String sortOrder, String sortBy,
-                                   String tenantDomain) throws IdentityProviderManagementException {
+    public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        if (limit <= 0) {
-            throw new IdentityProviderManagementException("Limit should be greater than 0. limit:" + limit);
+        nullCheck(limit, offset);
+        if (limit < 0) {
+            String message = "Limit should be negative value. limit:" + limit;
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
         }
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
@@ -1045,13 +1050,35 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Check null for  limit and offset.
+     *
+     * @param limit  limit per page.
+     * @param offset offset value.
+     * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
+     */
+    private void nullCheck(Integer limit, Integer offset) throws IdentityProviderManagementClientException {
+
+        if (limit == null) {
+            String message = "Limit should not null";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+
+        }
+        if (offset == null) {
+            String message = "Offset should not null";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+        }
+    }
+
+    /**
      * Get the filter node as a list.
      *
      * @param filter value of the filter.
      * @return node tree.
-     * @throws IdentityProviderManagementException Error when validate filters.
+     * @throws IdentityProviderManagementClientException Error when validate filters.
      */
-    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityProviderManagementException {
+    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityProviderManagementClientException {
 
         // Filter example : name sw "te" and name ew "st" and isEnabled eq "true".
         List<ExpressionNode> expressionNodes = new ArrayList<>();
@@ -1061,8 +1088,9 @@ public class IdentityProviderManager implements IdpManager {
             Node rootNode = filterTreeBuilder.buildTree();
             setExpressionNodeList(rootNode, expressionNodes);
         } catch (IOException | IdentityException e) {
-            throw new IdentityProviderManagementException("Exception occurred while validate filter, filter: " +
-                    filter, e);
+            String message = "Error occurred while validate filter, filter: " + filter;
+            throw IdPManagementUtil
+                    .handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP, message, e);
         }
         return expressionNodes;
     }
@@ -1072,21 +1100,22 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param node       filter node.
      * @param expression list of expression.
+     * @throws IdentityProviderManagementClientException Error when passing invalid filter.
      */
-    private void setExpressionNodeList(Node node, List<ExpressionNode> expression) {
+    private void setExpressionNodeList(Node node, List<ExpressionNode> expression)
+            throws IdentityProviderManagementClientException {
 
         if (node instanceof ExpressionNode) {
             if (((ExpressionNode) node).getAttributeValue().contains(IdPManagementConstants.IDP_IS_ENABLED)) {
-                if (((ExpressionNode) node).getValue().contains("true")) {
+                if ("true".contains(((ExpressionNode) node).getValue())) {
                     ((ExpressionNode) node).setValue(IdPManagementConstants.IS_TRUE_VALUE);
-                } else if (((ExpressionNode) node).getValue().contains("false")) {
+                } else if ("false".contains(((ExpressionNode) node).getValue())) {
                     ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Invalid \'isEnabled\' value passed in the filter. It should be \'true\' or " +
-                                "\'false\' isEnabled = " + ((ExpressionNode) node).getValue());
-                    }
-                    return;
+                    String message = "Invalid \'isEnabled\' value passed in the filter. It should be \'true\' or " +
+                            "\'false\' isEnabled = " + ((ExpressionNode) node).getValue();
+                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                            message);
                 }
             }
             expression.add((ExpressionNode) node);
@@ -1141,7 +1170,7 @@ public class IdentityProviderManager implements IdpManager {
                     sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
                     if (log.isDebugEnabled()) {
                         log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute. " +
-                                "sortBy: " + sortBy);
+                                "sortBy: " + IdPManagementConstants.DEFAULT_SORT_BY);
                     }
                     break;
             }
@@ -1165,6 +1194,8 @@ public class IdentityProviderManager implements IdpManager {
             }
         } else if (sortOrder.equals(IdPManagementConstants.DESC_SORT_ORDER)) {
             sortOrder = IdPManagementConstants.DESC_SORT_ORDER;
+        } else if (sortOrder.equals(IdPManagementConstants.ASC_SORT_ORDER)) {
+            sortOrder = IdPManagementConstants.ASC_SORT_ORDER;
         } else {
             sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
             if (log.isDebugEnabled()) {
@@ -1194,7 +1225,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
                     limit = Integer.parseInt(itemsPerPagePropertyValue);
                 } else {
-                    limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                    limit = IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE;
                     if (log.isDebugEnabled()) {
                         log.debug("limit is incorrect. Therefore we set the default limit. limit:" + limit);
                     }
