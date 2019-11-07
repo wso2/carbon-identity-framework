@@ -135,7 +135,8 @@ public interface ApplicationMgtListener {
      */
     default boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
-        return true;
+
+        return doPostDeleteApplication(serviceProvider.getApplicationName(), tenantDomain, userName);
     }
 
     /**
