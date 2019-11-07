@@ -85,7 +85,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
     }
 
     /**
-     * Delete federated user account associations a user has upon deleting the local user account.
+     * Delete federation user account associations a user has upon deleting the local user account.
      *
      * @param userName
      * @param userStoreManager
@@ -117,7 +117,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
 
 
     /**
-     * Delete federated idp account associations from IDN_ASSOCIATED_ID table
+     * Delete federation idp account associations from IDN_ASSOCIATED_ID table
      *
      * @param tenantAwareUsername
      * @param userStoreDomain
@@ -140,7 +140,7 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
         // get tenant domain and user store domain appended username for logging
         String fullyQualifiedUsername = getFullQualifiedUsername(tenantAwareUsername, userStoreDomain, tenantDomain);
         if (log.isDebugEnabled()) {
-            log.debug("Deleting federated IDP user account associations of user:" + fullyQualifiedUsername);
+            log.debug("Deleting federation IDP user account associations of user:" + fullyQualifiedUsername);
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
@@ -152,11 +152,11 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
                 IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new UserStoreException(String.format("Error when trying to delete the federated IDP user "
+                throw new UserStoreException(String.format("Error when trying to delete the federation IDP user "
                         + "account associations of user:%s", fullyQualifiedUsername), e1);
             }
         } catch (SQLException e) {
-            String msg = "Error when trying to delete the federated IDP user account associations of user:%s";
+            String msg = "Error when trying to delete the federation IDP user account associations of user:%s";
             throw new UserStoreException(String.format(msg, fullyQualifiedUsername), e);
         }
     }
