@@ -8,7 +8,7 @@
     "Modify the authentication option(s) from defaults as required."
   ],
   "parametersDescription": {
-    "invalidAttemptsToStepup" : "Minimum number of attempts made by a user to prompt 2FA.",
+    "invalidAttemptsToStepup" : "Minimum number of attempts made by a user to prompt 2FA."
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator",
