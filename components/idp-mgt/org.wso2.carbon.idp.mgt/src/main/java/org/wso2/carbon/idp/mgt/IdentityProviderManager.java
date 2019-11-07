@@ -1156,7 +1156,8 @@ public class IdentityProviderManager implements IdpManager {
 
         if (StringUtils.isBlank(sortBy)) {
             if (log.isDebugEnabled()) {
-                log.debug("sortBy attribute is empty. Therefore we set the default sortBy attribute. sortBy" + sortBy);
+                log.debug("sortBy attribute is empty. Therefore we set the default sortBy attribute. sortBy" +
+                        IdPManagementConstants.DEFAULT_SORT_BY);
             }
             return IdPManagementConstants.DEFAULT_SORT_BY;
         } else {
