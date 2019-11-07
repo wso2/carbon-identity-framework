@@ -95,7 +95,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             return UserProfileMgtDAO.getInstance().getUserAssociatedFor(tenantId, idpName, federatedUserId);
         } catch (UserProfileException | IdentityRuntimeException e) {
             if (log.isDebugEnabled()) {
-                String msg = "Error while retrieving user associated for federation IdP: " + idpName + ", with " +
+                String msg = "Error while retrieving user associated for federated IdP: " + idpName + ", with " +
                         "federation identifier: " + federatedUserId + ", in tenant: "
                         + CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
                 log.debug(msg);
@@ -130,7 +130,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             return federatedAssociations.toArray(new FederatedAssociation[0]);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
-                String msg = "Error while retrieving federation account associations of user: " + userId;
+                String msg = "Error while retrieving federated account associations of user: " + userId;
                 log.debug(msg);
             }
             throw handleFederatedAssociationManagerServerException(
@@ -150,7 +150,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                     idpName, federatedUserId);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
-                String msg = "Error while removing the federation association with idpId: " + idpName + ", and " +
+                String msg = "Error while removing the federated association with idpId: " + idpName + ", and " +
                         "federatedUserId: " + federatedUserId + ", for user: " + userId + ", in tenant: "
                         + MultitenantUtils.getTenantDomain(userId);
                 log.debug(msg);
@@ -353,7 +353,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         if (StringUtils.isEmpty(idpName) || StringUtils.isEmpty(federatedUserId)
                 || !isValidFederatedAssociation(userName, idpName, federatedUserId)) {
             if (log.isDebugEnabled()) {
-                log.debug("A valid federation association does not exist for the idpName: " + idpName + ", and " +
+                log.debug("A valid federated association does not exist for the idpName: " + idpName + ", and " +
                         "federatedUserId: " + federatedUserId + ", of the user: " + userName);
             }
             throw handleFederatedAssociationManagerClientException(INVALID_FEDERATED_ASSOCIATION, null, true);

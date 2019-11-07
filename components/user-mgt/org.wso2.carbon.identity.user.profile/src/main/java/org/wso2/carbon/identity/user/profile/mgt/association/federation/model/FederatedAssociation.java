@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.user.profile.mgt.association.federation.model;
 
 /**
- * Model class representing a federation user account association.
+ * Model class representing a federated user account association.
  */
 public class FederatedAssociation {
 

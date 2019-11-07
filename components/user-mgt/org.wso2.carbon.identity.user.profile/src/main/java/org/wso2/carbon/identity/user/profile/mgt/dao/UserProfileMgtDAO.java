@@ -91,13 +91,13 @@ public class UserProfileMgtDAO {
     }
 
     /**
-     * Persist an association entry for the given user with the given federation identifier.
+     * Persist an association entry for the given user with the given federated identifier.
      *
      * @param tenantId           tenant identifier
      * @param userStoreDomain    user store domain name
      * @param domainFreeUsername username without the domain
      * @param idpId              identity provider id
-     * @param federatedUserId    federation identity id
+     * @param federatedUserId    federated identity id
      * @throws UserProfileException
      */
     public void createAssociation(int tenantId, String userStoreDomain, String domainFreeUsername, String idpId,
@@ -119,23 +119,23 @@ public class UserProfileMgtDAO {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserProfileException("Error occurred while persisting account association entry for user: " +
                         domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " + tenantId +
-                        " for federation ID: " + federatedUserId + " of IdP: " + idpId, e1);
+                        " for federated ID: " + federatedUserId + " of IdP: " + idpId, e1);
             }
         } catch (SQLException e) {
             throw new UserProfileException("Error occurred while persisting account association entry for user: " +
                     domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " + tenantId + " " +
-                    "for federation ID: " + federatedUserId + " of IdP: " + idpId, e);
+                    "for federated ID: " + federatedUserId + " of IdP: " + idpId, e);
         }
     }
 
     /**
-     * Delete the association entry for the given user with the given federation identifier.
+     * Delete the association entry for the given user with the given federated identifier.
      *
      * @param tenantId           tenant identifier
      * @param userStoreDomain    user store domain name
      * @param domainFreeUsername username without user store domain
      * @param idpId              identity provider id
-     * @param federatedUserId    federation identity id
+     * @param federatedUserId    federated identity id
      * @throws UserProfileException
      */
     public void deleteAssociation(int tenantId, String userStoreDomain, String domainFreeUsername, String idpId,
@@ -157,17 +157,17 @@ public class UserProfileMgtDAO {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw new UserProfileException("Error occurred while removing account association entry of user: " +
                         domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " + tenantId +
-                        " with federation ID: " + federatedUserId + " of IdP: " + idpId, e1);
+                        " with federated ID: " + federatedUserId + " of IdP: " + idpId, e1);
             }
         } catch (SQLException e) {
             throw new UserProfileException("Error occurred while removing account association entry of user: " +
                     domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " + tenantId + " " +
-                    "with federation ID: " + federatedUserId + " of IdP: " + idpId, e);
+                    "with federated ID: " + federatedUserId + " of IdP: " + idpId, e);
         }
     }
 
     /**
-     * Delete the federation association entries for the given user.
+     * Delete the federated association entries for the given user.
      *
      * @param tenantId        Tenant identifier.
      * @param userStoreDomain User store domain name.
@@ -187,7 +187,7 @@ public class UserProfileMgtDAO {
                 IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new UserProfileException("Error occurred while removing federation association entries of user: " +
+                throw new UserProfileException("Error occurred while removing federated association entries of user: " +
                         username + ", of user store domain: " + userStoreDomain + ", in tenant: " + tenantId, e1);
             }
         } catch (SQLException e) {
@@ -196,12 +196,12 @@ public class UserProfileMgtDAO {
     }
 
     /**
-     * Delete the federation association entry of the given user by given federation identifier.
+     * Delete the federated association entry of the given user by given federated identifier.
      *
      * @param userStoreDomain        User store domain name for the user.
      * @param username               The domain free, user name for the user.
-     * @param federatedAssociationId Identifier value for the corresponding federation association. This value
-     *                               stands for a unique federation association, which is composed of tenant Id, idpId
+     * @param federatedAssociationId Identifier value for the corresponding federated association. This value
+     *                               stands for a unique federated association, which is composed of tenant Id, idpId
      *                               and federatedUserId.
      * @throws UserProfileException {@link UserProfileException}.
      */
@@ -218,7 +218,7 @@ public class UserProfileMgtDAO {
                 IdentityDatabaseUtil.commitTransaction(connection);
             } catch (SQLException e1) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw new UserProfileException("Error occurred while removing federation association: "
+                throw new UserProfileException("Error occurred while removing federated association: "
                         + federatedAssociationId + ", for the user: " + username + ", in the user store " +
                         "domain: " + userStoreDomain, e1);
             }
@@ -228,12 +228,12 @@ public class UserProfileMgtDAO {
     }
 
     /**
-     * Get association entry for the given federation identifier.
+     * Get association entry for the given federated identifier.
      *
      * @param tenantId        tenant identifier
      * @param idpId           identity provider id
-     * @param federatedUserId federation identity id
-     * @return username of the user associated with the given federation identity id
+     * @param federatedUserId federated identity id
+     * @return username of the user associated with the given federated identity id
      * @throws UserProfileException
      */
     public String getUserAssociatedFor(int tenantId, String idpId, String federatedUserId) throws UserProfileException {
@@ -258,11 +258,11 @@ public class UserProfileMgtDAO {
                     }
                 }
             } catch (SQLException e1) {
-                throw new UserProfileException("Error occurred while retrieving user account associated for federation "
+                throw new UserProfileException("Error occurred while retrieving user account associated for federated "
                         + "ID: " + federatedUserId + " of IdP: " + idpId + " for tenant: " + tenantId, e1);
             }
         } catch (SQLException e) {
-            throw new UserProfileException("Error occurred while retrieving user account associated for federation " +
+            throw new UserProfileException("Error occurred while retrieving user account associated for federated " +
                     "ID: " + federatedUserId + " of IdP: " + idpId + " for tenant: " + tenantId, e);
         }
 
@@ -270,12 +270,12 @@ public class UserProfileMgtDAO {
     }
 
     /**
-     * Retun a list of federation identities associated with the given user.
+     * Retun a list of federated identities associated with the given user.
      *
      * @param tenantId           tenant identifier
      * @param userStoreDomain    user store domain name
      * @param domainFreeUsername username without user store domain
-     * @return a list of AssociatedAccountDTO objects which includes federation identity info
+     * @return a list of AssociatedAccountDTO objects which includes federated identity info
      * @throws UserProfileException
      */
     public List<AssociatedAccountDTO> getAssociatedFederatedAccountsForUser(int tenantId, String userStoreDomain,
@@ -301,12 +301,12 @@ public class UserProfileMgtDAO {
                         }
                     }
                 }catch (SQLException e1) {
-                    throw new UserProfileException("Error occurred while retrieving federation accounts associated for "
+                    throw new UserProfileException("Error occurred while retrieving federated accounts associated for "
                             + "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain +
                             " in tenant: " + tenantId, e1);
                 }
         } catch (SQLException e) {
-            throw new UserProfileException("Error occurred while retrieving federation accounts associated for " +
+            throw new UserProfileException("Error occurred while retrieving federated accounts associated for " +
                     "user: " + domainFreeUsername + " of user store domain: " + userStoreDomain + " in tenant: " +
                     tenantId, e);
         }

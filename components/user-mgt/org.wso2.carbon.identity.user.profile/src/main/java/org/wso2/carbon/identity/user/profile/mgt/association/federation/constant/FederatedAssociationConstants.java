@@ -28,12 +28,12 @@ public class FederatedAssociationConstants {
 
         // Server errors.
         ERROR_RETRIEVING_TENANT_ID_OF_USER(15001, "Error while retrieving tenant ID of user"),
-        ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER(15002, "Error while deleting the federation association of" +
+        ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER(15002, "Error while deleting the federated association of" +
                 " " +
                 "user"),
         ERROR_WHILE_RETRIEVING_FEDERATED_ASSOCIATION_OF_USER(15003, "Database error occurred while retrieving the " +
                 "federation association of user"),
-        ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER(15004, "Error while creating the federation association " +
+        ERROR_WHILE_CREATING_FEDERATED_ASSOCIATION_OF_USER(15004, "Error while creating the federated association " +
                 "of user"),
         ERROR_WHILE_RETRIEVING_ASSOCIATION_OF_USER(15005, "Database error occurred while retrieving the association " +
                 "of user"),
@@ -47,9 +47,9 @@ public class FederatedAssociationConstants {
 
         // Client errors.
         INVALID_ATTRIBUTE_IDS_PROVIDED(10001, "Provided attribute IDs must be valid local claim URIs"),
-        INVALID_FEDERATED_ASSOCIATION(10002, "Invalid federation association"),
-        FEDERATED_ASSOCIATION_DOES_NOT_EXISTS(10003, "Valid federation associations do not exists"),
-        FEDERATED_ASSOCIATION_ALREADY_EXISTS(10004, "The federation association is already associated to a local user"),
+        INVALID_FEDERATED_ASSOCIATION(10002, "Invalid federated association"),
+        FEDERATED_ASSOCIATION_DOES_NOT_EXISTS(10003, "Valid federated associations do not exists"),
+        FEDERATED_ASSOCIATION_ALREADY_EXISTS(10004, "The federated association is already associated to a local user"),
         INVALID_USER_IDENTIFIER_PROVIDED(10005, "The provided user identifier is invalid"),
         INVALID_TENANT_DOMAIN_PROVIDED(10006, "Provided tenant domain is invalid");
 

@@ -74,8 +74,8 @@ public class UserProfileAdmin extends AbstractAdmin {
     private static final String AUDIT_FAIL = "Fail";
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
 
-    private static String auditActionForCreateAssociation = "Associate local user account with federation account";
-    private static String auditActionForDeleteAssociation = "Remove local user account association with federation " +
+    private static String auditActionForCreateAssociation = "Associate local user account with federated account";
+    private static String auditActionForDeleteAssociation = "Remove local user account association with federated " +
             "account";
 
     private static UserProfileAdmin userProfileAdmin = new UserProfileAdmin();
@@ -642,7 +642,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Associate the user logged in with the given federation identifier.
+     * Associate the user logged in with the given federated identifier.
      *
      * @param idpID        Identity Provider ID
      * @param associatedID Federated Identity ID
@@ -655,7 +655,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         try {
             getFederatedAssociationManager().createFederatedAssociation(fullyQualifiedUserName, idpID, associatedID);
         } catch (FederatedAssociationManagerException e) {
-            String msg = "Error while creating association for user: " + tenantAwareUsername + " with federation IdP: "
+            String msg = "Error while creating association for user: " + tenantAwareUsername + " with federated IdP: "
                     + idpID + " in tenant: " + getTenantDomain();
             log.error(msg, e);
             throw new UserProfileException(msg, e);
@@ -663,7 +663,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Return the username of the local user associated with the given federation identifier.
+     * Return the username of the local user associated with the given federated identifier.
      *
      * @param idpID        Identity Provider ID
      * @param associatedID Federated Identity ID
@@ -676,7 +676,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             return getFederatedAssociationManager().getUserForTheFederatedAssociation(
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain(), idpID, associatedID);
         } catch (FederatedAssociationManagerException e) {
-            String msg = "Error while retrieving user associated for federation IdP: " + idpID + " with federation " +
+            String msg = "Error while retrieving user associated for federated IdP: " + idpID + " with federated " +
                     "identifier:" + associatedID + " in tenant: " + getTenantDomain();
             log.error(msg, e);
             throw new UserProfileException(msg, e);
@@ -684,9 +684,9 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Return an array of federation identifiers associated with the logged in user.
+     * Return an array of federated identifiers associated with the logged in user.
      *
-     * @return an array of AssociatedAccountDTO objects which contains the federation identifier info
+     * @return an array of AssociatedAccountDTO objects which contains the federated identifier info
      * @throws UserProfileException
      */
     public AssociatedAccountDTO[] getAssociatedIDs() throws UserProfileException {
@@ -696,7 +696,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         try {
             return getAssociatedAccounts(fullyQualifiedUserName);
         } catch (FederatedAssociationManagerException e) {
-            String msg = "Error while retrieving federation identifiers associated for user: " + tenantAwareUsername +
+            String msg = "Error while retrieving federated identifiers associated for user: " + tenantAwareUsername +
                     " in tenant: " + getTenantDomain();
             log.error(msg, e);
             throw new UserProfileException(msg, e);
@@ -704,7 +704,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Remove the association with the given federation identifier for the logged in user.
+     * Remove the association with the given federated identifier for the logged in user.
      *
      * @param idpID        Identity Provider ID
      * @param associatedID Federated Identity ID
@@ -717,7 +717,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         try {
             getFederatedAssociationManager().deleteFederatedAssociation(fullyQualifiedUserName, idpID, associatedID);
         } catch (FederatedAssociationManagerException e) {
-            String msg = "Error while removing association with federation IdP: " + idpID + " for user: " +
+            String msg = "Error while removing association with federated IdP: " + idpID + " for user: " +
                     tenantAwareUsername + " in tenant: " + getTenantDomain();
             log.error(msg, e);
             throw new UserProfileException(msg, e);
@@ -725,7 +725,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Associate the given user with the given federation identifier.
+     * Associate the given user with the given federated identifier.
      *
      * @param username     username of the user to be associated with
      * @param idpID        Identity Provider ID
@@ -741,7 +741,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             audit(auditActionForCreateAssociation, username, auditData, AUDIT_SUCCESS);
         } catch (FederatedAssociationManagerException e) {
             audit(auditActionForCreateAssociation, username, auditData, AUDIT_FAIL);
-            String msg = "Error while creating association for user: " + username + " with federation IdP: " + idpID +
+            String msg = "Error while creating association for user: " + username + " with federated IdP: " + idpID +
                     " in tenant: " + getTenantDomain();
             log.error(msg, e);
             throw new UserProfileException(msg, e);
@@ -749,7 +749,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Remove the association with the given federation identifier for the given user.
+     * Remove the association with the given federated identifier for the given user.
      *
      * @param username     username of the user to be associated with
      * @param idpID        Identity Provider ID
@@ -770,7 +770,7 @@ public class UserProfileAdmin extends AbstractAdmin {
             // order to preserve backward compatibility, this error is silently ignored.
             if (!isFederatedAssociationDoesNotExistsError(e)) {
                 audit(auditActionForDeleteAssociation, username, auditData, AUDIT_FAIL);
-                String msg = "Error while removing association with federation IdP: " + idpID + " for user: " + username +
+                String msg = "Error while removing association with federated IdP: " + idpID + " for user: " + username +
                         " in tenant: " + getTenantDomain();
                 log.error(msg, e);
                 throw new UserProfileException(msg, e);
@@ -779,10 +779,10 @@ public class UserProfileAdmin extends AbstractAdmin {
     }
 
     /**
-     * Return an array of federation identifiers associated with the given in user.
+     * Return an array of federated identifiers associated with the given in user.
      *
      * @param username username of the user to find associations with
-     * @return an array of AssociatedAccountDTO objects which contains the federation identifier info
+     * @return an array of AssociatedAccountDTO objects which contains the federated identifier info
      * @throws UserProfileException
      */
     public AssociatedAccountDTO[] getAssociatedIDsForUser(String username) throws UserProfileException {
@@ -791,7 +791,7 @@ public class UserProfileAdmin extends AbstractAdmin {
         try {
             return getAssociatedAccounts(fullyQualifiedUserName);
         } catch (FederatedAssociationManagerException e) {
-            String msg = "Error while retrieving federation identifiers associated for user: " + username + " in " +
+            String msg = "Error while retrieving federated identifiers associated for user: " + username + " in " +
                     "tenant: " + getTenantDomain();
             log.error(msg, e);
             throw new UserProfileException(msg, e);
@@ -908,7 +908,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                 log.debug("Required parameters, idpId and the associatedId are empty.");
             }
             audit(auditActionForDeleteAssociation, username, auditData, AUDIT_FAIL);
-            String msg = "Error while removing association with federation IdP: " + idpID + " for user: " + username +
+            String msg = "Error while removing association with federated IdP: " + idpID + " for user: " + username +
                     " in tenant: " + getTenantDomain();
             log.error(msg);
             throw new UserProfileException(msg);
@@ -927,7 +927,7 @@ public class UserProfileAdmin extends AbstractAdmin {
                 if (log.isDebugEnabled()) {
                     log.debug("The IdpManager service is not available in the runtime");
                 }
-                String msg = "Error while retrieving identity provider for the federation association";
+                String msg = "Error while retrieving identity provider for the federated association";
                 log.error(msg);
                 throw new UserProfileException(msg);
             }
