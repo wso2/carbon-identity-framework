@@ -61,7 +61,6 @@ import static org.wso2.carbon.identity.user.profile.mgt.association.federation.c
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_FEDERATED_ASSOCIATION;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_TENANT_DOMAIN_PROVIDED;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_USER_IDENTIFIER_PROVIDED;
-import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 
 public class FederatedAssociationManagerImpl implements FederatedAssociationManager {
 
@@ -87,11 +86,11 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     }
 
     @Override
-    public String getUserForTheFederatedAssociation(String tenantDomain, String idpName, String federatedUserId)
+    public String getUserForFederatedAssociation(String tenantDomain, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
         try {
-            int tenantId = getIdFromTenantDomain(tenantDomain);
+            int tenantId = getTenantIdFromTenantDomain(tenantDomain);
             return UserProfileMgtDAO.getInstance().getUserAssociatedFor(tenantId, idpName, federatedUserId);
         } catch (UserProfileException | IdentityRuntimeException e) {
             if (log.isDebugEnabled()) {
@@ -238,8 +237,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         FederatedAssociation[] federatedUserAccountAssociationDTOS
                 = getFederatedAssociationsOfUser(userName);
         if (federatedUserAccountAssociationDTOS != null) {
-            for (FederatedAssociation federatedUserAccountAssociationDTO
-                    : federatedUserAccountAssociationDTOS) {
+            for (FederatedAssociation federatedUserAccountAssociationDTO : federatedUserAccountAssociationDTOS) {
                 if (federatedAssociationId.equals(federatedUserAccountAssociationDTO.getId())) {
                     return true;
                 }
@@ -251,7 +249,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     private String getPlainUserName(String userName) {
 
         String userNameWithoutDomain = getUsernameWithoutDomain(userName);
-        return removeTenantDomain(userNameWithoutDomain);
+        return MultitenantUtils.getTenantAwareUsername(userNameWithoutDomain);
     }
 
     private String getUsernameWithoutDomain(String username) {
@@ -261,15 +259,6 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             return username;
         }
         return username.substring(index + 1);
-    }
-
-    private String removeTenantDomain(String username) {
-
-        String tenantDomain = MultitenantUtils.getTenantDomain(username);
-        if (username.endsWith(tenantDomain)) {
-            return username.substring(0, username.lastIndexOf(TENANT_DOMAIN_COMBINER));
-        }
-        return username;
     }
 
     private User getUser(String fullyQualifiedUserName) {
@@ -304,7 +293,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         return tenantId;
     }
 
-    private int getIdFromTenantDomain(String tenantDomain) throws FederatedAssociationManagerException {
+    private int getTenantIdFromTenantDomain(String tenantDomain) throws FederatedAssociationManagerException {
 
         int tenantId;
         RealmService realmService;
@@ -336,7 +325,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
                                                                  String federatedUserId)
             throws FederatedAssociationManagerException {
 
-        String userAssociated = getUserForTheFederatedAssociation(tenantDomain, idpId, federatedUserId);
+        String userAssociated = getUserForFederatedAssociation(tenantDomain, idpId, federatedUserId);
         if (userAssociated != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Federated ID: " + federatedUserId + ", for IdP: " + idpId + ", is already associated " +
@@ -391,7 +380,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         try {
             UserStoreManager userStoreManager = IdentityUserProfileServiceDataHolder.getInstance().getRealmService()
                     .getTenantUserRealm(tenantId).getUserStoreManager();
-            if (!userStoreManager.isExistingUser(removeTenantDomain(username))) {
+            if (!userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(username))) {
                 if (log.isDebugEnabled()) {
                     log.error("UserNotFound: User: " + username + ", does not exist in tenant: " +
                             MultitenantUtils.getTenantDomain(username));

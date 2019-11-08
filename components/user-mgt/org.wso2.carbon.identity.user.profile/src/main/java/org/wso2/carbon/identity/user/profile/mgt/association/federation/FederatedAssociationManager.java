@@ -47,7 +47,7 @@ public interface FederatedAssociationManager {
      * @return the username of the user associated with.
      * @throws FederatedAssociationManagerException
      */
-    String getUserForTheFederatedAssociation(String tenantDomain, String idpName, String federatedUserId)
+    String getUserForFederatedAssociation(String tenantDomain, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException;
 
     /**

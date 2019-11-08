@@ -33,9 +33,7 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
-import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerServerException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
-import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
 import org.wso2.carbon.identity.user.profile.mgt.internal.IdentityUserProfileServiceDataHolder;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -62,7 +60,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.ERROR_WHILE_RESOLVING_IDENTITY_PROVIDERS;
 import static org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants.ErrorMessages.INVALID_FEDERATED_ASSOCIATION;
 import static org.wso2.carbon.user.core.UserCoreConstants.TENANT_DOMAIN_COMBINER;
 
@@ -673,7 +670,7 @@ public class UserProfileAdmin extends AbstractAdmin {
     public String getNameAssociatedWith(String idpID, String associatedID) throws UserProfileException {
         
         try {
-            return getFederatedAssociationManager().getUserForTheFederatedAssociation(
+            return getFederatedAssociationManager().getUserForFederatedAssociation(
                     CarbonContext.getThreadLocalCarbonContext().getTenantDomain(), idpID, associatedID);
         } catch (FederatedAssociationManagerException e) {
             String msg = "Error while retrieving user associated for federated IdP: " + idpID + " with federated " +
@@ -882,17 +879,8 @@ public class UserProfileAdmin extends AbstractAdmin {
         User user = new User();
         user.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         user.setUserStoreDomain(UserCoreUtil.extractDomainFromName(domainAwareUserName));
-        user.setUserName(removeTenantDomain(UserCoreUtil.removeDomainFromName(domainAwareUserName)));
+        user.setUserName(MultitenantUtils.getTenantAwareUsername(UserCoreUtil.removeDomainFromName(domainAwareUserName)));
         return user.toFullQualifiedUsername();
-    }
-
-    private String removeTenantDomain(String username) {
-
-        String tenantDomain = MultitenantUtils.getTenantDomain(username);
-        if (username.endsWith(tenantDomain)) {
-            return username.substring(0, username.lastIndexOf(TENANT_DOMAIN_COMBINER));
-        }
-        return username;
     }
 
     private boolean isFederatedAssociationDoesNotExistsError(FederatedAssociationManagerException e) {
