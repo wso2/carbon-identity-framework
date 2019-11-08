@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.profile.mgt.association.federation;
 
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
@@ -30,12 +31,12 @@ public interface FederatedAssociationManager {
     /**
      * Associate the given user with the given IdP and the federated user id.
      *
-     * @param userId          Fully qualified user name of the user.
+     * @param user            User.
      * @param idpName         Identity Provider Name.
      * @param federatedUserId Federated Identity ID.
      * @throws UserProfileException
      */
-    void createFederatedAssociation(String userId, String idpName, String federatedUserId)
+    void createFederatedAssociation(User user, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException;
 
     /**
@@ -53,38 +54,38 @@ public interface FederatedAssociationManager {
     /**
      * Return an array of federated associations associated with the given user.
      *
-     * @param userId Fully qualified user name of the user.
+     * @param user User.
      * @return An array of federated associations which contains the federated identifier info.
      * @throws FederatedAssociationManagerException
      */
-    FederatedAssociation[] getFederatedAssociationsOfUser(String userId) throws FederatedAssociationManagerException;
+    FederatedAssociation[] getFederatedAssociationsOfUser(User user) throws FederatedAssociationManagerException;
 
     /**
      * Remove the federated association with the given federated association for the given user.
      *
-     * @param userId          Fully qualified user name of the user.
+     * @param user            User.
      * @param idpName         Name of the IdP.
      * @param federatedUserId Federated user id of the federated association.
      * @throws FederatedAssociationManagerException
      */
-    void deleteFederatedAssociation(String userId, String idpName, String federatedUserId)
+    void deleteFederatedAssociation(User user, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException;
 
     /**
      * Remove the federated association with the given federated association for the given user.
      *
-     * @param userId                 Fully qualified user name of the user.
+     * @param user                   User.
      * @param federatedAssociationId The unique identifier value for a given federated association.
      * @throws FederatedAssociationManagerException
      */
-    void deleteFederatedAssociation(String userId, String federatedAssociationId)
+    void deleteFederatedAssociation(User user, String federatedAssociationId)
             throws FederatedAssociationManagerException;
 
     /**
      * Remove the federated associations of the given user.
      *
-     * @param userId Fully qualified user name of the user.
+     * @param user User.
      * @throws FederatedAssociationManagerException
      */
-    void deleteFederatedAssociation(String userId) throws FederatedAssociationManagerException;
+    void deleteFederatedAssociation(User user) throws FederatedAssociationManagerException;
 }

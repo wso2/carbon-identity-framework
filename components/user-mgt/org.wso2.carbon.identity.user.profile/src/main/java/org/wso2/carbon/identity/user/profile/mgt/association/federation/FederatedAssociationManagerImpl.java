@@ -22,12 +22,9 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.base.IdentityRuntimeException;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.AssociatedAccountDTO;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
@@ -43,8 +40,8 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,15 +64,13 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     private static final Log log = LogFactory.getLog(FederatedAssociationManagerImpl.class);
 
     @Override
-    public void createFederatedAssociation(String userId, String idpName, String federatedUserId)
+    public void createFederatedAssociation(User user, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
-        int tenantId = getTenantId(userId);
-        validateIfFederatedUserAccountAlreadyAssociated(MultitenantUtils.getTenantDomain(userId), idpName,
-                federatedUserId);
-        validateUser(userId, tenantId);
-
-        User user = getUser(userId);
+        validateUserObject(user);
+        int tenantId = getValidatedTenantId(user);
+        validateUserExistence(user, tenantId);
+        validateIfFederatedUserAccountAlreadyAssociated(user.getTenantDomain(), idpName, federatedUserId);
         try {
             UserProfileMgtDAO.getInstance().createAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
@@ -89,10 +84,10 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     public String getUserForFederatedAssociation(String tenantDomain, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
+        int tenantId = getValidatedTenantIdFromDomain(tenantDomain);
         try {
-            int tenantId = getTenantIdFromTenantDomain(tenantDomain);
             return UserProfileMgtDAO.getInstance().getUserAssociatedFor(tenantId, idpName, federatedUserId);
-        } catch (UserProfileException | IdentityRuntimeException e) {
+        } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while retrieving user associated for federated IdP: " + idpName + ", with " +
                         "federation identifier: " + federatedUserId + ", in tenant: "
@@ -105,18 +100,18 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     }
 
     @Override
-    public FederatedAssociation[] getFederatedAssociationsOfUser(String userId)
+    public FederatedAssociation[] getFederatedAssociationsOfUser(User user)
             throws FederatedAssociationManagerException {
 
-        int tenantId = getTenantId(userId);
-        validateUser(userId, tenantId);
-        User user = getUser(userId);
+        validateUserObject(user);
+        int tenantId = getValidatedTenantId(user);
+        validateUserExistence(user, tenantId);
         try {
             List<FederatedAssociation> federatedAssociations = new ArrayList<>();
             List<AssociatedAccountDTO> associatedAccountDTOS = UserProfileMgtDAO.getInstance()
                     .getAssociatedFederatedAccountsForUser(tenantId, user.getUserStoreDomain(), user.getUserName());
             for (AssociatedAccountDTO associatedAccount : associatedAccountDTOS) {
-                String identityProviderId = getIdentityProviderId(MultitenantUtils.getTenantDomain(userId),
+                String identityProviderId = getIdentityProviderId(user.getTenantDomain(),
                         associatedAccount.getIdentityProviderName());
                 federatedAssociations.add(
                         new FederatedAssociation(
@@ -129,29 +124,29 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             return federatedAssociations.toArray(new FederatedAssociation[0]);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
-                String msg = "Error while retrieving federated account associations of user: " + userId;
+                String msg = "Error while retrieving federated account associations of user: "
+                        + user.toFullQualifiedUsername();
                 log.debug(msg);
             }
-            throw handleFederatedAssociationManagerServerException(
-                    ERROR_WHILE_RETRIEVING_FEDERATED_ASSOCIATION_OF_USER, e, true);
+            throw handleFederatedAssociationManagerServerException(ERROR_WHILE_RETRIEVING_FEDERATED_ASSOCIATION_OF_USER,
+                    e, true);
         }
     }
 
     @Override
-    public void deleteFederatedAssociation(String userId, String idpName, String federatedUserId)
+    public void deleteFederatedAssociation(User user, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
-        int tenantId = getTenantId(userId);
-        validateFederatedAssociation(userId, idpName, federatedUserId);
-        User user = getUser(userId);
+        validateUserObject(user);
+        int tenantId = getValidatedTenantId(user);
+        validateFederatedAssociation(user, idpName, federatedUserId);
         try {
             UserProfileMgtDAO.getInstance().deleteAssociation(tenantId, user.getUserStoreDomain(), user.getUserName(),
                     idpName, federatedUserId);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association with idpId: " + idpName + ", and " +
-                        "federatedUserId: " + federatedUserId + ", for user: " + userId + ", in tenant: "
-                        + MultitenantUtils.getTenantDomain(userId);
+                        "federatedUserId: " + federatedUserId + ", for user: " + user.toFullQualifiedUsername();
                 log.debug(msg);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER
@@ -160,82 +155,97 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
     }
 
     @Override
-    public void deleteFederatedAssociation(String userName, String federatedAssociationId)
+    public void deleteFederatedAssociation(User user, String federatedAssociationId)
             throws FederatedAssociationManagerException {
 
-        validateFederatedAssociation(userName, federatedAssociationId);
-        User user = getUser(userName);
+        validateUserObject(user);
+        validateFederatedAssociation(user, federatedAssociationId);
         try {
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(user.getUserStoreDomain(), user.getUserName(),
                     federatedAssociationId);
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
                 String msg = "Error while removing the federated association: " + federatedAssociationId
-                        + ", for user: " + userName + ", in tenant: " + MultitenantUtils.getTenantDomain(userName);
+                        + ", for user: " + user.toFullQualifiedUsername();
                 log.debug(msg, e);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER
-                    , e,
-                    true);
+                    , e, true);
         }
     }
 
     @Override
-    public void deleteFederatedAssociation(String userName) throws FederatedAssociationManagerException {
+    public void deleteFederatedAssociation(User user) throws FederatedAssociationManagerException {
 
-        int tenantId = getTenantId(userName);
-        validateExistenceOfFederatedAssociations(userName);
-        User user = getUser(userName);
+        validateUserObject(user);
+        int tenantId = getValidatedTenantId(user);
+        validateExistenceOfFederatedAssociations(user);
         try {
             UserProfileMgtDAO.getInstance().deleteFederatedAssociation(tenantId, user.getUserStoreDomain(),
                     user.getUserName());
         } catch (UserProfileException e) {
             if (log.isDebugEnabled()) {
-                String msg = "Error while removing the federated associations of user: " + userName + ", in tenant: "
-                        + MultitenantUtils.getTenantDomain(userName);
+                String msg = "Error while removing the federated associations of user: "
+                        + user.toFullQualifiedUsername();
                 log.debug(msg, e);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_DELETING_FEDERATED_ASSOCIATION_OF_USER
-                    , e,
-                    true);
+                    , e, true);
         }
     }
 
-    private void validateExistenceOfFederatedAssociations(String userName) throws FederatedAssociationManagerException {
+    private void validateUserObject(User user) throws FederatedAssociationManagerException {
 
-        if (!isValidFederatedAssociationsExist(userName)) {
+        boolean isValidUserObject = (user != null && isRequiredUserParametersPresent(user));
+        if (!isValidUserObject) {
             if (log.isDebugEnabled()) {
-                log.debug("Valid federated associations does not exist for the user: " + userName);
+                log.debug("Either provided user is null or missing user parameters.");
+            }
+            throw handleFederatedAssociationManagerClientException(INVALID_USER_IDENTIFIER_PROVIDED, null, true);
+        }
+    }
+
+    private boolean isRequiredUserParametersPresent(User user) {
+
+        return !StringUtils.isEmpty(user.getTenantDomain()) && !StringUtils.isEmpty(user.getUserStoreDomain())
+                && !StringUtils.isEmpty(user.getUserName());
+    }
+
+    private void validateExistenceOfFederatedAssociations(User user) throws FederatedAssociationManagerException {
+
+        if (!isValidFederatedAssociationsExist(user)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Valid federated associations does not exist for the user: "
+                        + user.toFullQualifiedUsername());
             }
             throw handleFederatedAssociationManagerClientException(FEDERATED_ASSOCIATION_DOES_NOT_EXISTS, null, true);
         }
     }
 
-    private boolean isValidFederatedAssociationsExist(String userName) throws FederatedAssociationManagerException {
+    private boolean isValidFederatedAssociationsExist(User user) throws FederatedAssociationManagerException {
 
-        FederatedAssociation[] federatedUserAccountAssociationDTOS
-                = getFederatedAssociationsOfUser(userName);
+        FederatedAssociation[] federatedUserAccountAssociationDTOS = getFederatedAssociationsOfUser(user);
         return !ArrayUtils.isEmpty(federatedUserAccountAssociationDTOS);
     }
 
-    private void validateFederatedAssociation(String userName, String federatedAssociationId)
+    private void validateFederatedAssociation(User user, String federatedAssociationId)
             throws FederatedAssociationManagerException {
 
         if (StringUtils.isEmpty(federatedAssociationId)
-                || !isValidFederatedAssociation(userName, federatedAssociationId)) {
+                || !isValidFederatedAssociation(user, federatedAssociationId)) {
             if (log.isDebugEnabled()) {
                 log.debug("A valid federated association does not exist for the Id: " + federatedAssociationId
-                        + ", of the user: " + userName);
+                        + ", of the user: " + user.toFullQualifiedUsername());
             }
             throw handleFederatedAssociationManagerClientException(INVALID_FEDERATED_ASSOCIATION, null, true);
         }
     }
 
-    private boolean isValidFederatedAssociation(String userName, String federatedAssociationId)
+    private boolean isValidFederatedAssociation(User user, String federatedAssociationId)
             throws FederatedAssociationManagerException {
 
         FederatedAssociation[] federatedUserAccountAssociationDTOS
-                = getFederatedAssociationsOfUser(userName);
+                = getFederatedAssociationsOfUser(user);
         if (federatedUserAccountAssociationDTOS != null) {
             for (FederatedAssociation federatedUserAccountAssociationDTO : federatedUserAccountAssociationDTOS) {
                 if (federatedAssociationId.equals(federatedUserAccountAssociationDTO.getId())) {
@@ -246,54 +256,31 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         return false;
     }
 
-    private String getPlainUserName(String userName) {
-
-        String userNameWithoutDomain = getUsernameWithoutDomain(userName);
-        return MultitenantUtils.getTenantAwareUsername(userNameWithoutDomain);
-    }
-
-    private String getUsernameWithoutDomain(String username) {
-
-        int index = username.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
-        if (index < 0) {
-            return username;
-        }
-        return username.substring(index + 1);
-    }
-
-    private User getUser(String fullyQualifiedUserName) {
-
-        String tenantDomain = MultitenantUtils.getTenantDomain(fullyQualifiedUserName);
-        String userStoreDomain = IdentityUtil.extractDomainFromName(fullyQualifiedUserName);
-        String userName = getPlainUserName(fullyQualifiedUserName);
-
-        User user = new User();
-        user.setTenantDomain(tenantDomain);
-        user.setUserStoreDomain(userStoreDomain);
-        user.setUserName(userName);
-        return user;
-    }
-
-    private int getTenantId(String userId) throws FederatedAssociationManagerException {
+    private int getValidatedTenantId(User user) throws FederatedAssociationManagerException {
 
         int tenantId;
         RealmService realmService;
         try {
             realmService = IdentityUserProfileServiceDataHolder.getInstance().getRealmService();
-            tenantId = realmService.getTenantManager().getTenantId(MultitenantUtils.getTenantDomain(userId));
+            tenantId = realmService.getTenantManager().getTenantId(user.getTenantDomain());
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error while getting the tenant Id for the tenant domain: "
-                        + MultitenantUtils.getTenantDomain(userId));
+                        + user.getTenantDomain());
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_WORKING_WITH_FEDERATED_ASSOCIATIONS, e,
                     false);
         }
-        validateTenantId(MultitenantUtils.getTenantDomain(userId), tenantId);
+        if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid tenant id is resolved for the tenant domain: " + user.getTenantDomain());
+            }
+            throw handleFederatedAssociationManagerClientException(INVALID_TENANT_DOMAIN_PROVIDED, null, true);
+        }
         return tenantId;
     }
 
-    private int getTenantIdFromTenantDomain(String tenantDomain) throws FederatedAssociationManagerException {
+    private int getValidatedTenantIdFromDomain(String tenantDomain) throws FederatedAssociationManagerException {
 
         int tenantId;
         RealmService realmService;
@@ -307,18 +294,13 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_WORKING_WITH_FEDERATED_ASSOCIATIONS, e,
                     false);
         }
-        validateTenantId(tenantDomain, tenantId);
-        return tenantId;
-    }
-
-    private void validateTenantId(String tenantDomain, int tenantId) throws FederatedAssociationManagerException {
-
         if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid tenant id is resolved for the tenant domain: " + tenantDomain);
             }
             throw handleFederatedAssociationManagerClientException(INVALID_TENANT_DOMAIN_PROVIDED, null, true);
         }
+        return tenantId;
     }
 
     private void validateIfFederatedUserAccountAlreadyAssociated(String tenantDomain, String idpId,
@@ -336,26 +318,26 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         }
     }
 
-    private void validateFederatedAssociation(String userName, String idpName, String federatedUserId)
+    private void validateFederatedAssociation(User user, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
         if (StringUtils.isEmpty(idpName) || StringUtils.isEmpty(federatedUserId)
-                || !isValidFederatedAssociation(userName, idpName, federatedUserId)) {
+                || !isValidFederatedAssociation(user, idpName, federatedUserId)) {
             if (log.isDebugEnabled()) {
                 log.debug("A valid federated association does not exist for the idpName: " + idpName + ", and " +
-                        "federatedUserId: " + federatedUserId + ", of the user: " + userName);
+                        "federatedUserId: " + federatedUserId + ", of the user: " + user.toFullQualifiedUsername());
             }
             throw handleFederatedAssociationManagerClientException(INVALID_FEDERATED_ASSOCIATION, null, true);
         }
     }
 
-    private boolean isValidFederatedAssociation(String userName, String idpName, String federatedUserId)
+    private boolean isValidFederatedAssociation(User user, String idpName, String federatedUserId)
             throws FederatedAssociationManagerException {
 
-        FederatedAssociation[] federatedUserAccountAssociationDTOS = getFederatedAssociationsOfUser(userName);
+        FederatedAssociation[] federatedUserAccountAssociationDTOS = getFederatedAssociationsOfUser(user);
         if (federatedUserAccountAssociationDTOS != null) {
             for (FederatedAssociation eachFederatedAssociation : federatedUserAccountAssociationDTOS) {
-                if (idpName.equals(getResolvedIdPName(userName, eachFederatedAssociation.getIdpId()))
+                if (idpName.equals(getResolvedIdPName(user, eachFederatedAssociation.getIdpId()))
                         && federatedUserId.equals(eachFederatedAssociation.getFederatedUserId())) {
                     return true;
                 }
@@ -364,34 +346,30 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         return false;
     }
 
-    private String getResolvedIdPName(String userName, String idpId) throws FederatedAssociationManagerException {
+    private String getResolvedIdPName(User user, String idpId) throws FederatedAssociationManagerException {
 
-        return getIdentityProviderName(MultitenantUtils.getTenantDomain(userName), idpId);
+        return getIdentityProviderName(user.getTenantDomain(), idpId);
     }
 
-    private void validateUser(String username, int tenantId) throws FederatedAssociationManagerException {
+    private void validateUserExistence(User user, int tenantId) throws FederatedAssociationManagerException {
 
-        if (StringUtils.isBlank(username)) {
-            if (log.isDebugEnabled()) {
-                log.error("Username cannot be empty.");
-            }
-            throw handleFederatedAssociationManagerClientException(INVALID_USER_IDENTIFIER_PROVIDED, null, true);
-        }
         try {
             UserStoreManager userStoreManager = IdentityUserProfileServiceDataHolder.getInstance().getRealmService()
                     .getTenantUserRealm(tenantId).getUserStoreManager();
-            if (!userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(username))) {
+            if (!userStoreManager.isExistingUser(
+                    UserCoreUtil.addDomainToName(user.getUserName(), user.getUserStoreDomain()))) {
                 if (log.isDebugEnabled()) {
-                    log.error("UserNotFound: User: " + username + ", does not exist in tenant: " +
-                            MultitenantUtils.getTenantDomain(username));
+                    log.error("UserNotFound: userName: " + user.getUserName() + ", in the domain: "
+                            + user.getUserStoreDomain() + ", and in the tenant: " + user.getTenantDomain());
                 }
                 throw handleFederatedAssociationManagerClientException(INVALID_USER_IDENTIFIER_PROVIDED, null, true);
             }
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
-                String msg = "Error occurred while verifying the existence of the user: " + username + ", in tenant: "
-                        + MultitenantUtils.getTenantDomain(username);
-                log.error(msg);
+                String msg = "Error occurred while verifying the existence of the userName: " + user.getUserName()
+                        + ", in the domain: " + user.getUserStoreDomain() + ", and in the tenant: "
+                        + user.getTenantDomain();
+                log.debug(msg);
             }
             throw handleFederatedAssociationManagerServerException(ERROR_WHILE_GETTING_THE_USER, e, true);
         }
