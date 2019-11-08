@@ -82,8 +82,8 @@ public class FilterTreeBuilder {
                 tokenList.add(")");
             } else if (input.ttype == StreamTokenizer.TT_WORD) {
                 // Concatenate the string by adding spaces in between.
-                if (!(input.sval.equalsIgnoreCase(IdentityCoreConstants.AND) || input.sval.equalsIgnoreCase
-                        (IdentityCoreConstants.OR) || input.sval.equalsIgnoreCase(IdentityCoreConstants.NOT)))
+                if (!(input.sval.equalsIgnoreCase(IdentityCoreConstants.Filter.AND) || input.sval.equalsIgnoreCase
+                        (IdentityCoreConstants.Filter.OR) || input.sval.equalsIgnoreCase(IdentityCoreConstants.Filter.NOT)))
                     concatenatedString.append(" ").append(input.sval);
                 else {
                     concatenatedString = new StringBuilder(concatenatedString.toString().trim());
@@ -120,8 +120,8 @@ public class FilterTreeBuilder {
     private void expression() throws IdentityException {
 
         term();
-        while (symbol.equals(String.valueOf(IdentityCoreConstants.OR))) {
-            OperationNode or = new OperationNode(IdentityCoreConstants.OR);
+        while (symbol.equals(String.valueOf(IdentityCoreConstants.Filter.OR))) {
+            OperationNode or = new OperationNode(IdentityCoreConstants.Filter.OR);
             or.setLeftNode(root);
             term();
             or.setRightNode(root);
@@ -135,8 +135,8 @@ public class FilterTreeBuilder {
     private void term() throws IdentityException {
 
         factor();
-        while (symbol.equals(String.valueOf(IdentityCoreConstants.AND))) {
-            OperationNode and = new OperationNode(IdentityCoreConstants.AND);
+        while (symbol.equals(String.valueOf(IdentityCoreConstants.Filter.AND))) {
+            OperationNode and = new OperationNode(IdentityCoreConstants.Filter.AND);
             and.setLeftNode(root);
             factor();
             and.setRightNode(root);
@@ -150,8 +150,8 @@ public class FilterTreeBuilder {
     private void factor() throws IdentityException {
 
         symbol = nextSymbol();
-        if (symbol.equals(String.valueOf(IdentityCoreConstants.NOT))) {
-            OperationNode not = new OperationNode(IdentityCoreConstants.NOT);
+        if (symbol.equals(String.valueOf(IdentityCoreConstants.Filter.NOT))) {
+            OperationNode not = new OperationNode(IdentityCoreConstants.Filter.NOT);
             factor();
             not.setRightNode(root);
             root = not;

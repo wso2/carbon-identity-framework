@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.wso2.carbon.idp.mgt.object;
+package org.wso2.carbon.idp.mgt.model;
 
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 
@@ -27,7 +27,7 @@ import java.util.List;
 public class IdpSearchResult {
 
     private List<IdentityProvider> idpList;
-    private int idpCount;
+    private int totalIDPCount;
     private int limit;
     private int offSet;
     private String filter;
@@ -44,14 +44,14 @@ public class IdpSearchResult {
         this.idpList = idpList;
     }
 
-    public int getIdpCount() {
+    public int getTotalIDPCount() {
 
-        return idpCount;
+        return totalIDPCount;
     }
 
-    public void setIdpCount(int idpCount) {
+    public void setTotalIDPCount(int totalIDPCount) {
 
-        this.idpCount = idpCount;
+        this.totalIDPCount = totalIDPCount;
     }
 
     public int getLimit() {

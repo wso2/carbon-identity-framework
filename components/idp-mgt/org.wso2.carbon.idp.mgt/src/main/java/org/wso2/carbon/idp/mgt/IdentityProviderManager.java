@@ -52,7 +52,7 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
-import org.wso2.carbon.idp.mgt.object.IdpSearchResult;
+import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
@@ -1033,9 +1033,9 @@ public class IdentityProviderManager implements IdpManager {
                                    String tenantDomain)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        nullCheck(limit, offset);
+        validateSearchArguments(limit, offset);
         if (limit < 0) {
-            String message = "Limit should be negative value. limit:" + limit;
+            String message = "Given limit: " + limit + " is a negative value.";
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
                     message);
         }
@@ -1043,8 +1043,8 @@ public class IdentityProviderManager implements IdpManager {
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, filter, result);
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        result.setIdpCount(dao.getTotalIdPCount(tenantId, expressionNodes));
-        result.setIdpList(dao.getIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
+        result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
                 result.getSortOrder(), result.getSortBy()));
         return result;
     }
@@ -1056,7 +1056,7 @@ public class IdentityProviderManager implements IdpManager {
      * @param offset offset value.
      * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
      */
-    private void nullCheck(Integer limit, Integer offset) throws IdentityProviderManagementClientException {
+    private void validateSearchArguments(Integer limit, Integer offset) throws IdentityProviderManagementClientException {
 
         if (limit == null) {
             String message = "Limit should not null";

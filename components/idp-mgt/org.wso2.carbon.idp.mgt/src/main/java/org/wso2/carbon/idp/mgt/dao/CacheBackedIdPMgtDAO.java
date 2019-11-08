@@ -107,8 +107,8 @@ public class CacheBackedIdPMgtDAO {
      * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
      * @throws IdentityProviderManagementClientException Error when append the filer string.
      */
-    public List<IdentityProvider> getIdPsSearch(int tenantId, List<ExpressionNode> expressionConditions, int limit,
-                                                int offset, String sortOrder, String sortBy)
+    public List<IdentityProvider> getPaginatedIdPsSearch(int tenantId, List<ExpressionNode> expressionConditions,
+                                                         int limit, int offset, String sortOrder, String sortBy)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         return idPMgtDAO.getIdPsSearch(tenantId, expressionConditions, limit, offset, sortOrder, sortBy);
