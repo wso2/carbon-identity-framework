@@ -50,8 +50,6 @@ import java.util.Set;
 public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
     public static final Log log = LogFactory.getLog(UserStoreConfigServiceImpl.class);
-    private Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
-            getInstance().getUserStoreDAOFactories();
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
     private static final String DB_BASED_REPOSITORY_CLASS =
@@ -63,8 +61,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         try {
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
-                AbstractUserStoreDAOFactory userStoreDAOFactory = userStoreDAOFactories.
-                        get(userStoreDTO.getRepositoryClass());
+                AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.
+                        getInstance().getUserStoreDAOFactories().get(userStoreDTO.getRepositoryClass());
                 userStoreDAOFactory.getInstance().addUserStore(userStoreDTO);
             } else {
                 if (StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
@@ -162,6 +160,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
         }
         try {
+            Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                    getInstance().getUserStoreDAOFactories();
             for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
 
                 if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
@@ -200,6 +200,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public UserStoreDTO getUserStore(String domain) throws IdentityUserStoreMgtException {
 
         UserStoreDTO[] userStoreDTOS = new UserStoreDTO[0];
+        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                getInstance().getUserStoreDAOFactories();
         for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
 
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
@@ -227,7 +229,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public UserStoreDTO[] getUserStores() throws IdentityUserStoreMgtException {
 
         List<UserStoreDTO> userStoreDTOList = new ArrayList<>();
-
+        Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                getInstance().getUserStoreDAOFactories();
         for (Map.Entry<String, AbstractUserStoreDAOFactory> entry : userStoreDAOFactories.entrySet()) {
 
             if (!SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
@@ -306,6 +309,8 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         UserStoreDTO userStoreDTO;
         if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                 StringUtils.isNotEmpty(repositoryClass)) {
+            Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
+                    getInstance().getUserStoreDAOFactories();
             AbstractUserStoreDAOFactory userStoreDAOFactory = userStoreDAOFactories.get(repositoryClass);
             userStoreDTO = getUserStoreDTO(domain, isDisable, repositoryClass);
             userStoreDAOFactory.getInstance().updateUserStore(userStoreDTO, true);

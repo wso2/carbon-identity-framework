@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfi
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
-import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.user.api.Properties;
 import org.wso2.carbon.user.api.Property;
 import org.wso2.carbon.user.api.UserStoreException;
