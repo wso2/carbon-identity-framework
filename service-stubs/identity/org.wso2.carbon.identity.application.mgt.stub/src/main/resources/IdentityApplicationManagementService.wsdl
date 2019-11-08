@@ -382,6 +382,7 @@
                                 type="ax2173:InboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true"
                                 type="ax2173:InboundProvisioningConfig"/>
+                    <xs:element minOccurs="0" name="jwksUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="localAndOutBoundAuthenticationConfig" nillable="true"
                                 type="ax2173:LocalAndOutboundAuthenticationConfig"/>
                     <xs:element minOccurs="0" name="loginUrl" nillable="true" type="xs:string"/>
@@ -496,6 +497,7 @@
                                 type="ax2173:AuthenticationStep"/>
                     <xs:element minOccurs="0" name="authenticationType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enableAuthorization" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="skipConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="useTenantDomainInLocalSubjectIdentifier" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="useUserstoreDomainInLocalSubjectIdentifier" type="xs:boolean"/>

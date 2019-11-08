@@ -15,6 +15,7 @@
  */
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -72,12 +73,15 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                       String userPerformingAction) throws IdentityApplicationManagementException {
 
         int applicationId = getApplicationId(resourceId, tenantDomain);
-        application.setApplicationID(applicationId);
 
-        for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
-            if (listener.isEnable()
-                    && !listener.doPreUpdateApplication(application, tenantDomain, userPerformingAction)) {
-                return false;
+        if (applicationId != -1) {
+            application.setApplicationID(applicationId);
+            for (ApplicationMgtListener listener :
+                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
+                if (listener.isEnable()
+                        && !listener.doPreUpdateApplication(application, tenantDomain, userPerformingAction)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -132,7 +136,6 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                        String tenantDomain,
                                                        String userPerformingAction) throws IdentityApplicationManagementException {
 
-        String applicationName = deletedApplication.getApplicationName();
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()
                     && !listener.doPostDeleteApplication(deletedApplication, tenantDomain, userPerformingAction)) {
@@ -147,10 +150,13 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
             throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
-        for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
-            if (listener.isEnable()
-                    && !listener.doPreGetServiceProvider(applicationName, tenantDomain)) {
-                return false;
+        if (StringUtils.isNotBlank(applicationName)) {
+            for (ApplicationMgtListener listener :
+                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
+                if (listener.isEnable()
+                        && !listener.doPreGetServiceProvider(applicationName, tenantDomain)) {
+                    return false;
+                }
             }
         }
         return true;

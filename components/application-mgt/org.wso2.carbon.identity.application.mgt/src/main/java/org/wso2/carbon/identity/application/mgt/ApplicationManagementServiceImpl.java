@@ -1771,7 +1771,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String appName = serviceProvider.getApplicationName();
         if (StringUtils.isBlank(appName)) {
             // check for required attributes.
-            throw new IdentityApplicationManagementException("Application name cannot be empty.");
+            throw new IdentityApplicationManagementClientException("Application name cannot be empty.");
         }
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
@@ -1783,11 +1783,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(appName)) {
             String msg = "Application with the same name: %s loaded from the file system.";
-            throw new IdentityApplicationManagementException(String.format(msg, appName));
+            throw new IdentityApplicationManagementClientException(String.format(msg, appName));
         }
 
         if (!isRegexValidated(appName)) {
-            throw new IdentityApplicationManagementException("The Application name '" +
+            throw new IdentityApplicationManagementClientException("The Application name '" +
                     appName + "' is not valid! It is not adhering " +
                     "to the regex " + ApplicationMgtUtil.getSPValidatorRegex());
         }
@@ -1811,13 +1811,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw ex;
             }
 
+            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             try {
-                ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
                 String resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
                 return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
             } catch (IdentityApplicationManagementException ex) {
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);
+                appDAO.deleteApplication(applicationName);
                 throw ex;
             }
         } finally {

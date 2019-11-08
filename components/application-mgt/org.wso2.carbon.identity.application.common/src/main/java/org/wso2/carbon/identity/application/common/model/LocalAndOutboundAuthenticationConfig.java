@@ -172,6 +172,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setUseUserstoreDomainInRoles(true);
                 }
+            } else if (SKIP_CONSENT.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setSkipConsent(true);
+                }
             }
         }
 

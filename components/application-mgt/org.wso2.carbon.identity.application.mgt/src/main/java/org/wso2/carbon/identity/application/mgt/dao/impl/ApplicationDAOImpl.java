@@ -4532,7 +4532,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     "application information.");
             deleteApplication(application.getApplicationName());
             throw new IdentityApplicationManagementException("Error while creating an application: "
-                    + application.getApplicationName() + " in tenantDomain: " + tenantDomain);
+                    + application.getApplicationName() + " in tenantDomain: " + tenantDomain, ex);
         }
     }
 
@@ -4607,7 +4607,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         } catch (SQLException e) {
             String msg = "Error occurred while deleting application with resourceId: %s in tenantDomain: %s.";
-            throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain));
+            throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain), e);
         }
     }
 
