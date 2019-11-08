@@ -1072,9 +1072,8 @@ public class UserRealmProxy {
             UserStoreManager usMan = realm.getUserStoreManager();
             String[] usersOfRole;
             boolean canLimitAndFilterUsersFromUMLevel = canLimitAndFilterUsersFromUMLevel(roleName, usMan);
-            boolean limitUserList = isLimitUserList(limit, canLimitAndFilterUsersFromUMLevel);
 
-            if (domain == null && limitUserList) {
+            if (domain == null && limit != 0) {
                 if (filter != null) {
                     filter = CarbonConstants.DOMAIN_SEPARATOR + filter;
                 } else {
@@ -1100,7 +1099,7 @@ public class UserRealmProxy {
             Arrays.sort(usersOfRole);
             Map<String, Integer> userCount = new HashMap<String, Integer>();
 
-            if (!limitUserList) {
+            if (limit == 0) {
                 filter = filter.replace("*", ".*");
                 Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
                 List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
@@ -2378,11 +2377,6 @@ public class UserRealmProxy {
             canLimitAndFilterWithUM = userStoreManager instanceof JDBCUserStoreManager;
         }
         return canLimitAndFilterWithUM;
-    }
-
-    private boolean isLimitUserList(int limit, boolean canLimitAndFilterUsersFromUMLevel) {
-
-        return limit != 0 && !canLimitAndFilterUsersFromUMLevel;
     }
 
     private String getDomainFreeFilter(String filter) {
