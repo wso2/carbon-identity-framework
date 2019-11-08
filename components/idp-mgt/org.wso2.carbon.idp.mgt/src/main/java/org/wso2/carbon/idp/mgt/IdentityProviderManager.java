@@ -2016,8 +2016,7 @@ public class IdentityProviderManager implements IdpManager {
 
         IdentityProvider identityProvider = this.getIdPByName(idPName, tenantDomain, true);
         if (identityProvider == null) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_NAME_DOES_NOT_EXIST, idPName);
+            return;
         }
         deleteIDP(identityProvider.getResourceId(), idPName, tenantDomain);
 
@@ -2049,8 +2048,7 @@ public class IdentityProviderManager implements IdpManager {
         }
         IdentityProvider identityProvider = getIdPByResourceId(resourceId, tenantDomain, true);
         if (identityProvider == null) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
+            return;
         }
         deleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
 
@@ -2563,14 +2561,19 @@ public class IdentityProviderManager implements IdpManager {
     private void validateUpdateIdPInputValues(IdentityProvider currentIdentityProvider, String resourceId, String
             newIdPName, String tenantDomain) throws IdentityProviderManagementException {
 
-        if (getIdPByName(newIdPName, tenantDomain, true) != null || IdPManagementServiceComponent.getFileBasedIdPs()
-                .containsKey(newIdPName)) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdPName);
-        }
         if (currentIdentityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
+        }
+        boolean isNewIdPNameExists = false;
+        IdentityProvider newIdentityProvider = getIdPByName(newIdPName, tenantDomain, true);
+        if (newIdentityProvider != null) {
+            isNewIdPNameExists = !StringUtils.equals(newIdentityProvider.getResourceId(), currentIdentityProvider
+                    .getResourceId());
+        }
+        if (isNewIdPNameExists || IdPManagementServiceComponent.getFileBasedIdPs().containsKey(newIdPName)) {
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdPName);
         }
     }
 
