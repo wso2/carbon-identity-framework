@@ -1250,6 +1250,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
+    @Override
+    public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+        if (application == null) {
+            throw new IdentityApplicationManagementClientException("Matching application could not be found " +
+                    "for the provided id: " + applicationId);
+        }
+        String appName = application.getApplicationName();
+        return exportSPApplication(appName, exportSecrets, tenantDomain);
+    }
+
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
             throws IdentityApplicationManagementException {
 
