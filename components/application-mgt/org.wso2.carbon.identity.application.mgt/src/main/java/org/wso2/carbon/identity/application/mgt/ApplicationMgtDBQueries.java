@@ -308,6 +308,9 @@ public class ApplicationMgtDBQueries {
     public static final String LOAD_APP_ID_BY_UUID = "SELECT ID FROM SP_APP WHERE UUID = :UUID; " +
             "AND TENANT_ID = :TENANT_ID;";
 
+    public static final String LOAD_UUID_BY_APP_ID = "SELECT UUID FROM SP_APP WHERE ID = :ID; " +
+            "AND TENANT_ID = :TENANT_ID;";
+
     public static final String REMOVE_APP_FROM_SP_APP_WITH_UUID = "DELETE FROM SP_APP WHERE UUID=:UUID; " +
             "AND TENANT_ID=:TENANT_ID;";
 

@@ -629,8 +629,8 @@ public class ApplicationMgtUtil {
     public static boolean isValidApplicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         try {
-            String userName = null;
-            String userNameWithDomain = null;
+            String userName;
+            String userNameWithDomain;
             if (serviceProvider.getOwner() != null) {
                 userName = serviceProvider.getOwner().getUserName();
                 if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
@@ -638,18 +638,23 @@ public class ApplicationMgtUtil {
                 }
                 String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
                 userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
-            }
-            org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+
+                org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+                if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+                    return false;
+                }
+                boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
+                if (!isUserExist) {
+                    throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
+                            "application: " +
+                            serviceProvider.getApplicationName() + " as user is not existing.");
+                }
+            } else {
                 return false;
             }
-            boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
-            if (!isUserExist) {
-                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
-                        serviceProvider.getApplicationName() + " as user is not existing.");
-            }
         } catch (UserStoreException | IdentityApplicationManagementException e) {
-            throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+            throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
+                    "application: " +
                     serviceProvider.getApplicationName(), e);
         }
         return true;

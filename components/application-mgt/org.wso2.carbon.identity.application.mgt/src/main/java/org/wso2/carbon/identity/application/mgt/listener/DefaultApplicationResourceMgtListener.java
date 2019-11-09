@@ -15,12 +15,14 @@
  */
 package org.wso2.carbon.identity.application.mgt.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 
 /**
@@ -70,10 +72,16 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                       String tenantDomain,
                                                       String userPerformingAction) throws IdentityApplicationManagementException {
 
-        for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
-            if (listener.isEnable()
-                    && !listener.doPreUpdateApplication(application, tenantDomain, userPerformingAction)) {
-                return false;
+        int applicationId = getApplicationId(resourceId, tenantDomain);
+
+        if (applicationId != -1) {
+            application.setApplicationID(applicationId);
+            for (ApplicationMgtListener listener :
+                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
+                if (listener.isEnable()
+                        && !listener.doPreUpdateApplication(application, tenantDomain, userPerformingAction)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -84,6 +92,9 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                        String resourceId,
                                                        String tenantDomain,
                                                        String userPerformingAction) throws IdentityApplicationManagementException {
+
+        int applicationId = getApplicationId(resourceId, tenantDomain);
+        application.setApplicationID(applicationId);
 
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()
@@ -125,7 +136,6 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                        String tenantDomain,
                                                        String userPerformingAction) throws IdentityApplicationManagementException {
 
-        String applicationName = getApplicationName(applicationResourceId, tenantDomain);
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()
                     && !listener.doPostDeleteApplication(deletedApplication, tenantDomain, userPerformingAction)) {
@@ -140,10 +150,13 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
             throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
-        for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
-            if (listener.isEnable()
-                    && !listener.doPreGetServiceProvider(applicationName, tenantDomain)) {
-                return false;
+        if (StringUtils.isNotBlank(applicationName)) {
+            for (ApplicationMgtListener listener :
+                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
+                if (listener.isEnable()
+                        && !listener.doPreGetServiceProvider(applicationName, tenantDomain)) {
+                    return false;
+                }
             }
         }
         return true;
@@ -181,8 +194,22 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     private String getApplicationName(String resourceId,
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
-        ApplicationBasicInfo appInfo = ApplicationManagementService.getInstance()
-                .getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
+        ApplicationBasicInfo appInfo = getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
         return appInfo != null ? appInfo.getApplicationName() : null;
     }
+
+    private int getApplicationId(String applicationResourceId,
+                                 String tenantDomain) throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo appInfo = getApplicationBasicInfoByResourceId(applicationResourceId, tenantDomain);
+        return appInfo != null ? appInfo.getApplicationId() : -1;
+    }
+
+    private ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        return appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
+    }
+
 }
