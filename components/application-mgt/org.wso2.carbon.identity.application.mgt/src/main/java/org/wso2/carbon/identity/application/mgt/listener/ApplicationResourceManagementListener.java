@@ -63,7 +63,7 @@ public interface ApplicationResourceManagementListener {
      *
      * @return true if enabled
      */
-    default boolean isEnable() {
+    default boolean isEnabled() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (ApplicationResourceManagementListener.class.getName(), this.getClass().getName());
@@ -166,13 +166,11 @@ public interface ApplicationResourceManagementListener {
      *
      * @param resourceId           Unique resource identifier of the application
      * @param tenantDomain         Tenant domain of the user
-     * @param userPerformingAction Tenant aware username of the user performing the action
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
     boolean doPreGetApplicationByResourceId(String resourceId,
-                                            String tenantDomain,
-                                            String userPerformingAction) throws IdentityApplicationManagementException;
+                                            String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before retrieving an application by resourceId.
@@ -180,27 +178,23 @@ public interface ApplicationResourceManagementListener {
      * @param serviceProvider      Retrieved Service Provider
      * @param resourceId           Unique resource identifier of the application
      * @param tenantDomain         Tenant domain of the user
-     * @param userPerformingAction Tenant aware username of the user performing the action
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
     boolean doPostGetApplicationByResourceId(ServiceProvider serviceProvider,
                                              String resourceId,
-                                             String tenantDomain,
-                                             String userPerformingAction) throws IdentityApplicationManagementException;
+                                             String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before retrieving basic information an application by resourceId.
      *
      * @param resourceId           Unique resource identifier of the application
      * @param tenantDomain         Tenant domain of the user
-     * @param userPerformingAction Tenant aware username of the user performing the action
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
     boolean doPreGetApplicationBasicInfoByResourceId(String resourceId,
-                                                     String tenantDomain,
-                                                     String userPerformingAction) throws IdentityApplicationManagementException;
+                                                     String tenantDomain) throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after retrieving basic information an application by resourceId.
@@ -208,13 +202,11 @@ public interface ApplicationResourceManagementListener {
      * @param appInfo              Basic Information of the application
      * @param resourceId           Unique resource identifier of the application
      * @param tenantDomain         Tenant domain of the user
-     * @param userPerformingAction Tenant aware username of the user performing the action
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
     boolean doPostGetApplicationBasicInfoByResourceId(ApplicationBasicInfo appInfo,
                                                       String resourceId,
-                                                      String tenantDomain,
-                                                      String userPerformingAction) throws IdentityApplicationManagementException;
+                                                      String tenantDomain) throws IdentityApplicationManagementException;
 
 }

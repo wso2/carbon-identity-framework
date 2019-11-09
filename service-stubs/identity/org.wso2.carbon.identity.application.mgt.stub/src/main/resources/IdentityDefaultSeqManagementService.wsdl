@@ -109,6 +109,7 @@
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="authenticationSteps" nillable="true" type="ax2177:AuthenticationStep"/>
                     <xs:element minOccurs="0" name="authenticationType" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="enableAuthorization" type="xs:boolean"/>
+                    <xs:element minOccurs="0" name="skipConsent" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="subjectClaimUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="useTenantDomainInLocalSubjectIdentifier" type="xs:boolean"/>
                     <xs:element minOccurs="0" name="useUserstoreDomainInLocalSubjectIdentifier" type="xs:boolean"/>
