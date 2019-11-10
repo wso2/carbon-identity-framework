@@ -1034,11 +1034,6 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         validateSearchArguments(limit, offset);
-        if (limit < 0) {
-            String message = "Given limit: " + limit + " is a negative value.";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, filter, result);
@@ -1056,13 +1051,19 @@ public class IdentityProviderManager implements IdpManager {
      * @param offset offset value.
      * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
      */
-    private void validateSearchArguments(Integer limit, Integer offset) throws IdentityProviderManagementClientException {
+    private void validateSearchArguments(Integer limit, Integer offset)
+            throws IdentityProviderManagementClientException {
 
         if (limit == null) {
             String message = "Limit should not null";
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
                     message);
 
+        }
+        if (limit < 0) {
+            String message = "Given limit: " + limit + " is a negative value.";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
         }
         if (offset == null) {
             String message = "Offset should not null";
@@ -1160,24 +1161,23 @@ public class IdentityProviderManager implements IdpManager {
                         IdPManagementConstants.DEFAULT_SORT_BY);
             }
             return IdPManagementConstants.DEFAULT_SORT_BY;
-        } else {
-            switch (sortBy) {
-                case IdPManagementConstants.IDP_NAME:
-                    sortBy = IdPManagementConstants.NAME;
-                    break;
-                case IdPManagementConstants.IDP_HOME_REALM_ID:
-                    sortBy = IdPManagementConstants.HOME_REALM_ID;
-                    break;
-                default:
-                    sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
-                    if (log.isDebugEnabled()) {
-                        log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute. " +
-                                "sortBy: " + IdPManagementConstants.DEFAULT_SORT_BY);
-                    }
-                    break;
-            }
-            return sortBy;
         }
+        switch (sortBy) {
+            case IdPManagementConstants.IDP_NAME:
+                sortBy = IdPManagementConstants.NAME;
+                break;
+            case IdPManagementConstants.IDP_HOME_REALM_ID:
+                sortBy = IdPManagementConstants.HOME_REALM_ID;
+                break;
+            default:
+                sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
+                if (log.isDebugEnabled()) {
+                    log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute. " +
+                            "sortBy: " + IdPManagementConstants.DEFAULT_SORT_BY);
+                }
+                break;
+        }
+        return sortBy;
     }
 
     /**
@@ -1227,7 +1227,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
                     limit = Integer.parseInt(itemsPerPagePropertyValue);
                 } else {
-                    limit = IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE;
+                    limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
                     if (log.isDebugEnabled()) {
                         log.debug("limit is incorrect. Therefore we set the default limit. limit:" + limit);
                     }
