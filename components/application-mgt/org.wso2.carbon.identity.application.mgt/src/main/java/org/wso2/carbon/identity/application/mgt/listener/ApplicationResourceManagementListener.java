@@ -63,7 +63,7 @@ public interface ApplicationResourceManagementListener {
      *
      * @return true if enabled
      */
-    default boolean isEnable() {
+    default boolean isEnabled() {
 
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (ApplicationResourceManagementListener.class.getName(), this.getClass().getName());
