@@ -490,6 +490,13 @@ public class ApplicationBean {
         return false;
     }
 
+    public boolean isSkipConsent() {
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSkipConsent();
+        }
+        return false;
+    }
+
     public boolean isEnableAuthorization() {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
@@ -1080,48 +1087,8 @@ public class ApplicationBean {
         serviceProvider.setDescription(request.getParameter("sp-description"));
         serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
 
-        String jwks = request.getParameter(ApplicationMgtUIConstants.JWKS_URI);
-        boolean skipConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_CONSENT));
-
-        final Map<String, ServiceProviderProperty> configNameValueMap =
-                getServiceProviderProperties().stream().collect(Collectors.toMap(ServiceProviderProperty::getName, spProperty -> spProperty));
-
-        // Handling JWKS URL property
-        if (configNameValueMap.containsKey(ApplicationMgtUIUtil.JWKS_URI)) {
-            if (StringUtils.isBlank(jwks)) {
-                configNameValueMap.remove(ApplicationMgtUIUtil.JWKS_URI);
-            } else {
-                ServiceProviderProperty propertyForJWKS = configNameValueMap.get(ApplicationMgtUIUtil.JWKS_URI);
-                if (!propertyForJWKS.getValue().equals(jwks)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Existing jwks value: " + propertyForJWKS.getValue() + " Updated jwks value is " + jwks);
-                    }
-
-                    propertyForJWKS.setValue(jwks);
-                }
-            }
-        } else if (StringUtils.isNotBlank(jwks)) {
-            ServiceProviderProperty propertyForJWKS = new ServiceProviderProperty();
-            propertyForJWKS.setDisplayName(ApplicationMgtUIUtil.JWKS_DISPLAYNAME);
-            propertyForJWKS.setName(ApplicationMgtUIUtil.JWKS_URI);
-            propertyForJWKS.setValue(jwks);
-
-            configNameValueMap.put(propertyForJWKS.getName(), propertyForJWKS);
-        }
-
-        // Handling consent page skip property
-        if (configNameValueMap.containsKey(IdentityConstants.SKIP_CONSENT)) {
-            configNameValueMap.get(IdentityConstants.SKIP_CONSENT).setValue(Boolean.toString(skipConsent));
-        } else {
-            ServiceProviderProperty propertyForSkipConsent = new ServiceProviderProperty();
-            propertyForSkipConsent.setDisplayName(IdentityConstants.SKIP_CONSENT_DISPLAY_NAME);
-            propertyForSkipConsent.setName(IdentityConstants.SKIP_CONSENT);
-            propertyForSkipConsent.setValue(Boolean.toString(skipConsent));
-
-            configNameValueMap.put(propertyForSkipConsent.getName(), propertyForSkipConsent);
-        }
-
-        serviceProvider.setSpProperties(configNameValueMap.values().toArray(new ServiceProviderProperty[]{}));
+        String jwks = request.getParameter("jwksUri");
+        serviceProvider.setJwksUri(jwks);
 
         if (Boolean.parseBoolean(request.getParameter("deletePublicCert"))) {
             serviceProvider.setCertificateContent("");
@@ -1378,6 +1345,9 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setUseUserstoreDomainInRoles(useUserstoreDomainInRoles != null &&
                         "on".equals(useUserstoreDomainInRoles) ? true : false);
+
+        boolean skipConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_CONSENT));
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig().setSkipConsent(skipConsent);
 
         String enableAuthorization = request.getParameter(
                 "enable_authorization");

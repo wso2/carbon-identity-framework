@@ -142,29 +142,9 @@
     boolean isAdvanceConsentManagementEnabled = false;
 
     //adding code to support jwks URI
-    String jwksUri = null;
-    boolean hasJWKSUri = false;
-
-    // SP bound consent skip
-    boolean skipContent = false;
-
-    ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
-
-    if (spProperties != null) {
-        for (ServiceProviderProperty spProperty : spProperties) {
-            if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
-                hasJWKSUri = true;
-                jwksUri = spProperty.getValue();
-            } else if (ApplicationMgtUIConstants.SKIP_CONSENT.equals(spProperty.getName())) {
-                skipContent = Boolean.parseBoolean(spProperty.getValue());
-            }
-        }
-    }
-
-    if (jwksUri == null) {
-       jwksUri = "";
-    }
-
+    String jwksUri = appBean.getServiceProvider().getJwksUri();
+    boolean hasJWKSUri = StringUtils.isNotEmpty(jwksUri);
+    
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
         appBean.setAuthenticationType(authTypeReq);
@@ -1453,7 +1433,7 @@
                             <fmt:message key="config.application.JWKS"/>
                             </td>
                             <td style="width:50%" class="leftCol-med labelField">
-                               <input style="width:50%" id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                               <input style="width:50%" id="jwksUri" name="jwksUri" type="text" value="<%=jwksUri != null ? Encode.forHtmlAttribute(jwksUri) : "" %>"
                                 autofocus required/>
                             </td>
                         </tr>
@@ -2794,7 +2774,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= skipContent ? "checked" : ""%> value="true"/>
+                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= appBean.isSkipConsent() ? "checked" : ""%> value="true"/>
                                                     <label for="skipConsent"><fmt:message key="config.application.skip.consent"/></label>
                                                     </br>
                                                     <div class="sectionHelp">
