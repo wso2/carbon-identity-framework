@@ -24,7 +24,6 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -1219,31 +1218,24 @@ public class IdentityProviderManager implements IdpManager {
      */
     private int validateLimit(int limit) {
 
-        if (limit > IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE) {
-            try {
-                String itemsPerPagePropertyValue = ServerConfiguration.getInstance()
-                        .getFirstProperty(IdPManagementConstants.ITEMS_PER_PAGE_PROPERTY);
-                if (log.isDebugEnabled()) {
-                    log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
-                            "carbon.xml. limit: " + limit);
-                }
-                if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
-                    int carbonConfiguredValue = Integer.parseInt(itemsPerPagePropertyValue);
-                    if(limit > carbonConfiguredValue) {
-                        limit = carbonConfiguredValue;
-                    } else {
-                        limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
-                    }
-                } else {
-                    limit = IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE;
+        try {
+            String maximumItemsPerPagePropertyValue =
+                    IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+            if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
+                int maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
+                if (limit > maximumItemsPerPage) {
                     if (log.isDebugEnabled()) {
-                        log.debug("limit is incorrect. Therefore we set the default limit. limit:" + limit);
+                        log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
+                                "identity.xml. limit: " + maximumItemsPerPage);
                     }
+                    limit = maximumItemsPerPage;
                 }
-            } catch (NumberFormatException e) {
+            } else {
                 limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
-                log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
             }
+        } catch (NumberFormatException e) {
+            limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+            log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
         }
         return limit;
     }
