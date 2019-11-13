@@ -180,7 +180,7 @@ public class FilterTreeBuilder {
     private void validateAndBuildFilterExpression(String filterString, ExpressionNode expressionNode)
             throws IdentityException {
 
-        if (StringUtils.isNotBlank(filterString)) {
+        if (StringUtils.isNotBlank(filterString) && !filterString.equals("-1")) {
             String trimmedFilter = filterString.trim();
             String[] filterParts;
 
@@ -239,8 +239,6 @@ public class FilterTreeBuilder {
                 throw new IdentityException(
                         "Given filter operator is not supported. Filter attribute: " + filterString);
             }
-        } else {
-            throw new IdentityException("Given filter is empty. Filter attribute: " + filterString);
         }
     }
 

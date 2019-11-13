@@ -1107,16 +1107,19 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementClientException {
 
         if (node instanceof ExpressionNode) {
-            if (((ExpressionNode) node).getAttributeValue().contains(IdPManagementConstants.IDP_IS_ENABLED)) {
-                if ("true".contains(((ExpressionNode) node).getValue())) {
-                    ((ExpressionNode) node).setValue(IdPManagementConstants.IS_TRUE_VALUE);
-                } else if ("false".contains(((ExpressionNode) node).getValue())) {
-                    ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
-                } else {
-                    String message = "Invalid \'isEnabled\' value passed in the filter. It should be \'true\' or " +
-                            "\'false\' isEnabled = " + ((ExpressionNode) node).getValue();
-                    throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                            message);
+            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
+                if (((ExpressionNode) node).getAttributeValue().contains(IdPManagementConstants.IDP_IS_ENABLED)) {
+                    if ("true".contains(((ExpressionNode) node).getValue())) {
+                        ((ExpressionNode) node).setValue(IdPManagementConstants.IS_TRUE_VALUE);
+                    } else if ("false".contains(((ExpressionNode) node).getValue())) {
+                        ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
+                    } else {
+                        String message = "Invalid \'isEnabled\' value passed in the filter. It should be \'true\' or " +
+                                "\'false\' isEnabled = " + ((ExpressionNode) node).getValue();
+                        throw IdPManagementUtil
+                                .handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                                        message);
+                    }
                 }
             }
             expression.add((ExpressionNode) node);
@@ -1225,9 +1228,14 @@ public class IdentityProviderManager implements IdpManager {
                             "carbon.xml. limit: " + limit);
                 }
                 if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
-                    limit = Integer.parseInt(itemsPerPagePropertyValue);
+                    int carbonConfiguredValue = Integer.parseInt(itemsPerPagePropertyValue);
+                    if(limit > carbonConfiguredValue) {
+                        limit = carbonConfiguredValue;
+                    } else {
+                        limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                    }
                 } else {
-                    limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                    limit = IdPManagementConstants.MAXIMUM_LIMIT_PER_PAGE;
                     if (log.isDebugEnabled()) {
                         log.debug("limit is incorrect. Therefore we set the default limit. limit:" + limit);
                     }
