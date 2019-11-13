@@ -97,8 +97,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_APPLICATION_IS_NOT_DISCOVERABLE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_INVALID_OFFSET;
@@ -209,6 +212,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_BASIC_APP_INFO_WITH_CONSENT_ENABLED;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS;
+import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
+import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -230,7 +235,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
-    public static final String DOMAIN_IN_ROLES = "DOMAIN_IN_ROLES";
+    public static final String USE_DOMAIN_IN_ROLE_DISPLAY_NAME = "DOMAIN_IN_ROLES";
 
     public ApplicationDAOImpl() {
 
@@ -258,12 +263,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private List<ServiceProviderProperty> getServicePropertiesBySpId(Connection dbConnection, int SpId)
             throws SQLException {
 
-        String sqlStmt = GET_SP_METADATA_BY_SP_ID;
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
         List<ServiceProviderProperty> idpProperties = new ArrayList<ServiceProviderProperty>();
         try {
-            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt = dbConnection.prepareStatement(GET_SP_METADATA_BY_SP_ID);
             prepStmt.setInt(1, SpId);
             rs = prepStmt.executeQuery();
             while (rs.next()) {
@@ -414,9 +418,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 applicationId = getApplicationIDByName(applicationName, tenantID, connection);
             }
 
-            // To add the property "USE_DOMAIN_IN_ROLES".
-            // TODO: move this to OSGi layer.
-            addUseDomainNameInRolesAsSpProperty(serviceProvider);
             if (serviceProvider.getSpProperties() != null) {
                 addServiceProviderProperties(connection, applicationId,
                         Arrays.asList(serviceProvider.getSpProperties()), tenantID);
@@ -513,11 +514,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                         serviceProvider.getPermissionAndRoleConfig().getPermissions());
             }
 
-            updateUseDomainNameInRolesAsSpProperty(serviceProvider);
-            if (serviceProvider.getSpProperties() != null) {
-                // To update 'USE_DOMAIN_IN_ROLES' property value.
-                updateServiceProviderProperties(connection, applicationId, Arrays.asList(serviceProvider
-                        .getSpProperties()), tenantID);
+            updateConfigurationsAsServiceProperties(serviceProvider);
+            if (ArrayUtils.isNotEmpty(serviceProvider.getSpProperties())) {
+                ServiceProviderProperty[] spProperties = serviceProvider.getSpProperties();
+                updateServiceProviderProperties(connection, applicationId, Arrays.asList(spProperties), tenantID);
             }
 
             // Will be supported with 'Advance Consent Management Feature'.
@@ -1721,95 +1721,35 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     @Override
-    public ServiceProvider getApplication(String applicationName, String tenantDomain)
-            throws IdentityApplicationManagementException {
+    public ServiceProvider getApplication(String applicationName,
+                                          String tenantDomain) throws IdentityApplicationManagementException {
 
-        int applicationId = 0;
-        int tenantID = MultitenantConstants.SUPER_TENANT_ID;
-        if (tenantDomain != null) {
-            try {
-                tenantID = ApplicationManagementServiceComponentHolder.getInstance().getRealmService()
-                        .getTenantManager().getTenantId(tenantDomain);
-            } catch (UserStoreException e1) {
-                log.error("Error in reading application", e1);
-                throw new IdentityApplicationManagementException("Error while reading application", e1);
-            }
-        }
-
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         try {
-
-            // Load basic application data
-            ServiceProvider serviceProvider = getBasicApplicationData(applicationName, connection, tenantID);
-
-            if ((serviceProvider == null || serviceProvider.getApplicationName() == null)
-                    && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+            int applicationId = getApplicationIdByName(applicationName, tenantDomain);
+            if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+                // Looking for the resident sp. Create the resident sp for the tenant.
                 ServiceProvider localServiceProvider = new ServiceProvider();
                 localServiceProvider.setApplicationName(applicationName);
                 localServiceProvider.setDescription("Local Service Provider");
-                createApplication(localServiceProvider, tenantDomain);
-                serviceProvider = getBasicApplicationData(applicationName, connection, tenantID);
+                applicationId = createApplication(localServiceProvider, tenantDomain);
             }
-
-            if (serviceProvider == null) {
-                return null;
-            }
-
-            applicationId = serviceProvider.getApplicationID();
-
-            serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
-                    applicationId, connection, tenantID));
-            List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
-            serviceProvider
-                    .setLocalAndOutBoundAuthenticationConfig(getLocalAndOutboundAuthenticationConfig(
-                            applicationId, connection, tenantID, propertyList));
-
-            serviceProvider.setInboundProvisioningConfig(getInboundProvisioningConfiguration(
-                    applicationId, connection, tenantID));
-
-            serviceProvider.setOutboundProvisioningConfig(getOutboundProvisioningConfiguration(
-                    applicationId, connection, tenantID));
-
-            // Load Claim Mapping
-            serviceProvider.setClaimConfig(getClaimConfiguration(applicationId, connection,
-                    tenantID));
-
-            // Load Role Mappings
-            List<RoleMapping> roleMappings = getRoleMappingOfApplication(applicationId, connection,
-                    tenantID);
-            PermissionsAndRoleConfig permissionAndRoleConfig = new PermissionsAndRoleConfig();
-            permissionAndRoleConfig.setRoleMappings(roleMappings
-                    .toArray(new RoleMapping[roleMappings.size()]));
-            serviceProvider.setPermissionAndRoleConfig(permissionAndRoleConfig);
-
-            RequestPathAuthenticatorConfig[] requestPathAuthenticators = getRequestPathAuthenticators(
-                    applicationId, connection, tenantID);
-            serviceProvider.setRequestPathAuthenticatorConfigs(requestPathAuthenticators);
-
-            serviceProvider.setSpProperties(propertyList.toArray(new ServiceProviderProperty[propertyList.size()]));
-            serviceProvider.setCertificateContent(getCertificateContent(propertyList, connection));
-
-            // Will be supported with 'Advance Consent Management Feature'.
-            /*
-            ConsentConfig consentConfig = serviceProvider.getConsentConfig();
-            if (isNull(consentConfig)) {
-                consentConfig = new ConsentConfig();
-            }
-            consentConfig.setConsentPurposeConfigs(getConsentPurposeConfigs(connection, applicationId, tenantID));
-            serviceProvider.setConsentConfig(consentConfig);
-            */
-
-            if (serviceProvider != null) {
-                loadApplicationPermissions(applicationName, serviceProvider);
-            }
-            return serviceProvider;
-
-        } catch (SQLException | CertificateRetrievingException e) {
-            throw new IdentityApplicationManagementException("Failed to retrieve service provider "
-                    + applicationId, e);
-        } finally {
-            IdentityApplicationManagementUtil.closeConnection(connection);
+            return getApplication(applicationId);
+        } catch (IdentityApplicationManagementException ex) {
+            throw new IdentityApplicationManagementException("Failed to retrieve application: "
+                    + applicationName + " in tenantDomain: " + tenantDomain, ex);
         }
+    }
+
+    /**
+     * Determines whether the application is available based on the internal application id.
+     *
+     * @param applicationId internal application id.
+     * @return
+     */
+    private boolean isApplicationNotFound(int applicationId) {
+
+        // A valid application should have an id > 0 since its an auto increment id.
+        return applicationId <= 0;
     }
 
     private ConsentPurposeConfigs getConsentPurposeConfigs(Connection connection, int applicationId, int tenantId) throws
@@ -2105,6 +2045,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             int tenantID = IdentityTenantUtil.getTenantId(serviceProvider.getOwner().getTenantDomain());
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
+
+            serviceProvider.setJwksUri(getJwksUri(propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2149,11 +2091,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             loadApplicationPermissions(serviceProviderName, serviceProvider);
             return serviceProvider;
         } catch (SQLException | CertificateRetrievingException e) {
-            throw new IdentityApplicationManagementException("Failed to update service provider "
-                    + applicationId, e);
+            throw new IdentityApplicationManagementException("Failed to get service provider with id: " + applicationId,
+                    e);
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    private String getJwksUri(List<ServiceProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> JWKS_URI_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
     }
 
     /**
@@ -2385,6 +2336,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 log.debug("Application name for id: " + applicationID + " is '" + applicationName + "'");
             }
             return applicationName;
+        }
+    }
+
+    private int getApplicationIdByName(String applicationName,
+                                       String tenantDomain) throws IdentityApplicationManagementException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            return getApplicationIDByName(applicationName, tenantId, connection);
+        } catch (SQLException e) {
+            throw new IdentityApplicationManagementServerException("Error retrieving id for application: "
+                    + applicationName + " in tenantDomain: " + tenantDomain);
         }
     }
 
@@ -2633,9 +2596,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             getStepInfoPrepStmt.setInt(1, applicationId);
             stepInfoResultSet = getStepInfoPrepStmt.executeQuery();
 
-            Map<String, AuthenticationStep> authSteps = new HashMap<String, AuthenticationStep>();
-            Map<String, Map<String, List<FederatedAuthenticatorConfig>>> stepFedIdPAuthenticators = new HashMap<String, Map<String, List<FederatedAuthenticatorConfig>>>();
-            Map<String, List<LocalAuthenticatorConfig>> stepLocalAuth = new HashMap<String, List<LocalAuthenticatorConfig>>();
+            Map<String, AuthenticationStep> authSteps = new HashMap<>();
+            Map<String, Map<String, List<FederatedAuthenticatorConfig>>> stepFedIdPAuthenticators = new HashMap<>();
+            Map<String, List<LocalAuthenticatorConfig>> stepLocalAuth = new HashMap<>();
 
             while (stepInfoResultSet.next()) {
 
@@ -2736,13 +2699,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 authenticationSteps[authStepCount++] = authStep;
             }
 
-            Comparator<AuthenticationStep> comparator = new Comparator<AuthenticationStep>() {
-                public int compare(AuthenticationStep step1, AuthenticationStep step2) {
-                    return step1.getStepOrder() - step2.getStepOrder();
-                }
-            };
-
-            Arrays.sort(authenticationSteps, comparator);
+            Arrays.sort(authenticationSteps, Comparator.comparingInt(AuthenticationStep::getStepOrder));
 
             int numSteps = authenticationSteps.length;
             // We check if the steps have consecutive step numbers.
@@ -2805,21 +2762,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                             .equals(localAndOutboundConfigResultSet.getString(4)));
                     localAndOutboundConfiguration.setSubjectClaimUri(localAndOutboundConfigResultSet
                             .getString(5));
-                    if (CollectionUtils.isNotEmpty(propertyList)) {
-                        for (ServiceProviderProperty serviceProviderProperty : propertyList) {
-                            if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName())) {
-                                if ("TRUE".equalsIgnoreCase(serviceProviderProperty.getValue())) {
-                                    localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
-                                } else if (!"TRUE".equalsIgnoreCase(serviceProviderProperty.getValue())) {
-                                    localAndOutboundConfiguration.setUseUserstoreDomainInRoles(false);
-                                } else {
-                                    localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
-                                }
-                            }
-                        }
-                    } else {
-                        localAndOutboundConfiguration.setUseUserstoreDomainInRoles(true);
-                    }
+
+                    readAndSetConfigurationsFromProperties(propertyList, localAndOutboundConfiguration);
                 }
             } finally {
                 IdentityApplicationManagementUtil.closeStatement(localAndOutboundConfigPrepStmt);
@@ -2830,6 +2774,24 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } finally {
             IdentityApplicationManagementUtil.closeStatement(getStepInfoPrepStmt);
             IdentityApplicationManagementUtil.closeResultSet(stepInfoResultSet);
+        }
+    }
+
+    private void readAndSetConfigurationsFromProperties(List<ServiceProviderProperty> propertyList,
+                                                        LocalAndOutboundAuthenticationConfig localAndOutboundConfig) {
+        // Override with changed values.
+        if (CollectionUtils.isNotEmpty(propertyList)) {
+            for (ServiceProviderProperty serviceProviderProperty : propertyList) {
+
+                String name = serviceProviderProperty.getName();
+                String value = serviceProviderProperty.getValue();
+
+                if (USE_DOMAIN_IN_ROLES.equals(name)) {
+                    localAndOutboundConfig.setUseUserstoreDomainInRoles(value == null || Boolean.parseBoolean(value));
+                } else if (SKIP_CONSENT.equals(name)) {
+                    localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
+                }
+            }
         }
     }
 
@@ -4357,58 +4319,57 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         return null;
     }
 
-    private void updateUseDomainNameInRolesAsSpProperty(ServiceProvider serviceProvider) {
+    private void updateConfigurationsAsServiceProperties(ServiceProvider sp) {
 
-        ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
-
-        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null
-                || serviceProviderProperties == null) {
-            return;
+        if (sp.getSpProperties() == null) {
+            sp.setSpProperties(new ServiceProviderProperty[0]);
         }
 
-        boolean isUseUserstoreDomainInRolesPropertyExist = false;
-        List<ServiceProviderProperty> serviceProviderPropertiesList = new ArrayList<>
-                (Arrays.asList(serviceProviderProperties));
+        Map<String, ServiceProviderProperty> spPropertyMap = Arrays.stream(sp.getSpProperties())
+                .collect(Collectors.toMap(ServiceProviderProperty::getName, Function.identity()));
 
-        for (ServiceProviderProperty serviceProviderProperty : serviceProviderPropertiesList) {
-            if (USE_DOMAIN_IN_ROLES.equals(serviceProviderProperty.getName())) {
-                isUseUserstoreDomainInRolesPropertyExist = true;
-                serviceProviderProperty.setValue(String.valueOf(serviceProvider.
-                        getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
-            }
+        // Add use user store domain in roles property.
+        if (sp.getLocalAndOutBoundAuthenticationConfig() != null) {
+            ServiceProviderProperty userUserStoreDomainInRoles = buildUserStoreDomainInRolesProperty(sp);
+            spPropertyMap.put(userUserStoreDomainInRoles.getName(), userUserStoreDomainInRoles);
+
+            ServiceProviderProperty skipConsentProperty = buildSkipConsentProperty(sp);
+            spPropertyMap.put(skipConsentProperty.getName(), skipConsentProperty);
         }
 
-        if (!isUseUserstoreDomainInRolesPropertyExist) {
-            ServiceProviderProperty serviceProviderProperty = new ServiceProviderProperty();
-            serviceProviderProperty.setValue(String.valueOf(serviceProvider.
-                    getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
-            serviceProviderProperty.setDisplayName(DOMAIN_IN_ROLES);
-            serviceProviderProperty.setName(USE_DOMAIN_IN_ROLES);
-            serviceProviderPropertiesList.add(serviceProviderProperty);
-        }
+        ServiceProviderProperty jwksUri = buildJwksProperty(sp);
+        spPropertyMap.put(jwksUri.getName(), jwksUri);
 
-        serviceProvider.setSpProperties(serviceProviderPropertiesList.toArray
-                (new ServiceProviderProperty[serviceProviderPropertiesList.size()]));
+        sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
     }
 
-    private void addUseDomainNameInRolesAsSpProperty(ServiceProvider serviceProvider) {
+    private ServiceProviderProperty buildJwksProperty(ServiceProvider sp) {
 
-        ServiceProviderProperty[] serviceProviderProperties = serviceProvider.getSpProperties();
-        ServiceProviderProperty[] newServiceProviderProperties;
-        if (serviceProviderProperties != null) {
-            newServiceProviderProperties = Arrays.copyOfRange(serviceProviderProperties, 0,
-                    serviceProviderProperties.length + 1);
+        ServiceProviderProperty jwksUri = new ServiceProviderProperty();
+        jwksUri.setName(JWKS_URI_SP_PROPERTY_NAME);
+        jwksUri.setDisplayName(JWKS_URI_SP_PROPERTY_NAME);
+        jwksUri.setValue(StringUtils.isNotBlank(sp.getJwksUri()) ? sp.getJwksUri() : StringUtils.EMPTY);
+        return jwksUri;
+    }
 
-        } else {
-            newServiceProviderProperties = new ServiceProviderProperty[1];
-        }
-        ServiceProviderProperty propertyForDomainInRoles = new ServiceProviderProperty();
-        propertyForDomainInRoles.setDisplayName("DOMAIN_IN_ROLES");
-        propertyForDomainInRoles.setName(USE_DOMAIN_IN_ROLES);
-        propertyForDomainInRoles.setValue(String.valueOf(true));
+    private ServiceProviderProperty buildSkipConsentProperty(ServiceProvider sp) {
 
-        newServiceProviderProperties[newServiceProviderProperties.length - 1] = propertyForDomainInRoles;
-        serviceProvider.setSpProperties(newServiceProviderProperties);
+        ServiceProviderProperty skipConsentProperty = new ServiceProviderProperty();
+        skipConsentProperty.setName(SKIP_CONSENT);
+        skipConsentProperty.setDisplayName(SKIP_CONSENT_DISPLAY_NAME);
+
+        skipConsentProperty.setValue(String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isSkipConsent()));
+        return skipConsentProperty;
+    }
+
+    private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty property = new ServiceProviderProperty();
+        property.setName(USE_DOMAIN_IN_ROLES);
+        property.setDisplayName(USE_DOMAIN_IN_ROLE_DISPLAY_NAME);
+
+        property.setValue(String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isUseUserstoreDomainInRoles()));
+        return property;
     }
 
     private void loadApplicationPermissions(String serviceProviderName, ServiceProvider serviceProvider)
@@ -4901,14 +4862,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throws IdentityApplicationManagementException {
 
         int applicationId = 0;
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)){
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
 
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, LOAD_APP_ID_BY_UUID)) {
 
                 statement.setString(ApplicationTableColumns.UUID, resourceId);
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
 
-                try (ResultSet resultSet = statement.executeQuery() ) {
+                try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
                         applicationId = resultSet.getInt(ApplicationTableColumns.ID);
                     }
