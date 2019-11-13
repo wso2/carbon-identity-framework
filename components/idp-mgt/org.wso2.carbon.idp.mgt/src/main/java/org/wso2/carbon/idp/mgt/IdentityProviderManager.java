@@ -1218,25 +1218,26 @@ public class IdentityProviderManager implements IdpManager {
      */
     private int validateLimit(int limit) {
 
+        int maximumItemsPerPage = 0;
         try {
             String maximumItemsPerPagePropertyValue =
                     IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
-            int maximumItemsPerPage;
+
             if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
                 maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
             } else {
                 maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAX_SEARCH_RESULTS;
             }
-            if (limit > maximumItemsPerPage) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
-                            "identity.xml. limit: " + maximumItemsPerPage);
-                }
-                limit = maximumItemsPerPage;
-            }
         } catch (NumberFormatException e) {
             limit = IdPManagementConstants.DEFAULT_MAX_SEARCH_RESULTS;
             log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
+        }
+        if (limit > maximumItemsPerPage) {
+            if (log.isDebugEnabled()) {
+                log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
+                        "identity.xml. limit: " + maximumItemsPerPage);
+            }
+            limit = maximumItemsPerPage;
         }
         return limit;
     }
