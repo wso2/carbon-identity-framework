@@ -1221,17 +1221,18 @@ public class IdentityProviderManager implements IdpManager {
         try {
             String maximumItemsPerPagePropertyValue =
                     IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+            int maximumItemsPerPage;
             if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
-                int maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
-                if (limit > maximumItemsPerPage) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
-                                "identity.xml. limit: " + maximumItemsPerPage);
-                    }
-                    limit = maximumItemsPerPage;
-                }
+                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
             } else {
-                limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                maximumItemsPerPage = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+            }
+            if (limit > maximumItemsPerPage) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
+                            "identity.xml. limit: " + maximumItemsPerPage);
+                }
+                limit = maximumItemsPerPage;
             }
         } catch (NumberFormatException e) {
             limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
