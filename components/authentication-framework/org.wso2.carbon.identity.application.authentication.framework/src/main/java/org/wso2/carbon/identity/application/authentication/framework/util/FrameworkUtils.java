@@ -89,9 +89,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -2209,18 +2207,16 @@ public class FrameworkUtils {
             throw new IllegalArgumentException("A null reference received for service provider.");
         }
 
-        for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
-            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
-                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Consent page skip property set for service provider : " + serviceProvider.getApplicationName());
-                }
-
-                return true;
-            }
+        boolean isSkipConsent = false;
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            isSkipConsent = serviceProvider.getLocalAndOutBoundAuthenticationConfig().isSkipConsent();
         }
 
-        return false;
+        if (log.isDebugEnabled()) {
+            log.debug("SkipConsent: " + isSkipConsent + " for application: " + serviceProvider.getApplicationName()
+                    + " with id: " + serviceProvider.getApplicationID());
+        }
+        return isSkipConsent;
     }
 
     /**

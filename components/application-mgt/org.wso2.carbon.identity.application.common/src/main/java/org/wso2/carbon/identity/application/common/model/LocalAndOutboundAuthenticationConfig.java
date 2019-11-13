@@ -73,7 +73,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
 
     @XmlElement(name = USE_USERSTORE_DOMAIN_IN_ROLES)
-    private boolean useUserstoreDomainInRoles = false;
+    private boolean useUserstoreDomainInRoles = true;
 
     @XmlElement(name = USE_USERSTORE_DOMAIN_IN_USERNAME)
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
