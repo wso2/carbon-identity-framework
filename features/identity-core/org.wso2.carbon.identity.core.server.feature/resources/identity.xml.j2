@@ -1508,6 +1508,7 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
