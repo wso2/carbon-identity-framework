@@ -23,16 +23,21 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
 import org.wso2.carbon.identity.user.profile.mgt.listener.ProfileMgtEventListener;
 import org.wso2.carbon.identity.user.profile.mgt.util.ServiceHodler;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -48,11 +53,14 @@ public class IdentityUserProfileServiceComponent {
 
     @Activate
     protected void activate(ComponentContext ctxt) {
+
         try {
             if (log.isDebugEnabled()) {
                 log.debug("User Profile Mgt bundle is activated ");
             }
-            ServiceRegistration userStoreConfigEventSR = ctxt.getBundleContext().registerService(UserStoreConfigListener.class.getName(), new UserStoreConfigListenerImpl(), null);
+            ServiceRegistration userStoreConfigEventSR =
+                    ctxt.getBundleContext().registerService(UserStoreConfigListener.class.getName(),
+                            new UserStoreConfigListenerImpl(), null);
             if (userStoreConfigEventSR != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("User profile management - UserStoreConfigListener registered.");
@@ -60,7 +68,9 @@ public class IdentityUserProfileServiceComponent {
             } else {
                 log.error("User profile management - UserStoreConfigListener could not be registered.");
             }
-            ServiceRegistration profileMgtEventSR = ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(), new ProfileMgtEventListener(), null);
+            ServiceRegistration profileMgtEventSR =
+                    ctxt.getBundleContext().registerService(UserOperationEventListener.class.getName(),
+                            new ProfileMgtEventListener(), null);
             // Check whether the IDN tables exist at the beginning.
             ServiceHodler.setIsIDNTableExist(isIDNTablesExist());
             if (log.isDebugEnabled()) {
@@ -73,9 +83,29 @@ public class IdentityUserProfileServiceComponent {
             } else {
                 log.error("User profile management - ProfileMgtEventListener could not be registered.");
             }
+
+            FederatedAssociationManager federatedAssociationManager = new FederatedAssociationManagerImpl();
+            ServiceRegistration federatedAssociationManagerSR = ctxt.getBundleContext().registerService(
+                    FederatedAssociationManager.class.getName(), federatedAssociationManager, null);
+            if (federatedAssociationManagerSR != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("User profile management - FederatedAssociationManager registered.");
+                }
+                IdentityUserProfileServiceDataHolder.getInstance()
+                        .setFederatedAssociationManager(federatedAssociationManager);
+            } else {
+                log.error("User profile management - FederatedAssociationManager could not be registered.");
+            }
         } catch (Throwable e) {
             log.error("Failed to activate ProfileMgt bundle ", e);
         }
+    }
+
+    @Deactivate
+    protected void deactivate(ComponentContext ctxt) {
+
+        // Update services data holder.
+        IdentityUserProfileServiceDataHolder.getInstance().setFederatedAssociationManager(null);
     }
 
     // the below two methods are kept just to be sure the realm is available.
@@ -97,6 +127,36 @@ public class IdentityUserProfileServiceComponent {
             log.info("Un-setting DefaultRealm in User Profile Management");
         }
         ServiceHodler.setInternalUserStore(null);
+    }
+
+    @Reference(
+            name = "user.realmservice.default",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
+    protected void setRealmService(RealmService realmService) {
+        IdentityUserProfileServiceDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+        IdentityUserProfileServiceDataHolder.getInstance().setRealmService(null);
+    }
+
+    @Reference(
+            name = "idp.mgt.IdpManager",
+            service = org.wso2.carbon.idp.mgt.IdpManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetIdpManager")
+    protected void setIdpManager(IdpManager idpManager) {
+
+        IdentityUserProfileServiceDataHolder.getInstance().setIdpManager(idpManager);
+    }
+
+    protected void unsetIdpManager(IdpManager idpManager) {
+
+        IdentityUserProfileServiceDataHolder.getInstance().setIdpManager(null);
     }
 
     @Reference(
