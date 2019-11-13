@@ -375,6 +375,7 @@
   "cache.idp_cache_by_name.timeout": "900ms",
   "cache.idp_cache_by_name.capacity": "$ref{cache.default_capacity}",
 
+  "resource_access_control.default_access_allow": false,
   "resource_access_control.introspect.secured": true,
   "resource_access_control.introspect.permissions": [
     "/permission/admin/manage/identity/applicationmgt/view"
