@@ -1225,7 +1225,7 @@ public class IdentityProviderManager implements IdpManager {
             if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
                 maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
             } else {
-                maximumItemsPerPage = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+                maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAX_SEARCH_RESULTS;
             }
             if (limit > maximumItemsPerPage) {
                 if (log.isDebugEnabled()) {
@@ -1235,7 +1235,7 @@ public class IdentityProviderManager implements IdpManager {
                 limit = maximumItemsPerPage;
             }
         } catch (NumberFormatException e) {
-            limit = IdPManagementConstants.DEFAULT_RESULTS_PER_PAGE;
+            limit = IdPManagementConstants.DEFAULT_MAX_SEARCH_RESULTS;
             log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml.", e);
         }
         return limit;
