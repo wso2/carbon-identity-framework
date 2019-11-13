@@ -1726,7 +1726,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             int applicationId = getApplicationIdByName(applicationName, tenantDomain);
-            if (applicationId == 0 && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+            if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
                 // Looking for the resident sp. Create the resident sp for the tenant.
                 ServiceProvider localServiceProvider = new ServiceProvider();
                 localServiceProvider.setApplicationName(applicationName);
@@ -1738,6 +1738,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             throw new IdentityApplicationManagementException("Failed to retrieve application: "
                     + applicationName + " in tenantDomain: " + tenantDomain, ex);
         }
+    }
+
+    /**
+     * Determines whether the application is available based on the internal application id.
+     *
+     * @param applicationId internal application id.
+     * @return
+     */
+    private boolean isApplicationNotFound(int applicationId) {
+
+        // A valid application should have an id > 0 since its an auto increment id.
+        return applicationId <= 0;
     }
 
     private ConsentPurposeConfigs getConsentPurposeConfigs(Connection connection, int applicationId, int tenantId) throws

@@ -1822,7 +1822,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             } catch (IdentityApplicationManagementException ex) {
                 if (log.isDebugEnabled()) {
                     log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
-                            " failed. Rolling back by cleaning up partially deleting partial created data.");
+                            " failed. Rolling back by cleaning up partially created data.");
                 }
                 deleteApplicationRole(applicationName);
                 throw ex;

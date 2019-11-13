@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenti
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -490,7 +491,13 @@ public class ApplicationBean {
         return false;
     }
 
+    /**
+     * Returns whether consent needs to be skipped for this service provider.
+     *
+     * @return true of consent is skipped, false otherwise.
+     */
     public boolean isSkipConsent() {
+
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSkipConsent();
         }
@@ -1087,7 +1094,7 @@ public class ApplicationBean {
         serviceProvider.setDescription(request.getParameter("sp-description"));
         serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
 
-        String jwks = request.getParameter("jwksUri");
+        String jwks = request.getParameter(IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME);
         serviceProvider.setJwksUri(jwks);
 
         if (Boolean.parseBoolean(request.getParameter("deletePublicCert"))) {
