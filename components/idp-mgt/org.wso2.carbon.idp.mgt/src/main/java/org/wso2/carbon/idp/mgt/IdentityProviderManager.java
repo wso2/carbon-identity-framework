@@ -41,6 +41,7 @@ import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
@@ -49,6 +50,11 @@ import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
 import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
+import org.wso2.carbon.identity.core.model.Node;
+import org.wso2.carbon.identity.core.model.OperationNode;
+import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
@@ -56,6 +62,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyStore;
@@ -1005,6 +1012,260 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         return dao.getIdPs(null, tenantId, tenantDomain);
 
+    }
+
+    /**
+     * Get all basic identity provider information.
+     *
+     * @param limit        limit per page.
+     * @param offset       offset value.
+     * @param filter       filter value for IdP search.
+     * @param sortOrder    order of IdP ASC/DESC.
+     * @param sortBy       the column value need to sort.
+     * @param tenantDomain tenant domain whose IdP names are requested.
+     * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
+     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     */
+    @Override
+    public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        validateSearchArguments(limit, offset);
+        IdpSearchResult result = new IdpSearchResult();
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        setParameters(limit, offset, sortOrder, sortBy, filter, result);
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
+        result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
+                result.getSortOrder(), result.getSortBy()));
+        return result;
+    }
+
+    /**
+     * Check null for  limit and offset.
+     *
+     * @param limit  limit per page.
+     * @param offset offset value.
+     * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
+     */
+    private void validateSearchArguments(Integer limit, Integer offset)
+            throws IdentityProviderManagementClientException {
+
+        if (limit == null) {
+            String message = "Limit should not null";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+
+        }
+        if (limit < 0) {
+            String message = "Given limit: " + limit + " is a negative value.";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+        }
+        if (offset == null) {
+            String message = "Offset should not null";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+        }
+    }
+
+    /**
+     * Get the filter node as a list.
+     *
+     * @param filter value of the filter.
+     * @return node tree.
+     * @throws IdentityProviderManagementClientException Error when validate filters.
+     */
+    private List<ExpressionNode> getExpressionNodes(String filter) throws IdentityProviderManagementClientException {
+
+        // Filter example : name sw "te" and name ew "st" and isEnabled eq "true".
+        List<ExpressionNode> expressionNodes = new ArrayList<>();
+        FilterTreeBuilder filterTreeBuilder;
+        try {
+            filterTreeBuilder = new FilterTreeBuilder(filter);
+            Node rootNode = filterTreeBuilder.buildTree();
+            setExpressionNodeList(rootNode, expressionNodes);
+        } catch (IOException | IdentityException e) {
+            String message = "Error occurred while validate filter, filter: " + filter;
+            throw IdPManagementUtil
+                    .handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP, message, e);
+        }
+        return expressionNodes;
+    }
+
+    /**
+     * Set the node values as list of expression.
+     *
+     * @param node       filter node.
+     * @param expression list of expression.
+     * @throws IdentityProviderManagementClientException Error when passing invalid filter.
+     */
+    private void setExpressionNodeList(Node node, List<ExpressionNode> expression)
+            throws IdentityProviderManagementClientException {
+
+        if (node instanceof ExpressionNode) {
+            if (StringUtils.isNotBlank(((ExpressionNode) node).getAttributeValue())) {
+                if (((ExpressionNode) node).getAttributeValue().contains(IdPManagementConstants.IDP_IS_ENABLED)) {
+                    if ("true".contains(((ExpressionNode) node).getValue())) {
+                        ((ExpressionNode) node).setValue(IdPManagementConstants.IS_TRUE_VALUE);
+                    } else if ("false".contains(((ExpressionNode) node).getValue())) {
+                        ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
+                    } else {
+                        String message = "Invalid \'isEnabled\' value passed in the filter. It should be \'true\' or " +
+                                "\'false\' isEnabled = " + ((ExpressionNode) node).getValue();
+                        throw IdPManagementUtil
+                                .handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                                        message);
+                    }
+                }
+            }
+            expression.add((ExpressionNode) node);
+        } else if (node instanceof OperationNode) {
+            setExpressionNodeList(node.getLeftNode(), expression);
+            setExpressionNodeList(node.getRightNode(), expression);
+        }
+    }
+
+    /**
+     * Set the passing parameters as result.
+     *
+     * @param limit     page limit.
+     * @param offset    offset value.
+     * @param filter    filter value for IdP search.
+     * @param sortOrder order of IdP(ASC/DESC).
+     * @param sortBy    the column value need to sort.
+     * @param result    result object.
+     * @throws IdentityProviderManagementClientException Error while set offset.
+     */
+    private void setParameters(int limit, int offset, String filter, String sortOrder, String sortBy, IdpSearchResult
+            result) throws IdentityProviderManagementClientException {
+
+        result.setLimit(validateLimit(limit));
+        result.setOffSet(validateOffset(offset));
+        result.setSortBy(validateSortBy(sortBy));
+        result.setSortOrder(validateSortOrder(sortOrder));
+        result.setFilter(filter);
+    }
+
+    /**
+     * Validate sortBy.
+     *
+     * @param sortBy sortBy attribute.
+     * @return Validated sortOrder and sortBy.
+     */
+    private String validateSortBy(String sortBy) {
+
+        if (StringUtils.isBlank(sortBy)) {
+            if (log.isDebugEnabled()) {
+                log.debug("sortBy attribute is empty. Therefore we set the default sortBy attribute. sortBy" +
+                        IdPManagementConstants.DEFAULT_SORT_BY);
+            }
+            return IdPManagementConstants.DEFAULT_SORT_BY;
+        }
+        switch (sortBy) {
+            case IdPManagementConstants.IDP_NAME:
+                sortBy = IdPManagementConstants.NAME;
+                break;
+            case IdPManagementConstants.IDP_HOME_REALM_ID:
+                sortBy = IdPManagementConstants.HOME_REALM_ID;
+                break;
+            default:
+                sortBy = IdPManagementConstants.DEFAULT_SORT_BY;
+                if (log.isDebugEnabled()) {
+                    log.debug("sortBy attribute is incorrect. Therefore we set the default sortBy attribute. " +
+                            "sortBy: " + IdPManagementConstants.DEFAULT_SORT_BY);
+                }
+                break;
+        }
+        return sortBy;
+    }
+
+    /**
+     * Validate sortOrder.
+     *
+     * @param sortOrder sortOrder ASC/DESC.
+     * @return Validated sortOrder and sortBy.
+     */
+    private String validateSortOrder(String sortOrder) {
+
+        if (StringUtils.isBlank(sortOrder)) {
+            sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
+            if (log.isDebugEnabled()) {
+                log.debug("sortOrder is empty. Therefore we set the default sortOrder value as ASC. SortOrder: " +
+                        sortOrder);
+            }
+        } else if (sortOrder.equals(IdPManagementConstants.DESC_SORT_ORDER)) {
+            sortOrder = IdPManagementConstants.DESC_SORT_ORDER;
+        } else if (sortOrder.equals(IdPManagementConstants.ASC_SORT_ORDER)) {
+            sortOrder = IdPManagementConstants.ASC_SORT_ORDER;
+        } else {
+            sortOrder = IdPManagementConstants.DEFAULT_SORT_ORDER;
+            if (log.isDebugEnabled()) {
+                log.debug("sortOrder is incorrect. Therefore we set the default sortOrder value as ASC. SortOrder: "
+                        + sortOrder);
+            }
+        }
+        return sortOrder;
+    }
+
+    /**
+     * Validate limit.
+     *
+     * @param limit given limit value.
+     * @return validated limit and offset value.
+     */
+    private int validateLimit(int limit) {
+
+        int maximumItemsPerPage = getMaximumItemPerPage();
+        if (limit > maximumItemsPerPage) {
+            if (log.isDebugEnabled()) {
+                log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
+                        "identity.xml. limit: " + maximumItemsPerPage);
+            }
+            limit = maximumItemsPerPage;
+        }
+        return limit;
+    }
+
+    /**
+     * Get the Maximum Item per Page need to display.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    private int getMaximumItemPerPage() {
+
+        int maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+        String maximumItemsPerPagePropertyValue =
+                IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
+            try {
+                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
+            }
+        }
+        return maximumItemsPerPage;
+    }
+
+    /**
+     * Validate offset.
+     *
+     * @param offset given offset value.
+     * @return validated limit and offset value.
+     * @throws IdentityProviderManagementClientException Error while set offset
+     */
+    private int validateOffset(int offset) throws IdentityProviderManagementClientException {
+
+        if (offset < 0) {
+            String message = "Invalid offset applied. Offset should not negative. offSet: " +
+                    offset;
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+        }
+        return offset;
     }
 
     /**

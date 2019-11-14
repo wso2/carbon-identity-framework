@@ -60,6 +60,12 @@ public class IdentityCoreConstants {
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
+    public static class Filter {
+
+        public static final String AND = "and";
+        public static final String OR = "or";
+        public static final String NOT = "not";
+    }
 
     public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
 

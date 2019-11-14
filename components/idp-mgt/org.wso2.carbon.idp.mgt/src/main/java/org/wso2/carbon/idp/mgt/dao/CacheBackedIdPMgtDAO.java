@@ -23,7 +23,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.cache.IdPAuthPropertyCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByAuthProperty;
 import org.wso2.carbon.idp.mgt.cache.IdPCacheByHRI;
@@ -33,6 +35,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPCacheEntry;
 import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
@@ -90,6 +93,42 @@ public class CacheBackedIdPMgtDAO {
 		return idPMgtDAO.getIdPsSearch(dbConnection, tenantId, tenantDomain,
 				filter);
 	}
+
+    /**
+     * Get all basic identity provider information for a matching filter.
+     *
+     * @param tenantId             tenant Id of the identity provider.
+     * @param expressionConditions filter value list for IdP search.
+     * @param limit                limit per page.
+     * @param offset               offset value.
+     * @param sortOrder            order of IdP ASC/DESC.
+     * @param sortBy               the attribute need to sort.
+     * @return Identity Provider's basic information array.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    public List<IdentityProvider> getPaginatedIdPsSearch(int tenantId, List<ExpressionNode> expressionConditions,
+                                                         int limit, int offset, String sortOrder, String sortBy)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        return idPMgtDAO.getIdPsSearch(tenantId, expressionConditions, limit, offset, sortOrder, sortBy);
+    }
+
+    /**
+     * Get number of IdP count for a matching filter.
+     *
+     * @param tenantId             Tenant Id of the identity provider.
+     * @param expressionConditions filter value list for IdP search.
+     * @return number of IdP count for a given filter.
+     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    public int getTotalIdPCount(int tenantId, List<ExpressionNode> expressionConditions)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        return idPMgtDAO.getCountOfFilteredIdPs(tenantId, expressionConditions);
+    }
+
     /**
      * @param dbConnection
      * @param idPName
