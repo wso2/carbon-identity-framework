@@ -1218,17 +1218,7 @@ public class IdentityProviderManager implements IdpManager {
      */
     private int validateLimit(int limit) {
 
-        int maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
-        String maximumItemsPerPagePropertyValue =
-                IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
-        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
-            try {
-                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
-            } catch (NumberFormatException e) {
-                limit = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
-                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
-            }
-        }
+        int maximumItemsPerPage = getMaximumItemPerPage();
         if (limit > maximumItemsPerPage) {
             if (log.isDebugEnabled()) {
                 log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
@@ -1237,6 +1227,27 @@ public class IdentityProviderManager implements IdpManager {
             limit = maximumItemsPerPage;
         }
         return limit;
+    }
+
+    /**
+     * Get the Maximum Item per Page need to display.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    private int getMaximumItemPerPage() {
+
+        int maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+        String maximumItemsPerPagePropertyValue =
+                IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
+            try {
+                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
+            }
+        }
+        return maximumItemsPerPage;
     }
 
     /**
