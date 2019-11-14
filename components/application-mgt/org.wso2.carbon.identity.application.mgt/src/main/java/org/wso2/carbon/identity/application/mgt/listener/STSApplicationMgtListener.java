@@ -77,7 +77,7 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
                                           String userName) throws IdentityApplicationManagementException {
 
         handleWsTrustAssociationRemoval(serviceProvider);
-        return super.doPreUpdateApplication(serviceProvider, tenantDomain, userName);
+        return true;
     }
 
     private void handleWsTrustAssociationRemoval(ServiceProvider sp) throws IdentityApplicationManagementException {
