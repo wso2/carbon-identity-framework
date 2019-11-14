@@ -39,6 +39,7 @@
     String filter = (String) session.getAttribute(IdPManagementUIUtil.IDP_FILTER);
     String searchFilter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
     if (searchFilter != null) {
+        searchFilter = Encode.forHtml(searchFilter);
 %>
         <script type="text/javascript">
             location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp&<%=IdPManagementUIUtil.FILTER_STRING%>=<%=searchFilter%>";
