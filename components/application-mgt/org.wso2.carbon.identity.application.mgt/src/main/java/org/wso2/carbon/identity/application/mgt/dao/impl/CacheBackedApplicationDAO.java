@@ -542,7 +542,6 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             if (resourceId != null) {
-                ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
                 ApplicationBasicInfoResourceIdCacheKey cacheKey =
                         new ApplicationBasicInfoResourceIdCacheKey(resourceId);
                 ApplicationBasicInfoResourceIdCacheEntry entry =

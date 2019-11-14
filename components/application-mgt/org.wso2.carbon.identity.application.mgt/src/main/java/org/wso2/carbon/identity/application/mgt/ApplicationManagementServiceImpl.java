@@ -2192,10 +2192,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
             updateApplicationPermissions(updatedApp, updatedAppName, storedAppName);
-        } catch (Exception e) {
-            String error = "Error occurred while updating the application with resourceId: " + resourceId
-                    + " in tenantDomain: " + tenantDomain;
-            throw buildServerException(e, ERROR_CODE_UPDATE_APP, error);
+        } catch (RegistryException e) {
+            throw buildServerException(e, ERROR_CODE_UPDATE_APP, resourceId);
         } finally {
             endTenantFlow();
         }
