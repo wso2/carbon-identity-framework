@@ -1820,6 +1820,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 PermissionsAndRoleConfig permissionAndRoleConfig = serviceProvider.getPermissionAndRoleConfig();
                 ApplicationMgtUtil.storePermissions(applicationName, username, permissionAndRoleConfig);
             } catch (IdentityApplicationManagementException ex) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                            " failed. Rolling back by cleaning up partially created data.");
+                }
                 deleteApplicationRole(applicationName);
                 throw ex;
             }
@@ -1829,6 +1833,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 String resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
                 return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
             } catch (IdentityApplicationManagementException ex) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                            " failed. Rolling back by cleaning up partially created data.");
+                }
                 deleteApplicationRole(applicationName);
                 deleteApplicationPermission(applicationName);
                 appDAO.deleteApplication(applicationName);
@@ -2284,7 +2292,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         if (isAppRenamed(currentAppName, updatedAppName)
                 && ApplicationConstants.LOCAL_SP.equalsIgnoreCase(updatedAppName)) {
-            String msg = "Cannot update an application's name to system default application's name '%s'";
+            String msg = "Cannot update an application's name to tenant resident service provider's name '%s'";
             throw buildClientException(ERROR_CODE_APP_UPDATE_REQUEST_INVALID,
                     String.format(msg, ApplicationConstants.LOCAL_SP));
         }
