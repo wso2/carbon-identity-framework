@@ -1237,7 +1237,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     "for the provided id: " + applicationId);
         }
         String appName = application.getApplicationName();
-        return exportSPApplication(appName, exportSecrets, tenantDomain);
+        try {
+            startTenantFlow(tenantDomain);
+            return exportSPApplication(appName, exportSecrets, tenantDomain);
+        } finally {
+            endTenantFlow();
+        }
     }
 
     public String exportSPApplication(String applicationName, boolean exportSecrets, String tenantDomain)
