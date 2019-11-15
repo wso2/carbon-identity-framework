@@ -97,5 +97,11 @@
       "identity_mgt.user_onboarding.notification.manage_internally": false,
       "identity_mgt.user_self_registration.notification.manage_internally": false
     }
+  },
+
+  "resource_access_control.default_access": {
+    "allow": {
+      "resource_access_control.default_access_allow": true
+    }
   }
 }
