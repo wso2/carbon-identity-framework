@@ -119,6 +119,7 @@
     boolean isSLOEnabled = false;
     boolean isLogoutRequestSigned = false;
     String logoutUrl = null;
+    boolean isSLORequestAccepted =false;
     boolean isAuthnResponseSigned = false;
     boolean isSAMLSSOUserIdInClaims = false;
     boolean isOIDCEnabled = false;
@@ -473,6 +474,11 @@
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED);
                     if (isLogoutRequestSignedProp != null) {
                         isLogoutRequestSigned = Boolean.parseBoolean(isLogoutRequestSignedProp.getValue());
+                    }
+                    Property isSLORequestEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
+                            IdentityApplicationConstants.Authenticator.SAML2SSO.IS_SLO_REQUEST_ACCEPTED);
+                    if (isSLORequestEnabledProp != null) {
+                        isSLORequestAccepted = Boolean.parseBoolean(isSLORequestEnabledProp.getValue());
                     }
                     Property isAuthnResponseSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                             IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED);
@@ -995,6 +1001,14 @@
     if (StringUtils.isBlank(logoutUrl)) {
         logoutUrl = StringUtils.EMPTY;
     }
+
+    String sloRequestAcceptedChecked = "";
+    if (identityProvider != null) {
+        if (isSLORequestAccepted) {
+            sloRequestAcceptedChecked = "checked=\'checked\'";
+        }
+    }
+
     String logoutRequestSignedChecked = "";
     if (identityProvider != null) {
         if (isLogoutRequestSigned) {
@@ -3961,7 +3975,7 @@
 
                                 <tr>
                                     <td class="leftCol-med labelField">
-                                        <label for="sloEnabled"><fmt:message key='logout.enabled'/></label>
+                                        <label for="sloEnabled"><fmt:message key='single.logout.profile'/></label>
                                     </td>
                                     <td>
                                         <div class="sectionCheckbox">
@@ -3969,6 +3983,20 @@
                                                    type="checkbox" <%=sloEnabledChecked%>/>
                                             <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='logout.enabled.help'/>
+                                </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="leftCol-med labelField">
+                                        <label for="sloRequestAccepted"></label>
+                                    </td>
+                                    <td>
+                                        <div class="sectionCheckbox">
+                                            <input id="sloRequestAccepted" name="sloRequestAccepted"
+                                                   type="checkbox" <%=sloRequestAcceptedChecked%>/>
+                                            <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='slo.request.accepted.help'/>
                                 </span>
                                         </div>
                                     </td>
