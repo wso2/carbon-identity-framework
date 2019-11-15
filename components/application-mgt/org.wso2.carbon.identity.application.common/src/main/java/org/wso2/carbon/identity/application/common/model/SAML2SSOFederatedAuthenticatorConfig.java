@@ -38,6 +38,11 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
     private boolean isLogoutEnabled;
 
     /**
+     * If Single Logout Request from the identity provider is accepted.
+     */
+    private boolean isSLORequestAccepted;
+
+    /**
      * The SAML2 Web SSO URL of the IdP
      */
     private String saml2SSOUrl;
@@ -121,6 +126,9 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                 case IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL:
                     logoutRequestUrl = property.getValue();
                     break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_SLO_REQUEST_ACCEPTED:
+                    isSLORequestAccepted = Boolean.parseBoolean(property.getValue());
+                    break;
                 case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED:
                     isAuthnResponseSigned = Boolean.parseBoolean(property.getValue());
                     break;
@@ -166,6 +174,11 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
 
     public boolean isLogoutEnabled() {
         return isLogoutEnabled;
+    }
+
+    public boolean isSLORequestAccepted() {
+
+        return isSLORequestAccepted;
     }
 
     public boolean isLogoutRequestSigned() {
