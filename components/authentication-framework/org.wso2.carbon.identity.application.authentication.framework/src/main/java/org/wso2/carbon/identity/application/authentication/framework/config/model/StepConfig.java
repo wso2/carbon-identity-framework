@@ -199,4 +199,47 @@ public class StepConfig implements Serializable {
     public void setRetrying(boolean retrying) {
         this.retrying = retrying;
     }
+
+    /**
+     * Deep clone of StepConfig inorder to keep backup.
+     *
+     * @return cloned StepConfig.
+     */
+    public StepConfig deepClone() {
+        StepConfig clone = new StepConfig();
+        clone.order = order;
+        clone.loginPage = loginPage;
+        clone.authenticatedUser = authenticatedUser;
+        clone.subjectIdentifierStep = subjectIdentifierStep;
+        clone.subjectAttributeStep = subjectAttributeStep;
+        clone.authenticatedIdP = authenticatedIdP;
+        clone.authenticatedAutenticator =
+                authenticatedAutenticator != null ? authenticatedAutenticator.deepClone() : authenticatedAutenticator;
+        clone.authenticatorList = new ArrayList<>();
+        for (AuthenticatorConfig authenticator : authenticatorList) {
+            clone.authenticatorList.add(authenticator.deepClone());
+        }
+        clone.authenticatorMappings = new ArrayList<>(authenticatorMappings);
+        clone.completed = completed;
+        clone.multiOption = multiOption;
+        clone.retrying = retrying;
+        return clone;
+    }
+
+    /**
+     * Apply any state changes to the newly clone stepConfig object from backup, by comparing with the StepConfig which
+     * obtain from SequenceConfig stepMap.
+     *
+     * @param stepConfigFromContext StepConfig which obtain from SequenceConfig stepMap.
+     */
+    public void applyStateChangesToNewObjectFromContextStepMap(StepConfig stepConfigFromContext) {
+
+        if (stepConfigFromContext != null) {
+            this.completed = stepConfigFromContext.completed;
+            this.multiOption = stepConfigFromContext.multiOption;
+            this.retrying = stepConfigFromContext.retrying;
+            this.subjectIdentifierStep = stepConfigFromContext.subjectIdentifierStep;
+            this.subjectAttributeStep = stepConfigFromContext.subjectAttributeStep;
+        }
+    }
 }

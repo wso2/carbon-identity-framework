@@ -157,7 +157,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             return null;
         }
 
-        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap()
+        StepConfig stepConfig = getContext().getSequenceConfig().getStepMap()
                 .get(getContext().getCurrentStep());
         if (stepConfig != null) {
             return stepConfig.getAuthenticatedIdP();
@@ -173,7 +173,7 @@ public class JsAuthenticationContext extends AbstractJSObjectWrapper<Authenticat
             return null;
         }
 
-        Map<Integer, StepConfig> stepConfigs = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap();
+        Map<Integer, StepConfig> stepConfigs = getContext().getSequenceConfig().getStepMap();
         Optional<StepConfig> subjectIdentifierStep = stepConfigs.values().stream()
                 .filter(stepConfig -> (stepConfig.isCompleted() && stepConfig.isSubjectIdentifierStep())).findFirst();
 

@@ -103,4 +103,20 @@ public class AuthenticatorConfig implements Serializable {
         return idps;
     }
 
+    /**
+     * Deep clone of AuthenticatorConfig.
+     *
+     * @return cloned AuthenticatorConfig.
+     */
+    public AuthenticatorConfig deepClone() {
+        AuthenticatorConfig clone = new AuthenticatorConfig();
+        clone.name = name;
+        clone.applicationAuthenticator = applicationAuthenticator;
+        clone.authenticatorStateInfo = authenticatorStateInfo;
+        clone.enabled = enabled;
+        clone.idpNames = idpNames != null ? new ArrayList<>(idpNames) : null;
+        clone.idps = idps != null ? new HashMap<>(idps) : null;
+        clone.parameterMap = parameterMap != null ? new HashMap<>(parameterMap) : null;
+        return clone;
+    }
 }
