@@ -22,9 +22,6 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.mockito.Mock;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.xml.XMLObject;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.reflect.Whitebox;
@@ -84,7 +81,7 @@ import static org.testng.Assert.assertTrue;
 
 
 @PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
-        IdentityCoreServiceComponent.class, NetworkUtils.class, Configuration.class, IdentityTenantUtil.class})
+        IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
         ".*", "org.apache.xerces.*"})
 public class IdentityUtilTest {
@@ -435,15 +432,6 @@ public class IdentityUtilTest {
         when(mockConfigurationContext.getServicePath()).thenReturn("servicePath");
         assertEquals(IdentityUtil.getServicePath(), "servicePath", "Returned service patch doesn't match the " +
                 "expected");
-    }
-
-    @Test
-    public void testUnmarshall() throws Exception {
-        DefaultBootstrap.bootstrap();
-        String xmlString = "<saml:Audience xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">https://sp.example.com/SAML2</saml:Audience>";
-        XMLObject xmlObject = IdentityUtil.unmarshall(xmlString);
-        assertEquals(xmlObject.getElementQName().getLocalPart(), "Audience", "Unmarshalled object doesn't match the " +
-                "expected result");
     }
 
     @DataProvider
@@ -815,4 +803,5 @@ public class IdentityUtilTest {
     public IObjectFactory getObjectFactory() {
         return new org.powermock.modules.testng.PowerMockObjectFactory();
     }
+
 }
