@@ -22,6 +22,7 @@ import org.apache.axis2.AxisFault;
 import org.apache.axis2.description.AxisService;
 import org.apache.axis2.description.Parameter;
 import org.apache.axis2.engine.AxisConfiguration;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +32,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.WSTrust;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
@@ -47,6 +48,7 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -70,6 +72,60 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
     }
 
     @Override
+    public boolean doPreUpdateApplication(ServiceProvider serviceProvider,
+                                          String tenantDomain,
+                                          String userName) throws IdentityApplicationManagementException {
+
+        handleWsTrustAssociationRemoval(serviceProvider);
+        return true;
+    }
+
+    private void handleWsTrustAssociationRemoval(ServiceProvider sp) throws IdentityApplicationManagementException {
+
+        // Get the stored app.
+        int appId = sp.getApplicationID();
+        ServiceProvider storedSp = ApplicationMgtSystemConfig.getInstance().getApplicationDAO().getApplication(appId);
+
+        InboundAuthenticationRequestConfig storedWstrustInbound = getWsTrustInbound(storedSp);
+        InboundAuthenticationRequestConfig updatedWsTrustInbound = getWsTrustInbound(sp);
+
+        if (isAssociationRemoved(storedWstrustInbound, updatedWsTrustInbound)) {
+            // Remove WSTrust inbound data.
+            String trustedService = storedWstrustInbound.getInboundAuthKey();
+            try {
+                STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
+                stsAdminService.removeTrustedService(trustedService);
+            } catch (SecurityConfigException e) {
+                String msg = "Error removing wsTrust inbound data with trustedService: %s associated with " +
+                        "service provider with id: %s during application update.";
+                throw new IdentityApplicationManagementException(String.format(msg, trustedService, appId), e);
+            }
+        }
+    }
+
+    private boolean isAssociationRemoved(InboundAuthenticationRequestConfig storedWsTrustConfig,
+                                         InboundAuthenticationRequestConfig updatedWsTrustConfig) {
+
+        // Association is removed if the service provider previously had a ws-trust inbound configured and now has been
+        // removed during the update.
+        return storedWsTrustConfig != null && updatedWsTrustConfig == null;
+    }
+
+    private InboundAuthenticationRequestConfig getWsTrustInbound(ServiceProvider sp) {
+
+        if (sp != null && sp.getInboundAuthenticationConfig() != null) {
+            if (ArrayUtils.isNotEmpty(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())) {
+                return Arrays.stream(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())
+                        .filter(inbound -> WSTrust.NAME.equals(inbound.getInboundAuthType()))
+                        .findAny()
+                        .orElse(null);
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
@@ -81,7 +137,7 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
             InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
                     .getInboundAuthenticationRequestConfigs();
             for (InboundAuthenticationRequestConfig config : configs) {
-                if (IdentityApplicationConstants.Authenticator.WSTrust.NAME.equalsIgnoreCase(
+                if (WSTrust.NAME.equalsIgnoreCase(
                         config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
                     try {
                         AxisService stsService = getAxisConfig().getService(ServerConstants.STS_NAME);
@@ -124,7 +180,7 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
 
-                if (IdentityApplicationConstants.Authenticator.WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
+                if (WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
                     if (authConfig.getInboundConfiguration() != null) {
                         TrustedServiceData trustedServiceData = unmarshalTrustedServiceData(
                                 authConfig.getInboundConfiguration(), serviceProvider.getApplicationName(),
@@ -157,7 +213,7 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
 
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (IdentityApplicationConstants.Authenticator.WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
+                if (WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
                     TrustedServiceData trustedServiceData = unmarshalTrustedServiceData(
                             authConfig.getInboundConfiguration(), serviceProvider.getApplicationName(),
                             serviceProvider.getOwner().getTenantDomain());
@@ -190,7 +246,7 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
 
             for (InboundAuthenticationRequestConfig authConfig
                     : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (IdentityApplicationConstants.Authenticator.WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
+                if (WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
                     String inboundAuthKey = authConfig.getInboundAuthKey();
 
                     try {

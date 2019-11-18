@@ -1193,7 +1193,7 @@
     </Cookies-->
 
 
-    {% if resource_access_control.default_access is sameas allow %}
+    {% if resource_access_control.default_access_allow is sameas true %}
     <ResourceAccessControl>
     {% else %}
     <ResourceAccessControl default-access="deny">

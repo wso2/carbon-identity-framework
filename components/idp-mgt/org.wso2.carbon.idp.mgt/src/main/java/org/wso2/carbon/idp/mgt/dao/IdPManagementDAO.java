@@ -44,9 +44,14 @@ import org.wso2.carbon.identity.core.ConnectorException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.utils.DBUtils;
 
 import java.io.BufferedReader;
@@ -261,6 +266,298 @@ public class IdPManagementDAO {
                 IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
             } else {
                 IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
+    }
+
+    /**
+     * Get all basic identity provider information for a matching filter.
+     *
+     * @param tenantId       tenant Id of the identity provider.
+     * @param expressionNode list of filter value for IdP search.
+     * @param limit          limit per page.
+     * @param offset         offset value.
+     * @param sortOrder      order of IdP ASC/DESC.
+     * @param sortBy         the attribute need to sort.
+     * @return Identity Provider's Basic Information list.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    List<IdentityProvider> getIdPsSearch(int tenantId, List<ExpressionNode> expressionNode, int limit, int offset,
+                                         String sortOrder, String sortBy)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNode, filterQueryBuilder);
+        String sortedOrder = sortBy + " " + sortOrder;
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             ResultSet resultSet = getIdpQueryResultSet(dbConnection, sortedOrder, tenantId, offset, limit,
+                     filterQueryBuilder)) {
+            return populateIdentityProviderList(resultSet, dbConnection);
+        } catch (SQLException e) {
+            String message = "Error occurred while retrieving Identity Provider for tenant: " +
+                    IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
+        }
+    }
+
+    /**
+     * Get the result set.
+     *
+     * @param dbConnection       database connection.
+     * @param sortedOrder        Sort order.
+     * @param tenantId           tenant Id of the identity provider.
+     * @param offset             offset value.
+     * @param limit              limit per page.
+     * @param filterQueryBuilder filter query buider object.
+     * @return result set of the query.
+     * @throws SQLException                              Database Exception.
+     * @throws IdentityProviderManagementServerException Error when getting list of Identity Providers.
+     */
+    private ResultSet getIdpQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId, int offset,
+                                           int limit, FilterQueryBuilder filterQueryBuilder)
+            throws SQLException, IdentityProviderManagementServerException {
+
+        String sqlQuery;
+        String sqlTail;
+        PreparedStatement prepStmt;
+        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+        int filterAttributeValueSize = filterAttributeValue.entrySet().size();
+        String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 2, offset);
+            prepStmt.setInt(filterAttributeValueSize + 3, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE, sortedOrder);
+            sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE_TAIL;
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 2, offset + limit);
+            prepStmt.setInt(filterAttributeValueSize + 3, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 2, offset);
+            prepStmt.setInt(filterAttributeValueSize + 3, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 2, limit);
+            prepStmt.setInt(filterAttributeValueSize + 3, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValueSize + 1, tenantId);
+            prepStmt.setInt(filterAttributeValueSize + 2, limit);
+            prepStmt.setInt(filterAttributeValueSize + 3, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX;
+            sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX_TAIL, sortedOrder);
+            sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
+            prepStmt = dbConnection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey() + 2, prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValue.entrySet().size() + 3, tenantId);
+        } else {
+            log.error("Error while loading Identity Provider from DB: Database driver could not be identified or "
+                    + "not supported.");
+            String message = "Error while loading Identity Provider from DB: Database driver could not be identified" +
+                    " or not supported.";
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt.executeQuery();
+    }
+
+    /**
+     * Populate the result set.
+     *
+     * @param resultSet    resultSet.
+     * @param dbConnection database Connection.
+     * @return List of Identity Provider.
+     * @throws SQLException Database Exception.
+     */
+    private List<IdentityProvider> populateIdentityProviderList(ResultSet resultSet, Connection dbConnection)
+            throws SQLException {
+
+        List<IdentityProvider> identityProviderList = new ArrayList<>();
+        while (resultSet.next()) {
+            IdentityProvider identityProvider = new IdentityProvider();
+            identityProvider.setIdentityProviderName(resultSet.getString(1));
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_PRIMARY"))) {
+                identityProvider.setPrimary(true);
+            } else {
+                identityProvider.setPrimary(false);
+            }
+            identityProvider.setHomeRealmId(resultSet.getString("HOME_REALM_ID"));
+            identityProvider.setIdentityProviderDescription(resultSet.getString("DESCRIPTION"));
+            // IS_FEDERATION_HUB_IDP
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_FEDERATION_HUB"))) {
+                identityProvider.setFederationHub(false);
+            }
+            // IS_LOCAL_CLAIM_DIALECT
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_LOCAL_CLAIM_DIALECT"))) {
+                if (identityProvider.getClaimConfig() == null) {
+                    identityProvider.setClaimConfig(new ClaimConfig());
+                }
+                identityProvider.getClaimConfig().setLocalClaimDialect(true);
+            }
+            // IS_ENABLE
+            if ((IdPManagementConstants.IS_TRUE_VALUE).equals(resultSet.getString("IS_ENABLED"))) {
+                identityProvider.setEnable(true);
+            } else {
+                identityProvider.setEnable(false);
+            }
+            identityProvider.setDisplayName(resultSet.getString("DISPLAY_NAME"));
+            identityProvider.setImageUrl(resultSet.getString("IMAGE_URL"));
+            identityProvider.setResourceId(resultSet.getString("UUID"));
+            if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
+                    .equals(identityProvider.getIdentityProviderName())) {
+                identityProviderList.add(identityProvider);
+            }
+            List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
+                    Integer.parseInt(resultSet.getString("ID")));
+            identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
+        }
+        return identityProviderList;
+    }
+
+    /**
+     * Get number of IdP count for a matching filter.
+     *
+     * @param tenantId       Tenant Id of the identity provider.
+     * @param expressionNode filter value list for IdP search.
+     * @return number of IdP count for a given filter
+     * @throws IdentityProviderManagementServerException Error when getting count of Identity Providers.
+     * @throws IdentityProviderManagementClientException Error when append the filer string.
+     */
+    int getCountOfFilteredIdPs(int tenantId, List<ExpressionNode> expressionNode)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL;
+        int countOfFilteredIdp = 0;
+        FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
+        appendFilterQuery(expressionNode, filterQueryBuilder);
+        Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
+        sqlStmt = sqlStmt + filterQueryBuilder.getFilterQuery() +
+                IdPManagementConstants.SQLQueries.GET_IDP_COUNT_SQL_TAIL;
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
+            for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {
+                prepStmt.setString(prepareStatement.getKey(), prepareStatement.getValue());
+            }
+            prepStmt.setInt(filterAttributeValue.entrySet().size() + 1, tenantId);
+            try (ResultSet rs = prepStmt.executeQuery()) {
+                if (rs.next()) {
+                    countOfFilteredIdp = Integer.parseInt(rs.getString(1));
+                }
+            }
+        } catch (SQLException e) {
+            String message = "Error occurred while retrieving Identity Provider count for a tenant : " +
+                    IdentityTenantUtil.getTenantDomain(tenantId);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message, e);
+        }
+        return countOfFilteredIdp;
+    }
+
+    /**
+     * Create a sql query and prepared statement for filter.
+     *
+     * @param expressionNodes    list of filters.
+     * @param filterQueryBuilder Sql builder object.
+     * @throws IdentityProviderManagementClientException throw invalid filer attribute exception.
+     */
+    private void appendFilterQuery(List<ExpressionNode> expressionNodes, FilterQueryBuilder filterQueryBuilder)
+            throws IdentityProviderManagementClientException {
+
+        StringBuilder filter = new StringBuilder();
+        if (CollectionUtils.isEmpty(expressionNodes)) {
+            filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+        } else {
+            for (ExpressionNode expressionNode : expressionNodes) {
+                String operation = expressionNode.getOperation();
+                String value = expressionNode.getValue();
+                String attributeName = expressionNode.getAttributeValue();
+                if (StringUtils.isNotBlank(attributeName) && StringUtils.isNotBlank(value) && StringUtils
+                        .isNotBlank(operation)) {
+                    switch (attributeName) {
+                        case IdPManagementConstants.IDP_NAME:
+                            attributeName = IdPManagementConstants.NAME;
+                            break;
+                        case IdPManagementConstants.IDP_DESCRIPTION:
+                            attributeName = IdPManagementConstants.DESCRIPTION;
+                            break;
+                        case IdPManagementConstants.IDP_HOME_REALM_ID:
+                            attributeName = IdPManagementConstants.HOME_REALM_ID;
+                            break;
+                        case IdPManagementConstants.IDP_IS_ENABLED:
+                            attributeName = IdPManagementConstants.IS_ENABLED;
+                            break;
+                        case IdPManagementConstants.IDP_UUID:
+                            attributeName = IdPManagementConstants.UUID;
+                            break;
+                        default:
+                            String message = "Invalid filter attribute name. Filter attribute : " + attributeName;
+                            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                                    .ERROR_CODE_RETRIEVE_IDP, message);
+                    }
+                    if (IdPManagementConstants.EQ.equals(operation)) {
+                        filter.append(attributeName).append(" = ? AND ");
+                        filterQueryBuilder.setFilterAttributeValue(value);
+                    } else if (IdPManagementConstants.SW.equals(operation)) {
+                        filter.append(attributeName).append(" like ? AND ");
+                        filterQueryBuilder.setFilterAttributeValue(value + "%");
+                    } else if (IdPManagementConstants.EW.equals(operation)) {
+                        filter.append(attributeName).append(" like ? AND ");
+                        filterQueryBuilder.setFilterAttributeValue("%" + value);
+                    } else if (IdPManagementConstants.CO.equals(operation)) {
+                        filter.append(attributeName).append(" like ? AND ");
+                        filterQueryBuilder.setFilterAttributeValue("%" + value + "%");
+                    } else {
+                        String message = "Invalid filter value. filter: " + operation;
+                        throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                                .ERROR_CODE_RETRIEVE_IDP, message);
+                    }
+                }
+            }
+            if (StringUtils.isBlank(filter.toString())) {
+                filterQueryBuilder.setFilterQuery(IdPManagementConstants.EMPTY_STRING);
+            } else {
+                filterQueryBuilder.setFilterQuery(filter.toString());
             }
         }
     }
