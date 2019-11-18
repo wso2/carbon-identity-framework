@@ -138,7 +138,7 @@ public interface ApplicationDAO {
         return null;
     }
 
-    default ServiceProvider addApplication(ServiceProvider application, String tenantDomain)
+    default String addApplication(ServiceProvider application, String tenantDomain)
             throws IdentityApplicationManagementException {
 
         return null;

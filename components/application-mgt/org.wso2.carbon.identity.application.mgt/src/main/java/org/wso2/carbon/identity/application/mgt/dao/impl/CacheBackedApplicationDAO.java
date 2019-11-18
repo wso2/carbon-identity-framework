@@ -34,12 +34,18 @@ import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCac
 import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.PaginatableFilterableApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoByResourceIdCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoResourceIdCacheEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ApplicationBasicInfoResourceIdCacheKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByIDCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByInboundAuthCache;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderByResourceIdCache;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderCacheInboundAuthKey;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheEntry;
 import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderIDCacheKey;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheEntry;
+import org.wso2.carbon.identity.application.mgt.internal.cache.ServiceProviderResourceIdCacheKey;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
@@ -60,6 +66,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     private static IdentityServiceProviderCache appCacheByName = null;
     private static ServiceProviderByInboundAuthCache appCacheByInboundAuth = null;
     private static ServiceProviderByIDCache appCacheByID = null;
+    private static ServiceProviderByResourceIdCache appCacheByResourceId = null;
+    private static ApplicationBasicInfoByResourceIdCache appBasicInfoCacheByResourceId = null;
 
     public CacheBackedApplicationDAO(ApplicationDAO appDAO) {
 
@@ -67,6 +75,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         appCacheByName = IdentityServiceProviderCache.getInstance();
         appCacheByInboundAuth = ServiceProviderByInboundAuthCache.getInstance();
         appCacheByID = ServiceProviderByIDCache.getInstance();
+        appCacheByResourceId = ServiceProviderByResourceIdCache.getInstance();
+        appBasicInfoCacheByResourceId = ApplicationBasicInfoByResourceIdCache.getInstance();
     }
 
     public ServiceProvider getApplication(String applicationName, String tenantDomain) throws
@@ -172,10 +182,9 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        String storedAppName = getApplicationName(serviceProvider.getApplicationID());
-        clearAllAppCache(serviceProvider, storedAppName, tenantDomain);
+        ServiceProvider storedApp = getApplication(serviceProvider.getApplicationID());
+        clearAllAppCache(storedApp, tenantDomain);
         appDAO.updateApplication(serviceProvider, tenantDomain);
-
     }
 
     public void deleteApplication(String applicationName) throws IdentityApplicationManagementException {
@@ -325,20 +334,35 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     @Override
     public ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
             throws IdentityApplicationManagementException {
-        // TODO: have a cache.
-        return appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
+
+        ApplicationBasicInfo appBasicInfo = getApplicationBasicInfoFromCacheByResourceId(resourceId);
+        if (appBasicInfo == null) {
+            // Cache miss, fetch from DB.
+            appBasicInfo = appDAO.getApplicationBasicInfoByResourceId(resourceId, tenantDomain);
+            if (appBasicInfo != null) {
+                addAppBasicInfoToCache(appBasicInfo, tenantDomain);
+            }
+        }
+        return appBasicInfo;
     }
 
     @Override
-    public ServiceProvider getApplicationByResourceId(String resourceId,
-                                                  String tenantDomain) throws IdentityApplicationManagementException {
+    public ServiceProvider getApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
-        // TODO: introduce a cache..
-        return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
+        ServiceProvider application = getApplicationFromCacheByResourceId(resourceId);
+        if (application == null) {
+            // Cache miss, fetch from DB.
+            application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
+            if (application != null) {
+                addToCache(application, tenantDomain);
+            }
+        }
+        return application;
     }
 
     @Override
-    public ServiceProvider addApplication(ServiceProvider application,
+    public String addApplication(ServiceProvider application,
                                       String tenantDomain) throws IdentityApplicationManagementException {
 
         return appDAO.addApplication(application, tenantDomain);
@@ -350,7 +374,7 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                                               ServiceProvider updatedApp) throws IdentityApplicationManagementException {
 
         ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
-        clearAllAppCache(updatedApp, storedApp.getApplicationName(), tenantDomain);
+        clearAllAppCache(storedApp, tenantDomain);
 
         appDAO.updateApplicationByResourceId(resourceId, tenantDomain, updatedApp);
     }
@@ -413,6 +437,11 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             ServiceProviderIDCacheEntry idEntry = new ServiceProviderIDCacheEntry(serviceProvider);
             appCacheByID.addToCache(idKey, idEntry);
 
+            ServiceProviderResourceIdCacheKey resourceIdCacheKey =
+                    new ServiceProviderResourceIdCacheKey(serviceProvider.getApplicationResourceId());
+            ServiceProviderResourceIdCacheEntry entry = new ServiceProviderResourceIdCacheEntry(serviceProvider);
+            appCacheByResourceId.addToCache(resourceIdCacheKey, entry);
+
             if (serviceProvider.getInboundAuthenticationConfig() != null && serviceProvider
                     .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
                 InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
@@ -427,6 +456,24 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
                     }
                 }
             }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+    }
+
+    private void addAppBasicInfoToCache(ApplicationBasicInfo appBasicInfo, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Add cache for the application " + appBasicInfo.getApplicationName() + "@" + tenantDomain);
+        }
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+
+            ApplicationBasicInfoResourceIdCacheKey key =
+                    new ApplicationBasicInfoResourceIdCacheKey(appBasicInfo.getApplicationResourceId());
+            ApplicationBasicInfoResourceIdCacheEntry entry = new ApplicationBasicInfoResourceIdCacheEntry(appBasicInfo);
+            appBasicInfoCacheByResourceId.addToCache(key, entry);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
@@ -456,6 +503,68 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             }
         }
         return serviceProvider;
+    }
+
+    private ServiceProvider getApplicationFromCacheByResourceId(String resourceId)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider serviceProvider = null;
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            if (resourceId != null) {
+                ServiceProviderResourceIdCacheKey cacheKey = new ServiceProviderResourceIdCacheKey(resourceId);
+                ServiceProviderResourceIdCacheEntry entry = appCacheByResourceId.getValueFromCache(cacheKey);
+
+                if (entry != null) {
+                    serviceProvider = entry.getServiceProvider();
+                }
+            }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+
+        if (serviceProvider == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache miss for the application with resourceId: " + resourceId);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache hit for the application with resourceId: " + resourceId);
+            }
+        }
+        return serviceProvider;
+    }
+
+    private ApplicationBasicInfo getApplicationBasicInfoFromCacheByResourceId(String resourceId)
+            throws IdentityApplicationManagementException {
+
+        ApplicationBasicInfo applicationBasicInfo = null;
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            if (resourceId != null) {
+                ApplicationBasicInfoResourceIdCacheKey cacheKey =
+                        new ApplicationBasicInfoResourceIdCacheKey(resourceId);
+                ApplicationBasicInfoResourceIdCacheEntry entry =
+                        appBasicInfoCacheByResourceId.getValueFromCache(cacheKey);
+
+                if (entry != null) {
+                    applicationBasicInfo = entry.getApplicationBasicInfo();
+                }
+            }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
+
+        if (applicationBasicInfo == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache miss for the application with resourceId: " + resourceId);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Cache hit for the application with resourceId: " + resourceId);
+            }
+        }
+        return applicationBasicInfo;
     }
 
     private ServiceProvider getApplicationFromCache(String applicationName, String tenantDomain) throws
@@ -508,27 +617,29 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
             ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
             appCacheByID.clearCacheEntry(idKey);
 
+            ServiceProviderResourceIdCacheKey resourceIdKey =
+                    new ServiceProviderResourceIdCacheKey(serviceProvider.getApplicationResourceId());
+            appCacheByResourceId.clearCacheEntry(resourceIdKey);
+
+            ApplicationBasicInfoResourceIdCacheKey basicInfoKey =
+                    new ApplicationBasicInfoResourceIdCacheKey(serviceProvider.getApplicationResourceId());
+            appBasicInfoCacheByResourceId.clearCacheEntry(basicInfoKey);
+
             clearAppCacheByInboundKey(serviceProvider, tenantDomain);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
     }
 
-    private void clearAllAppCache(ServiceProvider serviceProvider, String storedAppName, String tenantDomain) throws
+    private void clearAllAppCache(ServiceProvider serviceProvider, String updatedName, String tenantDomain) throws
             IdentityApplicationManagementException {
 
         try {
             ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(storedAppName, tenantDomain);
+            IdentityServiceProviderCacheKey cacheKey = new IdentityServiceProviderCacheKey(updatedName, tenantDomain);
             appCacheByName.clearCacheEntry(cacheKey);
 
-            cacheKey = new IdentityServiceProviderCacheKey(serviceProvider.getApplicationName(), tenantDomain);
-            appCacheByName.clearCacheEntry(cacheKey);
-
-            ServiceProviderIDCacheKey idKey = new ServiceProviderIDCacheKey(serviceProvider.getApplicationID());
-            appCacheByID.clearCacheEntry(idKey);
-
-            clearAppCacheByInboundKey(serviceProvider, tenantDomain);
+            clearAllAppCache(serviceProvider, tenantDomain);
         } finally {
             ApplicationMgtUtil.endTenantFlow();
         }
