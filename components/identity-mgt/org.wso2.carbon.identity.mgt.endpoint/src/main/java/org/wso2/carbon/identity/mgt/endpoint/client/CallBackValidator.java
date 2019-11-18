@@ -28,8 +28,10 @@ import org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 
 /**
  * Validates the call back URL passed in the recovery request.
@@ -96,7 +98,8 @@ public class CallBackValidator {
 
         if (StringUtils.isNotBlank(callbackURL)) {
             try {
-                URI uri = new URI(callbackURL);
+                String encodeURL = URLEncoder.encode(callbackURL, IdentityManagementEndpointConstants.UTF_8);
+                URI uri = new URI(encodeURL);
                 callbackURL = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null)
                         .toString();
                 if (log.isDebugEnabled()) {
@@ -104,6 +107,8 @@ public class CallBackValidator {
                 }
             } catch (URISyntaxException e) {
                 throw new IdentityRecoveryException("Error occurred while formatting the provided callback URL. ", e);
+            } catch (UnsupportedEncodingException e) {
+                throw new IdentityRecoveryException("Error occurred while encoding the provided callback URL.", e);
             }
         }
 

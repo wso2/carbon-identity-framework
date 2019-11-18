@@ -38,10 +38,13 @@ import org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -464,7 +467,13 @@ public class IdentityManagementEndpointUtil {
      */
     public static String getURLEncodedCallback(String callbackUrl) throws URISyntaxException {
 
-        URI uri = new URI(callbackUrl);
+        String encodeURL;
+        try {
+            encodeURL = URLEncoder.encode(callbackUrl, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            return ("Error occurred while encoding the provided callback URL." + e.getMessage());
+        }
+        URI uri = new URI(encodeURL);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
 
@@ -472,11 +481,15 @@ public class IdentityManagementEndpointUtil {
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
             encodedCallbackUrl.append("?");
-            encodedCallbackUrl.append(encodedQueryMap.keySet().stream().map(key -> key + PADDING_CHAR + encodedQueryMap.get(key))
-                    .collect(Collectors.joining(SPLITTING_CHAR)));
+            encodedCallbackUrl
+                    .append(encodedQueryMap.keySet().stream().map(key -> key + PADDING_CHAR + encodedQueryMap.get(key))
+                            .collect(Collectors.joining(SPLITTING_CHAR)));
         }
-
-        return encodedCallbackUrl.toString();
+        try {
+            return URLDecoder.decode(encodedCallbackUrl.toString(), StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            return ("Error occurred while decoding the provided callback URL." + e.getMessage());
+        }
     }
 
     /**

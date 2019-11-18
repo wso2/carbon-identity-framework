@@ -65,19 +65,23 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
     @DataProvider(name = "dataForUrlEncoding")
     public Object[][] dataForUrlEncoding() {
 
-        return new Object[][]{
+        return new Object[][] {
 
-                {"https://localhost:9443/accountrecoveryendpoint/recoverusername.do?" +
-                        "callback=https://localhost:9443/authenticationendpoint_login.do&sp//name=TestSP123",
-                        "https://localhost:9443/accountrecoveryendpoint/recoverusername.do?sp%2F%2Fname=TestSP123&" +
-                                "callback=https%3A%2F%2Flocalhost%3A9443%2Fauthenticationendpoint_login.do"},
-                {"http://example.com/path/to/page?name=ferret&color=purple",
-                        "http://example.com/path/to/page?color=purple&name=ferret"},
-                {"http://example.com/path/to/page?name=ferret",
-                        "http://example.com/path/to/page?name=ferret"},
-                {"https://www.facebook.com/Learn-the-Net-330002341216/",
-                        "https://www.facebook.com/Learn-the-Net-330002341216/"},
-        };
+                {
+                        "https://localhost:9443/accountrecoveryendpoint/recoverusername.do?"
+                                + "callback=https://localhost:9443/authenticationendpoint_login.do&sp//name=TestSP123",
+                        "https://localhost:9443/accountrecoveryendpoint/recoverusername.do?"
+                                + "callback=https://localhost:9443/authenticationendpoint_login.do&sp//name=TestSP123"
+                }, {
+                        "http://example.com/path/to/page?name=ferret&color=purple",
+                        "http://example.com/path/to/page?name=ferret&color=purple"
+                }, {
+                        "http://example.com/path/to/page?name=ferret", "http://example.com/path/to/page?name=ferret"
+                }, {
+                        "https://www.facebook.com/Learn-the-Net-330002341216/",
+                        "https://www.facebook.com/Learn-the-Net-330002341216/"
+                },
+                };
     }
 
     @DataProvider(name = "dataForQueryParamEncoding")
