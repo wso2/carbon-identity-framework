@@ -2179,7 +2179,7 @@
                                                         </td>
                                                         <td style="white-space: nowrap;">
                                                             <a title="Edit Service Providers"
-                                                               onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"
+                                                               onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
                                                                class="icon-link"
                                                                style="background-image: url(../admin/images/edit.gif)">Edit</a>
 

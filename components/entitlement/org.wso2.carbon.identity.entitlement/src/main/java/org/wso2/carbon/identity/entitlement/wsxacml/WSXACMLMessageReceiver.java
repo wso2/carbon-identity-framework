@@ -34,36 +34,34 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.apache.xml.security.signature.XMLSignature;
 import org.joda.time.DateTime;
-import org.opensaml.Configuration;
-import org.opensaml.DefaultBootstrap;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.Response;
-import org.opensaml.saml2.core.Statement;
-import org.opensaml.saml2.core.impl.AssertionBuilder;
-import org.opensaml.saml2.core.impl.IssuerBuilder;
-import org.opensaml.saml2.core.impl.ResponseBuilder;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.saml.saml2.core.Assertion;
+import org.opensaml.saml.saml2.core.Issuer;
+import org.opensaml.saml.saml2.core.Response;
+import org.opensaml.saml.saml2.core.Statement;
+import org.opensaml.saml.saml2.core.impl.AssertionBuilder;
+import org.opensaml.saml.saml2.core.impl.IssuerBuilder;
+import org.opensaml.saml.saml2.core.impl.ResponseBuilder;
 import org.opensaml.xacml.ctx.RequestType;
 import org.opensaml.xacml.ctx.ResponseType;
 import org.opensaml.xacml.profile.saml.XACMLAuthzDecisionQueryType;
 import org.opensaml.xacml.profile.saml.XACMLAuthzDecisionStatementType;
 import org.opensaml.xacml.profile.saml.impl.XACMLAuthzDecisionStatementTypeImplBuilder;
-import org.opensaml.xml.ConfigurationException;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.XMLObjectBuilder;
-import org.opensaml.xml.io.Marshaller;
-import org.opensaml.xml.io.MarshallerFactory;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.security.x509.BasicX509Credential;
-import org.opensaml.xml.security.x509.X509Credential;
-import org.opensaml.xml.signature.KeyInfo;
-import org.opensaml.xml.signature.Signature;
-import org.opensaml.xml.signature.SignatureValidator;
-import org.opensaml.xml.signature.Signer;
-import org.opensaml.xml.signature.X509Certificate;
-import org.opensaml.xml.signature.X509Data;
-import org.opensaml.xml.validation.ValidationException;
+import org.opensaml.core.xml.XMLObject;
+import org.opensaml.core.xml.XMLObjectBuilder;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallerFactory;
+import org.opensaml.core.xml.io.Unmarshaller;
+import org.opensaml.core.xml.io.UnmarshallerFactory;
+import org.opensaml.security.x509.BasicX509Credential;
+import org.opensaml.security.x509.X509Credential;
+import org.opensaml.xmlsec.signature.KeyInfo;
+import org.opensaml.xmlsec.signature.Signature;
+import org.opensaml.xmlsec.signature.support.SignatureException;
+import org.opensaml.xmlsec.signature.support.SignatureValidator;
+import org.opensaml.xmlsec.signature.support.Signer;
+import org.opensaml.xmlsec.signature.X509Certificate;
+import org.opensaml.xmlsec.signature.X509Data;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -72,6 +70,7 @@ import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.saml.common.util.SAMLInitializer;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 
 import javax.xml.namespace.QName;
@@ -94,16 +93,16 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             .createOMNamespace("urn:oasis:names:tc:xacml:2.0:context:schema:os", "xacml-context");
 
     /**
-     * Bootstrap the OpenSAML2 library only if it is not bootstrapped.
+     * Bootstrap the OpenSAML3 library only if it is not bootstrapped.
      */
     public static void doBootstrap() {
 
         if (!isBootStrapped) {
             try {
-                DefaultBootstrap.bootstrap();
+                SAMLInitializer.doBootstrap();
                 isBootStrapped = true;
-            } catch (ConfigurationException e) {
-                log.error("Error in bootstrapping the OpenSAML2 library", e);
+            } catch (org.opensaml.core.config.InitializationException e) {
+                log.error("Error in bootstrapping the OpenSAML3 library", e);
             }
         }
     }
@@ -115,7 +114,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
      */
     private static Issuer createIssuer() {
 
-        IssuerBuilder issuer = (IssuerBuilder) org.opensaml.xml.Configuration.getBuilderFactory().
+        IssuerBuilder issuer = (IssuerBuilder) XMLObjectProviderRegistrySupport.getBuilderFactory().
                 getBuilder(Issuer.DEFAULT_ELEMENT_NAME);
         Issuer issuerObject = issuer.buildObject();
         issuerObject.setValue("https://identity.carbon.wso2.org");
@@ -157,7 +156,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             List<Signature> signatureList = new ArrayList<Signature>();
             signatureList.add(signature);
             //Marshall and Sign
-            MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+            MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport.getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(response);
             marshaller.marshall(response);
             org.apache.xml.security.Init.init();
@@ -177,7 +176,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
      */
     private static XMLObject buildXMLObject(QName objectQName) throws EntitlementException {
 
-        XMLObjectBuilder builder = org.opensaml.xml.Configuration.getBuilderFactory().getBuilder(objectQName);
+        XMLObjectBuilder builder = XMLObjectProviderRegistrySupport.getBuilderFactory().getBuilder(objectQName);
         if (builder == null) {
             throw new EntitlementException("Unable to retrieve builder for object QName "
                     + objectQName);
@@ -205,9 +204,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             log.error("Error occurred while getting the KeyStore from KeyManger.", e);
         }
 
-        BasicX509Credential basicCredential = new BasicX509Credential();
-        basicCredential.setEntityCertificate((java.security.cert.X509Certificate) certificate);
-        basicCredential.setPrivateKey(issuerPK);
+        BasicX509Credential basicCredential = new BasicX509Credential((java.security.cert.X509Certificate) certificate, issuerPK);
 
         return basicCredential;
     }
@@ -341,7 +338,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
             Document document = docBuilder.parse(new ByteArrayInputStream(xmlString.trim().getBytes()));
             Element element = document.getDocumentElement();
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
+            UnmarshallerFactory unmarshallerFactory = XMLObjectProviderRegistrySupport.getUnmarshallerFactory();
             Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
             return unmarshaller.unmarshall(element);
         } catch (Exception e) {
@@ -382,7 +379,7 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             System.setProperty("javax.xml.parsers.DocumentBuilderFactory",
                     "org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 
-            MarshallerFactory marshallerFactory = org.opensaml.xml.Configuration.getMarshallerFactory();
+            MarshallerFactory marshallerFactory = XMLObjectProviderRegistrySupport.getMarshallerFactory();
             Marshaller marshaller = marshallerFactory.getMarshaller(xmlObject);
             Element element = marshaller.marshall(xmlObject);
 
@@ -413,13 +410,12 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
         boolean isSignatureValid = false;
 
         try {
-            SignatureValidator validator = new SignatureValidator(getPublicX509CredentialImpl());
-            validator.validate(signature);
+            SignatureValidator.validate(signature, getPublicX509CredentialImpl());
             isSignatureValid = true;
-        } catch (ValidationException e) {
-            log.warn("Signature validation failed.");
+        } catch (SignatureException e) {
+            log.warn("Signature validation failed for the public X509 credential: " + getPublicX509CredentialImpl(), e);
         } catch (Exception e) {
-            throw new Exception("Error in getting public X509Credentials to validate signature. ");
+            throw new Exception("Error in getting public X509Credentials to validate signature.", e);
         }
         return isSignatureValid;
     }
@@ -467,20 +463,20 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
             throw new EntitlementException("Error while unmarshalling the formatted XACML response.", e);
         }
         XACMLAuthzDecisionStatementTypeImplBuilder xacmlauthz = (XACMLAuthzDecisionStatementTypeImplBuilder)
-                org.opensaml.xml.Configuration.getBuilderFactory().
+                XMLObjectProviderRegistrySupport.getBuilderFactory().
                         getBuilder(XACMLAuthzDecisionStatementType.TYPE_NAME_XACML20);
         XACMLAuthzDecisionStatementType xacmlAuthzDecisionStatement = xacmlauthz
                 .buildObject(Statement.DEFAULT_ELEMENT_NAME, XACMLAuthzDecisionStatementType.TYPE_NAME_XACML20);
         xacmlAuthzDecisionStatement.setResponse(responseType);
-        AssertionBuilder assertionBuilder = (AssertionBuilder) org.opensaml.xml.Configuration.getBuilderFactory()
+        AssertionBuilder assertionBuilder = (AssertionBuilder) XMLObjectProviderRegistrySupport.getBuilderFactory()
                 .getBuilder(Assertion.DEFAULT_ELEMENT_NAME);
         DateTime currentTime = new DateTime();
         Assertion assertion = assertionBuilder.buildObject();
-        assertion.setVersion(org.opensaml.common.SAMLVersion.VERSION_20);
+        assertion.setVersion(org.opensaml.saml.common.SAMLVersion.VERSION_20);
         assertion.setIssuer(createIssuer());
         assertion.setIssueInstant(currentTime);
         assertion.getStatements().add(xacmlAuthzDecisionStatement);
-        ResponseBuilder builder = (ResponseBuilder) org.opensaml.xml.Configuration.getBuilderFactory()
+        ResponseBuilder builder = (ResponseBuilder) XMLObjectProviderRegistrySupport.getBuilderFactory()
                 .getBuilder(Response.DEFAULT_ELEMENT_NAME);
         Response response = builder.buildObject();
         response.getAssertions().add(assertion);
