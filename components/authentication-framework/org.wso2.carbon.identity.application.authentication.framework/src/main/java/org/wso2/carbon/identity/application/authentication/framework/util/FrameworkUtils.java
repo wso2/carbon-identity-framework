@@ -141,7 +141,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 
-
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
@@ -2285,22 +2284,22 @@ public class FrameworkUtils {
     /**
      * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow).
      *
-     * @param names list of roles assigned to a user.
+     * @param domainAwareRolesList list of roles assigned to a user.
      * @return String of multi attribute separated list of roles assigned to a user with domain name removed from roles.
      */
-    public static String removeDomainFromNamesExcludeHybrid(List<String> names) {
+    public static String removeDomainFromNamesExcludeHybrid(List<String> domainAwareRolesList) {
 
-        List<String> nameList = new ArrayList<String>();
-        for (String name : names) {
-            String userStoreDomain = IdentityUtil.extractDomainFromName(name);
+        List<String> roleList = new ArrayList<String>();
+        for (String role : domainAwareRolesList) {
+            String userStoreDomain = IdentityUtil.extractDomainFromName(role);
             if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain) || APPLICATION_DOMAIN
                     .equalsIgnoreCase(userStoreDomain) || WORKFLOW_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
-                nameList.add(name);
+                roleList.add(role);
             } else {
-                nameList.add(UserCoreUtil.removeDomainFromName(name));
+                roleList.add(UserCoreUtil.removeDomainFromName(role));
             }
         }
-        return String.join(",", nameList);
+        return String.join(FrameworkUtils.getMultiAttributeSeparator(), roleList);
     }
 }
 

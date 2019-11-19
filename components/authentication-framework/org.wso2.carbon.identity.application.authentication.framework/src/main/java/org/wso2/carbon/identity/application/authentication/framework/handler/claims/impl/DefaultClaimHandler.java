@@ -451,6 +451,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig,
                 (org.wso2.carbon.user.core.UserStoreManager) userStore);
+
         handleRoleClaim(context, allLocalClaims);
         context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
 
@@ -953,19 +954,20 @@ public class DefaultClaimHandler implements ClaimHandler {
 
     /**
      * Specially handle role claim values.
+     *
      * @param context Authentication context.
      * @param mappedAttrs Mapped claim attributes.
      */
     private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
 
         if (mappedAttrs.containsKey(FrameworkConstants.LOCAL_ROLE_CLAIM_URI)) {
-            String[] groups = mappedAttrs.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI).split(Pattern.quote(FrameworkUtils
-                    .getMultiAttributeSeparator()));
+            String[] groups = mappedAttrs.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI).split(Pattern
+                    .quote(FrameworkUtils.getMultiAttributeSeparator()));
             SequenceConfig sequenceConfig = context.getSequenceConfig();
             // Execute only if it has allowed removing userstore domain from the sp level configurations.
             if (isRemoveUserDomainInRole(sequenceConfig)) {
-                mappedAttrs.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, FrameworkUtils.removeDomainFromNamesExcludeHybrid(Arrays
-                        .asList(groups)));
+                mappedAttrs.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, FrameworkUtils
+                        .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
             }
         }
     }
