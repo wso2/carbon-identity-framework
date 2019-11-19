@@ -49,13 +49,13 @@
                 Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
 
                 if (idpUniqueIdMap == null || idpUniqueIdMap.get(idPName) == null) {
-                    response.sendRedirect("idp-mgt-list-load.jsp");
+                    response.sendRedirect("idp-mgt-list.jsp");
                     return;
                 }
                 session.setAttribute(idpUniqueIdMap.get(idPName).toString(), identityProvider);
             }
         } else if (session.getAttribute(IdPManagementUIUtil.IDP_LIST) == null) {
-            response.sendRedirect("idp-mgt-list-load.jsp");
+            response.sendRedirect("idp-mgt-list.jsp");
             return;
         }
     } catch (Exception e) {

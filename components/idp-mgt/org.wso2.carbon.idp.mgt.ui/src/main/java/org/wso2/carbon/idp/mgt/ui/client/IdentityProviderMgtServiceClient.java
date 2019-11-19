@@ -29,9 +29,11 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvide
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig;
 import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceIdentityProviderManagementExceptionException;
 import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceStub;
+import org.wso2.carbon.idp.mgt.ui.util.IdentityException;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -45,6 +47,13 @@ public class IdentityProviderMgtServiceClient {
     private IdentityProviderMgtServiceStub idPMgtStub;
 
     private UserAdminStub userAdminStub;
+
+    // A static variable is used to track if pagination support from the remote API is verified, as the client is
+    // initiated per request.
+    private static boolean paginationSupportVerified = false;
+    // A static variable is used to track if pagination is supported from the remote API, as the client is
+    // initiated per request.
+    private static boolean paginationSupported = false;
 
     /**
      * @param cookie           HttpSession cookie
@@ -113,21 +122,115 @@ public class IdentityProviderMgtServiceClient {
      *
      * @return List of <code>FederatedIdentityProvider</code>. IdP names, primary IdP and home realm
      * identifiers of each IdP
-     * @throws Exception Error when getting list of Identity Providers
+     * @throws IdentityException Error when getting list of Identity Providers
      */
-    public List<IdentityProvider> getIdPs() throws Exception {
+    public IdentityProvider[] getIdPs() throws IdentityException {
+
         try {
-            IdentityProvider[] identityProviders = idPMgtStub.getAllIdPs();
-            if (identityProviders != null && identityProviders.length > 0) {
-                return Arrays.asList(identityProviders);
-            } else {
-                return new ArrayList<IdentityProvider>();
-            }
-        } catch (Exception e) {
+            return idPMgtStub.getAllIdPs();
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
-            throw new Exception("Error occurred while retrieving list of Identity Providers");
+            throw new IdentityException("Error occurred while retrieving list of Identity Providers", e);
         }
     }
+
+    /**
+     * Get all list of Idp information with pagination.
+     *
+     * @param pageNumber pageNumber need to filter.
+     * @return list of paginated idp array.
+     * @throws Exception Error when getting list of Identity Providers.
+     */
+    public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber) throws IdentityException {
+
+        try {
+            return idPMgtStub.getAllPaginatedIdpInfo(pageNumber);
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            throw new IdentityException("Error in retrieving the list of Identity Providers for a given tenant", e);
+        }
+    }
+
+    /**
+     * Get all list of Idp information for a matching filter with pagination.
+     *
+     * @param pageNumber pageNumber need to filter.
+     * @param filter     Application name filter.
+     * @return list of paginated idp array.
+     * @throws Exception Error when getting list of Identity Providers for a matching filter with pagination.
+     */
+    public IdentityProvider[] getPaginatedIdpInfo(int pageNumber, String filter) throws IdentityException {
+
+        try {
+            return idPMgtStub.getPaginatedIdpInfo(filter, pageNumber);
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            throw new IdentityException(
+                    "Error in retrieving the list of filtered Identity Providers for a given tenant", e);
+        }
+    }
+
+    /**
+     * Get count of all Identity providers.
+     *
+     * @return total number of Idps.
+     * @throws IdentityException Error when getting count of total Identity Providers.
+     */
+    public int getIdpCount() throws IdentityException {
+
+        try {
+            return idPMgtStub.getAllIdpCount();
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            throw new IdentityException("Error in retrieving the count of Identity Providers for a given tenant", e);
+        }
+    }
+
+    /**
+     * Get count of all basic applications for a matching filter.
+     *
+     * @param filter Idp filter
+     * @return Count of applications match the filter
+     * @throws IdentityException Error when getting count of filtered total Identity Providers.
+     */
+    public int getFilteredIdpCount(String filter) throws IdentityException {
+
+        try {
+            return idPMgtStub.getFilteredIdpCount(filter);
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            throw new IdentityException(
+                    "Error in retrieving the count of registered Identity Providers for a given tenant", e);
+        }
+    }
+
+    /**
+     * Returns if pagination is supported in the remote API.
+     * This API is introduced to ensure that nothing breaks by invoking paginated APIs when API backend is not
+     * available.
+     *
+     * @return 'true' if pagination is supported
+     */
+    public boolean isPaginationSupported() {
+
+        if (!paginationSupportVerified) {
+            try {
+                this.getIdpCount();
+                paginationSupported = true;
+                if (log.isDebugEnabled()) {
+                    log.debug("IdentityApplicationManagementService stub and backend supports for SP pagination. Set " +
+                            "'paginationSupported' flag to 'true'.");
+                }
+            } catch (IdentityException | NoSuchMethodError e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("IdentityApplicationManagementService stub or backend does not supports for SP " +
+                            "pagination. Set 'paginationSupported' flag to 'false'.");
+                }
+                paginationSupported = false;
+            }
+
+            paginationSupportVerified = true;
+        }
+
+        return paginationSupported;
+    }
+
 
     /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name

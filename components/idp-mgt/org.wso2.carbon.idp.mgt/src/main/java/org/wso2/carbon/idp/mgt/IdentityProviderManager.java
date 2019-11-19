@@ -1044,6 +1044,24 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Get all basic identity provider information.
+     *
+     * @param filter       filter value for IdP search.
+     * @param tenantDomain tenant domain whose IdP names are requested.
+     * @return filtered idp count.
+     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     */
+    @Override
+    public int getTotalIdPCount(String filter, String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
+        return dao.getTotalIdPCount(tenantId, expressionNodes);
+    }
+
+    /**
      * Check null for  limit and offset.
      *
      * @param limit  limit per page.

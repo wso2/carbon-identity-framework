@@ -173,25 +173,6 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="addIdP">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2510:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIdP">
-                <xs:complexType>
-                    <xs:sequence/>
-                </xs:complexType>
-            </xs:element>
-            <xs:element name="getResidentIdPResponse">
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2510:IdentityProvider"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
             <xs:element name="updateResidentIdP">
                 <xs:complexType>
                     <xs:sequence>
@@ -210,6 +191,13 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="0" name="return" nillable="true" type="ax2510:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addIdP">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="identityProvider" nillable="true" type="ax2510:IdentityProvider"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -252,27 +240,58 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllLocalClaimUris">
+            <xs:element name="getAllIdpCount">
                 <xs:complexType>
                     <xs:sequence/>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllLocalClaimUrisResponse">
+            <xs:element name="getAllIdpCountResponse">
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllIdPs">
+            <xs:element name="getAllPaginatedIdpInfo">
                 <xs:complexType>
-                    <xs:sequence/>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
+                    </xs:sequence>
                 </xs:complexType>
             </xs:element>
-            <xs:element name="getAllIdPsResponse">
+            <xs:element name="getAllPaginatedIdpInfoResponse">
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2510:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPaginatedIdpInfo">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                        <xs:element minOccurs="0" name="pageNumber" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getPaginatedIdpInfoResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2510:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getFilteredIdpCount">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="filter" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getFilteredIdpCountResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -321,6 +340,42 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+            <xs:element name="getAllLocalClaimUris">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllLocalClaimUrisResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPs">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getAllIdPsResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" nillable="true" type="ax2510:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIdP">
+                <xs:complexType>
+                    <xs:sequence/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getResidentIdPResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ax2510:IdentityProvider"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
         </xs:schema>
         <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified" targetNamespace="http://base.identity.carbon.wso2.org/xsd">
             <xs:complexType name="IdentityException">
@@ -365,6 +420,12 @@
     <wsdl:message name="getResidentIdPResponse">
         <wsdl:part name="parameters" element="ns:getResidentIdPResponse"/>
     </wsdl:message>
+    <wsdl:message name="getAllIdpCountRequest">
+        <wsdl:part name="parameters" element="ns:getAllIdpCount"/>
+    </wsdl:message>
+    <wsdl:message name="getAllIdpCountResponse">
+        <wsdl:part name="parameters" element="ns:getAllIdpCountResponse"/>
+    </wsdl:message>
     <wsdl:message name="getAllProvisioningConnectorsRequest">
         <wsdl:part name="parameters" element="ns:getAllProvisioningConnectors"/>
     </wsdl:message>
@@ -391,17 +452,35 @@
         <wsdl:part name="parameters" element="ns:updateResidentIdP"/>
     </wsdl:message>
     <wsdl:message name="updateResidentIdPResponse"/>
+    <wsdl:message name="getPaginatedIdpInfoRequest">
+        <wsdl:part name="parameters" element="ns:getPaginatedIdpInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getPaginatedIdpInfoResponse">
+        <wsdl:part name="parameters" element="ns:getPaginatedIdpInfoResponse"/>
+    </wsdl:message>
     <wsdl:message name="getIdPByNameRequest">
         <wsdl:part name="parameters" element="ns:getIdPByName"/>
     </wsdl:message>
     <wsdl:message name="getIdPByNameResponse">
         <wsdl:part name="parameters" element="ns:getIdPByNameResponse"/>
     </wsdl:message>
+    <wsdl:message name="getFilteredIdpCountRequest">
+        <wsdl:part name="parameters" element="ns:getFilteredIdpCount"/>
+    </wsdl:message>
+    <wsdl:message name="getFilteredIdpCountResponse">
+        <wsdl:part name="parameters" element="ns:getFilteredIdpCountResponse"/>
+    </wsdl:message>
     <wsdl:message name="getAllIdPsSearchRequest">
         <wsdl:part name="parameters" element="ns:getAllIdPsSearch"/>
     </wsdl:message>
     <wsdl:message name="getAllIdPsSearchResponse">
         <wsdl:part name="parameters" element="ns:getAllIdPsSearchResponse"/>
+    </wsdl:message>
+    <wsdl:message name="getAllPaginatedIdpInfoRequest">
+        <wsdl:part name="parameters" element="ns:getAllPaginatedIdpInfo"/>
+    </wsdl:message>
+    <wsdl:message name="getAllPaginatedIdpInfoResponse">
+        <wsdl:part name="parameters" element="ns:getAllPaginatedIdpInfoResponse"/>
     </wsdl:message>
     <wsdl:message name="forceDeleteIdPRequest">
         <wsdl:part name="parameters" element="ns:forceDeleteIdP"/>
@@ -438,6 +517,11 @@
             <wsdl:output message="ns:getResidentIdPResponse" wsaw:Action="urn:getResidentIdPResponse"/>
             <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getResidentIdPIdentityProviderMgtServiceIdentityProviderManagementException"/>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdpCount">
+            <wsdl:input message="ns:getAllIdpCountRequest" wsaw:Action="urn:getAllIdpCount"/>
+            <wsdl:output message="ns:getAllIdpCountResponse" wsaw:Action="urn:getAllIdpCountResponse"/>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllIdpCountIdentityProviderMgtServiceIdentityProviderManagementException"/>
+        </wsdl:operation>
         <wsdl:operation name="getAllProvisioningConnectors">
             <wsdl:input message="ns:getAllProvisioningConnectorsRequest" wsaw:Action="urn:getAllProvisioningConnectors"/>
             <wsdl:output message="ns:getAllProvisioningConnectorsResponse" wsaw:Action="urn:getAllProvisioningConnectorsResponse"/>
@@ -463,15 +547,30 @@
             <wsdl:output message="ns:updateResidentIdPResponse" wsaw:Action="urn:updateResidentIdPResponse"/>
             <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:updateResidentIdPIdentityProviderMgtServiceIdentityProviderManagementException"/>
         </wsdl:operation>
+        <wsdl:operation name="getPaginatedIdpInfo">
+            <wsdl:input message="ns:getPaginatedIdpInfoRequest" wsaw:Action="urn:getPaginatedIdpInfo"/>
+            <wsdl:output message="ns:getPaginatedIdpInfoResponse" wsaw:Action="urn:getPaginatedIdpInfoResponse"/>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getPaginatedIdpInfoIdentityProviderMgtServiceIdentityProviderManagementException"/>
+        </wsdl:operation>
         <wsdl:operation name="getIdPByName">
             <wsdl:input message="ns:getIdPByNameRequest" wsaw:Action="urn:getIdPByName"/>
             <wsdl:output message="ns:getIdPByNameResponse" wsaw:Action="urn:getIdPByNameResponse"/>
             <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getIdPByNameIdentityProviderMgtServiceIdentityProviderManagementException"/>
         </wsdl:operation>
+        <wsdl:operation name="getFilteredIdpCount">
+            <wsdl:input message="ns:getFilteredIdpCountRequest" wsaw:Action="urn:getFilteredIdpCount"/>
+            <wsdl:output message="ns:getFilteredIdpCountResponse" wsaw:Action="urn:getFilteredIdpCountResponse"/>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getFilteredIdpCountIdentityProviderMgtServiceIdentityProviderManagementException"/>
+        </wsdl:operation>
         <wsdl:operation name="getAllIdPsSearch">
             <wsdl:input message="ns:getAllIdPsSearchRequest" wsaw:Action="urn:getAllIdPsSearch"/>
             <wsdl:output message="ns:getAllIdPsSearchResponse" wsaw:Action="urn:getAllIdPsSearchResponse"/>
             <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllIdPsSearchIdentityProviderMgtServiceIdentityProviderManagementException"/>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedIdpInfo">
+            <wsdl:input message="ns:getAllPaginatedIdpInfoRequest" wsaw:Action="urn:getAllPaginatedIdpInfo"/>
+            <wsdl:output message="ns:getAllPaginatedIdpInfoResponse" wsaw:Action="urn:getAllPaginatedIdpInfoResponse"/>
+            <wsdl:fault message="ns:IdentityProviderMgtServiceIdentityProviderManagementException" name="IdentityProviderMgtServiceIdentityProviderManagementException" wsaw:Action="urn:getAllPaginatedIdpInfoIdentityProviderMgtServiceIdentityProviderManagementException"/>
         </wsdl:operation>
         <wsdl:operation name="forceDeleteIdP">
             <wsdl:input message="ns:forceDeleteIdPRequest" wsaw:Action="urn:forceDeleteIdP"/>
@@ -529,6 +628,18 @@
         </wsdl:operation>
         <wsdl:operation name="getResidentIdP">
             <soap:operation soapAction="urn:getResidentIdP" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllIdpCount">
+            <soap:operation soapAction="urn:getAllIdpCount" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -599,6 +710,18 @@
                 <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getPaginatedIdpInfo">
+            <soap:operation soapAction="urn:getPaginatedIdpInfo" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getIdPByName">
             <soap:operation soapAction="urn:getIdPByName" style="document"/>
             <wsdl:input>
@@ -611,8 +734,32 @@
                 <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getFilteredIdpCount">
+            <soap:operation soapAction="urn:getFilteredIdpCount" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getAllIdPsSearch">
             <soap:operation soapAction="urn:getAllIdPsSearch" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedIdpInfo">
+            <soap:operation soapAction="urn:getAllPaginatedIdpInfo" style="document"/>
             <wsdl:input>
                 <soap:body use="literal"/>
             </wsdl:input>
@@ -710,6 +857,18 @@
                 <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdpCount">
+            <soap12:operation soapAction="urn:getAllIdpCount" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getAllProvisioningConnectors">
             <soap12:operation soapAction="urn:getAllProvisioningConnectors" style="document"/>
             <wsdl:input>
@@ -770,6 +929,18 @@
                 <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getPaginatedIdpInfo">
+            <soap12:operation soapAction="urn:getPaginatedIdpInfo" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getIdPByName">
             <soap12:operation soapAction="urn:getIdPByName" style="document"/>
             <wsdl:input>
@@ -782,8 +953,32 @@
                 <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
             </wsdl:fault>
         </wsdl:operation>
+        <wsdl:operation name="getFilteredIdpCount">
+            <soap12:operation soapAction="urn:getFilteredIdpCount" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
         <wsdl:operation name="getAllIdPsSearch">
             <soap12:operation soapAction="urn:getAllIdPsSearch" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="IdentityProviderMgtServiceIdentityProviderManagementException">
+                <soap12:fault use="literal" name="IdentityProviderMgtServiceIdentityProviderManagementException"/>
+            </wsdl:fault>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedIdpInfo">
+            <soap12:operation soapAction="urn:getAllPaginatedIdpInfo" style="document"/>
             <wsdl:input>
                 <soap12:body use="literal"/>
             </wsdl:input>
@@ -869,6 +1064,15 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="getAllIdpCount">
+            <http:operation location="getAllIdpCount"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getAllProvisioningConnectors">
             <http:operation location="getAllProvisioningConnectors"/>
             <wsdl:input>
@@ -914,6 +1118,15 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="getPaginatedIdpInfo">
+            <http:operation location="getPaginatedIdpInfo"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getIdPByName">
             <http:operation location="getIdPByName"/>
             <wsdl:input>
@@ -923,8 +1136,26 @@
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="getFilteredIdpCount">
+            <http:operation location="getFilteredIdpCount"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="getAllIdPsSearch">
             <http:operation location="getAllIdPsSearch"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="parameters"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getAllPaginatedIdpInfo">
+            <http:operation location="getAllPaginatedIdpInfo"/>
             <wsdl:input>
                 <mime:content type="text/xml" part="parameters"/>
             </wsdl:input>

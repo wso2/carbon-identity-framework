@@ -89,6 +89,18 @@ public interface IdpManager {
                             String tenantDomain)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
 
+    /**
+     * Get all basic identity provider information.
+     *
+     * @param filter       filter value for IdP search.
+     * @param tenantDomain tenant domain whose IdP names are requested.
+     * @return filtered Idp Count.
+     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     */
+    int getTotalIdPCount(String filter, String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
+
      /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name
      *
