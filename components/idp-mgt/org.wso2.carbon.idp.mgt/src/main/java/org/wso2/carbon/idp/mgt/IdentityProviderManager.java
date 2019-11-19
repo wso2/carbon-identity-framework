@@ -1032,7 +1032,6 @@ public class IdentityProviderManager implements IdpManager {
                                    String tenantDomain)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        validateSearchArguments(limit, offset);
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, filter, result);
@@ -1041,34 +1040,6 @@ public class IdentityProviderManager implements IdpManager {
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
                 result.getSortOrder(), result.getSortBy()));
         return result;
-    }
-
-    /**
-     * Check null for  limit and offset.
-     *
-     * @param limit  limit per page.
-     * @param offset offset value.
-     * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
-     */
-    private void validateSearchArguments(Integer limit, Integer offset)
-            throws IdentityProviderManagementClientException {
-
-        if (limit == null) {
-            String message = "Limit should not null";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-
-        }
-        if (limit < 0) {
-            String message = "Given limit: " + limit + " is a negative value.";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
-        if (offset == null) {
-            String message = "Offset should not null";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
     }
 
     /**
@@ -1084,9 +1055,11 @@ public class IdentityProviderManager implements IdpManager {
         List<ExpressionNode> expressionNodes = new ArrayList<>();
         FilterTreeBuilder filterTreeBuilder;
         try {
-            filterTreeBuilder = new FilterTreeBuilder(filter);
-            Node rootNode = filterTreeBuilder.buildTree();
-            setExpressionNodeList(rootNode, expressionNodes);
+            if (StringUtils.isNotBlank(filter)) {
+                filterTreeBuilder = new FilterTreeBuilder(filter);
+                Node rootNode = filterTreeBuilder.buildTree();
+                setExpressionNodeList(rootNode, expressionNodes);
+            }
         } catch (IOException | IdentityException e) {
             String message = "Error occurred while validate filter, filter: " + filter;
             throw IdPManagementUtil
@@ -1139,8 +1112,8 @@ public class IdentityProviderManager implements IdpManager {
      * @param result    result object.
      * @throws IdentityProviderManagementClientException Error while set offset.
      */
-    private void setParameters(int limit, int offset, String filter, String sortOrder, String sortBy, IdpSearchResult
-            result) throws IdentityProviderManagementClientException {
+    private void setParameters(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                               IdpSearchResult result) throws IdentityProviderManagementClientException {
 
         result.setLimit(validateLimit(limit));
         result.setOffSet(validateOffset(offset));
@@ -1216,7 +1189,20 @@ public class IdentityProviderManager implements IdpManager {
      * @param limit given limit value.
      * @return validated limit and offset value.
      */
-    private int validateLimit(int limit) {
+    private int validateLimit(Integer limit) throws IdentityProviderManagementClientException {
+
+        if (limit == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Given limit is null. Therefore we get the default limit from " +
+                        "identity.xml.");
+            }
+            limit = getDefaultItemsPerPage();
+        }
+        if (limit < 0) {
+            String message = "Given limit: " + limit + " is a negative value.";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+        }
 
         int maximumItemsPerPage = getMaximumItemPerPage();
         if (limit > maximumItemsPerPage) {
@@ -1251,13 +1237,42 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Get the Default Items per Page needed to display.
+     *
+     * @return defaultItemsPerPage need to display.
+     */
+    private int getDefaultItemsPerPage() {
+
+        int defaultItemsPerPage = -1;
+        try {
+            String defaultItemsPerPageProperty = IdentityUtil.getProperty(IdPManagementConstants
+                    .DEFAULT_ITEMS_PRE_PAGE_PROPERTY);
+            if (StringUtils.isNotBlank(defaultItemsPerPageProperty)) {
+                defaultItemsPerPage = Integer.parseInt(defaultItemsPerPageProperty);
+            }
+        } catch (NumberFormatException e) {
+            // Ignore.
+        }
+
+        if (defaultItemsPerPage < 0) {
+            defaultItemsPerPage = IdPManagementConstants.DEFAULT_ITEMS_PRE_PAGE;
+        }
+        return defaultItemsPerPage;
+    }
+
+    /**
      * Validate offset.
      *
      * @param offset given offset value.
      * @return validated limit and offset value.
      * @throws IdentityProviderManagementClientException Error while set offset
      */
-    private int validateOffset(int offset) throws IdentityProviderManagementClientException {
+    private int validateOffset(Integer offset) throws IdentityProviderManagementClientException {
+
+        if (offset == null) {
+            // Return first page offset.
+            offset = 0;
+        }
 
         if (offset < 0) {
             String message = "Invalid offset applied. Offset should not negative. offSet: " +
