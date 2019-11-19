@@ -126,8 +126,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * realm identifiers of each IdP.
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
      */
-    public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber)
-            throws IdentityProviderManagementException {
+    public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber) throws IdentityProviderManagementException {
 
         return getPaginatedIdpInfo(IdPManagementConstants.EMPTY_STRING, pageNumber);
     }
@@ -165,8 +164,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @return Identity providers list of array.
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
      */
-    public int getFilteredIdpCount(String filter)
-            throws IdentityProviderManagementException {
+    public int getFilteredIdpCount(String filter) throws IdentityProviderManagementException {
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         return IdentityProviderManager.getInstance()

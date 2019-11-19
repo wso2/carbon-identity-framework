@@ -55,11 +55,11 @@
 
 <script type="text/javascript">
 
-   function editIdPName(idpName){
+   function editIdPName(idpName) {
         location.href = "idp-mgt-edit-load.jsp?idPName=" + encodeURIComponent(idpName);
    }
 
-   function deleteIdPName(idpName,pageNumberInt,filterString){
+   function deleteIdPName(idpName,pageNumberInt,filterString) {
       function doDelete() {
       $.ajax({
       type: 'POST',
@@ -129,8 +129,8 @@
 
             int pageNumberInt = 0;
             int numberOfPages = 0;
-            int resultsPerPageInt = 100;
-            String resultsPerPage = IdentityUtil.getProperty("MaximumItemsPerPage");
+            int resultsPerPageInt = 15;
+            String resultsPerPage = IdentityUtil.getProperty("DefaultItemsPerPage");
             String pageNumber = request.getParameter("pageNumber");
 
             if (StringUtils.isNotBlank(resultsPerPage)) {
@@ -190,13 +190,13 @@
                 numberOfPages = (int) Math.ceil((double) numberOfIdps / resultsPerPageInt);
                 Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
 
-                for(IdentityProvider provider : idpsToDisplay) {
+                for (IdentityProvider provider : idpsToDisplay) {
                    idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
                 }
                 session.setAttribute("identityProviderList", idpsToDisplay);
                 session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
 
-            } catch (Exception e) {
+            } catch (NullPointerException e) {
                  //not needed here since the defaulted to 0
             }
 
@@ -261,7 +261,6 @@
                            <tbody>
                               <%
                                  for (IdentityProvider idp : idpsToDisplay) {
-                                     if (idp != null) {
                                          boolean enable = idp.getEnable();
                                  %>
                               <tr>
@@ -297,7 +296,6 @@
                                  </td>
                               </tr>
                               <%
-                                 }
                                  }
                                  %>
                            </tbody>
