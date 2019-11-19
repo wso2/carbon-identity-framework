@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.FrameworkUtil;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -1196,7 +1197,7 @@ public class IdentityProviderManager implements IdpManager {
                 log.debug("Given limit is null. Therefore we get the default limit from " +
                         "identity.xml.");
             }
-            limit = getDefaultItemsPerPage();
+            limit = IdentityUtil.getDefaultItemsPerPage();
         }
         if (limit < 0) {
             String message = "Given limit: " + limit + " is a negative value.";
@@ -1204,7 +1205,7 @@ public class IdentityProviderManager implements IdpManager {
                     message);
         }
 
-        int maximumItemsPerPage = getMaximumItemPerPage();
+        int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
         if (limit > maximumItemsPerPage) {
             if (log.isDebugEnabled()) {
                 log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
@@ -1213,51 +1214,6 @@ public class IdentityProviderManager implements IdpManager {
             limit = maximumItemsPerPage;
         }
         return limit;
-    }
-
-    /**
-     * Get the Maximum Item per Page need to display.
-     *
-     * @return maximumItemsPerPage need to display.
-     */
-    private int getMaximumItemPerPage() {
-
-        int maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
-        String maximumItemsPerPagePropertyValue =
-                IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
-        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
-            try {
-                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
-            } catch (NumberFormatException e) {
-                maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
-                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
-            }
-        }
-        return maximumItemsPerPage;
-    }
-
-    /**
-     * Get the Default Items per Page needed to display.
-     *
-     * @return defaultItemsPerPage need to display.
-     */
-    private int getDefaultItemsPerPage() {
-
-        int defaultItemsPerPage = -1;
-        try {
-            String defaultItemsPerPageProperty = IdentityUtil.getProperty(IdPManagementConstants
-                    .DEFAULT_ITEMS_PRE_PAGE_PROPERTY);
-            if (StringUtils.isNotBlank(defaultItemsPerPageProperty)) {
-                defaultItemsPerPage = Integer.parseInt(defaultItemsPerPageProperty);
-            }
-        } catch (NumberFormatException e) {
-            // Ignore.
-        }
-
-        if (defaultItemsPerPage < 0) {
-            defaultItemsPerPage = IdPManagementConstants.DEFAULT_ITEMS_PRE_PAGE;
-        }
-        return defaultItemsPerPage;
     }
 
     /**

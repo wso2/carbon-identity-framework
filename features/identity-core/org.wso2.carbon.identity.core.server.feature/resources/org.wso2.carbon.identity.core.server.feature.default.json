@@ -445,5 +445,7 @@
   "fido.webauthn.enable": true,
   "fido.trusted.origins": [
     "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
-  ]
+  ],
+  "pagination.max_items_per_page": "100",
+  "pagination.default_items_per_page": "15"
 }

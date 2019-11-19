@@ -30,11 +30,7 @@ public class IdPManagementConstants {
     public static final String MULTI_VALUED_PROPERT_IDENTIFIER_PATTERN = ".*\\" + MULTI_VALUED_PROPERTY_CHARACTER +
             "[0-9]+";
     public static final String META_DATA = "meta_data";
-    public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;
-    public static final int DEFAULT_ITEMS_PRE_PAGE = 15;
     public static final String DEFAULT_SORT_BY = "ID";
-    public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
-    public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
     public static final String DESC_SORT_ORDER = "DESC";
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";

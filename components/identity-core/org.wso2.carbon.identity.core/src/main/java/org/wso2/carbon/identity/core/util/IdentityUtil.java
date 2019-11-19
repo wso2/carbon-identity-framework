@@ -1323,4 +1323,48 @@ public class IdentityUtil {
         }
         return (byte) remainder;
     }
+
+    /**
+     * Get the Maximum Item per Page need to display.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    public static int getMaximumItemPerPage() {
+
+        int maximumItemsPerPage = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+        String maximumItemsPerPagePropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
+            try {
+                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumItemsPerPage = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
+            }
+        }
+        return maximumItemsPerPage;
+    }
+
+    /**
+     * Get the Default Items per Page needed to display.
+     *
+     * @return defaultItemsPerPage need to display.
+     */
+    public static int getDefaultItemsPerPage() {
+
+        int defaultItemsPerPage = IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE;
+        try {
+            String defaultItemsPerPageProperty = IdentityUtil.getProperty(IdentityCoreConstants
+                    .DEFAULT_ITEMS_PRE_PAGE_PROPERTY);
+            if (StringUtils.isNotBlank(defaultItemsPerPageProperty)) {
+                int defaultItemsPerPageConfig = Integer.parseInt(defaultItemsPerPageProperty);
+                if (defaultItemsPerPageConfig > 0) {
+                    defaultItemsPerPage = defaultItemsPerPageConfig;
+                }
+            }
+        } catch (NumberFormatException e) {
+            // Ignore.
+        }
+        return defaultItemsPerPage;
+    }
 }
