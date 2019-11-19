@@ -168,7 +168,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         return IdentityProviderManager.getInstance()
-                .getTotalIdPCount(IdPManagementConstants.EMPTY_STRING, tenantDomain);
+                .getTotalIdPCount(filter, tenantDomain);
     }
 
     /**
@@ -188,7 +188,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     }
 
     /**
-     * Method to get the ItemsPerPage property configured in the carbon.xml file.
+     * Method to get the ItemsPerPage property configured in the Identity.xml file.
      *
      * @return Items per page in pagination.
      */
@@ -196,19 +196,27 @@ public class IdentityProviderManagementService extends AbstractAdmin {
 
         String maximumItemsPerPagePropertyValue =
                 IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+        String defaultItemsPerPagePropertyValue =
+                IdentityUtil.getProperty(IdPManagementConstants.DEFAULT_ITEMS_PER_PAGE_PROPERTY);
+        int itemsPerPage = IdPManagementConstants.DEFAULT_ITEMS_PRE_PAGE;
         try {
             if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
-                int itemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
+                itemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
                 if (log.isDebugEnabled()) {
                     log.debug("Items per page for pagination is set to : " + itemsPerPage);
                 }
-                return itemsPerPage;
+            } else if (StringUtils.isNotBlank(defaultItemsPerPagePropertyValue)) {
+                itemsPerPage = Integer.parseInt(defaultItemsPerPagePropertyValue);
+                if (log.isDebugEnabled()) {
+                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
+                }
             }
         } catch (NumberFormatException e) {
-            log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml. Defaulting to: "
+            log.warn("Error occurred while parsing the page limit property value in identity.xml. Defaulting to: "
                     + IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
+            return itemsPerPage;
         }
-        return IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+        return itemsPerPage;
     }
 
     /**
