@@ -29,25 +29,32 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
+        SAML2SSO.FED_AUTH_NAME;
 
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
@@ -95,6 +102,18 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
                         sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
                                 .SESSION_TERMINATE);
+            }
+        }
+
+        // Remove federated authentication session details of the session context key from the database.
+        ArrayList<AuthHistory> authHistoryList = (ArrayList<AuthHistory>) context.getAuthenticationStepHistory();
+        if (authHistoryList.stream().anyMatch(
+                authHistory -> (FED_AUTH_NAME).equals(authHistory.getAuthenticatorName()))) {
+            try {
+                UserSessionStore.getInstance().removeSessionData(context.getSessionIdentifier());
+            } catch (UserSessionException e) {
+                throw new FrameworkException("Error while deleting federated authentication session details of " +
+                        "the session context key :" + context.getSessionIdentifier(), e);
             }
         }
 

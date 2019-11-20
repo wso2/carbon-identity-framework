@@ -22,7 +22,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
@@ -41,6 +46,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
+import static org.wso2.carbon.identity.base.IdentityConstants.ServerConfig.SAMLSSO;
 
 /**
  * Class to store and retrieve user related data.
@@ -684,5 +692,60 @@ public class UserSessionStore {
                     .getUserName() + " and session Id: " + sessionId + ".", e);
         }
         return isExisting;
+    }
+
+    /**
+     * Store session details of a given session context key to map the session context key with
+     * the federated IdP's session ID.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @param authHistory       History of the authentication flow.
+     * @throws UserSessionException Error while storing session details.
+     */
+    public void storeFederatedAuthSessionData(String sessionContextKey, AuthHistory authHistory)
+            throws UserSessionException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(
+                    SQLQueries.SQL_STORE_FEDERATED_AUTH_SESSION_INFO)) {
+                prepStmt.setString(1, authHistory.getIdpSessionIndexObj().toString());
+                prepStmt.setString(2, sessionContextKey);
+                prepStmt.setString(3, authHistory.getIdpName());
+                prepStmt.setString(4, authHistory.getAuthenticatorName());
+                prepStmt.setString(5, SAMLSSO);
+                prepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new UserSessionException("Error while adding session data for key:" + sessionContextKey, e);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while adding session data for key:" + sessionContextKey, e);
+        }
+    }
+
+    /**
+     * Remove federated authentication session details of a given session context key.
+     *
+     * @param sessionContextKey Session Context Key.
+     * @throws FrameworkException Error while deleting session details of a given session id.
+     */
+    public void removeSessionData(String sessionContextKey) throws UserSessionException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(
+                    SQLQueries.SQL_DELETE_FEDERATED_AUTH_SESSION_INFO)) {
+                prepStmt.setString(1, sessionContextKey);
+                prepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new UserSessionException("Error while removing federated authentication session details of " +
+                        "the session id:" + sessionContextKey, e);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while removing federated authentication session details of " +
+                    "the session id:" + sessionContextKey, e);
+        }
     }
 }

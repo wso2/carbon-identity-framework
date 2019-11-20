@@ -34,6 +34,7 @@ public class AuthHistory implements Serializable {
 
     private String authenticatorName;
     private String idpName;
+    private Object idpSessionIndexObj;
     private String code;
 
     public AuthHistory(String authenticatorName, String idpName) {
@@ -47,6 +48,12 @@ public class AuthHistory implements Serializable {
         this.code = code;
     }
 
+    public AuthHistory(String authenticatorName, String idpName, Object idpSessionIndexObj) {
+        this.authenticatorName = authenticatorName;
+        this.idpName = idpName;
+        this.idpSessionIndexObj = idpSessionIndexObj;
+    }
+
     public String getAuthenticatorName() {
         return authenticatorName;
     }
@@ -57,6 +64,11 @@ public class AuthHistory implements Serializable {
 
     public String getCode() {
         return code;
+    }
+
+    public Object getIdpSessionIndexObj() {
+
+        return idpSessionIndexObj;
     }
 
     /**
@@ -93,7 +105,8 @@ public class AuthHistory implements Serializable {
     @Override
     public String toString() {
         return AuthHistory.class.getSimpleName() + "{" + "authenticatorName='" + authenticatorName + '\''
-                + ", idpName='" + idpName + '\'' + ", code='" + code + '\'' + '}';
+                + ", idpName='" + idpName + '\'' + ", code='" + code + '\'' + ", idpSessionId='" + idpSessionIndexObj
+                + '}';
     }
 
     @Override
