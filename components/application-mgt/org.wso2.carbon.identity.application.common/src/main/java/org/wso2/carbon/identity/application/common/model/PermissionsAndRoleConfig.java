@@ -31,21 +31,24 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Application/Identity Provider permission and role configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "PermissionsAndRoleConfig")
 public class PermissionsAndRoleConfig implements Serializable {
 
     private static final long serialVersionUID = 784509684062361809L;
 
-    @XmlElementWrapper(name="Permissions")
+    @XmlElementWrapper(name = "Permissions")
     @XmlElement(name = "ApplicationPermission")
     private ApplicationPermission[] permissions = new ApplicationPermission[0];
 
-    @XmlElementWrapper(name="RoleMappings")
+    @XmlElementWrapper(name = "RoleMappings")
     @XmlElement(name = "RoleMapping")
     private RoleMapping[] roleMappings = new RoleMapping[0];
 
-    @XmlElementWrapper(name="IdpRoles")
+    @XmlElementWrapper(name = "IdpRoles")
     @XmlElement(name = "IdpRole")
     private String[] idpRoles = new String[0];
 

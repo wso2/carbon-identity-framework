@@ -31,13 +31,16 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Inbound authentication configuration of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "InboundAuthenticationConfig")
 public class InboundAuthenticationConfig implements Serializable {
 
     private static final long serialVersionUID = 2768674144259414077L;
 
-    @XmlElementWrapper(name="InboundAuthenticationRequestConfigs")
+    @XmlElementWrapper(name = "InboundAuthenticationRequestConfigs")
     @XmlElement(name = "InboundAuthenticationRequestConfig")
     private InboundAuthenticationRequestConfig[] inboundAuthenticationRequestConfigs = new
             InboundAuthenticationRequestConfig[0];

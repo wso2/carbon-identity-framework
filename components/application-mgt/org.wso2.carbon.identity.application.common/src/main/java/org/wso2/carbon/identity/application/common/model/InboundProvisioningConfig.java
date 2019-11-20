@@ -27,6 +27,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Inbound ptovisioning configuration of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "InboundProvisioningConfig")
 public class InboundProvisioningConfig implements Serializable {

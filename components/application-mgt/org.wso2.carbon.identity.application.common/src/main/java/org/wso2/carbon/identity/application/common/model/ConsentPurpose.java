@@ -96,8 +96,9 @@ public class ConsentPurpose implements Serializable {
                     try {
                         consentPurpose.setDisplayOrder(Integer.parseInt(member.getText()));
                     } catch (NumberFormatException e) {
-                        log.warn("DisplayOrder should be an Integer. Found: " + member.getText() + " instead. Setting " +
-                                 "default display order: " + DEFAULT_DISPLAY_ORDER);
+                        log.warn(
+                                "DisplayOrder should be an Integer. Found: " + member.getText() + " instead. Setting " +
+                                        "default display order: " + DEFAULT_DISPLAY_ORDER);
                         consentPurpose.setDisplayOrder(DEFAULT_DISPLAY_ORDER);
                     }
                 }

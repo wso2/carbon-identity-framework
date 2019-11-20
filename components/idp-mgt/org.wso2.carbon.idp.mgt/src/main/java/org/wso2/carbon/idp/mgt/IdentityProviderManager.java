@@ -2250,7 +2250,7 @@ public class IdentityProviderManager implements IdpManager {
         List<ProvisioningConnectorConfig> connectorConfigs = ProvisioningConnectorService
                 .getInstance().getProvisioningConnectorConfigs();
         if (connectorConfigs != null && connectorConfigs.size() > 0) {
-            return connectorConfigs.toArray(new ProvisioningConnectorConfig[connectorConfigs.size()]);
+            return connectorConfigs.toArray(new ProvisioningConnectorConfig[0]);
         }
         return null;
     }

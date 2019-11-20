@@ -27,6 +27,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Role mapping of the Identity Provider.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "RoleMapping")
 public class RoleMapping implements Serializable {

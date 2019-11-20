@@ -34,6 +34,9 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+/**
+ * Application configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "ServiceProvider")
 public class ServiceProvider implements Serializable {
@@ -66,7 +69,7 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
 
-    @XmlElementWrapper(name="RequestPathAuthenticatorConfigs")
+    @XmlElementWrapper(name = "RequestPathAuthenticatorConfigs")
     @XmlElement(name = "RequestPathAuthenticatorConfig")
     private RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs;
 
@@ -146,7 +149,7 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setDescription(element.getText());
             } else if ("LoginUrl".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
-            } else if( "Certificate".equals(elementName)){
+            } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
             } else if ("JwksUri".equals(elementName)) {
                 serviceProvider.setJwksUri(element.getText());

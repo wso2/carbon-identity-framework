@@ -35,6 +35,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Federated authenticator config of the Identity Provider.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "FederatedAuthenticatorConfig")
 public class FederatedAuthenticatorConfig implements Serializable {
@@ -50,7 +53,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
     @XmlElement(name = "IsEnabled")
     protected boolean enabled;
 
-    @XmlElementWrapper(name= "Properties")
+    @XmlElementWrapper(name = "Properties")
     @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
@@ -195,7 +198,7 @@ public class FederatedAuthenticatorConfig implements Serializable {
      * @param property
      * @return boolean
      */
-    public boolean isValidPropertyValue (Property property){
+    public boolean isValidPropertyValue(Property property) {
         return property != null && StringUtils.isNotBlank(property.getValue());
     }
 }

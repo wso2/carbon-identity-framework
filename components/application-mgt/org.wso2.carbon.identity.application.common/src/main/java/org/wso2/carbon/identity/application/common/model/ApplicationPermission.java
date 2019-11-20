@@ -27,6 +27,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Permissions of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "ApplicationPermission")
 public class ApplicationPermission implements Serializable {

@@ -23,13 +23,17 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorCo
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provisioning connector service.
+ */
 public class ProvisioningConnectorService {
 
     private static volatile ProvisioningConnectorService instance;
 
-    private List<ProvisioningConnectorConfig> provisioningConnectorConfigs = new ArrayList<ProvisioningConnectorConfig>();
+    private List<ProvisioningConnectorConfig> provisioningConnectorConfigs = new ArrayList<>();
 
     public static ProvisioningConnectorService getInstance() {
+
         if (instance == null) {
             synchronized (ProvisioningConnectorService.class) {
                 if (instance == null) {
@@ -41,22 +45,26 @@ public class ProvisioningConnectorService {
     }
 
     public List<ProvisioningConnectorConfig> getProvisioningConnectorConfigs() {
+
         return provisioningConnectorConfigs;
     }
 
     public void addProvisioningConnectorConfigs(ProvisioningConnectorConfig connectorConfig) {
+
         if (connectorConfig != null) {
             provisioningConnectorConfigs.add(connectorConfig);
         }
     }
 
     public void removeProvisioningConnectorConfigs(ProvisioningConnectorConfig connectorConfig) {
+
         if (connectorConfig != null) {
             provisioningConnectorConfigs.remove(connectorConfig);
         }
     }
 
     public ProvisioningConnectorConfig getProvisioningConnectorByName(String name) {
+
         for (ProvisioningConnectorConfig connectorConfig : provisioningConnectorConfigs) {
             if (connectorConfig.getName().equals(name)) {
                 return connectorConfig;

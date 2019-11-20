@@ -33,6 +33,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Local authenticator configuration of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "LocalAuthenticatorConfig")
 public class LocalAuthenticatorConfig implements Serializable {
@@ -48,7 +51,7 @@ public class LocalAuthenticatorConfig implements Serializable {
     @XmlElement(name = "IsEnabled")
     protected boolean enabled;
 
-    @XmlElementWrapper(name="Properties")
+    @XmlElementWrapper(name = "Properties")
     @XmlElement(name = "Property")
     protected Property[] properties = new Property[0];
 
@@ -151,8 +154,8 @@ public class LocalAuthenticatorConfig implements Serializable {
         if (properties == null) {
             return;
         }
-        Set<Property> propertySet = new HashSet<Property>(Arrays.asList(properties));
-        this.properties = propertySet.toArray(new Property[propertySet.size()]);
+        Set<Property> propertySet = new HashSet<>(Arrays.asList(properties));
+        this.properties = propertySet.toArray(new Property[0]);
     }
 
     /**
@@ -179,8 +182,9 @@ public class LocalAuthenticatorConfig implements Serializable {
         }
         LocalAuthenticatorConfig that = (LocalAuthenticatorConfig) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null)
+        if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
+        }
 
         return true;
     }

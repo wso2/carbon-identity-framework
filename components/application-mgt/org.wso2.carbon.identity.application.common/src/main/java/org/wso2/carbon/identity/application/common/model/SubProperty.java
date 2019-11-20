@@ -271,7 +271,9 @@ public class SubProperty implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof SubProperty)) return false;
+        if (!(o instanceof SubProperty)) {
+            return false;
+        }
 
         SubProperty property = (SubProperty) o;
 

@@ -29,6 +29,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Just in time provisioning configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "JustInTimeProvisioningConfig")
 public class JustInTimeProvisioningConfig extends InboundProvisioningConfig implements Serializable {

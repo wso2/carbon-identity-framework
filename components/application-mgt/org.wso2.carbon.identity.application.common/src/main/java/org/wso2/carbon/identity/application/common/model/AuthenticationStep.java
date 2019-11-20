@@ -34,6 +34,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Authentication step of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "AuthenticationStep")
 public class AuthenticationStep implements Serializable {
@@ -43,7 +46,7 @@ public class AuthenticationStep implements Serializable {
     @XmlElement(name = "StepOrder")
     private int stepOrder = 1;
 
-    @XmlElementWrapper(name="LocalAuthenticatorConfigs")
+    @XmlElementWrapper(name = "LocalAuthenticatorConfigs")
     @XmlElement(name = "LocalAuthenticatorConfig")
     private LocalAuthenticatorConfig[] localAuthenticatorConfigs = new LocalAuthenticatorConfig[0];
 
@@ -107,7 +110,7 @@ public class AuthenticationStep implements Serializable {
             } else if ("LocalAuthenticatorConfigs".equals(member.getLocalName())) {
 
                 Iterator<?> localAuthenticatorConfigsIter = member.getChildElements();
-                List<LocalAuthenticatorConfig> localAuthenticatorConfigsArrList = new ArrayList<LocalAuthenticatorConfig>();
+                List<LocalAuthenticatorConfig> localAuthenticatorConfigsArrList = new ArrayList<>();
 
                 if (localAuthenticatorConfigsIter != null) {
                     while (localAuthenticatorConfigsIter.hasNext()) {

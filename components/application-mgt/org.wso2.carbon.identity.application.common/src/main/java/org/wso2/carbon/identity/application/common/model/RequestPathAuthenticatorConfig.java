@@ -28,13 +28,13 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Requestpath authenticator configuration of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "RequestPathAuthenticatorConfig")
 public class RequestPathAuthenticatorConfig extends LocalAuthenticatorConfig {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -753652473009612026L;
 
     /*

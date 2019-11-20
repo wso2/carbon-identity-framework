@@ -43,7 +43,7 @@ public class ConsentPurposeConfigs implements Serializable {
     private static final Log log = LogFactory.getLog(ConsentPurposeConfigs.class);
     private static final String CONSENT_PURPOSE_ELEM = "ConsentPurpose";
 
-    @XmlElementWrapper(name="ConsentPurposeConfigs")
+    @XmlElementWrapper(name = "ConsentPurposeConfigs")
     @XmlElement(name = "ConsentPurpose")
     private ConsentPurpose[] consentPurpose;
 

@@ -32,6 +32,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Claim configuration of an Application/Identity Provider.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "ClaimConfig")
 public class ClaimConfig implements Serializable {
@@ -47,19 +50,18 @@ public class ClaimConfig implements Serializable {
     @XmlElement(name = "LocalClaimDialect")
     private boolean localClaimDialect;
 
-    @XmlElementWrapper(name="IdpClaim")
+    @XmlElementWrapper(name = "IdpClaim")
     @XmlElement(name = "Claims")
     private Claim[] idpClaims = new Claim[0];
 
-    @XmlElementWrapper(name="ClaimMappings")
+    @XmlElementWrapper(name = "ClaimMappings")
     @XmlElement(name = "ClaimMapping")
     private ClaimMapping[] claimMappings = new ClaimMapping[0];
-
 
     @XmlElement(name = "AlwaysSendMappedLocalSubjectId")
     private boolean alwaysSendMappedLocalSubjectId;
 
-    @XmlElementWrapper(name="SPClaimDialects")
+    @XmlElementWrapper(name = "SPClaimDialects")
     @XmlElement(name = "SPClaimDialect")
     private String[] spClaimDialects = null;
 

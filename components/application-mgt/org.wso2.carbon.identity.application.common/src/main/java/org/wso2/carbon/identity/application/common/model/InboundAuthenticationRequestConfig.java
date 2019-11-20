@@ -36,6 +36,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Inbound authentication request configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "InboundAuthenticationRequestConfig")
 public class InboundAuthenticationRequestConfig implements Serializable {
@@ -57,7 +60,7 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     @XmlElement(name = "inboundConfiguration")
     private String inboundConfiguration;
 
-    @XmlElementWrapper(name="Properties")
+    @XmlElementWrapper(name = "Properties")
     @XmlElement(name = "Property")
     private Property[] properties = new Property[0];
 
@@ -181,7 +184,7 @@ public class InboundAuthenticationRequestConfig implements Serializable {
         this.friendlyName = friendlyName;
     }
 
-    private Property[] sortPropertiesByDisplayOrder ( Set<Property> propertySet) {
+    private Property[] sortPropertiesByDisplayOrder(Set<Property> propertySet) {
 
         List<Property> list = new ArrayList(propertySet);
         Collections.sort(list, new Comparator<Property>() {

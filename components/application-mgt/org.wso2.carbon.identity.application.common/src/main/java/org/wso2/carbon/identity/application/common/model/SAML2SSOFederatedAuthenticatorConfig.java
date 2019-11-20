@@ -21,10 +21,11 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
+/**
+ * SAML2 federated authenticator Configuration.
+ */
 public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
-    /**
-     *
-     */
+
     private static final long serialVersionUID = -171672098979315832L;
 
     /**
@@ -212,5 +213,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
         return isArtifactResponseSigned;
     }
 
-    public String getArtifactResolveUrl() { return artifactResolveUrl; }
+    public String getArtifactResolveUrl() {
+        return artifactResolveUrl;
+    }
 }

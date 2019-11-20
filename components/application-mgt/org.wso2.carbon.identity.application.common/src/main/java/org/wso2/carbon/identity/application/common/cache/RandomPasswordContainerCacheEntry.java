@@ -20,9 +20,12 @@ package org.wso2.carbon.identity.application.common.cache;
 
 import org.wso2.carbon.identity.application.common.model.RandomPasswordContainer;
 
+/**
+ * Random password container cache entry.
+ */
 public class RandomPasswordContainerCacheEntry extends CacheEntry {
 
-    private RandomPasswordContainer randomPasswordContainer = null;
+    private RandomPasswordContainer randomPasswordContainer;
 
     public RandomPasswordContainerCacheEntry(
             RandomPasswordContainer randomPasswordContainer) {
