@@ -252,12 +252,12 @@ function idpMgtCancel(){
     }
     function doValidation() {
         var reason = "";
-        reason = validateAttributeIsEmpty("homeRealmId");
+        reason = validateAttribute("homeRealmId");
         if (reason != "") {
             CARBON.showWarningDialog("Resident Home Realm ID cannot be empty");
             return false;
         }
-        reason = validateAttributeIsEmpty("idPEntityId");
+        reason = validateAttribute("idPEntityId");
         if (reason != "") {
             CARBON.showWarningDialog("Resident IdP Entity ID cannot be empty");
             return false;
@@ -285,7 +285,7 @@ function idpMgtCancel(){
         }
         return true;
     }
-     function validateAttributeIsEmpty(attributeName) {
+     function validateAttribute(attributeName) {
             var attribute = document.getElementsByName(attributeName)[0];
             var error = "";
             var value = attribute.value;

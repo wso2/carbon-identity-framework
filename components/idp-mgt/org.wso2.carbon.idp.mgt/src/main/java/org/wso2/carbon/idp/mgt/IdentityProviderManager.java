@@ -1049,44 +1049,14 @@ public class IdentityProviderManager implements IdpManager {
      * @param filter       filter value for IdP search.
      * @param tenantDomain tenant domain whose IdP names are requested.
      * @return filtered idp count.
-     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
-     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementException Error while getting Identity  Providers count.IdentityProviderManagementService.java
      */
     @Override
-    public int getTotalIdPCount(String filter, String tenantDomain)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+    public int getTotalIdPCount(String filter, String tenantDomain) throws IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         return dao.getTotalIdPCount(tenantId, expressionNodes);
-    }
-
-    /**
-     * Check null for  limit and offset.
-     *
-     * @param limit  limit per page.
-     * @param offset offset value.
-     * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
-     */
-    private void validateSearchArguments(Integer limit, Integer offset)
-            throws IdentityProviderManagementClientException {
-
-        if (limit == null) {
-            String message = "Limit should not null";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-
-        }
-        if (limit < 0) {
-            String message = "Given limit: " + limit + " is a negative value.";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
-        if (offset == null) {
-            String message = "Offset should not null";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
     }
 
     /**

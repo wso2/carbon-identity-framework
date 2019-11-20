@@ -131,7 +131,7 @@
             int pageNumberInt = 0;
             int numberOfPages = 0;
             int resultsPerPageInt = 15;
-            String resultsPerPage = IdentityUtil.getProperty("DefaultItemsPerPage");
+            String resultsPerPage = IdentityUtil.getDefaultItemsPerPage();
             String pageNumber = request.getParameter("pageNumber");
 
             if (StringUtils.isNotBlank(resultsPerPage)) {

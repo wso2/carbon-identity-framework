@@ -143,7 +143,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             throws IdentityProviderManagementException {
 
         validateRequestedPageNumber(pageNumber);
-        Integer limit = getIdpPageLimit();
+        Integer limit = IdentityUtil.getDefaultItemsPerPage();
         Integer offset = getIdpPageOffset(pageNumber, limit);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
@@ -152,7 +152,6 @@ public class IdentityProviderManagementService extends AbstractAdmin {
                             IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain);
             return identityProviderList.getIdPs().toArray(new IdentityProvider[0]);
         } catch (IdentityProviderManagementException idpException) {
-            log.error("Error while getting IdPs in tenantDomain : " + tenantDomain, idpException);
             throw idpException;
         }
     }
@@ -177,45 +176,13 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @param limit      number of Idp display per page.
      * @return offset value.
      */
-    private Integer getIdpPageOffset(int pageNumber, int limit) {
+    private int getIdpPageOffset(int pageNumber, int limit) {
 
-        Integer offset = 0;
+        int offset = 0;
         if (pageNumber > 1) {
             offset = (pageNumber - 1) * limit;
         }
         return offset;
-    }
-
-    /**
-     * Method to get the ItemsPerPage property configured in the Identity.xml file.
-     *
-     * @return Items per page in pagination.
-     */
-    private static Integer getIdpPageLimit() {
-
-        String maximumItemsPerPagePropertyValue =
-                IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
-        String defaultItemsPerPagePropertyValue =
-                IdentityUtil.getProperty(IdPManagementConstants.DEFAULT_ITEMS_PER_PAGE_PROPERTY);
-        int itemsPerPage = IdPManagementConstants.DEFAULT_ITEMS_PRE_PAGE;
-        try {
-            if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
-                itemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
-                if (log.isDebugEnabled()) {
-                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
-                }
-            } else if (StringUtils.isNotBlank(defaultItemsPerPagePropertyValue)) {
-                itemsPerPage = Integer.parseInt(defaultItemsPerPagePropertyValue);
-                if (log.isDebugEnabled()) {
-                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
-                }
-            }
-        } catch (NumberFormatException e) {
-            log.warn("Error occurred while parsing the page limit property value in identity.xml. Defaulting to: "
-                    + IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE);
-            return itemsPerPage;
-        }
-        return itemsPerPage;
     }
 
     /**

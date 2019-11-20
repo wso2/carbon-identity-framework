@@ -1695,7 +1695,7 @@
         }
     }
 
-    function validateAttributeIsEmpty(attributeName) {
+    function validateAttribute(attributeName) {
         var attribute = document.getElementsByName(attributeName)[0];
         var error = "";
         var value = attribute.value;
