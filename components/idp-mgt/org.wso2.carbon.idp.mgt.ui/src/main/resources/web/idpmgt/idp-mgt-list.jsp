@@ -26,6 +26,7 @@
 <%@ page import="org.wso2.carbon.identity.base.IdentityValidationUtil" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdentityException" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -194,14 +195,17 @@
                 numberOfPages = (int) Math.ceil((double) numberOfIdps / resultsPerPageInt);
                 Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
 
-                for (IdentityProvider provider : idpsToDisplay) {
-                   idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
+                if(idpsToDisplay != null) {
+                    for (IdentityProvider provider : idpsToDisplay) {
+                       idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
+                    }
+                    session.setAttribute("identityProviderList", idpsToDisplay);
+                    session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
                 }
-                session.setAttribute("identityProviderList", idpsToDisplay);
-                session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
-
-            } catch (NullPointerException e) {
-                 //not needed here since the defaulted to 0
+            } catch (IdentityException e) {
+                 String message = MessageFormat.format(resourceBundle.getString("error.loading.idps"),
+                        new Object[]{e.getMessage()});
+                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
             }
 
             %>
