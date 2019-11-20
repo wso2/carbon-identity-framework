@@ -24,6 +24,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.FrameworkUtil;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -1032,7 +1033,6 @@ public class IdentityProviderManager implements IdpManager {
                                    String tenantDomain)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
-        validateSearchArguments(limit, offset);
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
         setParameters(limit, offset, sortOrder, sortBy, filter, result);
@@ -1041,34 +1041,6 @@ public class IdentityProviderManager implements IdpManager {
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
                 result.getSortOrder(), result.getSortBy()));
         return result;
-    }
-
-    /**
-     * Check null for  limit and offset.
-     *
-     * @param limit  limit per page.
-     * @param offset offset value.
-     * @throws IdentityProviderManagementClientException Error while limit and offset getting null.
-     */
-    private void validateSearchArguments(Integer limit, Integer offset)
-            throws IdentityProviderManagementClientException {
-
-        if (limit == null) {
-            String message = "Limit should not null";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-
-        }
-        if (limit < 0) {
-            String message = "Given limit: " + limit + " is a negative value.";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
-        if (offset == null) {
-            String message = "Offset should not null";
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
-                    message);
-        }
     }
 
     /**
@@ -1084,9 +1056,11 @@ public class IdentityProviderManager implements IdpManager {
         List<ExpressionNode> expressionNodes = new ArrayList<>();
         FilterTreeBuilder filterTreeBuilder;
         try {
-            filterTreeBuilder = new FilterTreeBuilder(filter);
-            Node rootNode = filterTreeBuilder.buildTree();
-            setExpressionNodeList(rootNode, expressionNodes);
+            if (StringUtils.isNotBlank(filter)) {
+                filterTreeBuilder = new FilterTreeBuilder(filter);
+                Node rootNode = filterTreeBuilder.buildTree();
+                setExpressionNodeList(rootNode, expressionNodes);
+            }
         } catch (IOException | IdentityException e) {
             String message = "Error occurred while validate filter, filter: " + filter;
             throw IdPManagementUtil
@@ -1139,8 +1113,8 @@ public class IdentityProviderManager implements IdpManager {
      * @param result    result object.
      * @throws IdentityProviderManagementClientException Error while set offset.
      */
-    private void setParameters(int limit, int offset, String filter, String sortOrder, String sortBy, IdpSearchResult
-            result) throws IdentityProviderManagementClientException {
+    private void setParameters(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                               IdpSearchResult result) throws IdentityProviderManagementClientException {
 
         result.setLimit(validateLimit(limit));
         result.setOffSet(validateOffset(offset));
@@ -1216,9 +1190,22 @@ public class IdentityProviderManager implements IdpManager {
      * @param limit given limit value.
      * @return validated limit and offset value.
      */
-    private int validateLimit(int limit) {
+    private int validateLimit(Integer limit) throws IdentityProviderManagementClientException {
 
-        int maximumItemsPerPage = getMaximumItemPerPage();
+        if (limit == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Given limit is null. Therefore we get the default limit from " +
+                        "identity.xml.");
+            }
+            limit = IdentityUtil.getDefaultItemsPerPage();
+        }
+        if (limit < 0) {
+            String message = "Given limit: " + limit + " is a negative value.";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    message);
+        }
+
+        int maximumItemsPerPage = IdentityUtil.getMaximumItemPerPage();
         if (limit > maximumItemsPerPage) {
             if (log.isDebugEnabled()) {
                 log.debug("Given limit exceed the maximum limit. Therefore we get the default limit from " +
@@ -1230,34 +1217,18 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Get the Maximum Item per Page need to display.
-     *
-     * @return maximumItemsPerPage need to display.
-     */
-    private int getMaximumItemPerPage() {
-
-        int maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
-        String maximumItemsPerPagePropertyValue =
-                IdentityUtil.getProperty(IdPManagementConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
-        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
-            try {
-                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
-            } catch (NumberFormatException e) {
-                maximumItemsPerPage = IdPManagementConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
-                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
-            }
-        }
-        return maximumItemsPerPage;
-    }
-
-    /**
      * Validate offset.
      *
      * @param offset given offset value.
      * @return validated limit and offset value.
      * @throws IdentityProviderManagementClientException Error while set offset
      */
-    private int validateOffset(int offset) throws IdentityProviderManagementClientException {
+    private int validateOffset(Integer offset) throws IdentityProviderManagementClientException {
+
+        if (offset == null) {
+            // Return first page offset.
+            offset = 0;
+        }
 
         if (offset < 0) {
             String message = "Invalid offset applied. Offset should not negative. offSet: " +
@@ -1984,7 +1955,8 @@ public class IdentityProviderManager implements IdpManager {
                         data);
             }
         }
-        identityProvider = dao.addIdP(identityProvider, tenantId, tenantDomain);
+        String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
+        identityProvider = dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
 
         // invoking the post listeners
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2005,12 +1977,26 @@ public class IdentityProviderManager implements IdpManager {
     @Override
     public void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
+        // Invoking the pre listeners.
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteIdP(idPName, tenantDomain)) {
+                return;
+            }
+        }
+
         IdentityProvider identityProvider = this.getIdPByName(idPName, tenantDomain, true);
         if (identityProvider == null) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_DOES_NOT_EXIST, idPName);
+            return;
         }
-        deleteIdPByResourceId(identityProvider.getResourceId(), tenantDomain);
+        deleteIDP(identityProvider.getResourceId(), idPName, tenantDomain);
+
+        // Invoking the post listeners.
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteIdP(idPName, tenantDomain)) {
+                return;
+            }
+        }
     }
 
     /**
@@ -2024,33 +2010,36 @@ public class IdentityProviderManager implements IdpManager {
     public void deleteIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {
 
-        // invoking the pre listeners
+        // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreDeleteIdPByResourceId(resourceId, tenantDomain)) {
                 return;
             }
         }
+        IdentityProvider identityProvider = getIdPByResourceId(resourceId, tenantDomain, true);
+        if (identityProvider == null) {
+            return;
+        }
+        deleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
+
+        // Invoking the post listeners.
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteIdPByResourceId(resourceId, identityProvider, tenantDomain)) {
+                return;
+            }
+        }
+    }
+
+    private void deleteIDP(String resourceId, String idpName, String tenantDomain) throws
+            IdentityProviderManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        IdentityProvider idp = getIdPByResourceId(resourceId, tenantDomain, true);
-
         if (SAML2SSOMetadataConverter != null) {
-            String idpName = null;
-            if (idp != null) {
-                idpName = idp.getIdentityProviderName();
-            }
             SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idpName);
         }
 
         dao.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
-
-        // invoking the post listeners
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteIdPByResourceId(resourceId, idp, tenantDomain)) {
-                return;
-            }
-        }
     }
 
     /**
@@ -2062,13 +2051,28 @@ public class IdentityProviderManager implements IdpManager {
      */
     public void forceDeleteIdp(String idpName, String tenantDomain) throws IdentityProviderManagementException {
 
+        // Invoking the pre listeners.
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteIdP(idpName, tenantDomain)) {
+                return;
+            }
+        }
+
         IdentityProvider identityProvider = this
                 .getIdPByName(idpName, tenantDomain, true);
         if (identityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_DOES_NOT_EXIST, idpName);
+                    .ERROR_CODE_IDP_NAME_DOES_NOT_EXIST, idpName);
         }
-        forceDeleteIdpByResourceId(identityProvider.getResourceId(), tenantDomain);
+        forceDeleteIDP(identityProvider.getResourceId(), idpName, tenantDomain);
+
+        // Invoking the post listeners.
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteIdP(idpName, tenantDomain)) {
+                return;
+            }
+        }
     }
 
     /**
@@ -2089,24 +2093,31 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        IdentityProvider idp = getIdPByResourceId(resourceId, tenantDomain, true);
-        if (SAML2SSOMetadataConverter != null) {
-            String idpName = null;
-            if (idp != null) {
-                idpName = idp.getIdentityProviderName();
+        IdentityProvider identityProvider = getIdPByResourceId(resourceId, tenantDomain, true);
+        if (identityProvider == null) {
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
+        }
+        forceDeleteIDP(resourceId, identityProvider.getIdentityProviderName(), tenantDomain);
+
+        // Invoking the post listeners
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteIdPByResourceId(resourceId, identityProvider,
+                    tenantDomain)) {
+                return;
             }
+        }
+    }
+
+    private void forceDeleteIDP(String resourceId, String idpName, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (SAML2SSOMetadataConverter != null) {
             SAML2SSOMetadataConverter.deleteMetadataString(tenantId, idpName);
         }
 
         dao.forceDeleteIdPByResourceId(resourceId, tenantId, tenantDomain);
-
-        // Invoking the post listeners
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteIdPByResourceId(resourceId, idp, tenantDomain)) {
-                return;
-            }
-        }
     }
 
     /**
@@ -2121,13 +2132,29 @@ public class IdentityProviderManager implements IdpManager {
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
 
+        // Invoking the pre listeners.
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreUpdateIdP(oldIdPName, newIdentityProvider,
+                    tenantDomain)) {
+                return;
+            }
+        }
         IdentityProvider currentIdentityProvider = this
                 .getIdPByName(oldIdPName, tenantDomain, true);
         if (currentIdentityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_DOES_NOT_EXIST, oldIdPName);
+                    .ERROR_CODE_IDP_NAME_DOES_NOT_EXIST, oldIdPName);
         }
-       updateIdPByResourceId(currentIdentityProvider.getResourceId(), newIdentityProvider, tenantDomain);
+        updateIDP(currentIdentityProvider, newIdentityProvider, IdentityTenantUtil.getTenantId(tenantDomain),
+                tenantDomain);
+
+        // Invoking the post listeners.
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostUpdateIdP(oldIdPName, newIdentityProvider, tenantDomain)) {
+                return;
+            }
+        }
     }
 
     /**
@@ -2143,10 +2170,6 @@ public class IdentityProviderManager implements IdpManager {
     public IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider
             newIdentityProvider, String tenantDomain) throws IdentityProviderManagementException {
 
-        IdentityProvider currentIdentityProvider = this
-                .getIdPByResourceId(resourceId, tenantDomain, true);
-        validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider.getIdentityProviderName());
-
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
@@ -2155,8 +2178,26 @@ public class IdentityProviderManager implements IdpManager {
                 return null;
             }
         }
-
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        IdentityProvider currentIdentityProvider = this
+                .getIdPByResourceId(resourceId, tenantDomain, true);
+        validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider.getIdentityProviderName(),
+                tenantDomain);
+        updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
+
+        // Invoking the post listeners.
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostUpdateIdPByResourceId(resourceId, currentIdentityProvider,
+                    newIdentityProvider, tenantDomain)) {
+                return null;
+            }
+        }
+        return dao.getIdPByResourceId(resourceId, tenantId, tenantDomain);
+    }
+
+    private void updateIDP(IdentityProvider currentIdentityProvider, IdentityProvider newIdentityProvider, int tenantId,
+                           String tenantDomain) throws IdentityProviderManagementException {
+
         if (isPermissionAndRoleConfigExist(newIdentityProvider)) {
             verifyAndUpdateRoleConfiguration(tenantDomain, tenantId, newIdentityProvider.getPermissionAndRoleConfig());
         }
@@ -2176,17 +2217,7 @@ public class IdentityProviderManager implements IdpManager {
                         data);
             }
         }
-
-        IdentityProvider updateIdP = dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
-
-        // invoking the post listeners
-        for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostUpdateIdPByResourceId(resourceId, currentIdentityProvider,
-                    newIdentityProvider, tenantDomain)) {
-                return null;
-            }
-        }
-        return updateIdP;
+        dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
     }
 
     /**
@@ -2495,18 +2526,25 @@ public class IdentityProviderManager implements IdpManager {
      * @param currentIdentityProvider   Old Identity Provider Information.
      * @param resourceId                Identity Provider's resource ID.
      * @param newIdPName                New Identity Provider name.
+     * @param tenantDomain              Tenant domain of IDP.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
     private void validateUpdateIdPInputValues(IdentityProvider currentIdentityProvider, String resourceId, String
-            newIdPName) throws IdentityProviderManagementException {
+            newIdPName, String tenantDomain) throws IdentityProviderManagementException {
 
-        if (IdPManagementServiceComponent.getFileBasedIdPs().containsKey(newIdPName)) {
-            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdPName);
-        }
         if (currentIdentityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
+        }
+        boolean isNewIdPNameExists = false;
+        IdentityProvider newIdentityProvider = getIdPByName(newIdPName, tenantDomain, true);
+        if (newIdentityProvider != null) {
+            isNewIdPNameExists = !StringUtils.equals(newIdentityProvider.getResourceId(), currentIdentityProvider
+                    .getResourceId());
+        }
+        if (isNewIdPNameExists || IdPManagementServiceComponent.getFileBasedIdPs().containsKey(newIdPName)) {
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdPName);
         }
     }
 
