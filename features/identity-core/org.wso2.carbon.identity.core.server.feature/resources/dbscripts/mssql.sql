@@ -546,8 +546,8 @@ IF NOT  EXISTS (SELECT * FROM SYS.OBJECTS WHERE OBJECT_ID = OBJECT_ID(N'[DBO].[I
     IS_LOCAL_CLAIM_DIALECT     CHAR(1)      NOT NULL DEFAULT '0',
     PRIMARY KEY (ID),
     DISPLAY_NAME               VARCHAR(255),
-    IMAGE_URL                  VARCHAR(255),
-    UUID                       VARCHAR(255) NOT NULL,
+    IMAGE_URL                  VARCHAR(1024),
+    UUID                       CHAR(36) NOT NULL,
     UNIQUE (TENANT_ID, NAME),
     UNIQUE (UUID)
   );
