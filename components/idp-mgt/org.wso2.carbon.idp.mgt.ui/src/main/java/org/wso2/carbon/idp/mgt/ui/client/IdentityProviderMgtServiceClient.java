@@ -130,7 +130,7 @@ public class IdentityProviderMgtServiceClient {
             return idPMgtStub.getAllIdPs();
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
-            throw new IdentityException("Error occurred while retrieving list of Identity Providers", e);
+            throw new IdentityException("Error occurred while retrieving list of Identity Providers");
         }
     }
 
@@ -139,14 +139,15 @@ public class IdentityProviderMgtServiceClient {
      *
      * @param pageNumber pageNumber need to filter.
      * @return list of paginated idp array.
-     * @throws Exception Error when getting list of Identity Providers.
+     * @throws IdentityException Error when getting list of Identity Providers.
      */
     public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber) throws IdentityException {
 
         try {
             return idPMgtStub.getAllPaginatedIdpInfo(pageNumber);
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            throw new IdentityException("Error in retrieving the list of Identity Providers for a given tenant", e);
+            log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
+            throw new IdentityException("Error in retrieving the list of Identity Providers for a given tenant");
         }
     }
 
@@ -156,15 +157,16 @@ public class IdentityProviderMgtServiceClient {
      * @param pageNumber pageNumber need to filter.
      * @param filter     Application name filter.
      * @return list of paginated idp array.
-     * @throws Exception Error when getting list of Identity Providers for a matching filter with pagination.
+     * @throws IdentityException Error when getting list of Identity Providers for a matching filter with pagination.
      */
     public IdentityProvider[] getPaginatedIdpInfo(int pageNumber, String filter) throws IdentityException {
 
         try {
             return idPMgtStub.getPaginatedIdpInfo(filter, pageNumber);
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            log.error( "Error in retrieving the list of filtered Identity Providers for a given tenant", e);
             throw new IdentityException(
-                    "Error in retrieving the list of filtered Identity Providers for a given tenant", e);
+                    "Error in retrieving the list of filtered Identity Providers for a given tenant");
         }
     }
 
@@ -179,7 +181,8 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getAllIdpCount();
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            throw new IdentityException("Error in retrieving the count of Identity Providers for a given tenant", e);
+            log.error("Error in retrieving the count of Identity Providers for a given tenant", e);
+            throw new IdentityException("Error in retrieving the count of Identity Providers for a given tenant");
         }
     }
 
@@ -195,8 +198,9 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getFilteredIdpCount(filter);
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            log.error("Error in retrieving the count of registered Identity Providers for a given tenant", e);
             throw new IdentityException(
-                    "Error in retrieving the count of registered Identity Providers for a given tenant", e);
+                    "Error in retrieving the count of registered Identity Providers for a given tenant");
         }
     }
 
@@ -224,13 +228,10 @@ public class IdentityProviderMgtServiceClient {
                 }
                 paginationSupported = false;
             }
-
             paginationSupportVerified = true;
         }
-
         return paginationSupported;
     }
-
 
     /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name

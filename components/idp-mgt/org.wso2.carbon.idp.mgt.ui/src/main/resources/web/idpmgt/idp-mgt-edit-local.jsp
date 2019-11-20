@@ -290,7 +290,7 @@ function idpMgtCancel(){
             var error = "";
             var value = attribute.value;
             if (value.length == 0) {
-                error = attribute.name+" ";
+                error = attribute.name + " ";
                 return error;
             }
             value = value.replace(/^\s+/, "") ;

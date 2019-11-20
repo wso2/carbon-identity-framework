@@ -115,8 +115,8 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     public int getAllIdpCount() throws IdentityProviderManagementException {
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        return IdentityProviderManager.getInstance().getTotalIdPCount(IdPManagementConstants.EMPTY_STRING,
-                tenantDomain);
+        return IdentityProviderManager.getInstance()
+                .getTotalIdPCount(IdPManagementConstants.EMPTY_STRING, tenantDomain);
     }
 
     /**
@@ -167,8 +167,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     public int getFilteredIdpCount(String filter) throws IdentityProviderManagementException {
 
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        return IdentityProviderManager.getInstance()
-                .getTotalIdPCount(filter, tenantDomain);
+        return IdentityProviderManager.getInstance().getTotalIdPCount(filter, tenantDomain);
     }
 
     /**

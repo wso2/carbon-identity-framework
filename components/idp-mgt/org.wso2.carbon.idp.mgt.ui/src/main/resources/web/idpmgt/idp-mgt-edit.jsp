@@ -1695,17 +1695,17 @@
         }
     }
 
-    function validateEmpty(fldname) {
-        var fld = document.getElementsByName(fldname)[0];
+    function validateAttributeIsEmpty(attributeName) {
+        var attribute = document.getElementsByName(attributeName)[0];
         var error = "";
-        var value = fld.value;
+        var value = attribute.value;
         if (value.length == 0) {
-            error = fld.name+" ";
+            error = attribute.name + " ";
             return error;
         }
         value = value.replace(/^\s+/, "") ;
         if (value.length == 0) {
-            error = fld.name + "(contains only spaces) ";
+            error = attribute.name + "(contains only spaces) ";
             return error;
         }
         return error;

@@ -59,7 +59,7 @@
         location.href = "idp-mgt-edit-load.jsp?idPName=" + encodeURIComponent(idpName);
    }
 
-   function deleteIdPName(idpName,pageNumberInt,filterString) {
+   function deleteIdPName(idpName, pageNumberInt, filterString) {
       function doDelete() {
       $.ajax({
       type: 'POST',
@@ -72,7 +72,7 @@
       success: function (responseText, status) {
          if (status == "success") {
             location.assign("idp-mgt-list.jsp?pageNumber=" + pageNumberInt.toString() +
-            "&region=region1&item=idp_list&filterString=" + filterString);
+            "&region=region1&item=idp_list&filterString=" + encodeURIComponent(filterString));
          }
       }
       });
@@ -135,14 +135,18 @@
 
             if (StringUtils.isNotBlank(resultsPerPage)) {
                 try {
-                    resultsPerPageInt = Integer.parseInt(resultsPerPage);
+                   if(Integer.parseInt(resultsPerPage) > 0) {
+                      resultsPerPageInt = Integer.parseInt(resultsPerPage);
+                    }
                 } catch (NumberFormatException ignored) {
                     //not needed to handle here, since the default value is already set.
                 }
             }
             if (StringUtils.isNotBlank(pageNumber)) {
                 try {
-                    pageNumberInt = Integer.parseInt(pageNumber);
+                   if(Integer.parseInt(pageNumber) > 0) {
+                     pageNumberInt = Integer.parseInt(pageNumber);
+                   }
                 } catch (NumberFormatException ignored) {
                     //not needed here since the defaulted to 0
                 }
