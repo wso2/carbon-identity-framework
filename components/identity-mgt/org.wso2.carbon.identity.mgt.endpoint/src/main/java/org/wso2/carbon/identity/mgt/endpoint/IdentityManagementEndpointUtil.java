@@ -506,14 +506,38 @@ public class IdentityManagementEndpointUtil {
      */
     public static String buildEndpointUrl(String path) {
 
-        String endpointUrl = IdentityManagementServiceUtil.getInstance().getServiceContextURL()
-                .replace(IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL, "");
+        String serviceContextURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL();
+        String endpointUrl = replaceLastOccurrence(serviceContextURL,
+                IdentityManagementEndpointConstants.UserInfoRecovery.SERVICE_CONTEXT_URL, "");
 
         if (path.startsWith("/")) {
             return endpointUrl + path;
         } else {
             return endpointUrl + "/" + path;
         }
+    }
+
+    /**
+     * Method to replace the last occurrence of the provided string in the base string.
+     *
+     * issue: https://services.mnm.local:9443/services => https://am/identity/concent-mgt/v1.mnm.local:9443/services/
+     * Fix: https://services.mnm.local:9443/services => https://services.mnm.local:9443/am/identity/concent-mgt/v1/
+     *
+     * @param base The base string
+     * @param toReplace The string which needs to be find and replaced
+     * @param replaceWith The replacement string.
+     * @return String with the replaced value.
+     * */
+    private static String replaceLastOccurrence(String base, String toReplace, String replaceWith) {
+        int lastIndex = base.lastIndexOf(toReplace);
+
+        if (lastIndex == -1) {
+            return base;
+        }
+
+        String begin = base.substring(0, lastIndex);
+        String end = base.substring(lastIndex + toReplace.length());
+        return begin + replaceWith + end;
     }
 
     public static void addErrorInformation(HttpServletRequest request, Exception e) {

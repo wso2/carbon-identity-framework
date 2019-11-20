@@ -127,7 +127,7 @@ public class SecondaryUserStoreConfigurationUtil {
                 String password = config.getFirstProperty(SERVER_KEYSTORE_PASSWORD);
                 String keyAlias = config.getFirstProperty(SERVER_KEYSTORE_KEY_ALIAS);
 
-                //use internal keystore
+                // Use internal keystore if it is configured.
                 if (INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
                     filePath = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_FILE);
                     keyStoreType = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_TYPE);

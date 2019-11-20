@@ -28,6 +28,7 @@ import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -450,6 +452,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig,
                 (org.wso2.carbon.user.core.UserStoreManager) userStore);
 
+        handleRoleClaim(context, allLocalClaims);
         context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
 
         // if standard dialect get all claim mappings from standard dialect to carbon dialect
@@ -947,5 +950,31 @@ public class DefaultClaimHandler implements ClaimHandler {
     private boolean useLocalClaimDialectForClaimMappings() {
 
         return FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
+    }
+
+    /**
+     * Specially handle role claim values.
+     *
+     * @param context Authentication context.
+     * @param mappedAttrs Mapped claim attributes.
+     */
+    private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
+
+        if (mappedAttrs.containsKey(FrameworkConstants.LOCAL_ROLE_CLAIM_URI)) {
+            String[] groups = mappedAttrs.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI).split(Pattern
+                    .quote(FrameworkUtils.getMultiAttributeSeparator()));
+            SequenceConfig sequenceConfig = context.getSequenceConfig();
+            // Execute only if it has allowed removing userstore domain from the sp level configurations.
+            if (isRemoveUserDomainInRole(sequenceConfig)) {
+                mappedAttrs.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, FrameworkUtils
+                        .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
+            }
+        }
+    }
+
+    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
+
+        return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
+                isUseUserstoreDomainInRoles();
     }
 }
