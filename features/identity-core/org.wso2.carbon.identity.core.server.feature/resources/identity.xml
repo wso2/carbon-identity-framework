@@ -1361,4 +1361,7 @@
         </FIDO2TrustedOrigins>
     </FIDO>
 
+    <MaximumItemsPerPage>100</MaximumItemsPerPage>
+    <DefaultItemsPerPage>15</DefaultItemsPerPage>
+
 </Server>

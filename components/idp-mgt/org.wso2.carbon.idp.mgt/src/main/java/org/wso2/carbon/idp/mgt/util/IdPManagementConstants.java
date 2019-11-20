@@ -30,9 +30,7 @@ public class IdPManagementConstants {
     public static final String MULTI_VALUED_PROPERT_IDENTIFIER_PATTERN = ".*\\" + MULTI_VALUED_PROPERTY_CHARACTER +
             "[0-9]+";
     public static final String META_DATA = "meta_data";
-    public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;
     public static final String DEFAULT_SORT_BY = "ID";
-    public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
     public static final String DESC_SORT_ORDER = "DESC";
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
@@ -106,7 +104,7 @@ public class IdPManagementConstants {
         public static final String GET_IDP_COUNT_SQL = "SELECT COUNT(*) FROM IDP WHERE ";
 
         public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ?";
-        
+
         public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, " +
                 "ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +
                 "DEFAULT_AUTHENTICATOR_NAME,DEFAULT_PRO_CONNECTOR_NAME, DESCRIPTION, IS_FEDERATION_HUB, " +
@@ -340,18 +338,19 @@ public class IdPManagementConstants {
 
     public enum ErrorMessage {
 
-        ERROR_CODE_UNEXPECTED("IDP_52001", "Unexpected Error"),
-        ERROR_CODE_ADD_IDP("IDP_52002", "Error while adding the Identity Provider: %s."),
-        ERROR_CODE_IDP_ALREADY_EXISTS("IDP_42001", "Identity Provider with the name: %s already exists."),
-        ERROR_CODE_RETRIEVE_IDP("IDP_52003", "Error while getting the Identity Provider: %s."),
-        ERROR_CODE_IDP_DOES_NOT_EXIST("IDP_42002", "Identity Provider with resource ID: %s does not exists."),
-        ERROR_CODE_DELETE_IDP("IDP_52004", "Error while deleting Identity Provider: %s."),
-        ERROR_CODE_UPDATE_IDP("IDP_52005", "Error while updating Identity Provider: %s."),
-        ERROR_CODE_IDP_ADD_REQUEST_INVALID("IDP_42003", "Identity Provider add request validation failed. %s"),
-        ERROR_CODE_IDP_GET_REQUEST_INVALID("IDP_42004", "Identity Provider get request validation failed. %s"),
-        ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP_42005", "Identity Provider delete request validation failed. %s"),
-        ERROR_CODE_IDP_UPDATE_REQUEST_INVALID("IDP_42006", "Identity Provider update request validation failed. %s"),
-        ERROR_CODE_SEARCH_REQUEST_INVALID("IDP_42007", "Search request validation failed. Invalid search filter. %s"),
+        ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
+        ERROR_CODE_ADD_IDP("IDP-65002", "Error while adding the Identity Provider: %s."),
+        ERROR_CODE_IDP_ALREADY_EXISTS("IDP-60001", "Identity Provider with the name: %s already exists."),
+        ERROR_CODE_RETRIEVE_IDP("IDP-65003", "Error while getting the Identity Provider: %s."),
+        ERROR_CODE_IDP_DOES_NOT_EXIST("IDP-60002", "Identity Provider with resource ID: %s does not exists."),
+        ERROR_CODE_IDP_NAME_DOES_NOT_EXIST("IDP-60002", "Identity Provider with name: %s does not exists."),
+        ERROR_CODE_DELETE_IDP("IDP-65004", "Error while deleting Identity Provider: %s."),
+        ERROR_CODE_UPDATE_IDP("IDP-65005", "Error while updating Identity Provider: %s."),
+        ERROR_CODE_IDP_ADD_REQUEST_INVALID("IDP-60003", "Identity Provider add request validation failed. %s"),
+        ERROR_CODE_IDP_GET_REQUEST_INVALID("IDP-60004", "Identity Provider get request validation failed. %s"),
+        ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP-60005", "Identity Provider delete request validation failed. %s"),
+        ERROR_CODE_IDP_UPDATE_REQUEST_INVALID("IDP-60006", "Identity Provider update request validation failed. %s"),
+        ERROR_CODE_SEARCH_REQUEST_INVALID("IDP-60007", "Search request validation failed. Invalid search filter. %s"),
         ERROR_CODE_CONNECTING_DATABASE("IDP_42008", "Error while connecting database. %s"),;
 
         private final String code;
