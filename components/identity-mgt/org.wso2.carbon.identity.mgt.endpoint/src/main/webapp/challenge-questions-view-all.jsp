@@ -18,12 +18,12 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateAllQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Question" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
-<%@ page import="java.util.List" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.InitiateAllQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.Question" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError" %>
 <%@ page import="java.io.File" %>
+<%@ page import="java.util.List" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%

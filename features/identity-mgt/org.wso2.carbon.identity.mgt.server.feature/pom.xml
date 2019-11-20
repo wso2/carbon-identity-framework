@@ -42,6 +42,10 @@
             <artifactId>org.wso2.carbon.captcha.mgt</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.mgt.endpoint.util</artifactId>
+        </dependency>
+        <dependency>
             <groupId>kaptcha.wso2</groupId>
             <artifactId>kaptcha</artifactId>
         </dependency>
@@ -130,6 +134,7 @@
                             <bundles>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.captcha.mgt</bundleDef>
+                                <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt.endpoint.util</bundleDef>
                                 <bundleDef>kaptcha.wso2:kaptcha</bundleDef>
                             </bundles>
                             <importFeatures>
