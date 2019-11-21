@@ -24,65 +24,69 @@ import java.io.Serializable;
  */
 public class IdentityProviderProperty implements Serializable {
 
+    private static final long serialVersionUID = 1032362460361184505L;
 
-	private static final long serialVersionUID = 1032362460361184505L;
+    private String name;
+    private String value;
+    private String displayName;
 
-	private String name;
-	private String value;
-	private String displayName;
+    /**
+     * Get Value
+     *
+     * @return value
+     */
+    public String getValue() {
 
-	/**
-	 * Get Value
-	 * 
-	 * @return value
-	 */
-	public String getValue() {
-		return value;
-	}
+        return value;
+    }
 
-	/**
-	 * Set Value
-	 * 
-	 * @param value
-	 */
-	public void setValue(String value) {
-		this.value = value;
-	}
+    /**
+     * Set Value
+     *
+     * @param value
+     */
+    public void setValue(String value) {
 
-	/**
-	 * Get Display name
-	 * 
-	 * @return Display name
-	 */
-	public String getDisplayName() {
-		return displayName;
-	}
+        this.value = value;
+    }
 
-	/**
-	 * Set display name
-	 * 
-	 * @param displayName
-	 */
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
+    /**
+     * Get Display name
+     *
+     * @return Display name
+     */
+    public String getDisplayName() {
 
-	/**
-	 * Get name
-	 * 
-	 * @return Name (This is the key)
-	 */
-	public String getName() {
-		return name;
-	}
+        return displayName;
+    }
 
-	/**
-	 * Set Name
-	 * 
-	 * @param name
-	 *            (This is the key)
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+    /**
+     * Set display name
+     *
+     * @param displayName
+     */
+    public void setDisplayName(String displayName) {
+
+        this.displayName = displayName;
+    }
+
+    /**
+     * Get name
+     *
+     * @return Name (This is the key)
+     */
+    public String getName() {
+
+        return name;
+    }
+
+    /**
+     * Set Name
+     *
+     * @param name (This is the key)
+     */
+    public void setName(String name) {
+
+        this.name = name;
+    }
 }

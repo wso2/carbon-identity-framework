@@ -28,23 +28,27 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Outbound provisioning configuration of the application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "OutboundProvisioningConfig")
 public class OutboundProvisioningConfig implements Serializable {
 
     private static final long serialVersionUID = 3669233357817378229L;
 
-    @XmlElementWrapper(name="ProvisioningIdentityProviders")
+    @XmlElementWrapper(name = "ProvisioningIdentityProviders")
     @XmlElement(name = "IdentityProvider")
     private IdentityProvider[] provisioningIdentityProviders = new IdentityProvider[0];
 
-    @XmlElementWrapper(name="ProvisionByRoleList")
+    @XmlElementWrapper(name = "ProvisionByRoleList")
     @XmlElement(name = "ProvisionByRole")
     private String[] provisionByRoleList;
 

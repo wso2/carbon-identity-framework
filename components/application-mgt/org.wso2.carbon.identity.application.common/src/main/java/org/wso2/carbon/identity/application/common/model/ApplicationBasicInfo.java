@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
 
+/**
+ * Basic information of an application.
+ */
 public class ApplicationBasicInfo implements Serializable {
 
     private static final long serialVersionUID = -16127229981193883L;

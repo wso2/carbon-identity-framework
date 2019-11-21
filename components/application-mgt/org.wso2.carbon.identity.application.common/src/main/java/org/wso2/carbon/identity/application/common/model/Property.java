@@ -26,12 +26,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Property object.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "Property")
 public class Property implements Serializable {
@@ -50,13 +54,11 @@ public class Property implements Serializable {
     @XmlElement(name = "DefaultValue")
     private String defaultValue;
 
-
     @XmlElement(name = "DisplayName")
     private String displayName;
 
     @XmlElement(name = "Required")
     private boolean required;
-
 
     @XmlElement(name = "DefaultValue")
     private String description;
@@ -75,12 +77,12 @@ public class Property implements Serializable {
     private String regex;
 
     @IgnoreNullElement
-    @XmlElementWrapper(name="Options")
+    @XmlElementWrapper(name = "Options")
     @XmlElement(name = "Option")
     private String[] options = new String[0];
 
     @IgnoreNullElement
-    @XmlElementWrapper(name="SubProperties")
+    @XmlElementWrapper(name = "SubProperties")
     @XmlElement(name = "SubProperty")
     private SubProperty[] subProperties = new SubProperty[0];
 

@@ -30,6 +30,9 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.Serializable;
 import java.util.Iterator;
 
+/**
+ * Representation of a user.
+ */
 public class User implements Serializable {
 
     private static final long serialVersionUID = 928301275168169633L;
@@ -132,23 +135,35 @@ public class User implements Serializable {
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof User)) {
+            return false;
+        }
 
         User user = (User) o;
 
-        if (!tenantDomain.equals(user.tenantDomain)) return false;
+        if (!tenantDomain.equals(user.tenantDomain)) {
+            return false;
+        }
 
         boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreCaseSensitive(userStoreDomain,
                 IdentityTenantUtil.getTenantId(tenantDomain));
 
-        if(isUsernameCaseSensitive) {
-            if (!userName.equals(user.userName)) return false;
+        if (isUsernameCaseSensitive) {
+            if (!userName.equals(user.userName)) {
+                return false;
+            }
         } else {
-            if (!userName.equalsIgnoreCase(user.userName)) return false;
+            if (!userName.equalsIgnoreCase(user.userName)) {
+                return false;
+            }
         }
 
-        if (!userStoreDomain.equals(user.userStoreDomain)) return false;
+        if (!userStoreDomain.equals(user.userStoreDomain)) {
+            return false;
+        }
 
         return true;
     }
@@ -210,7 +225,8 @@ public class User implements Serializable {
     }
 
     /**
-     * This method will retrieve the 'CaseInsensitiveUsername' property from the respective userstore and set that value.
+     * This method will retrieve the 'CaseInsensitiveUsername' property from the respective userstore and set that
+     * value.
      */
     protected void updateCaseSensitivity() {
 

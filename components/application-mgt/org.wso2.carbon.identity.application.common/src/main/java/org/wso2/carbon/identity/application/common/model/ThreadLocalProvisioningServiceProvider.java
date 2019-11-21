@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
@@ -22,6 +21,9 @@ package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
 
+/**
+ * Thread local object to identify the provisioning service provider.
+ */
 public class ThreadLocalProvisioningServiceProvider implements Serializable {
 
     private static final long serialVersionUID = 8869773391988526466L;
