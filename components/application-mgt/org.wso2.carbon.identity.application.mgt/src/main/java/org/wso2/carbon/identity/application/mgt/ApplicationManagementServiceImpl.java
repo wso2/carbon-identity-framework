@@ -670,40 +670,23 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         try {
             startTenantFlow(tenantDomain, username);
-
-            if (!ApplicationMgtUtil.isUserAuthorized(applicationName, username)) {
-                log.warn("Illegal Access! User " + CarbonContext.getThreadLocalCarbonContext().getUsername() +
-                        " does not have access to the application " + applicationName);
-                throw new IdentityApplicationManagementException("User not authorized");
-            }
+            doPreDeleteChecks(applicationName, tenantDomain, username);
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
-            appDAO.deleteApplication(applicationName);
 
-            ApplicationMgtUtil.deleteAppRole(applicationName);
-            ApplicationMgtUtil.deletePermissions(applicationName);
+            if (serviceProvider != null) {
 
-            if (serviceProvider != null &&
-                    serviceProvider.getInboundAuthenticationConfig() != null &&
-                    serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+                ApplicationMgtUtil.deleteAppRole(applicationName);
+                ApplicationMgtUtil.deletePermissions(applicationName);
 
-                InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
-                        .getInboundAuthenticationRequestConfigs();
-
-                for (InboundAuthenticationRequestConfig config : configs) {
-
-                    if (isSAMLInboundConfigured(config)) {
-
-                        SAMLApplicationDAO samlDAO = ApplicationMgtSystemConfig.getInstance().getSAMLClientDAO();
-                        samlDAO.removeServiceProviderConfiguration(config.getInboundAuthKey());
-
-                    } else if (isOAuth2InboundConfigured(config)) {
-                        OAuthApplicationDAO oathDAO = ApplicationMgtSystemConfig.getInstance().getOAuthOIDCClientDAO();
-                        oathDAO.removeOAuthApplication(config.getInboundAuthKey());
-
-                    }
+                appDAO.deleteApplication(applicationName);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Application cannot be found for name: " + applicationName +
+                            " in tenantDomain: " + tenantDomain);
                 }
+                return;
             }
 
         } catch (Exception e) {
@@ -2334,43 +2317,13 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             startTenantFlow(tenantDomain);
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             application = appDAO.getApplicationByResourceId(resourceId, tenantDomain);
+
             if (application != null) {
                 String applicationName = application.getApplicationName();
-
-                if (!ApplicationMgtUtil.isUserAuthorized(applicationName, username)) {
-                    log.warn("Illegal Access! User " + username + " does not have access to delete the application: "
-                            + applicationName);
-                    throw new IdentityApplicationManagementException("User not authorized");
-                }
-
-                if (StringUtils.equals(applicationName, ApplicationConstants.LOCAL_SP)) {
-                    String msg = "Cannot delete system default application: '%s' in tenantDomain: %s";
-                    throw new IdentityApplicationManagementClientException(
-                            new String[]{String.format(msg, applicationName, tenantDomain)});
-                }
+                doPreDeleteChecks(applicationName, tenantDomain, username);
 
                 ApplicationMgtUtil.deleteAppRole(applicationName);
                 ApplicationMgtUtil.deletePermissions(applicationName);
-
-                // Remove OAuth and SAML inbounds.. TODO: should we do it here...
-                if (isInboundAuthenticationConfigured(application)) {
-                    InboundAuthenticationRequestConfig[] configs =
-                            application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-                    // TODO: duplicate deletion... and should these be handled by the respective inbounds..
-                    for (InboundAuthenticationRequestConfig config : configs) {
-                        if (isSAMLInboundConfigured(config)) {
-                            SAMLApplicationDAO samlDAO =
-                                    ApplicationMgtSystemConfig.getInstance().getSAMLClientDAO();
-                            samlDAO.removeServiceProviderConfiguration(config.getInboundAuthKey());
-
-                        } else if (isOAuth2InboundConfigured(config)) {
-                            OAuthApplicationDAO oathDAO =
-                                    ApplicationMgtSystemConfig.getInstance().getOAuthOIDCClientDAO();
-                            oathDAO.removeOAuthApplication(config.getInboundAuthKey());
-                        }
-                    }
-                }
-
                 // Delete the app information from SP_APP table.
                 appDAO.deleteApplicationByResourceId(resourceId, tenantDomain);
             } else {
@@ -2392,22 +2345,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private boolean isOAuth2InboundConfigured(InboundAuthenticationRequestConfig config) {
+    private void doPreDeleteChecks(String applicationName, String tenantDomain,
+                                   String username) throws IdentityApplicationManagementException {
 
-        return IdentityApplicationConstants.OAuth2.NAME.equalsIgnoreCase(config.getInboundAuthType()) &&
-                config.getInboundAuthKey() != null;
-    }
+        if (!ApplicationMgtUtil.isUserAuthorized(applicationName, username)) {
+            log.warn("Illegal Access! User " + username + " does not have access to delete the application: "
+                    + applicationName);
+            throw new IdentityApplicationManagementException("User not authorized");
+        }
 
-    private boolean isSAMLInboundConfigured(InboundAuthenticationRequestConfig config) {
-
-        return Authenticator.SAML2SSO.NAME.equalsIgnoreCase(config.getInboundAuthType())
-                && config.getInboundAuthKey() != null;
-    }
-
-    private boolean isInboundAuthenticationConfigured(ServiceProvider application) {
-
-        return application.getInboundAuthenticationConfig() != null &&
-        application.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null;
+        if (StringUtils.equals(applicationName, ApplicationConstants.LOCAL_SP)) {
+            String msg = "Cannot delete system default application: '%s' in tenantDomain: %s";
+            throw new IdentityApplicationManagementClientException(
+                    new String[]{String.format(msg, applicationName, tenantDomain)});
+        }
     }
 
     private IdentityApplicationManagementClientException buildClientException(ErrorMessage errorMessage,
