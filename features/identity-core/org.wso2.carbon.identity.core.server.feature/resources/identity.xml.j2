@@ -859,6 +859,13 @@
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
     </Recovery>
 
+    <Notification>
+        <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
+        <ResolveNotificationChannels>
+            <Enable>{{identity_mgt.notification.enable_resolve_notification_channel}}</Enable>
+        </ResolveNotificationChannels>
+    </Notification>
+
     <EmailVerification>
         <Enable>{{identity_mgt.user_onboarding.enable_email_verification}}</Enable>
 	    <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
@@ -874,6 +881,10 @@
 
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
+        <RegisterWithVerifiedChannels>{{identity_mgt.user_self_registration.register_with_verified_channels}}</RegisterWithVerifiedChannels>
+            <API>
+                <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
+            </API>
         <LockOnCreation>{{identity_mgt.user_self_registration.lock_on_creation}}</LockOnCreation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>

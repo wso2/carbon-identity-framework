@@ -245,6 +245,9 @@
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
+  "identity_mgt.notification.default_notification_channel" : "EMAIL",
+  "identity_mgt.notification.enable_resolve_notification_channel" : false,
+
   "identity_mgt.user_onboarding.enable_email_verification": false,
   "identity_mgt.user_onboarding.ask_password_from_user": true,
   "identity_mgt.user_onboarding.lock_on_creation": true,
@@ -253,6 +256,8 @@
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
 
   "identity_mgt.user_self_registration.allow_self_registration": false,
+  "identity_mgt.user_self_registration.register_with_verified_channels" : false,
+  "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
