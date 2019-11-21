@@ -23,24 +23,25 @@ import org.wso2.carbon.caching.impl.CachingConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.listener.AbstractCacheListener;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
-import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.cache.Cache;
 import javax.cache.CacheBuilder;
 import javax.cache.CacheConfiguration;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * A base class for all cache implementations in Identity Application Management modules.
+ *
+ * @param <K> cache key type.
+ * @param <V> cache value type.
  */
 public class BaseCache<K extends Serializable, V extends Serializable> {
 
@@ -51,6 +52,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     private IdentityCacheConfig identityCacheConfig;
 
     public BaseCache(String cacheName) {
+
         this.cacheName = cacheName;
         identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null && !identityCacheConfig.isDistributed()) {
@@ -59,6 +61,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public BaseCache(String cacheName, boolean isTemp) {
+
         this.cacheName = cacheName;
         identityCacheConfig = IdentityUtil.getIdentityCacheConfig(CACHE_MANAGER_NAME, cacheName);
         if (identityCacheConfig != null) {
@@ -129,6 +132,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(K key, V entry) {
+
         if (!isEnabled()) {
             return;
         }
@@ -156,11 +160,12 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * @return Cached entry.
      */
     public V getValueFromCache(K key) {
+
         if (!isEnabled()) {
             return null;
         }
 
-        if(key == null) {
+        if (key == null) {
             return null;
         }
 
@@ -186,6 +191,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * @param key Key to clear cache.
      */
     public void clearCacheEntry(K key) {
+
         if (!isEnabled()) {
             return;
         }
@@ -209,6 +215,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
      * Remove everything in the cache.
      */
     public void clear() {
+
         if (!isEnabled()) {
             return;
         }
@@ -228,11 +235,13 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
         }
     }
 
-    public void addListener(AbstractCacheListener listener){
+    public void addListener(AbstractCacheListener listener) {
+
         cacheListeners.add(listener);
     }
 
     public boolean isEnabled() {
+
         if (identityCacheConfig != null) {
             return identityCacheConfig.isEnabled();
         }
@@ -240,6 +249,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public int getCacheTimeout() {
+
         if (identityCacheConfig != null && identityCacheConfig.getTimeout() > 0) {
             return identityCacheConfig.getTimeout();
         }
@@ -247,6 +257,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public int getCapacity() {
+
         if (identityCacheConfig != null && identityCacheConfig.getCapacity() > 0) {
             return identityCacheConfig.getCapacity();
         }
@@ -254,6 +265,7 @@ public class BaseCache<K extends Serializable, V extends Serializable> {
     }
 
     public void setCapacity(CacheImpl cache) {
+
         if (getCapacity() > 0) {
             cache.setCapacity(getCapacity());
         }

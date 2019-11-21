@@ -21,11 +21,11 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
+/**
+ * OpenID federated authenticator configuration.
+ */
 public class OpenIDFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 3710960866079439910L;
 
     @Override

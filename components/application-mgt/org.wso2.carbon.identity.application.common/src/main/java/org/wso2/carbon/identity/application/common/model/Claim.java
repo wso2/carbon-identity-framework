@@ -22,11 +22,15 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Claim representation of Application/Identity provider.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "Claim")
 public class Claim implements Serializable {

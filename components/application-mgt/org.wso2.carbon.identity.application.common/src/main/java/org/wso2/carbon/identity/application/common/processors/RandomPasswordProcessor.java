@@ -22,12 +22,12 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.model.RandomPassword;
-import org.wso2.carbon.identity.application.common.model.RandomPasswordContainer;
 import org.wso2.carbon.identity.application.common.cache.RandomPasswordContainerCache;
 import org.wso2.carbon.identity.application.common.cache.RandomPasswordContainerCacheEntry;
 import org.wso2.carbon.identity.application.common.cache.RandomPasswordContainerCacheKey;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.identity.application.common.model.RandomPassword;
+import org.wso2.carbon.identity.application.common.model.RandomPasswordContainer;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
@@ -43,15 +43,15 @@ public class RandomPasswordProcessor {
 
     private static volatile RandomPasswordProcessor randomPasswordProcessor = null;
 
-    private RandomPasswordProcessor (){
+    private RandomPasswordProcessor() {
 
     }
 
-    public static RandomPasswordProcessor getInstance(){
+    public static RandomPasswordProcessor getInstance() {
 
-        if(randomPasswordProcessor == null){
-            synchronized (RandomPassword.class){
-                if(randomPasswordProcessor == null){
+        if (randomPasswordProcessor == null) {
+            synchronized (RandomPassword.class) {
+                if (randomPasswordProcessor == null) {
                     randomPasswordProcessor = new RandomPasswordProcessor();
                 }
             }
@@ -62,11 +62,12 @@ public class RandomPasswordProcessor {
 
     /**
      * Remove original passwords with random passwords when sending password properties to UI front-end
+     *
      * @param properties
      */
-    public Property[] removeOriginalPasswords(Property[] properties){
+    public Property[] removeOriginalPasswords(Property[] properties) {
 
-        if (ArrayUtils.isEmpty(properties)){
+        if (ArrayUtils.isEmpty(properties)) {
             return new Property[0];
         }
 
@@ -85,6 +86,7 @@ public class RandomPasswordProcessor {
 
     /**
      * Remove random passwords with original passwords when sending password properties to Service Back-end
+     *
      * @param properties
      */
     public Property[] removeRandomPasswords(Property[] properties, boolean withCacheClear) {
@@ -94,7 +96,7 @@ public class RandomPasswordProcessor {
         }
 
         String uuid = IdentityApplicationManagementUtil.getPropertyValue(properties,
-                                                                         IdentityApplicationConstants.UNIQUE_ID_CONSTANT);
+                IdentityApplicationConstants.UNIQUE_ID_CONSTANT);
         if (StringUtils.isBlank(uuid)) {
             if (log.isDebugEnabled()) {
                 log.debug("Cache Key not found for Random Password Container");
@@ -104,7 +106,7 @@ public class RandomPasswordProcessor {
             RandomPassword[] randomPasswords = getRandomPasswordContainerFromCache(uuid, withCacheClear);
             if (!ArrayUtils.isEmpty(randomPasswords)) {
                 replaceRandomPasswordsWithOriginalPasswords(properties,
-                                                            randomPasswords);
+                        randomPasswords);
             }
         }
         return properties;
@@ -112,7 +114,7 @@ public class RandomPasswordProcessor {
 
     private void addPasswordContainerToCache(RandomPassword[] randomPasswords, String uuid) {
 
-        if(randomPasswords == null){
+        if (randomPasswords == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Random passwords not available for Password Container");
             }
@@ -125,7 +127,7 @@ public class RandomPasswordProcessor {
 
         RandomPasswordContainerCacheEntry cacheEntry = new RandomPasswordContainerCacheEntry(randomPasswordContainer);
 
-        if (log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Adding Random passwords to Cache with Key: " + uuid);
         }
 
@@ -153,8 +155,8 @@ public class RandomPasswordProcessor {
             return new RandomPassword[0];
         }
 
-        if (withCacheClear){
-            if (log.isDebugEnabled()){
+        if (withCacheClear) {
+            if (log.isDebugEnabled()) {
                 log.debug("Removing Cache Entry with Key: " + uuid);
             }
             cache.clearCacheEntry(cacheKey);
@@ -164,6 +166,7 @@ public class RandomPasswordProcessor {
 
     /**
      * Replace original passwords with provided random phrase
+     *
      * @param randomPhrase
      * @param properties
      * @return
@@ -179,7 +182,7 @@ public class RandomPasswordProcessor {
                 }
                 if (property.getName().contains(IdentityApplicationConstants.PASSWORD)) {
 
-                    if (log.isDebugEnabled()){
+                    if (log.isDebugEnabled()) {
                         log.debug("Found Password Property :" + property.getValue());
                     }
                     RandomPassword randomPassword = new RandomPassword();
@@ -197,6 +200,7 @@ public class RandomPasswordProcessor {
 
     /**
      * Remove random password list with corresponding old original password if value has not been changed
+     *
      * @param properties
      * @param randomPasswords
      */
@@ -208,7 +212,7 @@ public class RandomPasswordProcessor {
 
         for (Property property : properties) {
             if (property == null || StringUtils.isBlank(property.getName()) ||
-                StringUtils.isBlank(property.getValue())) {
+                    StringUtils.isBlank(property.getValue())) {
                 continue;
             }
             if (property.getName().contains(IdentityApplicationConstants.PASSWORD)) {
@@ -217,9 +221,9 @@ public class RandomPasswordProcessor {
                         //if password property value equal to random phrase, user didn't change the password hence set
                         // old password
                         if (property.getValue().equals(randomPassword.getRandomPhrase())) {
-                            if (log.isDebugEnabled()){
+                            if (log.isDebugEnabled()) {
                                 log.debug("User didn't changed password property: " + property.getName() +
-                                          " hence replace Random Password with Original Password");
+                                        " hence replace Random Password with Original Password");
                             }
                             property.setValue(randomPassword.getPassword());
                         }
@@ -229,9 +233,9 @@ public class RandomPasswordProcessor {
         }
     }
 
-    private Property[] addUniqueIdProperty(Property [] properties) {
+    private Property[] addUniqueIdProperty(Property[] properties) {
 
-        if (ArrayUtils.isEmpty(properties)){
+        if (ArrayUtils.isEmpty(properties)) {
             return new Property[0];
         }
 
@@ -239,7 +243,7 @@ public class RandomPasswordProcessor {
         Property uniqueIdProperty = new Property();
         uniqueIdProperty.setName(IdentityApplicationConstants.UNIQUE_ID_CONSTANT);
         uniqueIdProperty.setValue(uuid);
-        if (log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Adding uniqueId property: " + uuid);
         }
         properties = (Property[]) ArrayUtils.add(properties, uniqueIdProperty);
@@ -247,23 +251,23 @@ public class RandomPasswordProcessor {
         return properties;
     }
 
-    private Property[] removeUniqueIdProperty(Property [] properties) {
+    private Property[] removeUniqueIdProperty(Property[] properties) {
 
-        if (ArrayUtils.isEmpty(properties)){
+        if (ArrayUtils.isEmpty(properties)) {
             return new Property[0];
         }
 
-        for (int i=0 ; i < properties.length; i++) {
-            if (properties[i] == null){
+        for (int i = 0; i < properties.length; i++) {
+            if (properties[i] == null) {
                 continue;
             }
             if (IdentityApplicationConstants.UNIQUE_ID_CONSTANT.equals(properties[i].getName())) {
                 Property[] propertiesTemp = properties;
 
-                if (log.isDebugEnabled()){
+                if (log.isDebugEnabled()) {
                     log.debug("Removing uniqueId property: " + properties[i].getName());
                 }
-                properties = (Property[])ArrayUtils.removeElement(properties, properties[i]);
+                properties = (Property[]) ArrayUtils.removeElement(properties, properties[i]);
                 //Removing uniqueId property from existing properties too
                 propertiesTemp[i] = null;
             }

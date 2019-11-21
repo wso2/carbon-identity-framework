@@ -26,12 +26,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Local and outbound configuration of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "LocalAndOutboundAuthenticationConfig")
 public class LocalAndOutboundAuthenticationConfig implements Serializable {
@@ -293,7 +297,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         this.enableAuthorization = enableAuthorization;
     }
 
-    public AuthenticationScriptConfig getAuthenticationScriptConfig(){return authenticationScriptConfig;}
+    public AuthenticationScriptConfig getAuthenticationScriptConfig() {
+
+        return authenticationScriptConfig;
+    }
 
     public void setAuthenticationScriptConfig(AuthenticationScriptConfig authenticationScriptConfig) {
         this.authenticationScriptConfig = authenticationScriptConfig;

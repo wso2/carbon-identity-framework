@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -96,8 +97,9 @@ public class ConsentPurpose implements Serializable {
                     try {
                         consentPurpose.setDisplayOrder(Integer.parseInt(member.getText()));
                     } catch (NumberFormatException e) {
-                        log.warn("DisplayOrder should be an Integer. Found: " + member.getText() + " instead. Setting " +
-                                 "default display order: " + DEFAULT_DISPLAY_ORDER);
+                        log.warn(
+                                "DisplayOrder should be an Integer. Found: " + member.getText() + " instead. Setting " +
+                                        "default display order: " + DEFAULT_DISPLAY_ORDER);
                         consentPurpose.setDisplayOrder(DEFAULT_DISPLAY_ORDER);
                     }
                 }

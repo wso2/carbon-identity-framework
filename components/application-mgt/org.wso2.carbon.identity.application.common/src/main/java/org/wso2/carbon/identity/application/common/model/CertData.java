@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.common.model;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+/**
+ * Certificate information.
+ */
 public class CertData implements Serializable {
 
     private static final long serialVersionUID = 2096222055741114879L;
