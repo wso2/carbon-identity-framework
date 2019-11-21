@@ -24,6 +24,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
