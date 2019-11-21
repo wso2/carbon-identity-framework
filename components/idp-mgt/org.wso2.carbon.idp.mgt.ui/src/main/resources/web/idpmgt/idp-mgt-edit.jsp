@@ -224,8 +224,8 @@
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
 
-    IdentityProvider[] identityProvidersList =
-                (IdentityProvider[]) session.getAttribute("identityProviderList");
+    IdentityProvider[] identityProviders =
+                (IdentityProvider[]) session.getAttribute(IdPManagementUIUtil.IDP_LIST);
 
     Map<String, FederatedAuthenticatorConfig> allFedAuthConfigs = new HashMap<String, FederatedAuthenticatorConfig>();
 
@@ -1705,7 +1705,7 @@
         }
         value = value.replace(/^\s+/, "") ;
         if (value.length == 0) {
-            error = attribute.name + "(contains only spaces) ";
+            error = attribute.name + " contains only spaces";
             return error;
         }
         return error;

@@ -132,11 +132,11 @@
             int numberOfPages = 0;
             int resultsPerPageInt = 15;
             String resultsPerPage = IdentityUtil.getDefaultItemsPerPage();
-            String pageNumber = request.getParameter("pageNumber");
+            String pageNumber = request.getParameter(IdPManagementUIUtil.PAGE_NUMBER);
 
             if (StringUtils.isNotBlank(resultsPerPage)) {
                 try {
-                   if(Integer.parseInt(resultsPerPage) > 0) {
+                   if (Integer.parseInt(resultsPerPage) > 0) {
                       resultsPerPageInt = Integer.parseInt(resultsPerPage);
                     }
                 } catch (NumberFormatException ignored) {
@@ -145,7 +145,7 @@
             }
             if (StringUtils.isNotBlank(pageNumber)) {
                 try {
-                   if(Integer.parseInt(pageNumber) > 0) {
+                   if (Integer.parseInt(pageNumber) > 0) {
                      pageNumberInt = Integer.parseInt(pageNumber);
                    }
                 } catch (NumberFormatException ignored) {
@@ -164,8 +164,7 @@
                     if (hasFilter && !StringUtils.equals(filterString, DEFAULT_FILTER)) {
                         numberOfIdps = client.getFilteredIdpCount(filterString);
                         if (numberOfIdps > 0) {
-                            idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1,
-                                        filterString);
+                            idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1, filterString);
                         }
                     } else {
                         numberOfIdps = client.getIdpCount();
@@ -173,7 +172,6 @@
                         if (numberOfIdps > 0) {
                             if (numberOfIdps > resultsPerPageInt) {
                                 idpsToDisplay = client.getAllPaginatedIdpInfo(pageNumberInt + 1);
-
                             } else {
                                 idpsToDisplay = client.getIdPs();
                             }
@@ -195,12 +193,12 @@
                 numberOfPages = (int) Math.ceil((double) numberOfIdps / resultsPerPageInt);
                 Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
 
-                if(idpsToDisplay != null) {
+                if (idpsToDisplay != null) {
                     for (IdentityProvider provider : idpsToDisplay) {
                        idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
                     }
-                    session.setAttribute("identityProviderList", idpsToDisplay);
-                    session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
+                    session.setAttribute(IdPManagementUIUtil.IDP_LIST, idpsToDisplay);
+                    session.setAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID, idpUniqueIdMap);
                 }
             } catch (IdentityException e) {
                  String message = MessageFormat.format(resourceBundle.getString("error.loading.idps"),
@@ -273,7 +271,7 @@
                                  %>
                               <tr>
                                  <td><%=Encode.forHtmlContent(idp.getIdentityProviderName())%></td>
-                                 <td><%=idp.getIdentityProviderDescription() != null ? Encode.forHtml(idp.getIdentityProviderDescription()) : ""%></td>
+                                 <td><%=idp.getIdentityProviderDescription() != null ? Encode.forHtmlContent(idp.getIdentityProviderDescription()) : ""%></td>
                                  <td style="width: 100px; white-space: nowrap;">
                                     <% if (enable) { %>
                                     <a title="<fmt:message key='disable.policy'/>"

@@ -295,7 +295,7 @@ function idpMgtCancel(){
             }
             value = value.replace(/^\s+/, "") ;
             if (value.length == 0) {
-                error = attribute.name + "(contains only spaces) ";
+                error = attribute.name + " contains only spaces";
                 return error;
             }
             return error;

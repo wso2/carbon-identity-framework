@@ -129,8 +129,9 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getAllIdPs();
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
-            throw new IdentityException("Error occurred while retrieving list of Identity Providers");
+            String message = "Error in retrieving the list of Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
         }
     }
 
@@ -146,8 +147,9 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getAllPaginatedIdpInfo(pageNumber);
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
-            throw new IdentityException("Error in retrieving the list of Identity Providers for a given tenant");
+            String message = "Error in retrieving the list of Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
         }
     }
 
@@ -164,9 +166,9 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getPaginatedIdpInfo(filter, pageNumber);
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            log.error( "Error in retrieving the list of filtered Identity Providers for a given tenant", e);
-            throw new IdentityException(
-                    "Error in retrieving the list of filtered Identity Providers for a given tenant");
+            String message = "Error in retrieving the list of filtered Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
         }
     }
 
@@ -181,8 +183,9 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getAllIdpCount();
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            log.error("Error in retrieving the count of Identity Providers for a given tenant", e);
-            throw new IdentityException("Error in retrieving the count of Identity Providers for a given tenant");
+            String message = "Error in retrieving the count of Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
         }
     }
 
@@ -198,9 +201,9 @@ public class IdentityProviderMgtServiceClient {
         try {
             return idPMgtStub.getFilteredIdpCount(filter);
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
-            log.error("Error in retrieving the count of registered Identity Providers for a given tenant", e);
-            throw new IdentityException(
-                    "Error in retrieving the count of registered Identity Providers for a given tenant");
+            String message = "Error in retrieving the count of registered Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
         }
     }
 
@@ -218,12 +221,12 @@ public class IdentityProviderMgtServiceClient {
                 this.getIdpCount();
                 paginationSupported = true;
                 if (log.isDebugEnabled()) {
-                    log.debug("IdentityApplicationManagementService stub and backend supports for SP pagination. Set " +
-                            "'paginationSupported' flag to 'true'.");
+                    log.debug("IdentityProviderMgtService stub and backend supports for IDP pagination. Set" +
+                            " 'paginationSupported' flag to 'true'.");
                 }
-            } catch (IdentityException | NoSuchMethodError e) {
+            } catch (IdentityException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug("IdentityApplicationManagementService stub or backend does not supports for SP " +
+                    log.debug("IdentityProviderMgtService stub or backend does not supports for IDP " +
                             "pagination. Set 'paginationSupported' flag to 'false'.");
                 }
                 paginationSupported = false;

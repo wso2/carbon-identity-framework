@@ -146,14 +146,10 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         Integer limit = IdentityUtil.getDefaultItemsPerPage();
         Integer offset = getIdpPageOffset(pageNumber, limit);
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        try {
-            IdpSearchResult identityProviderList = IdentityProviderManager.getInstance()
-                    .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
-                            IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain);
-            return identityProviderList.getIdPs().toArray(new IdentityProvider[0]);
-        } catch (IdentityProviderManagementException idpException) {
-            throw idpException;
-        }
+        IdpSearchResult idpSearchResult = IdentityProviderManager.getInstance()
+                .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
+                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain);
+        return idpSearchResult.getIdPs().toArray(new IdentityProvider[0]);
     }
 
     /**
