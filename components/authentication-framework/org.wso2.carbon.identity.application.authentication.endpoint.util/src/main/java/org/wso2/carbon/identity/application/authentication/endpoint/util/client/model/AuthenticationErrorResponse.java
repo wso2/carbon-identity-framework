@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.endpoint.client.model;
+package org.wso2.carbon.identity.application.authentication.endpoint.util.client.model;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,6 +38,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @return error code
      */
     public String getCode() {
+
         return code;
     }
 
@@ -47,6 +48,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @param code error code
      */
     public void setCode(String code) {
+
         this.code = code;
     }
 
@@ -56,6 +58,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @return error message
      */
     public String getMessage() {
+
         return message;
     }
 
@@ -65,6 +68,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @param message error message
      */
     public void setMessage(String message) {
+
         this.message = message;
     }
 
@@ -74,6 +78,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @return error description
      */
     public String getDescription() {
+
         return description;
     }
 
@@ -83,6 +88,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @param description error description
      */
     public void setDescription(String description) {
+
         this.description = description;
     }
 
@@ -92,6 +98,7 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @return key value pair map
      */
     public Map<String, String> getProperties() {
+
         return Collections.unmodifiableMap(properties);
     }
 
@@ -101,9 +108,9 @@ public class AuthenticationErrorResponse extends AuthenticationResponse {
      * @param properties key value pair map
      */
     public void setProperties(Map<String, String> properties) {
-        if (properties != null || !properties.isEmpty()) {
+
+        if (properties != null && !properties.isEmpty()) {
             this.properties.putAll(properties);
         }
     }
 }
-

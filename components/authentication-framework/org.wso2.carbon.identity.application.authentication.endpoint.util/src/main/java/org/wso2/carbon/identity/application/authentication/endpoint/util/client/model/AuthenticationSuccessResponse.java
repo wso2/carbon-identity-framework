@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,30 +16,32 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.endpoint.client.model;
+package org.wso2.carbon.identity.application.authentication.endpoint.util.client.model;
 
 /**
- * Object model that represents the response returned from /api/identity/auth/v1.0 API.
+ * Object model that represents the successful authentication response returned from /api/identity/auth/v1.0 API.
  */
-public class AuthenticationResponse {
+public class AuthenticationSuccessResponse extends AuthenticationResponse {
 
-    private int statusCode;
+    private String token = null;
 
     /**
-     * Returns the HTTP status code of the response.
+     * Returns the JWT token.
      *
-     * @return status code
+     * @return JWT token
      */
-    public int getStatusCode() {
-        return statusCode;
+    public String getToken() {
+
+        return token;
     }
 
     /**
-     * Sets the HTTP status code of the response.
+     * Sets the JWT token.
      *
-     * @param statusCode status code
+     * @param token JWT token
      */
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
+    public void setToken(String token) {
+
+        this.token = token;
     }
 }

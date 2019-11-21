@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.endpoint.client;
+package org.wso2.carbon.identity.application.authentication.endpoint.util.client;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -27,10 +27,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONObject;
-import org.wso2.carbon.identity.application.authentication.endpoint.client.exception.ServiceClientException;
-import org.wso2.carbon.identity.application.authentication.endpoint.client.model.AuthenticationErrorResponse;
-import org.wso2.carbon.identity.application.authentication.endpoint.client.model.AuthenticationResponse;
-import org.wso2.carbon.identity.application.authentication.endpoint.client.model.AuthenticationSuccessResponse;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.client.exception.ServiceClientException;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationErrorResponse;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationResponse;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationSuccessResponse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -113,7 +113,8 @@ public class AuthAPIServiceClient {
     private String extractResponse(CloseableHttpResponse httpResponse) throws ServiceClientException {
 
         StringBuilder response = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()))) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(httpResponse.getEntity().getContent(), StandardCharsets.UTF_8))) {
             String inputLine;
             while ((inputLine = reader.readLine()) != null) {
                 response.append(inputLine);
@@ -131,7 +132,7 @@ public class AuthAPIServiceClient {
 
         String auth = username + ":" + password;
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
-        return "Basic " + new String(encodedAuth);
+        return "Basic " + new String(encodedAuth, StandardCharsets.UTF_8);
     }
 
     private AuthenticationSuccessResponse populateAuthenticationSuccessResponse(JSONObject responseObj) {
