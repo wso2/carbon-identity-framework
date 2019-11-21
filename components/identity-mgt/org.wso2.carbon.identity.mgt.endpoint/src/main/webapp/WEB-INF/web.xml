@@ -43,7 +43,7 @@
     </context-param-->
     
     <listener>
-        <listener-class>org.wso2.carbon.identity.mgt.endpoint.listener.IdentityManagementEndpointContextListener</listener-class>
+        <listener-class>org.wso2.carbon.identity.mgt.endpoint.util.listener.IdentityManagementEndpointContextListener</listener-class>
     </listener>
 
     <filter>

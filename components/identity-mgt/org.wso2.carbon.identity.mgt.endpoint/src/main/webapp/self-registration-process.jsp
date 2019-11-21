@@ -17,24 +17,24 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
+<%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SelfRegisterApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.UsernameRecoveryApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.api.SelfRegisterApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.api.UsernameRecoveryApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.Claim" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.Property" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.SelfRegistrationUser" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.SelfUserRegistrationRequest" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.User" %>
 <%@ page import="java.io.File" %>
+<%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.*" %>
-<%@ page import="java.net.URLEncoder" %>
-<%@ page import="com.google.gson.Gson" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.apache.commons.collections.map.HashedMap" %>
-<%@ page import="org.wso2.carbon.base.MultitenantConstants" %>
 <jsp:directive.include file="localize.jsp"/>
 
 

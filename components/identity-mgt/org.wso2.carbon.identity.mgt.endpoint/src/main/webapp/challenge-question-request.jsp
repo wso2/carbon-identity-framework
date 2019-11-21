@@ -17,18 +17,16 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="com.google.gson.Gson" %>
 <%@ page import="org.apache.commons.collections.map.HashedMap" %>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementServiceUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.ApiException" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.api.SecurityQuestionApi" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.Error" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.InitiateAllQuestionResponse" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.RetryError" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.model.User" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.api.SecurityQuestionApi" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.InitiateAllQuestionResponse" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.model.User" %>
 <%@ page import="java.util.Map" %>
 <jsp:directive.include file="localize.jsp"/>
 
