@@ -29,6 +29,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Locale;
 
 /**
  * Representation of a user.
@@ -112,7 +113,7 @@ public class User implements Serializable {
      * @param userStoreDomain user store domain of the user
      */
     public void setUserStoreDomain(String userStoreDomain) {
-        this.userStoreDomain = userStoreDomain.toUpperCase();
+        this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
         updateCaseSensitivity();
     }
 
@@ -182,7 +183,7 @@ public class User implements Serializable {
             String tenantDomain = MultitenantUtils.getTenantDomain(username);
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             String tenantAwareUsernameWithNoUserDomain = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
-            String userStoreDomain = IdentityUtil.extractDomainFromName(username).toUpperCase();
+            String userStoreDomain = IdentityUtil.extractDomainFromName(username).toUpperCase(Locale.ENGLISH);
             user.setUserName(tenantAwareUsernameWithNoUserDomain);
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 user.setTenantDomain(tenantDomain);
@@ -253,6 +254,7 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
+
         String username = null;
         if (StringUtils.isNotBlank(this.userName)) {
             username = this.userName;

@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.application.common.model.RandomPasswordContainer
  */
 public class RandomPasswordContainerCacheEntry extends CacheEntry {
 
+    private static final long serialVersionUID = -7029149306103829885L;
     private RandomPasswordContainer randomPasswordContainer;
 
     public RandomPasswordContainerCacheEntry(

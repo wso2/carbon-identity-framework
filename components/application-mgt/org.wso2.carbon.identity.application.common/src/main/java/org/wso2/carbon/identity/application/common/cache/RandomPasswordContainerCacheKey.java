@@ -23,6 +23,7 @@ package org.wso2.carbon.identity.application.common.cache;
  */
 public class RandomPasswordContainerCacheKey extends CacheKey {
 
+    private static final long serialVersionUID = 8961005517638265366L;
     private String uniqueID;
 
     public RandomPasswordContainerCacheKey(String uniqueID) {

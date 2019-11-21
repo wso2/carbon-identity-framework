@@ -73,7 +73,7 @@ public class ApplicationMgtUtil {
     // Default regex for validating application name.
     // This regex allows alphanumeric characters, dot, underscore, hyphen and spaces in the name.
     // Does not allow leading and trailing whitespaces.
-    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$";
+    public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$";
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
