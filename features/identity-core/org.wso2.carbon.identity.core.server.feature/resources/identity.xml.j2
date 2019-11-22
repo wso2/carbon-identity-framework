@@ -862,7 +862,7 @@
     <Notification>
         <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
         <ResolveNotificationChannels>
-            <Enable>{{identity_mgt.notification.enable_resolve_notification_channel}}</Enable>
+            <Enable>{{identity_mgt.notification.resolve_notification_channel}}</Enable>
         </ResolveNotificationChannels>
     </Notification>
 
@@ -881,10 +881,10 @@
 
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
-        <RegisterWithVerifiedChannels>{{identity_mgt.user_self_registration.register_with_verified_channels}}</RegisterWithVerifiedChannels>
-            <API>
-                <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
-            </API>
+        <SkipAccountLockOnVerifiedPreferredChannel>{{identity_mgt.user_self_registration.skip_account_lock_on_verified_preferred_channel}}</SkipAccountLockOnVerifiedPreferredChannel>
+        <API>
+            <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
+        </API>
         <LockOnCreation>{{identity_mgt.user_self_registration.lock_on_creation}}</LockOnCreation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
