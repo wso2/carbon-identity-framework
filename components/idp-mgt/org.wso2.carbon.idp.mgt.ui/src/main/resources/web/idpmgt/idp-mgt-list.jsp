@@ -72,7 +72,7 @@
       async: false,
       success: function (responseText, status) {
          if (status == "success") {
-            location.assign("idp-mgt-list.jsp?pageNumber=" + pageNumberInt.toString() +
+            location.assign("idp-mgt-list.jsp?pageNumber=" +  encodeURIComponent(pageNumberInt.toString()) +
             "&region=region1&item=idp_list&filterString=" + encodeURIComponent(filterString));
          }
       }
@@ -306,7 +306,7 @@
                page="idp-mgt-list.jsp"
                pageNumberParameterName="pageNumber"
                resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
-               parameters="<%=paginationValue%>"
+                parameters="<%=Encode.forHtmlAttribute(paginationValue)%>"
                prevKey="prev" nextKey="next"
                />
             <br/>
