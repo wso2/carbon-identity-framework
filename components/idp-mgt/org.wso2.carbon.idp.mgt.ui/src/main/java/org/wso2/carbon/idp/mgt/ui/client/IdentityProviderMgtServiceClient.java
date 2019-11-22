@@ -48,13 +48,6 @@ public class IdentityProviderMgtServiceClient {
 
     private UserAdminStub userAdminStub;
 
-    // A static variable is used to track if pagination support from the remote API is verified, as the client is
-    // initiated per request.
-    private static boolean paginationSupportVerified = false;
-    // A static variable is used to track if pagination is supported from the remote API, as the client is
-    // initiated per request.
-    private static boolean paginationSupported = false;
-
     /**
      * @param cookie           HttpSession cookie
      * @param backendServerURL Backend Carbon server URL
@@ -205,35 +198,6 @@ public class IdentityProviderMgtServiceClient {
             log.error(message, e);
             throw new IdentityException(message);
         }
-    }
-
-    /**
-     * Returns if pagination is supported in the remote API.
-     * This API is introduced to ensure that nothing breaks by invoking paginated APIs when API backend is not
-     * available.
-     *
-     * @return 'true' if pagination is supported
-     */
-    public boolean isPaginationSupported() {
-
-        if (!paginationSupportVerified) {
-            try {
-                this.getIdpCount();
-                paginationSupported = true;
-                if (log.isDebugEnabled()) {
-                    log.debug("IdentityProviderMgtService stub and backend supports for IDP pagination. Set" +
-                            " 'paginationSupported' flag to 'true'.");
-                }
-            } catch (IdentityException e) {
-                if (log.isDebugEnabled()) {
-                    log.debug("IdentityProviderMgtService stub or backend does not supports for IDP " +
-                            "pagination. Set 'paginationSupported' flag to 'false'.");
-                }
-                paginationSupported = false;
-            }
-            paginationSupportVerified = true;
-        }
-        return paginationSupported;
     }
 
     /**

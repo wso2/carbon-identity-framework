@@ -160,39 +160,23 @@
                             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
                 IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
                 int numberOfIdps = 0;
-                if (client.isPaginationSupported()) {
-                    if (hasFilter && !StringUtils.equals(filterString, DEFAULT_FILTER)) {
-                        numberOfIdps = client.getFilteredIdpCount(filterString);
-                        if (numberOfIdps > 0) {
-                            idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1, filterString);
-                        }
-                    } else {
-                        numberOfIdps = client.getIdpCount();
-
-                        if (numberOfIdps > 0) {
-                            if (numberOfIdps > resultsPerPageInt) {
-                                idpsToDisplay = client.getAllPaginatedIdpInfo(pageNumberInt + 1);
-                            } else {
-                                idpsToDisplay = client.getIdPs();
-                            }
-                        }
-                    }
+                if (hasFilter && !StringUtils.equals(filterString, DEFAULT_FILTER)) {
+                   numberOfIdps = client.getFilteredIdpCount(filterString);
+                   if (numberOfIdps > 0) {
+                      idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1, filterString);
+                   }
                 } else {
-                    IdentityProvider[] idps = client.getIdPs();
-                    if (idps != null) {
-                        numberOfIdps = idps.length;
-                        int startIndex = pageNumberInt * resultsPerPageInt;
-                        int endIndex = (pageNumberInt + 1) * resultsPerPageInt;
-                        idpsToDisplay = new IdentityProvider[resultsPerPageInt];
-
-                        for (int i = startIndex, j = 0; i <= endIndex && i < idps.length; i++, j++) {
-                            idpsToDisplay[j] = idps[i];
-                        }
-                    }
+                   numberOfIdps = client.getIdpCount();
+                   if (numberOfIdps > 0) {
+                      if (numberOfIdps > resultsPerPageInt) {
+                         idpsToDisplay = client.getAllPaginatedIdpInfo(pageNumberInt + 1);
+                      } else {
+                         idpsToDisplay = client.getIdPs();
+                      }
+                   }
                 }
                 numberOfPages = (int) Math.ceil((double) numberOfIdps / resultsPerPageInt);
                 Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
-
                 if (idpsToDisplay != null) {
                     for (IdentityProvider provider : idpsToDisplay) {
                        idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
@@ -205,8 +189,7 @@
                         new Object[]{e.getMessage()});
                  CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
             }
-
-            %>
+         %>
 
          <div class="sectionSub">
             <table style="border:none; !important margin-top:10px;margin-left:5px;">
