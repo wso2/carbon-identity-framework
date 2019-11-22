@@ -27,6 +27,7 @@
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdentityException" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -130,19 +131,8 @@
 
             int pageNumberInt = 0;
             int numberOfPages = 0;
-            int resultsPerPageInt = 15;
-            String resultsPerPage = IdentityUtil.getDefaultItemsPerPage();
+            int resultsPerPageInt = IdentityUtil.getDefaultItemsPerPage();
             String pageNumber = request.getParameter(IdPManagementUIUtil.PAGE_NUMBER);
-
-            if (StringUtils.isNotBlank(resultsPerPage)) {
-                try {
-                   if (Integer.parseInt(resultsPerPage) > 0) {
-                      resultsPerPageInt = Integer.parseInt(resultsPerPage);
-                    }
-                } catch (NumberFormatException ignored) {
-                    //not needed to handle here, since the default value is already set.
-                }
-            }
             if (StringUtils.isNotBlank(pageNumber)) {
                 try {
                    if (Integer.parseInt(pageNumber) > 0) {
@@ -152,7 +142,6 @@
                     //not needed here since the defaulted to 0
                 }
             }
-
             try {
                 String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
                 String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
