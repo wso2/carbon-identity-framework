@@ -18,11 +18,15 @@
 
 package org.wso2.carbon.identity.application.common.cache;
 
+/**
+ * Random password container cache key.
+ */
 public class RandomPasswordContainerCacheKey extends CacheKey {
 
-    private String uniqueID = null;
+    private String uniqueID;
 
-    public RandomPasswordContainerCacheKey(String uniqueID){
+    public RandomPasswordContainerCacheKey(String uniqueID) {
+
         this.uniqueID = uniqueID;
     }
 

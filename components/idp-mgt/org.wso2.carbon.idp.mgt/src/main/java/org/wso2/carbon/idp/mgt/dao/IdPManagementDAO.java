@@ -2094,12 +2094,14 @@ public class IdPManagementDAO {
     }
 
     /**
-     * @param identityProvider
-     * @param tenantId
+     * Add IDP.
+     *
+     * @param identityProvider  Identity provider information.
+     * @param tenantId          Tenant ID.
+     * @return Resource ID of created IDP.
      * @throws IdentityProviderManagementException
      */
-    public
-    IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, int tenantId)
+    public String addIdPWithResourceId(IdentityProvider identityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
         Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
@@ -2279,8 +2281,7 @@ public class IdPManagementDAO {
                     .getJustInTimeProvisioningConfig(), idpProperties);
             addIdentityProviderProperties(dbConnection, idPId, identityProviderProperties, tenantId);
             IdentityDatabaseUtil.commitTransaction(dbConnection);
-            return getIDPbyResourceId(dbConnection, resourceId, tenantId, IdentityTenantUtil.getTenantDomain
-                    (tenantId));
+            return resourceId;
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
         } catch (SQLException e) {
@@ -2352,10 +2353,9 @@ public class IdPManagementDAO {
      * @param newIdentityProvider
      * @param currentIdentityProvider
      * @param tenantId
-     * @return
      * @throws IdentityProviderManagementException
      */
-    public IdentityProvider updateIdPWithResourceId(String resourceId, IdentityProvider
+    public void updateIdPWithResourceId(String resourceId, IdentityProvider
             newIdentityProvider, IdentityProvider currentIdentityProvider, int tenantId)
             throws IdentityProviderManagementException {
 
@@ -2533,15 +2533,7 @@ public class IdPManagementDAO {
                         (newIdentityProvider.getJustInTimeProvisioningConfig(), idpProperties);
                 updateIdentityProviderProperties(dbConnection, idpId, identityProviderProperties, tenantId);
             }
-
-            // get updated Identity provider.
-            IdentityProvider updatedIDP = null;
-            if (StringUtils.isNotBlank(resourceId)) {
-                updatedIDP = getIDPbyResourceId(dbConnection, resourceId, tenantId,
-                        IdentityTenantUtil.getTenantDomain(tenantId));
-            }
             IdentityDatabaseUtil.commitTransaction(dbConnection);
-            return updatedIDP;
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
         } catch (SQLException e) {

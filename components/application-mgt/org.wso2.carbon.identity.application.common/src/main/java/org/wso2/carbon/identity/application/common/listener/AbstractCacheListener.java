@@ -23,7 +23,13 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.cache.event.CacheEntryListener;
 
-public abstract class AbstractCacheListener<K, V> implements CacheEntryListener<K, V>{
+/**
+ * Abstract implementation of the listener operations for cache entries.
+ *
+ * @param <K> cache key type.
+ * @param <V> cache value type.
+ */
+public abstract class AbstractCacheListener<K, V> implements CacheEntryListener<K, V> {
 
     /**
      * Return is listener enable
@@ -31,6 +37,7 @@ public abstract class AbstractCacheListener<K, V> implements CacheEntryListener<
      * @return enable/disable
      */
     public boolean isEnable() {
+
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (AbstractCacheListener.class.getName(), this.getClass().getName());
 

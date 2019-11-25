@@ -29,34 +29,36 @@ import org.wso2.carbon.identity.testutil.log.LogUtil;
 /**
  * PowerMock based TestNG test that extended from PowerMockIdentityBaseTest class can read "log-level" parameter from
  * testng.xml configuration file and set that value as the root log level before executing each test method.
- *
+ * <p>
  * Example :
  * {@code
- *  <test name="basic-authenticator-tests-with-debug-logs" preserve-order="true" parallel="false">
- *      <parameter name="log-level" value="debug"/>
- *      <classes>
- *          <class name="org.wso2.carbon.identity.application.authenticator.basicauth.BasicAuthenticatorTestCase"/>
- *      </classes>
- *  </test>
+ * <test name="basic-authenticator-tests-with-debug-logs" preserve-order="true" parallel="false">
+ * <parameter name="log-level" value="debug"/>
+ * <classes>
+ * <class name="org.wso2.carbon.identity.application.authenticator.basicauth.BasicAuthenticatorTestCase"/>
+ * </classes>
+ * </test>
  * }
- *
+ * <p>
  * Test cases that should run twice with debug and info or any other log levels need to be extended from this class.
  * PowerMockIdentityBaseTest class also set ignore package list for PowerMock framework.
  *
  * @see org.wso2.carbon.identity.testutil.IdentityBaseTest
  */
 
-@PowerMockIgnore({"javax.management.*","javax.script.*"})
+@PowerMockIgnore({"javax.management.*", "javax.script.*"})
 public abstract class PowerMockIdentityBaseTest extends PowerMockTestCase {
 
-	public PowerMockIdentityBaseTest() {
-		LogUtil.configureAndAddConsoleAppender();
-	}
+    public PowerMockIdentityBaseTest() {
 
-	@Parameters({"log-level"})
-	@BeforeMethod
-	public void setUp(@Optional String logLevel) throws Exception {
-		LogUtil.configureLogLevel(logLevel);
-	}
+        LogUtil.configureAndAddConsoleAppender();
+    }
+
+    @Parameters({"log-level"})
+    @BeforeMethod
+    public void setUp(@Optional String logLevel) throws Exception {
+
+        LogUtil.configureLogLevel(logLevel);
+    }
 
 }

@@ -17,9 +17,9 @@
   --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.CallBackValidator" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.client.IdentityRecoveryException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.CallBackValidator" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.IdentityRecoveryException" %>
 <%@ page import="java.net.URISyntaxException" %>
 <jsp:directive.include file="localize.jsp"/>
 

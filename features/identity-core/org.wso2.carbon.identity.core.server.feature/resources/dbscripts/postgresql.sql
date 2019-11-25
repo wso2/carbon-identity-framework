@@ -581,8 +581,8 @@ CREATE TABLE IDP (
   IS_FEDERATION_HUB          CHAR(1)      NOT NULL DEFAULT '0',
   IS_LOCAL_CLAIM_DIALECT     CHAR(1)      NOT NULL DEFAULT '0',
   DISPLAY_NAME               VARCHAR(255),
-  IMAGE_URL                  VARCHAR(255),
-  UUID                       VARCHAR(255) NOT NULL,
+  IMAGE_URL                  VARCHAR(1024),
+  UUID                       CHAR(36) NOT NULL,
   PRIMARY KEY (ID),
   UNIQUE (TENANT_ID, NAME),
   UNIQUE (UUID)

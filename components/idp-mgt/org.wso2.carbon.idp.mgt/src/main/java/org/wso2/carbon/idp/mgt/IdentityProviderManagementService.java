@@ -27,6 +27,8 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.ClaimMapping;
@@ -103,7 +105,95 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             throw idpException;
         }
     }
-    
+
+    /**
+     * Get the total count of Idps.
+     *
+     * @return total count of Idps
+     * @throws IdentityProviderManagementException Throw exception while get the count of Idps.
+     */
+    public int getAllIdpCount() throws IdentityProviderManagementException {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return IdentityProviderManager.getInstance()
+                .getTotalIdPCount(IdPManagementConstants.EMPTY_STRING, tenantDomain);
+    }
+
+    /**
+     * Retrieves registered Identity providers for the logged-in tenant.
+     *
+     * @return Array of <code>IdentityProvider</code>. IdP names, primary IdP and home.
+     * realm identifiers of each IdP.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     */
+    public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber) throws IdentityProviderManagementException {
+
+        return getPaginatedIdpInfo(IdPManagementConstants.EMPTY_STRING, pageNumber);
+    }
+
+    /**
+     * Retrieves Identity providers list of array for the logged-in tenant.
+     *
+     * @param filter     searching value.
+     * @param pageNumber page number.
+     * @return Identity providers list of array.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     */
+    public IdentityProvider[] getPaginatedIdpInfo(String filter, int pageNumber)
+            throws IdentityProviderManagementException {
+
+        validateRequestedPageNumber(pageNumber);
+        Integer limit = IdentityUtil.getDefaultItemsPerPage();
+        Integer offset = getIdpPageOffset(pageNumber, limit);
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        IdpSearchResult idpSearchResult = IdentityProviderManager.getInstance()
+                .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
+                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain);
+        return idpSearchResult.getIdPs().toArray(new IdentityProvider[0]);
+    }
+
+    /**
+     * Retrieves Identity providers list of array for the logged-in tenant.
+     *
+     * @param filter searching value.
+     * @return Identity providers list of array.
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
+     */
+    public int getFilteredIdpCount(String filter) throws IdentityProviderManagementException {
+
+        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        return IdentityProviderManager.getInstance().getTotalIdPCount(filter, tenantDomain);
+    }
+
+    /**
+     * Validates whether the requested page limit and offset for pagination.
+     *
+     * @param pageNumber page number that needed.
+     * @param limit      number of Idp display per page.
+     * @return offset value.
+     */
+    private int getIdpPageOffset(int pageNumber, int limit) {
+
+        int offset = 0;
+        if (pageNumber > 1) {
+            offset = (pageNumber - 1) * limit;
+        }
+        return offset;
+    }
+
+    /**
+     * Validates whether the requested page number for pagination is not zero or negative.
+     *
+     * @param pageNumber Page number.
+     */
+    private void validateRequestedPageNumber(int pageNumber) throws IdentityProviderManagementException {
+
+        if (pageNumber < 1) {
+            throw new IdentityProviderManagementException(
+                    "Invalid page number requested. The page number should be a value greater than 0.");
+        }
+    }
+
     /**
      * Retrieves registered Identity providers for the logged-in tenant by Identity Provider Name
      *

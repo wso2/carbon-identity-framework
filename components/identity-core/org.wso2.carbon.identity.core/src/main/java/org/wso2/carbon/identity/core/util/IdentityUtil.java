@@ -27,15 +27,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
 import org.apache.xerces.util.SecurityManager;
 import org.apache.xml.security.utils.Base64;
-import org.opensaml.Configuration;
-import org.opensaml.xml.XMLObject;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallerFactory;
-import org.opensaml.xml.io.UnmarshallingException;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
@@ -60,12 +53,10 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import org.xml.sax.SAXException;
 import sun.security.provider.X509Factory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URLEncoder;
@@ -88,15 +79,10 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ALPHABET;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.ENCODED_ZERO;
@@ -450,80 +436,6 @@ public class IdentityUtil {
      */
     public static String getServicePath() {
         return IdentityCoreServiceComponent.getConfigurationContextService().getServerConfigContext().getServicePath();
-    }
-
-    /**
-     * Constructing the SAML or XACML Objects from a String
-     *
-     * @param xmlString Decoded SAML or XACML String
-     * @return SAML or XACML Object
-     * @throws org.wso2.carbon.identity.base.IdentityException
-     */
-    public static XMLObject unmarshall(String xmlString) throws IdentityException {
-
-        try {
-            DocumentBuilderFactory documentBuilderFactory = getSecuredDocumentBuilderFactory();
-            documentBuilderFactory.setIgnoringComments(true);
-            Document document = getDocument(documentBuilderFactory, xmlString);
-            if (isSignedWithComments(document)) {
-                documentBuilderFactory.setIgnoringComments(false);
-                document = getDocument(documentBuilderFactory, xmlString);
-            }
-            Element element = document.getDocumentElement();
-            UnmarshallerFactory unmarshallerFactory = Configuration.getUnmarshallerFactory();
-            Unmarshaller unmarshaller = unmarshallerFactory.getUnmarshaller(element);
-            return unmarshaller.unmarshall(element);
-        } catch (ParserConfigurationException | UnmarshallingException | SAXException | IOException e) {
-            String message = "Error in constructing XML Object from the encoded String";
-            throw IdentityException.error(message, e);
-        }
-    }
-
-    /**
-     * Return whether SAML Assertion has the canonicalization method
-     * set to 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'.
-     *
-     * @param document
-     * @return true if canonicalization method equals to 'http://www.w3.org/2001/10/xml-exc-c14n#WithComments'
-     */
-    private static boolean isSignedWithComments(Document document) {
-
-        XPath xPath = XPathFactory.newInstance().newXPath();
-        try {
-            String assertionId = (String) xPath.compile("//*[local-name()='Assertion']/@ID")
-                    .evaluate(document, XPathConstants.STRING);
-
-            if (StringUtils.isBlank(assertionId)) {
-                return false;
-            }
-
-            NodeList nodeList = ((NodeList) xPath.compile(
-                    "//*[local-name()='Assertion']" +
-                            "/*[local-name()='Signature']" +
-                            "/*[local-name()='SignedInfo']" +
-                            "/*[local-name()='Reference'][@URI='#" + assertionId + "']" +
-                            "/*[local-name()='Transforms']" +
-                            "/*[local-name()='Transform']" +
-                            "[@Algorithm='http://www.w3.org/2001/10/xml-exc-c14n#WithComments']")
-                    .evaluate(document, XPathConstants.NODESET));
-            return nodeList != null && nodeList.getLength() > 0;
-        } catch (XPathExpressionException e) {
-            String message = "Failed to find the canonicalization algorithm of the assertion. Defaulting to: " +
-                    "http://www.w3.org/2001/10/xml-exc-c14n#";
-            log.warn(message);
-            if (log.isDebugEnabled()) {
-                log.debug(message, e);
-            }
-            return false;
-        }
-    }
-
-    private static Document getDocument(DocumentBuilderFactory documentBuilderFactory, String samlString)
-            throws IOException, SAXException, ParserConfigurationException {
-
-        DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(samlString.getBytes());
-        return docBuilder.parse(inputStream);
     }
 
     /**
@@ -1322,5 +1234,49 @@ public class IdentityUtil {
             remainder = temp % divisor;
         }
         return (byte) remainder;
+    }
+
+    /**
+     * Get the Maximum Item per Page need to display.
+     *
+     * @return maximumItemsPerPage need to display.
+     */
+    public static int getMaximumItemPerPage() {
+
+        int maximumItemsPerPage = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+        String maximumItemsPerPagePropertyValue =
+                IdentityUtil.getProperty(IdentityCoreConstants.MAXIMUM_ITEMS_PRE_PAGE_PROPERTY);
+        if (StringUtils.isNotBlank(maximumItemsPerPagePropertyValue)) {
+            try {
+                maximumItemsPerPage = Integer.parseInt(maximumItemsPerPagePropertyValue);
+            } catch (NumberFormatException e) {
+                maximumItemsPerPage = IdentityCoreConstants.DEFAULT_MAXIMUM_ITEMS_PRE_PAGE;
+                log.warn("Error occurred while parsing the 'MaximumItemsPerPage' property value in identity.xml.", e);
+            }
+        }
+        return maximumItemsPerPage;
+    }
+
+    /**
+     * Get the Default Items per Page needed to display.
+     *
+     * @return defaultItemsPerPage need to display.
+     */
+    public static int getDefaultItemsPerPage() {
+
+        int defaultItemsPerPage = IdentityCoreConstants.DEFAULT_ITEMS_PRE_PAGE;
+        try {
+            String defaultItemsPerPageProperty = IdentityUtil.getProperty(IdentityCoreConstants
+                    .DEFAULT_ITEMS_PRE_PAGE_PROPERTY);
+            if (StringUtils.isNotBlank(defaultItemsPerPageProperty)) {
+                int defaultItemsPerPageConfig = Integer.parseInt(defaultItemsPerPageProperty);
+                if (defaultItemsPerPageConfig > 0) {
+                    defaultItemsPerPage = defaultItemsPerPageConfig;
+                }
+            }
+        } catch (NumberFormatException e) {
+            // Ignore.
+        }
+        return defaultItemsPerPage;
     }
 }

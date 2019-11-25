@@ -17,7 +17,7 @@
   --%>
 
 <!-- localize.jsp MUST already be included in the calling script -->
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
 
 <!-- footer -->
 <footer class="footer">

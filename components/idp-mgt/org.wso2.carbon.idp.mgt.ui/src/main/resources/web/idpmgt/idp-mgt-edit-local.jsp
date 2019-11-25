@@ -252,12 +252,12 @@ function idpMgtCancel(){
     }
     function doValidation() {
         var reason = "";
-        reason = validateEmpty("homeRealmId");
+        reason = validateAttribute("homeRealmId");
         if (reason != "") {
             CARBON.showWarningDialog("Resident Home Realm ID cannot be empty");
             return false;
         }
-        reason = validateEmpty("idPEntityId");
+        reason = validateAttribute("idPEntityId");
         if (reason != "") {
             CARBON.showWarningDialog("Resident IdP Entity ID cannot be empty");
             return false;
@@ -285,6 +285,22 @@ function idpMgtCancel(){
         }
         return true;
     }
+     function validateAttribute(attributeName) {
+            var attribute = document.getElementsByName(attributeName)[0];
+            var error = "";
+            var value = attribute.value;
+            if (value.length == 0) {
+                error = attribute.name + " ";
+                return error;
+            }
+            value = value.replace(/^\s+/, "") ;
+            if (value.length == 0) {
+                error = attribute.name + " contains only spaces";
+                return error;
+            }
+            return error;
+     }
+
     function onClickAddDestinationUrl() {
         var isValidated = doValidateInput(document.getElementById('destinationURLTxt'), "Please enter a valid destination");
         if (isValidated) {

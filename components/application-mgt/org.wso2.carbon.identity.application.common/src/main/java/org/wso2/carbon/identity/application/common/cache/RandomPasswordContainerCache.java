@@ -18,18 +18,23 @@
 
 package org.wso2.carbon.identity.application.common.cache;
 
-
-public class RandomPasswordContainerCache extends BaseCache<RandomPasswordContainerCacheKey, RandomPasswordContainerCacheEntry> {
+/**
+ * Cache to contain randomized passwords.
+ */
+public class RandomPasswordContainerCache
+        extends BaseCache<RandomPasswordContainerCacheKey, RandomPasswordContainerCacheEntry> {
 
     private static final String RANDOM_PASSWORD_CACHE_NAME = "RandomPasswordContainerCache";
 
     private static volatile RandomPasswordContainerCache instance;
 
     private RandomPasswordContainerCache() {
+
         super(RANDOM_PASSWORD_CACHE_NAME);
     }
 
     public static RandomPasswordContainerCache getInstance() {
+
         if (instance == null) {
             synchronized (RandomPasswordContainerCache.class) {
                 if (instance == null) {
@@ -41,15 +46,18 @@ public class RandomPasswordContainerCache extends BaseCache<RandomPasswordContai
     }
 
     public void addToCache(RandomPasswordContainerCacheKey key, RandomPasswordContainerCacheEntry entry) {
+
         super.addToCache(key, entry);
     }
 
     public RandomPasswordContainerCacheEntry getValueFromCache(RandomPasswordContainerCacheKey key) {
+
         RandomPasswordContainerCacheEntry cacheEntry = super.getValueFromCache(key);
         return cacheEntry;
     }
 
     public void clearCacheEntry(RandomPasswordContainerCacheKey key) {
+
         super.clearCacheEntry(key);
     }
 }

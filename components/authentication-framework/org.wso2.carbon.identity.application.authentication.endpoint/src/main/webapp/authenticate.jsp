@@ -18,13 +18,13 @@
 <%@ page import="org.apache.commons.collections.MapUtils" %>
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page
-        import="org.wso2.carbon.identity.application.authentication.endpoint.client.AuthAPIServiceClient" %>
+        import="org.wso2.carbon.identity.application.authentication.endpoint.util.client.AuthAPIServiceClient" %>
 <%@ page
-        import="org.wso2.carbon.identity.application.authentication.endpoint.client.model.AuthenticationErrorResponse" %>
+        import="org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationErrorResponse" %>
 <%@ page
-        import="org.wso2.carbon.identity.application.authentication.endpoint.client.model.AuthenticationResponse" %>
+        import="org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationResponse" %>
 <%@ page
-        import="org.wso2.carbon.identity.application.authentication.endpoint.client.model.AuthenticationSuccessResponse" %>
+        import="org.wso2.carbon.identity.application.authentication.endpoint.util.client.model.AuthenticationSuccessResponse" %>
 <%@ page import="java.util.HashMap" %>
 <%@ page
         import="java.util.Map" %>

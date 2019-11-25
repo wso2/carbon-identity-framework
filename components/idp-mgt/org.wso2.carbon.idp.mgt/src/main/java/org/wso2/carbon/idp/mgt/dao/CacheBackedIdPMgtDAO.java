@@ -391,21 +391,11 @@ public class CacheBackedIdPMgtDAO {
      * @param tenantId          tenant ID of IDP.
      * @param tenantDomain      tenant domain of IDP.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
-     * @return created Identity Provider.
      */
-    public IdentityProvider addIdP(IdentityProvider identityProvider, int tenantId, String
+    public String addIdP(IdentityProvider identityProvider, int tenantId, String
             tenantDomain) throws IdentityProviderManagementException {
 
-        identityProvider = idPMgtDAO.addIdPWithResourceId(identityProvider, tenantId);
-
-        if (identityProvider != null) {
-            addIdPCache(identityProvider, tenantDomain);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Entry for Identity Provider not found in Database");
-            }
-        }
-        return identityProvider;
+        return idPMgtDAO.addIdPWithResourceId(identityProvider, tenantId);
     }
 
     /**
@@ -415,7 +405,7 @@ public class CacheBackedIdPMgtDAO {
      * @param tenantDomain            Tenant Domain of IDP.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
-    public IdentityProvider updateIdP(IdentityProvider newIdentityProvider,
+    public void updateIdP(IdentityProvider newIdentityProvider,
                                       IdentityProvider currentIdentityProvider, int tenantId, String tenantDomain)
             throws IdentityProviderManagementException {
 
@@ -425,17 +415,8 @@ public class CacheBackedIdPMgtDAO {
         }
         clearIdpCache(currentIdentityProvider.getIdentityProviderName(), currentIdentityProvider.getResourceId(),
                 tenantId, tenantDomain);
-        IdentityProvider identityProvider = idPMgtDAO.updateIdPWithResourceId(currentIdentityProvider.getResourceId(),
+        idPMgtDAO.updateIdPWithResourceId(currentIdentityProvider.getResourceId(),
                 newIdentityProvider, currentIdentityProvider, tenantId);
-        if (identityProvider != null) {
-            addIdPCache(identityProvider, tenantDomain);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Entry for Identity Provider " + newIdentityProvider.getIdentityProviderName() + " not " +
-                        "found in DB");
-            }
-        }
-        return identityProvider;
     }
 
     /**

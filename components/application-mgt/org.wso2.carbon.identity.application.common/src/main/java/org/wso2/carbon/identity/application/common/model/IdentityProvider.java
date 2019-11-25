@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -48,6 +49,9 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+/**
+ * Identity provider model.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "IdentityProvider")
 public class IdentityProvider implements Serializable {
@@ -74,10 +78,10 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
-    private final String THUMB_PRINT = "thumbPrint";
-    private final String CERT_VALUE = "certValue";
-    private final String JSON_ARRAY_IDENTIFIER = "[";
-    private final String EMPTY_JSON_ARRAY = "[]";
+    private static final String THUMB_PRINT = "thumbPrint";
+    private static final String CERT_VALUE = "certValue";
+    private static final String JSON_ARRAY_IDENTIFIER = "[";
+    private static final String EMPTY_JSON_ARRAY = "[]";
 
     @XmlTransient
     private String id;
@@ -109,14 +113,14 @@ public class IdentityProvider implements Serializable {
     @XmlElement(name = "IsEnabled")
     private boolean enable;
 
-    @XmlElementWrapper(name= "FederatedAuthenticatorConfigs")
+    @XmlElementWrapper(name = "FederatedAuthenticatorConfigs")
     @XmlElement(name = "FederatedAuthenticatorConfig")
     private FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = new FederatedAuthenticatorConfig[0];
 
     @XmlElement(name = "DefaultAuthenticatorConfig")
     private FederatedAuthenticatorConfig defaultAuthenticatorConfig;
 
-    @XmlElementWrapper(name= "ProvisioningConnectorConfigs")
+    @XmlElementWrapper(name = "ProvisioningConnectorConfigs")
     @XmlElement(name = "ProvisioningConnectorConfig")
     private ProvisioningConnectorConfig[] provisioningConnectorConfigs = new ProvisioningConnectorConfig[0];
 
@@ -136,7 +140,7 @@ public class IdentityProvider implements Serializable {
     private JustInTimeProvisioningConfig justInTimeProvisioningConfig;
 
     @XmlTransient
-    private IdentityProviderProperty []idpProperties = new IdentityProviderProperty[0];
+    private IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[0];
     private CertificateInfo[] certificateInfoArray = new CertificateInfo[0];
 
     @IgnoreNullElement
@@ -322,8 +326,7 @@ public class IdentityProvider implements Serializable {
         if ((!foundDefaultProvisioningConfig && provisioningConnectorConfigs.length > 0) ||
                 (provisioningConnectorConfigs.length == 0 && StringUtils.isNotBlank(defaultProvisioningConfigName))) {
             log.warn("No matching provisioning config found with default provisioning config name :  "
-                    + defaultProvisioningConfigName + " in identity provider : " + identityProvider .displayName +
-                    ".");
+                    + defaultProvisioningConfigName + " in identity provider : " + identityProvider.displayName + ".");
             identityProvider = null;
         }
 
@@ -570,7 +573,8 @@ public class IdentityProvider implements Serializable {
             // TODO Need to handle the exception handling in proper way.
             return createCertificateInfoForNoBeginCertificate(certificateValue);
         }
-        if (StringUtils.isNotBlank(decodedCertificate) && !decodedCertificate.startsWith(IdentityUtil.PEM_BEGIN_CERTFICATE)) {
+        if (StringUtils.isNotBlank(decodedCertificate) &&
+                !decodedCertificate.startsWith(IdentityUtil.PEM_BEGIN_CERTFICATE)) {
             // Handle certificates which are one time encoded but doesn't have BEGIN and END statement
             return createCertificateInfoForNoBeginCertificate(certificateValue);
         } else {
@@ -584,7 +588,8 @@ public class IdentityProvider implements Serializable {
      * @return certificate info array
      * @throws NoSuchAlgorithmException
      */
-    private CertificateInfo[] createCertificateInfoForNoBeginCertificate(String certificateValue) throws NoSuchAlgorithmException {
+    private CertificateInfo[] createCertificateInfoForNoBeginCertificate(String certificateValue)
+            throws NoSuchAlgorithmException {
 
         String encodedCertVal = Base64.getEncoder().encodeToString(certificateValue.getBytes());
         String thumbPrint = IdentityApplicationManagementUtil.generateThumbPrint(encodedCertVal);
@@ -789,14 +794,19 @@ public class IdentityProvider implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof IdentityProvider)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof IdentityProvider)) {
+            return false;
+        }
 
         IdentityProvider that = (IdentityProvider) o;
 
         if (identityProviderName != null ? !identityProviderName.equals(that.identityProviderName) :
-                that.identityProviderName != null)
+                that.identityProviderName != null) {
             return false;
+        }
 
         return true;
     }

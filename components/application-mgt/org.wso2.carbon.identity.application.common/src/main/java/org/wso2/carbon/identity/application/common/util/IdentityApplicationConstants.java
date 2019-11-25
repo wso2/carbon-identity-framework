@@ -18,10 +18,13 @@
 
 package org.wso2.carbon.identity.application.common.util;
 
+/**
+ * Application management constants.
+ */
 public class IdentityApplicationConstants {
 
+    private IdentityApplicationConstants() {
 
-    private IdentityApplicationConstants(){
     }
 
     public static final String REF = "ref";
@@ -87,7 +90,11 @@ public class IdentityApplicationConstants {
     // Service Provider configuration options that are stored as SP properites.
     public static final String JWKS_URI_SP_PROPERTY_NAME = "jwksURI";
 
+    /**
+     * Config elements.
+     */
     public static class ConfigElements {
+
         public static final String PROPERTIES = "Properties";
         public static final String PROPERTY = "Property";
         public static final String ATTR_NAME = "name";
@@ -97,13 +104,20 @@ public class IdentityApplicationConstants {
         public static final String PROPERTY_SP_DIALECT = "SPClaimDialects";
 
         private ConfigElements() {
+
             throw new AssertionError("Must not initiate an object of ConfigElements class");
         }
 
     }
 
+    /**
+     * Authenticator constants.
+     */
     public static class Authenticator {
 
+        /**
+         * OpenId authenticator constants.
+         */
         public static class OpenID {
 
             public static final String NAME = "openid";
@@ -112,11 +126,14 @@ public class IdentityApplicationConstants {
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
 
             private OpenID() {
+
                 throw new AssertionError("Must not initiate an object of OpenID class");
             }
         }
 
-
+        /**
+         * SAML 2 authenticator constants.
+         */
         public static class SAML2SSO {
 
             public static final String NAME = "samlsso";
@@ -134,7 +151,7 @@ public class IdentityApplicationConstants {
             public static final String IS_AUTHN_RESP_SIGNED = "IsAuthnRespSigned";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
             public static final String REQUEST_METHOD = "RequestMethod";
-			public static final String SIGNATURE_ALGORITHM = "SignatureAlgorithm";
+            public static final String SIGNATURE_ALGORITHM = "SignatureAlgorithm";
             public static final String SIGNATURE_ALGORITHM_POST = "SignatureAlgorithmPost";
             public static final String DIGEST_ALGORITHM = "DigestAlgorithm";
             public static final String INCLUDE_NAME_ID_POLICY = "IncludeNameIDPolicy";
@@ -145,7 +162,8 @@ public class IdentityApplicationConstants {
             public static final String FORCE_AUTHENTICATION = "ForceAuthentication";
             public static final String AUTHENTICATION_CONTEXT_CLASS = "AuthnContextClassRef";
             public static final String ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS = "CustomAuthnContextClassRef";
-            public static final String CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION = "Custom Authentication Context Class";
+            public static final String CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION =
+                    "Custom Authentication Context Class";
             public static final String AUTHENTICATION_CONTEXT_COMPARISON_LEVEL = "AuthnContextComparisonLevel";
             public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "AttributeConsumingServiceIndex";
             public static final String DESTINATION_URL_PREFIX = "DestinationURI";
@@ -158,16 +176,20 @@ public class IdentityApplicationConstants {
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
             public static final String IS_ARTIFACT_BINDING_ENABLED = "ISArtifactBindingEnabled";
-            public static final String ARTIFACT_RESOLVE_URL="ArtifactResolveUrl";
+            public static final String ARTIFACT_RESOLVE_URL = "ArtifactResolveUrl";
             public static final String IS_ARTIFACT_RESOLVE_REQ_SIGNED = "ISArtifactResolveReqSigned";
             public static final String IS_ARTIFACT_RESPONSE_SIGNED = "ISArtifactResponseSigned";
 
             private SAML2SSO() {
+
                 throw new AssertionError("Must not initiate an object of SAMLSSO class");
             }
 
         }
 
+        /**
+         * OpenId connect authenticator constants.
+         */
         public static class OIDC extends OAuth2 {
 
             public static final String NAME = "openidconnect";
@@ -178,6 +200,9 @@ public class IdentityApplicationConstants {
             public static final String IS_BASIC_AUTH_ENABLED = "IsBasicAuthEnabled";
         }
 
+        /**
+         * Passive STS authenticator constants.
+         */
         public static class PassiveSTS {
 
             public static final String NAME = "passivests";
@@ -191,10 +216,14 @@ public class IdentityApplicationConstants {
                     "IsEnablePassiveSTSAssertionAudienceValidation";
 
             private PassiveSTS() {
+
                 throw new AssertionError("Must not initiate an object of PassiveSTS class");
             }
         }
 
+        /**
+         * Facebook authenticator constants.
+         */
         public static class Facebook {
 
             public static final String NAME = "facebook";
@@ -206,25 +235,40 @@ public class IdentityApplicationConstants {
             public static final String AUTH_TOKEN_ENDPOINT = "AuthTokenEndpoint";
             public static final String USER_INFO_ENDPOINT = "UserInfoEndpoint";
             public static final String CALLBACK_URL = "callBackUrl";
+
             private Facebook() {
+
                 throw new AssertionError("Must not initiate an object of Facebook class");
             }
         }
 
+        /**
+         * WS Trust authenticator constants.
+         */
         public static class WSTrust {
+
             public static final String NAME = "wstrust";
             public static final String IDENTITY_PROVIDER_URL = "IDENTITY_PROVIDER_URL";
+
             private WSTrust() {
+
                 throw new AssertionError("Must not initiate an object of WSTrust class");
             }
         }
 
-        public static class FIDO{
+        /**
+         * Fido authenticator constants.
+         */
+        public static class FIDO {
+
             public static final String FIDO_AUTH = "FidoAuth";
         }
 
     }
 
+    /**
+     * OAuth10A constants.
+     */
     public static class OAuth10A {
 
         public static final String NAME = "oauth10a";
@@ -235,10 +279,14 @@ public class IdentityApplicationConstants {
         public static final String OAUTH1_ACCESS_TOKEN_URL = "OAuth1AccessTokenUrl";
 
         private OAuth10A() {
+
             throw new AssertionError("Must not initiate an object of OAuth10A class");
         }
     }
 
+    /**
+     * OAuth 2 constants.
+     */
     public static class OAuth2 {
 
         public static final String NAME = "oauth2";
@@ -258,13 +306,21 @@ public class IdentityApplicationConstants {
         public static final String OIDC_DISCOVERY_EP_URL = "OIDCDiscoveryEPUrl";
 
         private OAuth2() {
+
             throw new AssertionError("Must not initiate an object of OAuth2 class");
         }
     }
 
-	public static class SAML2 {
-        
+    /**
+     * SAML 2 constants.
+     */
+    public static class SAML2 {
+
+        /**
+         * SAML 2 authentication context class constants.
+         */
         public static class AuthnContextClass {
+
             public static final String IP = "Internet Protocol";
             public static final String IP_PASSWORD = "Internet Protocol Password";
             public static final String KERBEROS = "Kerberos";
@@ -291,17 +347,26 @@ public class IdentityApplicationConstants {
             public static final String TIME_SYNC_TOKEN = "Time Sync Token";
             public static final String UNSPECIFIED = "Unspecified";
         }
-        
+
+        /**
+         * SAML 2 authentication context class URIs
+         */
         public static class AuthnContextClassURI {
+
             public static final String IP = "urn:oasis:names:tc:SAML:2.0:ac:classes:InternetProtocol";
             public static final String IP_PASSWORD = "urn:oasis:names:tc:SAML:2.0:ac:classes:InternetProtocolPassword";
             public static final String KERBEROS = "urn:oasis:names:tc:SAML:2.0:ac:classes:Kerberos";
-            public static final String MOBILE_ONE_FACTOR_UNREGISTERED = "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileOneFactorUnregistered";
-            public static final String MOBILE_TWO_FACTOR_UNREGISTERED = "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileTwoFactorUnregistered";
-            public static final String MOBILE_ONE_FACTOR_CONTRACT = "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileOneFactorContract";
-            public static final String MOBILE_TWO_FACTOR_CONTRACT = "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileTwoFactorContract";
+            public static final String MOBILE_ONE_FACTOR_UNREGISTERED =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileOneFactorUnregistered";
+            public static final String MOBILE_TWO_FACTOR_UNREGISTERED =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileTwoFactorUnregistered";
+            public static final String MOBILE_ONE_FACTOR_CONTRACT =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileOneFactorContract";
+            public static final String MOBILE_TWO_FACTOR_CONTRACT =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:MobileTwoFactorContract";
             public static final String PASSWORD = "urn:oasis:names:tc:SAML:2.0:ac:classes:Password";
-            public static final String PASSWORD_PROTECTED_TRANSPORT = "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
+            public static final String PASSWORD_PROTECTED_TRANSPORT =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport";
             public static final String PREVIOUS_SESSION = "urn:oasis:names:tc:SAML:2.0:ac:classes:PreviousSession";
             public static final String X509 = "urn:oasis:names:tc:SAML:2.0:ac:classes:X509";
             public static final String PGP = "urn:oasis:names:tc:SAML:2.0:ac:classes:PGP";
@@ -313,14 +378,20 @@ public class IdentityApplicationConstants {
             public static final String TELEPHONY = "urn:oasis:names:tc:SAML:2.0:ac:classes:Telephony";
             public static final String NOMAD_TELEPHONY = "urn:oasis:names:tc:SAML:2.0:ac:classes:NomadTelephony";
             public static final String PERSONAL_TELEPHONY = "urn:oasis:names:tc:SAML:2.0:ac:classes:PersonalTelephony";
-            public static final String AUTHENTICATED_TELEPHONY = "urn:oasis:names:tc:SAML:2.0:ac:classes:AuthenticatedTelephony";
-            public static final String SECURE_REMOTE_PASSWORD = "urn:oasis:names:tc:SAML:2.0:ac:classes:SecureRemotePassword";
+            public static final String AUTHENTICATED_TELEPHONY =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:AuthenticatedTelephony";
+            public static final String SECURE_REMOTE_PASSWORD =
+                    "urn:oasis:names:tc:SAML:2.0:ac:classes:SecureRemotePassword";
             public static final String TLS_CLIENT = "urn:oasis:names:tc:SAML:2.0:ac:classes:TLSClient";
             public static final String TIME_SYNC_TOKEN = "urn:oasis:names:tc:SAML:2.0:ac:classes:TimeSyncToken";
             public static final String UNSPECIFIED = "urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified";
         }
-        
+
+        /**
+         * SAML 2 authentication context comparison methods.
+         */
         public static class AuthnContextComparison {
+
             public static final String EXACT = "Exact";
             public static final String MINIMUM = "Minimum";
             public static final String MAXIMUM = "Maximum";
@@ -328,15 +399,25 @@ public class IdentityApplicationConstants {
         }
     }
 
+    /**
+     * Passive STS constants.
+     */
     public static class PassiveSTS {
 
         public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
         public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
     }
-    
+
+    /**
+     * XML constants.
+     */
     public static class XML {
-        
+
+        /**
+         * Signature algorithms.
+         */
         public static class SignatureAlgorithm {
+
             public static final String DSA_SHA1 = "DSA with SHA1";
             public static final String ECDSA_SHA1 = "ECDSA with SHA1";
             public static final String ECDSA_SHA256 = "ECDSA with SHA256";
@@ -349,8 +430,12 @@ public class IdentityApplicationConstants {
             public static final String RSA_SHA384 = "RSA with SHA384";
             public static final String RSA_SHA512 = "RSA with SHA512";
         }
-        
+
+        /**
+         * Signature algorithm URIs.
+         */
         public static class SignatureAlgorithmURI {
+
             public static final String DSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#dsa-sha1";
             public static final String ECDSA_SHA1 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1";
             public static final String ECDSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256";
@@ -363,8 +448,12 @@ public class IdentityApplicationConstants {
             public static final String RSA_SHA384 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha384";
             public static final String RSA_SHA512 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512";
         }
-        
+
+        /**
+         * Digest algorithms.
+         */
         public static class DigestAlgorithm {
+
             public static final String MD5 = "MD5";
             public static final String RIPEMD160 = "RIPEMD160";
             public static final String SHA1 = "SHA1";
@@ -372,8 +461,12 @@ public class IdentityApplicationConstants {
             public static final String SHA384 = "SHA384";
             public static final String SHA512 = "SHA512";
         }
-        
+
+        /**
+         * Digest algorithm URIs.
+         */
         public static class DigestAlgorithmURI {
+
             public static final String MD5 = "http://www.w3.org/2001/04/xmldsig-more#md5";
             public static final String RIPEMD160 = "http://www.w3.org/2001/04/xmlenc#ripemd160";
             public static final String SHA1 = "http://www.w3.org/2000/09/xmldsig#sha1";
@@ -382,7 +475,11 @@ public class IdentityApplicationConstants {
             public static final String SHA512 = "http://www.w3.org/2001/04/xmlenc#sha512";
         }
 
+        /**
+         * Assertion encryption algorithms.
+         */
         public static class AssertionEncryptionAlgorithm {
+
             public static final String AES256 = "AES256";
             public static final String AES192 = "AES192";
             public static final String AES128 = "AES128";
@@ -392,7 +489,11 @@ public class IdentityApplicationConstants {
             public static final String AES256_GCM = "AES256_GCM";
         }
 
+        /**
+         * Assertion encryption algorithm URIs.
+         */
         public static class AssertionEncryptionAlgorithmURI {
+
             public static final String AES256 = "http://www.w3.org/2001/04/xmlenc#aes256-cbc";
             public static final String AES192 = "http://www.w3.org/2001/04/xmlenc#aes192-cbc";
             public static final String AES128 = "http://www.w3.org/2001/04/xmlenc#aes128-cbc";
@@ -402,13 +503,21 @@ public class IdentityApplicationConstants {
             public static final String AES256_GCM = "http://www.w3.org/2009/xmlenc11#aes256-gcm";
         }
 
+        /**
+         * Key encryption algorithms.
+         */
         public static class KeyEncryptionAlgorithm {
+
             public static final String RSAOAEP = "RSAOAEP";
             public static final String RSA15 = "RSA15";
             public static final String RSAOAEP11 = "RSAOAEP11";
         }
 
+        /**
+         * Key encryption algorithm URIs.
+         */
         public static class KeyEncryptionAlgorithmURI {
+
             public static final String RSAOAEP = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p";
             public static final String RSA15 = "http://www.w3.org/2001/04/xmlenc#rsa-1_5";
             public static final String RSAOAEP11 = "http://www.w3.org/2009/xmlenc11#rsa-oaep";
@@ -416,28 +525,39 @@ public class IdentityApplicationConstants {
 
     }
 
+    /**
+     * SCIM constants.
+     */
     public static class SCIM {
 
         public static final String USERS_EP_URL = "scimUserEndpoint";
         public static final String GROUPS_EP_URL = "scimGroupEndpoint";
 
         private SCIM() {
+
             throw new AssertionError("Must not initiate an object of SCIM class");
         }
     }
 
+    /**
+     * SCIM 2 constants.
+     */
     public static class SCIM2 {
 
         public static final String USERS_EP_URL = "scim2UserEndpoint";
         public static final String GROUPS_EP_URL = "scim2GroupEndpoint";
 
         private SCIM2() {
+
             throw new AssertionError("Must not initiate an object of SCIM2 class");
         }
     }
 
     private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP";
 
+    /**
+     * Error message enums.
+     */
     public enum ErrorMessage {
 
         ERROR_CODE_UNEXPECTED("65001", "Unexpected Server Error."),
@@ -447,7 +567,8 @@ public class IdentityApplicationConstants {
         ERROR_CODE_UPDATE_APP("65005", "Error while updating application: %s."),
 
         ERROR_CODE_APP_ALREADY_EXISTS("60001", "Application with the name: %s already exists in tenantDomain: %s."),
-        ERROR_CODE_APP_RESOURCE_ID_DOES_NOT_EXIST("60002", "Application with resourceId: %s does not exists in tenantDomain: %s."),
+        ERROR_CODE_APP_RESOURCE_ID_DOES_NOT_EXIST("60002",
+                "Application with resourceId: %s does not exists in tenantDomain: %s."),
         ERROR_CODE_APP_ADD_REQUEST_INVALID("60003", "Application add request validation failed. %s"),
         ERROR_CODE_APP_GET_REQUEST_INVALID("60004", "Application get request validation failed. %s"),
         ERROR_CODE_APP_DELETE_REQUEST_INVALID("60005", "Application delete request validation failed. %s"),
@@ -455,7 +576,7 @@ public class IdentityApplicationConstants {
         ERROR_CODE_SEARCH_REQUEST_INVALID("60007", "Search request validation failed. Invalid search filter. %s"),
         ERROR_CODE_APP_ID_DOES_NOT_EXIST("60008", "Application with id: %s does not exists in tenantDomain: %s."),
         ERROR_CODE_USER_UNAUTHORIZED("60009",
-                "User is unauthorized to perform attempted action on application: %s in tenantDomain: %s"),;
+                "User is unauthorized to perform attempted action on application: %s in tenantDomain: %s"),
         ;
 
         private final String code;
