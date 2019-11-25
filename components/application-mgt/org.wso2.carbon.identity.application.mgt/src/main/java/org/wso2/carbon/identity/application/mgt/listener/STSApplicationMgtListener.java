@@ -93,6 +93,12 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
             // Remove WSTrust inbound data.
             String trustedService = storedWstrustInbound.getInboundAuthKey();
             try {
+                if (log.isDebugEnabled()) {
+                    log.debug("WSTrust inbound with trustService: " + trustedService + " has been removed from " +
+                            "service provider with id: " + appId + ". Removing the stale WSTrust data for " +
+                            "trustService: " + trustedService);
+                }
+
                 STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
                 stsAdminService.removeTrustedService(trustedService);
             } catch (SecurityConfigException e) {
