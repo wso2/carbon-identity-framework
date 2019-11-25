@@ -561,12 +561,20 @@ public class DefaultStepHandler implements StepHandler {
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
 
             // Add SAML federated idp session index into the authentication step history.
-            if (FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
-                context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName,
-                        context.getParameter(FEDERATED_IDP_SESSION_ID + context.getExternalIdP().
-                                getIdentityProvider().getIdentityProviderName())));
-            } else {
-                context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName));
+            Object idpSessionIndex = null;
+            String parameterName = FEDERATED_IDP_SESSION_ID + context.getExternalIdP().getIdentityProvider().
+                    getIdentityProviderName();
+            if (context.getParameters().containsKey(parameterName)) {
+                idpSessionIndex = context.getParameter(parameterName);
+            }
+            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && idpSessionIndex != null
+                    && StringUtils.isNotBlank(idpName)) {
+                if (FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
+                    context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName,
+                            idpSessionIndex));
+                } else {
+                    context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName));
+                }
             }
 
         } catch (InvalidCredentialsException e) {

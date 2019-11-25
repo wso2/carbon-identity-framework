@@ -728,7 +728,7 @@ public class UserSessionStore {
      * Remove federated authentication session details of a given session context key.
      *
      * @param sessionContextKey Session Context Key.
-     * @throws FrameworkException Error while deleting session details of a given session id.
+     * @throws UserSessionException Error while deleting session details of a given session id.
      */
     public void removeSessionData(String sessionContextKey) throws UserSessionException {
 

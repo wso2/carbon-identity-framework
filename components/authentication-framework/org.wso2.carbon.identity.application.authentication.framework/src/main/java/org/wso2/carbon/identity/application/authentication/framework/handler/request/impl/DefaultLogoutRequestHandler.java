@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -48,7 +50,6 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -88,11 +89,11 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             log.trace("Inside handle()");
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        // Retrieve session information from cache.
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
         ExternalIdPConfig externalIdPConfig = null;
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
                 FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
-            // Retrieve session information from cache in order to publish event
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
             if (sessionContext != null) {
                 Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
                 AuthenticatedUser authenticatedUser = new AuthenticatedUser();
@@ -105,15 +106,19 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             }
         }
 
-        // Remove federated authentication session details of the session context key from the database.
-        ArrayList<AuthHistory> authHistoryList = (ArrayList<AuthHistory>) context.getAuthenticationStepHistory();
-        if (authHistoryList.stream().anyMatch(
-                authHistory -> (FED_AUTH_NAME).equals(authHistory.getAuthenticatorName()))) {
-            try {
-                UserSessionStore.getInstance().removeSessionData(context.getSessionIdentifier());
-            } catch (UserSessionException e) {
-                throw new FrameworkException("Error while deleting federated authentication session details of " +
-                        "the session context key :" + context.getSessionIdentifier(), e);
+        // Remove federated authentication session details from the database.
+        if ((sessionContext != null) && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
+                (sessionContext.getSessionAuthHistory().getHistory() != null)) {
+            for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
+                if ((FED_AUTH_NAME).equals(authHistory.getAuthenticatorName())) {
+                    try {
+                        UserSessionStore.getInstance().removeSessionData(context.getSessionIdentifier());
+                        break;
+                    } catch (UserSessionException e) {
+                        throw new FrameworkException("Error while deleting federated authentication session details for"
+                                + " the session contect key :" + context.getSessionIdentifier(), e);
+                    }
+                }
             }
         }
 
