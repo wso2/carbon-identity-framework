@@ -561,21 +561,20 @@ public class DefaultStepHandler implements StepHandler {
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
 
             // Add SAML federated idp session index into the authentication step history.
-            Object idpSessionIndex = null;
-            String parameterName = FEDERATED_IDP_SESSION_ID + context.getExternalIdP().getIdentityProvider().
-                    getIdentityProviderName();
+            String idpSessionIndex = null;
+            String parameterName = FEDERATED_IDP_SESSION_ID + idpName;
+            AuthHistory authHistory = new AuthHistory(authenticator.getName(), idpName);
+
             if (context.getParameters().containsKey(parameterName)) {
-                idpSessionIndex = context.getParameter(parameterName);
+                idpSessionIndex = context.getParameter(parameterName).toString();
             }
-            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && idpSessionIndex != null
-                    && StringUtils.isNotBlank(idpName)) {
+            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)) {
                 if (FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
-                    context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName,
-                            idpSessionIndex));
-                } else {
-                    context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName));
+                    authHistory.setIdpSessionIndex(idpSessionIndex);
+                    authHistory.setRequestType(context.getRequestType());
                 }
             }
+            context.addAuthenticationStepHistory(authHistory);
 
         } catch (InvalidCredentialsException e) {
             if (log.isDebugEnabled()) {

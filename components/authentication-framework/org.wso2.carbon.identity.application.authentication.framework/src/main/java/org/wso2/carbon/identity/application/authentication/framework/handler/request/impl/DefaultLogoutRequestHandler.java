@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -110,9 +109,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         if ((sessionContext != null) && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
                 (sessionContext.getSessionAuthHistory().getHistory() != null)) {
             for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
-                if ((FED_AUTH_NAME).equals(authHistory.getAuthenticatorName())) {
+                if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
                     try {
-                        UserSessionStore.getInstance().removeSessionData(context.getSessionIdentifier());
+                        UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier());
                         break;
                     } catch (UserSessionException e) {
                         throw new FrameworkException("Error while deleting federated authentication session details for"
