@@ -75,6 +75,8 @@ public class IdPManagementUIUtil {
 
     public static final String IDP_LIST = "identityProviderList";
 
+    public static final String PAGE_NUMBER = "pageNumber";
+
     public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
 
     /**

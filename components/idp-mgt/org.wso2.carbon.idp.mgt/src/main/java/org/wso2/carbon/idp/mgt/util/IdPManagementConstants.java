@@ -45,6 +45,7 @@ public class IdPManagementConstants {
     public static final String UUID = "UUID";
     public static final String IDP_IS_ENABLED = "isEnabled";
     public static final String IS_ENABLED = "IS_ENABLED";
+    public static final String RESIDENT_IDP = "LOCAL";
     public static final String EQ = "eq";
     public static final String SW = "sw";
     public static final String EW = "ew";
@@ -103,7 +104,7 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_COUNT_SQL = "SELECT COUNT(*) FROM IDP WHERE ";
 
-        public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ?";
+        public static final String GET_IDP_COUNT_SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "'";
 
         public static final String GET_IDP_BY_NAME_SQL = "SELECT ID, NAME, IS_PRIMARY, HOME_REALM_ID, CERTIFICATE, " +
                 "ALIAS, INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, USER_CLAIM_URI, ROLE_CLAIM_URI," +

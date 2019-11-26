@@ -19,9 +19,30 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
 <%@ page import="java.util.List" %>
-<%@ page import="org.apache.commons.collections.CollectionUtils"%>
-<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil"%>
-<%@ page import="org.apache.commons.lang.StringUtils"%>
+<%@ page import="org.apache.axis2.context.ConfigurationContext"%>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.CarbonConstants" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider" %>
+<%@ page import="org.wso2.carbon.identity.base.IdentityValidationUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityProviderMgtServiceClient" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdentityException" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
+<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="java.util.HashMap" %>
+<%@ page import="java.util.HashSet" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="java.util.Set" %>
+<%@ page import="java.util.UUID" %>
+<%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="org.wso2.carbon.base.ServerConfiguration" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
 
@@ -30,166 +51,255 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <script type="text/javascript" src="../admin/js/main.js"></script>
+<script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
+<script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
+<script type="text/javascript" src="../carbon/admin/js/main.js"></script>
 
-<%
-    String DEFAULT_FILTER = "*";
-    List<IdentityProvider> identityProvidersList = (List<IdentityProvider>)session.getAttribute(IdPManagementUIUtil.IDP_LIST);
-    String identityProvider = "identityProvider";
-    session.removeAttribute(identityProvider);
-    String filter = (String) session.getAttribute(IdPManagementUIUtil.IDP_FILTER);
-    String searchFilter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
-    if (searchFilter != null) {
-        searchFilter = Encode.forHtml(searchFilter);
-%>
-        <script type="text/javascript">
-            location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp&<%=IdPManagementUIUtil.FILTER_STRING%>=<%=searchFilter%>";
-        </script>
-<%
-    }
-    else if (filter == null) {
-%>
-        <script type="text/javascript">
-            location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-list.jsp";
-        </script>
-<%
-    }
-%>
+<script type="text/javascript">
 
-<script>
-
-    function editIdPName(idpName){
+   function editIdPName(idpName) {
         location.href = "idp-mgt-edit-load.jsp?idPName=" + encodeURIComponent(idpName);
-    }
-    function deleteIdPName(idpName){
-        function doDelete() {
-            $.ajax({
-                type: 'POST',
-                url: 'idp-mgt-delete-finish-ajaxprocessor.jsp',
-                headers: {
-                    Accept: "text/html"
-                },
-                data: 'idPName=' + encodeURIComponent(idpName),
-                async: false,
-                success: function (responseText, status) {
-                    if (status == "success") {
-                        location.assign("idp-mgt-list-load.jsp");
-                    }
-                }
-            });
+   }
+
+   function deleteIdPName(idpName, pageNumberInt, filterString) {
+      function doDelete() {
+      $.ajax({
+      type: 'POST',
+      url: 'idp-mgt-delete-finish-ajaxprocessor.jsp',
+      headers: {
+        Accept: "text/html"
+      },
+      data: 'idPName=' + encodeURIComponent(idpName),
+      async: false,
+      success: function (responseText, status) {
+         if (status == "success") {
+            location.assign("idp-mgt-list.jsp?pageNumber=" +  encodeURIComponent(pageNumberInt.toString()) +
+            "&region=region1&item=idp_list&filterString=" + encodeURIComponent(filterString));
+         }
+      }
+      });
+      }
+       CARBON.showConfirmationDialog('Are you sure you want to delete "'  + idpName + '" IdP information?', doDelete, null);
+   }
+
+   function enableOrDisableIdP(idpName, indicator) {
+      $.ajax({
+        type: 'POST',
+        url: 'idp-mgt-edit-finish-ajaxprocessor.jsp',
+        headers: {
+           Accept: "text/html"
+        },
+        data: 'idPName=' + encodeURIComponent(idpName) + '&enable=' + indicator,
+        async: false,
+        success: function (responseText, status) {
+
+        if (status == "success") {
+           location.assign("idp-mgt-list.jsp");
         }
+        }
+        });
+   }
+</script>
+<fmt:bundle
+   basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
+   <carbon:breadcrumb label="application.mgt"
+      resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
+      topPage="true" request="<%=request%>"/>
+   <div id="middle">
+      <h2>
+         <fmt:message key='identity.providers'/>
+      </h2>
+      <div id="workArea">
+         <%
+            final String IDP_NAME_FILTER = "filterString";
+            final String DEFAULT_FILTER = "*";
+            String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
+            ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
-        CARBON.showConfirmationDialog('Are you sure you want to delete "'  +
-                idpName + '" IdP information?', doDelete, null);
-    }
-    
+            IdentityProvider[] idpsToDisplay = new IdentityProvider[0];
+            boolean hasFilter = false;
+            String paginationValue = "region=region1&item=idp_list";
+            String filterString = request.getParameter(IDP_NAME_FILTER);
 
-    function enableOrDisableIdP(idpName, indicator) {
-        $.ajax({
-            type: 'POST',
-            url: 'idp-mgt-edit-finish-ajaxprocessor.jsp',
-            headers: {
-                Accept: "text/html"
-            },
-            data: 'idPName=' + encodeURIComponent(idpName) + '&enable=' + indicator,
-            async: false,
-            success: function (responseText, status) {
-                if (status == "success") {
-                    location.assign("idp-mgt-list-load.jsp");
+            if (StringUtils.isBlank(filterString)) {
+                filterString = "*";
+            } else {
+                filterString = filterString.trim();
+                paginationValue = "region=region1&item=idp_list&filterString=" + filterString;
+                hasFilter = true;
+            }
+
+            int pageNumberInt = 0;
+            int numberOfPages = 0;
+            int resultsPerPageInt = IdentityUtil.getDefaultItemsPerPage();
+            String pageNumber = request.getParameter(IdPManagementUIUtil.PAGE_NUMBER);
+            if (StringUtils.isNotBlank(pageNumber)) {
+                try {
+                   if (Integer.parseInt(pageNumber) > 0) {
+                     pageNumberInt = Integer.parseInt(pageNumber);
+                   }
+                } catch (NumberFormatException ignored) {
+                    //not needed here since the defaulted to 0
                 }
             }
-        });
-    }
-</script>
+            try {
+                String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
+                String backendServerURL = CarbonUIUtil.getServerURL(config.getServletContext(), session);
+                ConfigurationContext configContext =
+                            (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
+                IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
+                int numberOfIdps = 0;
+                if (hasFilter && !StringUtils.equals(filterString, DEFAULT_FILTER)) {
+                   numberOfIdps = client.getFilteredIdpCount(filterString);
+                   if (numberOfIdps > 0) {
+                      idpsToDisplay = client.getPaginatedIdpInfo(pageNumberInt + 1, filterString);
+                   }
+                } else {
+                   numberOfIdps = client.getIdpCount();
+                   if (numberOfIdps > 0) {
+                      if (numberOfIdps > resultsPerPageInt) {
+                         idpsToDisplay = client.getAllPaginatedIdpInfo(pageNumberInt + 1);
+                      } else {
+                         idpsToDisplay = client.getIdPs();
+                      }
+                   }
+                }
+                numberOfPages = (int) Math.ceil((double) numberOfIdps / resultsPerPageInt);
+                Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
+                if (idpsToDisplay != null) {
+                    for (IdentityProvider provider : idpsToDisplay) {
+                       idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
+                    }
+                    session.setAttribute(IdPManagementUIUtil.IDP_LIST, idpsToDisplay);
+                    session.setAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID, idpUniqueIdMap);
+                }
+            } catch (IdentityException e) {
+                 String message = MessageFormat.format(resourceBundle.getString("error.loading.idps"),
+                        new Object[]{e.getMessage()});
+                 CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request);
+            }
+         %>
 
-<fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
-    <div id="middle">
-        <h2>
-            <fmt:message key='identity.providers'/>
-        </h2>
-        <div id="workArea">
-            <%--<div style="height:30px;">--%>
-                <%--<a href="idp-mgt-edit-load-local.jsp" class="icon-link" style="background-image:url(images/resident-idp.png);"><fmt:message key='resident.idp'/></a>--%>
-            <%--</div>--%>
-            <form name="filterForm" method="post" action="idp-mgt-list.jsp">
-              <table style="width: 100%" class="styledLeft">
-                <tbody>
+         <div class="sectionSub">
+            <table style="border:none; !important margin-top:10px;margin-left:5px;">
+               <tr>
+                  <td>
+                     <form action="idp-mgt-list.jsp" name="searchForm" method="post">
+                        <table style="border:0;
+                           !important margin-top:10px;margin-bottom:10px;">
+                           <tr>
+                              <td>
+                                 <table style="border:0; !important">
+                                    <tbody>
+                                       <tr style="border:0; !important">
+                                          <td style="border:0; !important">
+                                             <fmt:message key="enter.identity.provider.name.pattern"/>
+                                             <input style="margin-left:30px; !important"
+                                                type="text" name="<%=IDP_NAME_FILTER%>"
+                                                value="<%=filterString != null ?
+                                                   Encode.forHtmlAttribute(filterString) : "" %>"/>&nbsp;
+                                             <input class="button" type="submit"
+                                                value="<fmt:message key="identity.provider.search"/>"/>
+                                          </td>
+                                       </tr>
+                                    </tbody>
+                                 </table>
+                              </td>
+                           </tr>
+                        </table>
+                     </form>
+                  </td>
+               </tr>
+            </table>
+
+            <table style="width: 100%" class="styledLeft">
+               <tbody>
                   <tr>
-                    <td style="border: none !important">
-                      <table class="styledLeft" width="100%" id="IDProviders">
-                        <thead>
-                          <tr>
-                            <th colspan="2"><fmt:message key="search.idp" /></th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td class="leftCol-big" style="padding-right: 0 !important;"><fmt:message
-										key="idp.search.pattern" /></td>
-                            <td><input type="text" name="<%=IdPManagementUIUtil.FILTER_STRING%>"
-									value="<%=StringUtils.isBlank(filter) ? DEFAULT_FILTER : Encode.forHtmlAttribute(filter)%>"
-									black-list-patterns="xml-meta-exists" /> <input class="button"
-									type="submit" value="Search" /></td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-          </form>
-          <div class="sectionSub">
-            <table class="styledLeft" id="idPsListTable">
-                <thead><tr><th class="leftCol-med"><fmt:message key='registered.idps'/></th><th class="leftCol-big"><fmt:message key='description'/></th><th style="width: 30% ;" ><fmt:message key='actions'/></th></tr></thead>
-                <tbody>
-                    <% if (identityProvidersList != null && identityProvidersList.size() > 0) { %>
-                        <% for(int i = 0; i < identityProvidersList.size(); i++){
-                         String description = identityProvidersList.get(i).getIdentityProviderDescription();
-                         boolean enable = identityProvidersList.get(i).getEnable();
-                         if(description == null){
-                            description = "";
-                         }
-                         %>
-                            <tr>
-                                <td><%=Encode.forHtmlContent(identityProvidersList.get(i).getIdentityProviderName())%></td>
-                                <td><%=Encode.forHtmlContent(description)%></td>
-                                <td>
-                                 	<% if (enable) { %>
-                    						<a title="<fmt:message key='disable.policy'/>"
-                       						onclick="enableOrDisableIdP('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>', 0);return false;"
-                       						href="#" style="background-image: url(images/disable.gif);" class="icon-link">
-                        					<fmt:message key='disable.policy'/></a>
-                    				<% } else { %>
-                    						<a title="<fmt:message key='enable.policy'/>"
-                       						onclick="enableOrDisableIdP('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>', 1);return false;"
-                       						href="#" style="background-image: url(images/enable2.gif);" class="icon-link">
-                       						 <fmt:message key='enable.policy'/></a>
-                   				   <% } %>
+                     <td style="border:none !important">
+                        <table class="styledLeft" width="100%" id="IdentityProviders">
+                           <thead>
+                              <tr>
+                                 <th class="leftCol-med">
+                                    <fmt:message
+                                       key='registered.idps'/>
+                                 </th>
+                                 <th class="leftCol-big">
+                                    <fmt:message
+                                       key='description'/>
+                                 </th>
+                                 <th style="width: 30% ;" >
+                                    <fmt:message
+                                       key='actions'/>
+                                 </th>
+                              </tr>
+                           </thead>
+                           <%
+                              if (idpsToDisplay != null && idpsToDisplay.length > 0) {
+                              %>
+                           <tbody>
+                              <%
+                                 for (IdentityProvider idp : idpsToDisplay) {
+                                         boolean enable = idp.getEnable();
+                                 %>
+                              <tr>
+                                 <td><%=Encode.forHtmlContent(idp.getIdentityProviderName())%></td>
+                                 <td><%=idp.getIdentityProviderDescription() != null ? Encode.forHtmlContent(idp.getIdentityProviderDescription()) : ""%></td>
+                                 <td style="width: 100px; white-space: nowrap;">
+                                    <% if (enable) { %>
+                                    <a title="<fmt:message key='disable.policy'/>"
+                                       onclick="
+                                       enableOrDisableIdP('<%=Encode.forJavaScriptAttribute(idp.getIdentityProviderName())%>', 0);return false;"
+                                       href="#" style="background-image: url(images/disable.gif);" class="icon-link">
+                                       <fmt:message key='disable.policy'/>
+                                    </a>
+                                    <% } else { %>
+                                    <a title="<fmt:message key='enable.policy'/>"
+                                       onclick="enableOrDisableIdP('<%=Encode.forJavaScriptAttribute(idp.getIdentityProviderName())%>', 1);return false;"
+                                       href="#" style="background-image: url(images/enable2.gif);" class="icon-link">
+                                       <fmt:message key='enable.policy'/>
+                                    </a>
+                                    <% } %>
                                     <a title="<fmt:message key='edit.idp.info'/>"
-                                       onclick="editIdPName('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>');return false;"
-                                       href="#"
-                                       class="icon-link"
-                                       style="background-image: url(images/edit.gif)">
+                                       onclick="editIdPName('<%=Encode.forJavaScriptAttribute(idp.getIdentityProviderName())%>');return false;"
+                                       style="background-image: url(images/edit.gif);" class="icon-link">
                                        <fmt:message key='edit'/>
                                     </a>
                                     <a title="<fmt:message key='delete'/>"
-                                       onclick="deleteIdPName('<%=Encode.forJavaScriptAttribute(identityProvidersList.get(i).getIdentityProviderName())%>');return false;"
+                                       onclick="deleteIdPName('<%=Encode.forJavaScriptAttribute(idp.getIdentityProviderName())%>', '<%=pageNumberInt%>', '<%=Encode.forJavaScriptAttribute(filterString)%>');return false;"
                                        href="#"
                                        class="icon-link"
                                        style="background-image: url(images/delete.gif)">
                                        <fmt:message key='delete'/>
                                     </a>
-                                </td>
-                            </tr>
-                        <% } %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="3"><i><fmt:message key='no.idp'/></i></td>
-                        </tr>
-                    <% } %>
-                </tbody>
+                                 </td>
+                              </tr>
+                              <%
+                                 }
+                                 %>
+                           </tbody>
+                           <% } else { %>
+                           <tbody>
+                              <tr>
+                                 <td colspan="3"><i>No Service Providers registered</i></td>
+                              </tr>
+                           </tbody>
+                           <% } %>
+                        </table>
+                     </td>
+                  </tr>
+               </tbody>
             </table>
-            </div>
-        </div>
-    </div>
-
+            <br/>
+            <carbon:paginator pageNumber="<%=pageNumberInt%>"
+               numberOfPages="<%=numberOfPages%>"
+               page="idp-mgt-list.jsp"
+               pageNumberParameterName="pageNumber"
+               resourceBundle="org.wso2.carbon.idp.mgt.ui.i18n.Resources"
+                parameters="<%=Encode.forHtmlAttribute(paginationValue)%>"
+               prevKey="prev" nextKey="next"
+               />
+            <br/>
+         </div>
+      </div>
+   </div>
 </fmt:bundle>

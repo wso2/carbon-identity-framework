@@ -224,8 +224,8 @@
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
 
-    List<IdentityProvider> identityProvidersList =
-            (List<IdentityProvider>) session.getAttribute(IdPManagementUIUtil.IDP_LIST);
+    IdentityProvider[] identityProviders =
+                (IdentityProvider[]) session.getAttribute(IdPManagementUIUtil.IDP_LIST);
 
     Map<String, FederatedAuthenticatorConfig> allFedAuthConfigs = new HashMap<String, FederatedAuthenticatorConfig>();
 
@@ -239,14 +239,6 @@
     allFedAuthConfigs = client.getAllFederatedAuthenticators();
     customProvisioningConnectors = client.getCustomProvisioningConnectors();
 
-    if (identityProvidersList == null) {
-%>
-<script type="text/javascript">
-    location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-edit.jsp";
-</script>
-<%
-        return;
-    }
     if (idPName != null && identityProvider != null) {
         idPName = identityProvider.getIdentityProviderName();
         federationHubIdp = identityProvider.getFederationHub();
@@ -1701,6 +1693,22 @@
             input.value = "true";
             document.forms['idp-mgt-edit-form'].appendChild(input);
         }
+    }
+
+    function validateAttribute(attributeName) {
+        var attribute = document.getElementsByName(attributeName)[0];
+        var error = "";
+        var value = attribute.value;
+        if (value.length == 0) {
+            error = attribute.name + " ";
+            return error;
+        }
+        value = value.replace(/^\s+/, "") ;
+        if (value.length == 0) {
+            error = attribute.name + " contains only spaces";
+            return error;
+        }
+        return error;
     }
 
     function selectCertificate() {

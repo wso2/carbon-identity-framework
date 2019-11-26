@@ -44,5 +44,4 @@ public class AuthenticationSuccessResponse extends AuthenticationResponse {
 
         this.token = token;
     }
-
 }
