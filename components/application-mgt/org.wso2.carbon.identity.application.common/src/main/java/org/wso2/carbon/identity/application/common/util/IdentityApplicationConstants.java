@@ -553,55 +553,37 @@ public class IdentityApplicationConstants {
         }
     }
 
-    private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP";
-
     /**
      * Error message enums.
+     * <p>
+     * Error codes for server errors start with 65 and client errors start with 60.
      */
-    public enum ErrorMessage {
+    public enum Error {
 
-        ERROR_CODE_UNEXPECTED("65001", "Unexpected Server Error."),
-        ERROR_CODE_ADD_APP("65002", "Error while adding the application: %s."),
-        ERROR_CODE_GET_APP("65003", "Error while getting the application: %s."),
-        ERROR_CODE_DELETE_APP("65004", "Error while deleting application: %s."),
-        ERROR_CODE_UPDATE_APP("65005", "Error while updating application: %s."),
+        UNEXPECTED_SERVER_ERROR("65001"),
+        SORTING_NOT_IMPLEMENTED("65002"),
+        ATTRIBUTE_FILTERING_NOT_IMPLEMENTED("65003"),
 
-        ERROR_CODE_APP_ALREADY_EXISTS("60001", "Application with the name: %s already exists in tenantDomain: %s."),
-        ERROR_CODE_APP_RESOURCE_ID_DOES_NOT_EXIST("60002",
-                "Application with resourceId: %s does not exists in tenantDomain: %s."),
-        ERROR_CODE_APP_ADD_REQUEST_INVALID("60003", "Application add request validation failed. %s"),
-        ERROR_CODE_APP_GET_REQUEST_INVALID("60004", "Application get request validation failed. %s"),
-        ERROR_CODE_APP_DELETE_REQUEST_INVALID("60005", "Application delete request validation failed. %s"),
-        ERROR_CODE_APP_UPDATE_REQUEST_INVALID("60006", "Application update request validation failed. %s"),
-        ERROR_CODE_SEARCH_REQUEST_INVALID("60007", "Search request validation failed. Invalid search filter. %s"),
-        ERROR_CODE_APP_ID_DOES_NOT_EXIST("60008", "Application with id: %s does not exists in tenantDomain: %s."),
-        ERROR_CODE_USER_UNAUTHORIZED("60009",
-                "User is unauthorized to perform attempted action on application: %s in tenantDomain: %s"),
-        ;
+        INVALID_REQUEST("60001"),
+        INVALID_OFFSET("60002"),
+        INVALID_LIMIT("60003"),
+        INVALID_FILTER("60004"),
+        APPLICATION_NOT_DISCOVERABLE("60005"),
+        APPLICATION_NOT_FOUND("60006"),
+        APPLICATION_ALREADY_EXISTS("60007"),
+        OPERATION_FORBIDDEN("60008");
 
         private final String code;
-        private final String message;
+        private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP-";
 
-        ErrorMessage(String code, String message) {
+        Error(String code) {
 
             this.code = code;
-            this.message = message;
         }
 
         public String getCode() {
 
-            return APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX + "_" + code;
-        }
-
-        public String getMessage() {
-
-            return message;
-        }
-
-        @Override
-        public String toString() {
-
-            return code + ":" + message;
+            return APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX + code;
         }
     }
 }

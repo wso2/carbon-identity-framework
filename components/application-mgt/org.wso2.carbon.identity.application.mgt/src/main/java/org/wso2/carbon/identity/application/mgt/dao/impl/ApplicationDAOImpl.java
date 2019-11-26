@@ -102,11 +102,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_APPLICATION_IS_NOT_DISCOVERABLE;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_INVALID_LIMIT;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_INVALID_OFFSET;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ErrorMessage.ERROR_SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_METADATA;
@@ -4382,13 +4382,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private void validateAttributesForPagination(int offset, int limit) throws IdentityApplicationManagementException {
 
         if (offset < 0) {
-            throw new IdentityApplicationManagementClientException(ERROR_INVALID_OFFSET.getCode(),
-                    ERROR_INVALID_OFFSET.getMessage());
+            throw new IdentityApplicationManagementClientException(INVALID_OFFSET.getCode(),
+                    "Invalid offset requested. Offset value should be zero or greater than zero.");
         }
 
         if (limit <= 0) {
-            throw new IdentityApplicationManagementClientException(ERROR_INVALID_LIMIT.getCode(), ERROR_INVALID_LIMIT
-                    .getMessage());
+            throw new IdentityApplicationManagementClientException(INVALID_LIMIT.getCode(),
+                    "Invalid limit requested. Limit value should be greater than zero.");
         }
     }
 
@@ -4411,8 +4411,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementServerException {
 
         if (StringUtils.isNotBlank(sortBy) || StringUtils.isNotBlank(sortOrder)) {
-            throw new IdentityApplicationManagementServerException(ERROR_SORTING_NOT_IMPLEMENTED.getCode(),
-                    ERROR_SORTING_NOT_IMPLEMENTED.getMessage());
+            throw new IdentityApplicationManagementServerException(SORTING_NOT_IMPLEMENTED.getCode(),
+                    "Sorting not supported.");
         }
     }
 
@@ -4667,8 +4667,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         if (applicationBasicInfo != null && !isDiscoverable) {
-            throw new IdentityApplicationManagementClientException(ERROR_APPLICATION_IS_NOT_DISCOVERABLE.getCode(),
-                    ERROR_APPLICATION_IS_NOT_DISCOVERABLE.getMessage(resourceId));
+            throw new IdentityApplicationManagementClientException(APPLICATION_NOT_DISCOVERABLE.getCode(),
+                    "Requested application resource " + resourceId + " is not discoverable.");
         }
 
         return applicationBasicInfo;

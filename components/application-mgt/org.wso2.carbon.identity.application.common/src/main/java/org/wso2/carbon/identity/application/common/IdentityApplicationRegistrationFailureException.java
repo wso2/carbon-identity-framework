@@ -29,6 +29,11 @@ public class IdentityApplicationRegistrationFailureException extends IdentityApp
         super(message);
     }
 
+    public IdentityApplicationRegistrationFailureException(String errorCode, String message) {
+
+        super(errorCode, message);
+    }
+
     public IdentityApplicationRegistrationFailureException(String message, Throwable e) {
         super(message, e);
     }
