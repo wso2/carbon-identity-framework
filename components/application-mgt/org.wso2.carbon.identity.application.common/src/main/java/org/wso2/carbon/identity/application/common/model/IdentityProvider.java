@@ -568,7 +568,7 @@ public class IdentityProvider implements Serializable {
         }
         String decodedCertificate;
         try {
-            decodedCertificate = new String(Base64.getDecoder().decode(certificateValue));
+            decodedCertificate = new String(Base64.getDecoder().decode(certificateValue), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
             // TODO Need to handle the exception handling in proper way.
             return createCertificateInfoForNoBeginCertificate(certificateValue);
@@ -591,7 +591,7 @@ public class IdentityProvider implements Serializable {
     private CertificateInfo[] createCertificateInfoForNoBeginCertificate(String certificateValue)
             throws NoSuchAlgorithmException {
 
-        String encodedCertVal = Base64.getEncoder().encodeToString(certificateValue.getBytes());
+        String encodedCertVal = Base64.getEncoder().encodeToString(certificateValue.getBytes(StandardCharsets.UTF_8));
         String thumbPrint = IdentityApplicationManagementUtil.generateThumbPrint(encodedCertVal);
         List<CertificateInfo> certificateInfoList = new ArrayList<>();
         CertificateInfo certificateInfo = new CertificateInfo();

@@ -84,6 +84,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -1816,8 +1817,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     return certificateContent;
                 }
             } catch (SQLException | IOException e) {
-                String errorMessage = String.format("An error occurred while retrieving the certificate for the " +
-                        "application.");
+                String errorMessage = "An error occurred while retrieving the certificate for the " +
+                        "application.";
                 log.error(errorMessage);
                 throw new CertificateRetrievingException(errorMessage, e);
             } finally {
@@ -2413,29 +2414,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
         }
         return property;
-    }
-
-    /**
-     * Merge properties from config to request.
-     *
-     * @param sources
-     * @param destinations
-     */
-    private void mergedPropertiesMetaData(Property[] sources, Property[] destinations) {
-        Map<String, Property> destinationMap = new HashMap<>();
-        if (ArrayUtils.isNotEmpty(destinations)) {
-            for (Property destination : destinations) {
-                destinationMap.put(destination.getName(), destination);
-            }
-        }
-        if (ArrayUtils.isNotEmpty(sources)) {
-            for (Property source : sources) {
-                Property property = destinationMap.get(source.getName());
-                if (property == null) {
-                    destinationMap.put(source.getName(), source);
-                }
-            }
-        }
     }
 
     /**
@@ -4280,7 +4258,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      */
     private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
         if (value != null) {
-            InputStream inputStream = new ByteArrayInputStream(value.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());
         } else {
             prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);
@@ -4300,7 +4278,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             StringBuilder sb = new StringBuilder();
             String line;
             try {
-                br = new BufferedReader(new InputStreamReader(is));
+                br = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
                 while ((line = br.readLine()) != null) {
                     sb.append(line);
                 }

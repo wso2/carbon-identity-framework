@@ -41,6 +41,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -741,8 +743,8 @@ public class IdentityApplicationManagementUtil {
             jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
         }
 
-        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes());
-        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes());
+        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes(StandardCharsets.UTF_8));
 
         if (log.isDebugEnabled()) {
             log.debug("JWT Header :" + jwtHeader);
@@ -759,7 +761,7 @@ public class IdentityApplicationManagementUtil {
                 signedAssertion = calculateHmacSha1(oauthConsumerSecret, assertion);
                 return assertion + "." + signedAssertion;
             } catch (SignatureException e) {
-                log.error("Error while siging the assertion", e);
+                log.error("Error while signing the assertion", e);
                 return assertion + ".";
             }
         }
@@ -774,16 +776,21 @@ public class IdentityApplicationManagementUtil {
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result;
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "HmacSHA1");
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(signingKey);
-            byte[] rawHmac = mac.doFinal(value.getBytes());
+            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
             result = Base64Utils.encode(rawHmac);
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Failed to create the HMAC Signature", e);
             }
-            throw new SignatureException("Failed to calculate HMAC : " + e.getMessage());
+            throw new SignatureException("Invalid algorithm provided while calculating HMAC signature.", e);
+        } catch (InvalidKeyException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to create the HMAC Signature", e);
+            }
+            throw new SignatureException("Failed to calculate HMAC signature.", e);
         }
         return result;
     }

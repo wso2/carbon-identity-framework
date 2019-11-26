@@ -33,6 +33,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
@@ -224,7 +225,7 @@ public class ApplicationTemplateDAOImpl implements ApplicationTemplateDAO {
     private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
 
         if (value != null) {
-            InputStream inputStream = new ByteArrayInputStream(value.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());
         } else {
             prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);

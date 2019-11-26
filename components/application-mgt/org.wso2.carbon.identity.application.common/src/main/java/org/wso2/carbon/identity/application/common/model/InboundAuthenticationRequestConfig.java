@@ -24,7 +24,6 @@ import org.apache.commons.collections.CollectionUtils;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -188,13 +187,15 @@ public class InboundAuthenticationRequestConfig implements Serializable {
     private Property[] sortPropertiesByDisplayOrder(Set<Property> propertySet) {
 
         List<Property> list = new ArrayList(propertySet);
-        Collections.sort(list, new Comparator<Property>() {
-            @Override public int compare(Property pro1, Property pro2) {
-                return ((Integer) pro1.getDisplayOrder()).compareTo((Integer) pro2.getDisplayOrder());
+        list.sort(new Comparator<Property>() {
+            @Override
+            public int compare(Property pro1, Property pro2) {
+
+                return Integer.compare(pro1.getDisplayOrder(), pro2.getDisplayOrder());
             }
         });
 
-        return list.toArray(new Property[list.size()]);
+        return list.toArray(new Property[0]);
     }
 
     public String getInboundConfiguration() {
