@@ -20,12 +20,11 @@ BEGIN
     sleepTime := 2;          -- Sleep time in seconds.[DEFAULT : 2]
     checkCount := 1000; -- SET CHECK COUNT FOR FINISH CLEANUP SCRIPT (CLEANUP ELIGIBLE COUNT SHOULD BE HIGHER THAN checkCount TO CONTINUE) [DEFAULT : 1000]
     enableLog := TRUE;	-- SET TRUE IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
-    backupTables := TRUE;    -- SET TRUE IF REG PROPROTIES TO BACKUP BEFORE DELETE [DEFAULT : FALSE].
+    backupTables := TRUE;    -- SET TRUE IF REG PROPERTIES TO BACKUP BEFORE DELETE [DEFAULT : FALSE].
     logLevel := 'TRACE';    -- SET LOG LEVELS : INFO, TRACE , DEBUG
     rowCount := 0;
 
 RAISE NOTICE 'INFO : WSO2_REG_LOG_CLEANUP() STARTED .... !';
-
 
 -- ------------------------------------------
 --  TABLE BACKUP
@@ -90,7 +89,6 @@ END IF;
 -- ------------------------------------------
 -- PURGE REG_LOG
 -- ------------------------------------------
-
 IF (operationid = 2)
 THEN
     DROP TABLE IF EXISTS REG_LOG_CHUNK_TMP;
@@ -148,8 +146,8 @@ THEN
         END IF;
 
         DELETE FROM REG_LOG where REG_LOG_ID in (SELECT REG_LOG_ID from REG_LOG_BATCH_TMP);
-
         GET diagnostics rowCount := ROW_COUNT;
+
         IF (enableLog AND logLevel IN ('DEBUG','TRACE'))
         THEN
             RAISE NOTICE 'DEBUG : BATCH DELETE FINISHED ON REG_LOG: %', rowCount;
@@ -169,12 +167,12 @@ THEN
 
         IF ((rowCount > 0))
         THEN
-            IF (enableLog AND logLevel IN ('TRACE'))
-        THEN
-        RAISE NOTICE 'TRACE : SLEEPING FOR SECONDS: %',  sleepTime;
-        END IF;
-        perform pg_sleep(sleepTime);
-        batchStatus := 'CONTINUE';
+          IF (enableLog AND logLevel IN ('TRACE'))
+          THEN
+            RAISE NOTICE 'TRACE : SLEEPING FOR SECONDS: %',  sleepTime;
+          END IF;
+          perform pg_sleep(sleepTime);
+          batchStatus := 'CONTINUE';
         END IF;
     END LOOP;
 END IF;
