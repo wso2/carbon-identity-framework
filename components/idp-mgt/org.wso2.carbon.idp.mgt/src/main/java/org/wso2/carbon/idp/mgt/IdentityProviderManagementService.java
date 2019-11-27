@@ -189,8 +189,8 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     private void validateRequestedPageNumber(int pageNumber) throws IdentityProviderManagementException {
 
         if (pageNumber < 1) {
-            throw new IdentityProviderManagementException(
-                    "Invalid page number requested. The page number should be a value greater than 0.");
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
+                    "Invalid page number requested. The page number should be a value greater than 0");
         }
     }
 
