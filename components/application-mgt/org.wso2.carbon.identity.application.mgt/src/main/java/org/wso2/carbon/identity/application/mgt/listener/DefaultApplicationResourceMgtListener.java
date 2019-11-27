@@ -74,7 +74,7 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
 
         int applicationId = getApplicationId(resourceId, tenantDomain);
 
-        if (applicationId != -1) {
+        if (isApplicationExists(applicationId)) {
             application.setApplicationID(applicationId);
             for (ApplicationMgtListener listener :
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
@@ -85,6 +85,11 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
             }
         }
         return true;
+    }
+
+    private boolean isApplicationExists(int applicationId) {
+
+        return applicationId != -1;
     }
 
     @Override
@@ -111,7 +116,7 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
                                                       String userPerformingAction) throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(resourceId, tenantDomain);
-        if (applicationName != null) {
+        if (isApplicationExists(applicationName)) {
             for (ApplicationMgtListener listener :
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
                 if (listener.isEnable()
@@ -128,6 +133,11 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
         }
 
         return true;
+    }
+
+    private boolean isApplicationExists(String applicationName) {
+
+        return applicationName != null;
     }
 
     @Override
@@ -150,7 +160,7 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
             throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(applicationResourceId, tenantDomain);
-        if (StringUtils.isNotBlank(applicationName)) {
+        if (isApplicationExists(applicationName)) {
             for (ApplicationMgtListener listener :
                     ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
                 if (listener.isEnable()

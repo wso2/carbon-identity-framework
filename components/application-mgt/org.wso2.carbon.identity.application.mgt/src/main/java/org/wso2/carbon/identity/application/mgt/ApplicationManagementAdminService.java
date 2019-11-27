@@ -24,7 +24,6 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileContent;
@@ -33,7 +32,6 @@ import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfi
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -65,11 +63,25 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
         try {
             createApplicationWithTemplate(serviceProvider, null);
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +
-                    getTenantDomain(), idpException);
-            throw idpException;
+        } catch (IdentityApplicationManagementException ex) {
+            String message = "Error while creating application: " + serviceProvider.getApplicationName() + " for " +
+                    "tenant: " + getTenantDomain();
+            throw handleException(message, ex);
         }
+    }
+
+    private IdentityApplicationManagementException handleException(String msg,
+                                                                   IdentityApplicationManagementException ex) {
+
+        if (ex instanceof IdentityApplicationManagementClientException) {
+            if (log.isDebugEnabled()) {
+                log.debug(msg, ex);
+            }
+        } else {
+            log.error(msg, ex);
+        }
+
+        return ex;
     }
 
     /**
@@ -85,10 +97,10 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.createApplicationWithTemplate(serviceProvider, getTenantDomain(), getUsername(),
                     templateName);
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while creating application: " + serviceProvider.getApplicationName() + " for tenant: " +
-                    getTenantDomain(), idpException);
-            throw idpException;
+        } catch (IdentityApplicationManagementException ex) {
+            String message = "Error while creating application: " + serviceProvider.getApplicationName() + " for " +
+                    "tenant: " + getTenantDomain();
+            throw handleException(message, ex);
         }
     }
 
@@ -110,10 +122,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             }
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getApplicationExcludingFileBasedSPs(applicationName, getTenantDomain());
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while retrieving application: " + applicationName + " for tenant: " + getTenantDomain(),
-                    idpException);
-            throw idpException;
+        } catch (IdentityApplicationManagementException ex) {
+            String msg = "Error while retrieving application: " + applicationName + " for tenant: " + getTenantDomain();
+            throw handleException(msg, ex);
         }
     }
 
@@ -131,10 +142,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
                     applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
             List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
             return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while retrieving all application basic info for tenant: " + getTenantDomain(),
-                    idpException);
-            throw idpException;
+        } catch (IdentityApplicationManagementException ex) {
+            String message = "Error while retrieving all application basic info for tenant: " + getTenantDomain();
+            throw handleException(message, ex);
         }
     }
 
@@ -149,11 +159,17 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     public ApplicationBasicInfo[] getApplicationBasicInfo(String filter)
             throws IdentityApplicationManagementException {
 
-        applicationMgtService = ApplicationManagementService.getInstance();
-        ApplicationBasicInfo[] applicationBasicInfos = applicationMgtService.getApplicationBasicInfo(getTenantDomain(),
-                getUsername(), filter);
-        List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
-        return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        try {
+            applicationMgtService = ApplicationManagementService.getInstance();
+            ApplicationBasicInfo[] applicationBasicInfos =
+                    applicationMgtService.getApplicationBasicInfo(getTenantDomain(), getUsername(), filter);
+            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
+            return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
+        } catch (IdentityApplicationManagementException ex) {
+            String message = "Error while retrieving all application basic info for tenant: " + getTenantDomain() +
+                    " with filter: " + filter;
+            throw handleException(message, ex);
+        }
     }
 
     /**
@@ -339,11 +355,10 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             }
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.updateApplication(serviceProvider, getTenantDomain(), getUsername());
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while updating application: " + serviceProvider.getApplicationName() + " for tenant: " +
-                    getTenantDomain(), idpException);
-            throw idpException;
-
+        } catch (IdentityApplicationManagementException ex) {
+            String msg = "Error while updating application: " + serviceProvider.getApplicationName() + " for " +
+                    "tenant: " + getTenantDomain();
+            throw handleException(msg, ex);
         }
     }
 
@@ -363,11 +378,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             }
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.deleteApplication(applicationName, getTenantDomain(), getUsername());
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while deleting application: " + applicationName + " for tenant: " + getTenantDomain(),
-                    idpException);
-            throw idpException;
-
+        } catch (IdentityApplicationManagementException ex) {
+            String msg = "Error while deleting application: " + applicationName + " for tenant: " + getTenantDomain();
+            throw handleException(msg, ex);
         }
     }
 
@@ -487,9 +500,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.importSPApplication(spFileContent, getTenantDomain(), getUsername(), false);
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while importing application for tenant: " + getTenantDomain(), idpException);
-            throw idpException;
+        } catch (IdentityApplicationManagementException ex) {
+            String message = "Error while importing application for tenant: " + getTenantDomain();
+            throw handleException(message, ex);
         }
     }
 
@@ -515,10 +528,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             }
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.exportSPApplication(applicationName, exportSecrets, getTenantDomain());
-        } catch (IdentityApplicationManagementException idpException) {
-            log.error("Error while exporting application: " + applicationName + " for tenant: " + getTenantDomain(),
-                    idpException);
-            throw idpException;
+        } catch (IdentityApplicationManagementException ex) {
+            String msg = "Error while exporting application: " + applicationName + " for tenant: " + getTenantDomain();
+            throw handleException(msg, ex);
         }
     }
 
