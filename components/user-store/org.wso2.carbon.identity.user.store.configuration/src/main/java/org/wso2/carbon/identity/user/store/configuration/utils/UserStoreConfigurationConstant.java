@@ -48,4 +48,11 @@ public class UserStoreConfigurationConstant {
     private UserStoreConfigurationConstant() {
 
     }
+
+    public static class ErrorCodes {
+        public static final String XML_FILE_NOT_FOUND = "10001";
+        public static final String XML_FILE_ALREADY_EXISTS = "10002";
+        public static final String USER_STORE_DOMAIN_ALREADY_EXISTS = "10003";
+        public static final String USER_STORE_DOMAIN_NOT_FOUND = "10004";
+    }
 }
