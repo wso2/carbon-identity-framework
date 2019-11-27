@@ -1196,8 +1196,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationBasicInfo application = getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
         if (application == null) {
-            throw new IdentityApplicationManagementClientException("Matching application could not be found " +
-                    "for the provided id: " + applicationId);
+            throw buildClientException(APPLICATION_NOT_FOUND, "Application could not be found " +
+                    "for the provided resourceId: " + applicationId);
         }
         String appName = application.getApplicationName();
         try {
