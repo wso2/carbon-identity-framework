@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.user.store.configuration.dao.impl;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -153,7 +154,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     @Override
     public void deleteUserStore(String domain) throws IdentityUserStoreMgtException {
 
-        if(isValidDomain(domain, false)) {
+        if (isValidDomain(domain, false)) {
             deleteUserStores(new String[]{domain});
         }
     }
@@ -446,7 +447,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
      */
     private boolean isValidDomain(String domainName, Boolean isAdd) throws IdentityUserStoreMgtException {
 
-        if (domainName == null || "".equals(domainName)) {
+        if (StringUtils.isEmpty(domainName)) {
             throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
         }
 
@@ -454,21 +455,18 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throw new IdentityUserStoreClientException(" User store domain name should not contain \"_\".");
         }
 
-        if (isAdd) {
+        if (isAdd && getDomainNames().contains(domainName)) {
             // if add, user store domain name shouldn't already exists
-            if (getDomainNames().contains(domainName)) {
-                throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorCodes.
-                        USER_STORE_DOMAIN_ALREADY_EXISTS, " Cannot add user store. Domain name already exists.");
-            }
-        } else {
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorCodes.
+                    USER_STORE_DOMAIN_ALREADY_EXISTS, " Cannot add user store. Domain name already exists.");
+        } else if(!isAdd && !getDomainNames().contains(domainName)){
             // if edit or delete, user store domain name should already exists
-            if (!getDomainNames().contains(domainName)) {
                 throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorCodes.
                         USER_STORE_DOMAIN_NOT_FOUND, " Cannot find the domain name " +
                         domainName + " to perform this operation");
-            }
+        } else {
+            return true;
         }
-        return true;
     }
 
     /**
@@ -477,9 +475,9 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
      * @return : list of domain names
      * @throws IdentityUserStoreMgtException
      */
-    private ArrayList<String> getDomainNames() throws IdentityUserStoreMgtException {
+    private List<String> getDomainNames() throws IdentityUserStoreMgtException {
 
-        ArrayList<String> domains = new ArrayList<String>();
+        List<String> domains = new ArrayList<String>();
 
         RealmConfiguration realmConfiguration = null;
         try {
