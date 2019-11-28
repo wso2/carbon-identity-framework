@@ -39,7 +39,7 @@
     </context-param>
     <!--context-param>
         <param-name>UserPortalUrl</param-name>
-        <param-value>https://localhost:9443/dashboard/index.jag</param-value>
+        <param-value>https://localhost:9443/user-portal</param-value>
     </context-param-->
     
     <listener>
