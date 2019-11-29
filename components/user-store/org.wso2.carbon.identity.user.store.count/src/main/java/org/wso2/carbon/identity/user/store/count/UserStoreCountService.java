@@ -50,7 +50,7 @@ public class UserStoreCountService {
 
         for (String userStoreDomain : userStoreDomains) {
             String filterWithDomain = getFilterWithDomain(userStoreDomain,filter);
-            Long count = Long.valueOf(-1);
+            long count = -1L;
             try {
                 count = getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
             } catch (UserStoreCounterException e) {
@@ -75,7 +75,7 @@ public class UserStoreCountService {
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
-            Long count = Long.valueOf(-1);
+            long count = -1L;
             String filterWithDomain = getFilterWithDomain(userStoreDomain,filter);
 
                 try {
@@ -110,7 +110,7 @@ public class UserStoreCountService {
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
-            Long count = Long.valueOf(-1);
+            long count = -1L;
             String filterWithDomain = getFilterWithDomain(userStoreDomain,valueFilter);
 
             try {
@@ -131,7 +131,7 @@ public class UserStoreCountService {
      * @param filter the filter for the user name. Use '*' to have all.
      * @return the number of users matching the filter only within this user store domain
      */
-    public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
+    public long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
 
         String filterWithDomain = getFilterWithDomain(domain,filter);
         return getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
@@ -143,7 +143,7 @@ public class UserStoreCountService {
      * @param filter the filter for the role name. Use '*' to have all.
      * @return the number of roles matching the filter within this user store domain
      */
-    public Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
+    public long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
 
         String filterWithDomain = getFilterWithDomain(domain,filter);
         return getCountRoles(filterWithDomain);
@@ -156,7 +156,7 @@ public class UserStoreCountService {
      * @param valueFilter filter for the claim values
      * @return the number of users matching the given claim and filter within this user store domain
      */
-    public Long countByClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
+    public long countByClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
 
         String filterWithDomain = getFilterWithDomain(domain,valueFilter);
         return getUserCountWithClaims(claimURI, filterWithDomain);
