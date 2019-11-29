@@ -1775,8 +1775,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
 
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+
+            String resourceId;
             try {
-                String resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
+                resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
+            } catch (IdentityApplicationManagementException ex) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                            " failed. Rolling back by cleaning up partially created data.");
+                }
+                deleteApplicationRole(applicationName);
+                deleteApplicationPermission(applicationName);
+                throw ex;
+            }
+
+            try {
                 return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
             } catch (IdentityApplicationManagementException ex) {
                 if (log.isDebugEnabled()) {

@@ -30,6 +30,7 @@ import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -89,6 +90,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -102,6 +104,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.APPLICATION_NOT_DISCOVERABLE;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_LIMIT;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
@@ -432,7 +435,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            throw new IdentityApplicationManagementException("Error while Creating Application", e);
+            if (isDuplicateApplicationError(serviceProvider, tenantDomain, e)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("The application: " + serviceProvider.getApplicationName() + ", does exists already. " +
+                            "Therefore, the attempt to create the same application is ignored.");
+                }
+                String msg = "Error while creating the application: " + serviceProvider.getApplicationName() + ". " +
+                        "Application already exists";
+                throw new IdentityApplicationRegistrationFailureException(APPLICATION_ALREADY_EXISTS.getCode(), msg);
+            }
+
+            throw new IdentityApplicationManagementException("Error while Creating Application: "
+                    + serviceProvider.getApplicationName(), e);
         } finally {
             IdentityApplicationManagementUtil.closeResultSet(results);
             IdentityApplicationManagementUtil.closeStatement(storeAppPrepStmt);
@@ -925,6 +939,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
         return propertyArrayList;
     }
+
     /**
      * @param applicationId
      * @param inBoundAuthenticationConfig
@@ -1035,7 +1050,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(inboundAuthReqConfigPrepStmt);
         }
     }
-
     /**
      * @param applicationId
      * @param inBoundProvisioningConfig
@@ -1725,20 +1739,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public ServiceProvider getApplication(String applicationName,
                                           String tenantDomain) throws IdentityApplicationManagementException {
 
-        try {
-            int applicationId = getApplicationIdByName(applicationName, tenantDomain);
-            if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
-                // Looking for the resident sp. Create the resident sp for the tenant.
-                ServiceProvider localServiceProvider = new ServiceProvider();
-                localServiceProvider.setApplicationName(applicationName);
-                localServiceProvider.setDescription("Local Service Provider");
-                applicationId = createApplication(localServiceProvider, tenantDomain);
+        int applicationId = getApplicationIdByName(applicationName, tenantDomain);
+        if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+            // Looking for the resident sp. Create the resident sp for the tenant.
+            if (log.isDebugEnabled()) {
+                log.debug("The application: " + applicationName + " trying to retrieve is not available, but also" +
+                        " identified as the Local Service Provider. Therefore, creating the application: "
+                        + applicationName);
             }
-            return getApplication(applicationId);
-        } catch (IdentityApplicationManagementException ex) {
-            throw new IdentityApplicationManagementException("Failed to retrieve application: "
-                    + applicationName + " in tenantDomain: " + tenantDomain, ex);
+            ServiceProvider localServiceProvider = new ServiceProvider();
+            localServiceProvider.setApplicationName(applicationName);
+            localServiceProvider.setDescription("Local Service Provider");
+
+            // Although application does not exists at this point, it could already be created by the time where db
+            // queries are committed, if concurrent requests were made in-between.
+            applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
+        return getApplication(applicationId);
     }
 
     /**
@@ -3766,6 +3783,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO#getServiceProviderNameByClientId
      * (java.lang.String, java.lang.String, java.lang.String)
      */
+
     public String getServiceProviderNameByClientId(String clientId, String clientType,
                                                    String tenantDomain) throws IdentityApplicationManagementException {
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
@@ -3810,7 +3828,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         return applicationName;
     }
-
     /**
      * @param serviceProviderName
      * @param tenantDomain
@@ -4448,7 +4465,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     public String addApplication(ServiceProvider application,
-                                 String tenantDomain) throws IdentityApplicationManagementException {
+                                 String tenantDomain) throws IdentityApplicationManagementException{
 
         try {
             int applicationId = createApplication(application, tenantDomain);
@@ -4465,13 +4482,14 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             application.setApplicationResourceId(resourceId);
             insertApplicationConfigurations(application, tenantDomain, false);
             return resourceId;
-        } catch (Exception ex) {
-            log.error("Error while creating the application with name: " + application.getApplicationName()
-                    + " in tenantDomain: " + tenantDomain + ". Rolling back by deleting the partially created " +
-                    "application information.");
-            deleteApplication(application.getApplicationName());
-            throw new IdentityApplicationManagementException("Error while creating an application: "
-                    + application.getApplicationName() + " in tenantDomain: " + tenantDomain, ex);
+        } catch (IdentityApplicationManagementException ex) {
+            if (!isApplicationAlreadyExistsError(ex)) {
+                log.error("Error while creating the application with name: " + application.getApplicationName()
+                        + " in tenantDomain: " + tenantDomain + ". Rolling back by deleting the partially created " +
+                        "application information.");
+                deleteApplication(application.getApplicationName());
+            }
+            throw ex;
         }
     }
 
@@ -4907,5 +4925,40 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String generateApplicationResourceId(ServiceProvider serviceProvider) {
 
         return UUID.randomUUID().toString();
+    }
+
+    private boolean isDuplicateApplicationError(ServiceProvider serviceProvider, String tenantDomain, SQLException e)
+            throws IdentityApplicationManagementException {
+
+        return (e instanceof SQLIntegrityConstraintViolationException)
+                && isApplicationExists(serviceProvider.getApplicationName(), tenantDomain);
+    }
+
+    private boolean isApplicationAlreadyExistsError(IdentityApplicationManagementException ex) {
+
+        return ex instanceof IdentityApplicationRegistrationFailureException
+                && APPLICATION_ALREADY_EXISTS.getCode().contains(ex.getErrorCode());
+    }
+
+    private int createServiceProvider(String tenantDomain, ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
+
+        int applicationId;
+        try {
+            applicationId = createApplication(serviceProvider, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            if (!isApplicationAlreadyExistsError(e)) {
+                throw new IdentityApplicationManagementException("Failed to retrieve application: "
+                        + serviceProvider.getApplicationName() + " in tenantDomain: " + tenantDomain, e);
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("The service provider: " + serviceProvider.getApplicationName() + ", tried " +
+                        "to create, is already exists. Therefore, this duplication attempt error is ignored and " +
+                        "existing application id is used", e);
+            }
+            applicationId = getApplicationIdByName(serviceProvider.getApplicationName(), tenantDomain);
+        }
+        return applicationId;
     }
 }
