@@ -447,5 +447,6 @@
     "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
   ],
   "pagination.max_items_per_page": "100",
-  "pagination.default_items_per_page": "15"
+  "pagination.default_items_per_page": "15",
+  "image_store.type":"org.wso2.carbon.identity.image.file.FileBasedStorageSystemImpl"
 }

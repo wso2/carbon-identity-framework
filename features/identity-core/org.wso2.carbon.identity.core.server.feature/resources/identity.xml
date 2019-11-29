@@ -1360,6 +1360,10 @@
         </FIDO2TrustedOrigins>
     </FIDO>
 
+    <ContentStore>
+        <Type>org.wso2.carbon.identity.image.file.FileBasedStorageSystemImpl</Type>
+    </ContentStore>
+
     <MaximumItemsPerPage>100</MaximumItemsPerPage>
     <DefaultItemsPerPage>15</DefaultItemsPerPage>
 
