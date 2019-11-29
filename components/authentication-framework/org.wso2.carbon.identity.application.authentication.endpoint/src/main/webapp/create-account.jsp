@@ -228,7 +228,7 @@
                                 <span class="margin-top padding-top-double font-large">
                                     <%=AuthenticationEndpointUtil.i18n(resourceBundle,"have.account")%>
                                 </span>
-                                <a href="../dashboard/index.jag" id="signInLink" class="font-large">
+                                <a href="../user-portal" id="signInLink" class="font-large">
                                     <%=AuthenticationEndpointUtil.i18n(resourceBundle,"login")%>
                                 </a>
                             </div>

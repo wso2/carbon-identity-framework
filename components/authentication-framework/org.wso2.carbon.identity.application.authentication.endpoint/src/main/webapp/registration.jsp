@@ -51,7 +51,7 @@
         }
         char [] password = request.getParameter("reg_password").toCharArray();
         registrationClient.addUser(username, password, fields);
-        forwardTo = "../dashboard/index.jag";
+        forwardTo = "../user-portal";
     } catch (Exception e) {
         String error = URLEncoder.encode(AuthenticationEndpointUtil.i18n(resourceBundle, "internal.error.occurred"),"utf-8");
         response.sendRedirect("create-account.jsp?sessionDataKey=" + request.getParameter("sessionDataKey") +
