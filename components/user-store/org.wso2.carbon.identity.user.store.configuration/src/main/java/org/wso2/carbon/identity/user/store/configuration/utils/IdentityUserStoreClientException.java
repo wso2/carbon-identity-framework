@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
 /**
- * Exception class to capture internal user store exception with error codes.
+ * Exception class to capture client exception with error codes.
  */
 public class IdentityUserStoreClientException extends IdentityUserStoreMgtException {
 

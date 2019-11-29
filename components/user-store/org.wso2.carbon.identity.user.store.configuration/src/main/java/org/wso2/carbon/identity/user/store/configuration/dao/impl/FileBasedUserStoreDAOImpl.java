@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
-import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreInternalException;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreServerException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -143,18 +143,18 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private void throwException(String domainName, boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
 
         String msg = "Cannot add user store " + domainName + ". User store already exists.";
-        String errorCode = UserStoreConfigurationConstant.ErrorCodes.XML_FILE_ALREADY_EXISTS;
+        String errorCode = UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_XML_FILE_ALREADY_EXISTS.getCode();
         if (editSecondaryUserStore) {
             msg = "Cannot edit user store " + domainName + ". User store cannot be edited.";
-            errorCode = UserStoreConfigurationConstant.ErrorCodes.XML_FILE_NOT_FOUND;
+            errorCode = UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_XML_FILE_NOT_FOUND.getCode();
         }
-        throw new IdentityUserStoreInternalException(errorCode, msg);
+        throw new IdentityUserStoreClientException(errorCode, msg);
     }
 
     @Override
     public void deleteUserStore(String domain) throws IdentityUserStoreMgtException {
 
-        if (isValidDomain(domain, false)) {
+        if (isDomainNameExists(domain)) {
             deleteUserStores(new String[]{domain});
         }
     }
@@ -272,7 +272,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
-            boolean validDomain = isValidDomain(domainName, true);
+            boolean validDomain = isValidDomainToAdd(domainName);
             validateForFederatedDomain(domainName);
             if (validDomain) {
                 Path userStoreConfigFile = getUserStoreConfigurationFile(userStorePersistanceDTO.getUserStoreDTO());
@@ -299,7 +299,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
             validateForFederatedDomain(domainName);
-            isValidDomain = isValidDomain(domainName, false);
+            isValidDomain = isDomainNameExists(domainName);
         } catch (UserStoreException e) {
             throw new IdentityUserStoreClientException("Error while updating the user store.", e);
         }
@@ -343,14 +343,15 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         if (!Files.exists(previousUserStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. Previous domain name " + previousDomainName +
                     " does not exists.";
-            throw new IdentityUserStoreInternalException(UserStoreConfigurationConstant.ErrorCodes.XML_FILE_NOT_FOUND,
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage
+                    .ERROR_CODE_XML_FILE_NOT_FOUND.getCode(),
                     errorMessage);
         }
         if (Files.exists(userStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. An user store already exists with new domain " +
                     domainName + ".";
-            throw new IdentityUserStoreInternalException(UserStoreConfigurationConstant.ErrorCodes.
-                    XML_FILE_ALREADY_EXISTS, errorMessage);
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
+                    ERROR_CODE_XML_FILE_ALREADY_EXISTS.getCode(), errorMessage);
         }
         try {
             // Run pre user-store name update listeners
@@ -438,14 +439,13 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     }
 
     /**
-     * To check whether the provided domain name is valid or not.
+     * To check whether the provided domain name is valid to add user store.
      *
      * @param domainName user store domain name
-     * @param isAdd      boolean value, this will be true when add a new user store
      * @return true or false
      * @throws IdentityUserStoreMgtException
      */
-    private boolean isValidDomain(String domainName, Boolean isAdd) throws IdentityUserStoreMgtException {
+    private boolean isValidDomainToAdd(String domainName) throws IdentityUserStoreMgtException {
 
         if (StringUtils.isEmpty(domainName)) {
             throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
@@ -455,18 +455,13 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throw new IdentityUserStoreClientException(" User store domain name should not contain \"_\".");
         }
 
-        if (isAdd && getDomainNames().contains(domainName)) {
+        if (getDomainNames().contains(domainName)) {
             // if add, user store domain name shouldn't already exists
-            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorCodes.
-                    USER_STORE_DOMAIN_ALREADY_EXISTS, " Cannot add user store. Domain name already exists.");
-        } else if(!isAdd && !getDomainNames().contains(domainName)){
-            // if edit or delete, user store domain name should already exists
-                throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorCodes.
-                        USER_STORE_DOMAIN_NOT_FOUND, " Cannot find the domain name " +
-                        domainName + " to perform this operation");
-        } else {
-            return true;
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
+                    ERROR_CODE_USER_STORE_DOMAIN_ALREADY_EXISTS.getCode(),
+                    " Cannot add user store. Domain name : " + domainName + "already exists.");
         }
+        return true;
     }
 
     /**
@@ -486,7 +481,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throw new IdentityUserStoreMgtException(" Error occurred while retrieving the realm configuration ", e);
         }
 
-        // For primary
+        // To add PRIMARY domain to the domains list
         String domain = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
         if (domain == null) {
             domain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
@@ -500,5 +495,27 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
         }
         return domains;
+    }
+
+    /**
+     * To check whether the provided domain name already exists to update or delete.
+     *
+     * @param domainName user store domain name
+     * @return true or false
+     * @throws IdentityUserStoreMgtException
+     */
+    private boolean isDomainNameExists(String domainName) throws IdentityUserStoreMgtException {
+
+        if (StringUtils.isEmpty(domainName)) {
+            throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
+        }
+
+        if (!getDomainNames().contains(domainName)) {
+            // if edit or delete, user store domain name should already exists
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
+                    ERROR_CODE_USER_STORE_DOMAIN_NOT_FOUND.getCode(), " Cannot find the domain name " +
+                    domainName + " to perform this operation");
+        }
+        return true;
     }
 }

@@ -150,7 +150,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void deleteUserStore(String domain) throws IdentityUserStoreMgtException {
 
         if (StringUtils.isEmpty(domain)) {
-            throw new IdentityUserStoreClientException(" No selected user store to delete ");
+            throw new IdentityUserStoreClientException("No selected user store to delete.");
         }
 
         if (!validateDomainsForDelete(new String[]{domain})) {
@@ -158,7 +158,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 log.debug("Failed to delete user store " + domain + " " +
                         ": No privileges to delete own user store configurations ");
             }
-            throw new IdentityUserStoreClientException(" No privileges to delete own user store configurations.");
+            throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
             Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
