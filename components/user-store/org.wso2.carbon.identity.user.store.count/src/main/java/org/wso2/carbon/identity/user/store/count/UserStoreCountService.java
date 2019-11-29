@@ -19,12 +19,16 @@ package org.wso2.carbon.identity.user.store.count;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
+import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 
 import java.util.Set;
+import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
@@ -33,7 +37,6 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 public class UserStoreCountService {
 
     private static final Log log = LogFactory.getLog(UserStoreCountService.class);
-
     /**
      * Get the count of users having a matching user name for the filter
      *
@@ -46,21 +49,16 @@ public class UserStoreCountService {
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
-            UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
+            String filterWithDomain = getFilterWithDomain(userStoreDomain,filter);
             Long count = Long.valueOf(-1);
-            if (counter != null) {
-                try {
-                    count = counter.countUsers(filter);
-                } catch (UserStoreCounterException e) {
-                    log.error("Error while getting user count from user store domain : " + userStoreDomain, e);
-                }
-            } else {
-                //no action
+            try {
+                count = getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
+            } catch (UserStoreCounterException e) {
+                log.error("Error while getting user count from user store domain : " + userStoreDomain, e);
             }
             userCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
-
         return userCounts;
     }
 
@@ -72,31 +70,29 @@ public class UserStoreCountService {
      */
     public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
         Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
-        //add 3 more for the counts of Internal, Application domains
+        //add 2 more for the counts of Internal, Application domains
         PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 2];
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
-            UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
             Long count = Long.valueOf(-1);
-            if (counter != null) {
+            String filterWithDomain = getFilterWithDomain(userStoreDomain,filter);
+
                 try {
-                    count = counter.countRoles(filter);
+                    count = getCountRoles(filterWithDomain);
                 } catch (UserStoreCounterException e) {
                     log.error("Error while getting role count from user store domain : " + userStoreDomain, e);
                 }
-            } else {
-                //no action
-            }
 
             roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
-
+        String internalDomainFilter = UserCoreConstants.INTERNAL_DOMAIN +"/"+filter;
+        String applicationDomainFilter = InternalStoreCountConstants.APPLICATION_DOMAIN +"/"+filter;
         roleCounts[i] =  new PairDTO(UserCoreConstants.INTERNAL_DOMAIN, String.valueOf(
-                UserStoreCountUtils.getInternalRoleCount(filter)));
+                getCountRoles(internalDomainFilter)));
         roleCounts[++i] =  new PairDTO(InternalStoreCountConstants.APPLICATION_DOMAIN, String.valueOf(
-                UserStoreCountUtils.getApplicationRoleCount(filter)));
+                getCountRoles(applicationDomainFilter)));
 
         return roleCounts;
     }
@@ -114,21 +110,18 @@ public class UserStoreCountService {
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
-            UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(userStoreDomain);
             Long count = Long.valueOf(-1);
-            if (counter != null) {
-                try {
-                    count = counter.countClaim(claimURI, valueFilter);
-                } catch (UserStoreCounterException e) {
-                    log.error("Error while getting user count with claim : " + claimURI + " from user store domain : " + userStoreDomain, e);
-                }
-            } else {
-                //no action
+            String filterWithDomain = getFilterWithDomain(userStoreDomain,valueFilter);
+
+            try {
+                count = getUserCountWithClaims(claimURI, filterWithDomain);
+            } catch (UserStoreCounterException e) {
+                log.error("Error while getting user count with claim : " + claimURI + " from user store domain : "
+                        + userStoreDomain, e);
             }
             claimCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
-
         return claimCounts;
     }
 
@@ -140,15 +133,8 @@ public class UserStoreCountService {
      */
     public Long countUsersInDomain(String filter, String domain) throws UserStoreCounterException {
 
-        UserStoreCountRetriever counter = null;
-        if (UserStoreCountUtils.isUserStoreEnabled(domain)) {
-            counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
-        }
-        if (counter != null) {
-            return counter.countUsers(filter);
-        } else {
-            return Long.valueOf(-1);
-        }
+        String filterWithDomain = getFilterWithDomain(domain,filter);
+        return getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
     }
 
     /**
@@ -159,18 +145,8 @@ public class UserStoreCountService {
      */
     public Long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
 
-        if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(domain)) {
-            return UserStoreCountUtils.getInternalRoleCount(filter);
-        } else if (InternalStoreCountConstants.APPLICATION_DOMAIN.equalsIgnoreCase(domain)) {
-            return UserStoreCountUtils.getApplicationRoleCount(filter);
-        } else {              //Not an internal domain
-            UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
-            if (counter != null) {
-                return counter.countRoles(filter);
-            } else {
-                return Long.valueOf(-1);
-            }
-        }
+        String filterWithDomain = getFilterWithDomain(domain,filter);
+        return getCountRoles(filterWithDomain);
     }
 
     /**
@@ -182,13 +158,8 @@ public class UserStoreCountService {
      */
     public Long countByClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
 
-        UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
-        if (counter != null) {
-            return counter.countClaim(claimURI, valueFilter);
-        } else {
-            return Long.valueOf(-1);
-        }
-
+        String filterWithDomain = getFilterWithDomain(domain,valueFilter);
+        return getUserCountWithClaims(claimURI, filterWithDomain);
     }
 
     /**
@@ -202,4 +173,58 @@ public class UserStoreCountService {
 
     }
 
+    private RealmConfiguration realmConfiguration = null;
+
+    /**
+     * Get User count.
+     *
+     * @param claimURI claim uri
+     * @param valueFilter filter
+     * @return user count
+     * @throws UserStoreCounterException UserStoreCounterException
+     */
+    private long getUserCountWithClaims(String claimURI, String valueFilter) throws UserStoreCounterException {
+
+        try {
+            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
+            return UserStoreCountDSComponent.getRealmService().getUserRealm(this.realmConfiguration).
+                    getUserStoreManager().getUserCountWithClaims(claimURI, valueFilter);
+
+        } catch (UserStoreException e) {
+            String ErrorMsg = "No user count is retrieved from the user store.";
+            throw new UserStoreCounterException(ErrorMsg, e);
+        }
+    }
+
+    /**
+     * Get role count.
+     *
+     * @param filter filter
+     * @return role count
+     * @throws UserStoreCounterException UserStoreCounterException
+     */
+    private long getCountRoles(String filter) throws UserStoreCounterException {
+
+        try {
+            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
+            return UserStoreCountDSComponent.getRealmService().getUserRealm(this.realmConfiguration).
+                    getUserStoreManager().countRoles(filter);
+
+        } catch (UserStoreException e) {
+            String ErrorMsg = "No role count is retrieved from the user store.";
+            throw new UserStoreCounterException(ErrorMsg, e);
+        }
+    }
+
+    /**
+     * Get filter with domain
+     *
+     * @param domain Domain
+     * @param filter Filter
+     * @return domain/filter
+     */
+    private String getFilterWithDomain(String domain,String filter){
+
+        return domain + "/" + filter;
+    }
 }

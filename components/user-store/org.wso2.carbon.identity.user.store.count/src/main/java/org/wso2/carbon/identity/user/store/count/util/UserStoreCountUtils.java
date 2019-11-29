@@ -44,6 +44,7 @@ import java.util.Set;
 public class UserStoreCountUtils {
     public static final String countRetrieverClass = "CountRetrieverClass";
     private static final Log log = LogFactory.getLog(UserStoreCountUtils.class);
+    public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
 
     /**
      * Get the available list of user store domains
