@@ -4535,6 +4535,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     deleteAppStatement.execute();
 
                     IdentityDatabaseUtil.commitTransaction(connection);
+                } catch (SQLException ex) {
+                    IdentityDatabaseUtil.rollbackTransaction(connection);
+                    String msg = "Error occurred while deleting application with resourceId: %s in tenantDomain: %s.";
+                    throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain), ex);
                 }
             } else {
                 if (log.isDebugEnabled()) {
@@ -4543,7 +4547,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     log.debug(String.format(msg, resourceId, tenantDomain));
                 }
             }
-
         } catch (SQLException e) {
             String msg = "Error occurred while deleting application with resourceId: %s in tenantDomain: %s.";
             throw new IdentityApplicationManagementException(String.format(msg, resourceId, tenantDomain), e);
