@@ -402,7 +402,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             storeAppPrepStmt.setString(9, "0");
             storeAppPrepStmt.setString(10, generateApplicationResourceId(serviceProvider));
             storeAppPrepStmt.setString(11, serviceProvider.getImageUrl());
-            storeAppPrepStmt.setString(12, serviceProvider.getLoginUrl());
+            storeAppPrepStmt.setString(12, serviceProvider.getAccessUrl());
             storeAppPrepStmt.execute();
 
             results = storeAppPrepStmt.getGeneratedKeys();
@@ -895,7 +895,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
-            statement.setString(ApplicationTableColumns.LOGIN_URL, serviceProvider.getLoginUrl());
+            statement.setString(ApplicationTableColumns.ACCESS_URL, serviceProvider.getAccessUrl());
             if (isValidUserForOwnerUpdate) {
                 User owner = serviceProvider.getOwner();
                 statement.setString(ApplicationTableColumns.USERNAME, owner.getUserName());
@@ -1863,7 +1863,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationName(basicAppDataResultSet.getString(3));
                 serviceProvider.setDescription(basicAppDataResultSet.getString(6));
                 serviceProvider.setImageUrl(basicAppDataResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-                serviceProvider.setLoginUrl(basicAppDataResultSet.getString(ApplicationTableColumns.LOGIN_URL));
+                serviceProvider.setAccessUrl(basicAppDataResultSet.getString(ApplicationTableColumns.ACCESS_URL));
                 serviceProvider.setDiscoverable(getBooleanValue(basicAppDataResultSet.getString(ApplicationTableColumns
                         .IS_DISCOVERABLE)));
 
@@ -2137,7 +2137,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider.setApplicationName(rs.getString(ApplicationTableColumns.APP_NAME));
                 serviceProvider.setDescription(rs.getString(ApplicationTableColumns.DESCRIPTION));
                 serviceProvider.setImageUrl(rs.getString(ApplicationTableColumns.IMAGE_URL));
-                serviceProvider.setLoginUrl(rs.getString(ApplicationTableColumns.LOGIN_URL));
+                serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
 
                 User owner = new User();
@@ -4809,7 +4809,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
-        basicInfo.setLoginUrl(appNameResultSet.getString(ApplicationTableColumns.LOGIN_URL));
+        basicInfo.setAccessUrl(appNameResultSet.getString(ApplicationTableColumns.ACCESS_URL));
 
         String username = appNameResultSet.getString(ApplicationTableColumns.USERNAME);
         String userStoreDomain = appNameResultSet.getString(ApplicationTableColumns.USER_STORE);
