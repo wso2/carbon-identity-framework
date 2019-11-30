@@ -24,11 +24,15 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Just in time provisioning configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "JustInTimeProvisioningConfig")
 public class JustInTimeProvisioningConfig extends InboundProvisioningConfig implements Serializable {

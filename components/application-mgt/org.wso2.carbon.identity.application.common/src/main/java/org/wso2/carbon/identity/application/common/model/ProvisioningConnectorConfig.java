@@ -30,6 +30,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Provisioning connector configuration.
+ */
 public class ProvisioningConnectorConfig implements Serializable {
 
     private static final long serialVersionUID = -4569973060498183209L;
@@ -40,12 +43,13 @@ public class ProvisioningConnectorConfig implements Serializable {
     protected boolean blocking;
     protected boolean rulesEnabled;
 
-    /*
-         * <ProvisioningConnectorConfig> <Name></Name> <ProvisioningProperties></ProvisioningProperties>
-         * </ProvisioningConnectorConfig>
-         */
+    /**
+     * <ProvisioningConnectorConfig> <Name></Name> <ProvisioningProperties></ProvisioningProperties>
+     * </ProvisioningConnectorConfig>
+     */
     public static ProvisioningConnectorConfig build(OMElement provisioningConnectorConfigOM) throws
-            IdentityApplicationManagementException{
+            IdentityApplicationManagementException {
+
         ProvisioningConnectorConfig provisioningConnectorConfig = new ProvisioningConnectorConfig();
 
         Iterator<?> iter = provisioningConnectorConfigOM.getChildElements();
@@ -56,7 +60,7 @@ public class ProvisioningConnectorConfig implements Serializable {
 
             if ("ProvisioningProperties".equals(elementName)) {
                 Iterator<?> propertiesIter = element.getChildElements();
-                List<Property> propertiesArrList = new ArrayList<Property>();
+                List<Property> propertiesArrList = new ArrayList<>();
 
                 if (propertiesIter != null) {
                     while (propertiesIter.hasNext()) {
@@ -80,7 +84,7 @@ public class ProvisioningConnectorConfig implements Serializable {
             }
         }
 
-        if(StringUtils.isBlank(provisioningConnectorConfig.getName())){
+        if (StringUtils.isBlank(provisioningConnectorConfig.getName())) {
             throw new IdentityApplicationManagementException("No configured name found for " +
                     "ProvisioningConnectorConfig");
         }
@@ -116,7 +120,7 @@ public class ProvisioningConnectorConfig implements Serializable {
     }
 
     /**
-     * @param string
+     * @param name
      */
     public void setName(String name) {
         this.name = name;
@@ -137,7 +141,7 @@ public class ProvisioningConnectorConfig implements Serializable {
     }
 
     /**
-     * @param string
+     * @param enabled
      */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
@@ -162,9 +166,12 @@ public class ProvisioningConnectorConfig implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ProvisioningConnectorConfig))
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof ProvisioningConnectorConfig)) {
             return false;
+        }
 
         ProvisioningConnectorConfig that = (ProvisioningConnectorConfig) o;
 

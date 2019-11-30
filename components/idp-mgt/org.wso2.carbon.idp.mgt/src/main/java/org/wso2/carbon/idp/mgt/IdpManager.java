@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,46 @@ public interface IdpManager {
     List<IdentityProvider> getIdPs(String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Get all basic identity provider information.
+     *
+     * @param limit        limit per page.
+     * @param offset       offset value.
+     * @param filter       filter value for IdP search.
+     * @param sortOrder    order of IdP ASC/DESC.
+     * @param sortBy       the column value need to sort.
+     * @param tenantDomain tenantDomain of the user.
+     * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
+     * @throws IdentityProviderManagementServerException server related error when getting list of Identity  Providers.
+     * @throws IdentityProviderManagementClientException client related error when getting list of Identity  Providers.
+     */
+    IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                            String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
+
+    /**
+     * Get all basic identity provider information.
+     *
+     * @param filter       filter value for IdP search.
+     * @param tenantDomain tenant domain whose IdP names are requested.
+     * @return filtered Idp Count.
+     * @throws IdentityProviderManagementException Error while getting Identity  Providers count.
+     */
+    int getTotalIdPCount(String filter, String tenantDomain) throws IdentityProviderManagementException;
+
+     /**
+     * Retrieves registered Identity providers for a given tenant by Identity Provider name
+     *
+     * @param tenantDomain Tenant domain whose IdP names are requested
+     * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
+     * identifiers of each IdP
+     * @throws IdentityProviderManagementException Error when getting list of Identity Providers
+     */
+    default List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
+			throws IdentityProviderManagementException {
+	return null;     
+    }
+    
+    /**
      * Retrieves registered Enabled Identity providers for a given tenant
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
@@ -101,6 +142,19 @@ public interface IdpManager {
      */
     default IdentityProvider getIdPById(String id, String tenantDomain,
                                 boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
+     * Returns extended IDP with resource ID.
+     * @param resourceId            Resource ID of the IDP.
+     * @param tenantDomain          Tenant domain of the IDP.
+     * @param ignoreFileBasedIdps   Whether to ignore file based idps or not.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException
+     */
+    default IdentityProvider getIdPByResourceId(String resourceId, String tenantDomain,
+                                        boolean ignoreFileBasedIdps) throws IdentityProviderManagementException {
         return null;
     }
 
@@ -282,6 +336,19 @@ public interface IdpManager {
     void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Adds an Identity Provider to the given tenant.
+     *
+     * @param identityProvider  New Identity Provider information.
+     * @param tenantDomain      Tenant domain of the IDP.
+     * @return extended IDP.
+     * @throws IdentityProviderManagementException Error when adding Identity Provider information.
+     */
+    default IdentityProvider addIdPWithResourceId(IdentityProvider identityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return null;
+    }
+
+    /**
      * Deletes an Identity Provider from a given tenant
      *
      * @param idPName Name of the IdP to be deleted
@@ -289,6 +356,15 @@ public interface IdpManager {
      *                                                information
      */
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Deletes an Identity Provider from a given tenant using its resource ID.
+     *
+     * @param resourceId    Resource ID of the IdP to be deleted
+     * @throws IdentityProviderManagementException Error when deleting Identity Provider information.
+     */
+    default void deleteIdPByResourceId(String resourceId, String tenantDomain) throws
+            IdentityProviderManagementException {}
 
     /**
      * Updates a given Identity Provider information
@@ -300,6 +376,19 @@ public interface IdpManager {
      */
     void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
+
+    /**
+     * Updates a given Identity Provider information using its resource ID.
+     *
+     * @param resourceId          IDP resource ID.
+     * @param newIdentityProvider New IdP information.
+     * @param tenantDomain        Tenant domain of the IDP.
+     * @throws IdentityProviderManagementException Error when updating Identity Provider information.
+     */
+    default IdentityProvider updateIdPByResourceId(String resourceId, IdentityProvider newIdentityProvider, String
+            tenantDomain) throws IdentityProviderManagementException {
+        return null;
+    }
 
     /**
      * Get the authenticators registered in the system.

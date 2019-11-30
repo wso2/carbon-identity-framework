@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class CacheBackedClaimDialectDAO extends ClaimDialectDAO {
 
-    private static Log log = LogFactory.getLog(CacheBackedClaimDialectDAO.class);
+    private static final Log log = LogFactory.getLog(CacheBackedClaimDialectDAO.class);
 
     private ClaimDialectCache claimDialectCache = ClaimDialectCache.getInstance();
 

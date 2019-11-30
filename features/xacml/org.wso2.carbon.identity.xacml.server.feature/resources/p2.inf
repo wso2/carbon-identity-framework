@@ -15,3 +15,12 @@ org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../depl
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/server/);\
 org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../deployment/server/webapps/);\
 org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.xacml.server_${feature.version}/api#identity#entitlement.war,target:${installFolder}/../../deployment/server/webapps/api#identity#entitlement.war,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf/templates); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf/templates/repository); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf/templates/repository/conf); \
+org.eclipse.equinox.p2.touchpoint.natives.mkdir(path:${installFolder}/../../../repository/resources/conf/templates/repository/conf/identity); \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.xacml.server_${feature.version}/entitlement.properties.j2,target:${installFolder}/../../resources/conf/templates/repository/conf/identity/entitlement.properties.j2,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.xacml.server_${feature.version}/org.wso2.carbon.identity.xacml.server.feature.default.json,target:${installFolder}/../../resources/conf/org.wso2.carbon.identity.xacml.server.feature.default.json,overwrite:true);\
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/org.wso2.carbon.identity.xacml.server_${feature.version}/org.wso2.carbon.identity.xacml.server.feature.unit-resolve.json,target:${installFolder}/../../resources/conf/org.wso2.carbon.identity.xacml.server.feature.unit-resolve.json,overwrite:true);\
+

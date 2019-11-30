@@ -30,7 +30,7 @@ import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 
 public class XMPPSettingsDAO extends AbstractDAO<XMPPSettingsDO> {
 
-    protected Log log = LogFactory.getLog(XMPPSettingsDAO.class);
+    protected static final Log log = LogFactory.getLog(XMPPSettingsDAO.class);
 
     /**
      * @param registry

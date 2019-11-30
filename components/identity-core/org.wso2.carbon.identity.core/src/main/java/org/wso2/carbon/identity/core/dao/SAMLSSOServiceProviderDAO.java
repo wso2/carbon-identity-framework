@@ -621,7 +621,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
      */
     private int getApplicationCertificateId(String issuer) throws SQLException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement statementToGetApplicationCertificate = null;
         ResultSet queryResults = null;
 
@@ -631,7 +631,6 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             statementToGetApplicationCertificate.setString(2, issuer);
 
             queryResults = statementToGetApplicationCertificate.executeQuery();
-
             while (queryResults.next()) {
                 return queryResults.getInt(1);
             }

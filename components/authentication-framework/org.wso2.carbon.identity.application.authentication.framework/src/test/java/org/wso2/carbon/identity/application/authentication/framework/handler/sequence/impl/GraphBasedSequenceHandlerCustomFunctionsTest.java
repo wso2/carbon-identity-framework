@@ -91,7 +91,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
         String script =
-                "function onLoginRequest(context) {\n" +
+                "var onLoginRequest = function(context) {\n" +
                 "    var myBool = getTrueFunction2(context, 'a');\n" +
                 "    Log.info(\"My Bool Value \"+myBool);\n" +
                 "    if(myBool) {\n" +
@@ -107,7 +107,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 "        executeStep(1);\n" +
                 "        executeStep(3);\n" +
                 "    }\n" +
-                "}";
+                "};";
         sp1.getLocalAndOutBoundAuthenticationConfig().getAuthenticationScriptConfig().setContent(script);
 
         AuthenticationContext context = processAndGetAuthenticationContext(new String[0], sp1);

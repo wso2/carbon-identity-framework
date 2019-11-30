@@ -94,7 +94,7 @@ public class EntitlementEngine {
 
     private SimpleDecisionCache simpleDecisionCache = null;
 
-    private static Log log = LogFactory.getLog(EntitlementEngine.class);
+    private static final Log log = LogFactory.getLog(EntitlementEngine.class);
 
 
     public PolicyCache getPolicyCache() {

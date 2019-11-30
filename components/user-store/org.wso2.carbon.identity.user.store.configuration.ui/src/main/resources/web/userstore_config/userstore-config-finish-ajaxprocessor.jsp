@@ -20,14 +20,13 @@
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.PropertyDTO" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.client.UserStoreConfigAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil" %>
 <%@ page import="org.wso2.carbon.ndatasource.common.DataSourceException" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.UserAdminUIConstants" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
-<%@ page import="java.util.HashMap" %>
-        <%@ page import="java.util.Map" %>
         <%@ page import="java.util.ResourceBundle" %>
 
         <%
@@ -37,7 +36,6 @@
                 return;
             }
 
-        	Map<String, String> properties = new HashMap<String, String>();
             String forwardTo = "index.jsp";
             String BUNDLE = "org.wso2.carbon.identity.user.store.configuration.ui.i18n.Resources";
             ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
@@ -45,6 +43,10 @@
             String domain = request.getParameterValues("domainId")[0];
             String previousDomain = request.getParameterValues("previousDomainId")[0];
             String description = request.getParameterValues("description")[0];
+            String repositoryClass = null;
+            if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+                repositoryClass = request.getParameterValues("repositoryName")[0];
+            }
             int defaultProperties = Integer.parseInt(request.getParameter("defaultProperties").replaceAll("[\\D]", ""));    //number of default properties
 
             UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = null;
@@ -83,6 +85,9 @@
                     userStoreDTO.setDomainId(domain);
                     userStoreDTO.setDescription(description);
                     userStoreDTO.setClassName(className);
+                    if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+                        userStoreDTO.setRepositoryClass(repositoryClass);
+                    }
                     userStoreDTO.setProperties(propertyList.toArray(new PropertyDTO[propertyList.size()]));
 
                     if(domain != null && domain != "" && !domain.equalsIgnoreCase(UserAdminUIConstants.INTERNAL_DOMAIN)

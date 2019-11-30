@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.event.bean.ModuleConfiguration;
 import org.wso2.carbon.identity.event.bean.Subscription;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -229,28 +230,21 @@ public class IdentityEventConfigBuilder {
 
         SecretResolver secretResolver = SecretResolverFactory.create(notificationMgtConfigProperties);
         Enumeration propertyNames = notificationMgtConfigProperties.propertyNames();
+        // Iterate through whole config file and find encrypted properties and resolve them
         if (secretResolver != null && secretResolver.isInitialized()) {
-            // Iterate through whole config file and find encrypted properties and resolve them
-            while (propertyNames.hasMoreElements()) {
-                String key = (String) propertyNames.nextElement();
-                if (secretResolver.isTokenProtected(key)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Resolving and replacing secret for " + key);
-                    }
-                    // Resolving the secret password.
-                    String value = secretResolver.resolve(key);
-                    // Replaces the original encrypted property with resolved property
-                    notificationMgtConfigProperties.put(key, value);
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("No encryption done for value with key :" + key);
-                    }
+            for (Map.Entry<Object, Object> entry : notificationMgtConfigProperties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
                 }
+                notificationMgtConfigProperties.put(key, value);
             }
         } else {
-            if(log.isDebugEnabled()){
+            if (log.isDebugEnabled()) {
                 log.debug("Secret Resolver is not present. Will not resolve encryptions in config file");
             }
         }
+
     }
 }

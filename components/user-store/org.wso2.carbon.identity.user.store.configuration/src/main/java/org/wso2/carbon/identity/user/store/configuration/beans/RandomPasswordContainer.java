@@ -23,6 +23,12 @@ import java.io.Serializable;
 /**
  * Class mainatains an array where all the RandomPasswords are kept in an array.
  * This class is stored in distributed cache.
+ *
+ * @see <a href="https://github.com/wso2/product-is/issues/6410">https://github.com/wso2/product-is/issues/6410</a>.
+ * @deprecated {@link RandomPassword}, {@link RandomPasswordContainer} and
+ * {@link org.wso2.carbon.identity.user.store.configuration.cache.RandomPasswordContainerCache} based approach in the
+ * {@link org.wso2.carbon.identity.user.store.configuration.UserStoreConfigAdminService} is identified as problematic
+ * in a clustered deployment. Therefore a new approach based {@link MaskedProperty} is used.
  */
 public class RandomPasswordContainer implements Serializable {
 

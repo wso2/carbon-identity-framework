@@ -36,6 +36,7 @@ public class ApplicationConstants {
     public static final String LOCAL_IDP_DEFAULT_CLAIM_DIALECT = "http://wso2.org/claims";
     public static final String STANDARD_APPLICATION = "standardAPP";
     public static final String WELLKNOWN_APPLICATION_TYPE = "appType";
+    public static final String SERVICE_PROVIDERS = "ServiceProviders";
 
     public static final String AUTH_TYPE_DEFAULT = "default";
     public static final String AUTH_TYPE_LOCAL = "local";
@@ -74,4 +75,45 @@ public class ApplicationConstants {
     public static final String INFORMIX = "Informix";
     public static final String H2 = "H2";
     public static final String DEFAULT_AUTH_SEQ = "default_sequence";
+    public static final int DEFAULT_RESULTS_PER_PAGE = 10;
+    public static final String ITEMS_PER_PAGE_PROPERTY = "ItemsPerPage";
+    public static final int DEFAULT_FETCH_CHUNK_SIZE = 50;
+    public static final String FETCH_CHUNK_SIZE = "FetchChunkSize";
+
+    // Named query fields
+    public static final String OFFSET = "OFFSET";
+    public static final String LIMIT = "LIMIT";
+    public static final String ZERO_BASED_START_INDEX = "ZERO_BASED_START_INDEX";
+    public static final String ONE_BASED_START_INDEX = "ONE_BASED_START_INDEX";
+    public static final String END_INDEX = "END_INDEX";
+
+    public static class ApplicationTableColumns {
+        public static final String ID = "ID";
+        public static final String APP_NAME = "APP_NAME";
+        public static final String DESCRIPTION = "DESCRIPTION";
+
+        public static final String USERNAME = "USERNAME";
+        public static final String USER_STORE = "USER_STORE";
+        public static final String TENANT_ID = "TENANT_ID";
+
+        public static final String ROLE_CLAIM = "ROLE_CLAIM";
+        public static final String AUTH_TYPE = "AUTH_TYPE";
+        public static final String PROVISIONING_USERSTORE_DOMAIN = "PROVISIONING_USERSTORE_DOMAIN";
+
+        public static final String IS_LOCAL_CLAIM_DIALECT = "IS_LOCAL_CLAIM_DIALECT";
+        public static final String IS_SEND_LOCAL_SUBJECT_ID = "IS_SEND_LOCAL_SUBJECT_ID";
+        public static final String IS_SEND_AUTH_LIST_OF_IDPS = "IS_SEND_AUTH_LIST_OF_IDPS";
+        public static final String IS_USE_TENANT_DOMAIN_SUBJECT = "IS_USE_TENANT_DOMAIN_SUBJECT";
+        public static final String IS_USE_USER_DOMAIN_SUBJECT = "IS_USE_USER_DOMAIN_SUBJECT";
+        public static final String ENABLE_AUTHORIZATION = "ENABLE_AUTHORIZATION";
+
+        public static final String SUBJECT_CLAIM_URI = "SUBJECT_CLAIM_URI";
+        public static final String IS_SAAS_APP = "IS_SAAS_APP";
+        public static final String IS_DUMB_MODE = "IS_DUMB_MODE";
+        public static final String IS_DISCOVERABLE = "IS_DISCOVERABLE";
+
+        public static final String UUID = "UUID";
+        public static final String IMAGE_URL = "IMAGE_URL";
+        public static final String LOGIN_URL = "LOGIN_URL";
+    }
 }

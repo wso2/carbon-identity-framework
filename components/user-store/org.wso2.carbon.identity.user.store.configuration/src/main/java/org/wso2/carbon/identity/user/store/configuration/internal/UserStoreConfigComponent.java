@@ -19,6 +19,8 @@ package org.wso2.carbon.identity.user.store.configuration.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -28,6 +30,11 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
+import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigServiceImpl;
+import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
+import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -37,7 +44,7 @@ import org.wso2.carbon.user.core.service.RealmService;
         immediate = true
 )
 public class UserStoreConfigComponent {
-    private static Log log = LogFactory.getLog(UserStoreConfigComponent.class);
+    private static final Log log = LogFactory.getLog(UserStoreConfigComponent.class);
     private static RealmService realmService = null;
     private static RealmConfiguration realmConfiguration = null;
     private static ServerConfigurationService serverConfigurationService = null;
@@ -97,12 +104,57 @@ public class UserStoreConfigComponent {
             log.debug("Identity User Store bundle is activated.");
         }
         try {
+            BundleContext bundleContext = ctxt.getBundleContext();
+            AbstractUserStoreDAOFactory fileBasedUserStoreDAOFactory = new FileBasedUserStoreDAOFactory();
+            AbstractUserStoreDAOFactory databaseBasedUserStoreDAOFactory = new DatabaseBasedUserStoreDAOFactory();
+            ServiceRegistration serviceRegistration = bundleContext
+                    .registerService(AbstractUserStoreDAOFactory.class.getName(), fileBasedUserStoreDAOFactory, null);
+            bundleContext.registerService(AbstractUserStoreDAOFactory.class.getName(), databaseBasedUserStoreDAOFactory,
+                    null);
+            UserStoreConfigService userStoreConfigService = new UserStoreConfigServiceImpl();
+            ctxt.getBundleContext().registerService(UserStoreConfigService.class.getName(), userStoreConfigService,
+                    null);
+            UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
+            if (serviceRegistration != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("FileBasedUserStoreDAOFactory is successfully registered.");
+                }
+            } else {
+                log.error("FileBasedUserStoreDAOFactory could not be registered.");
+            }
+
         } catch (Throwable e) {
             log.error("Failed to load user store org.wso2.carbon.identity.user.store.configuration details.", e);
         }
         if (log.isDebugEnabled()) {
             log.debug("Identity User Store-Config bundle is activated.");
 
+        }
+    }
+
+    @Reference(
+            name = "user.store.configuration",
+            service = AbstractUserStoreDAOFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetUserStoreDAOFactory"
+    )
+    protected void setUserStoreDAOFactory(AbstractUserStoreDAOFactory userStoreDAOFactory) {
+
+        UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories()
+                .put(userStoreDAOFactory.getRepository(), userStoreDAOFactory);
+        if (log.isDebugEnabled()) {
+            log.debug("Added UserStoreDAOFactory : " + userStoreDAOFactory.getRepository());
+        }
+    }
+
+    protected void unsetUserStoreDAOFactory(AbstractUserStoreDAOFactory userStoreDAOFactory) {
+
+        UserStoreConfigListenersHolder.getInstance().getUserStoreDAOFactories()
+                .remove(userStoreDAOFactory.getRepository());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Removed UserStoreDAOFactory : " + userStoreDAOFactory.getRepository());
         }
     }
 
@@ -163,6 +215,4 @@ public class UserStoreConfigComponent {
 
         UserStoreConfigListenersHolder.getInstance().unsetUserStoreConfigListenerService(userStoreConfigListener);
     }
-
 }
-

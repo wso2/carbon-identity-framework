@@ -29,6 +29,11 @@ public class ClaimMetadataException extends IdentityException {
         super(errorDescription);
     }
 
+    public ClaimMetadataException(String errorCode, String errorDescription) {
+
+        super(errorCode, errorDescription);
+    }
+
     public ClaimMetadataException(String message, Throwable e) {
         super(message, e);
     }

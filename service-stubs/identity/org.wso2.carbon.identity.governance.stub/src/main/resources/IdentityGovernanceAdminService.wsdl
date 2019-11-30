@@ -76,6 +76,7 @@
                 <xs:sequence>
                     <xs:element minOccurs="0" name="category" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="friendlyName" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="order" type="xs:int"/>
                     <xs:element maxOccurs="unbounded" minOccurs="0" name="properties" nillable="true" type="ax2350:Property"/>
                     <xs:element minOccurs="0" name="subCategory" nillable="true" type="xs:string"/>

@@ -38,7 +38,7 @@ import java.util.Properties;
  */
 public class AccountCredentialMgtConfigService {
 
-    Log log = LogFactory.getLog(AccountCredentialMgtConfigService.class);
+    private static final Log log = LogFactory.getLog(AccountCredentialMgtConfigService.class);
 
     /**
      * This method is used to save the Email template configurations which is specific to tenant.

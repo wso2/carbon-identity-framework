@@ -46,6 +46,7 @@ import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenti
 import org.wso2.carbon.identity.application.common.model.xsd.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
@@ -96,7 +97,7 @@ public class ApplicationBean {
     private ApplicationPurposes applicationPurposes;
     private Purpose[] sharedPurposes;
 
-    Log log = LogFactory.getLog(ApplicationBean.class);
+    private static final Log log = LogFactory.getLog(ApplicationBean.class);
 
     public ApplicationBean() {
         standardInboundAuthTypes = new ArrayList<String>();
@@ -486,6 +487,19 @@ public class ApplicationBean {
     public boolean isUseUserstoreDomainInLocalSubjectIdentifier() {
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
             return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInLocalSubjectIdentifier();
+        }
+        return false;
+    }
+
+    /**
+     * Returns whether consent needs to be skipped for this service provider.
+     *
+     * @return true of consent is skipped, false otherwise.
+     */
+    public boolean isSkipConsent() {
+
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSkipConsent();
         }
         return false;
     }
@@ -1080,54 +1094,17 @@ public class ApplicationBean {
         serviceProvider.setDescription(request.getParameter("sp-description"));
         serviceProvider.setCertificateContent(request.getParameter("sp-certificate"));
 
-        String jwks = request.getParameter(ApplicationMgtUIConstants.JWKS_URI);
-        boolean skipConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_CONSENT));
-
-        final Map<String, ServiceProviderProperty> configNameValueMap =
-                getServiceProviderProperties().stream().collect(Collectors.toMap(ServiceProviderProperty::getName, spProperty -> spProperty));
-
-        // Handling JWKS URL property
-        if (configNameValueMap.containsKey(ApplicationMgtUIUtil.JWKS_URI)) {
-            if (StringUtils.isBlank(jwks)) {
-                configNameValueMap.remove(ApplicationMgtUIUtil.JWKS_URI);
-            } else {
-                ServiceProviderProperty propertyForJWKS = configNameValueMap.get(ApplicationMgtUIUtil.JWKS_URI);
-                if (!propertyForJWKS.getValue().equals(jwks)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Existing jwks value: " + propertyForJWKS.getValue() + " Updated jwks value is " + jwks);
-                    }
-
-                    propertyForJWKS.setValue(jwks);
-                }
-            }
-        } else if (StringUtils.isNotBlank(jwks)) {
-            ServiceProviderProperty propertyForJWKS = new ServiceProviderProperty();
-            propertyForJWKS.setDisplayName(ApplicationMgtUIUtil.JWKS_DISPLAYNAME);
-            propertyForJWKS.setName(ApplicationMgtUIUtil.JWKS_URI);
-            propertyForJWKS.setValue(jwks);
-
-            configNameValueMap.put(propertyForJWKS.getName(), propertyForJWKS);
-        }
-
-        // Handling consent page skip property
-        if (configNameValueMap.containsKey(IdentityConstants.SKIP_CONSENT)) {
-            configNameValueMap.get(IdentityConstants.SKIP_CONSENT).setValue(Boolean.toString(skipConsent));
-        } else {
-            ServiceProviderProperty propertyForSkipConsent = new ServiceProviderProperty();
-            propertyForSkipConsent.setDisplayName(IdentityConstants.SKIP_CONSENT_DISPLAY_NAME);
-            propertyForSkipConsent.setName(IdentityConstants.SKIP_CONSENT);
-            propertyForSkipConsent.setValue(Boolean.toString(skipConsent));
-
-            configNameValueMap.put(propertyForSkipConsent.getName(), propertyForSkipConsent);
-        }
-
-        serviceProvider.setSpProperties(configNameValueMap.values().toArray(new ServiceProviderProperty[]{}));
+        String jwks = request.getParameter(IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME);
+        serviceProvider.setJwksUri(jwks);
 
         if (Boolean.parseBoolean(request.getParameter("deletePublicCert"))) {
             serviceProvider.setCertificateContent("");
         }
         String isSasApp = request.getParameter("isSaasApp");
         serviceProvider.setSaasApp((isSasApp != null && "on".equals(isSasApp)) ? true : false);
+
+        String isDiscoverableApp = request.getParameter("isDiscoverableApp");
+        serviceProvider.setDiscoverable("on".equals(isDiscoverableApp));
 
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
             // create fresh one.
@@ -1375,6 +1352,9 @@ public class ApplicationBean {
         serviceProvider.getLocalAndOutBoundAuthenticationConfig()
                 .setUseUserstoreDomainInRoles(useUserstoreDomainInRoles != null &&
                         "on".equals(useUserstoreDomainInRoles) ? true : false);
+
+        boolean skipConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_CONSENT));
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig().setSkipConsent(skipConsent);
 
         String enableAuthorization = request.getParameter(
                 "enable_authorization");

@@ -31,6 +31,8 @@
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
 <%@ page import="java.util.UUID" %>
+<%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil"%>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%!
@@ -38,6 +40,7 @@
     private static final String TRUSTED_CALLBACK_LIST = "idp-mgt-list.jsp";
 %>
 <%
+    String filter = request.getParameter(IdPManagementUIUtil.FILTER_STRING);
     String BUNDLE = "org.wso2.carbon.idp.mgt.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     String callback = request.getParameter("callback");
@@ -53,17 +56,17 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         IdentityProviderMgtServiceClient client = new IdentityProviderMgtServiceClient(cookie, backendServerURL, configContext);
-        List<IdentityProvider> identityProviders = client.getIdPs();
-
+        if (filter == null) {
+            filter = StringUtils.EMPTY;
+        }
+        List<IdentityProvider> identityProviders = client.getIdPsSearch(filter.trim());
         Map<String, UUID> idpUniqueIdMap = new HashMap<String, UUID>();
-
         for(IdentityProvider provider : identityProviders) {
             idpUniqueIdMap.put(provider.getIdentityProviderName(), UUID.randomUUID());
         }
-
-        session.setAttribute("identityProviderList", identityProviders);
-        session.setAttribute("idpUniqueIdMap", idpUniqueIdMap);
-
+        session.setAttribute(IdPManagementUIUtil.IDP_LIST, identityProviders);
+        session.setAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID, idpUniqueIdMap);
+        session.setAttribute(IdPManagementUIUtil.IDP_FILTER, filter);
     } catch (Exception e) {
         String message = MessageFormat.format(resourceBundle.getString("error.loading.idps"),
                 new Object[]{e.getMessage()});

@@ -21,11 +21,11 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
+/**
+ * PassiveSTS federated authenticator configuration.
+ */
 public class PassiveSTSFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 2265391150645470497L;
 
     @Override

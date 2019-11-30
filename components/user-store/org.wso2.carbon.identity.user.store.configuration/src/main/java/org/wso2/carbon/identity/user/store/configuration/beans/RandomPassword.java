@@ -21,7 +21,13 @@ package org.wso2.carbon.identity.user.store.configuration.beans;
 import java.io.Serializable;
 
 /**
- * Class holds the information related to RandomPassword
+ * Class holds the information related to RandomPassword.
+ *
+ * @see <a href="https://github.com/wso2/product-is/issues/6410">https://github.com/wso2/product-is/issues/6410</a>.
+ * @deprecated {@link RandomPassword}, {@link RandomPasswordContainer} and
+ * {@link org.wso2.carbon.identity.user.store.configuration.cache.RandomPasswordContainerCache} based approach in the
+ * {@link org.wso2.carbon.identity.user.store.configuration.UserStoreConfigAdminService} is identified as problematic
+ * in a clustered deployment. Therefore a new approach based {@link MaskedProperty} is used.
  */
 public class RandomPassword implements Serializable {
 

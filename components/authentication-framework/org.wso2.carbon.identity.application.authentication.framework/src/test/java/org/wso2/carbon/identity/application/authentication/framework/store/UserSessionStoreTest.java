@@ -117,7 +117,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection,true);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, IdpId);
         }
     }
@@ -128,7 +128,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             userDomain, int IdpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, true);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, IdpId);
         }
     }
@@ -139,7 +139,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             userDomain, int IdpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection,true);
             UserSessionStore.getInstance().storeUserData(userId, username, tenantId, userDomain, IdpId);
         }
     }
@@ -149,7 +149,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
                                               int IdpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, false);
             String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain, IdpId);
             Assert.assertEquals(actualUserId, expectedUserId, "Expected userId not received for user: " + username +
                     " of userstore domain: " + userDomain + ", tenant: " + tenantId + " and idp id: " + IdpId);
@@ -161,7 +161,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
                                              int IdpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, false);
             String actualUserId = UserSessionStore.getInstance().getUserId(username, tenantId, userDomain);
             Assert.assertEquals(actualUserId, expectedUserId, "Expected userId not received for user: " + username +
                     " of userstore domain: " + userDomain + ", tenant: " + tenantId);
@@ -173,7 +173,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             IdpId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection,false);
             List<String> userIdsOfUserStore = UserSessionStore.getInstance().getUserIdsOfUserStore(userDomain, tenantId);
             Assert.assertTrue(userIdsOfUserStore.contains(expectedUserId), "Expected userId not found in the user " +
                     "list retrieved for userstore domain: " + userDomain + " of tenant: " + tenantId);
@@ -191,7 +191,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testStoreUserSessionData(String userId, String sessionId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, true);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
@@ -202,7 +202,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
             Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, true);
             UserSessionStore.getInstance().storeUserSessionData(userId, sessionId);
         }
     }
@@ -211,7 +211,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testIsExistingMappingForValidSession(String userId, String sessionId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, false);
             Assert.assertTrue(UserSessionStore.getInstance().isExistingMapping(userId, sessionId), "Expected session:" +
                     " " + sessionId + " to be available for user id: " + userId);
         }
@@ -221,7 +221,7 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testIsExistingMappingForInvalidSession(String userId, String sessionId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, false);
             Assert.assertFalse(UserSessionStore.getInstance().isExistingMapping(userId, sessionId), "Expected session:" +
                     " " + sessionId + " to be unavailable for user id: " + userId);
         }
@@ -231,19 +231,24 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
     public void testGetSessionId(String userId, String expectedSessionId) throws Exception {
 
         try (Connection connection = getConnection(DB_NAME)) {
-            mockIdentityDataBaseUtilConnection(connection);
+            mockIdentityDataBaseUtilConnection(connection, false);
             List<String> sessionIdsOfUser = UserSessionStore.getInstance().getSessionId(userId);
             Assert.assertTrue(sessionIdsOfUser.contains(expectedSessionId), "Expected session:" +
                     " " + expectedSessionId + " is unavailable for user id: " + userId);
         }
     }
 
-    private void mockIdentityDataBaseUtilConnection(Connection connection) throws SQLException {
+    private void mockIdentityDataBaseUtilConnection(Connection connection, Boolean shouldApplyTransaction) throws
+            SQLException {
 
         Connection connection1 = spy(connection);
         doNothing().when(connection1).close();
         mockStatic(IdentityDatabaseUtil.class);
-        when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+        if (shouldApplyTransaction) {
+            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+        } else {
+            when(IdentityDatabaseUtil.getDBConnection(shouldApplyTransaction)).thenReturn(connection1);
+        }
     }
 
 }

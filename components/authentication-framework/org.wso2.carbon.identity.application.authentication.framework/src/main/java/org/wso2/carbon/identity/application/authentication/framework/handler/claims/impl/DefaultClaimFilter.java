@@ -42,7 +42,7 @@ public class DefaultClaimFilter implements ClaimFilter {
     // priority of the default claim handler
     private static int priority = 0;
 
-    Log log = LogFactory.getLog(DefaultClaimFilter.class);
+    private static final Log log = LogFactory.getLog(DefaultClaimFilter.class);
 
     @Override
     public int getPriority() {

@@ -133,7 +133,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
             functionLibraryDAO.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection2);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertEquals(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                             tenantDomain).getFunctionLibraryName());
@@ -201,7 +201,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
             List<FunctionLibrary> functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
             assertTrue(functionLibrariesList != null && functionLibrariesList.size() != 0,
                     "Failed to retrieve function libraries.");
@@ -212,23 +212,6 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
         } catch (SQLException e) {
             log.error("SQLException");
         }
-    }
-
-    @Test(dataProvider = "listFunctionLibraryDataProvider",
-            expectedExceptions = FunctionLibraryManagementException.class)
-    public void listFunctionLibrariesException(List<Object> functionLibraries, String tenantDomain)
-            throws FunctionLibraryManagementException, SQLException {
-
-        FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
-
-        addFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
-
-        List<FunctionLibrary> functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
-        Assert.fail("Expected: " + FunctionLibraryManagementException.class.getName());
-
-        // Clean after test
-        deleteFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
-
     }
 
     @DataProvider(name = "getFunctionLibraryDataProvider")
@@ -267,29 +250,13 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
             assertTrue(functionLibraryDAO.getFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain) != null,
                     "Failed to retrieve function library");
             // Clean after test
             deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
         }
-    }
-
-    @Test(dataProvider = "getFunctionLibraryDataProvider",
-            expectedExceptions = FunctionLibraryManagementException.class)
-    public void getFunctionLibraryException(Object functionLibrary, String tenantDomain)
-            throws FunctionLibraryManagementException, SQLException {
-
-        FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
-        addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
-
-        functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
-                tenantDomain);
-        Assert.fail("Expected: " + FunctionLibraryManagementException.class.getName());
-        // Clean after test
-        deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
-
     }
 
     @DataProvider(name = "deleteFunctionLibraryData")
@@ -332,7 +299,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             functionLibraryDAO.deleteFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection2);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertNull(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
                     tenantDomain), "Failed to delete the functionLibrary" +
                     " by name.");
@@ -396,7 +363,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
             functionLibraryDAO.updateFunctionLibrary(oldName, funLib, tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection2);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertNotNull(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain),
                     "Failed to update function library.");
 
@@ -458,12 +425,12 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
             addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
 
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection1);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection1);
             assertTrue(functionLibraryDAO.isFunctionLibraryExists(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain),
                     "Failed to check existence " +
                             "by function library name.");
-            when(IdentityDatabaseUtil.getDBConnection()).thenReturn(connection2);
+            when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertFalse(functionLibraryDAO.isFunctionLibraryExists("InvalidName", tenantDomain),
                     "Failed to check existence " +
                             "by function library name.");
@@ -471,23 +438,6 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             // Clean after test
             deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
         }
-    }
-
-    @Test(dataProvider = "isFunctionLibraryExistsDataProvider",
-            expectedExceptions = FunctionLibraryManagementException.class)
-    public void setBlobValueException(Object functionLibrary, String tenantDomain)
-            throws SQLException, FunctionLibraryManagementException {
-
-        FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
-
-        addFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
-
-        functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
-                tenantDomain);
-        Assert.fail("Expected: " + FunctionLibraryManagementException.class.getName());
-
-        // Clean after test
-        deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
     }
 
     private void addFunctionLibraries(FunctionLibraryDAO functionLibraryDAO,

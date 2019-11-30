@@ -19,6 +19,14 @@
 <component xmlns="http://products.wso2.org/carbon">
     <ManagementPermissions>
         <ManagementPermission>
+            <DisplayName>Identity</DisplayName>
+            <ResourceId>/permission/admin/manage/identity</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
+            <DisplayName>Template</DisplayName>
+            <ResourceId>/permission/admin/manage/identity/template</ResourceId>
+        </ManagementPermission>
+        <ManagementPermission>
             <DisplayName>Template Management</DisplayName>
             <ResourceId>/permission/admin/manage/identity/template/mgt</ResourceId>
         </ManagementPermission>

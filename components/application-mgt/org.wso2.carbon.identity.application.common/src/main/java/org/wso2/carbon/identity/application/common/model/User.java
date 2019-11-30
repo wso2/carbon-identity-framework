@@ -29,7 +29,11 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.Locale;
 
+/**
+ * Representation of a user.
+ */
 public class User implements Serializable {
 
     private static final long serialVersionUID = 928301275168169633L;
@@ -109,7 +113,7 @@ public class User implements Serializable {
      * @param userStoreDomain user store domain of the user
      */
     public void setUserStoreDomain(String userStoreDomain) {
-        this.userStoreDomain = userStoreDomain.toUpperCase();
+        this.userStoreDomain = userStoreDomain.toUpperCase(Locale.ENGLISH);
         updateCaseSensitivity();
     }
 
@@ -132,23 +136,35 @@ public class User implements Serializable {
     }
 
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof User)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof User)) {
+            return false;
+        }
 
         User user = (User) o;
 
-        if (!tenantDomain.equals(user.tenantDomain)) return false;
+        if (!tenantDomain.equals(user.tenantDomain)) {
+            return false;
+        }
 
         boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreCaseSensitive(userStoreDomain,
                 IdentityTenantUtil.getTenantId(tenantDomain));
 
-        if(isUsernameCaseSensitive) {
-            if (!userName.equals(user.userName)) return false;
+        if (isUsernameCaseSensitive) {
+            if (!userName.equals(user.userName)) {
+                return false;
+            }
         } else {
-            if (!userName.equalsIgnoreCase(user.userName)) return false;
+            if (!userName.equalsIgnoreCase(user.userName)) {
+                return false;
+            }
         }
 
-        if (!userStoreDomain.equals(user.userStoreDomain)) return false;
+        if (!userStoreDomain.equals(user.userStoreDomain)) {
+            return false;
+        }
 
         return true;
     }
@@ -167,7 +183,7 @@ public class User implements Serializable {
             String tenantDomain = MultitenantUtils.getTenantDomain(username);
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             String tenantAwareUsernameWithNoUserDomain = UserCoreUtil.removeDomainFromName(tenantAwareUsername);
-            String userStoreDomain = IdentityUtil.extractDomainFromName(username).toUpperCase();
+            String userStoreDomain = IdentityUtil.extractDomainFromName(username).toUpperCase(Locale.ENGLISH);
             user.setUserName(tenantAwareUsernameWithNoUserDomain);
             if (StringUtils.isNotEmpty(tenantDomain)) {
                 user.setTenantDomain(tenantDomain);
@@ -210,7 +226,8 @@ public class User implements Serializable {
     }
 
     /**
-     * This method will retrieve the 'CaseInsensitiveUsername' property from the respective userstore and set that value.
+     * This method will retrieve the 'CaseInsensitiveUsername' property from the respective userstore and set that
+     * value.
      */
     protected void updateCaseSensitivity() {
 
@@ -237,6 +254,7 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
+
         String username = null;
         if (StringUtils.isNotBlank(this.userName)) {
             username = this.userName;

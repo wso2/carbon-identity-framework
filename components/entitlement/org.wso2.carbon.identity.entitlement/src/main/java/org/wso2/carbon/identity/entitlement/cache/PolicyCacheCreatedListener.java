@@ -29,7 +29,7 @@ import javax.cache.event.CacheEntryListenerException;
  */
 public class PolicyCacheCreatedListener implements CacheEntryCreatedListener<IdentityCacheKey,PolicyStatus> {
 
-    private static Log log = LogFactory.getLog(PolicyCacheCreatedListener.class);
+    private static final Log log = LogFactory.getLog(PolicyCacheCreatedListener.class);
 
     /**
      *

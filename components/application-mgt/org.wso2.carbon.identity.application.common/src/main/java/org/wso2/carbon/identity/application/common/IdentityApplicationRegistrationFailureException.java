@@ -21,12 +21,17 @@ package org.wso2.carbon.identity.application.common;
 /**
  * This defines a custom exception to be thrown if an application/role already exists.
  */
-public class IdentityApplicationRegistrationFailureException extends IdentityApplicationManagementException {
+public class IdentityApplicationRegistrationFailureException extends IdentityApplicationManagementClientException {
 
     private static final long serialVersionUID = -8661576937047071727L;
 
     public IdentityApplicationRegistrationFailureException(String message) {
         super(message);
+    }
+
+    public IdentityApplicationRegistrationFailureException(String errorCode, String message) {
+
+        super(errorCode, message);
     }
 
     public IdentityApplicationRegistrationFailureException(String message, Throwable e) {

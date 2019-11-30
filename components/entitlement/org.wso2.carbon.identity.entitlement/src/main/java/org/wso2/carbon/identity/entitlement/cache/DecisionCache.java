@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.entitlement.PDPConstants;
  */
 public class DecisionCache extends EntitlementBaseCache<IdentityCacheKey, Object> {
 
-    private static Log log = LogFactory.getLog(DecisionCache.class);
+    private static final Log log = LogFactory.getLog(DecisionCache.class);
 
     public DecisionCache(int timeOut) {
         super(PDPConstants.PDP_DECISION_CACHE, timeOut);

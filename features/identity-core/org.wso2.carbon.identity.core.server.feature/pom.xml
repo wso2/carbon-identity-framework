@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core-feature</artifactId>
-        <version>5.12.393-SNAPSHOT</version>
+        <version>5.15.21-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -50,6 +50,14 @@
             <artifactId>org.wso2.carbon.security.mgt.server.feature</artifactId>
             <type>zip</type>
         </dependency>
+        <dependency>
+            <groupId>ua.parser.wso2</groupId>
+            <artifactId>ua-parser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections.wso2</groupId>
+            <artifactId>commons-collections</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -74,6 +82,12 @@
                                         <include>**/*.sql</include>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
+                                        <include>identity.xml.j2</include>
+                                        <include>org.wso2.carbon.identity.core.server.feature.default.json</include>
+                                        <include>org.wso2.carbon.identity.core.server.feature.infer.json</include>
+                                        <include>org.wso2.carbon.identity.core.server.feature.key-mappings.json</include>
+                                        <include>org.wso2.carbon.identity.core.server.feature.unit-resolve.json</include>
+                                        <include>org.wso2.carbon.identity.core.server.feature.validator.json</include>
                                     </includes>
                                 </resource>
                             </resources>
@@ -104,9 +118,10 @@
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.base</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.core</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity.framework:org.wso2.carbon.identity.application.common</bundleDef>
+                                <bundleDef>ua.parser.wso2:ua-parser:${ua_parser.version}</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>

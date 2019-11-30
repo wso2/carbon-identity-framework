@@ -18,12 +18,15 @@
 
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
+import org.wso2.carbon.utils.CarbonUtils;
+
 /**
  * Constant class to hold IdentityUserStoreMgtConstants
  */
 
 public class UserStoreConfigurationConstant {
 
+    public static final String ENCRYPTED_PROPERTY_MASK = "ENCRYPTED PROPERTY";
     public static final String UNIQUE_ID_CONSTANT = "UniqueID";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
     public static final String ENCRYPT_TEXT = "#encrypt";
@@ -31,6 +34,16 @@ public class UserStoreConfigurationConstant {
     public static final String SECONDARY_STORAGE_CACHE_MANAGER = "secondaryStorageCacheManager";
     //random password container cache
     public static final String RANDOM_PASSWORD_CONTAINER_CACHE = "randomPasswordContainerCache";
+    public static final String UNDERSCORE = "_";
+    public static final String DESCRIPTION = "Description";
+    public static final String FEDERATED = "FEDERATED";
+    public static final String USERSTORES = "userstores";
+    public static final String USERSTORE = "USERSTORE";
+    public static final String XML = "XML";
+    public static final String deploymentDirectory = CarbonUtils.getCarbonRepository() + USERSTORES;
+    public static final String PERIOD = ".";
+    public static final String DISABLED = "Disabled";
+    public static final String FILE_EXTENSION_XML = ".xml";
 
     private UserStoreConfigurationConstant() {
 

@@ -1,0 +1,145 @@
+<!--
+  ~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+  ~
+  ~ WSO2 Inc. licenses this file to you under the Apache License,
+  ~ Version 2.0 (the "License"); you may not use this file except
+  ~ in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied.  See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+<ServiceProvider>
+    <ApplicationID>1</ApplicationID>
+    <ApplicationName>default</ApplicationName>
+    <Description>Default Service Provider</Description>
+    <InboundAuthenticationConfig>
+        <InboundAuthenticationRequestConfigs>
+            <InboundAuthenticationRequestConfig>
+                <InboundAuthKey>default</InboundAuthKey>
+                <InboundAuthType></InboundAuthType>
+                <Properties></Properties>
+            </InboundAuthenticationRequestConfig>
+        </InboundAuthenticationRequestConfigs>
+    </InboundAuthenticationConfig>
+    <LocalAndOutBoundAuthenticationConfig>
+        <AuthenticationSteps>
+            <AuthenticationStep>
+                <StepOrder>1</StepOrder>
+                <LocalAuthenticatorConfigs>
+                    <LocalAuthenticatorConfig>
+                        <Name>BasicMockAuthenticator</Name>
+                        <DisplayName>basicauth</DisplayName>
+                        <IsEnabled>true</IsEnabled>
+                    </LocalAuthenticatorConfig>
+                </LocalAuthenticatorConfigs>
+                <SubjectStep>true</SubjectStep>
+                <AttributeStep>true</AttributeStep>
+            </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>2</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>HwkMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>HwkMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>HwkMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>false</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+            <AuthenticationStep>
+                <StepOrder>3</StepOrder>
+                <FederatedIdentityProviders>
+                    <IdentityProvider>
+                        <IdentityProviderName>FailingMockAuthenticator</IdentityProviderName>
+                        <IsEnabled>true</IsEnabled>
+                        <DefaultAuthenticatorConfig>FailingMockAuthenticator</DefaultAuthenticatorConfig>
+                        <FederatedAuthenticatorConfigs>
+                            <FederatedAuthenticatorConfig>
+                                <Name>FailingMockAuthenticator</Name>
+                                <IsEnabled>true</IsEnabled>
+                            </FederatedAuthenticatorConfig>
+                        </FederatedAuthenticatorConfigs>
+                    </IdentityProvider>
+                </FederatedIdentityProviders>
+                <SubjectStep>false</SubjectStep>
+                <AttributeStep>false</AttributeStep>
+            </AuthenticationStep>
+        </AuthenticationSteps>
+        <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
+
+
+var step3RetryCount = 0;
+
+var onLoginRequest = function(context) {
+    doLogin(context);
+};
+
+function step02(context) {
+    executeStep(2);
+}
+
+function step03(context) {
+    executeStep(3, {
+        onSuccess: function (context) {
+            Log.info("Step 3 succeed");
+        },
+        onFail: function (context) {
+            //Retry
+            step3RetryCount ++;
+            Log.info("Step 3 retry: "+step3RetryCount);
+            step03(context);
+        }
+    });
+}
+
+function doLogin(context) {
+    executeStep(1, {
+        onSuccess: function (context) {
+            //Extracting authenticated subject from the first step
+            var user = context.currentKnownSubject;
+            Log.info('User extracted from the first step : ' + user.username);
+            // Checking if the user is assigned to one of the given roles
+            var skipStep2 = true;
+            var skipStep3 = false;
+            if (!skipStep2) {
+                Log.info(user.username + ' Executing step 2');
+                step02(context);
+            } else if (!skipStep3) {
+                Log.info(user.username + ' Executing step 3');
+                step03(context);
+            } else {
+                Log.info('Default Fallback!!!');
+            }
+        },
+        onFail: function (context) {
+            //Retry the login
+            doLogin(context);
+        }
+    });
+}
+
+]]></AuthenticationScript>
+        <AuthenticationType>flow</AuthenticationType>
+    </LocalAndOutBoundAuthenticationConfig>
+    <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>
+    <InboundProvisioningConfig></InboundProvisioningConfig>
+    <OutboundProvisioningConfig></OutboundProvisioningConfig>
+    <ClaimConfig>
+        <AlwaysSendMappedLocalSubjectId>true</AlwaysSendMappedLocalSubjectId>
+    </ClaimConfig>
+    <PermissionAndRoleConfig></PermissionAndRoleConfig>
+</ServiceProvider>

@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+/**
+ * Provisioning application type enum.
+ */
 public enum ProvisioningServiceProviderType {
     OAUTH
 }

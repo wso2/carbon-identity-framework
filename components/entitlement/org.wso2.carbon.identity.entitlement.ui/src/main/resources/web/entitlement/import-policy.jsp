@@ -117,7 +117,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <form name="importPolicy" id="importPolicy" target="_self" action="../../fileupload/entitlement-policy" method="post"
+                        <form name="importPolicy" id="importPolicy" target="_self" action="../../fileupload/entitlement-policy?<csrf:tokenname/>=<csrf:tokenvalue/>" method="post"
                                 <%
                                     if(importFrom.equals(EntitlementPolicyConstants.IMPORT_POLICY_FILE_SYSTEM)){
                                 %>

@@ -123,14 +123,6 @@
     boolean isSAMLSSOUserIdInClaims = false;
     boolean isOIDCEnabled = false;
     boolean isOIDCDefault = false;
-    boolean isOIDCBasicAuthEnabled = false;
-    String clientId = null;
-    String clientSecret = null;
-    String authzUrl = null;
-    String tokenUrl = null;
-    String callBackUrl = null;
-    String userInfoEndpoint = null;
-    boolean isOIDCUserIdInClaims = false;
     boolean isPassiveSTSEnabled = false;
     boolean isPassiveSTSDefault = false;
     String passiveSTSRealm = null;
@@ -199,8 +191,7 @@
     String spmlEndpoint = null;
     String spmlObjectClass = null;
     String spmlUniqueID = null;
-
-    String oidcQueryParam = "";
+    
     String samlQueryParam = "";
     String passiveSTSQueryParam = "";
     String openidQueryParam = "";
@@ -221,7 +212,7 @@
 
     String[] idpClaims = new String[]{"admin", "Internal/everyone"};//appBean.getSystemClaims();
 
-    Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute("idpUniqueIdMap");
+    Map<String, UUID> idpUniqueIdMap = (Map<String, UUID>) session.getAttribute(IdPManagementUIUtil.IDP_LIST_UNIQUE_ID);
 
     if (idpUniqueIdMap == null) {
         idpUniqueIdMap = new HashMap<String, UUID>();
@@ -233,8 +224,8 @@
         identityProvider = (IdentityProvider) session.getAttribute(idpUniqueIdMap.get(idPName).toString());
     }
 
-    List<IdentityProvider> identityProvidersList =
-            (List<IdentityProvider>) session.getAttribute("identityProviderList");
+    IdentityProvider[] identityProviders =
+                (IdentityProvider[]) session.getAttribute(IdPManagementUIUtil.IDP_LIST);
 
     Map<String, FederatedAuthenticatorConfig> allFedAuthConfigs = new HashMap<String, FederatedAuthenticatorConfig>();
 
@@ -248,14 +239,6 @@
     allFedAuthConfigs = client.getAllFederatedAuthenticators();
     customProvisioningConnectors = client.getCustomProvisioningConnectors();
 
-    if (identityProvidersList == null) {
-%>
-<script type="text/javascript">
-    location.href = "idp-mgt-list-load.jsp?callback=idp-mgt-edit.jsp";
-</script>
-<%
-        return;
-    }
     if (idPName != null && identityProvider != null) {
         idPName = identityProvider.getIdentityProviderName();
         federationHubIdp = identityProvider.getFederationHub();
@@ -425,54 +408,6 @@
                     isOpenidconnectAuthenticatorActive = true;
                     allFedAuthConfigs.remove(fedAuthnConfig.getDisplayName());
                     isOIDCEnabled = fedAuthnConfig.getEnabled();
-                    Property authzUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
-                    if (authzUrlProp != null) {
-                        authzUrl = authzUrlProp.getValue();
-                    }
-                    Property tokenUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
-                    if (tokenUrlProp != null) {
-                        tokenUrl = tokenUrlProp.getValue();
-                    }
-                    Property callBackURLProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.CALLBACK_URL);
-                    if (callBackURLProp != null) {
-                        callBackUrl = callBackURLProp.getValue();
-                    }
-
-                    Property userInfoEndpointProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.USER_INFO_URL);
-                    if (userInfoEndpointProp != null) {
-                        userInfoEndpoint = userInfoEndpointProp.getValue();
-                    }
-
-                    Property clientIdProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.CLIENT_ID);
-                    if (clientIdProp != null) {
-                        clientId = clientIdProp.getValue();
-                    }
-                    Property clientSecretProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.CLIENT_SECRET);
-                    if (clientSecretProp != null) {
-                        clientSecret = clientSecretProp.getValue();
-                    }
-                    Property isOIDCUserIdInClaimsProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.IS_USER_ID_IN_CLAIMS);
-                    if (isOIDCUserIdInClaimsProp != null) {
-                        isOIDCUserIdInClaims = Boolean.parseBoolean(isOIDCUserIdInClaimsProp.getValue());
-                    }
-
-                    Property queryParamProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(), "commonAuthQueryParams");
-                    if (queryParamProp != null) {
-                        oidcQueryParam = queryParamProp.getValue();
-                    }
-
-                    Property basicAuthEnabledProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
-                            IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
-                    if (basicAuthEnabledProp != null) {
-                        isOIDCBasicAuthEnabled = Boolean.parseBoolean(basicAuthEnabledProp.getValue());
-                    }
 
                 } else if (fedAuthnConfig.getDisplayName().equals(IdentityApplicationConstants.Authenticator.SAML2SSO.NAME)) {
                     isSamlssoAuthenticatorActive = true;
@@ -919,9 +854,6 @@
         passiveSTSQueryParam = "";
     }
 
-    if (oidcQueryParam == null) {
-        oidcQueryParam = "";
-    }
     if (StringUtils.isBlank(idPAlias)) {
         idPAlias = IdentityUtil.getServerURL("/oauth2/token", true, false);
     }
@@ -1069,12 +1001,12 @@
     }
 
     String signAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
+    if (!(isAuthnRequestSigned || isLogoutRequestSigned || isArtifactResolveReqSigned)) {
         signAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
     String digestAlgoDropdownDisabled = "";
-    if (!isAuthnRequestSigned && !isArtifactResolveReqSigned) {
+    if (!(isAuthnRequestSigned || isLogoutRequestSigned || isArtifactResolveReqSigned)) {
         digestAlgoDropdownDisabled = "disabled=\'disabled\'";
     }
 
@@ -1108,49 +1040,6 @@
 
     if (attributeConsumingServiceIndex == null) {
         attributeConsumingServiceIndex = "";
-    }
-
-    String oidcEnabledChecked = "";
-    String oidcDefaultDisabled = "";
-    if (identityProvider != null) {
-        if (isOIDCEnabled) {
-            oidcEnabledChecked = "checked=\'checked\'";
-        } else {
-            oidcDefaultDisabled = "disabled=\'disabled\'";
-        }
-    }
-    String oidcDefaultChecked = "";
-
-    if (identityProvider != null) {
-        if (isOIDCDefault) {
-            oidcDefaultChecked = "checked=\'checked\'";
-            oidcDefaultDisabled = "disabled=\'disabled\'";
-        }
-    }
-    if (clientId == null) {
-        clientId = "";
-    }
-    if (clientSecret == null) {
-        clientSecret = "";
-    }
-    if (StringUtils.isBlank(authzUrl)) {
-        authzUrl = StringUtils.EMPTY;
-    }
-    if (StringUtils.isBlank(tokenUrl)) {
-        tokenUrl = StringUtils.EMPTY;
-    }
-
-    if (StringUtils.isBlank(callBackUrl)) {
-        callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
-    }
-
-    if (StringUtils.isBlank(userInfoEndpoint)) {
-        userInfoEndpoint = StringUtils.EMPTY;
-    }
-
-    String oidcBasicAuthEnabledChecked = "";
-    if (isOIDCBasicAuthEnabled) {
-        oidcBasicAuthEnabledChecked = "checked=\'checked\'";
     }
 
     String passiveSTSEnabledChecked = "";
@@ -1804,6 +1693,22 @@
             input.value = "true";
             document.forms['idp-mgt-edit-form'].appendChild(input);
         }
+    }
+
+    function validateAttribute(attributeName) {
+        var attribute = document.getElementsByName(attributeName)[0];
+        var error = "";
+        var value = attribute.value;
+        if (value.length == 0) {
+            error = attribute.name + " ";
+            return error;
+        }
+        value = value.replace(/^\s+/, "") ;
+        if (value.length == 0) {
+            error = attribute.name + " contains only spaces";
+            return error;
+        }
+        return error;
     }
 
     function selectCertificate() {
@@ -3195,15 +3100,6 @@
 
 <fmt:bundle basename="org.wso2.carbon.idp.mgt.ui.i18n.Resources">
     <div id="middle">
-        <% if ( idPName != null && idPName != "") { %>
-        <h2>
-            <fmt:message key = 'identity.provider'/>
-        </h2>
-        <% } else { %>
-        <h2>
-            <fmt:message key='add.identity.provider'/>
-        </h2>
-        <% } %>
         <div id="workArea">
             <form id="idp-mgt-edit-form" name="idp-mgt-edit-form" method="post"
                   action="idp-mgt-edit-finish-ajaxprocessor.jsp?<csrf:tokenname/>=<csrf:tokenvalue/>"
@@ -4600,175 +4496,15 @@
                         }
                     </script>
                     <% } %>
-
-                    <% if (isOpenidconnectAuthenticatorActive) { %>
-
-                    <h2 id="oauth2_head" class="sectionSeperator trigger active" style="background-color: beige;">
-                        <a href="#"><fmt:message key="oidc.config"/></a>
-
-                        <div id="oAuth2_enable_logo" class="enablelogo"
-                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
-                                src="images/ok.png" alt="enable" width="16" height="16"></div>
-                    </h2>
-                    <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="oauth2LinkRow">
-                        <table class="carbonFormTable">
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="oidcEnabled"><fmt:message key='oidc.enabled'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="oidcEnabled" name="oidcEnabled"
-                                               type="checkbox" <%=oidcEnabledChecked%>
-                                               onclick="checkEnabled(this);"/>
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='oidc.enabled.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField">
-                                    <label for="oidcDefault"><fmt:message key='oidc.default'/></label>
-                                </td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="oidcDefault" name="oidcDefault"
-                                               type="checkbox" <%=oidcDefaultChecked%> <%=oidcDefaultDisabled%>
-                                               onclick="checkDefault(this);"/>
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='oidc.default.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='client.id'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="clientId" name="clientId" type="text"
-                                           value=<%=Encode.forHtmlAttribute(clientId)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='client.id.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='client.secret'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105, 125);"
-                                         class="leftCol-med">
-                                        <input id="clientSecret" name="clientSecret" type="password"
-                                               autocomplete="off" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
-                                               style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
-                                        <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
-	                        		<a style="margin-top: 5px;" class="showHideBtn"
-                                       onclick="showHidePassword(this, 'clientSecret')">Show</a>
-	                       		</span>
-                                    </div>
-                                    <div class="sectionHelp">
-                                        <fmt:message key='client.secret.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="authzUrl" name="authzUrl" type="text"
-                                           value=<%=Encode.forHtmlAttribute(authzUrl)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='authz.endpoint.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='token.endpoint'/>:<span
-                                        class="required">*</span></td>
-                                <td>
-                                    <input id="tokenUrl" name="tokenUrl" type="text"
-                                           value=<%=Encode.forHtmlAttribute(tokenUrl)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='token.endpoint.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='callbackurl'/>
-                                <td>
-                                    <input id="callbackUrl" name="callbackUrl" type="text"
-                                           value=<%=Encode.forHtmlAttribute(callBackUrl)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='callbackUrl.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='userInfoEndpoint'/>
-                                <td>
-                                    <input id="userInfoEndpoint" name="userInfoEndpoint" type="text"
-                                           value=<%=Encode.forHtmlAttribute(userInfoEndpoint)%>>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='userInfoEndpoint.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='oidc.user.id.location'/>:</td>
-                                <td>
-                                    <label>
-                                        <input type="radio" value="0"
-                                               name="oidc_user_id_location" <% if (!isOIDCUserIdInClaims) { %>
-                                               checked="checked" <%}%> />
-                                        User ID found in 'sub' attribute
-                                    </label>
-                                    <label>
-                                        <input type="radio" value="1"
-                                               name="oidc_user_id_location" <% if (isOIDCUserIdInClaims) { %>
-                                               checked="checked" <%}%> />
-                                        User ID found among claims
-                                    </label>
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='oidc.user.id.location.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='query.param'/>:</td>
-                                <td>
-                                    <input id="oidcQueryParam" name="oidcQueryParam" type="text"
-                                           value="<%=Encode.forHtmlAttribute(oidcQueryParam)%>">
-
-                                    <div class="sectionHelp">
-                                        <fmt:message key='query.param.help'/>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message key='oidc.enable.basicauth'/>:</td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <input id="oidcBasicAuthEnabled" name="oidcBasicAuthEnabled"
-                                               type="checkbox" <%=oidcBasicAuthEnabledChecked%> />
-                                        <span style="display:inline-block" class="sectionHelp">
-                                    <fmt:message key='oidc.enable.basicauth.help'/>
-                                </span>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <% } %>
+                    <jsp:include page="idp-mgt-edit-oidc.jsp">
+                        <jsp:param name="isOpenidconnectAuthenticatorActive"
+                                   value="<%=Encode.forHtmlAttribute(
+                                           Boolean.toString(isOpenidconnectAuthenticatorActive))%>"/>
+                        <jsp:param name="isOIDCEnabled"
+                                   value="<%=Encode.forHtmlAttribute(Boolean.toString(isOIDCEnabled))%>"/>
+                        <jsp:param name="isOIDCDefault"
+                                   value="<%=Encode.forHtmlAttribute(Boolean.toString(isOIDCDefault))%>"/>
+                    </jsp:include>
 
                     <% if (isPassivestsAuthenticatorActive) { %>
 

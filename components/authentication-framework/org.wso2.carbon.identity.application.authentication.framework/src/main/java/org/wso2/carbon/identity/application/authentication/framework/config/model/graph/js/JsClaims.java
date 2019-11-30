@@ -26,6 +26,7 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -49,6 +50,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Represent the user's claim. Can be either remote or local.
@@ -87,6 +89,46 @@ public class JsClaims extends AbstractJSContextMemberObject {
         super.initializeContext(context);
         if (StringUtils.isNotBlank(idp) && getContext().getCurrentAuthenticatedIdPs().containsKey(idp)) {
             this.authenticatedUser = getContext().getCurrentAuthenticatedIdPs().get(idp).getUser();
+        } else {
+            this.authenticatedUser = getAuthenticatedUserFromSubjectIdentifierStep();
+        }
+    }
+
+    /**
+     * Get authenticated user from step config of current subject identifier.
+     *
+     * @return AuthenticatedUser.
+     */
+    private AuthenticatedUser getAuthenticatedUserFromSubjectIdentifierStep() {
+
+        AuthenticatedUser authenticatedUser = null;
+        StepConfig stepConfig = getCurrentSubjectIdentifierStep();
+        if (stepConfig != null) {
+            authenticatedUser = getCurrentSubjectIdentifierStep().getAuthenticatedUser();
+        }
+        return authenticatedUser;
+    }
+
+    /**
+     * Retrieve step config of current subject identifier.
+     *
+     * @return StepConfig.
+     */
+    private StepConfig getCurrentSubjectIdentifierStep() {
+
+        if (getContext().getSequenceConfig() == null) {
+            // Sequence config is not yet initialized.
+            return null;
+        }
+        Map<Integer, StepConfig> stepConfigs = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap();
+        Optional<StepConfig> subjectIdentifierStep = stepConfigs.values().stream()
+                .filter(stepConfig -> (stepConfig.isCompleted() && stepConfig.isSubjectIdentifierStep())).findFirst();
+        if (subjectIdentifierStep.isPresent()) {
+            return subjectIdentifierStep.get();
+        } else if (getContext().getCurrentStep() > 0) {
+            return stepConfigs.get(getContext().getCurrentStep());
+        } else {
+            return null;
         }
     }
 
@@ -217,7 +259,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
 
         String authenticatorDialect = null;
         Map<String, String> localToIdpClaimMapping = null;
-        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        String tenantDomain = getContext().getTenantDomain();
         try {
             // Check if the IDP use an standard dialect (like oidc), If it does, dialect claim mapping are
             // prioritized over IdP claim mapping
@@ -235,7 +277,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
                         (authenticatorDialect, remoteClaimsMap.keySet(), tenantDomain, true);
             } else {
                 localToIdpClaimMapping = IdentityProviderManager.getInstance().getMappedIdPClaimsMap
-                        (idp, PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain(), Collections
+                        (idp, tenantDomain, Collections
                                 .singletonList(localClaim));
 
             }

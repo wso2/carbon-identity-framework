@@ -28,7 +28,7 @@
     "// This script will assign the below Office365 specific role to any user if not already assigned",
     "var roleToBeAssigned = ['office365Role'];",
     "",
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            // Extracting authenticated subject from the first step",
@@ -41,6 +41,6 @@
     "            }",
     "        }",
     "    });",
-    "}"
+    "};"
   ]
 }

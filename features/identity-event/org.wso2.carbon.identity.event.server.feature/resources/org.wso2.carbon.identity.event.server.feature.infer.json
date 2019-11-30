@@ -1,0 +1,12 @@
+{
+  "identity_mgt.email_sender": {
+    "internal": {
+      "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.manageInternally'": true,
+      "identity_mgt.events.schemes.'account.disable.handler'.properties.'notification.manageInternally'": true
+    },
+    "external": {
+      "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.manageInternally'": false,
+      "identity_mgt.events.schemes.'account.disable.handler'.properties.'notification.manageInternally'": false
+    }
+  }
+}

@@ -65,7 +65,7 @@ public class ApplicationConfig implements Serializable, Cloneable {
     private boolean enableAuthorization = false;
     private boolean useUserstoreDomainInRole = false;
 
-    Log log = LogFactory.getLog(ApplicationConfig.class);
+    private static final Log log = LogFactory.getLog(ApplicationConfig.class);
 
     public ApplicationConfig(ServiceProvider application) {
         this.serviceProvider = application;

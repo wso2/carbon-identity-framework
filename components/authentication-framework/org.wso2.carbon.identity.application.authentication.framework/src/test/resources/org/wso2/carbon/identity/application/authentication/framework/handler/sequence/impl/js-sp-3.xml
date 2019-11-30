@@ -81,7 +81,7 @@
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 
-function onLoginRequest(context) {
+var onLoginRequest = function(context) {
 
     var variable1 = 'internal_val_1';
     variable2 = 'internal_val_2';
@@ -101,7 +101,7 @@ function onLoginRequest(context) {
         }
 
     });
-}
+};
 ]]></AuthenticationScript>
         <AuthenticationType>flow</AuthenticationType>
     </LocalAndOutBoundAuthenticationConfig>

@@ -20,12 +20,13 @@ package org.wso2.carbon.identity.application.mgt;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,8 @@ import java.util.Map;
 /**
  * Application management service abstract class.
  */
-public abstract class ApplicationManagementService {
+public abstract class ApplicationManagementService implements ApplicationPaginationAndSearching,
+        ApplicationResourceManager {
 
     /**
      * Get ApplicationManagementService instance.
@@ -43,24 +45,6 @@ public abstract class ApplicationManagementService {
     public static ApplicationManagementService getInstance() {
         return ApplicationManagementServiceImpl.getInstance();
     }
-
-    /**
-     * Creates a service provider with basic information.First we need to create
-     * a role with the
-     * application name. Only the users in this role will be able to edit/update
-     * the application.The
-     * user will assigned to the created role.Internal roles used.
-     *
-     * @param serviceProvider Service Provider Name
-     * @param tenantDomain Tenant Domain
-     * @param username User Name
-     * @return
-     * @throws IdentityApplicationManagementException
-     * @deprecated  This method is replaced by {@link #createApplicationWithTemplate}
-     */
-    @Deprecated
-    public abstract void createApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
-            throws IdentityApplicationManagementException;
 
     /**
      * Creates a service provider with basic information and returns the created service provider. First we need to
@@ -235,6 +219,21 @@ public abstract class ApplicationManagementService {
             throws IdentityApplicationManagementException;
 
     /**
+     * Export Service Provider application using application ID.
+     *
+     * @param applicationId ID of the SP
+     * @param exportSecrets Specify whether to export the secrets or not.
+     * @param tenantDomain  Tenant domain
+     * @return xml string of the SP
+     * @throws IdentityApplicationManagementException Identity Application Management Exception
+     */
+    public String exportSPApplicationFromAppID(String applicationId, boolean exportSecrets,
+                                               String tenantDomain) throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    /**
      * Export Service Provider application.
      *
      * @param applicationName name of the SP
@@ -347,6 +346,42 @@ public abstract class ApplicationManagementService {
      */
     public abstract List<SpTemplate> getAllApplicationTemplateInfo(String tenantDomain)
             throws IdentityApplicationManagementException;
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, String filter,
+                                                          int offset, int limit)
+            throws IdentityApplicationManagementException {
+
+        return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Get custom inbound authenticator configurations.
+     *
+     * @return custom inbound authenticator configs maps.
+     * Ex: cas:cas -> CAS_Authenticator_Config_Object
+     */
+    public Map<String, AbstractInboundAuthenticatorConfig> getAllInboundAuthenticatorConfig() {
+
+        return ApplicationManagementServiceComponentHolder.getAllInboundAuthenticatorConfig();
+    }
+
+    @Override
+    public ApplicationBasicInfo[] getApplicationBasicInfo(String tenantDomain, String username, int offset,
+                                                          int limit) throws IdentityApplicationManagementException {
+
+        return new ApplicationBasicInfo[0];
+    }
+
+    /**
+     * Retrieve the set of authentication templates configured from file system in JSON format.
+     *
+     * @return Authentication templates.
+     */
+    public String getAuthenticationTemplatesJSON() {
+
+        return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
+    }
 
 }
 

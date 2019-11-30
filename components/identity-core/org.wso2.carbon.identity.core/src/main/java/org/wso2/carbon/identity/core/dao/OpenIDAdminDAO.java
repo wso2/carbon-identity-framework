@@ -28,7 +28,7 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
 public class OpenIDAdminDAO extends AbstractDAO<OpenIDAdminDO> {
 
-    protected Log log = LogFactory.getLog(OpenIDAdminDAO.class);
+    protected static final Log log = LogFactory.getLog(OpenIDAdminDAO.class);
 
     /**
      * @param registry registry instance

@@ -60,7 +60,7 @@ public class Claim implements Serializable {
 
     public String getClaimProperty(String propertyName) {
         if (this.getClaimProperties().containsKey(propertyName)) {
-            this.getClaimProperties().get(propertyName);
+            return this.getClaimProperties().get(propertyName);
         }
         return null;
     }

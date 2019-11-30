@@ -29,9 +29,11 @@ import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvide
 import org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig;
 import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceIdentityProviderManagementExceptionException;
 import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceStub;
+import org.wso2.carbon.idp.mgt.ui.util.IdentityException;
 import org.wso2.carbon.user.mgt.stub.UserAdminStub;
 import org.wso2.carbon.user.mgt.stub.types.carbon.UserStoreInfo;
 
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -113,22 +115,112 @@ public class IdentityProviderMgtServiceClient {
      *
      * @return List of <code>FederatedIdentityProvider</code>. IdP names, primary IdP and home realm
      * identifiers of each IdP
+     * @throws IdentityException Error when getting list of Identity Providers
+     */
+    public IdentityProvider[] getIdPs() throws IdentityException {
+
+        try {
+            return idPMgtStub.getAllIdPs();
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            String message = "Error in retrieving the list of Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
+        }
+    }
+
+    /**
+     * Get all list of Idp information with pagination.
+     *
+     * @param pageNumber pageNumber need to filter.
+     * @return list of paginated idp array.
+     * @throws IdentityException Error when getting list of Identity Providers.
+     */
+    public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber) throws IdentityException {
+
+        try {
+            return idPMgtStub.getAllPaginatedIdpInfo(pageNumber);
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            String message = "Error in retrieving the list of Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
+        }
+    }
+
+    /**
+     * Get all list of Idp information for a matching filter with pagination.
+     *
+     * @param pageNumber pageNumber need to filter.
+     * @param filter     Application name filter.
+     * @return list of paginated idp array.
+     * @throws IdentityException Error when getting list of Identity Providers for a matching filter with pagination.
+     */
+    public IdentityProvider[] getPaginatedIdpInfo(int pageNumber, String filter) throws IdentityException {
+
+        try {
+            return idPMgtStub.getPaginatedIdpInfo(filter, pageNumber);
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            String message = "Error in retrieving the list of filtered Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
+        }
+    }
+
+    /**
+     * Get count of all Identity providers.
+     *
+     * @return total number of Idps.
+     * @throws IdentityException Error when getting count of total Identity Providers.
+     */
+    public int getIdpCount() throws IdentityException {
+
+        try {
+            return idPMgtStub.getAllIdpCount();
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            String message = "Error in retrieving the count of Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
+        }
+    }
+
+    /**
+     * Get count of all basic applications for a matching filter.
+     *
+     * @param filter Idp filter
+     * @return Count of applications match the filter
+     * @throws IdentityException Error when getting count of filtered total Identity Providers.
+     */
+    public int getFilteredIdpCount(String filter) throws IdentityException {
+
+        try {
+            return idPMgtStub.getFilteredIdpCount(filter);
+        } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
+            String message = "Error in retrieving the count of registered Identity Providers for a given tenant ";
+            log.error(message, e);
+            throw new IdentityException(message);
+        }
+    }
+
+    /**
+     * Retrieves registered Identity providers for a given tenant by Identity Provider name
+     * @param filter
+     * @return List of <code>FederatedIdentityProvider</code>. IdP names, primary IdP and home realm
+     * identifiers of each IdP
      * @throws Exception Error when getting list of Identity Providers
      */
-    public List<IdentityProvider> getIdPs() throws Exception {
+    public List<IdentityProvider> getIdPsSearch(String filter) throws Exception {
         try {
-            IdentityProvider[] identityProviders = idPMgtStub.getAllIdPs();
+            IdentityProvider[] identityProviders = idPMgtStub.getAllIdPsSearch(filter);
             if (identityProviders != null && identityProviders.length > 0) {
                 return Arrays.asList(identityProviders);
             } else {
                 return new ArrayList<IdentityProvider>();
             }
         } catch (Exception e) {
-            log.error("Error in retrieving the list of Identity Providers for a given tenant", e);
-            throw new Exception("Error occurred while retrieving list of Identity Providers");
+            log.error("Error in retrieving the Identity Provider", e);
+            throw new Exception("Error occurred while retrieving Identity Providers");
         }
     }
-
+    
     /**
      * Retrieves Enabled registered Identity providers for a given tenant
      *

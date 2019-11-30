@@ -30,7 +30,7 @@ import org.wso2.carbon.registry.core.Registry;
 
 public class SAMLApplicationDAOImpl implements SAMLApplicationDAO {
 
-    Log log = LogFactory.getLog(SAMLApplicationDAOImpl.class);
+    private static final Log log = LogFactory.getLog(SAMLApplicationDAOImpl.class);
 
     @Override
     public void removeServiceProviderConfiguration(String issuer) throws IdentityApplicationManagementException {

@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -43,6 +44,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
+import org.wso2.carbon.idp.mgt.listener.IdentityProviderNameResolverListener;
 import org.wso2.carbon.idp.mgt.listener.IDPMgtAuditLogger;
 import org.wso2.carbon.idp.mgt.listener.IdPMgtValidationListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
@@ -209,6 +211,18 @@ public class IdPManagementServiceComponent {
                 log.debug("Identity Provider Management - Audit Logger registered");
             } else {
                 log.error("Identity Provider Management - Error while registering Audit Logger");
+            }
+
+            ServiceRegistration idPNameResolverListener = bundleCtx.registerService(IdentityProviderMgtListener.class
+                            .getName(), new IdentityProviderNameResolverListener(), null);
+
+            if (idPNameResolverListener != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Identity Provider Name Resolver Listener registered.");
+                }
+            } else {
+                log.error("Identity Provider Management - Error while registering Identity Provider Name Resolver " +
+                        "Listener.");
             }
             setIdentityProviderMgtListenerService(new IdPMgtValidationListener());
 
@@ -413,5 +427,25 @@ public class IdPManagementServiceComponent {
         } catch (Throwable e) {
             throw new Exception("Error when adding Resident Identity Provider entry for super tenant ", e);
         }
+    }
+
+    @Reference(
+            name = "identity.core.ConnectorConfig",
+            service = org.wso2.carbon.identity.core.ConnectorConfig.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetGovernanceConnector")
+    protected void setIdentityGovernanceConnector(ConnectorConfig identityConnectorConfig) {
+
+        try {
+            IdpMgtServiceComponentHolder.getInstance().addConnectorConfig(identityConnectorConfig);
+        } catch (IdentityProviderManagementException e) {
+            log.error("Error while clearing the cache with the registered connector config.");
+        }
+    }
+
+    protected void unsetGovernanceConnector(ConnectorConfig identityConnectorConfig) {
+
+        IdpMgtServiceComponentHolder.getInstance().unsetGovernanceConnector(identityConnectorConfig);
     }
 }

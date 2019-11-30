@@ -19,7 +19,7 @@ package org.wso2.carbon.identity.template.mgt.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerComponentDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -94,12 +94,10 @@ public class TestUtils {
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
     }
 
-    public static void mockComponentDataHolder(DataSource dataSource) {
+    public static void mockDataSource(DataSource dataSource) {
 
-        mockStatic(TemplateManagerComponentDataHolder.class);
-        TemplateManagerComponentDataHolder componentDataHolder = mock(TemplateManagerComponentDataHolder.class);
-        when(TemplateManagerComponentDataHolder.getInstance()).thenReturn(componentDataHolder);
-        when(componentDataHolder.getDataSource()).thenReturn(dataSource);
+        mockStatic(IdentityDatabaseUtil.class);
+        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
     }
 
 }

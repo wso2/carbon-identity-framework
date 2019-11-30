@@ -21,6 +21,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.handler.MessageHandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.event.IdentityEventException;
@@ -81,9 +82,13 @@ public class IdentityEventServiceComponent {
              cardinality = ReferenceCardinality.MULTIPLE, 
              policy = ReferencePolicy.DYNAMIC, 
              unbind = "unRegisterEventHandler")
-    protected void registerEventHandler(AbstractEventHandler eventHandler) throws IdentityEventException {
+    protected void registerEventHandler(AbstractEventHandler eventHandler) {
         String handlerName = eventHandler.getName();
-        eventHandler.init(IdentityEventConfigBuilder.getInstance().getModuleConfigurations(handlerName));
+        try {
+            eventHandler.init(IdentityEventConfigBuilder.getInstance().getModuleConfigurations(handlerName));
+        } catch (IdentityEventException | IdentityRuntimeException e) {
+            log.warn("Properties for " + handlerName + " is not configured. This event handler will not be activated");
+        }
         eventHandlerList.add(eventHandler);
         MessageHandlerComparator messageHandlerComparator = new MessageHandlerComparator(null);
         Collections.sort(eventHandlerList, messageHandlerComparator);

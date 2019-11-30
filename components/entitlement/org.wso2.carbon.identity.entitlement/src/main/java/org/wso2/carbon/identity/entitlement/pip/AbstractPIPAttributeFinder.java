@@ -40,7 +40,7 @@ import java.util.Set;
  */
 public abstract class AbstractPIPAttributeFinder implements PIPAttributeFinder {
 
-    private static Log log = LogFactory.getLog(AbstractPIPAttributeFinder.class);
+    private static final Log log = LogFactory.getLog(AbstractPIPAttributeFinder.class);
     protected int tenantId;
     private PIPAbstractAttributeCache abstractAttributeFinderCache = null;
     private boolean isAbstractAttributeCachingEnabled = false;

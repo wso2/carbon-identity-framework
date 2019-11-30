@@ -52,8 +52,9 @@ public class RequestEntityRelationshipDAO {
             prepStmt.setString(3, entity.getEntityType());
             prepStmt.setInt(4, entity.getTenantId());
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -75,8 +76,9 @@ public class RequestEntityRelationshipDAO {
             prepStmt = connection.prepareStatement(query);
             prepStmt.setString(1, uuid);
             prepStmt.executeUpdate();
-            connection.commit();
+            IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -92,7 +94,7 @@ public class RequestEntityRelationshipDAO {
      */
     public boolean entityHasPendingWorkflows(Entity entity) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_PENDING_RELATIONSHIPS_OF_ENTITY;
         ResultSet resultSet = null;
@@ -106,7 +108,6 @@ public class RequestEntityRelationshipDAO {
             if (resultSet.next()) {
                 return true;
             }
-            connection.commit();
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
@@ -126,7 +127,7 @@ public class RequestEntityRelationshipDAO {
     public boolean entityHasPendingWorkflowsOfType(Entity entity, String requsetType) throws
             InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_PENDING_RELATIONSHIPS_OF_GIVEN_TYPE_FOR_ENTITY;
         ResultSet resultSet = null;
@@ -141,7 +142,6 @@ public class RequestEntityRelationshipDAO {
             if (resultSet.next()) {
                 return true;
             }
-            connection.commit();
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
@@ -160,7 +160,7 @@ public class RequestEntityRelationshipDAO {
      */
     public boolean twoEntitiesAreRelated(Entity entity1, Entity entity2) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         String query = SQLConstants.GET_REQUESTS_OF_TWO_ENTITIES;
         ResultSet resultSet = null;
@@ -176,7 +176,6 @@ public class RequestEntityRelationshipDAO {
             if (resultSet.next()) {
                 return true;
             }
-            connection.commit();
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error when executing the sql query", e);
         } finally {
@@ -200,7 +199,7 @@ public class RequestEntityRelationshipDAO {
     public List<String> getEntityNamesOfRequest(String wfOperationType, String wfStatus, String entityType, String
             idFilter, int tenantID) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
         String query = SQLConstants.GET_REQUEST_ENTITY_NAMES;
@@ -220,7 +219,6 @@ public class RequestEntityRelationshipDAO {
                 String entityName = resultSet.getString(SQLConstants.ENTITY_NAME_COLUMN);
                 entityNames.add(entityName);
             }
-
         } catch (SQLException e) {
             throw new InternalWorkflowException("Error occurred when executing the sql query", e);
         } finally {

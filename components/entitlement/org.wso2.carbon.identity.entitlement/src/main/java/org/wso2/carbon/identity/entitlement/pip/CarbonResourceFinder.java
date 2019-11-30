@@ -55,7 +55,7 @@ import java.util.Set;
 
 public class CarbonResourceFinder extends ResourceFinderModule {
 
-    private static Log log = LogFactory.getLog(CarbonResourceFinder.class);
+    private static final Log log = LogFactory.getLog(CarbonResourceFinder.class);
     boolean isResourceCachingEnabled = false;
     private int tenantId;
     private Set<PIPResourceFinder> resourceFinders = new HashSet<PIPResourceFinder>();

@@ -21,11 +21,12 @@
 <%@ page import="org.apache.cxf.jaxrs.client.WebClient" %>
 <%@ page import="org.apache.http.HttpStatus" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
 <%@ page import="java.net.URLEncoder" %>
+<%@ page import="java.net.URLDecoder" %>
 <%@ page import="javax.ws.rs.core.Response" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isSelfSignUpEPAvailable" %>
 <%@ page import="static org.wso2.carbon.identity.core.util.IdentityUtil.isRecoveryEPAvailable" %>
@@ -37,20 +38,48 @@
 
 <jsp:directive.include file="init-loginform-action-url.jsp"/>
 
-
+<script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script>
-        function submitCredentials (e) {
-            e.preventDefault();
-            var userName = document.getElementById("username");
-            userName.value = userName.value.trim();
-            if(userName.value){
-                document.getElementById("loginForm").submit();
-            }
-        }
+    function goBack() {
+        window.history.back();
+    }
+    
+    // Handle form submission preventing double submission.
+    $(document).ready(function(){
+        $.fn.preventDoubleSubmission = function() {
+            $(this).on('submit',function(e){
+                var $form = $(this);
+                if ($form.data('submitted') === true) {
+                    // Previously submitted - don't submit again.
+                    e.preventDefault();
+                    console.warn("Prevented a possible double submit event");
+                } else {
+                    e.preventDefault();
+                    var userName = document.getElementById("username");
+                    userName.value = userName.value.trim();
+                    if(userName.value){
+                        $.ajax({
+                            type: "GET",
+                            url: "/logincontext?sessionDataKey=" + getParameterByName("sessionDataKey") + "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName("tenantDomain"),
+                            success: function (data) {
+                                if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
+                                    window.location.href = data.redirectUrl;
+                                } else {
+                                    // Mark it so that the next submit can be ignored.
+                                    $form.data('submitted', true);
+                                    document.getElementById("loginForm").submit();
+                                }
+                            },
+                            cache: false
+                        });
+                    }
+                }
+            });
 
-        function goBack() {
-            window.history.back();
-        }
+            return this;
+        };
+        $('#loginForm').preventDoubleSubmission();
+    });
 </script>
 
 <%!
@@ -137,7 +166,8 @@
     <% if (!isIdentifierFirstLogin(inputType)) { %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
-        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
+        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required
+               autofocus>
     </div>
     <% } else {%>
         <input id="username" name="username" type="hidden" value="<%=username%>">
@@ -192,7 +222,7 @@
         <div class="form-actions">
             <button
                     class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large margin-bottom-double"
-                    type="submit" onclick="submitCredentials(event)">
+                    type="submit">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "login")%>
             </button>
         </div>
@@ -220,7 +250,7 @@
                 String serverName = request.getServerName();
                 int serverPort = request.getServerPort();
                 String uri = (String) request.getAttribute(JAVAX_SERVLET_FORWARD_REQUEST_URI);
-                String prmstr = (String) request.getAttribute(JAVAX_SERVLET_FORWARD_QUERY_STRING);
+                String prmstr = URLDecoder.decode(((String) request.getAttribute(JAVAX_SERVLET_FORWARD_QUERY_STRING)), UTF_8);
                 String urlWithoutEncoding = scheme + "://" +serverName + ":" + serverPort + uri + "?" + prmstr;
                 String urlEncodedURL = URLEncoder.encode(urlWithoutEncoding, UTF_8);
 
@@ -276,7 +306,7 @@
             <div class="form-actions">
                 <%=AuthenticationEndpointUtil.i18n(resourceBundle, "no.confirmation.mail")%>
                 <a id="registerLink"
-                   href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(request.getQueryString())%>">
+                   href="login.do?resend_username=<%=Encode.forHtml(request.getParameter("failedUsername"))%>&<%=AuthenticationEndpointUtil.cleanErrorMessages(Encode.forJava(request.getQueryString()))%>">
                     <%=AuthenticationEndpointUtil.i18n(resourceBundle, "resend.mail")%>
                 </a>
             </div>

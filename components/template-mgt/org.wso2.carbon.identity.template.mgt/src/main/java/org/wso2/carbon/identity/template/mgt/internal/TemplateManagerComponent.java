@@ -27,12 +27,8 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
-import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.identity.template.mgt.TemplateManagerImpl;
-import org.wso2.carbon.user.core.util.DatabaseUtil;
-
-import javax.sql.DataSource;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of template management service.
@@ -56,9 +52,6 @@ public class TemplateManagerComponent {
 
         try {
             BundleContext bundleContext = componentContext.getBundleContext();
-            DataSource dataSource = IdentityDatabaseUtil.getDataSource();
-            DatabaseUtil.getDBConnection(dataSource);
-            setDataSourceToDataHolder(dataSource);
 
             bundleContext.registerService(TemplateManager.class, new TemplateManagerImpl(), null);
             if (log.isDebugEnabled()) {
@@ -66,14 +59,6 @@ public class TemplateManagerComponent {
             }
         } catch (Throwable e) {
             log.error("Error while activating TemplateManagerComponent.", e);
-        }
-    }
-
-    private void setDataSourceToDataHolder(DataSource dataSource) {
-
-        TemplateManagerComponentDataHolder.getInstance().setDataSource(dataSource);
-        if (log.isDebugEnabled()) {
-            log.debug("Data Source is set to the Template Management Service.");
         }
     }
 

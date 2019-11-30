@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class CacheBackedExternalClaimDAO {
 
-    private static Log log = LogFactory.getLog(CacheBackedExternalClaimDAO.class);
+    private static final Log log = LogFactory.getLog(CacheBackedExternalClaimDAO.class);
 
     ExternalClaimDAO externalClaimDAO;
     ExternalClaimCache externalClaimCache = ExternalClaimCache.getInstance();

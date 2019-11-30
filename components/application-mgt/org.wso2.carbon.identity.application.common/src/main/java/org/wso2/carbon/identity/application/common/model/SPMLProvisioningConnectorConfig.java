@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+/**
+ * SPML provisioning connector configuration.
+ */
 public class SPMLProvisioningConnectorConfig extends ProvisioningConnectorConfig {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -8336211694205008436L;
 
     @Override

@@ -63,6 +63,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.hrd
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.CallBackHandlerFactory;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler;
@@ -88,9 +89,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
@@ -103,6 +102,8 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -137,6 +138,8 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 
 public class FrameworkUtils {
 
@@ -474,6 +477,29 @@ public class FrameworkUtils {
     }
 
     /**
+     * Create the user store preference order supplier from the configured call back handler factory.
+     */
+    public static UserStorePreferenceOrderSupplier<List<String>> getUserStorePreferenceOrderSupplier
+    (AuthenticationContext context, ServiceProvider serviceProvider) {
+
+        return getCallBackHandlerFactory().createUserStorePreferenceOrderSupplier(context, serviceProvider);
+    }
+
+    private static CallBackHandlerFactory getCallBackHandlerFactory() {
+
+        // Retrieve tha call back handler configured at application-authentication.xml file.
+        CallBackHandlerFactory userStorePreferenceCallbackHandlerFactory;
+        Object obj = ConfigurationFacade.getInstance().getExtensions().get(FrameworkConstants.Config
+                .QNAME_EXT_USER_STORE_ORDER_CALLBACK_HANDLER);
+        if (obj != null) {
+            userStorePreferenceCallbackHandlerFactory = (CallBackHandlerFactory) obj;
+        } else {
+            userStorePreferenceCallbackHandlerFactory = new CallBackHandlerFactory();
+        }
+        return userStorePreferenceCallbackHandlerFactory;
+    }
+
+    /**
      * @param request
      * @param response
      * @throws IOException
@@ -576,7 +602,7 @@ public class FrameworkUtils {
 
         if (StringUtils.isNotBlank(uri) && StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
 
-            if (uri.contains("?")) {
+            if (uri.contains("?") || uri.contains("#")) {
                 uri += "&" + key + "=" + URLEncoder.encode(value, "UTF-8");
             } else {
                 uri += "?" + key + "=" + URLEncoder.encode(value, "UTF-8");
@@ -1758,6 +1784,55 @@ public class FrameworkUtils {
     }
 
     /**
+     * Get the mapped URI for the IDP role mapping
+     * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
+     * @param stepConfig Relevant stepConfig
+     * @param context Relevant authentication context
+     * @return idpRole claim uri in IDPs dialect or Custom dialect
+     */
+    public static String getMappedIdpRoleClaimUri(String idpRoleClaimUri, StepConfig stepConfig,
+                                                  AuthenticationContext context) {
+
+        // Finally return the incoming idpClaimUri if it is in expected dialect.
+        String idpRoleMappingURI = idpRoleClaimUri;
+
+        ApplicationAuthenticator authenticator = stepConfig.
+                getAuthenticatedAutenticator().getApplicationAuthenticator();
+
+        // Read the value from management console.
+        boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+
+        // Read value from file based configuration.
+        boolean useLocalClaimDialectForClaimMappings =
+                FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
+
+        Map<String, String> carbonToStandardClaimMapping;
+
+        // Check whether to use the default dialect or custom dialect.
+        if (useDefaultIdpDialect || useLocalClaimDialectForClaimMappings) {
+            String idPStandardDialect = authenticator.getClaimDialectURI();
+            try {
+                // Maps the idps dialect to standard dialect.
+                carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
+                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
+                                context.getTenantDomain(), false);
+                // check for role claim uri in the idaps dialect.
+                for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
+                    if (idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
+                        idpRoleMappingURI = entry.getKey();
+                    }
+                }
+            } catch (ClaimMetadataException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
+                            "unmapped RoleClaimUri: " + idpRoleMappingURI);
+                }
+            }
+        }
+        return idpRoleMappingURI;
+    }
+
+    /**
      * Returns the local claim uri that is mapped for the IdP role claim uri configured.
      * If no role claim uri is configured for the IdP returns the local role claim 'http://wso2.org/claims/role'.
      *
@@ -2106,11 +2181,17 @@ public class FrameworkUtils {
                     if (log.isDebugEnabled()) {
                         log.debug("Table - " + tableName + " available in the Identity database.");
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Table - " + tableName + " not available in the Identity database.");
+                }
+                return false;
             }
-            connection.commit();
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Table - " + tableName + " not available in the Identity database.");
@@ -2129,18 +2210,16 @@ public class FrameworkUtils {
             throw new IllegalArgumentException("A null reference received for service provider.");
         }
 
-        for (ServiceProviderProperty serviceProviderProperty : serviceProvider.getSpProperties()) {
-            if (serviceProviderProperty.getName().equals(IdentityConstants.SKIP_CONSENT)
-                    && Boolean.parseBoolean(serviceProviderProperty.getValue())) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Consent page skip property set for service provider : " + serviceProvider.getApplicationName());
-                }
-
-                return true;
-            }
+        boolean isSkipConsent = false;
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            isSkipConsent = serviceProvider.getLocalAndOutBoundAuthenticationConfig().isSkipConsent();
         }
 
-        return false;
+        if (log.isDebugEnabled()) {
+            log.debug("SkipConsent: " + isSkipConsent + " for application: " + serviceProvider.getApplicationName()
+                    + " with id: " + serviceProvider.getApplicationID());
+        }
+        return isSkipConsent;
     }
 
     /**
@@ -2175,11 +2254,19 @@ public class FrameworkUtils {
                         log.debug("Column - " + columnName + " in table - " + tableName + " is available in the " +
                                 "Identity database.");
                     }
-                    connection.commit();
+                    IdentityDatabaseUtil.commitTransaction(connection);
                     return true;
                 }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException ex) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (log.isDebugEnabled()) {
+                    log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
+                            "Identity database.");
+                }
+                return false;
             }
-            connection.commit();
+
         } catch (SQLException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Column - " + columnName + " in table - " + tableName + " is not available in the " +
@@ -2192,6 +2279,27 @@ public class FrameworkUtils {
                     "Identity database.");
         }
         return false;
+    }
+
+    /**
+     * Remove domain name from roles except the hybrid roles (Internal,Application & Workflow).
+     *
+     * @param domainAwareRolesList list of roles assigned to a user.
+     * @return String of multi attribute separated list of roles assigned to a user with domain name removed from roles.
+     */
+    public static String removeDomainFromNamesExcludeHybrid(List<String> domainAwareRolesList) {
+
+        List<String> roleList = new ArrayList<String>();
+        for (String role : domainAwareRolesList) {
+            String userStoreDomain = IdentityUtil.extractDomainFromName(role);
+            if (UserCoreConstants.INTERNAL_DOMAIN.equalsIgnoreCase(userStoreDomain) || APPLICATION_DOMAIN
+                    .equalsIgnoreCase(userStoreDomain) || WORKFLOW_DOMAIN.equalsIgnoreCase(userStoreDomain)) {
+                roleList.add(role);
+            } else {
+                roleList.add(UserCoreUtil.removeDomainFromName(role));
+            }
+        }
+        return String.join(FrameworkUtils.getMultiAttributeSeparator(), roleList);
     }
 }
 

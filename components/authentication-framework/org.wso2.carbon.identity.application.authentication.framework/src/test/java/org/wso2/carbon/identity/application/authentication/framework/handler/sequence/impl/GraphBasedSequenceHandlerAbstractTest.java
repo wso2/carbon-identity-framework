@@ -41,7 +41,9 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -77,8 +79,8 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     }
 
     @BeforeMethod
-    protected void setUp()
-            throws UserStoreException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException {
+    protected void setUp() throws UserStoreException, NoSuchFieldException, IllegalAccessException,
+            NoSuchMethodException, URISyntaxException {
 
         URL root = this.getClass().getClassLoader().getResource(".");
         File file = new File(root.getPath());
@@ -101,7 +103,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         Field configFilePathField = FileBasedConfigurationBuilder.class.getDeclaredField("configFilePath");
         configFilePathField.setAccessible(true);
         URL url = this.getClass().getResource(APPLICATION_AUTHENTICATION_FILE_NAME);
-        configFilePathField.set(null, url.getPath());
+        configFilePathField.set(null, Paths.get(url.toURI()).toString());
     }
 
     protected void resetAuthenticators() {

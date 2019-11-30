@@ -47,7 +47,7 @@ import java.util.Set;
  */
 public abstract class AbstractPIPResourceFinder implements PIPResourceFinder {
 
-    private static Log log = LogFactory.getLog(CarbonAttributeFinder.class);
+    private static final Log log = LogFactory.getLog(CarbonAttributeFinder.class);
     private EntitlementBaseCache<IdentityCacheKey, IdentityCacheEntry> abstractResourceCache = null;
     private boolean isAbstractResourceCacheEnabled = false;
     private int tenantId;

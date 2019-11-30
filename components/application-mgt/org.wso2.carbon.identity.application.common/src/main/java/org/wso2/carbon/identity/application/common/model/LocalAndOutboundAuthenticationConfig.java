@@ -26,12 +26,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Local and outbound configuration of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "LocalAndOutboundAuthenticationConfig")
 public class LocalAndOutboundAuthenticationConfig implements Serializable {
@@ -40,6 +44,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String USE_USERSTORE_DOMAIN_IN_USERNAME = "UseUserstoreDomainInUsername";
     private static final String USE_TENANT_DOMAIN_IN_USERNAME = "UseTenantDomainInUsername";
     private static final String USE_USERSTORE_DOMAIN_IN_ROLES = "UseUserstoreDomainInRoles";
+    private static final String SKIP_CONSENT = "SkipConsent";
     private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
@@ -72,10 +77,13 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private boolean useTenantDomainInLocalSubjectIdentifier = false;
 
     @XmlElement(name = USE_USERSTORE_DOMAIN_IN_ROLES)
-    private boolean useUserstoreDomainInRoles = false;
+    private boolean useUserstoreDomainInRoles = true;
 
     @XmlElement(name = USE_USERSTORE_DOMAIN_IN_USERNAME)
     private boolean useUserstoreDomainInLocalSubjectIdentifier = false;
+
+    @XmlElement(name = SKIP_CONSENT)
+    private boolean skipConsent = false;
 
     @XmlElement(name = ENABLE_AUTHORIZATION)
     private boolean enableAuthorization = false;
@@ -167,6 +175,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
             } else if (USE_USERSTORE_DOMAIN_IN_ROLES.equals(member.getLocalName())) {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setUseUserstoreDomainInRoles(true);
+                }
+            } else if (SKIP_CONSENT.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setSkipConsent(true);
                 }
             }
         }
@@ -285,7 +297,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
         this.enableAuthorization = enableAuthorization;
     }
 
-    public AuthenticationScriptConfig getAuthenticationScriptConfig(){return authenticationScriptConfig;}
+    public AuthenticationScriptConfig getAuthenticationScriptConfig() {
+
+        return authenticationScriptConfig;
+    }
 
     public void setAuthenticationScriptConfig(AuthenticationScriptConfig authenticationScriptConfig) {
         this.authenticationScriptConfig = authenticationScriptConfig;
@@ -299,5 +314,15 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setUseUserstoreDomainInRoles(boolean useUserstoreDomainInRoles) {
 
         this.useUserstoreDomainInRoles = useUserstoreDomainInRoles;
+    }
+
+    public boolean isSkipConsent() {
+
+        return skipConsent;
+    }
+
+    public void setSkipConsent(boolean skipConsent) {
+
+        this.skipConsent = skipConsent;
     }
 }

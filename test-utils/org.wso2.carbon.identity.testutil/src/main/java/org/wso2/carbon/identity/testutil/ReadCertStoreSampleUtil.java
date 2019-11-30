@@ -43,7 +43,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 
 public class ReadCertStoreSampleUtil {
 
-    private final static String PRIVATE_KEY =
+    private static final String PRIVATE_KEY =
             "-----BEGIN PRIVATE KEY-----\n"
                     + "MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAM7t8Ub1DP+B91NJ\n"
                     + "nC45zqIvd1QXkQ5Ac1EJl8mUglWFzUyFbhjSuF4mEjrcecwERfRummASbLoyeMXl\n"

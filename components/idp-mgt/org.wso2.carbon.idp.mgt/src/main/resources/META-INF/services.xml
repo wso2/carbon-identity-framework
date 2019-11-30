@@ -44,6 +44,9 @@
         <operation name="getAllIdPs">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
         </operation>
+        <operation name="getAllIdPsSearch">
+             <parameter name="AuthorizationAction" locked="true">/permission/admin/login</parameter>
+        </operation>
         <operation name="getAllLocalClaimUris">
             <parameter name="AuthorizationAction" locked="true">/permission/admin/manage/identity/idpmgt/view
             </parameter>

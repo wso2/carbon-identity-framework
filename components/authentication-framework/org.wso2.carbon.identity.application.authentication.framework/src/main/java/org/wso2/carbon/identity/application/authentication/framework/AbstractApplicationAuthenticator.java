@@ -153,7 +153,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
         return stepHasMultiOption;
     }
 
-    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
+    protected void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
                                                   User user, boolean success) {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()

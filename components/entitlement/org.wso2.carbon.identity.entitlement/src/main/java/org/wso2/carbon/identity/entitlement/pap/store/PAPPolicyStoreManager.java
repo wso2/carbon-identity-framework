@@ -26,7 +26,7 @@ import org.wso2.carbon.registry.core.Resource;
 
 public class PAPPolicyStoreManager {
 
-    private static Log log = LogFactory.getLog(PAPPolicyStoreManager.class);
+    private static final Log log = LogFactory.getLog(PAPPolicyStoreManager.class);
     private PAPPolicyStore store;
     private PAPPolicyStoreReader storeReader;
 

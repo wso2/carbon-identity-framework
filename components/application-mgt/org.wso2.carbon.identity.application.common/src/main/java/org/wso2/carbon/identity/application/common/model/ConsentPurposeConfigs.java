@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -43,7 +44,7 @@ public class ConsentPurposeConfigs implements Serializable {
     private static final Log log = LogFactory.getLog(ConsentPurposeConfigs.class);
     private static final String CONSENT_PURPOSE_ELEM = "ConsentPurpose";
 
-    @XmlElementWrapper(name="ConsentPurposeConfigs")
+    @XmlElementWrapper(name = "ConsentPurposeConfigs")
     @XmlElement(name = "ConsentPurpose")
     private ConsentPurpose[] consentPurpose;
 

@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
@@ -69,8 +70,10 @@ public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
-    // Regex for validating application name
-    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
+    // Default regex for validating application name.
+    // This regex allows alphanumeric characters, dot, underscore, hyphen and spaces in the name.
+    // Does not allow leading and trailing whitespaces.
+    public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$";
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
@@ -626,8 +629,8 @@ public class ApplicationMgtUtil {
     public static boolean isValidApplicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         try {
-            String userName = null;
-            String userNameWithDomain = null;
+            String userName;
+            String userNameWithDomain;
             if (serviceProvider.getOwner() != null) {
                 userName = serviceProvider.getOwner().getUserName();
                 if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
@@ -635,18 +638,23 @@ public class ApplicationMgtUtil {
                 }
                 String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
                 userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
-            }
-            org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+
+                org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+                if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+                    return false;
+                }
+                boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
+                if (!isUserExist) {
+                    throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
+                            "application: " +
+                            serviceProvider.getApplicationName() + " as user is not existing.");
+                }
+            } else {
                 return false;
             }
-            boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
-            if (!isUserExist) {
-                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
-                        serviceProvider.getApplicationName() + " as user is not existing.");
-            }
         } catch (UserStoreException | IdentityApplicationManagementException e) {
-            throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+            throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
+                    "application: " +
                     serviceProvider.getApplicationName(), e);
         }
         return true;
@@ -699,4 +707,32 @@ public class ApplicationMgtUtil {
 
         PrivilegedCarbonContext.endTenantFlow();
     }
+
+    /**
+     * Method to get the ItemsPerPage property configured in the carbon.xml file.
+     *
+     * @return Items per page in pagination.
+     */
+    public static int getItemsPerPage() {
+
+        String itemsPerPagePropertyValue =
+                ServerConfiguration.getInstance().getFirstProperty(ApplicationConstants.ITEMS_PER_PAGE_PROPERTY);
+
+        try {
+            if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
+                int itemsPerPage = Math.abs(Integer.parseInt(itemsPerPagePropertyValue));
+                if (log.isDebugEnabled()) {
+                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
+                }
+                return itemsPerPage;
+            }
+        } catch (NumberFormatException e) {
+            // No need to handle exception since the default value is already set.
+            log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml. Defaulting to: "
+                    + ApplicationConstants.DEFAULT_RESULTS_PER_PAGE);
+        }
+
+        return ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
+    }
+
 }

@@ -27,7 +27,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 public class WorkflowManagementUtil {
-    private static Log log = LogFactory.getLog(WorkflowManagementUtil.class);
+    private static final Log log = LogFactory.getLog(WorkflowManagementUtil.class);
 
     /**
      * Create a internal role in workflow domain with same name as workflow.

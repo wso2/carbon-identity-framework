@@ -21,11 +21,11 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
+/**
+ * Facebook authenticator config
+ */
 public class FacebookFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -133425927850782196L;
 
     /**

@@ -48,7 +48,7 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
         ResultSet rSet = null;
         List<ThriftSession> thriftSessions;
         try {
-            connection = ThriftAuthenticationDatabaseUtil.getDBConnection();
+            connection = ThriftAuthenticationDatabaseUtil.getDBConnection(false);
             prepStmt = connection.prepareStatement(ThriftAuthenticationConstants.GET_ALL_THRIFT_SESSIONS_SQL);
 
             rSet = prepStmt.executeQuery();
@@ -89,7 +89,7 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
         boolean isExistingProvider = false;
 
         try {
-            connection = ThriftAuthenticationDatabaseUtil.getDBConnection();
+            connection = ThriftAuthenticationDatabaseUtil.getDBConnection(false);
             prepStmt = connection.prepareStatement(ThriftAuthenticationConstants.CHECK_EXISTING_THRIFT_SESSION_SQL);
             prepStmt.setString(1, sessionId);
 
@@ -130,13 +130,14 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
 
                 prepStmt.execute();
 
-                connection.commit();
+                ThriftAuthenticationDatabaseUtil.commitTransaction(connection);
 
             } catch (AuthenticationException e) {
                 String errorMsg = ERROR_WHEN_GETTING_AN_IDENTITY_PERSISTENCE_STORE_INSTANCE;
                 log.error(errorMsg, e);
                 throw IdentityException.error(errorMsg, e);
             } catch (SQLException e) {
+                ThriftAuthenticationDatabaseUtil.rollbackTransaction(connection);
                 log.error(ERROR_WHEN_EXECUTING_THE_SQL + " " + sqlStmt);
                 log.error(e.getMessage(), e);
                 throw IdentityException.error("Error when adding a new thrift session.");
@@ -163,13 +164,14 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
                 prepStmt.setString(1, sessionId);
 
                 prepStmt.execute();
-                connection.commit();
+                ThriftAuthenticationDatabaseUtil.commitTransaction(connection);
 
             } catch (AuthenticationException e) {
                 String errorMsg = ERROR_WHEN_GETTING_AN_IDENTITY_PERSISTENCE_STORE_INSTANCE;
                 log.error(errorMsg, e);
                 throw IdentityException.error(errorMsg, e);
             } catch (SQLException e) {
+                ThriftAuthenticationDatabaseUtil.rollbackTransaction(connection);
                 log.error(ERROR_WHEN_EXECUTING_THE_SQL + " " + ThriftAuthenticationConstants.DELETE_SESSION_SQL);
                 log.error(e.getMessage(), e);
                 throw IdentityException.error("Error deleting the Thrift Session.");
@@ -202,13 +204,13 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
                 if (log.isDebugEnabled()) {
                     log.debug("No. of records updated for updating Thrift Session : " + count);
                 }
-                connection.commit();
-
+                ThriftAuthenticationDatabaseUtil.commitTransaction(connection);
             } catch (AuthenticationException e) {
                 String errorMsg = ERROR_WHEN_GETTING_AN_IDENTITY_PERSISTENCE_STORE_INSTANCE;
                 log.error(errorMsg, e);
                 throw IdentityException.error(errorMsg, e);
             } catch (SQLException e) {
+                ThriftAuthenticationDatabaseUtil.rollbackTransaction(connection);
                 log.error(ERROR_WHEN_EXECUTING_THE_SQL + " " + ThriftAuthenticationConstants.UPDATE_LAST_MODIFIED_TIME_SQL);
                 log.error(e.getMessage(), e);
                 throw IdentityException.error("Error updating the Thrift Session.");
@@ -229,7 +231,7 @@ public class DBThriftSessionDAO implements ThriftSessionDAO {
         ResultSet rSet = null;
         ThriftSession thriftSession = new ThriftSession();
         try {
-            connection = ThriftAuthenticationDatabaseUtil.getDBConnection();
+            connection = ThriftAuthenticationDatabaseUtil.getDBConnection(false);
             prepStmt = connection.prepareStatement(ThriftAuthenticationConstants.GET_THRIFT_SESSION_SQL);
             prepStmt.setString(1, sessionId);
             rSet = prepStmt.executeQuery();

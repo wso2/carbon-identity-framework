@@ -10,7 +10,7 @@ import org.wso2.carbon.utils.Axis2ConfigurationContextObserver;
 
 public class UserStoreConfgurationContextObserver implements Axis2ConfigurationContextObserver {
 
-    private static Log log = LogFactory.getLog(Axis2ConfigurationContextObserver.class);
+    private static final Log log = LogFactory.getLog(Axis2ConfigurationContextObserver.class);
 
     public void createdConfigurationContext(ConfigurationContext context) {
 

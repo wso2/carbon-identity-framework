@@ -34,7 +34,7 @@ import java.util.Map;
 
 public class AccountCredentialMgtConfigClient {
 
-    protected static Log log = LogFactory
+    protected static final Log log = LogFactory
             .getLog(AccountCredentialMgtConfigClient.class);
     protected AccountCredentialMgtConfigServiceStub stub;
 

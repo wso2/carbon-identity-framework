@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.common.model.script;
 import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;

@@ -36,7 +36,7 @@ import org.wso2.carbon.identity.mgt.stub.dto.UserChallengesDTO;
 public class IdentityManagementClient {
 
     public static final String USER_CHALLENGE_QUESTION = "user.challenge.question";
-    protected static Log log = LogFactory.getLog(IdentityManagementClient.class);
+    protected static final Log log = LogFactory.getLog(IdentityManagementClient.class);
     protected UserIdentityManagementServiceStub stub = null;
 
     public IdentityManagementClient(String url, ConfigurationContext configContext)

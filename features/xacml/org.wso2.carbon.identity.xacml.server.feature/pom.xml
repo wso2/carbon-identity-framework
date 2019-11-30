@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>xacml-feature</artifactId>
-        <version>5.12.393-SNAPSHOT</version>
+        <version>5.15.21-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -89,6 +89,9 @@
                                         <include>balana-config.xml</include>
                                         <include>**/*.xml</include>
                                         <include>p2.inf</include>
+                                        <include>entitlement.properties.j2</include>
+                                        <include>org.wso2.carbon.identity.xacml.server.feature.default.json</include>
+                                        <include>org.wso2.carbon.identity.xacml.server.feature.unit-resolve.json</include>
                                     </includes>
                                 </resource>
                             </resources>
@@ -156,7 +159,8 @@
                                 <bundleDef>org.wso2.orbit.joda-time:joda-time</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.identity.saml.common.util:${saml.common.util.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.core:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.security.mgt.server:compatible:${identity.framework.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.notification.mgt.server:compatible:${identity.framework.version}</importFeatureDef>

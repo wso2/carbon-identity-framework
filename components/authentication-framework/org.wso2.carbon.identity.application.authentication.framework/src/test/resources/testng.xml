@@ -48,7 +48,7 @@
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContextTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerLongWaitTest" />
-
+            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerExceptionRetryTest" />
         </classes>
     </test>
     <test name="IdentityFrameworkTestsWithDataSources" preserve-order="false" parallel="false">

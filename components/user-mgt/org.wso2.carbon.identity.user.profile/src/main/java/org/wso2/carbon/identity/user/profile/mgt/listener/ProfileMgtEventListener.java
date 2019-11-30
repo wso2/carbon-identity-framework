@@ -143,14 +143,18 @@ public class ProfileMgtEventListener extends AbstractIdentityUserOperationEventL
             log.debug("Deleting federated IDP user account associations of user:" + fullyQualifiedUsername);
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection();
-                PreparedStatement prepStmt = connection.prepareStatement(sql)) {
-            prepStmt.setString(1, tenantAwareUsername);
-            prepStmt.setString(2, userStoreDomain);
-            prepStmt.setInt(3, tenantId);
-            prepStmt.executeUpdate();
-
-            connection.commit();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(sql)) {
+                prepStmt.setString(1, tenantAwareUsername);
+                prepStmt.setString(2, userStoreDomain);
+                prepStmt.setInt(3, tenantId);
+                prepStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                throw new UserStoreException(String.format("Error when trying to delete the federated IDP user "
+                        + "account associations of user:%s", fullyQualifiedUsername), e1);
+            }
         } catch (SQLException e) {
             String msg = "Error when trying to delete the federated IDP user account associations of user:%s";
             throw new UserStoreException(String.format(msg, fullyQualifiedUsername), e);

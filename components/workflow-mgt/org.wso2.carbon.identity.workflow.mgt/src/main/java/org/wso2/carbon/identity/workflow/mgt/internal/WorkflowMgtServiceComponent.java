@@ -71,7 +71,7 @@ public class WorkflowMgtServiceComponent {
         }
     }
 
-    private static Log log = LogFactory.getLog(WorkflowMgtServiceComponent.class);
+    private static final Log log = LogFactory.getLog(WorkflowMgtServiceComponent.class);
 
     @Reference(
              name = "user.realmservice.default", 

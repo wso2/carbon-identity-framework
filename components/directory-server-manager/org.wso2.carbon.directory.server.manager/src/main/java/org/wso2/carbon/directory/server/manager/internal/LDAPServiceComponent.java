@@ -41,7 +41,7 @@ public class LDAPServiceComponent {
     private static ServiceRegistration<?> serviceRegistration;
 
     @Activate
-    protected static void activate(ComponentContext ctxt) {
+    protected void activate(ComponentContext ctxt) {
 
         serviceRegistration = ctxt.getBundleContext().registerService(
                 ApplicationMgtListener.class.getName(), new DirectoryServerApplicationMgtListener(), null);

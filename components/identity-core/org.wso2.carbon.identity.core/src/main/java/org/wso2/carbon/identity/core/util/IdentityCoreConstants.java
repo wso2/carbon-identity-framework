@@ -60,6 +60,18 @@ public class IdentityCoreConstants {
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
 
+    // Pagination constants.
+    public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;
+    public static final int DEFAULT_ITEMS_PRE_PAGE = 15;
+    public static final String MAXIMUM_ITEMS_PRE_PAGE_PROPERTY = "MaximumItemsPerPage";
+    public static final String DEFAULT_ITEMS_PRE_PAGE_PROPERTY = "DefaultItemsPerPage";
+
+    public static class Filter {
+
+        public static final String AND = "and";
+        public static final String OR = "or";
+        public static final String NOT = "not";
+    }
 
     public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
 

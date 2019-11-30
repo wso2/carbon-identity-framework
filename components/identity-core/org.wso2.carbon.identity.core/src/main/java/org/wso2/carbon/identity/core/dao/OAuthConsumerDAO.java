@@ -31,7 +31,7 @@ import org.wso2.carbon.registry.core.jdbc.utils.Transaction;
 
 public class OAuthConsumerDAO extends AbstractDAO<OAuthConsumerDO> {
 
-    protected Log log = LogFactory.getLog(OAuthConsumerDAO.class);
+    protected static final Log log = LogFactory.getLog(OAuthConsumerDAO.class);
 
     /**
      * @param registry registry instance

@@ -18,6 +18,45 @@
 
 <component xmlns="http://products.wso2.org/carbon">
     <menus>
+        <menu>
+            <id>functionmgt_menu</id>
+            <i18n-key>function.menu</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>manage_menu</parent-menu>
+            <link>#</link>
+            <region>region1</region>
+            <order>5</order>
+            <style-class>manage</style-class>
+            <icon>../functions-library-mgt/images/script.png</icon>
+            <require-permission>/permission/admin/manage/identity/functionslibrarymgt</require-permission>
+            <require-not-logged-in>false</require-not-logged-in>
+        </menu>
+        <menu>
+            <id>function_libraries_add</id>
+            <i18n-key>add</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>functionmgt_menu</parent-menu>
+            <link>../functions-library-mgt/functions-library-mgt-add.jsp</link>
+            <region>region1</region>
+            <order>1</order>
+            <style-class>manage</style-class>
+            <icon>../functions-library-mgt/images/add.gif</icon>
+            <require-permission>/permission/admin/manage/identity/functionslibrarymgt/create</require-permission>
+            <require-not-logged-in>false</require-not-logged-in>
+        </menu>
+        <menu>
+            <id>function_libraries_list</id>
+            <i18n-key>function.list</i18n-key>
+            <i18n-bundle>org.wso2.carbon.identity.functions.library.mgt.ui.i18n.Resources</i18n-bundle>
+            <parent-menu>functionmgt_menu</parent-menu>
+            <link>../functions-library-mgt/functions-library-mgt-list.jsp</link>
+            <region>region1</region>
+            <order>2</order>
+            <style-class>manage</style-class>
+            <icon>../functions-library-mgt/images/list.gif</icon>
+            <require-permission>/permission/admin/manage/identity/functionslibrarymgt/view</require-permission>
+            <require-not-logged-in>false</require-not-logged-in>
+        </menu>
     </menus>
 
     <ManagementPermissions>

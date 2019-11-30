@@ -26,6 +26,10 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -45,9 +49,11 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConst
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE1;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_ATTRIBUTE_VALUE3;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME1;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_NAME2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_DESCRIPTION;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME1;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_RESOURCE_TYPE_NAME2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.TestConstants.SAMPLE_TENANT_DOMAIN_ABC;
 
 public class TestUtils {
@@ -104,7 +110,15 @@ public class TestUtils {
     public static ResourceTypeAdd getSampleResourceTypeAdd() {
 
         ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
-        resourceTypeAdd.setName(SAMPLE_RESOURCE_TYPE_NAME);
+        resourceTypeAdd.setName(SAMPLE_RESOURCE_TYPE_NAME1);
+        resourceTypeAdd.setDescription(SAMPLE_RESOURCE_TYPE_DESCRIPTION);
+        return resourceTypeAdd;
+    }
+
+    public static ResourceTypeAdd getSampleResourceType2Add() {
+
+        ResourceTypeAdd resourceTypeAdd = new ResourceTypeAdd();
+        resourceTypeAdd.setName(SAMPLE_RESOURCE_TYPE_NAME2);
         resourceTypeAdd.setDescription(SAMPLE_RESOURCE_TYPE_DESCRIPTION);
         return resourceTypeAdd;
     }
@@ -116,7 +130,7 @@ public class TestUtils {
         attributes.add(getSampleAttribute2());
 
         ResourceAdd resourceAdd = new ResourceAdd();
-        resourceAdd.setName(SAMPLE_RESOURCE_NAME);
+        resourceAdd.setName(SAMPLE_RESOURCE_NAME1);
         resourceAdd.setAttributes(attributes);
         return resourceAdd;
     }
@@ -128,7 +142,7 @@ public class TestUtils {
         attributes.add(getSampleAttribute3());
 
         ResourceAdd resourceAdd = new ResourceAdd();
-        resourceAdd.setName(SAMPLE_RESOURCE_NAME);
+        resourceAdd.setName(SAMPLE_RESOURCE_NAME2);
         resourceAdd.setAttributes(attributes);
         return resourceAdd;
     }
@@ -177,5 +191,35 @@ public class TestUtils {
         conditions.add(attributeKeyEqFrom);
         return new ComplexCondition(ConditionType.ComplexOperator.AND, conditions);
     }
+
+    public static String getSamplesPath(String sampleName) {
+
+        if (StringUtils.isNotBlank(sampleName)) {
+            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "sample",
+                    sampleName).toString();
+        }
+        throw new IllegalArgumentException("Sample name cannot be empty.");
+    }
+
+    /**
+     * This is used to convert input stream to a string.
+     *
+     * @param inputStream Event Publisher Configuration in as a input stream.
+     * @throws IOException
+     */
+    public static String convert(InputStream inputStream) throws IOException {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }
+
+        return stringBuilder.toString();
+    }
+
 }
 

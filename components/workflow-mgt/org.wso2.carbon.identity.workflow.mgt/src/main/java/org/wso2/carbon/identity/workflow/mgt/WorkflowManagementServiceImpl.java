@@ -67,7 +67,7 @@ import java.util.Map;
 public class WorkflowManagementServiceImpl implements WorkflowManagementService {
 
     public static final String DATE_FORMAT_FOR_FILTERING = "MM/dd/yyyy";
-    private static Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
+    private static final Log log = LogFactory.getLog(WorkflowManagementServiceImpl.class);
 
     WorkflowDAO workflowDAO = new WorkflowDAO();
     AssociationDAO associationDAO = new AssociationDAO();

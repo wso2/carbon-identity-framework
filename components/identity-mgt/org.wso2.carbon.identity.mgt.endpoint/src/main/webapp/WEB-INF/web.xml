@@ -19,7 +19,8 @@
 <!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
         "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
-<web-app>
+<web-app metadata-complete="true">
+    <absolute-ordering />
     <context-param>
         <param-name>EnableEmailNotification</param-name>
         <param-value>true</param-value>
@@ -38,11 +39,11 @@
     </context-param>
     <!--context-param>
         <param-name>UserPortalUrl</param-name>
-        <param-value>https://localhost:9443/dashboard/index.jag</param-value>
+        <param-value>https://localhost:9443/user-portal</param-value>
     </context-param-->
     
     <listener>
-        <listener-class>org.wso2.carbon.identity.mgt.endpoint.listener.IdentityManagementEndpointContextListener</listener-class>
+        <listener-class>org.wso2.carbon.identity.mgt.endpoint.util.listener.IdentityManagementEndpointContextListener</listener-class>
     </listener>
 
     <filter>
@@ -86,16 +87,16 @@
     </filter-mapping>
 
     <filter>
-        <filter-name>CharsetFilter</filter-name>
-        <filter-class>org.wso2.carbon.tomcat.ext.filter.CharacterSetFilter</filter-class>
+        <filter-name>setCharacterEncodingFilter</filter-name>
+        <filter-class>org.apache.catalina.filters.SetCharacterEncodingFilter</filter-class>
         <init-param>
-            <param-name>requestEncoding</param-name>
+            <param-name>encoding</param-name>
             <param-value>UTF-8</param-value>
         </init-param>
     </filter>
 
     <filter-mapping>
-        <filter-name>CharsetFilter</filter-name>
+        <filter-name>setCharacterEncodingFilter</filter-name>
         <url-pattern>*</url-pattern>
     </filter-mapping>
 

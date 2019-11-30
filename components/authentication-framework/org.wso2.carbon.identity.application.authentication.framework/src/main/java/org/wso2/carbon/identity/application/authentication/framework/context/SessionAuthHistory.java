@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
+import org.joda.time.DateTime;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -34,6 +36,8 @@ public class SessionAuthHistory implements Serializable {
      * ACR value selected for the authentication session, if any.
      */
     private String selectedAcrValue;
+
+    private DateTime sessionCreatedTime;
 
     /**
      * History of what happens on the authentication flow
@@ -106,5 +110,15 @@ public class SessionAuthHistory implements Serializable {
      */
     public void resetHistory(List<AuthHistory> authHistories) {
         authenticationStepHistory = new LinkedList<>(authHistories);
+    }
+
+    public DateTime getSessionCreatedTime() {
+
+        return sessionCreatedTime;
+    }
+
+    public void setSessionCreatedTime(DateTime sessionCreatedTime) {
+
+        this.sessionCreatedTime = sessionCreatedTime;
     }
 }

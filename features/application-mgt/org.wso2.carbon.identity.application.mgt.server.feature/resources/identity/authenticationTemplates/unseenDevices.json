@@ -55,7 +55,7 @@
     "var emailTemplate = 'UnseenDeviceLogin';",
     "",
     "",
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            subject = context.currentKnownSubject;",
@@ -89,13 +89,13 @@
     "            }",
     "        }",
     "    });",
-    "}",
+    "};",
     "",
     "//Validate if the user has a valid cookie with the value as subject's username",
-    "function validateCookie(context, subject) {",
+    "var validateCookie = function(context, subject) {",
     "    var cookieVal = getCookieValue(context.request, cookieName, {'validateSignature': true});",
     "    return subject.identifier === cookieVal;",
-    "}",
+    "};",
     ""
   ]
 }

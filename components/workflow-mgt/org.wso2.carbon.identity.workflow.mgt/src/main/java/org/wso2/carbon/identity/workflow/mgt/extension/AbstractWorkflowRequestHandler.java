@@ -47,7 +47,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
      */
     private static ThreadLocal<Boolean> workFlowCompleted = new ThreadLocal<Boolean>();
 
-    private static Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);
+    private static final  Log log = LogFactory.getLog(AbstractWorkflowRequestHandler.class);
     public static void unsetWorkFlowCompleted() {
 
         AbstractWorkflowRequestHandler.workFlowCompleted.remove();

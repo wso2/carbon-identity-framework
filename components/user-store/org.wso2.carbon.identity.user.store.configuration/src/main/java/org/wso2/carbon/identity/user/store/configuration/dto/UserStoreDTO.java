@@ -17,12 +17,17 @@
 */
 package org.wso2.carbon.identity.user.store.configuration.dto;
 
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
+
 public class UserStoreDTO {
 
     private String domainId;
     private String className;
     private String description;
     private Boolean disabled;
+    @IgnoreNullElement
+    private String repositoryClass;
+
     private PropertyDTO[] properties;
 
     public String getClassName() {
@@ -63,5 +68,15 @@ public class UserStoreDTO {
 
     public void setProperties(PropertyDTO[] properties) {
         this.properties = properties;
+    }
+
+    public String getRepositoryClass() {
+
+        return repositoryClass;
+    }
+
+    public void setRepositoryClass(String repositoryClass) {
+
+        this.repositoryClass = repositoryClass;
     }
 }

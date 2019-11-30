@@ -35,7 +35,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
 @Test
-@WithH2Database(jndiName = "jdbc/WSO2CarbonDB",
+@WithH2Database(jndiName = "jdbc/WSO2IdentityDB",
                 files = { "dbScripts/claim_properties.sql" })
 @WithCarbonHome
 public class LocalClaimDAOTest {

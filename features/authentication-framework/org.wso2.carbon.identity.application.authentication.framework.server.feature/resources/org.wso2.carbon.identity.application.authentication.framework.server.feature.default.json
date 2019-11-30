@@ -1,0 +1,173 @@
+{
+  "identity.auth_framework.endpoint.tenant_list_enabled": false,
+  "identity.auth_framework.endpoint.mutual_ssl_manager_enabled": true,
+  "identity.auth_framework.endpoint.hostname_verification_enabled" : true,
+  "identity.auth_framework.endpoint.mutual_ssl_username" : "admin",
+  "identity.auth_framework.endpoint.client_keystore" : "$ref{keystore.tls.file_name}",
+  "identity.auth_framework.endpoint.carbon_security_keystore_password" : "$ref{keystore.tls.password}",
+  "identity.auth_framework.endpoint.client_truststore" : "$ref{truststore.file_name}",
+  "identity.auth_framework.endpoint.carbon_security_truststore_password" : "$ref{truststore.password}",
+  "identity.auth_framework.endpoint.username_header" : "UserName",
+  "identity.auth_framework.endpoint.key_manager_type" : "$ref{keystore.tls.type}",
+  "identity.auth_framework.endpoint.trust_manager_type" : "$ref{truststore.type}",
+  "identity.auth_framework.endpoint.tls_protocol" : "TLSv1.2",
+  "identity.auth_framework.endpoint.app_name": "dashboard",
+  "identity.auth_framework.endpoint.app_password": "dashboard",
+  "identity.auth_framework.identity_server_origin": "${carbon.protocol}://${carbon.host}:${carbon.management.port}",
+
+  "authentication.proxy_mode": "smart",
+  "authentication.endpoints.login_url": "/authenticationendpoint/login.do",
+  "authentication.endpoints.retry_url": "/authenticationendpoint/retry.do",
+  "authentication.endpoints.request_missing_claims_url": "/authenticationendpoint/claims.do",
+
+  "authentication.framework.extensions.request_coordinator": "org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator",
+  "authentication.framework.extensions.authentication_request_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultAuthenticationRequestHandler",
+  "authentication.framework.extensions.logout_request_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultLogoutRequestHandler",
+  "authentication.framework.extensions.step_based_sequence_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandler",
+  "authentication.framework.extensions.request_path_sequence_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler",
+  "authentication.framework.extensions.step_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.GraphBasedStepHandler",
+  "authentication.framework.extensions.home_realm_discoverer": "org.wso2.carbon.identity.application.authentication.framework.handler.hrd.impl.DefaultHomeRealmDiscoverer",
+  "authentication.framework.extensions.claim_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler",
+  "authentication.framework.extensions.provisioning_handler": "org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl.DefaultProvisioningHandler",
+
+  "authentication.analytics.publish_authentication_event_types": [
+    "AUTHENTICATION_STEP_SUCCESS",
+    "AUTHENTICATION_STEP_FAILURE",
+    "AUTHENTICATION_SUCCESS",
+    "AUTHENTICATION_FAILURE"
+  ],
+  "authentication.analytics.publish_session_event_types": [
+    "SESSION_CREATE",
+    "SESSION_UPDATE",
+    "SESSION_TERMINATE"
+  ],
+  "authentication.auditing.log_event_types": [
+    "AUTHENTICATION_STEP_SUCCESS",
+    "AUTHENTICATION_STEP_FAILURE",
+    "AUTHENTICATION_SUCCESS",
+    "AUTHENTICATION_FAILURE",
+    "SESSION_TERMINATE"
+  ],
+  "authentication.endpoint.query_params.filter_policy": "exclude",
+  "authentication.endpoint.query_params.filter_parameters": [
+    "username",
+    "password",
+    "SAMLRequest"
+  ],
+  "authentication.endpoint.redirect_params.filter_policy": "exclude",
+  "authentication.endpoint.redirect_params.remove_on_consume_from_api": true,
+  "authentication.endpoint.redirect_params.parameters": [
+    "loggedInUser"
+  ],
+
+  "authentication.authenticator.basic.name": "BasicAuthenticator",
+  "authentication.authenticator.basic.enable": true,
+  "authentication.authenticator.basic.parameters.AuthMechanism": "basic",
+
+  "authentication.authenticator.basic_request_path.name": "BasicAuthRequestPathAuthenticator",
+  "authentication.authenticator.basic_request_path.enable": true,
+  "authentication.authenticator.basic_request_path.parameters.AuthMechanism": "basic",
+
+  "authentication.authenticator.user_identifier.name": "IdentifierExecutor",
+  "authentication.authenticator.user_identifier.enable": true,
+  "authentication.authenticator.user_identifier.parameters.ValidateUsername": "false",
+
+  "authentication.authenticator.session_handler.name": "SessionExecutor",
+  "authentication.authenticator.session_handler.enable": true,
+  "authentication.authenticator.session_handler.parameters.MaxSessionCount": "1",
+
+  "authentication.authenticator.oauth_request_path.name": "OAuthRequestPathAuthenticator",
+  "authentication.authenticator.oauth_request_path.enable": true,
+
+  "authentication.authenticator.saml.name": "SAMLSSOAuthenticator",
+  "authentication.authenticator.saml.enable": true,
+
+  "authentication.authenticator.oidc.name": "OpenIDConnectAuthenticator",
+  "authentication.authenticator.oidc.enable": true,
+
+  "authentication.authenticator.google.name": "GoogleOIDCAuthenticator",
+  "authentication.authenticator.google.enable": true,
+  "authentication.authenticator.google.parameters.GoogleTokenEndpoint": "https://accounts.google.com/o/oauth2/token",
+  "authentication.authenticator.google.parameters.GoogleAuthzEndpoint": "https://accounts.google.com/o/oauth2/auth",
+  "authentication.authenticator.google.parameters.GoogleUserInfoEndpoint": "https://www.googleapis.com/oauth2/v3/userinfo",
+
+  "authentication.authenticator.microsoft_live.name": "MicrosoftWindowsLive",
+  "authentication.authenticator.microsoft_live.enable": true,
+  "authentication.authenticator.microsoft_live.parameters.AuthTokenEndpoint": "https://login.live.com/oauth20_token.srf",
+  "authentication.authenticator.microsoft_live.parameters.AuthnEndpoint": "https://login.live.com/oauth20_authorize.srf",
+  "authentication.authenticator.microsoft_live.parameters.UserInfoEndpoint": "https://apis.live.net/v5.0/me?access_token=",
+
+  "authentication.authenticator.facebook.name": "FacebookAuthenticator",
+  "authentication.authenticator.facebook.enable": true,
+  "authentication.authenticator.facebook.parameters.AuthTokenEndpoint": "https://graph.facebook.com/oauth/access_token",
+  "authentication.authenticator.facebook.parameters.AuthnEndpoint": "http://www.facebook.com/dialog/oauth",
+  "authentication.authenticator.facebook.parameters.UserInfoEndpoint": "https://graph.facebook.com/me",
+
+  "authentication.authenticator.yahoo.name": "YahooOAuth2Authenticator",
+  "authentication.authenticator.yahoo.enable": true,
+  "authentication.authenticator.yahoo.parameters.YahooTokenEndpoint": "https://api.login.yahoo.com/oauth2/get_token",
+  "authentication.authenticator.yahoo.parameters.YahooOAuthzEndpoint": "https://api.login.yahoo.com/oauth2/request_auth",
+  "authentication.authenticator.yahoo.parameters.YahooUserInfoEndpoint": "https://social.yahooapis.com/v1/user/",
+
+  "authentication.authenticator.fido.name": "FIDOAuthenticator",
+  "authentication.authenticator.fido.enable": true,
+  "authentication.authenticator.fido.parameters.FidoAuth": "/authenticationendpoint/fido-auth.jsp",
+  "authentication.authenticator.fido.parameters.Fido2Auth": "/authenticationendpoint/fido2-auth.jsp",
+
+  "authentication.authenticator.mobile_connect.name": "MobileConnectAuthenticator",
+  "authentication.authenticator.mobile_connect.enable": true,
+  "authentication.authenticator.mobile_connect.parameters.MCAuthenticationEndpointURL": "mobileconnectauthenticationendpoint/mobileconnect.jsp",
+  "authentication.authenticator.mobile_connect.parameters.MCDiscoveryAPIURL": "https://discover.mobileconnect.io/gsma/v2/discovery/",
+  "authentication.authenticator.mobile_connect.parameters.redirectToMultiOptionPageOnFailure": "false",
+
+  "authentication.authenticator.email_otp.name": "EmailOTP",
+  "authentication.authenticator.email_otp.enable": true,
+  "authentication.authenticator.email_otp.parameters.GmailClientId": "gmailClientIdValue",
+  "authentication.authenticator.email_otp.parameters.GmailClientSecret": "gmailClientSecretValue",
+  "authentication.authenticator.email_otp.parameters.SendgridAPIKey": "sendgridAPIKeyValue",
+  "authentication.authenticator.email_otp.parameters.GmailRefreshToken": "gmailRefreshTokenValue",
+  "authentication.authenticator.email_otp.parameters.GmailEmailEndpoint": "https://www.googleapis.com/gmail/v1/users/[userId]/messages/send",
+  "authentication.authenticator.email_otp.parameters.SendgridEmailEndpoint": "https://api.sendgrid.com/api/mail.send.json",
+  "authentication.authenticator.email_otp.parameters.accessTokenRequiredAPIs": "Gmail",
+  "authentication.authenticator.email_otp.parameters.apiKeyHeaderRequiredAPIs": "Sendgrid",
+  "authentication.authenticator.email_otp.parameters.SendgridFormData": "sendgridFormDataValue",
+  "authentication.authenticator.email_otp.parameters.SendgridURLParams": "sendgridURLParamsValue",
+  "authentication.authenticator.email_otp.parameters.GmailAuthTokenType": "Bearer",
+  "authentication.authenticator.email_otp.parameters.GmailTokenEndpoint": "https://www.googleapis.com/oauth2/v3/token",
+  "authentication.authenticator.email_otp.parameters.SendgridAuthTokenType": "Bearer",
+  "authentication.authenticator.email_otp.parameters.redirectToMultiOptionPageOnFailure": false,
+
+  "authentication.authenticator.sms_otp.name": "SMSOTP",
+  "authentication.authenticator.sms_otp.enable": true,
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointURL": "smsotpauthenticationendpoint/smsotp.jsp",
+  "authentication.authenticator.sms_otp.parameters.SMSOTPAuthenticationEndpointErrorPage": "smsotpauthenticationendpoint/smsotpError.jsp",
+  "authentication.authenticator.sms_otp.parameters.MobileNumberRegPage": "smsotpauthenticationendpoint/mobile.jsp",
+  "authentication.authenticator.sms_otp.parameters.RetryEnable": true,
+  "authentication.authenticator.sms_otp.parameters.ResendEnable": true,
+  "authentication.authenticator.sms_otp.parameters.BackupCode": true,
+  "authentication.authenticator.sms_otp.parameters.SMSOTPEnableByUserClaim": true,
+  "authentication.authenticator.sms_otp.parameters.SMSOTPMandatory": false,
+  "authentication.authenticator.sms_otp.parameters.CaptureAndUpdateMobileNumber": true,
+  "authentication.authenticator.sms_otp.parameters.SendOTPDirectlyToMobile": false,
+  "authentication.authenticator.sms_otp.parameters.redirectToMultiOptionPageOnFailure": false,
+
+  "authentication.authenticator.totp.name": "totp",
+  "authentication.authenticator.totp.enable": true,
+  "authentication.authenticator.totp.parameters.useEventHandlerBasedEmailSender": true,
+  "authentication.authenticator.totp.parameters.encodingMethod": "Base32",
+  "authentication.authenticator.totp.parameters.timeStepSize": "30",
+  "authentication.authenticator.totp.parameters.windowSize": "3",
+  "authentication.authenticator.totp.parameters.authenticationMandatory": true,
+  "authentication.authenticator.totp.parameters.enrolUserInAuthenticationFlow": true,
+  "authentication.authenticator.totp.parameters.usecase": "local",
+  "authentication.authenticator.totp.parameters.secondaryUserstore": "primary",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL": "totpauthenticationendpoint/totp.jsp",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "totpauthenticationendpoint/totpError.jsp",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "totpauthenticationendpoint/enableTOTP.jsp",
+  "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
+
+  "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
+  "authentication.authenticator.x509_certificate.enable": true,
+  "authentication.authenticator.x509_certificate.parameters.AuthenticationEndpoint": "https://localhost:8443/x509-certificate-servlet",
+  "authentication.authenticator.x509_certificate.parameters.username": "CN"
+}

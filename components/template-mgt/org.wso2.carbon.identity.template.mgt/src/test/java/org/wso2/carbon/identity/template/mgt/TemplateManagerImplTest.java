@@ -29,9 +29,9 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.base.CarbonBaseConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.internal.CarbonContextDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
-import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerComponentDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
 
@@ -50,10 +50,10 @@ import static org.wso2.carbon.base.MultitenantConstants.SUPER_TENANT_ID;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.closeH2Base;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.getConnection;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.initiateH2Base;
-import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockComponentDataHolder;
+import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.spyConnection;
 
-@PrepareForTest({TemplateManagerComponentDataHolder.class, PrivilegedCarbonContext.class, CarbonContextDataHolder.class})
+@PrepareForTest({IdentityDatabaseUtil.class, PrivilegedCarbonContext.class, CarbonContextDataHolder.class})
 public class TemplateManagerImplTest extends PowerMockTestCase {
 
     private static String sampleScript = "<!-- You can customize the user prompt template here... -->\n" +
@@ -212,7 +212,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testAddTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
@@ -230,7 +230,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testUpdateTemplate(String oldTemplateName, Object oldtemplate, Object newTemplate) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
@@ -252,7 +252,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testGetTemplateByName(Object templateObject, String templateName) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
@@ -280,7 +280,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
         Template testTemplate3 = new Template(SUPER_TENANT_ID, "Template3", "Description 3", "Script 3");
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
@@ -307,7 +307,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testDeleteTemplate(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
 
@@ -327,7 +327,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testValidatingInputs(Object template) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
@@ -343,7 +343,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testSetTenantIdIfNull() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
         Template template = new Template(null, "T1", "Description 1", sampleScript);
 
         try (Connection connection = getConnection()) {
@@ -361,7 +361,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testErrorCodes() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
         Template template = new Template(SUPER_TENANT_ID, null, "sample description", sampleScript);
         String errorCode = TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED.getCode();
 
@@ -384,7 +384,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
     public void testvalidatingPaginationParameters() throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
-        mockComponentDataHolder(dataSource);
+        mockDataSource(dataSource);
 
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);

@@ -44,7 +44,7 @@ import java.util.List;
 public class PAPPolicyFinder extends PolicyFinderModule {
 
     // the logger we'll use for all messages
-    private static Log log = LogFactory.getLog(PAPPolicyFinder.class);
+    private static final Log log = LogFactory.getLog(PAPPolicyFinder.class);
     // the list of policy URLs passed to the constructor
     private PAPPolicyStoreReader policyReader;
     // the map of policies

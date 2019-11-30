@@ -49,7 +49,7 @@ import java.util.UUID;
 // TODO: User Account Recovery Service 
 public class UserIdentityManagementService {
 
-    Log log = LogFactory.getLog(UserIdentityManagementService.class);
+    private static final Log log = LogFactory.getLog(UserIdentityManagementService.class);
 
     /**
      * Authenticates the user with the temporary credentials and returns user

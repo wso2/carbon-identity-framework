@@ -104,6 +104,7 @@ public abstract class FrameworkConstants {
     public static final String AUTH_ERROR_URI = "AuthErrorURI";
 
     public static final String AUTHENTICATION_CONTEXT_PROPERTIES = "AUTHENTICATION_CONTEXT_PROPERTIES";
+    public static final String SESSION_AUTH_HISTORY = "SESSION_AUTH_HISTORY";
 
     public static final String SERVICE_PROVIDER_SUBJECT_CLAIM_VALUE = "ServiceProviderSubjectClaimValue";
 
@@ -188,6 +189,9 @@ public abstract class FrameworkConstants {
         public static final String QNAME_AUTH_ENDPOINT_QUERY_PARAMS = "AuthenticationEndpointQueryParams";
         public static final String QNAME_AUTH_ENDPOINT_REDIRECT_PARAMS = "AuthenticationEndpointRedirectParams";
         public static final String QNAME_FILTERING_ENABLED_HOST_NAMES = "FilteringEnabledHostNames";
+        public static final String QNAME_ALLOW_AUTHENTICATOR_CUSTOM_CLAIM_MAPPINGS =
+                "AllowCustomClaimMappingsForAuthenticators";
+
         /**
          * Configuration name for the collection of urls for receiving tenant list
          */
@@ -208,6 +212,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_ROLE_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
         public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
+        public static final String QNAME_EXT_USER_STORE_ORDER_CALLBACK_HANDLER = "CallbackFactory";
         public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
 
         /**
@@ -260,6 +265,18 @@ public abstract class FrameworkConstants {
         public static final String USER_ATTRIBUTES = "userAttributes";
 
         private ResponseParams() {
+        }
+    }
+
+    public static class StandardInboundProtocols {
+
+        public static final String OAUTH2 = "oauth2";
+        public static final String WS_TRUST = "wstrust";
+        public static final String SAML2 = "samlsso";
+        public static final String PASSIVE_STS = "passivests";
+
+        private StandardInboundProtocols() {
+
         }
     }
 

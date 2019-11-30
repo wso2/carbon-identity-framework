@@ -59,7 +59,7 @@ public class DatabaseCertificateRetriever implements CertificateRetriever {
 
         Connection connection;
         try {
-             connection = IdentityDatabaseUtil.getDBConnection();
+            connection = IdentityDatabaseUtil.getDBConnection(false);
         } catch (IdentityRuntimeException e) {
             throw new CertificateRetrievingException("Couldn't get a database connection.", e);
         }

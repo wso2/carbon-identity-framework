@@ -32,7 +32,7 @@ import org.wso2.carbon.identity.mgt.stub.dto.ChallengeQuestionDTO;
 
 public class UserInformationRecoveryClient {
 
-    protected static Log log = LogFactory.getLog(UserInformationRecoveryClient.class);
+    protected static final Log log = LogFactory.getLog(UserInformationRecoveryClient.class);
     protected UserInformationRecoveryServiceStub stub;
 
     public UserInformationRecoveryClient(String url, ConfigurationContext configContext) throws AxisFault {

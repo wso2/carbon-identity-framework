@@ -23,11 +23,15 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Claim mapping configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "ClaimMapping")
 public class ClaimMapping implements Serializable {
@@ -56,6 +60,7 @@ public class ClaimMapping implements Serializable {
      */
     public static ClaimMapping build(String localClaimUri, String remoteClaimUri,
                                      String defaultValue, boolean requested) {
+
         ClaimMapping mapping = new ClaimMapping();
 
         Claim localClaim = new Claim();
@@ -83,6 +88,7 @@ public class ClaimMapping implements Serializable {
      */
     public static ClaimMapping build(String localClaimUri, String remoteClaimUri,
                                      String defaultValue, boolean requested, boolean isMandatory) {
+
         ClaimMapping mapping = new ClaimMapping();
 
         Claim localClaim = new Claim();
@@ -106,6 +112,7 @@ public class ClaimMapping implements Serializable {
      * <DefaultValue></DefaultValue> </ClaimMapping>
      */
     public static ClaimMapping build(OMElement claimMappingOM) {
+
         ClaimMapping claimMapping = new ClaimMapping();
 
         Iterator<?> iter = claimMappingOM.getChildElements();
@@ -149,6 +156,7 @@ public class ClaimMapping implements Serializable {
      * @return
      */
     public Claim getLocalClaim() {
+
         return localClaim;
     }
 
@@ -156,6 +164,7 @@ public class ClaimMapping implements Serializable {
      * @param localClaim
      */
     public void setLocalClaim(Claim localClaim) {
+
         this.localClaim = localClaim;
     }
 
@@ -163,6 +172,7 @@ public class ClaimMapping implements Serializable {
      * @return
      */
     public Claim getRemoteClaim() {
+
         return remoteClaim;
     }
 
@@ -170,12 +180,14 @@ public class ClaimMapping implements Serializable {
      * @param remoteClaim
      */
     public void setRemoteClaim(Claim remoteClaim) {
+
         this.remoteClaim = remoteClaim;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o){
+
+        if (this == o) {
             return true;
         }
         if (o == null || getClass() != o.getClass()) {
@@ -184,16 +196,19 @@ public class ClaimMapping implements Serializable {
 
         ClaimMapping that = (ClaimMapping) o;
 
-        if (remoteClaim != null ? !remoteClaim.equals(that.remoteClaim) : that.remoteClaim != null)
+        if (remoteClaim != null ? !remoteClaim.equals(that.remoteClaim) : that.remoteClaim != null) {
             return false;
-        if (localClaim != null ? !localClaim.equals(that.localClaim) : that.localClaim != null)
+        }
+        if (localClaim != null ? !localClaim.equals(that.localClaim) : that.localClaim != null) {
             return false;
+        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
+
         int result = localClaim != null ? localClaim.hashCode() : 0;
         result = 31 * result + (remoteClaim != null ? remoteClaim.hashCode() : 0);
         return result;
@@ -203,6 +218,7 @@ public class ClaimMapping implements Serializable {
      * @return
      */
     public String getDefaultValue() {
+
         return defaultValue;
     }
 
@@ -210,6 +226,7 @@ public class ClaimMapping implements Serializable {
      * @param defaultValue
      */
     public void setDefaultValue(String defaultValue) {
+
         this.defaultValue = defaultValue;
     }
 
@@ -217,6 +234,7 @@ public class ClaimMapping implements Serializable {
      * @return
      */
     public boolean isRequested() {
+
         return requested;
     }
 
@@ -224,13 +242,15 @@ public class ClaimMapping implements Serializable {
      * @param requested
      */
     public void setRequested(boolean requested) {
+
         this.requested = requested;
     }
 
     /**
      * @return
      */
-    public boolean isMandatory(){
+    public boolean isMandatory() {
+
         return isMandatory;
     }
 
@@ -238,6 +258,7 @@ public class ClaimMapping implements Serializable {
      * @param isMandatory
      */
     public void setMandatory(boolean isMandatory) {
+
         this.isMandatory = isMandatory;
     }
 }

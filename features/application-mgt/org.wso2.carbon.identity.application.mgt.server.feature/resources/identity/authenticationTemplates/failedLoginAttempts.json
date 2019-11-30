@@ -8,7 +8,7 @@
     "Modify the authentication option(s) from defaults as required."
   ],
   "parametersDescription": {
-    "invalidAttemptsToStepup" : "Minimum number of attempts made by a user to prompt 2FA.",
+    "invalidAttemptsToStepup" : "Minimum number of attempts made by a user to prompt 2FA."
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator",
@@ -37,11 +37,11 @@
     "",
     "var failedLoginAttemptsBeforeSuccessClaim= 'http://wso2.org/claims/identity/failedLoginAttemptsBeforeSuccess';",
 
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "  doLogin(context);",
-    "}",
+    "};",
     "",
-    "function doLogin(context) {",
+    "var doLogin = function(context) {",
     "   executeStep(1, {",
     "       onSuccess : function(context){",
     "           var user = context.steps[1].subject;",
@@ -54,14 +54,14 @@
     "           doLogin(context);",
     "       }",
     "   });",
-    "}",
+    "};",
     "",
-    "function isExceedInvalidAttempts(user) {",
+    "var isExceedInvalidAttempts  = function(user) {",
     "   if (user.localClaims[failedLoginAttemptsBeforeSuccessClaim] >= invalidAttemptsToStepup) {",
     "       return true;",
     "   } else {",
     "       return false;",
     "   }",
-    "}"
+    "};"
   ]
 }

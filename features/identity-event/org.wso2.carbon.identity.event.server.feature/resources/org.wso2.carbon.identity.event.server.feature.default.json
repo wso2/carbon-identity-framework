@@ -1,0 +1,123 @@
+{
+  "identity_mgt.events.thread_pool_size": "10",
+  "identity_mgt.events.schemes.'account.lock.handler'.module_index": "1",
+  "identity_mgt.events.schemes.'account.lock.handler'.subscriptions": [
+    "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.enable": false,
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'login.fail.timeout.ratio'": "2",
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'On.Failure.Max.Attempts'": "5",
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.Time": "5m",
+  "identity_mgt.events.schemes.'account.lock.handler'.properties.'notification.manageInternally'": true,
+  "identity_mgt.events.schemes.emailSend.module_index": "2",
+  "identity_mgt.events.schemes.emailSend.subscriptions": [
+    "TRIGGER_NOTIFICATION"
+  ],
+  "identity_mgt.events.schemes.accountConfirmationValidation.module_index": "3",
+  "identity_mgt.events.schemes.accountConfirmationValidation.subscriptions": [
+    "PRE_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.passwordHistory.module_index": "4",
+  "identity_mgt.events.schemes.passwordHistory.subscriptions": [
+    "PRE_UPDATE_CREDENTIAL",
+    "PRE_UPDATE_CREDENTIAL_BY_ADMIN",
+    "POST_UPDATE_CREDENTIAL",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN",
+    "POST_ADD_USER",
+    "POST_DELETE_USER"
+  ],
+  "identity_mgt.events.schemes.passwordHistory.properties.enable": false,
+  "identity_mgt.events.schemes.passwordHistory.properties.count": "5",
+  "identity_mgt.events.schemes.passwordHistory.properties.hashingAlgorithm": "SHA-256",
+  "identity_mgt.events.schemes.passwordHistory.properties.dataStore": "org.wso2.carbon.identity.password.history.store.Impl.DefaultPasswordHistoryDataStore",
+  "identity_mgt.events.schemes.'account.disable.handler'.module_index": "5",
+  "identity_mgt.events.schemes.'account.disable.handler'.subscriptions": [
+    "PRE_AUTHENTICATION",
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.'account.disable.handler'.properties.enable": false,
+  "identity_mgt.events.schemes.'account.disable.handler'.properties.'notification.manageInternally'": true,
+  "identity_mgt.events.schemes.userSelfRegistration.module_index": "6",
+  "identity_mgt.events.schemes.userSelfRegistration.subscriptions": [
+    "POST_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.userEmailVerification.module_index": "7",
+  "identity_mgt.events.schemes.userEmailVerification.subscriptions": [
+    "PRE_ADD_USER",
+    "POST_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.passwordPolicy.module_index": "8",
+  "identity_mgt.events.schemes.passwordPolicy.subscriptions": [
+    "PRE_UPDATE_CREDENTIAL",
+    "PRE_UPDATE_CREDENTIAL_BY_ADMIN",
+    "PRE_ADD_USER"
+  ],
+  "identity_mgt.events.schemes.passwordPolicy.properties.'min.length'": "6",
+  "identity_mgt.events.schemes.passwordPolicy.properties.'max.length'": "12",
+  "identity_mgt.events.schemes.passwordPolicy.properties.pattern": "^((?=.*\\\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%&*])).{0,100}$",
+  "identity_mgt.events.schemes.passwordPolicy.properties.errorMsg": "'Password pattern policy violated. Password should contain a digit[0-9], a lower case letter[a-z], an upper case letter[A-Z], one of !@#$%&* characters'",
+  "identity_mgt.events.schemes.passwordPolicy.properties.'class.PasswordLengthPolicy'": "org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordLengthPolicy",
+  "identity_mgt.events.schemes.passwordPolicy.properties.'class.PasswordNamePolicy'": "org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordNamePolicy",
+  "identity_mgt.events.schemes.passwordPolicy.properties.'class.PasswordPatternPolicy'": "org.wso2.carbon.identity.mgt.policy.password.DefaultPasswordPatternPolicy",
+  "identity_mgt.events.schemes.passwordPolicy.properties.enable": false,
+  "identity_mgt.events.schemes.adminForcedPasswordReset.module_index": "9",
+  "identity_mgt.events.schemes.adminForcedPasswordReset.subscriptions": [
+    "PRE_SET_USER_CLAIMS",
+    "PRE_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.'suspension.notification'.module_index": "10",
+  "identity_mgt.events.schemes.'suspension.notification'.subscriptions": [
+    "POST_AUTHENTICATION"
+  ],
+  "identity_mgt.events.schemes.'suspension.notification'.properties.enable": false,
+  "identity_mgt.events.schemes.'suspension.notification'.properties.'account.disable.delay'": "90d",
+  "identity_mgt.events.schemes.'suspension.notification'.properties.'trigger.time'": "20:00:00",
+  "identity_mgt.events.schemes.'suspension.notification'.properties.delays": "30,45,60,75",
+  "identity_mgt.events.schemes.handleRequestObject.module_index": "11",
+  "identity_mgt.events.schemes.handleRequestObject.subscriptions": [
+    "POST_REVOKE_ACESS_TOKEN",
+    "POST_REVOKE_CODE",
+    "POST_REVOKE_ACESS_TOKEN_BY_ID",
+    "POST_REVOKE_CODE_BY_ID",
+    "POST_REFRESH_TOKEN",
+    "POST_ISSUE_CODE",
+    "POST_ISSUE_ACCESS_TOKEN"
+  ],
+  "identity_mgt.events.schemes.'user.consent.delete'.module_index": "12",
+  "identity_mgt.events.schemes.'user.consent.delete'.subscriptions": [
+    "POST_DELETE_USER"
+  ],
+  "identity_mgt.events.schemes.'user.consent.delete'.properties.'receipt.search.limit'": "500",
+  "identity_mgt.events.schemes.authenticationAuditLogger.module_index": "13",
+  "identity_mgt.events.schemes.authenticationAuditLogger.subscriptions": "$ref{authentication.auditing.log_event_types}",
+  "identity_mgt.events.schemes.authenticationAuditLogger.properties.enable": true,
+  "identity_mgt.events.schemes.analyticsLoginDataPublisher.module_index": "14",
+  "identity_mgt.events.schemes.analyticsLoginDataPublisher.subscriptions": "$ref{authentication.analytics.publish_authentication_event_types}",
+  "identity_mgt.events.schemes.analyticsLoginDataPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.analyticsSessionDataPublisher.module_index": "15",
+  "identity_mgt.events.schemes.analyticsSessionDataPublisher.subscriptions": "$ref{authentication.analytics.publish_session_event_types}",
+  "identity_mgt.events.schemes.analyticsSessionDataPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.failLoginAttemptValidator.module_index": "16",
+  "identity_mgt.events.schemes.failLoginAttemptValidator.subscriptions": [
+    "AUTHENTICATION_STEP_FAILURE"
+  ],
+  "identity_mgt.events.schemes.failLoginAttemptValidator.properties.enable": true,
+  "identity_mgt.events.schemes.SAMLLogoutHandler.module_index": "17",
+  "identity_mgt.events.schemes.SAMLLogoutHandler.subscriptions": [
+    "SESSION_TERMINATE"
+  ],
+  "identity_mgt.events.schemes.SAMLLogoutHandler.properties.enable": true,
+  "identity_mgt.events.schemes.confirmationCodesInvalidate.module_index": "18",
+  "identity_mgt.events.schemes.confirmationCodesInvalidate.subscriptions": [
+    "POST_DELETE_USER"
+  ],
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.module_index": "19",
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.subscriptions": [
+    "SESSION_TERMINATE"
+  ],
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable": true
+}

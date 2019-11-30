@@ -26,7 +26,9 @@ import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -56,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -146,9 +149,14 @@ public class DefaultClaimHandler implements ClaimHandler {
 
         ApplicationAuthenticator authenticator = stepConfig.
                 getAuthenticatedAutenticator().getApplicationAuthenticator();
-        String idPStandardDialect = authenticator.getClaimDialectURI();
 
         boolean useDefaultIdpDialect = context.getExternalIdP().useDefaultLocalIdpDialect();
+
+        // When null the local claim dialect will be used.
+        String idPStandardDialect = null;
+        if (useDefaultIdpDialect || !useLocalClaimDialectForClaimMappings()) {
+            idPStandardDialect = authenticator.getClaimDialectURI();
+        }
 
         // set unfiltered remote claims as a property
         context.setProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES, remoteClaims);
@@ -444,6 +452,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig,
                 (org.wso2.carbon.user.core.UserStoreManager) userStore);
 
+        handleRoleClaim(context, allLocalClaims);
         context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
 
         // if standard dialect get all claim mappings from standard dialect to carbon dialect
@@ -518,7 +527,7 @@ public class DefaultClaimHandler implements ClaimHandler {
             String claimSeparator = realmConfiguration.getUserStoreProperty(IdentityCoreConstants
                     .MULTI_ATTRIBUTE_SEPARATOR);
             if (StringUtils.isNotBlank(claimSeparator)) {
-                spRequestedClaims.put(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
+                spRequestedClaims.putIfAbsent(IdentityCoreConstants.MULTI_ATTRIBUTE_SEPARATOR, claimSeparator);
             }
         }
     }
@@ -657,13 +666,20 @@ public class DefaultClaimHandler implements ClaimHandler {
     }
 
     private AuthenticatedUser getAuthenticatedUser(StepConfig stepConfig, AuthenticationContext context) {
+
         AuthenticatedUser authenticatedUser;
         if (stepConfig != null) {
-            //calling from StepBasedSequenceHandler
+            // Calling from StepBasedSequenceHandler.
             authenticatedUser = stepConfig.getAuthenticatedUser();
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticated user found from step config.");
+            }
         } else {
-            //calling from RequestPathBasedSequenceHandler
+            // Calling from RequestPathBasedSequenceHandler.
             authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticated user found from authentication context.");
+            }
         }
         return authenticatedUser;
     }
@@ -922,5 +938,43 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
         log.debug(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES +
                   " map property set to " + sb.toString());
+    }
+
+    /**
+     * Checks if a configuration is available indicating to use the local claim
+     * dialect instead of the federated authenticator's dialect when a custom dialect
+     * claim mapping is used.
+     *
+     * @return True if local claim dialect should be used.
+     */
+    private boolean useLocalClaimDialectForClaimMappings() {
+
+        return FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
+    }
+
+    /**
+     * Specially handle role claim values.
+     *
+     * @param context Authentication context.
+     * @param mappedAttrs Mapped claim attributes.
+     */
+    private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
+
+        if (mappedAttrs.containsKey(FrameworkConstants.LOCAL_ROLE_CLAIM_URI)) {
+            String[] groups = mappedAttrs.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI).split(Pattern
+                    .quote(FrameworkUtils.getMultiAttributeSeparator()));
+            SequenceConfig sequenceConfig = context.getSequenceConfig();
+            // Execute only if it has allowed removing userstore domain from the sp level configurations.
+            if (isRemoveUserDomainInRole(sequenceConfig)) {
+                mappedAttrs.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, FrameworkUtils
+                        .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
+            }
+        }
+    }
+
+    private static boolean isRemoveUserDomainInRole(SequenceConfig sequenceConfig) {
+
+        return !sequenceConfig.getApplicationConfig().getServiceProvider().getLocalAndOutBoundAuthenticationConfig().
+                isUseUserstoreDomainInRoles();
     }
 }

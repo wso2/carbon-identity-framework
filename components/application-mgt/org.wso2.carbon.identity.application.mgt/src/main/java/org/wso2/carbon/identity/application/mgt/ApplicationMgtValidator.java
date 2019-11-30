@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.InboundProvisioningConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
@@ -39,7 +38,7 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -65,8 +64,8 @@ public class ApplicationMgtValidator {
     private static final String PROVISIONING_CONNECTOR_NOT_CONFIGURED = "No Provisioning connector configured for %s.";
     private static final String FEDERATED_IDP_NOT_AVAILABLE =
             "Federated Identity Provider %s is not available in the server.";
-    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server.";
-    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server.";
+    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server for tenantDomain:%s.";
+    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server for tenantDomain:%s.";
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
@@ -85,7 +84,8 @@ public class ApplicationMgtValidator {
         validateRoleConfigs(validationMsg, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
 
         if (!validationMsg.isEmpty()) {
-            throw new IdentityApplicationManagementValidationException(validationMsg.toArray(new String[0]));
+            String code = IdentityApplicationConstants.Error.INVALID_REQUEST.getCode();
+            throw new IdentityApplicationManagementValidationException(code, validationMsg.toArray(new String[0]));
         }
     }
 
@@ -122,7 +122,7 @@ public class ApplicationMgtValidator {
                 validateFederatedIdp(idp, isAuthenticatorIncluded, validationMsg, tenantDomain);
             }
             for (LocalAuthenticatorConfig localAuth : authenticationStep.getLocalAuthenticatorConfigs()) {
-                if (!allLocalAuthenticators.keySet().contains(localAuth.getName())) {
+                if (!allLocalAuthenticators.containsKey(localAuth.getName())) {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, localAuth.getName()));
                 } else if (!isAuthenticatorIncluded.get()) {
                     Property[] properties = allLocalAuthenticators.get(localAuth.getName());
@@ -130,7 +130,7 @@ public class ApplicationMgtValidator {
                         isAuthenticatorIncluded.set(true);
                     } else {
                         for (Property property : properties) {
-                            if (!(IS_HANDLER.equals(property.getName()) && Boolean.valueOf(property.getValue()))) {
+                            if (!(IS_HANDLER.equals(property.getName()) && Boolean.parseBoolean(property.getValue()))) {
                                 isAuthenticatorIncluded.set(true);
                             }
                         }
@@ -165,7 +165,7 @@ public class ApplicationMgtValidator {
 
         if (requestPathAuthenticatorConfigs != null) {
             for (RequestPathAuthenticatorConfig config : requestPathAuthenticatorConfigs) {
-                if (!allRequestPathAuthenticators.keySet().contains(config.getName())) {
+                if (!allRequestPathAuthenticators.containsKey(config.getName())) {
                     validationMsg.add(String.format(AUTHENTICATOR_NOT_AVAILABLE, config.getName()));
                 }
             }

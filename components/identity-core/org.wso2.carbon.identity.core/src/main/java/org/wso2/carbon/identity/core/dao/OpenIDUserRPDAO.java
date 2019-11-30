@@ -87,9 +87,10 @@ public class OpenIDUserRPDAO {
                 prepStmt.setString(7, rpdo.getDefaultProfileName());
 
                 prepStmt.execute();
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Failed to store RP:  " + rpdo.getRpUrl() + " for user: " +
                     rpdo.getUserName() + " Error while accessing the database", e);
         } finally {
@@ -122,7 +123,7 @@ public class OpenIDUserRPDAO {
                 prepStmt.setInt(6, rpdo.getVisitCount() + 1);
                 prepStmt.setString(7, rpdo.getDefaultProfileName());
                 prepStmt.execute();
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
             } else {
                 // we should create the entry
                 if(log.isDebugEnabled()) {
@@ -131,6 +132,7 @@ public class OpenIDUserRPDAO {
                 }
             }
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Failed to update RP:  " + rpdo.getRpUrl() + " for user: " +
                     rpdo.getUserName() + " Error while accessing the database", e);
         } finally {
@@ -157,10 +159,11 @@ public class OpenIDUserRPDAO {
                 prepStmt.setInt(2, tenantId);
                 prepStmt.setString(3, opdo.getRpUrl());
                 prepStmt.execute();
-                connection.commit();
+                IdentityDatabaseUtil.commitTransaction(connection);
             }
 
         } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
             log.error("Failed to remove RP: " + opdo.getRpUrl() + " of user: " + opdo.getUserName(), e);
         } finally {
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -178,7 +181,7 @@ public class OpenIDUserRPDAO {
      */
     public OpenIDUserRPDO getOpenIDUserRP(String userName, String rpUrl, int tenantId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         OpenIDUserRPDO rpdo = new OpenIDUserRPDO();
         rpdo.setUserName(userName);
@@ -191,7 +194,6 @@ public class OpenIDUserRPDAO {
                 prepStmt.setInt(2, tenantId);
                 prepStmt.setString(3, rpUrl);
                 OpenIDUserRPDO openIDUserRPDO = buildUserRPDO(prepStmt.executeQuery(), userName);
-                connection.commit();
                 return openIDUserRPDO;
             } else {
                 if(log.isDebugEnabled()) {
@@ -213,7 +215,7 @@ public class OpenIDUserRPDAO {
      * @return
      */
     public OpenIDUserRPDO[] getAllOpenIDUserRP() {
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         OpenIDUserRPDO[] rpDOs = null;
@@ -236,7 +238,6 @@ public class OpenIDUserRPDAO {
 
             rpDOs = new OpenIDUserRPDO[rpdos.size()];
             rpDOs = rpdos.toArray(rpDOs);
-            connection.commit();
         } catch (SQLException e) {
             log.error("Error while accessing the database to load RPs.", e);
         } finally {
@@ -256,7 +257,7 @@ public class OpenIDUserRPDAO {
      */
     public OpenIDUserRPDO[] getOpenIDUserRPs(String userName, int tenantId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
         ResultSet results = null;
         OpenIDUserRPDO[] rpDOs = null;
@@ -281,7 +282,6 @@ public class OpenIDUserRPDAO {
 
             rpDOs = new OpenIDUserRPDO[rpdos.size()];
             rpDOs = rpdos.toArray(rpDOs);
-
         } catch (SQLException e) {
             log.error("Error while accessing the database to load RPs", e);
         } finally {
@@ -302,7 +302,7 @@ public class OpenIDUserRPDAO {
      */
     public String getOpenIDDefaultUserProfile(String userName, String rpUrl, int tenantId) {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection();
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement prepStmt = null;
 
         OpenIDUserRPDO rpdo = new OpenIDUserRPDO();

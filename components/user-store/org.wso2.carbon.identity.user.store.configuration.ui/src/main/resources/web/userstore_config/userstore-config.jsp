@@ -21,17 +21,18 @@
 <%@page import="org.wso2.carbon.CarbonConstants"%>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.api.Properties" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.api.Property" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.PropertyDTO" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.UserStoreUIConstants" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.client.UserStoreConfigAdminServiceClient" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.utils.UserStoreUIUtils" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
-<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
-<%@ page import="java.util.HashMap" %>
-<%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.PropertyDTO" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar" prefix="carbon" %>
@@ -60,6 +61,7 @@
     private Boolean isEditing;
     private int isBoolean;
     private String existingDomains;
+    private String repository;
     private String messageID;
     private int i;
 
@@ -85,7 +87,9 @@
 %><%
     domain = "0";
     className = "0";
-
+    if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+        repository = request.getParameter("repositoryName");
+    }
     if (request.getParameter("domain") != null) {
         domain = request.getParameter("domain");
     }
@@ -97,6 +101,7 @@
     String description = null;
     int rank;
     String[] classApplies = new String[0];
+    String[] repositoryClasses = new String[0];
 
     if ("0".equals(className)) {
         selectedClassApplied = request.getParameter("classApplied");       //add
@@ -119,6 +124,9 @@
             (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
     UserStoreConfigAdminServiceClient userStoreConfigAdminServiceClient = new UserStoreConfigAdminServiceClient(cookie, backendServerURL, configContext);
     classApplies = userStoreConfigAdminServiceClient.getAvailableUserStoreClasses();
+    if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+        repositoryClasses = userStoreConfigAdminServiceClient.getRepositoryClasses();
+    }
     UserStoreDTO[] userStoreDTOs;
     Map<String, Map<String, String>> userStoreManagers = new HashMap<String, Map<String, String>>();
     userStoreDTOs = userStoreConfigAdminServiceClient.getActiveDomains();
@@ -408,6 +416,39 @@
                 </div>
             </td>
         </tr>
+        <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
+        <tr>
+            <td class="leftCol-small">
+                <fmt:message key="repository.class"/>
+            </td>
+            <td>
+                <%
+                    if (isEditing == false) {%>
+                <select id="repositoryName" name="repositoryName">
+                    <% for (String repositoryClass : repositoryClasses) {
+                    %>
+                    <option value="<%=Encode.forHtmlAttribute(repositoryClass)%>"
+                            selected="selected"><%=Encode.forHtmlContent(repositoryClass)%>
+                    </option>
+                    <%
+                        }%>
+                </select>
+                <% } else {
+                %>
+                    <select disabled="disabled" id="repositoryName1" name="repositoryName1">
+                        <option value="<%=Encode.forHtmlAttribute(repository)%>"
+                                selected="selected"><%=Encode.forHtmlContent(repository)%>
+                        </option>
+                    </select>
+            <td><input type="hidden" name="repositoryName" id="repositoryName"
+                       value="<%=Encode.forHtmlContent(repository)%>"/></td>
+            <%}%>
+            <div class="sectionHelp">
+                <fmt:message key="user.store.manager.repository"/>.
+            </div>
+            </td>
+        </tr>
+        <% } %>
         <tr>
             <td class="leftCol-med"><fmt:message key="domain.name"/><span class="required">*</span></td>
             <%

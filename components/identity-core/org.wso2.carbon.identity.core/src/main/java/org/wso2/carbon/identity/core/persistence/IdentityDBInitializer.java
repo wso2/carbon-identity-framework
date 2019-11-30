@@ -142,6 +142,13 @@ public class IdentityDBInitializer {
                 conn.commit();
                 log.debug("Identity tables are created successfully.");
             } catch (SQLException e) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e1) {
+                    throw new IdentityRuntimeException(
+                            "SQL transaction rollback connection error occurred while create database tables"
+                                    + " for Identity meta-data store.", e1);
+                }
                 String msg = "Failed to create database tables for Identity meta-data store. " + e.getMessage();
                 throw IdentityRuntimeException.error(msg, e);
             } finally {
