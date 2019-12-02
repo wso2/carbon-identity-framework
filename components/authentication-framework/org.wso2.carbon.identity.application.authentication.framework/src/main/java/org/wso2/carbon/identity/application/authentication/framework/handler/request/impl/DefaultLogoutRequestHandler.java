@@ -89,7 +89,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             if (sessionContext != null) {
                 Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
                 AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-                if (authenticatedUserObj != null) {
+                if (authenticatedUserObj instanceof AuthenticatedUser) {
                     authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
                 }
                 FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,

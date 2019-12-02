@@ -33,8 +33,8 @@ public class ReCaptchaVerificationResponse {
     /**
      * Return object of this class after set the success state.
      *
-     * @param success
-     * @return
+     * @param success success state.
+     * @return ReCaptchaVerificationResponse.
      */
     public ReCaptchaVerificationResponse success(boolean success) {
 
@@ -85,6 +85,9 @@ public class ReCaptchaVerificationResponse {
     /**
      * Convert the given object to string with each line indented by 4 spaces
      * (except the first line).
+     *
+     * @param o object to convert.
+     * @return String value of converted object.
      */
     private String toIndentedString(Object o) {
 
