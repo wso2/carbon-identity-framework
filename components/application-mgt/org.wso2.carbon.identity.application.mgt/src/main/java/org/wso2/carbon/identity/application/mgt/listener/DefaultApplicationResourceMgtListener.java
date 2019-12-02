@@ -15,7 +15,6 @@
  */
 package org.wso2.carbon.identity.application.mgt.listener;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -53,9 +52,13 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     }
 
     @Override
-    public boolean doPostCreateApplication(ServiceProvider application,
+    public boolean doPostCreateApplication(String resourceId,
+                                           ServiceProvider application,
                                            String tenantDomain,
                                            String userPerformingAction) throws IdentityApplicationManagementException {
+
+        int applicationId = getApplicationId(resourceId, tenantDomain);
+        application.setApplicationID(applicationId);
 
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()

@@ -46,6 +46,8 @@ public class ServiceProvider implements Serializable {
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
+    private static final String ACCESS_URL = "AccessUrl";
+
     @XmlTransient
     private int applicationID = 0;
 
@@ -101,8 +103,8 @@ public class ServiceProvider implements Serializable {
     private String imageUrl;
 
     @IgnoreNullElement
-    @XmlElement(name = "LoginUrl")
-    private String loginUrl;
+    @XmlElement(name = ACCESS_URL)
+    private String accessUrl;
 
     @XmlElement(name = "IsDiscoverable")
     private boolean isDiscoverable;
@@ -148,7 +150,7 @@ public class ServiceProvider implements Serializable {
                 serviceProvider.setDescription(element.getText());
             } else if ("ImageUrl".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
-            } else if ("LoginUrl".equals(elementName)) {
+            } else if (ACCESS_URL.equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
             } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
@@ -431,14 +433,14 @@ public class ServiceProvider implements Serializable {
         this.imageUrl = imageUrl;
     }
 
-    public String getLoginUrl() {
+    public String getAccessUrl() {
 
-        return loginUrl;
+        return accessUrl;
     }
 
-    public void setLoginUrl(String loginUrl) {
+    public void setAccessUrl(String accessUrl) {
 
-        this.loginUrl = loginUrl;
+        this.accessUrl = accessUrl;
     }
 
     public String getJwksUri() {

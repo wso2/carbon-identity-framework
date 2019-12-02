@@ -505,6 +505,7 @@
             </xs:complexType>
             <xs:complexType name="ServiceProvider">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="accessUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationID" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
@@ -517,7 +518,6 @@
                     <xs:element minOccurs="0" name="inboundProvisioningConfig" nillable="true" type="ax2169:InboundProvisioningConfig"/>
                     <xs:element minOccurs="0" name="jwksUri" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="localAndOutBoundAuthenticationConfig" nillable="true" type="ax2169:LocalAndOutboundAuthenticationConfig"/>
-                    <xs:element minOccurs="0" name="loginUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="outboundProvisioningConfig" nillable="true" type="ax2169:OutboundProvisioningConfig"/>
                     <xs:element minOccurs="0" name="owner" nillable="true" type="ax2169:User"/>
                     <xs:element minOccurs="0" name="permissionAndRoleConfig" nillable="true" type="ax2169:PermissionsAndRoleConfig"/>
@@ -611,13 +611,13 @@
             </xs:complexType>
             <xs:complexType name="ApplicationBasicInfo">
                 <xs:sequence>
+                    <xs:element minOccurs="0" name="accessUrl" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="appOwner" nillable="true" type="ax2169:User"/>
                     <xs:element minOccurs="0" name="applicationId" type="xs:int"/>
                     <xs:element minOccurs="0" name="applicationName" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="applicationResourceId" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="description" nillable="true" type="xs:string"/>
                     <xs:element minOccurs="0" name="imageUrl" nillable="true" type="xs:string"/>
-                    <xs:element minOccurs="0" name="loginUrl" nillable="true" type="xs:string"/>
                 </xs:sequence>
             </xs:complexType>
             <xs:complexType name="SpFileContent">

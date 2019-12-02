@@ -99,7 +99,8 @@ public interface ApplicationResourceManagementListener {
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostCreateApplication(ServiceProvider serviceProvider,
+    boolean doPostCreateApplication(String resourceId,
+                                    ServiceProvider serviceProvider,
                                     String tenantDomain,
                                     String userPerformingAction) throws IdentityApplicationManagementException;
 
