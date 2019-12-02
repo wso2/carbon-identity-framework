@@ -1006,9 +1006,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
     private void initializeTenantRegistry(AuthenticatedUser authenticatedUser) throws IdentityException {
 
         IdentityTenantUtil.initializeRegistry(
-                IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain()),
-                authenticatedUser.getTenantDomain()
-        );
+                IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain()));
     }
 
     private boolean hasUserSingleReceipt(List<ReceiptListResponse> receiptListResponses) {

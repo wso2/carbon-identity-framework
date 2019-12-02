@@ -330,7 +330,7 @@ public class IdentityProviderManager implements IdpManager {
         }
         X509Certificate cert = null;
         try {
-            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+            IdentityTenantUtil.initializeRegistry(tenantId);
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
             carbonContext.setTenantDomain(tenantDomain, true);

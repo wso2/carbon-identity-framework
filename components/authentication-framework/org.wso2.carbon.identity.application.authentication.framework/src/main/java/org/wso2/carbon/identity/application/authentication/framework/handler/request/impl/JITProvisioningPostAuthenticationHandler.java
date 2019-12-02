@@ -194,7 +194,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     }
                     callDefaultProvisioningHandler(username, context, externalIdPConfig, combinedLocalClaims,
                             stepConfig);
-                   handleConstents(request, stepConfig, context.getTenantDomain());
+                   handleConsents(request, stepConfig, context.getTenantDomain());
                 }
             }
         }
@@ -698,7 +698,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param tenantDomain Specific tenant domain.
      * @throws PostAuthenticationFailedException Post Authentication failed exception.
      */
-    private void handleConstents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
+    private void handleConsents(HttpServletRequest request, StepConfig stepConfig, String tenantDomain)
             throws PostAuthenticationFailedException {
 
         String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
