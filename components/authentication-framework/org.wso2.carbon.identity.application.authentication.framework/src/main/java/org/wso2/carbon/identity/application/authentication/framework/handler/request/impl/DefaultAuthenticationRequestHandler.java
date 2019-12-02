@@ -71,6 +71,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
+        SAML2SSO.FED_AUTH_NAME;
+
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
@@ -469,6 +472,22 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 } catch (UserSessionException e) {
                     throw new FrameworkException("Error while storing session details of the authenticated user to " +
                             "the database", e);
+                }
+            }
+            // Check whether the authentication flow includes a SAML federated IdP and
+            // store the saml index with the session context key for the single logout.
+            if (context.getAuthenticationStepHistory() != null) {
+                for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
+                    if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName()) &&
+                            StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
+                            StringUtils.isNotBlank(authHistory.getIdpName())) {
+                        try {
+                            UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                        } catch (UserSessionException e) {
+                            throw new FrameworkException("Error while storing federated authentication session details "
+                                    + "of the authenticated user to the database", e);
+                        }
+                    }
                 }
             }
         }
