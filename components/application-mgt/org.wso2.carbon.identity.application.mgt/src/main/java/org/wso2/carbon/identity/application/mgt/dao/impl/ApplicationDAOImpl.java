@@ -58,6 +58,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.application.mgt.AbstractInboundAuthenticatorConfig;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
@@ -232,6 +233,7 @@ import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPL
 public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements PaginatableFilterableApplicationDAO {
 
     private static final String SP_PROPERTY_NAME_CERTIFICATE = "CERTIFICATE";
+    private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
 
@@ -367,7 +369,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             return result.getApplicationId();
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            if (e instanceof SQLIntegrityConstraintViolationException) {
+            if (isApplicationConflict(e)) {
                 throw new IdentityApplicationManagementClientException(APPLICATION_ALREADY_EXISTS.getCode(),
                         "Application already exists with name: " + application.getApplicationName()
                                 + " in tenantDomain: " + tenantDomain);
@@ -376,6 +378,18 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    private boolean isApplicationConflict(Exception e) {
+
+        if (!(e instanceof SQLException)) {
+            return false;
+        }
+
+        // We Detect constraint violations in JDBC drivers which don't throw SQLIntegrityConstraintViolationException
+        // by looking at the error message.
+        return e instanceof SQLIntegrityConstraintViolationException ||
+                StringUtils.containsIgnoreCase(e.getMessage(), APPLICATION_NAME_CONSTRAINT);
     }
 
     private ApplicationCreateResult persistBasicApplicationInformation(Connection connection,
@@ -4479,7 +4493,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.error("Error while creating the application with name: " + application.getApplicationName()
                     + " in tenantDomain: " + tenantDomain + ". Rolling back created application information.");
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            if (e instanceof SQLIntegrityConstraintViolationException) {
+            if (isApplicationConflict(e)) {
                 throw new IdentityApplicationManagementClientException(APPLICATION_ALREADY_EXISTS.getCode(),
                         "Application already exists with name: " + application.getApplicationName()
                                 + " in tenantDomain: " + tenantDomain);
@@ -4508,6 +4522,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
     }
 
+    @Override
     public ServiceProvider getApplicationByResourceId(String resourceId,
                                                       String tenantDomain) throws IdentityApplicationManagementException {
 
@@ -4521,7 +4536,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             }
             return application;
         } catch (IdentityApplicationManagementException ex) {
-            // TODO: send error code
             throw new IdentityApplicationManagementServerException("Error while retrieving application with " +
                     "resourceId: " + resourceId + " in tenantDomain: " + tenantDomain, ex);
         }
