@@ -218,6 +218,17 @@ public interface ConfigurationManager {
             throws ConfigurationManagementException;
 
     /**
+     * This API is used to get all files for the given tenant id and given {@link ResourceType}.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param tenantId         tenant id.
+     * @return 200 ok. Returns a list of {@link ResourceFile} for the {@link ResourceType} and tenant id.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    List<ResourceFile> getFiles(String resourceTypeName, int tenantId)
+            throws ConfigurationManagementException;
+
+    /**
      * This API is used to get all files for the given {@link ResourceType}
      *
      * @param resourceTypeName Name of the {@link ResourceType}.

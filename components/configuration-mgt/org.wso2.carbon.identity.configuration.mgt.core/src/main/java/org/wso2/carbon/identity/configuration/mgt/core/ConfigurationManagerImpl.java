@@ -47,6 +47,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_DAO;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES_BY_TENANT_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DELETE_REQUEST_REQUIRED;
@@ -774,6 +775,26 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         if (log.isDebugEnabled()) {
             log.debug("Files for the resource: " + resourceName + " retrieved successfully.");
+        }
+        return resourceFiles;
+    }
+
+    @Override
+    public List<ResourceFile> getFiles(String resourceTypeName, int tenantId) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+        validateRequest(resourceTypeName);
+        List<ResourceFile> resourceFiles = getConfigurationDAO().getFiles(resourceTypeName, tenantId);
+        if (CollectionUtils.isEmpty(resourceFiles)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resource Type : " + resourceTypeName + " does not have any files for tenant with id: "
+                        + tenantId);
+            }
+            throw handleClientException(ERROR_CODE_GET_FILES_BY_TENANT_ID, resourceTypeName, String.valueOf(tenantId));
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Files for the resource type: " + resourceTypeName + " retrieved successfully, For the tenant "
+                    + "id: " + tenantId);
         }
         return resourceFiles;
     }

@@ -223,6 +223,15 @@ public interface ConfigurationDAO {
     List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException;
 
     /**
+     * Get files for the {@link ResourceType} and given tenant id.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}
+     * @param tenantId         Tenant id.
+     * @return A list of {@link ResourceFile} for the given resource type and tenant id.
+     */
+    List<ResourceFile> getFiles(String resourceTypeName, int tenantId) throws ConfigurationManagementException;
+
+    /**
      * Get files for the {@link ResourceType}.
      *
      * @param resourceTypeId Id of the {@link ResourceType}.
