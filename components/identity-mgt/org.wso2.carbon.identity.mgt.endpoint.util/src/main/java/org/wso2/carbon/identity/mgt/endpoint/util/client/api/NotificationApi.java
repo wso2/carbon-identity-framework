@@ -86,15 +86,15 @@ public class NotificationApi {
     }
 
     /**
-     * This API is used to send password recovery confirmation over defined channels like email/sms
+     * This API is used to send password recovery confirmation over defined channels like email/sms.
      *
      * @param recoveryInitiatingRequest It can be sent optional property parameters over email based on email template.
      *                                  (required)
-     * @param type                      Notification Type (optional)
+     * @param type                      Notification Type. (optional)
      * @param notify                    If notify&#x3D;true then, notifications will be internally managed. (optional)
      * @param headers                   Adding headers for request recover password api. (optional)
      * @return String
-     * @throws ApiException if fails to make API call
+     * @throws ApiException if fails to make API call.
      */
     public String recoverPasswordPost(RecoveryInitiatingRequest recoveryInitiatingRequest, String type, Boolean notify,
                                       Map<String, String> headers) throws ApiException {

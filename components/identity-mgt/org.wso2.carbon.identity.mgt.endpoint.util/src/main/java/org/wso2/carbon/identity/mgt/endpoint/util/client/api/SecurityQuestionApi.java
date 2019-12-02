@@ -83,7 +83,7 @@ public class SecurityQuestionApi {
      * This API is used to initiate password recovery using user challenge questions. Response will be a
      * random challenge question with a confirmation key.
      *
-     * @param username     username of the user (required)
+     * @param username     username of the user (required).
      * @param realm        &#x60;User Store Domain&#x60; which user belongs. If not specified,
      *                     it will be &#x60;PRIMARY&#x60; domain.  (optional)
      * @param tenantDomain &#x60;Tenant Domain&#x60; which user belongs. If not specified,
