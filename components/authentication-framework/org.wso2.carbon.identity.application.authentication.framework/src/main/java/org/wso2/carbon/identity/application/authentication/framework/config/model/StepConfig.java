@@ -50,6 +50,31 @@ public class StepConfig implements Serializable {
     }
 
     /**
+     * Deep clone of StepConfig inorder to keep backup.
+     *
+     * @param stepConfig    stepConfig object to be cloned
+     */
+    public StepConfig(StepConfig stepConfig) {
+
+        this.order = stepConfig.getOrder();
+        this.loginPage = stepConfig.getLoginPage();
+        this.authenticatedUser = stepConfig.getAuthenticatedUser();
+        this.subjectIdentifierStep = stepConfig.isSubjectIdentifierStep();
+        this.subjectAttributeStep = stepConfig.isSubjectAttributeStep();
+        this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
+        this.authenticatedAutenticator = stepConfig.getAuthenticatedAutenticator() != null ?
+                new AuthenticatorConfig(stepConfig.getAuthenticatedAutenticator()) : null;
+        this.authenticatorList = new ArrayList<>();
+        for (AuthenticatorConfig authenticator : stepConfig.getAuthenticatorList()) {
+            this.authenticatorList.add(new AuthenticatorConfig(authenticator));
+        }
+        this.authenticatorMappings = new ArrayList<>(stepConfig.getAuthenticatorMappings());
+        this.completed = stepConfig.isCompleted();
+        this.multiOption = stepConfig.isMultiOption();
+        this.retrying = stepConfig.isRetrying();
+    }
+
+    /**
      * @return
      */
     public String getLoginPage() {
@@ -201,32 +226,6 @@ public class StepConfig implements Serializable {
     }
 
     /**
-     * Deep clone of StepConfig inorder to keep backup.
-     *
-     * @return cloned StepConfig.
-     */
-    public StepConfig deepClone() {
-        StepConfig clone = new StepConfig();
-        clone.order = order;
-        clone.loginPage = loginPage;
-        clone.authenticatedUser = authenticatedUser;
-        clone.subjectIdentifierStep = subjectIdentifierStep;
-        clone.subjectAttributeStep = subjectAttributeStep;
-        clone.authenticatedIdP = authenticatedIdP;
-        clone.authenticatedAutenticator =
-                authenticatedAutenticator != null ? authenticatedAutenticator.deepClone() : authenticatedAutenticator;
-        clone.authenticatorList = new ArrayList<>();
-        for (AuthenticatorConfig authenticator : authenticatorList) {
-            clone.authenticatorList.add(authenticator.deepClone());
-        }
-        clone.authenticatorMappings = new ArrayList<>(authenticatorMappings);
-        clone.completed = completed;
-        clone.multiOption = multiOption;
-        clone.retrying = retrying;
-        return clone;
-    }
-
-    /**
      * Apply any state changes to the newly clone stepConfig object from backup, by comparing with the StepConfig which
      * obtain from SequenceConfig stepMap.
      *
@@ -235,11 +234,11 @@ public class StepConfig implements Serializable {
     public void applyStateChangesToNewObjectFromContextStepMap(StepConfig stepConfigFromContext) {
 
         if (stepConfigFromContext != null) {
-            this.completed = stepConfigFromContext.completed;
-            this.multiOption = stepConfigFromContext.multiOption;
-            this.retrying = stepConfigFromContext.retrying;
-            this.subjectIdentifierStep = stepConfigFromContext.subjectIdentifierStep;
-            this.subjectAttributeStep = stepConfigFromContext.subjectAttributeStep;
+            this.completed = stepConfigFromContext.isCompleted();
+            this.multiOption = stepConfigFromContext.isMultiOption();
+            this.retrying = stepConfigFromContext.isRetrying();
+            this.subjectIdentifierStep = stepConfigFromContext.isSubjectIdentifierStep();
+            this.subjectAttributeStep = stepConfigFromContext.isSubjectAttributeStep();
         }
     }
 }

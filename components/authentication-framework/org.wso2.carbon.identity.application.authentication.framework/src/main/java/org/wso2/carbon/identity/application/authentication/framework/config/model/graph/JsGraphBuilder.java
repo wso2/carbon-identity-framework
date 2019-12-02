@@ -492,7 +492,7 @@ public class JsGraphBuilder {
 
         StepConfig stepConfig = graph.getStepMap().get(stepId);
         // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
-        StepConfig clonedStepConfig = stepConfig.deepClone();
+        StepConfig clonedStepConfig = new StepConfig(stepConfig);
         clonedStepConfig
                 .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
         if (log.isDebugEnabled()) {

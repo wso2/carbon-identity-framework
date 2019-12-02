@@ -84,7 +84,7 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
             Map<Integer, StepConfig> stepConfigMapCopy = new HashMap<>();
-            originalStepConfigMap.forEach((k, v) -> stepConfigMapCopy.put(k, v.deepClone()));
+            originalStepConfigMap.forEach((k, v) -> stepConfigMapCopy.put(k, new StepConfig(v)));
             sequenceConfig.getStepMap().clear();
             JsGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
                     .getJsGraphBuilderFactory();
