@@ -173,10 +173,10 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
         }
     }
 
-    public int createApplication(ServiceProvider serviceProvider, String tenantDomain) throws
+    public int createApplication(ServiceProvider application, String tenantDomain) throws
             IdentityApplicationManagementException {
 
-        return appDAO.createApplication(serviceProvider, tenantDomain);
+        return appDAO.createApplication(application, tenantDomain);
     }
 
     public void updateApplication(ServiceProvider serviceProvider, String tenantDomain) throws

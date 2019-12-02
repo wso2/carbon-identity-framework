@@ -108,9 +108,11 @@ public class MutualSSLManager {
                     prop.load(inputStream);
                     //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
                     // feature is enabled.
-                    if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
+                    if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.
+                            MUTUAL_SSL_MANAGER_ENABLED)) && isSecuredPropertyAvailable(prop)) {
                         // Resolve encrypted properties with secure vault
                         resolveSecrets(prop);
+
                     }
                 }
 
@@ -143,16 +145,16 @@ public class MutualSSLManager {
                 String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
                         .CLIENT_TRUST_STORE));
 
-                if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
+                if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
                     TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
                             .TLS_PROTOCOL));
                 }
 
-                if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
+                if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
                     TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
                             .KEY_MANAGER_TYPE));
                 }
-                if (StringUtils.isNotEmpty(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
+                if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
                     TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
                             .TRUST_MANAGER_TYPE));
                 }

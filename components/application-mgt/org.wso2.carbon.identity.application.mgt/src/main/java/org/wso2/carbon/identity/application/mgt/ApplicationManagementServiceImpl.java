@@ -160,11 +160,39 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                          String username, String templateName)
             throws IdentityApplicationManagementException {
 
-        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
-        updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
+        // Call pre listeners.
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+                throw buildServerException("Pre create application operation of listener: "
+                        + getName(listener) + " failed for application: " + serviceProvider.getApplicationName() +
+                        " of tenantDomain: " + tenantDomain);
+            }
+        }
+
+        doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
+        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         serviceProvider.setOwner(getUser(tenantDomain, username));
 
-        return createApplication(serviceProvider, tenantDomain, username);
+        int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
+        serviceProvider.setApplicationID(appId);
+
+        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
+        if (spTemplate != null) {
+            updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
+            appDAO.updateApplication(serviceProvider, tenantDomain);
+        }
+
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+                log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
+                        "application: " + serviceProvider.getApplicationName() + " of tenantDomain: " + tenantDomain);
+                break;
+            }
+        }
+
+        return serviceProvider;
     }
 
     @Override
@@ -1734,17 +1762,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         if (appDAO.isApplicationExists(appName, tenantDomain)) {
-            String msg = "An application with name: " + appName + " already exists in tenantDomain: " + tenantDomain;
+            String msg = "An application with name: '" + appName + "' already exists in tenantDomain: " + tenantDomain;
             throw new IdentityApplicationRegistrationFailureException(APPLICATION_ALREADY_EXISTS.getCode(), msg);
         }
 
         if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(appName)) {
-            String msg = "Application with name:" + appName + " already loaded from the file system.";
+            String msg = "Application with name: '" + appName + "' already loaded from the file system.";
             throw buildClientException(APPLICATION_ALREADY_EXISTS, msg);
         }
 
         if (!isRegexValidated(appName)) {
-            String message = "The Application name '" + appName + "' is not valid! It is not adhering to the regex: "
+            String message = "The Application name: '" + appName + "' is not valid! It is not adhering to the regex: "
                     + ApplicationMgtUtil.getSPValidatorRegex();
             throw buildClientException(INVALID_REQUEST, message);
         }
@@ -1752,7 +1780,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
     }
 
-    private ServiceProvider doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username)
+    private <T> T doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
+                                    ApplicationPersistFunction<ServiceProvider, T> applicationPersistFunction)
             throws IdentityApplicationManagementException {
 
         try {
@@ -1774,36 +1803,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw ex;
             }
 
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-
-            String resourceId;
             try {
-                resourceId = appDAO.addApplication(serviceProvider, tenantDomain);
+                return applicationPersistFunction.persistApplication(serviceProvider, tenantDomain);
             } catch (IdentityApplicationManagementException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
-                            " failed. Rolling back by cleaning up partially created data.");
+                if (isRollbackRequired(ex)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                                " failed. Rolling back by cleaning up partially created data.");
+                    }
+                    deleteApplicationRole(applicationName);
+                    deleteApplicationPermission(applicationName);
                 }
-                deleteApplicationRole(applicationName);
-                deleteApplicationPermission(applicationName);
-                throw ex;
-            }
-
-            try {
-                return appDAO.getApplicationByResourceId(resourceId, tenantDomain);
-            } catch (IdentityApplicationManagementException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
-                            " failed. Rolling back by cleaning up partially created data.");
-                }
-                deleteApplicationRole(applicationName);
-                deleteApplicationPermission(applicationName);
-                appDAO.deleteApplication(applicationName);
                 throw ex;
             }
         } finally {
             endTenantFlow();
         }
+    }
+
+    private boolean isRollbackRequired(IdentityApplicationManagementException ex) {
+        // If the error code indicates an application conflict we don't need to rollback since it will affect the
+        // already existing app.
+        return !StringUtils.equals(ex.getErrorCode(), APPLICATION_ALREADY_EXISTS.getCode());
     }
 
     private boolean isOwnerUpdatedInRequest(ServiceProvider serviceProvider) {
@@ -2014,7 +2035,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     @Override
-    public ServiceProvider createApplication(ServiceProvider application, String tenantDomain, String username)
+    public String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException {
 
         // Invoking the listeners.
@@ -2030,16 +2051,18 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         doPreAddApplicationChecks(application, tenantDomain, username);
-        ServiceProvider createdApp = doAddApplication(application, tenantDomain, username);
+        ApplicationDAO applicationDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+        String resourceId = doAddApplication(application, tenantDomain, username, applicationDAO::addApplication);
 
         for (ApplicationResourceManagementListener listener : listeners) {
-            if (listener.isEnabled() && !listener.doPostCreateApplication(createdApp, tenantDomain, username)) {
-                log.error("Pre create application operation of listener:" + getName(listener) + " failed for " +
+            if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain, username)) {
+                log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
+                break;
             }
         }
 
-        return createdApp;
+        return resourceId;
     }
 
     private <T> String getName(T listener) {
@@ -2345,6 +2368,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private IdentityApplicationManagementServerException buildServerException(String message) {
 
         return new IdentityApplicationManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(), message);
+    }
+
+    @FunctionalInterface
+    private interface ApplicationPersistFunction<S extends ServiceProvider, T> {
+
+        T persistApplication(S application, String tenantDomain) throws IdentityApplicationManagementException;
     }
 }
 

@@ -1592,6 +1592,15 @@ public class IdPManagementUIUtil {
         properties.add(property);
 
         property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_SLO_REQUEST_ACCEPTED);
+        if ("on".equals(paramMap.get("sloRequestAccepted"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
+        properties.add(property);
+
+        property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_LOGOUT_REQ_SIGNED);
         if ("on".equals(paramMap.get("logoutRequestSigned"))) {
             property.setValue("true");

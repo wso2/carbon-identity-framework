@@ -32,7 +32,7 @@ public class ApplicationBasicInfo implements Serializable {
 
     private String applicationResourceId;
     private String imageUrl;
-    private String loginUrl;
+    private String accessUrl;
 
     private User appOwner;
 
@@ -108,14 +108,14 @@ public class ApplicationBasicInfo implements Serializable {
         this.imageUrl = imageUrl;
     }
 
-    public String getLoginUrl() {
+    public String getAccessUrl() {
 
-        return loginUrl;
+        return accessUrl;
     }
 
-    public void setLoginUrl(String loginUrl) {
+    public void setAccessUrl(String accessUrl) {
 
-        this.loginUrl = loginUrl;
+        this.accessUrl = accessUrl;
     }
 
     public User getAppOwner() {

@@ -225,17 +225,6 @@ public class ApplicationMgtUtil {
         }
     }
 
-    private static boolean isRoleAlreadyApplied(String username, String roleName, UserStoreManager userStoreManager)
-            throws UserStoreException {
-
-        boolean isRoleAlreadyApplied = false;
-        String[] roleListOfUser = userStoreManager.getRoleListOfUser(username);
-        if (roleListOfUser != null) {
-            isRoleAlreadyApplied = Arrays.asList(roleListOfUser).contains(roleName);
-        }
-        return isRoleAlreadyApplied;
-    }
-
     private static String getAppRoleName(String applicationName) {
         return ApplicationConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + applicationName;
     }
@@ -322,7 +311,7 @@ public class ApplicationMgtUtil {
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            IdentityTenantUtil.initializeRegistry(tenantId, IdentityTenantUtil.getTenantDomain(tenantId));
+            IdentityTenantUtil.initializeRegistry(tenantId);
         } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error loading tenant registry for tenant domain: " +
                     IdentityTenantUtil.getTenantDomain(tenantId), e);
@@ -764,4 +753,15 @@ public class ApplicationMgtUtil {
         return ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
     }
 
+
+    private static boolean isRoleAlreadyApplied(String username, String roleName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        boolean isRoleAlreadyApplied = false;
+        String[] roleListOfUser = userStoreManager.getRoleListOfUser(username);
+        if (roleListOfUser != null) {
+            isRoleAlreadyApplied = Arrays.asList(roleListOfUser).contains(roleName);
+        }
+        return isRoleAlreadyApplied;
+    }
 }

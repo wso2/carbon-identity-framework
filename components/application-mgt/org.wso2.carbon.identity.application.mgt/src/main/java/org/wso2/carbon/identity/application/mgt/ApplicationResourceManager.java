@@ -44,7 +44,7 @@ public interface ApplicationResourceManager {
      * @return unique application resource id of the application
      * @throws IdentityApplicationManagementException
      */
-    ServiceProvider createApplication(ServiceProvider application, String tenantDomain, String username)
+    String createApplication(ServiceProvider application, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
 
     /**

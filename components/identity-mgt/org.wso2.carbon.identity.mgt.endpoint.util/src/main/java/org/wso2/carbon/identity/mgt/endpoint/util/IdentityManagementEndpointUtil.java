@@ -464,6 +464,11 @@ public class IdentityManagementEndpointUtil {
      */
     public static String getURLEncodedCallback(String callbackUrl) throws URISyntaxException {
 
+        if (StringUtils.isBlank(callbackUrl)) {
+            return callbackUrl;
+        }
+
+        callbackUrl = callbackUrl.trim().replace(" ", "%20");
         URI uri = new URI(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());

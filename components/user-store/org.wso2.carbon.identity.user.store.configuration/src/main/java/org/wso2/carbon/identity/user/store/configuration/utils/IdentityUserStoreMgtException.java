@@ -20,6 +20,7 @@ public class IdentityUserStoreMgtException extends Exception {
 
     private static final long serialVersionUID = 148397950276334073L;
     private String message;
+    private String errorCode;
 
     public IdentityUserStoreMgtException(String message) {
         super(message);
@@ -29,6 +30,18 @@ public class IdentityUserStoreMgtException extends Exception {
     public IdentityUserStoreMgtException(String message, Throwable cause) {
         super(message, cause);
         this.message = message;
+    }
+
+    public IdentityUserStoreMgtException(String errorCode, String message) {
+
+        super(message);
+        this.message = message;
+        this.errorCode = errorCode;
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
     }
 
     @Override

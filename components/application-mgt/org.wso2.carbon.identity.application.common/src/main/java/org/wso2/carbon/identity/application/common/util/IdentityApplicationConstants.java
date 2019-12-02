@@ -147,6 +147,7 @@ public class IdentityApplicationConstants {
             public static final String IS_ENABLE_ASSERTION_SIGNING = "isAssertionSigned";
             public static final String IS_LOGOUT_ENABLED = "IsLogoutEnabled";
             public static final String LOGOUT_REQ_URL = "LogoutReqUrl";
+            public static final String IS_SLO_REQUEST_ACCEPTED = "IsSLORequestAccepted";
             public static final String IS_LOGOUT_REQ_SIGNED = "IsLogoutReqSigned";
             public static final String IS_AUTHN_RESP_SIGNED = "IsAuthnRespSigned";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
