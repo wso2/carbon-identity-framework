@@ -88,6 +88,7 @@ public class JsAuthenticationContextTest {
         SequenceConfig sequenceConfig = new SequenceConfig();
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         StepConfig stepConfig = new StepConfig();
+        stepConfig.setOrder(1);
         stepConfig.setAuthenticatedIdP(TEST_IDP);
         stepConfigMap.put(1, stepConfig);
         sequenceConfig.setStepMap(stepConfigMap);

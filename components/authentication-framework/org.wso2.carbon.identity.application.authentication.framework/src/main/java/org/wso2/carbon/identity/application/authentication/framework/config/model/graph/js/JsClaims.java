@@ -120,7 +120,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
             // Sequence config is not yet initialized.
             return null;
         }
-        Map<Integer, StepConfig> stepConfigs = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap();
+        Map<Integer, StepConfig> stepConfigs = getContext().getSequenceConfig().getStepMap();
         Optional<StepConfig> subjectIdentifierStep = stepConfigs.values().stream()
                 .filter(stepConfig -> (stepConfig.isCompleted() && stepConfig.isSubjectIdentifierStep())).findFirst();
         if (subjectIdentifierStep.isPresent()) {

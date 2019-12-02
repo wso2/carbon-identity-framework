@@ -50,6 +50,31 @@ public class StepConfig implements Serializable {
     }
 
     /**
+     * Deep clone of StepConfig inorder to keep backup.
+     *
+     * @param stepConfig    stepConfig object to be cloned
+     */
+    public StepConfig(StepConfig stepConfig) {
+
+        this.order = stepConfig.getOrder();
+        this.loginPage = stepConfig.getLoginPage();
+        this.authenticatedUser = stepConfig.getAuthenticatedUser();
+        this.subjectIdentifierStep = stepConfig.isSubjectIdentifierStep();
+        this.subjectAttributeStep = stepConfig.isSubjectAttributeStep();
+        this.authenticatedIdP = stepConfig.getAuthenticatedIdP();
+        this.authenticatedAutenticator = stepConfig.getAuthenticatedAutenticator() != null ?
+                new AuthenticatorConfig(stepConfig.getAuthenticatedAutenticator()) : null;
+        this.authenticatorList = new ArrayList<>();
+        for (AuthenticatorConfig authenticator : stepConfig.getAuthenticatorList()) {
+            this.authenticatorList.add(new AuthenticatorConfig(authenticator));
+        }
+        this.authenticatorMappings = new ArrayList<>(stepConfig.getAuthenticatorMappings());
+        this.completed = stepConfig.isCompleted();
+        this.multiOption = stepConfig.isMultiOption();
+        this.retrying = stepConfig.isRetrying();
+    }
+
+    /**
      * @return
      */
     public String getLoginPage() {
@@ -198,5 +223,22 @@ public class StepConfig implements Serializable {
 
     public void setRetrying(boolean retrying) {
         this.retrying = retrying;
+    }
+
+    /**
+     * Apply any state changes to the newly clone stepConfig object from backup, by comparing with the StepConfig which
+     * obtain from SequenceConfig stepMap.
+     *
+     * @param stepConfigFromContext StepConfig which obtain from SequenceConfig stepMap.
+     */
+    public void applyStateChangesToNewObjectFromContextStepMap(StepConfig stepConfigFromContext) {
+
+        if (stepConfigFromContext != null) {
+            this.completed = stepConfigFromContext.isCompleted();
+            this.multiOption = stepConfigFromContext.isMultiOption();
+            this.retrying = stepConfigFromContext.isRetrying();
+            this.subjectIdentifierStep = stepConfigFromContext.isSubjectIdentifierStep();
+            this.subjectAttributeStep = stepConfigFromContext.isSubjectAttributeStep();
+        }
     }
 }

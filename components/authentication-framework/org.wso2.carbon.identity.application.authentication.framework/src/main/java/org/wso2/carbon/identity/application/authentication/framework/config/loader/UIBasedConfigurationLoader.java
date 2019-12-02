@@ -83,10 +83,12 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
         if (isAuthenticationScriptBasedSequence(localAndOutboundAuthenticationConfig)) {
             //Clear the sequenceConfig step map, so that it will be re-populated by Dynamic execution
             Map<Integer, StepConfig> originalStepConfigMap = new HashMap<>(sequenceConfig.getStepMap());
+            Map<Integer, StepConfig> stepConfigMapCopy = new HashMap<>();
+            originalStepConfigMap.forEach((k, v) -> stepConfigMapCopy.put(k, new StepConfig(v)));
             sequenceConfig.getStepMap().clear();
             JsGraphBuilderFactory jsGraphBuilderFactory = FrameworkServiceDataHolder.getInstance()
                     .getJsGraphBuilderFactory();
-            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, originalStepConfigMap);
+            JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMapCopy);
             context.setServiceProviderName(serviceProvider.getApplicationName());
 
             AuthenticationGraph graph = jsGraphBuilder
@@ -100,13 +102,13 @@ public class UIBasedConfigurationLoader implements SequenceLoader {
     }
 
     private boolean isAuthenticationScriptBasedSequence(LocalAndOutboundAuthenticationConfig
-                                                            localAndOutboundAuthenticationConfig) {
+                                                                localAndOutboundAuthenticationConfig) {
 
         if (ApplicationConstants.AUTH_TYPE_FLOW.equals(localAndOutboundAuthenticationConfig.getAuthenticationType()) ||
                 ApplicationConstants.AUTH_TYPE_DEFAULT.equals(
                         localAndOutboundAuthenticationConfig.getAuthenticationType())) {
             AuthenticationScriptConfig authenticationScriptConfig = localAndOutboundAuthenticationConfig
-                .getAuthenticationScriptConfig();
+                    .getAuthenticationScriptConfig();
             return authenticationScriptConfig != null && authenticationScriptConfig.isEnabled();
         }
         return false;
