@@ -92,22 +92,21 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
         ExternalIdPConfig externalIdPConfig = null;
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
-                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
-            if (sessionContext != null) {
-                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-                if (authenticatedUserObj != null) {
-                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
-                }
-                FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
-                        sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
-                                .SESSION_TERMINATE);
+                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context) &&
+                    sessionContext != null) {
+            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            if (authenticatedUserObj != null) {
+                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             }
+            FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
+                    sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
+                            .SESSION_TERMINATE);
         }
 
         // Remove federated authentication session details from the database.
-        if ((sessionContext != null) && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
-                (sessionContext.getSessionAuthHistory().getHistory() != null)) {
+        if (sessionContext != null && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
+                sessionContext.getSessionAuthHistory().getHistory() != null) {
             for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
                 if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
                     try {
@@ -115,7 +114,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                         break;
                     } catch (UserSessionException e) {
                         throw new FrameworkException("Error while deleting federated authentication session details for"
-                                + " the session contect key :" + context.getSessionIdentifier(), e);
+                                + " the session context key :" + context.getSessionIdentifier(), e);
                     }
                 }
             }

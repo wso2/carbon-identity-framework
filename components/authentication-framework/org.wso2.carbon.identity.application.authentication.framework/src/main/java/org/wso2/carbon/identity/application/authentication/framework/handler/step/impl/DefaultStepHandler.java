@@ -568,11 +568,10 @@ public class DefaultStepHandler implements StepHandler {
             if (context.getParameters().containsKey(parameterName)) {
                 idpSessionIndex = context.getParameter(parameterName).toString();
             }
-            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)) {
-                if (FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
-                    authHistory.setIdpSessionIndex(idpSessionIndex);
-                    authHistory.setRequestType(context.getRequestType());
-                }
+            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)
+                  && FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
+                authHistory.setIdpSessionIndex(idpSessionIndex);
+                authHistory.setRequestType(context.getRequestType());
             }
             context.addAuthenticationStepHistory(authHistory);
 

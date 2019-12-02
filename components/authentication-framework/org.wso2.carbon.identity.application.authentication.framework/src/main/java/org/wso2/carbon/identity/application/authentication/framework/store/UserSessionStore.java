@@ -707,7 +707,8 @@ public class UserSessionStore {
             prepStmt.setString(5, authHistory.getRequestType());
             prepStmt.execute();
         } catch (SQLException e) {
-            throw new UserSessionException("Error while adding session data for key:" + sessionContextKey, e);
+            throw new UserSessionException("Error while adding session details of the session index:"
+                    + sessionContextKey + ", IdP:" + authHistory.getIdpName(), e);
         }
     }
 
@@ -725,7 +726,7 @@ public class UserSessionStore {
             prepStmt.execute();
         } catch (SQLException e) {
             throw new UserSessionException("Error while removing federated authentication session details of " +
-                    "the session id:" + sessionContextKey, e);
+                    "the session index:" + sessionContextKey, e);
         }
     }
 }
