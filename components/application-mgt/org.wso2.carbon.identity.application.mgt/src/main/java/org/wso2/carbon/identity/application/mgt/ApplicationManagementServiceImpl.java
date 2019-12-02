@@ -171,16 +171,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             }
         }
 
-        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
-        updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
-        serviceProvider.setOwner(getUser(tenantDomain, username));
-
         doPreAddApplicationChecks(serviceProvider, tenantDomain, username);
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
+        serviceProvider.setOwner(getUser(tenantDomain, username));
 
-        // Set application id to be consumed by post listeners.
+        int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
+
+        SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
+        if (spTemplate != null) {
+            updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
+            appDAO.updateApplication(serviceProvider, tenantDomain);
+        }
+
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
@@ -1759,17 +1762,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         if (appDAO.isApplicationExists(appName, tenantDomain)) {
-            String msg = "An application with name: " + appName + " already exists in tenantDomain: " + tenantDomain;
+            String msg = "An application with name: '" + appName + "' already exists in tenantDomain: " + tenantDomain;
             throw new IdentityApplicationRegistrationFailureException(APPLICATION_ALREADY_EXISTS.getCode(), msg);
         }
 
         if (ApplicationManagementServiceComponent.getFileBasedSPs().containsKey(appName)) {
-            String msg = "Application with name:" + appName + " already loaded from the file system.";
+            String msg = "Application with name: '" + appName + "' already loaded from the file system.";
             throw buildClientException(APPLICATION_ALREADY_EXISTS, msg);
         }
 
         if (!isRegexValidated(appName)) {
-            String message = "The Application name '" + appName + "' is not valid! It is not adhering to the regex: "
+            String message = "The Application name: '" + appName + "' is not valid! It is not adhering to the regex: "
                     + ApplicationMgtUtil.getSPValidatorRegex();
             throw buildClientException(INVALID_REQUEST, message);
         }
@@ -1800,22 +1803,28 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 throw ex;
             }
 
-            ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             try {
                 return applicationPersistFunction.persistApplication(serviceProvider, tenantDomain);
             } catch (IdentityApplicationManagementException ex) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
-                            " failed. Rolling back by cleaning up partially created data.");
+                if (isRollbackRequired(ex)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Creating application: " + applicationName + " in tenantDomain: " + tenantDomain +
+                                " failed. Rolling back by cleaning up partially created data.");
+                    }
+                    deleteApplicationRole(applicationName);
+                    deleteApplicationPermission(applicationName);
                 }
-                deleteApplicationRole(applicationName);
-                deleteApplicationPermission(applicationName);
-                appDAO.deleteApplication(applicationName);
                 throw ex;
             }
         } finally {
             endTenantFlow();
         }
+    }
+
+    private boolean isRollbackRequired(IdentityApplicationManagementException ex) {
+        // If the error code indicates an application conflict we don't need to rollback since it will affect the
+        // already existing app.
+        return !StringUtils.equals(ex.getErrorCode(), APPLICATION_ALREADY_EXISTS.getCode());
     }
 
     private boolean isOwnerUpdatedInRequest(ServiceProvider serviceProvider) {
