@@ -82,4 +82,16 @@ public class IdentityApplicationManagementException extends Exception {
 
         return errorCode;
     }
+
+    /**
+     * This public method is required by the stub.
+     * // TODO: Need to find a way to include inherited methods during stub generation.
+     *
+     * @return
+     */
+    @Override
+    public String getMessage() {
+
+        return super.getMessage();
+    }
 }
