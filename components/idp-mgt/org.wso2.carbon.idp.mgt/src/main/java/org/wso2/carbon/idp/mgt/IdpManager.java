@@ -407,4 +407,7 @@ public interface IdpManager {
      */
     ProvisioningConnectorConfig[] getAllProvisioningConnectors() throws IdentityProviderManagementException;
 
+    public List<String> getConnectedApplications(String resourceId, Integer limit, Integer offset)
+            throws IdentityProviderManagementException;
+
 }

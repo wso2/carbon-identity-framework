@@ -335,6 +335,31 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_METADATA = "INSERT INTO IDP_METADATA (IDP_ID, NAME, VALUE, DISPLAY_NAME, " +
                 "TENANT_ID) VALUES (?, ?, ?, ?, ?)";
         public static final String DELETE_IDP_METADATA = "DELETE FROM IDP_METADATA WHERE IDP_ID = ?";
+
+        public static final String GET_CONNECTED_APPS_MYSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) LIMIT ?,?";
+        public static final String GET_CONNECTED_APPS_ORACLE = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) AND ROWNUM <= ?) WHERE rnum > ?";
+        public static final String GET_CONNECTED_APPS_MSSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        public static final String GET_CONNECTED_APPS_POSTGRESSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) LIMIT ? OFFSET ?";
+        public static final String GET_CONNECTED_APPS_DB2SQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?)) LIMIT ? OFFSET ?";
+        public static final String GET_CONNECTED_APPS_INFORMIX = "SELECT SKIP ? FIRST ? UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
+                " ID FROM IDP WHERE UUID = ?))";
     }
 
     public enum ErrorMessage {
@@ -352,7 +377,11 @@ public class IdPManagementConstants {
         ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP-60005", "Identity Provider delete request validation failed. %s"),
         ERROR_CODE_IDP_UPDATE_REQUEST_INVALID("IDP-60006", "Identity Provider update request validation failed. %s"),
         ERROR_CODE_SEARCH_REQUEST_INVALID("IDP-60007", "Search request validation failed. Invalid search filter. %s"),
-        ERROR_CODE_CONNECTING_DATABASE("IDP_42008", "Error while connecting database. %s"),;
+        ERROR_CODE_GET_CONNECTED_APPS_REQUEST_INVALID("IDP-60008", "Identity Provider get connected apps request " +
+                "validation failed. %s"),
+        ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
+        ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected applications of " +
+                "Identity Provider with resource ID: %s."),;
 
         private final String code;
         private final String message;

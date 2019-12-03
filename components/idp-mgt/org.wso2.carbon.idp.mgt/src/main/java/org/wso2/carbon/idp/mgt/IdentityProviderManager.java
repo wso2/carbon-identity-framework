@@ -2401,6 +2401,24 @@ public class IdentityProviderManager implements IdpManager {
 
     }
 
+    public List<String> getConnectedApplications(String resourceId, Integer limit, Integer offset)
+            throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId);
+        limit = validateLimit(limit);
+        offset = validateOffset(offset);
+        return dao.getConnectedApplications(resourceId, limit, offset);
+    }
+
+    private void validateResourceId(String resourceId) throws IdentityProviderManagementException {
+
+        if (StringUtils.isEmpty(resourceId)) {
+            String data = "Invalid argument: Identity Provider resource ID value is empty";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, data);
+        }
+    }
+
     /**
      * Overrides the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
      * @param residentIDP

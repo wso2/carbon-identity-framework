@@ -720,4 +720,10 @@ public class CacheBackedIdPMgtDAO {
         return idPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticatorName, propertyName, idPEntityId, tenantId);
     }
 
+    public List<String> getConnectedApplications(String resourceId, int limit, int offset) throws
+            IdentityProviderManagementException {
+
+        return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);
+    }
+
 }
