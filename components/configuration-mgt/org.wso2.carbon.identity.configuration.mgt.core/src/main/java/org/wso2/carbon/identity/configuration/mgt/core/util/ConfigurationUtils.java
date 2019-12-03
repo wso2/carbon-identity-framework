@@ -51,7 +51,7 @@ public class ConfigurationUtils {
      * @return ConfigurationManagementClientException.
      */
     public static ConfigurationManagementClientException handleClientException(ConfigurationConstants.ErrorMessages error,
-                                                                               String data) {
+                                                                               String ...data) {
 
         String message = populateMessageWithData(error, data);
         return new ConfigurationManagementClientException(message, error.getCode());
@@ -145,9 +145,15 @@ public class ConfigurationUtils {
         return ConfigurationManagerComponentDataHolder.getUseCreatedTime();
     }
 
-    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String data) {
+    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String... data) {
 
-        return String.format(error.getMessage(), data);
+        String message;
+        if (data.length != 0) {
+            message = String.format(error.getMessage(), data);
+        } else {
+            message = error.getMessage();
+        }
+        return message;
     }
 
     private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error) {
