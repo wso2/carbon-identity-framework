@@ -21,6 +21,7 @@
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.CallBackValidator" %>
 <%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.client.IdentityRecoveryException" %>
 <%@ page import="java.net.URISyntaxException" %>
+<%@ page import="java.net.MalformedURLException" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -85,9 +86,9 @@
             <%
             try {
             %>
-                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+                location.href = "<%= IdentityManagementEndpointUtil.encodeURL(callback)%>";
             <%
-            } catch (URISyntaxException e) {
+            } catch (MalformedURLException e) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
                 request.getRequestDispatcher("error.jsp").forward(request, response);

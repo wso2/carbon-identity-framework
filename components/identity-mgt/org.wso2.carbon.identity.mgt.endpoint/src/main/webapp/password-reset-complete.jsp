@@ -27,6 +27,7 @@
 <%@ page import="java.net.URLEncoder" %>
 <%@ page import="java.util.ArrayList" %>
 <%@page import="java.util.List" %>
+<%@ page import="java.net.MalformedURLException" %>
 <jsp:directive.include file="localize.jsp"/>
 
 <%
@@ -156,9 +157,9 @@
             <%
             try {
             %>
-                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+                location.href = "<%= IdentityManagementEndpointUtil.encodeURL(callback)%>";
             <%
-            } catch (URISyntaxException e) {
+            } catch (MalformedURLException e) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
                 request.getRequestDispatcher("error.jsp").forward(request, response);
