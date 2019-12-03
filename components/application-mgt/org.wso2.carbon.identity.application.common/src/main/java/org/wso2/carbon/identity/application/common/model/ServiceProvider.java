@@ -47,6 +47,7 @@ public class ServiceProvider implements Serializable {
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
     private static final String ACCESS_URL = "AccessUrl";
+    private static final String IMAGE_URL = "ImageUrl";
 
     @XmlTransient
     private int applicationID = 0;
@@ -99,7 +100,7 @@ public class ServiceProvider implements Serializable {
     private String applicationResourceId;
 
     @IgnoreNullElement
-    @XmlElement(name = "ImageUrl")
+    @XmlElement(name = IMAGE_URL)
     private String imageUrl;
 
     @IgnoreNullElement
@@ -148,10 +149,10 @@ public class ServiceProvider implements Serializable {
                 }
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
-            } else if ("ImageUrl".equals(elementName)) {
-                serviceProvider.setDescription(element.getText());
+            } else if (IMAGE_URL.equals(elementName)) {
+                serviceProvider.setImageUrl(element.getText());
             } else if (ACCESS_URL.equals(elementName)) {
-                serviceProvider.setDescription(element.getText());
+                serviceProvider.setAccessUrl(element.getText());
             } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
             } else if ("JwksUri".equals(elementName)) {
