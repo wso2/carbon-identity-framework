@@ -60,10 +60,14 @@ public class ReCaptchaApi {
     }
 
     /**
-     * return the reCaptchaGet details in the headers for the given tenant.
+     * Return the reCaptchaGet details in the headers for the given tenant.
      *
-     * @param tenantDomain tenant domain. Default &#x60;carbon.super&#x60; (optional)
-     * @throws ApiException if fails to make API call
+     * @param tenantDomain          Tenant domain. Default &#x60;carbon.super&#x60; (optional).
+     * @param isEndpointTenantAware Is tenant aware endpoint.
+     * @param captchaType           Captcha type.
+     * @param recoveryType          Recovery type.
+     * @return Return captcha details as ReCaptchaProperties.
+     * @throws ApiException if fails to make API call.
      */
     public ReCaptchaProperties getReCaptcha(String tenantDomain, boolean isEndpointTenantAware, String captchaType,
                                             String recoveryType) throws ApiException {

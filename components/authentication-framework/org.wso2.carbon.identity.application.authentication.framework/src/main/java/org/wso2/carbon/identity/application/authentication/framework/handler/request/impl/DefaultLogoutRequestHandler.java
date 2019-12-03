@@ -96,7 +96,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                     sessionContext != null) {
             Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
             AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-            if (authenticatedUserObj != null) {
+            if (authenticatedUserObj instanceof AuthenticatedUser) {
                 authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
             }
             FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
@@ -233,7 +233,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         } else {
             redirectURL = context.getCallerPath();
         }
-        
+
         /*
          * TODO Cache retaining is a temporary fix. Remove after Google fixes
          * http://code.google.com/p/gdata-issues/issues/detail?id=6628
