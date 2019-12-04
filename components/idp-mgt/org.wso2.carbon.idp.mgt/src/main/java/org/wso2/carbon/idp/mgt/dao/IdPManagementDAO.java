@@ -49,6 +49,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -3515,6 +3516,100 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
         }
         return isAvailable;
+    }
+
+    /**
+     * Get list of applications that are connected to the identity provider from DB.
+     *
+     * @param resourceId IDP resource ID.
+     * @param limit      Limit parameter for pagination.
+     * @param offset     Offset parameter for pagination.
+     * @return ConnectedAppsResult.
+     * @throws IdentityProviderManagementException
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset)
+            throws IdentityProviderManagementException {
+
+        ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
+        List<String> connectedApps = new ArrayList<>();
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement prepStmt = createConnectedAppsSqlStatement(connection, resourceId, limit, offset)) {
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    while (resultSet.next()) {
+                        connectedApps.add(resultSet.getString("UUID"));
+                    }
+                }
+            }
+            String sqlQuery = IdPManagementConstants.SQLQueries.CONNECTED_APPS_TOTAL_COUNT_SQL;
+            try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
+                prepStmt.setString(1, resourceId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred during retrieving connected applications of IDP: " + resourceId, e);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, resourceId);
+        }
+        connectedAppsResult.setApps(connectedApps);
+        connectedAppsResult.setLimit(limit);
+        connectedAppsResult.setOffSet(offset);
+        return connectedAppsResult;
+    }
+
+    private PreparedStatement createConnectedAppsSqlStatement(Connection connection, String id, int limit, int offset)
+            throws SQLException, IdentityProviderManagementServerException {
+
+        String sqlQuery;
+        PreparedStatement prepStmt;
+        String databaseProductName = connection.getMetaData().getDatabaseProductName();
+        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, id);
+            prepStmt.setInt(2, offset);
+            prepStmt.setInt(3, limit);
+        } else if (databaseProductName.contains("Oracle")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, id);
+            prepStmt.setInt(2, offset + limit);
+            prepStmt.setInt(3, offset);
+        } else if (databaseProductName.contains("Microsoft")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, id);
+            prepStmt.setInt(2, offset);
+            prepStmt.setInt(3, limit);
+        } else if (databaseProductName.contains("PostgreSQL")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, id);
+            prepStmt.setInt(2, limit);
+            prepStmt.setInt(3, offset);
+        } else if (databaseProductName.contains("DB2")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, id);
+            prepStmt.setInt(2, limit);
+            prepStmt.setInt(3, offset);
+        } else if (databaseProductName.contains("INFORMIX")) {
+            sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX;
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setInt(1, offset);
+            prepStmt.setInt(2, limit);
+            prepStmt.setString(3, id);
+        } else {
+            String message = "Error while loading Identity Provider Connected Applications from DB: Database driver " +
+                    "could not be identified or not supported.";
+            log.error(message);
+            throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_CONNECTING_DATABASE, message);
+        }
+        return prepStmt;
     }
 
     private int getAuthenticatorIdentifier(Connection dbConnection, int idPId, String authnType)
