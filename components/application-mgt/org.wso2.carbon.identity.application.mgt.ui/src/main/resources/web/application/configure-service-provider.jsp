@@ -409,7 +409,7 @@
     }
 
     function validateSPConfigurations() {
-        if(document.getElementById("isDiscoverableApp").checked) {
+        if (document.getElementById("isDiscoverableApp").checked) {
             var accessUrl = document.getElementById("accessURL").value;
             if (accessUrl == '') {
                 CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.access.url.value")%>');
