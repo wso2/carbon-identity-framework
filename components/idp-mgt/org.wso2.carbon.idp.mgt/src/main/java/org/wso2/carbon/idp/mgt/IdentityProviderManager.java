@@ -52,6 +52,7 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
@@ -2401,21 +2402,26 @@ public class IdentityProviderManager implements IdpManager {
 
     }
 
-    public List<String> getConnectedApplications(String resourceId, Integer limit, Integer offset)
-            throws IdentityProviderManagementException {
+    @Override
+    public ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String
+            tenantDomain) throws IdentityProviderManagementException {
 
-        validateResourceId(resourceId);
+        validateResourceId(resourceId, tenantDomain);
         limit = validateLimit(limit);
         offset = validateOffset(offset);
         return dao.getConnectedApplications(resourceId, limit, offset);
     }
 
-    private void validateResourceId(String resourceId) throws IdentityProviderManagementException {
+    private void validateResourceId(String resourceId, String tenantDomain) throws IdentityProviderManagementException {
 
         if (StringUtils.isEmpty(resourceId)) {
             String data = "Invalid argument: Identity Provider resource ID value is empty";
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, data);
+        }
+        if (getIdPByResourceId(resourceId, tenantDomain, true) == null) {
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
         }
     }
 

@@ -36,6 +36,7 @@ import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
@@ -720,7 +721,16 @@ public class CacheBackedIdPMgtDAO {
         return idPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticatorName, propertyName, idPEntityId, tenantId);
     }
 
-    public List<String> getConnectedApplications(String resourceId, int limit, int offset) throws
+    /**
+     * Retrieve Identity provider connected applications.
+     *
+     * @param resourceId Resource ID.
+     * @param limit      Limit parameter for pagination.
+     * @param offset     Offset parameter for pagination.
+     * @return ConnectedAppsResult.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset) throws
             IdentityProviderManagementException {
 
         return idPMgtDAO.getConnectedApplications(resourceId, limit, offset);

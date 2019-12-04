@@ -49,6 +49,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -3517,9 +3518,19 @@ public class IdPManagementDAO {
         return isAvailable;
     }
 
-    public List<String> getConnectedApplications(String resourceId, int limit, int offset)
+    /**
+     * Get list of applications that are connected to the identity provider from DB.
+     *
+     * @param resourceId IDP resource ID.
+     * @param limit      Limit parameter for pagination.
+     * @param offset     Offset parameter for pagination.
+     * @return ConnectedAppsResult.
+     * @throws IdentityProviderManagementException
+     */
+    public ConnectedAppsResult getConnectedApplications(String resourceId, int limit, int offset)
             throws IdentityProviderManagementException {
 
+        ConnectedAppsResult connectedAppsResult = new ConnectedAppsResult();
         List<String> connectedApps = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
             try (PreparedStatement prepStmt = createConnectedAppsSqlStatement(connection, resourceId, limit, offset)) {
@@ -3529,11 +3540,24 @@ public class IdPManagementDAO {
                     }
                 }
             }
+            String sqlQuery = IdPManagementConstants.SQLQueries.CONNECTED_APPS_TOTAL_COUNT_SQL;
+            try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
+                prepStmt.setString(1, resourceId);
+                try (ResultSet resultSet = prepStmt.executeQuery()) {
+                    if (resultSet.next()) {
+                        connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
+                    }
+                }
+            }
         } catch (SQLException e) {
+            log.error("Error occurred during retrieving connected applications of IDP: " + resourceId, e);
             throw IdPManagementUtil.handleServerException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, resourceId);
         }
-        return connectedApps;
+        connectedAppsResult.setApps(connectedApps);
+        connectedAppsResult.setLimit(limit);
+        connectedAppsResult.setOffSet(offset);
+        return connectedAppsResult;
     }
 
     private PreparedStatement createConnectedAppsSqlStatement(Connection connection, String id, int limit, int offset)
