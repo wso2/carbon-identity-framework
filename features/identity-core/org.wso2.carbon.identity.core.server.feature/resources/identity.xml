@@ -244,6 +244,11 @@
                 <ResponseTypeName>id_token token</ResponseTypeName>
                 <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>device</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
         </SupportedResponseTypes>
         <!-- Supported Grant Types -->
         <SupportedGrantTypes>
@@ -289,6 +294,12 @@
                 <GrantTypeName>account_switch</GrantTypeName>
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator</GrantTypeValidatorImplClass>
+            </SupportedGrantType>
+            <SupportedGrantType>
+                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
         </SupportedGrantTypes>
 
@@ -897,6 +908,10 @@
 
 
     <ResourceAccessControl default-access="deny">
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all">
+        </Resource>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all">
+        </Resource>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">

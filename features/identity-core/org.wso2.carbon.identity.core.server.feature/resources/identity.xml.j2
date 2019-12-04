@@ -267,6 +267,13 @@
                 <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_token.class}}</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.device.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>device</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.device.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.device.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
@@ -343,6 +350,14 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.account_switch.grant_validator}}</GrantTypeValidatorImplClass>
             </SupportedGrantType>
             {% endif %}
+            {% if oauth.grant_type.device_code.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.device_code.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
+             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
@@ -1220,6 +1235,10 @@
             {% endfor %}
         </Resource>
         {% endfor %}
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all">
+        </Resource>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all">
+        </Resource>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
