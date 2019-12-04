@@ -1806,7 +1806,7 @@ public class FrameworkUtils {
         boolean useLocalClaimDialectForClaimMappings =
                 FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
 
-        Map<String, String> carbonToStandardClaimMapping;
+        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
 
         // Check whether to use the default dialect or custom dialect.
         if (useDefaultIdpDialect || useLocalClaimDialectForClaimMappings) {
@@ -1817,8 +1817,6 @@ public class FrameworkUtils {
                     carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
                             .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
                                     context.getTenantDomain(), false);
-                } else {
-                    carbonToStandardClaimMapping = new HashMap<>();
                 }
                 // check for role claim uri in the idaps dialect.
                 for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
