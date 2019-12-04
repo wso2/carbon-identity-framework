@@ -122,6 +122,7 @@
         return;
     }
     String spName = appBean.getServiceProvider().getApplicationName();
+    String accessURL = appBean.getServiceProvider().getAccessUrl();
 
     List<String> permissions = null;
     permissions = appBean.getPermissions();
@@ -408,6 +409,13 @@
     }
 
     function validateSPConfigurations() {
+        if(document.getElementById("isDiscoverableApp").checked) {
+            var accessUrl = document.getElementById("accessURL").value;
+            if (accessUrl == '') {
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.access.url.value")%>');
+                return false;
+            }
+        }
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
             var isValied = true;
             $.each($('.spClaimVal'), function () {
@@ -1463,6 +1471,19 @@
                                     <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='help.discoverable'/>
                                 </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!--Access URL TEXT BOX-->
+                        <tr id="use_access_url">
+                            <td style="width:15%" class="leftCol-med labelField">
+                                <fmt:message key="config.application.accessUrl"/>
+                            </td>
+                            <td style="width:50%" class="leftCol-med labelField">
+                                <input style="width:50%" id="accessURL" name="accessURL" type="text"
+                                value="<%=accessURL != null ? Encode.forHtmlAttribute(accessURL) : "" %>" autofocus />
+                                <div class="sectionHelp">
+                                    <fmt:message key='help.accessUrl'/>
                                 </div>
                             </td>
                         </tr>
