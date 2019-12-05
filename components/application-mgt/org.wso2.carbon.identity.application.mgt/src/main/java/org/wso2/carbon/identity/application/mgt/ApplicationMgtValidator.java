@@ -73,19 +73,28 @@ public class ApplicationMgtValidator {
     public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
                                             String userName) throws IdentityApplicationManagementException {
 
-        List<String> validationMsg = new ArrayList<>();
-        validateLocalAndOutBoundAuthenticationConfig(validationMsg, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
+        List<String> validationErrors = new ArrayList<>();
+        validateDiscoverabilityConfigs(validationErrors, serviceProvider);
+        validateLocalAndOutBoundAuthenticationConfig(validationErrors, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
                 tenantDomain);
-        validateRequestPathAuthenticationConfig(validationMsg, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
-        validateOutBoundProvisioning(validationMsg, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
-        validateClaimsConfigs(validationMsg, serviceProvider.getClaimConfig(),
+        validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
+        validateOutBoundProvisioning(validationErrors, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
+        validateClaimsConfigs(validationErrors, serviceProvider.getClaimConfig(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
                         .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null, tenantDomain);
-        validateRoleConfigs(validationMsg, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
+        validateRoleConfigs(validationErrors, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
 
-        if (!validationMsg.isEmpty()) {
+        if (!validationErrors.isEmpty()) {
             String code = IdentityApplicationConstants.Error.INVALID_REQUEST.getCode();
-            throw new IdentityApplicationManagementValidationException(code, validationMsg.toArray(new String[0]));
+            throw new IdentityApplicationManagementValidationException(code, validationErrors.toArray(new String[0]));
+        }
+    }
+
+    private void validateDiscoverabilityConfigs(List<String> validationErrors,
+                                                ServiceProvider serviceProvider) {
+
+        if (serviceProvider.isDiscoverable() && StringUtils.isBlank(serviceProvider.getAccessUrl())) {
+            validationErrors.add("A valid accessURL needs to be defined if an application is marked as discoverable.");
         }
     }
 
