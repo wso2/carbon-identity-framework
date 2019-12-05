@@ -25,6 +25,7 @@ package org.wso2.carbon.identity.application.common.model;
  */
 public class ImportResponse {
 
+    public static final int UPDATED = 200;
     public static final int CREATED = 201;
     public static final int FAILED = 400;
 
@@ -32,7 +33,11 @@ public class ImportResponse {
 
     private String applicationName;
 
+    private String applicationResourceId;
+
     private String[] errors;
+
+    private String errorCode;
 
     public String getApplicationName() {
 
@@ -44,6 +49,16 @@ public class ImportResponse {
         this.applicationName = applicationName;
     }
 
+    public String getApplicationResourceId() {
+
+        return applicationResourceId;
+    }
+
+    public void setApplicationResourceId(String applicationResourceId) {
+
+        this.applicationResourceId = applicationResourceId;
+    }
+
     public String[] getErrors() {
 
         return errors;
@@ -52,6 +67,16 @@ public class ImportResponse {
     public void setErrors(String[] errors) {
 
         this.errors = errors;
+    }
+
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    public void setErrorCode(String errorCode) {
+
+        this.errorCode = errorCode;
     }
 
     public int getResponseCode() {

@@ -1129,7 +1129,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         ServiceProvider serviceProvider = unmarshalSP(spFileContent, tenantDomain);
-        ImportResponse importResponse = this.importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
+        ImportResponse importResponse = importSPApplication(serviceProvider, tenantDomain, username, isUpdate);
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Service provider %s@%s created successfully from file %s",
@@ -1146,8 +1146,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             log.debug("Importing service provider from object " + serviceProvider.getApplicationName());
         }
 
-        ImportResponse importResponse = this.importSPApplicationFromObject(serviceProvider, tenantDomain,
-                username, isUpdate);
+        ImportResponse importResponse = importApplication(serviceProvider, tenantDomain, username, isUpdate);
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Service provider %s@%s created successfully from object",
@@ -1157,23 +1156,20 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         return importResponse;
     }
 
-    private ImportResponse importSPApplicationFromObject(ServiceProvider serviceProvider, String tenantDomain, String username,
-                                                         boolean isUpdate) throws IdentityApplicationManagementException {
-
-        ImportResponse importResponse = new ImportResponse();
+    private ImportResponse importApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
+                                              boolean isUpdate) throws IdentityApplicationManagementException {
 
         Collection<ApplicationMgtListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
 
         ServiceProvider savedSP = null;
+        String appName = serviceProvider.getApplicationName();
         try {
             if (isUpdate) {
-                savedSP = getApplicationExcludingFileBasedSPs(serviceProvider.getApplicationName(), tenantDomain);
+                savedSP = getApplicationExcludingFileBasedSPs(appName, tenantDomain);
                 if (savedSP == null) {
-                    String errorMsg = String.format("Service provider %s@%s is not found",
-                            serviceProvider.getApplicationName(), tenantDomain);
-                    log.error(errorMsg);
-                    throw new IdentityApplicationManagementException(errorMsg);
+                    String errorMsg = String.format("Service provider %s@%s is not found", appName, tenantDomain);
+                    throw new IdentityApplicationManagementClientException(APPLICATION_NOT_FOUND.getCode(), errorMsg);
                 }
             }
 
@@ -1181,8 +1177,12 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 ServiceProvider basicApplication = new ServiceProvider();
                 basicApplication.setApplicationName(serviceProvider.getApplicationName());
                 basicApplication.setDescription(serviceProvider.getDescription());
-                savedSP = createApplicationWithTemplate(basicApplication, tenantDomain, username, null);
+
+                String resourceId = createApplication(basicApplication, tenantDomain, username);
+                savedSP = getApplicationByResourceId(resourceId, tenantDomain);
             }
+
+            serviceProvider.setApplicationResourceId(savedSP.getApplicationResourceId());
             serviceProvider.setApplicationID(savedSP.getApplicationID());
             serviceProvider.setOwner(getUser(tenantDomain, username));
 
@@ -1200,22 +1200,47 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
 
-            importResponse.setResponseCode(ImportResponse.CREATED);
-            importResponse.setApplicationName(serviceProvider.getApplicationName());
+            ImportResponse importResponse = new ImportResponse();
+            if (isUpdate) {
+                importResponse.setResponseCode(ImportResponse.UPDATED);
+            } else {
+                importResponse.setResponseCode(ImportResponse.CREATED);
+            }
+
+            importResponse.setApplicationName(appName);
+            importResponse.setApplicationResourceId(serviceProvider.getApplicationResourceId());
             importResponse.setErrors(new String[0]);
             return importResponse;
-        } catch (IdentityApplicationManagementValidationException e) {
+        } catch (IdentityApplicationManagementClientException e) {
             deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
-            importResponse.setResponseCode(ImportResponse.FAILED);
-            importResponse.setApplicationName(null);
-            importResponse.setErrors(e.getValidationMsg());
-            return importResponse;
+            return buildImportErrorResponse(e);
         } catch (IdentityApplicationManagementException e) {
             deleteCreatedSP(savedSP, tenantDomain, username, isUpdate);
             String errorMsg = String.format("Error in importing provided service provider %s@%s from file ",
-                    serviceProvider.getApplicationName(), tenantDomain);
+                    appName, tenantDomain);
             throw new IdentityApplicationManagementException(errorMsg, e);
         }
+    }
+
+    private ImportResponse buildImportErrorResponse(IdentityApplicationManagementClientException e) {
+
+        ImportResponse importResponse = new ImportResponse();
+        importResponse.setResponseCode(ImportResponse.FAILED);
+        importResponse.setApplicationName(null);
+
+        String errorCode = e.getErrorCode() != null ? e.getErrorCode() : INVALID_REQUEST.getCode();
+        importResponse.setErrorCode(errorCode);
+
+        if (e instanceof IdentityApplicationManagementValidationException) {
+            importResponse.setErrors(((IdentityApplicationManagementValidationException) e).getValidationMsg());
+        } else {
+            String message = e.getMessage();
+            if (StringUtils.isNotBlank(message)) {
+                importResponse.setErrors(new String[]{e.getMessage()});
+            }
+        }
+
+        return importResponse;
     }
 
     @Override
