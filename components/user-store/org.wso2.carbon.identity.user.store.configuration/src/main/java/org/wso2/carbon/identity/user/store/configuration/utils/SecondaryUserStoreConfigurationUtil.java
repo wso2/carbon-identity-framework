@@ -239,6 +239,7 @@ public class SecondaryUserStoreConfigurationUtil {
         return Paths.get(userStore.toString(), fileName + FILE_EXTENSION_XML);
     }
 
+    @Deprecated
     /**
      * This method is used to write userStore xml file.
      * @param userStoreConfigFile path of the userStore configuration file
@@ -248,6 +249,22 @@ public class SecondaryUserStoreConfigurationUtil {
      */
     public static void writeUserMgtXMLFile(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
                                            boolean editSecondaryUserStore, boolean isStateChange)
+            throws IdentityUserStoreMgtException {
+
+        writeUserMgtXMLFile(userStoreConfigFile, userStoreDTO, editSecondaryUserStore, isStateChange,
+                userStoreDTO.getDomainId());
+    }
+
+    /**
+     * This method is used to write userStore xml file.
+     * @param userStoreConfigFile path of the userStore configuration file
+     * @param userStoreDTO instance of {@link UserStoreDTO}
+     * @param editSecondaryUserStore true if it is update operation
+     * @throws IdentityUserStoreMgtException throws if an error occured while writing to the xml file.
+     */
+    public static void writeUserMgtXMLFile(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
+                                           boolean editSecondaryUserStore, boolean isStateChange,
+                                           String existingDomainName)
             throws IdentityUserStoreMgtException {
 
         boolean isDisable = false;
@@ -264,7 +281,8 @@ public class SecondaryUserStoreConfigurationUtil {
             if (isStateChange) {
                 updateStateOfUserStore(userStoreConfigFile, isDisable, domain, documentBuilder);
             } else {
-                updateUserStoreProperties(userStoreConfigFile, userStoreDTO, editSecondaryUserStore, documentBuilder);
+                updateUserStoreProperties(userStoreConfigFile, userStoreDTO, editSecondaryUserStore, documentBuilder,
+                        existingDomainName);
             }
         } catch (ParserConfigurationException e) {
             String errMsg = " Error occurred due to serious parser configuration exception of " + userStoreConfigFile;
@@ -280,6 +298,7 @@ public class SecondaryUserStoreConfigurationUtil {
         }
     }
 
+    @Deprecated
     /**
      * Get the user store config file.
      * @param userStoreDTO an instance of {@link UserStoreDTO}
@@ -287,12 +306,23 @@ public class SecondaryUserStoreConfigurationUtil {
      * @throws IdentityUserStoreMgtException throws if an error occured while getting the user store properties.
      */
     public static String getUserStoreProperties(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+        return getUserStoreProperties(userStoreDTO, userStoreDTO.getDomainId());
+    }
+
+    /**
+     * Get the user store config file.
+     * @param userStoreDTO an instance of {@link UserStoreDTO}
+     * @param existingDomainName existing userstore domain name
+     * @return user store properties as a String.
+     * @throws IdentityUserStoreMgtException throws if an error occured while getting the user store properties.
+     */
+    public static String getUserStoreProperties(UserStoreDTO userStoreDTO, String existingDomainName) throws IdentityUserStoreMgtException {
 
         String userStoreProperties;
         DocumentBuilderFactory documentFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
         try {
             DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
-            Document doc = getDocument(userStoreDTO, false, documentBuilder);
+            Document doc = getDocument(userStoreDTO, false, documentBuilder, existingDomainName);
             StringWriter writer = new StringWriter();
             transformProperties().transform(new DOMSource(doc), new StreamResult(writer));
             //To replace the line breaks
@@ -336,10 +366,11 @@ public class SecondaryUserStoreConfigurationUtil {
     }
 
     private static void updateUserStoreProperties(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
-                                                  boolean editSecondaryUserStore, DocumentBuilder documentBuilder)
+                                                  boolean editSecondaryUserStore, DocumentBuilder documentBuilder,
+                                                  String existingDomainName)
             throws IdentityUserStoreMgtException, IOException, TransformerException {
 
-        Document doc = getDocument(userStoreDTO, editSecondaryUserStore, documentBuilder);
+        Document doc = getDocument(userStoreDTO, editSecondaryUserStore, documentBuilder, existingDomainName);
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
@@ -351,7 +382,7 @@ public class SecondaryUserStoreConfigurationUtil {
     }
 
     private static Document getDocument(UserStoreDTO userStoreDTO, boolean editSecondaryUserStore,
-                                        DocumentBuilder documentBuilder) throws IdentityUserStoreMgtException {
+                                        DocumentBuilder documentBuilder, String existingDomainName) throws IdentityUserStoreMgtException {
 
         Document doc = documentBuilder.newDocument();
 
@@ -364,7 +395,7 @@ public class SecondaryUserStoreConfigurationUtil {
             attrClass.setValue(userStoreDTO.getClassName());
             userStoreElement.setAttributeNode(attrClass);
             if (userStoreDTO.getClassName() != null) {
-                addProperties(userStoreDTO.getDomainId(), userStoreDTO.getClassName(), userStoreDTO.getProperties(),
+                addProperties(existingDomainName, userStoreDTO.getClassName(), userStoreDTO.getProperties(),
                         doc, userStoreElement, editSecondaryUserStore);
             }
             addProperty(UserStoreConfigConstants.DOMAIN_NAME, userStoreDTO.getDomainId(), doc, userStoreElement, false);
