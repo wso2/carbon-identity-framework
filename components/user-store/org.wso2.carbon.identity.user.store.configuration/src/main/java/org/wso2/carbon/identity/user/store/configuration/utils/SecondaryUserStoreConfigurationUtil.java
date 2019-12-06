@@ -239,14 +239,12 @@ public class SecondaryUserStoreConfigurationUtil {
         return Paths.get(userStore.toString(), fileName + FILE_EXTENSION_XML);
     }
 
-    @Deprecated
     /**
      * This method is used to write userStore xml file.
-     * @param userStoreConfigFile path of the userStore configuration file
-     * @param userStoreDTO instance of {@link UserStoreDTO}
-     * @param editSecondaryUserStore true if it is update operation
-     * @throws IdentityUserStoreMgtException throws if an error occured while writing to the xml file.
+     *
+     * @deprecated use {@link #writeUserMgtXMLFile(Path, UserStoreDTO, boolean, boolean, String)} instead.
      */
+    @Deprecated
     public static void writeUserMgtXMLFile(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
                                            boolean editSecondaryUserStore, boolean isStateChange)
             throws IdentityUserStoreMgtException {
@@ -260,7 +258,8 @@ public class SecondaryUserStoreConfigurationUtil {
      * @param userStoreConfigFile path of the userStore configuration file
      * @param userStoreDTO instance of {@link UserStoreDTO}
      * @param editSecondaryUserStore true if it is update operation
-     * @throws IdentityUserStoreMgtException throws if an error occured while writing to the xml file.
+     * @param  existingDomainName domain name of existing userstore
+     * @throws IdentityUserStoreMgtException throws if an error occurred while writing to the xml file.
      */
     public static void writeUserMgtXMLFile(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
                                            boolean editSecondaryUserStore, boolean isStateChange,
@@ -298,13 +297,13 @@ public class SecondaryUserStoreConfigurationUtil {
         }
     }
 
-    @Deprecated
+
     /**
-     * Get the user store config file.
-     * @param userStoreDTO an instance of {@link UserStoreDTO}
-     * @return user store properties as a String.
-     * @throws IdentityUserStoreMgtException throws if an error occured while getting the user store properties.
+     * This method is used to Get the user store config file.
+     *
+     * @deprecated use {@link #getUserStoreProperties(UserStoreDTO, String)} instead.
      */
+    @Deprecated
     public static String getUserStoreProperties(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
         return getUserStoreProperties(userStoreDTO, userStoreDTO.getDomainId());
     }
@@ -314,7 +313,7 @@ public class SecondaryUserStoreConfigurationUtil {
      * @param userStoreDTO an instance of {@link UserStoreDTO}
      * @param existingDomainName existing userstore domain name
      * @return user store properties as a String.
-     * @throws IdentityUserStoreMgtException throws if an error occured while getting the user store properties.
+     * @throws IdentityUserStoreMgtException throws if an error occurred while getting the user store properties.
      */
     public static String getUserStoreProperties(UserStoreDTO userStoreDTO, String existingDomainName) throws IdentityUserStoreMgtException {
 
