@@ -321,7 +321,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                         "user-store " + domain + " with file-based configuration.");
             }
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateTheStateInFileRepository(userStoreDTO);
+            updateStateInFileRepository(userStoreDTO);
         } else if (StringUtils.isNotEmpty(repositoryClass)) {
             if (log.isDebugEnabled()) {
                 log.debug("Repository separation of user-stores has been disabled. Unable to modify state " +
@@ -329,7 +329,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
         } else {
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateTheStateInFileRepository(userStoreDTO);
+            updateStateInFileRepository(userStoreDTO);
         }
     }
 
@@ -358,7 +358,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
      * @param userStoreDTO {@link UserStoreDTO}
      * @throws IdentityUserStoreMgtException
      */
-    private void updateTheStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+    private void updateStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
             SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, true);
