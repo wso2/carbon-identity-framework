@@ -1235,10 +1235,8 @@
             {% endfor %}
         </Resource>
         {% endfor %}
-        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all">
-        </Resource>
-        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all">
-        </Resource>
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
