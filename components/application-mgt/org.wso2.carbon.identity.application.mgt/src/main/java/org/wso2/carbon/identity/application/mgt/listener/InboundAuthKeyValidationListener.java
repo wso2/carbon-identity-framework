@@ -31,13 +31,10 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 
-import java.util.Arrays;
-
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error
-        .INBOUND_KEY_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INBOUND_KEY_ALREADY_EXISTS;
 
 /**
- * Listener for validating inbound authentication keys of Passive-STS and WS-Trust auth types.
+ * Listener for validating inbound authentication keys of inbound authentication configs.
  */
 public class InboundAuthKeyValidationListener extends AbstractApplicationMgtListener {
 
@@ -52,8 +49,7 @@ public class InboundAuthKeyValidationListener extends AbstractApplicationMgtList
     public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        validateInboundAuthKey(serviceProvider, IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        validateInboundAuthKey(serviceProvider, IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+        validateServiceProviderInboundConfig(serviceProvider, tenantDomain);
         return true;
     }
 
@@ -62,8 +58,7 @@ public class InboundAuthKeyValidationListener extends AbstractApplicationMgtList
                                           String tenantDomain,
                                           String userName) throws IdentityApplicationManagementException {
 
-        validateInboundAuthKey(serviceProvider, IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        validateInboundAuthKey(serviceProvider, IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+        validateServiceProviderInboundConfig(serviceProvider, tenantDomain);
         return true;
     }
 
@@ -71,26 +66,47 @@ public class InboundAuthKeyValidationListener extends AbstractApplicationMgtList
     public void onPreCreateInbound(ServiceProvider serviceProvider, boolean isUpdate)
             throws IdentityApplicationManagementException {
 
-        validateInboundAuthKey(serviceProvider, IdentityApplicationConstants.Authenticator.WSTrust.NAME);
-        validateInboundAuthKey(serviceProvider, IdentityApplicationConstants.Authenticator.PassiveSTS.NAME);
+        validateServiceProviderInboundConfig(serviceProvider, CarbonContext.getThreadLocalCarbonContext()
+                .getTenantDomain());
+    }
+
+    /**
+     * Validate service provider inbound authentication request configurations.
+     *
+     * @param serviceProvider New service provider information.
+     * @param tenantDomain    Service provider tenant domain.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    private void validateServiceProviderInboundConfig(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        if (serviceProvider == null || serviceProvider.getInboundAuthenticationConfig() == null) {
+            return;
+        }
+        InboundAuthenticationRequestConfig[] inboundAuthRequestConfigs = serviceProvider
+                .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+        if (ArrayUtils.isNotEmpty(inboundAuthRequestConfigs)) {
+            for (InboundAuthenticationRequestConfig inboundAuthRequestConfig : inboundAuthRequestConfigs) {
+                validateInboundAuthKey(inboundAuthRequestConfig, serviceProvider.getApplicationID(), tenantDomain);
+            }
+        }
     }
 
     /**
      * Validate whether the configured inbound authentication key is already being used by another application.
      *
-     * @param serviceProvider New service provider information.
-     * @param inboundAuthType Inbound authentication type.
+     * @param inboundConfig Inbound authentication request configuration.
+     * @param appId         Application ID.
+     * @param tenantDomain  Application tenant domain.
      * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
      */
-    private void validateInboundAuthKey(ServiceProvider serviceProvider, String inboundAuthType) throws
-            IdentityApplicationManagementException {
+    private void validateInboundAuthKey(InboundAuthenticationRequestConfig inboundConfig, int appId, String
+            tenantDomain) throws IdentityApplicationManagementException {
 
-        InboundAuthenticationRequestConfig inboundConfig = getInboundConfig(serviceProvider, inboundAuthType);
         if (inboundConfig == null) {
             return;
         }
 
-        String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         /* We need to directly retrieve the application from DB since {@link ServiceProviderByInboundAuthCache} cache
          * can have inconsistent applications stored against the <inbound-auth-key, inbound-auth-type, tenant-domain>
          * cache key which is not unique.
@@ -109,24 +125,11 @@ public class InboundAuthKeyValidationListener extends AbstractApplicationMgtList
         }
         ServiceProvider existingApp = applicationDAO.getApplication(existingAppName, tenantDomain);
 
-        if (existingApp != null && existingApp.getApplicationID() != serviceProvider.getApplicationID()) {
+        if (existingApp != null && existingApp.getApplicationID() != appId) {
             String msg = "Inbound key: '" + inboundConfig.getInboundAuthKey() + "' is already configured for the" +
                     " application :'" + existingApp.getApplicationName() + "'";
             throw buildClientException(INBOUND_KEY_ALREADY_EXISTS, msg);
         }
-    }
-
-    private InboundAuthenticationRequestConfig getInboundConfig(ServiceProvider sp, String inboundAuthType) {
-
-        if (sp != null && sp.getInboundAuthenticationConfig() != null) {
-            if (ArrayUtils.isNotEmpty(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())) {
-                return Arrays.stream(sp.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs())
-                        .filter(inbound -> inboundAuthType.equals(inbound.getInboundAuthType()))
-                        .findAny()
-                        .orElse(null);
-            }
-        }
-        return null;
     }
 
     private IdentityApplicationManagementClientException buildClientException(IdentityApplicationConstants.Error
