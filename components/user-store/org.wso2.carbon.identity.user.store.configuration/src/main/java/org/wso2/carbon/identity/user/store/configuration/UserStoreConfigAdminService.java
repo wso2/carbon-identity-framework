@@ -154,7 +154,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         try {
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().addUserStore(userStoreDTO);
         } catch (IdentityUserStoreClientException e) {
-            throw throwIdentityUserStoreMgtException(e, "Error while adding the userstore.");
+            throw buildIdentityUserStoreMgtException(e, "Error while adding the userstore.");
         }
     }
 
@@ -170,7 +170,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().updateUserStore(userStoreDTO,
                     false);
         } catch (IdentityUserStoreClientException e) {
-            throw throwIdentityUserStoreMgtException(e, "Error while updating the userstore.");
+            throw buildIdentityUserStoreMgtException(e, "Error while updating the userstore.");
         }
     }
 
@@ -198,7 +198,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
         } catch (IdentityUserStoreClientException e) {
-            throw throwIdentityUserStoreMgtException(e, "Error while updating the userstore.");
+            throw buildIdentityUserStoreMgtException(e, "Error while updating the userstore.");
         }
     }
 
@@ -233,7 +233,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         try {
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStore(domainName);
         } catch (IdentityUserStoreClientException e) {
-            throw throwIdentityUserStoreMgtException(e, "Error while deleting the userstore.");
+            throw buildIdentityUserStoreMgtException(e, "Error while deleting the userstore.");
         }
     }
 
@@ -258,7 +258,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         try {
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStoreSet(domains);
         } catch (IdentityUserStoreClientException e) {
-            throw throwIdentityUserStoreMgtException(e, "Error while deleting the userstore list.");
+            throw buildIdentityUserStoreMgtException(e, "Error while deleting the userstore list.");
         }
     }
 
@@ -285,7 +285,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                     try {
                         userStoreDAOFactory.getInstance().deleteUserStores(domains.toArray(new String[0]));
                     } catch (IdentityUserStoreClientException e) {
-                        throw throwIdentityUserStoreMgtException(e, "Error while deleting the userstore list.");
+                        throw buildIdentityUserStoreMgtException(e, "Error while deleting the userstore list.");
                     }
                 }
             }
@@ -347,7 +347,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                     .modifyUserStoreState(domain, isDisable,
                             repositoryClass);
         } catch (IdentityUserStoreClientException e) {
-            throw throwIdentityUserStoreMgtException(e, "Error while modifying the userstore state.");
+            throw buildIdentityUserStoreMgtException(e, "Error while modifying the userstore state.");
         }
     }
 
@@ -394,7 +394,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 driverName, connectionURL, username, connectionPassword, messageID);
     }
 
-    private IdentityUserStoreMgtException throwIdentityUserStoreMgtException(IdentityUserStoreClientException e,
+    private IdentityUserStoreMgtException buildIdentityUserStoreMgtException(IdentityUserStoreClientException e,
                                                                              String defaultMessage) {
 
         String errorMessage = defaultMessage;

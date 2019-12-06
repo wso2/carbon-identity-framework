@@ -139,7 +139,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         }
     }
 
-    private IdentityUserStoreMgtException throwException(String domainName, boolean editSecondaryUserStore) {
+    private IdentityUserStoreMgtException buildException(String domainName, boolean editSecondaryUserStore) {
 
         String msg = "Cannot add user store " + domainName + ". User store already exists.";
         String errorCode = UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_XML_FILE_ALREADY_EXISTS.getCode();
@@ -276,7 +276,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             if (validDomain) {
                 Path userStoreConfigFile = getUserStoreConfigurationFile(userStorePersistanceDTO.getUserStoreDTO());
                 if (Files.exists(userStoreConfigFile)) {
-                    throw throwException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), false);
+                    throw buildException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), false);
                 }
                 writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(), false, false);
             } else {
@@ -305,7 +305,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         if (isValidDomain) {
             Path userStoreConfigFile = getUserStoreConfigurationFile(userStorePersistanceDTO.getUserStoreDTO());
             if (!Files.exists(userStoreConfigFile)) {
-                throw throwException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), true);
+                throw buildException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), true);
             }
             writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(), true,
                     isStateChange);
