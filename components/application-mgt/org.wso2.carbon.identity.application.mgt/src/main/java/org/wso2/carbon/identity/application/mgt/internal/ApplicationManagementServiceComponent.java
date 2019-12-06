@@ -52,7 +52,6 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
-import org.wso2.carbon.identity.application.mgt.listener.InboundAuthKeyValidationListener;
 import org.wso2.carbon.identity.application.mgt.listener.STSApplicationMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -99,15 +98,6 @@ public class ApplicationManagementServiceComponent {
                 }
             } else {
                 log.error("STS - ApplicationMgtListener could not be registered.");
-            }
-            ServiceRegistration inboundKeyValidationListener = bundleContext.registerService(ApplicationMgtListener
-                    .class.getName(), new InboundAuthKeyValidationListener(), null);
-            if (inboundKeyValidationListener != null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Inbound Key Validation Listener registered.");
-                }
-            } else {
-                log.error("Inbound Key Validation Listener could not be registered.");
             }
             bundleContext.registerService(DefaultAuthSeqMgtService.class.getName(),
                     DefaultAuthSeqMgtServiceImpl.getInstance(), null);

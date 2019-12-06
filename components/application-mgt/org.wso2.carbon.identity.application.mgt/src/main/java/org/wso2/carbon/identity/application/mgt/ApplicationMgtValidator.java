@@ -19,10 +19,12 @@
 
 package org.wso2.carbon.identity.application.mgt;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -30,6 +32,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthenticationConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.OutboundProvisioningConfig;
@@ -39,6 +43,8 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -75,6 +81,8 @@ public class ApplicationMgtValidator {
 
         List<String> validationErrors = new ArrayList<>();
         validateDiscoverabilityConfigs(validationErrors, serviceProvider);
+        validateInboundAuthenticationConfig(serviceProvider.getInboundAuthenticationConfig(), tenantDomain,
+                serviceProvider.getApplicationID());
         validateLocalAndOutBoundAuthenticationConfig(validationErrors, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
                 tenantDomain);
         validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
@@ -96,6 +104,78 @@ public class ApplicationMgtValidator {
         if (serviceProvider.isDiscoverable() && StringUtils.isBlank(serviceProvider.getAccessUrl())) {
             validationErrors.add("A valid accessURL needs to be defined if an application is marked as discoverable.");
         }
+    }
+
+    /**
+     * @param inboundAuthenticationConfig Inbound authentication configuration.
+     * @param tenantDomain                Tenant domain of application.
+     * @param appId                       Application ID.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    private void validateInboundAuthenticationConfig(InboundAuthenticationConfig inboundAuthenticationConfig, String
+            tenantDomain, int appId) throws IdentityApplicationManagementException {
+
+        if (inboundAuthenticationConfig == null) {
+            return;
+        }
+        InboundAuthenticationRequestConfig[] inboundAuthRequestConfigs = inboundAuthenticationConfig
+                .getInboundAuthenticationRequestConfigs();
+        if (ArrayUtils.isNotEmpty(inboundAuthRequestConfigs)) {
+            for (InboundAuthenticationRequestConfig inboundAuthRequestConfig : inboundAuthRequestConfigs) {
+                validateInboundAuthKey(inboundAuthRequestConfig, appId, tenantDomain);
+            }
+        }
+    }
+
+    /**
+     * Validate whether the configured inbound authentication key is already being used by another application.
+     *
+     * @param inboundConfig Inbound authentication request configuration.
+     * @param appId         Application ID.
+     * @param tenantDomain  Application tenant domain.
+     * @throws IdentityApplicationManagementException IdentityApplicationManagementException.
+     */
+    private void validateInboundAuthKey(InboundAuthenticationRequestConfig inboundConfig, int appId, String
+            tenantDomain) throws IdentityApplicationManagementException {
+
+        if (inboundConfig == null) {
+            return;
+        }
+
+        /*
+         * We need to directly retrieve the application from DB since {@link ServiceProviderByInboundAuthCache} cache
+         * can have inconsistent applications stored against the <inbound-auth-key, inbound-auth-type, tenant-domain>
+         * cache key which is not unique.
+         */
+        ApplicationDAO applicationDAO = new ApplicationDAOImpl();
+        String existingAppName = applicationDAO.getServiceProviderNameByClientId
+                (inboundConfig.getInboundAuthKey(), inboundConfig.getInboundAuthType(), CarbonContext
+                        .getThreadLocalCarbonContext().getTenantDomain());
+
+        if (StringUtils.isBlank(existingAppName)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Cannot find application name for the inbound auth key: " + inboundConfig
+                        .getInboundAuthKey() + " of inbound auth type: " + inboundConfig.getInboundAuthType());
+            }
+            return;
+        }
+        ServiceProvider existingApp = applicationDAO.getApplication(existingAppName, tenantDomain);
+        if (existingApp != null && existingApp.getApplicationID() != appId) {
+            String msg = "Inbound key: '" + inboundConfig.getInboundAuthKey() + "' of inbound auth type: '" +
+                    inboundConfig.getInboundAuthType() + "' is already configured for the application :'" +
+                    existingApp.getApplicationName() + "'";
+            /*
+             * Since this is a conflict scenario, we need to use a different error code. Hence throwing an
+             * 'IdentityApplicationManagementClientException' here with the correct error code.
+             */
+            throw buildClientException(IdentityApplicationConstants.Error.INBOUND_KEY_ALREADY_EXISTS, msg);
+        }
+    }
+
+    private IdentityApplicationManagementClientException buildClientException(IdentityApplicationConstants.Error
+                                                                                      errorMessage, String message) {
+
+        return new IdentityApplicationManagementClientException(errorMessage.getCode(), message);
     }
 
     /**
