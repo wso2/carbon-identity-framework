@@ -334,6 +334,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when adding Identity Provider
      *                                                information
      */
+    @Deprecated
     void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
@@ -356,6 +357,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                                information
      */
+    @Deprecated
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
@@ -375,6 +377,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when updating Identity Provider
      *                                                information
      */
+    @Deprecated
     void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
 
