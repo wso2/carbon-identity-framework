@@ -25,13 +25,16 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
@@ -41,7 +44,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
-@PrepareForTest({UserCoreUtil.class})
+@PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class})
 public class AbstractApplicationAuthenticatorTest {
 
     @Mock
@@ -53,18 +56,33 @@ public class AbstractApplicationAuthenticatorTest {
     @Mock
     HttpServletResponse response;
 
+    @Mock
+    FrameworkServiceDataHolder frameworkServiceDataHolder;
+
+    @Mock
+    AuthenticationDataPublisher authenticationDataPublisherProxy;
+
     @Spy
     AuthenticationContext context;
 
     private static final String AUTHENTICATOR = "AbstractAuthenticator";
     private static final String USER_NAME = "DummyUser";
     private static final String USER_STORE_NAME = "TEST.COM";
+    private static final String TENANT_DOMAIN = "ABC.COM";
+
+    abstract class TestApplicationAuthenticator extends AbstractApplicationAuthenticator
+            implements FederatedApplicationAuthenticator {
+    }
+
+    @Mock
+    TestApplicationAuthenticator testApplicationAuthenticator;
 
     @BeforeTest
     public void setUp() throws Exception {
         initMocks(this);
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
         when(abstractApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
+        when(context.getTenantDomain()).thenReturn(TENANT_DOMAIN);
         doCallRealMethod().when(abstractApplicationAuthenticator).getUserStoreAppendedName(anyString());
         doCallRealMethod().when(abstractApplicationAuthenticator).process(request, response, context);
     }
@@ -196,6 +214,20 @@ public class AbstractApplicationAuthenticatorTest {
 
         doCallRealMethod().when(abstractApplicationAuthenticator).getClaimDialectURI();
         Assert.assertNull(abstractApplicationAuthenticator.getClaimDialectURI());
+    }
+
+    @Test
+    public void testSetTenantDomainToUserName() throws Exception {
+
+        User user = new User();
+        mockStatic(FrameworkServiceDataHolder.class);
+        when(FrameworkServiceDataHolder.getInstance()).thenReturn(frameworkServiceDataHolder);
+        when(frameworkServiceDataHolder.getAuthnDataPublisherProxy()).thenReturn(authenticationDataPublisherProxy);
+        when(authenticationDataPublisherProxy.isEnabled(any())).thenReturn(true);
+        doCallRealMethod().when(testApplicationAuthenticator)
+                .publishAuthenticationStepAttempt(request, context, user, true);
+        testApplicationAuthenticator.publishAuthenticationStepAttempt(request, context, user, true);
+        Assert.assertEquals(user.getTenantDomain(), TENANT_DOMAIN);
     }
 
 
