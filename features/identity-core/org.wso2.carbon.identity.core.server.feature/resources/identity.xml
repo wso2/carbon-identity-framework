@@ -1363,4 +1363,8 @@
     <MaximumItemsPerPage>100</MaximumItemsPerPage>
     <DefaultItemsPerPage>15</DefaultItemsPerPage>
 
+    <UserFiltering>
+        <ShowDisplayName>false</ShowDisplayName>
+    </UserFiltering>
+
 </Server>
