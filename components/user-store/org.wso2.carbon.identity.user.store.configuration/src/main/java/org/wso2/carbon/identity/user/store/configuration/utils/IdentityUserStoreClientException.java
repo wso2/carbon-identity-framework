@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.user.store.configuration.utils;
  */
 public class IdentityUserStoreClientException extends IdentityUserStoreMgtException {
 
+    private static final long serialVersionUID = 846424495576433422L;
+
     public IdentityUserStoreClientException(String message) {
 
         super(message);
