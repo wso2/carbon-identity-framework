@@ -452,5 +452,7 @@
     "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
   ],
   "pagination.max_items_per_page": "100",
-  "pagination.default_items_per_page": "15"
+  "pagination.default_items_per_page": "15",
+
+  "user_filtering.show_display_name_of_user": false
 }
