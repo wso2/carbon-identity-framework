@@ -1521,6 +1521,20 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, POST, PATCH">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+            <Scopes>internal_application_mgt_create</Scopes>
+         </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -1723,5 +1737,9 @@
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
     <DefaultItemsPerPage>{{pagination.default_items_per_page}}</DefaultItemsPerPage>
+
+    <UserFiltering>
+        <ShowDisplayName>{{user_filtering.show_display_name_of_user}}</ShowDisplayName>
+    </UserFiltering>
 
 </Server>

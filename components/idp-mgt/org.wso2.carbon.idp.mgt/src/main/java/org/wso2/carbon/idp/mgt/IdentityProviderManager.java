@@ -1924,7 +1924,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param identityProvider new Identity Provider information
      * @throws IdentityProviderManagementException Error when adding Identity Provider
      *                                             information
+     *
+     * @deprecated use {@link IdentityProviderManager#addIdPWithResourceId(IdentityProvider, String)} instead.
      */
+    @Deprecated
     @Override
     public void addIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
@@ -1990,7 +1993,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param idPName Name of the IdP to be deleted
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                             information
+     *
+     * @deprecated use {@link IdentityProviderManager#deleteIdPByResourceId(String, String)} instead.
      */
+    @Deprecated
     @Override
     public void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
@@ -2065,7 +2071,10 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param idpName      name of IDP to be deleted
      * @param tenantDomain tenantDomain to which the IDP belongs to
+     *
+     * @deprecated use {@link IdentityProviderManager#forceDeleteIdpByResourceId(String, String)} instead.
      */
+    @Deprecated
     public void forceDeleteIdp(String idpName, String tenantDomain) throws IdentityProviderManagementException {
 
         // Invoking the pre listeners.
@@ -2144,7 +2153,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param newIdentityProvider new IdP information
      * @throws IdentityProviderManagementException Error when updating Identity Provider
      *                                             information
+     *
+     * @deprecated use {@link IdentityProviderManager#updateIdPByResourceId(String, IdentityProvider, String)} instead.
      */
+    @Deprecated
     @Override
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
