@@ -67,12 +67,8 @@
             <artifactId>org.wso2.carbon.identity.base</artifactId>
             <exclusions>
                 <exclusion>
-                    <groupId>org.opensaml</groupId>
-                    <artifactId>opensaml</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.opensaml</groupId>
-                    <artifactId>opensaml1</artifactId>
+                    <groupId>org.apache.rampart.wso2</groupId>
+                    <artifactId>rampart-core</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
