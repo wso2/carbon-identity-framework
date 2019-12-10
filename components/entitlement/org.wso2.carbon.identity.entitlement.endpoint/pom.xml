@@ -60,10 +60,6 @@
                     <groupId>org.apache.commons</groupId>
                     <artifactId>commons-lang3</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>org.apache.rampart.wso2</groupId>
-                    <artifactId>rampart-core</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
         <dependency>

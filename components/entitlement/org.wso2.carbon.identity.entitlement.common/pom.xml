@@ -70,12 +70,6 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.base</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.rampart.wso2</groupId>
-                    <artifactId>rampart-core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.axis2.wso2</groupId>
