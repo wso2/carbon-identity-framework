@@ -16,9 +16,10 @@
   ~  KIND, either express or implied.  See the License for the
   ~  specific language governing permissions and limitations
   ~  under the License.
-  -->
+-->
 
-<ApplicationAuthentication xmlns="http://wso2.org/projects/carbon/application-authentication.xml" xmlns:svns="http://org.wso2.securevault/configuration">
+<ApplicationAuthentication xmlns="http://wso2.org/projects/carbon/application-authentication.xml"
+                           xmlns:svns="http://org.wso2.securevault/configuration">
 
     <!--
         ProxyMode allows framework to operate in either 'smart' mode
@@ -34,7 +35,8 @@
     -->
     <AuthenticationEndpointURL>{{authentication.endpoints.login_url}}</AuthenticationEndpointURL>
     <AuthenticationEndpointRetryURL>{{authentication.endpoints.retry_url}}</AuthenticationEndpointRetryURL>
-    <AuthenticationEndpointMissingClaimsURL>{{authentication.endpoints.request_missing_claims_url}}</AuthenticationEndpointMissingClaimsURL>
+    <AuthenticationEndpointMissingClaimsURL>{{authentication.endpoints.request_missing_claims_url}}
+    </AuthenticationEndpointMissingClaimsURL>
 
     <!--
         Extensions allow extending the default behaviour of the authentication
@@ -42,10 +44,13 @@
     -->
     <Extensions>
         <RequestCoordinator>{{authentication.framework.extensions.request_coordinator}}</RequestCoordinator>
-        <AuthenticationRequestHandler>{{authentication.framework.extensions.authentication_request_handler}}</AuthenticationRequestHandler>
+        <AuthenticationRequestHandler>{{authentication.framework.extensions.authentication_request_handler}}
+        </AuthenticationRequestHandler>
         <LogoutRequestHandler>{{authentication.framework.extensions.logout_request_handler}}</LogoutRequestHandler>
-        <StepBasedSequenceHandler>{{authentication.framework.extensions.step_based_sequence_handler}}</StepBasedSequenceHandler>
-        <RequestPathBasedSequenceHandler>{{authentication.framework.extensions.request_path_sequence_handler}}</RequestPathBasedSequenceHandler>
+        <StepBasedSequenceHandler>{{authentication.framework.extensions.step_based_sequence_handler}}
+        </StepBasedSequenceHandler>
+        <RequestPathBasedSequenceHandler>{{authentication.framework.extensions.request_path_sequence_handler}}
+        </RequestPathBasedSequenceHandler>
         <StepHandler>{{authentication.framework.extensions.step_handler}}</StepHandler>
         <HomeRealmDiscoverer>{{authentication.framework.extensions.home_realm_discoverer}}</HomeRealmDiscoverer>
         <ClaimHandler>{{authentication.framework.extensions.claim_handler}}</ClaimHandler>
@@ -63,16 +68,16 @@
         distribution.
     -->
     <AuthenticatorNameMappings>
-        <AuthenticatorNameMapping name="BasicAuthenticator" alias="basic" />
-        <AuthenticatorNameMapping name="OAuthRequestPathAuthenticator" alias="oauth-bearer" />
-        <AuthenticatorNameMapping name="BasicAuthRequestPathAuthenticator" alias="basic-auth" />
-        <AuthenticatorNameMapping name="IWAAuthenticator" alias="iwa" />
-        <AuthenticatorNameMapping name="SAMLSSOAuthenticator" alias="samlsso" />
-        <AuthenticatorNameMapping name="OpenIDConnectAuthenticator" alias="openidconnect" />
-        <AuthenticatorNameMapping name="PassiveSTSAuthenticator" alias="passive-sts" />
+        <AuthenticatorNameMapping name="BasicAuthenticator" alias="basic"/>
+        <AuthenticatorNameMapping name="OAuthRequestPathAuthenticator" alias="oauth-bearer"/>
+        <AuthenticatorNameMapping name="BasicAuthRequestPathAuthenticator" alias="basic-auth"/>
+        <AuthenticatorNameMapping name="IWAAuthenticator" alias="iwa"/>
+        <AuthenticatorNameMapping name="SAMLSSOAuthenticator" alias="samlsso"/>
+        <AuthenticatorNameMapping name="OpenIDConnectAuthenticator" alias="openidconnect"/>
+        <AuthenticatorNameMapping name="PassiveSTSAuthenticator" alias="passive-sts"/>
         {% for authenticator in authentication.custom_authenticator %}
         {% if authenticator.alias is defined %}
-        <AuthenticatorNameMapping name="{{authenticator.name}}" alias="{{authenticator.alias}}" />
+        <AuthenticatorNameMapping name="{{authenticator.name}}" alias="{{authenticator.alias}}"/>
         {% endif %}
         {% endfor %}
     </AuthenticatorNameMappings>
@@ -120,16 +125,16 @@
     </Sequences>
 
     <!--
-            AuthenticationEndpointQueryParams are the request parameters
-            that would be sent to the AuthenticationEndpoint.
-            'action' defines the behaviour: if 'include', only the defined
-            parameters would be included in the request.
-            If 'exclude' specified, all the parameters received by the
-            Authentication Framework would be sent in the request except
-            the ones specified.
-            'sessionDataKey', 'type', 'relyingParty', 'sp' and 'authenticators'
-            parameters will be always sent. They should not be specified here.
-        -->
+        AuthenticationEndpointQueryParams are the request parameters
+        that would be sent to the AuthenticationEndpoint.
+        'action' defines the behaviour: if 'include', only the defined
+        parameters would be included in the request.
+        If 'exclude' specified, all the parameters received by the
+        Authentication Framework would be sent in the request except
+        the ones specified.
+        'sessionDataKey', 'type', 'relyingParty', 'sp' and 'authenticators'
+        parameters will be always sent. They should not be specified here.
+    -->
     <AuthenticationEndpointQueryParams action="{{authentication.endpoint.query_params.filter_policy}}">
         {% for parameter in authentication.endpoint.query_params.filter_parameters %}
         <AuthenticationEndpointQueryParam name="{{parameter}}"/>
@@ -137,11 +142,11 @@
     </AuthenticationEndpointQueryParams>
 
     <!--
-    Similar to the 'AuthenticationEndpointQueryParams' above, the following section defines the parameters that
-    should be included/excluded in the redirection responses from authentication framework. These parameters may be
-    generated internally from the framework, handlers or authenticators. The filtered parameters will be available
-    via the REST API for authentication framework. "removeOnConsumeFromAPI" defines whether to make the filtered
-    parameters unavailable from the API on the first consumption.
+        Similar to the 'AuthenticationEndpointQueryParams' above, the following section defines the parameters that
+        should be included/excluded in the redirection responses from authentication framework. These parameters may be
+        generated internally from the framework, handlers or authenticators. The filtered parameters will be available
+        via the REST API for authentication framework. "removeOnConsumeFromAPI" defines whether to make the filtered
+        parameters unavailable from the API on the first consumption.
     -->
     <AuthenticationEndpointRedirectParams
             action="{{authentication.endpoint.redirect_params.filter_policy}}"
@@ -152,20 +157,21 @@
     </AuthenticationEndpointRedirectParams>
 
     {% if authentication.endpoint.enable_custom_claim_mappings is defined %}
-            <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}</AllowCustomClaimMappingsForAuthenticators>
+    <AllowCustomClaimMappingsForAuthenticators>{{authentication.endpoint.enable_custom_claim_mappings}}
+    </AllowCustomClaimMappingsForAuthenticators>
     {% endif %}
 
     {% if tenant.domain_drop_down.enable is defined %}
-      <TenantDomainDropDownEnabled>{{tenant.domain_drop_down.enable}}</TenantDomainDropDownEnabled>
+    <TenantDomainDropDownEnabled>{{tenant.domain_drop_down.enable}}</TenantDomainDropDownEnabled>
     {% endif %}
     {% if tenant.data_listener_urls is defined %}
-       <TenantDataListenerURLs>
-         {% for listener in tenant.data_listener_urls %}
-           <TenantDataListenerURL>
-           {{listener}}
-           </TenantDataListenerURL>
-         {% endfor %}
-       </TenantDataListenerURLs>
-     {% endif %}
-  
+    <TenantDataListenerURLs>
+        {% for listener in tenant.data_listener_urls %}
+        <TenantDataListenerURL>
+            {{listener}}
+        </TenantDataListenerURL>
+        {% endfor %}
+    </TenantDataListenerURLs>
+    {% endif %}
+
 </ApplicationAuthentication>
