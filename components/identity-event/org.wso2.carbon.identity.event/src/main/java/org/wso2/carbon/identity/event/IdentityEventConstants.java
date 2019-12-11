@@ -109,6 +109,7 @@ public class IdentityEventConstants {
 
         private EventProperty(){}
 
+        public static final String NOTIFICATION_CHANNEL = "notification-channel";
         public static final String MODULE = "module";
         public static final String USER_NAME = "user-name";
         public static final String ROLE_NAME = "role-name";
