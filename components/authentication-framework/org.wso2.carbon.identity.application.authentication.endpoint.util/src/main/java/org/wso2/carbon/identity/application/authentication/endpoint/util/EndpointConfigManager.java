@@ -202,7 +202,7 @@ public class EndpointConfigManager {
                 properties.put(key, value);
             }
         }
-        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated.
         if (isSecuredPropertyAvailable(properties)) {
             SecretResolver resolver = SecretResolverFactory.create(properties, "");
             String protectedTokens = (String) properties.get(PROTECTED_TOKENS);

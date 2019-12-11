@@ -19,6 +19,7 @@ package org.wso2.carbon.identity.thrift.authentication.internal.util;
 
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.impl.builder.StAXOMBuilder;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
@@ -141,7 +142,7 @@ public class ThriftAuthenticationConfigParser {
                 String value;
                 String resolvedValue = MiscellaneousUtil.resolve(element, secretResolver);
 
-                if (resolvedValue != null && !resolvedValue.isEmpty()) {
+                if (StringUtils.isNotBlank(resolvedValue)) {
                     value = resolvedValue;
                 } else {
                     value = element.getText();
