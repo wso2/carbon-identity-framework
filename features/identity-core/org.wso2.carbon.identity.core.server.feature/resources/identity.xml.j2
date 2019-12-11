@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+
 <!--
 ~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 ~
@@ -156,7 +157,8 @@
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
         {% endif %}
-        <!-- True, if access token alias is stored in the database instead of access token.
+        <!--
+             True, if access token alias is stored in the database instead of access token.
              Eg. token alias and token is same when default AccessTokenValueGenerator is used.
              When JWTTokenIssuer is used, jti is used as the token alias
              Default: true.
@@ -500,7 +502,6 @@
              -->
             <IATValidityPeriod>30</IATValidityPeriod>
         </JWTGrant>
-
 
         <SAML2Grant>
             <!--SAML2TokenHandler></SAML2TokenHandler-->
