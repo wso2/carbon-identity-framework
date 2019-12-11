@@ -437,7 +437,7 @@
                     }
                     Property acsUrlProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
                                                 IdentityApplicationConstants.Authenticator.SAML2SSO.ACS_URL);
-                    if (spEntityIdProp != null) {
+                    if (spEntityIdProp != null && acsUrlProp != null) {
                         acsUrl = acsUrlProp.getValue();
                     }
                     Property isAuthnRequestSignedProp = IdPManagementUIUtil.getProperty(fedAuthnConfig.getProperties(),
