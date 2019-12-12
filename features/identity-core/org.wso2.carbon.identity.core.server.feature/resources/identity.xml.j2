@@ -1236,6 +1236,7 @@
             {% endfor %}
         </Resource>
         {% endfor %}
+        <Resource context="(.*)/api/server/v1/images/(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
@@ -1752,6 +1753,10 @@
             {% endfor %}
         </FIDO2TrustedOrigins>
     </FIDO>
+
+    <ContentStore>
+            <Type>{{content_store.type}}</Type>
+    </ContentStore>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
     <DefaultItemsPerPage>{{pagination.default_items_per_page}}</DefaultItemsPerPage>

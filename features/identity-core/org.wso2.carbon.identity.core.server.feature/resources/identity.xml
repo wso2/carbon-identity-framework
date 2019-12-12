@@ -908,6 +908,7 @@
 
 
     <ResourceAccessControl default-access="deny">
+        <Resource context="(.*)/api/server/v1/images/(.*)" secured="false" http-method="GET"/>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
@@ -1386,6 +1387,10 @@
             <Origin>${carbon.protocol}://${carbon.host}:${carbon.management.port}</Origin>
         </FIDO2TrustedOrigins>
     </FIDO>
+
+    <ContentStore>
+        <Type>org.wso2.carbon.identity.image.file.FileBasedStorageSystemImpl</Type>
+    </ContentStore>
 
     <MaximumItemsPerPage>100</MaximumItemsPerPage>
     <DefaultItemsPerPage>15</DefaultItemsPerPage>
