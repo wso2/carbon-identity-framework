@@ -30,6 +30,7 @@ import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementServerException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationRegistrationFailureException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
@@ -1749,20 +1750,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     public ServiceProvider getApplication(String applicationName,
                                           String tenantDomain) throws IdentityApplicationManagementException {
 
-        try {
-            int applicationId = getApplicationIdByName(applicationName, tenantDomain);
-            if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
-                // Looking for the resident sp. Create the resident sp for the tenant.
-                ServiceProvider localServiceProvider = new ServiceProvider();
-                localServiceProvider.setApplicationName(applicationName);
-                localServiceProvider.setDescription("Local Service Provider");
-                applicationId = createApplication(localServiceProvider, tenantDomain);
+        int applicationId = getApplicationIdByName(applicationName, tenantDomain);
+        if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+            // Looking for the resident sp. Create the resident sp for the tenant.
+            if (log.isDebugEnabled()) {
+                log.debug("The application: " + applicationName + " trying to retrieve is not available, which is" +
+                        " identified as the Local Service Provider. Therefore, creating the application: "
+                        + applicationName);
             }
-            return getApplication(applicationId);
-        } catch (IdentityApplicationManagementException ex) {
-            throw new IdentityApplicationManagementException("Failed to retrieve application: "
-                    + applicationName + " in tenantDomain: " + tenantDomain, ex);
+            ServiceProvider localServiceProvider = new ServiceProvider();
+            localServiceProvider.setApplicationName(applicationName);
+            localServiceProvider.setDescription("Local Service Provider");
+            applicationId = createServiceProvider(tenantDomain, localServiceProvider);
         }
+        return getApplication(applicationId);
     }
 
     /**
@@ -4467,7 +4468,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     public String addApplication(ServiceProvider application,
-                                 String tenantDomain) throws IdentityApplicationManagementException {
+                                 String tenantDomain) throws IdentityApplicationManagementException{
 
         Connection connection = IdentityDatabaseUtil.getDBConnection(true);
         try {
@@ -4966,5 +4967,35 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             return applicationId;
         }
+    }
+
+    private boolean isApplicationAlreadyExistsError(IdentityApplicationManagementException ex) {
+
+        return ex instanceof IdentityApplicationRegistrationFailureException
+                && APPLICATION_ALREADY_EXISTS.getCode().contains(ex.getErrorCode());
+    }
+
+    private int createServiceProvider(String tenantDomain, ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
+
+        int applicationId;
+        try {
+            applicationId = createApplication(serviceProvider, tenantDomain);
+        } catch (IdentityApplicationManagementException e) {
+            if (!isApplicationAlreadyExistsError(e)) {
+                throw new IdentityApplicationManagementException("Failed to retrieve application: "
+                        + serviceProvider.getApplicationName() + " in tenantDomain: " + tenantDomain, e);
+            }
+
+            // Although application does not exists at this point, it could already be created by the time where db
+            // queries are committed, if concurrent requests were made in-between.
+            if (log.isDebugEnabled()) {
+                log.debug("The service provider: " + serviceProvider.getApplicationName() + ", tried " +
+                        "to create, is already exists. Therefore, this duplication attempt error is ignored and " +
+                        "existing application id is used", e);
+            }
+            applicationId = getApplicationIdByName(serviceProvider.getApplicationName(), tenantDomain);
+        }
+        return applicationId;
     }
 }
