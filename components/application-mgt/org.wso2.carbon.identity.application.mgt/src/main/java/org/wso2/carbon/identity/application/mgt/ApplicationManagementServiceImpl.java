@@ -2198,7 +2198,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String updatedAppName = updatedApp.getApplicationName();
 
         validateAuthorization(updatedAppName, storedAppName, username, tenantDomain);
-        validateAppName(storedAppName, updatedAppName);
+        validateAppName(storedAppName, updatedApp, tenantDomain);
         validateApplicationCertificate(updatedApp, tenantDomain);
         // Will be supported with 'Advance Consent Management Feature'.
         // validateConsentPurposes(serviceProvider);
@@ -2276,9 +2276,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
     }
 
-    private void validateAppName(String currentAppName,
-                                 String updatedAppName) throws IdentityApplicationManagementException {
+    private void validateAppName(String currentAppName, ServiceProvider updatedApp, String tenantDomain)
+            throws IdentityApplicationManagementException {
 
+        String updatedAppName = updatedApp.getApplicationName();
         if (StringUtils.isBlank(updatedAppName)) {
             // check for required attributes.
             throw buildClientException(INVALID_REQUEST, "Application name cannot be empty.");
@@ -2295,6 +2296,19 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             String msg = "Cannot update an application's name to tenant resident service provider's name '%s'";
             throw buildClientException(OPERATION_FORBIDDEN, String.format(msg, ApplicationConstants.LOCAL_SP));
         }
+
+        if (isAppRenamed(currentAppName, updatedAppName)
+                && isAnotherAppExistsWithUpdatedName(updatedApp, tenantDomain)) {
+            String msg = "Updated application name '%s' already exists.";
+            throw buildClientException(APPLICATION_ALREADY_EXISTS, String.format(msg, updatedAppName));
+        }
+    }
+
+    private boolean isAnotherAppExistsWithUpdatedName(ServiceProvider updatedApp, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        ServiceProvider appWithUpdatedName = getServiceProvider(updatedApp.getApplicationName(), tenantDomain);
+        return appWithUpdatedName != null && appWithUpdatedName.getApplicationID() != updatedApp.getApplicationID();
     }
 
     private boolean isAppRenamed(String currentAppName, String updatedAppName) {
