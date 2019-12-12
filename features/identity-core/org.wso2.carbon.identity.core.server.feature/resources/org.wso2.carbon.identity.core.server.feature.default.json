@@ -226,7 +226,7 @@
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
-  "identity_mgt.recovery.callback_url": "${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do",
+  "identity_mgt.recovery.callback_url": ".*",
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
