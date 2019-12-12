@@ -33,8 +33,8 @@ public class ReCaptchaResponseToken {
     /**
      * Return object of this class after set the token.
      *
-     * @param token
-     * @return
+     * @param token token.
+     * @return ReCaptchaResponseToken.
      */
     public ReCaptchaResponseToken token(String token) {
 
@@ -85,6 +85,9 @@ public class ReCaptchaResponseToken {
     /**
      * Convert the given object to string with each line indented by 4 spaces
      * (except the first line).
+     *
+     * @param o object to convert.
+     * @return String value of converted object.
      */
     private String toIndentedString(Object o) {
 

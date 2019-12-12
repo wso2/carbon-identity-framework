@@ -28,7 +28,6 @@
     String errorMsg = IdentityManagementEndpointUtil.getStringValue(request.getAttribute("errorMsg"));
 %>
 
-
 <html>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -139,7 +138,6 @@
         </div>
     </div>
 </div>
-
 
 <!-- footer -->
 <%

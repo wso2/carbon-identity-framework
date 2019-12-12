@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalRole;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 
 import java.util.List;
@@ -333,6 +334,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when adding Identity Provider
      *                                                information
      */
+    @Deprecated
     void addIdP(IdentityProvider identityProvider, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
@@ -355,6 +357,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                                information
      */
+    @Deprecated
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
@@ -374,6 +377,7 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when updating Identity Provider
      *                                                information
      */
+    @Deprecated
     void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider, String tenantDomain) throws
             IdentityProviderManagementException;
 
@@ -406,5 +410,21 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException
      */
     ProvisioningConnectorConfig[] getAllProvisioningConnectors() throws IdentityProviderManagementException;
+
+    /**
+     * Retrieve applications that are federating to the identity provider identified by resource ID.
+     *
+     * @param resourceId   Identity Provider's resource ID.
+     * @param limit        Limit parameter for pagination.
+     * @param offset       Offset parameter for pagination.
+     * @param tenantDomain Tenant domain of Identity Provider.
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    default ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String
+            tenantDomain) throws IdentityProviderManagementException {
+
+        return null;
+    }
 
 }

@@ -69,7 +69,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
 
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;

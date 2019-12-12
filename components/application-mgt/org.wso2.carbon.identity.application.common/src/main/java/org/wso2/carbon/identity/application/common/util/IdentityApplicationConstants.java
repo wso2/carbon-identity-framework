@@ -147,6 +147,7 @@ public class IdentityApplicationConstants {
             public static final String IS_ENABLE_ASSERTION_SIGNING = "isAssertionSigned";
             public static final String IS_LOGOUT_ENABLED = "IsLogoutEnabled";
             public static final String LOGOUT_REQ_URL = "LogoutReqUrl";
+            public static final String IS_SLO_REQUEST_ACCEPTED = "IsSLORequestAccepted";
             public static final String IS_LOGOUT_REQ_SIGNED = "IsLogoutReqSigned";
             public static final String IS_AUTHN_RESP_SIGNED = "IsAuthnRespSigned";
             public static final String IS_USER_ID_IN_CLAIMS = "IsUserIdInClaims";
@@ -404,6 +405,7 @@ public class IdentityApplicationConstants {
      */
     public static class PassiveSTS {
 
+        public static final String NAME = "passivests";
         public static final String PASSIVE_STS_REALM = "passiveSTSRealm";
         public static final String PASSIVE_STS_REPLY_URL = "passiveSTSWReply";
     }
@@ -571,7 +573,8 @@ public class IdentityApplicationConstants {
         APPLICATION_NOT_DISCOVERABLE("60005"),
         APPLICATION_NOT_FOUND("60006"),
         APPLICATION_ALREADY_EXISTS("60007"),
-        OPERATION_FORBIDDEN("60008");
+        OPERATION_FORBIDDEN("60008"),
+        INBOUND_KEY_ALREADY_EXISTS("60009");
 
         private final String code;
         private static final String APPLICATION_MANAGEMENT_ERROR_CODE_PREFIX = "APP-";

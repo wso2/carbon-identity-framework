@@ -23,7 +23,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.testutil.Whitebox;
 
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,9 +119,9 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
     }
 
     @Test(dataProvider = "dataForUrlEncoding")
-    public void testEncodedCallbackUrl(String callbackUrl, String encodedCallbackUrl) throws URISyntaxException {
+    public void testEncodedCallbackUrl(String callbackUrl, String encodedCallbackUrl) throws MalformedURLException {
 
-        assertEquals(IdentityManagementEndpointUtil.getURLEncodedCallback(callbackUrl), encodedCallbackUrl,
+        assertEquals(IdentityManagementEndpointUtil.encodeURL(callbackUrl), encodedCallbackUrl,
                 "callbackUrl is not properly encoded");
     }
 

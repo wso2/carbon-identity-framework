@@ -455,15 +455,24 @@ public class IdentityManagementEndpointUtil {
     }
 
     /**
-     * Encode query params of the call back url. However this method doesn't support URLs with
-     * spaces. Use {@link #encodeURL(String)} to encode URLs which contain spaces.
+     * Encode query params of the call back url.
      *
-     * @param callbackUrl callback url from the request.
-     * @return encoded callback url.
+     * @param callbackUrl Callback url from the request.
+     * @return Encoded callback url.
      * @throws URISyntaxException URI Syntax Exception.
+     * @deprecated
+     * This method is no longer acceptable to encode query params of the call back url. Because this method
+     * doesn't support URLs with spaces.
+     * Use the {@link #encodeURL(String)} method instead.
      */
+    @Deprecated
     public static String getURLEncodedCallback(String callbackUrl) throws URISyntaxException {
 
+        if (StringUtils.isBlank(callbackUrl)) {
+            return callbackUrl;
+        }
+
+        callbackUrl = callbackUrl.trim().replace(" ", "%20");
         URI uri = new URI(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());

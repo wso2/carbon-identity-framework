@@ -244,6 +244,11 @@
                 <ResponseTypeName>id_token token</ResponseTypeName>
                 <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>device</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
         </SupportedResponseTypes>
         <!-- Supported Grant Types -->
         <SupportedGrantTypes>
@@ -289,6 +294,12 @@
                 <GrantTypeName>account_switch</GrantTypeName>
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator</GrantTypeValidatorImplClass>
+            </SupportedGrantType>
+            <SupportedGrantType>
+                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>
+                <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
         </SupportedGrantTypes>
 
@@ -1167,6 +1178,20 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, POST, PATCH">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+            <Scopes>internal_application_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -1195,6 +1220,8 @@
         <Resource context="(.*)/oauth2/revoke(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/userinfo(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
@@ -1206,7 +1233,6 @@
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
         <Resource context="/mexut(.*)" secured="false" http-method="all"/>
-        <Resource context="/shindig(.*)" secured="false" http-method="all"/>
         <Resource context="/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -1214,6 +1240,7 @@
         <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
         <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/identity/cas(.*)" secured="false" http-method="all"/>
+        <Resource context="/identity/saml/slo(.*)" secured="false" http-method="all"/>
         <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -1367,5 +1394,9 @@
 
     <MaximumItemsPerPage>100</MaximumItemsPerPage>
     <DefaultItemsPerPage>15</DefaultItemsPerPage>
+
+    <UserFiltering>
+        <ShowDisplayName>false</ShowDisplayName>
+    </UserFiltering>
 
 </Server>

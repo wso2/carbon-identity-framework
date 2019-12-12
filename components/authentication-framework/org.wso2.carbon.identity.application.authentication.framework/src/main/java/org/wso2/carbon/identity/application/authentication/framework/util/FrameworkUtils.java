@@ -1806,16 +1806,18 @@ public class FrameworkUtils {
         boolean useLocalClaimDialectForClaimMappings =
                 FileBasedConfigurationBuilder.getInstance().isCustomClaimMappingsForAuthenticatorsAllowed();
 
-        Map<String, String> carbonToStandardClaimMapping;
+        Map<String, String> carbonToStandardClaimMapping = new HashMap<>();
 
         // Check whether to use the default dialect or custom dialect.
         if (useDefaultIdpDialect || useLocalClaimDialectForClaimMappings) {
             String idPStandardDialect = authenticator.getClaimDialectURI();
             try {
-                // Maps the idps dialect to standard dialect.
-                carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
-                                context.getTenantDomain(), false);
+                if (StringUtils.isNotBlank(idPStandardDialect)) {
+                    // Maps the idps dialect to standard dialect.
+                    carbonToStandardClaimMapping = ClaimMetadataHandler.getInstance()
+                            .getMappingsMapFromOtherDialectToCarbon(idPStandardDialect, null,
+                                    context.getTenantDomain(), false);
+                }
                 // check for role claim uri in the idaps dialect.
                 for (Entry<String, String> entry : carbonToStandardClaimMapping.entrySet()) {
                     if (idpRoleMappingURI.equalsIgnoreCase(entry.getValue())) {
@@ -1825,7 +1827,7 @@ public class FrameworkUtils {
             } catch (ClaimMetadataException e) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error in getting the mapping between idps and standard dialect.Thus returning the " +
-                            "unmapped RoleClaimUri: " + idpRoleMappingURI);
+                            "unmapped RoleClaimUri: " + idpRoleMappingURI, e);
                 }
             }
         }

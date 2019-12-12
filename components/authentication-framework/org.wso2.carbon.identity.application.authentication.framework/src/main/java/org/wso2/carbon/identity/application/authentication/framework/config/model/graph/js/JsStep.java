@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Represents a authentication step.
@@ -110,14 +111,16 @@ public class JsStep extends AbstractJSContextMemberObject {
     private List<Map<String, String>> getOptions() {
 
         List<Map<String, String>> optionsList = new ArrayList<>();
-        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
-        stepConfig.getAuthenticatorList().forEach(authConfig -> authConfig.getIdpNames().forEach(name -> {
-            Map<String, String> option = new HashMap<>();
-            option.put(FrameworkConstants.JSAttributes.IDP, name);
-            option.put(FrameworkConstants.JSAttributes.AUTHENTICATOR, authConfig.getApplicationAuthenticator()
-                .getName());
-            optionsList.add(option);
-        }));
+        Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
+                .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
+        optionalStepConfig.ifPresent(stepConfig -> stepConfig.getAuthenticatorList().forEach(
+                authConfig -> authConfig.getIdpNames().forEach(name -> {
+                    Map<String, String> option = new HashMap<>();
+                    option.put(FrameworkConstants.JSAttributes.IDP, name);
+                    option.put(FrameworkConstants.JSAttributes.AUTHENTICATOR, authConfig.getApplicationAuthenticator()
+                            .getName());
+                    optionsList.add(option);
+                })));
         return optionsList;
     }
 }

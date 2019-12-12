@@ -73,8 +73,8 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
     }
 
     /**
-     * This method is introduced in order to check whether the user is local or federated and if it is a
-     * federated user, prevent from obtaining user attributes from userstore.
+     * This method is introduced in order to check whether the user is local or federated. If it is a
+     * federated user, obtaining user attributes from userstore will be prevented.
      *
      * @param attributeType The type of the required attribute.
      * @param attributeId   The unique id of the required attribute.
@@ -97,7 +97,7 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
             if (bagAttribute.size() > 0) {
                 userTypeId = ((AttributeValue) bagAttribute.iterator().next()).encode();
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("The user is a %1$s user", userTypeId));
+                    log.debug(String.format("The user type of the user is %s", userTypeId));
                 }
             }
         }

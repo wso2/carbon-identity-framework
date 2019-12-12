@@ -26,6 +26,7 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.xml.transform.TransformerConfigurationException;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory;
@@ -100,7 +102,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         Set<String> classNames = UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().
                 getAvailableUserStoreClasses();
-        return classNames.toArray(new String[classNames.size()]);
+        return classNames.toArray(new String[0]);
     }
 
     /**
@@ -149,7 +151,11 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().addUserStore(userStoreDTO);
+        try {
+            UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().addUserStore(userStoreDTO);
+        } catch (IdentityUserStoreClientException e) {
+            throw buildIdentityUserStoreMgtException(e, "Error while adding the userstore.");
+        }
     }
 
     /**
@@ -160,8 +166,12 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
-        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().updateUserStore(userStoreDTO,
-                false);
+        try {
+            UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().updateUserStore(userStoreDTO,
+                    false);
+        } catch (IdentityUserStoreClientException e) {
+            throw buildIdentityUserStoreMgtException(e, "Error while updating the userstore.");
+        }
     }
 
 
@@ -187,6 +197,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage);
+        } catch (IdentityUserStoreClientException e) {
+            throw buildIdentityUserStoreMgtException(e, "Error while updating the userstore.");
         }
     }
 
@@ -201,8 +213,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             Map<String, AbstractUserStoreDAOFactory> userStoreFactories = UserStoreConfigListenersHolder.getInstance().
                     getUserStoreDAOFactories();
             Object[] repositoryArr = userStoreFactories.keySet().toArray(new String[0]);
-            String[] repositoryClasses = Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
-            return repositoryClasses;
+            return Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Repository separation of user-stores has been disabled. Returning empty " +
@@ -219,7 +230,11 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void deleteUserStore(String domainName) throws IdentityUserStoreMgtException {
 
-        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStore(domainName);
+        try {
+            UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStore(domainName);
+        } catch (IdentityUserStoreClientException e) {
+            throw buildIdentityUserStoreMgtException(e, "Error while deleting the userstore.");
+        }
     }
 
     /**
@@ -240,7 +255,11 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      */
     public void deleteUserStoresSet(String[] domains) throws IdentityUserStoreMgtException {
 
-        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStoreSet(domains);
+        try {
+            UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().deleteUserStoreSet(domains);
+        } catch (IdentityUserStoreClientException e) {
+            throw buildIdentityUserStoreMgtException(e, "Error while deleting the userstore list.");
+        }
     }
 
     /**
@@ -263,7 +282,11 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 if (CollectionUtils.isNotEmpty(domains)) {
                     AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.getInstance().
                             getUserStoreDAOFactories().get(repositoryClass);
-                    userStoreDAOFactory.getInstance().deleteUserStores(domains.toArray(new String[domains.size()]));
+                    try {
+                        userStoreDAOFactory.getInstance().deleteUserStores(domains.toArray(new String[0]));
+                    } catch (IdentityUserStoreClientException e) {
+                        throw buildIdentityUserStoreMgtException(e, "Error while deleting the userstore list.");
+                    }
                 }
             }
         } else {
@@ -294,10 +317,10 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         validateDomain(domain, isDisable);
         UserStoreDTO userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-        updateTheStateInFileRepository(userStoreDTO);
+        updateStateInFileRepository(userStoreDTO);
     }
 
-    private void updateTheStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+    private void updateStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
             getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, true);
@@ -319,8 +342,13 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             throws IdentityUserStoreMgtException {
 
         validateDomain(domain, isDisable);
-        UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().modifyUserStoreState(domain, isDisable,
-                repositoryClass);
+        try {
+            UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService()
+                    .modifyUserStoreState(domain, isDisable,
+                            repositoryClass);
+        } catch (IdentityUserStoreClientException e) {
+            throw buildIdentityUserStoreMgtException(e, "Error while modifying the userstore state.");
+        }
     }
 
     private void validateDomain(String domain, Boolean isDisable) throws IdentityUserStoreMgtException {
@@ -364,5 +392,15 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().testRDBMSConnection(domainName,
                 driverName, connectionURL, username, connectionPassword, messageID);
+    }
+
+    private IdentityUserStoreMgtException buildIdentityUserStoreMgtException(IdentityUserStoreClientException e,
+                                                                             String defaultMessage) {
+
+        String errorMessage = defaultMessage;
+        if (e.getMessage() != null) {
+            errorMessage = e.getMessage();
+        }
+        return new IdentityUserStoreMgtException(errorMessage, e);
     }
 }

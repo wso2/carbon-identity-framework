@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+
 <!--
 ~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 ~
@@ -156,7 +157,8 @@
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
         {% endif %}
-        <!-- True, if access token alias is stored in the database instead of access token.
+        <!--
+             True, if access token alias is stored in the database instead of access token.
              Eg. token alias and token is same when default AccessTokenValueGenerator is used.
              When JWTTokenIssuer is used, jti is used as the token alias
              Default: true.
@@ -267,6 +269,13 @@
                 <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_token.class}}</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.device.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>device</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.device.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.device.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
@@ -341,6 +350,14 @@
                 <GrantTypeName>account_switch</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.account_switch.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.account_switch.grant_validator}}</GrantTypeValidatorImplClass>
+            </SupportedGrantType>
+            {% endif %}
+            {% if oauth.grant_type.device_code.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.device_code.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
             </SupportedGrantType>
             {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
@@ -485,7 +502,6 @@
              -->
             <IATValidityPeriod>30</IATValidityPeriod>
         </JWTGrant>
-
 
         <SAML2Grant>
             <!--SAML2TokenHandler></SAML2TokenHandler-->
@@ -860,6 +876,13 @@
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
     </Recovery>
 
+    <Notification>
+        <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
+        <ResolveNotificationChannels>
+            <Enable>{{identity_mgt.notification.resolve_notification_channel}}</Enable>
+        </ResolveNotificationChannels>
+    </Notification>
+
     <EmailVerification>
         <Enable>{{identity_mgt.user_onboarding.enable_email_verification}}</Enable>
 	    <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
@@ -875,6 +898,10 @@
 
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
+        <EnableAccountLockForVerifiedPreferredChannel>{{identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel}}</EnableAccountLockForVerifiedPreferredChannel>
+        <API>
+            <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
+        </API>
         <LockOnCreation>{{identity_mgt.user_self_registration.lock_on_creation}}</LockOnCreation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
@@ -1511,6 +1538,20 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, POST, PATCH">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+            <Scopes>internal_application_mgt_create</Scopes>
+         </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -1538,6 +1579,8 @@
         <Resource context="(.*)/oauth2/revoke(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/userinfo(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
@@ -1549,7 +1592,6 @@
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
         <Resource context="/mexut(.*)" secured="false" http-method="all"/>
-        <Resource context="/shindig(.*)" secured="false" http-method="all"/>
         <Resource context="/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -1557,6 +1599,7 @@
         <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
         <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/identity/cas(.*)" secured="false" http-method="all"/>
+        <Resource context="/identity/saml/slo(.*)" secured="false" http-method="all"/>
         <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -1717,5 +1760,9 @@
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
     <DefaultItemsPerPage>{{pagination.default_items_per_page}}</DefaultItemsPerPage>
+
+    <UserFiltering>
+        <ShowDisplayName>{{user_filtering.show_display_name_of_user}}</ShowDisplayName>
+    </UserFiltering>
 
 </Server>

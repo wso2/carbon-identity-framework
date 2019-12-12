@@ -88,6 +88,7 @@ public class IdentityConstants {
     public final static String IDENTITY_DEFAULT_ROLE = "identity";
     public final static String DEFAULT_SUPER_TENAT = "identity.cloud.wso2.com";
     public static String PPID_DISPLAY_VALUE = "Private personal identifier";
+    public static final String FEDERATED_IDP_SESSION_ID = "FederatedIdPSessionIndex_";
 
     //Event Listeners attributes
     public final static String EVENT_LISTENER_TYPE = "type";
@@ -141,6 +142,9 @@ public class IdentityConstants {
     // Service provider constants
     public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
     public static final String SKIP_CONSENT="skipConsent";
+
+    // Use display name of a user when filtering users.
+    public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
 
     private IdentityConstants() {
     }

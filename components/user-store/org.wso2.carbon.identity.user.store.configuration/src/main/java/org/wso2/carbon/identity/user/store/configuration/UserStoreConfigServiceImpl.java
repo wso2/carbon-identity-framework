@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfi
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
@@ -149,7 +150,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void deleteUserStore(String domain) throws IdentityUserStoreMgtException {
 
         if (StringUtils.isEmpty(domain)) {
-            throw new IdentityUserStoreMgtException("No selected user store to delete");
+            throw new IdentityUserStoreClientException("No selected user store to delete.");
         }
 
         if (!validateDomainsForDelete(new String[]{domain})) {
@@ -157,7 +158,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 log.debug("Failed to delete user store " + domain + " " +
                         ": No privileges to delete own user store configurations ");
             }
-            throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
+            throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
             Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactories = UserStoreConfigListenersHolder.
@@ -187,7 +188,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             if (log.isDebugEnabled()) {
                 log.debug("Failed to delete user store : No privileges to delete own user store configurations ");
             }
-            throw new IdentityUserStoreMgtException("No privileges to delete own user store configurations.");
+            throw new IdentityUserStoreClientException("No privileges to delete own user store configurations.");
         }
         try {
             SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().deleteUserStores(domains);
@@ -320,7 +321,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                         "user-store " + domain + " with file-based configuration.");
             }
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateTheStateInFileRepository(userStoreDTO);
+            updateStateInFileRepository(userStoreDTO);
         } else if (StringUtils.isNotEmpty(repositoryClass)) {
             if (log.isDebugEnabled()) {
                 log.debug("Repository separation of user-stores has been disabled. Unable to modify state " +
@@ -328,7 +329,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             }
         } else {
             userStoreDTO = getUserStoreDTO(domain, isDisable, null);
-            updateTheStateInFileRepository(userStoreDTO);
+            updateStateInFileRepository(userStoreDTO);
         }
     }
 
@@ -357,7 +358,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
      * @param userStoreDTO {@link UserStoreDTO}
      * @throws IdentityUserStoreMgtException
      */
-    private void updateTheStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+    private void updateStateInFileRepository(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         try {
             SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO, true);

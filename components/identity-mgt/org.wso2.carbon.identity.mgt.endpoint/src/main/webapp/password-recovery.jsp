@@ -223,7 +223,7 @@
                                         <td>&nbsp;&nbsp;</td>
                                         <td>
                                             <button type="button" id="recoveryCancel" class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                                                    onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.getURLEncodedCallback(callback))%>';">
+                                                    onclick="location.href='<%=Encode.forJavaScript(IdentityManagementEndpointUtil.encodeURL(callback))%>';">
                                                 <%=IdentityManagementEndpointUtil.i18n(recoveryResourceBundle, "Cancel")%>
                                             </button>
                                         </td>

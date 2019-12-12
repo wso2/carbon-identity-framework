@@ -76,6 +76,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_DISABLED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
@@ -506,11 +507,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                 Cookie cookie = FrameworkUtils.getAuthCookie(request);
 
+                String sessionContextKey = null;
                 if (cookie != null) {
-                    String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
-                    context.setSessionIdentifier(sessionContextKey);
+                    sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
+                } else {
+                    sessionContextKey = request.getParameter(SESSION_ID);
                 }
-
+                context.setSessionIdentifier(sessionContextKey);
                 return context;
             }
         } else {

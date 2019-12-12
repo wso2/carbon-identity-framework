@@ -23,6 +23,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+import java.util.Optional;
+
 /**
  * Returns when context.steps[<step_number] is called
  */
@@ -67,10 +69,8 @@ public class JsSteps extends AbstractJSContextMemberObject {
             return null;
         }
 
-        StepConfig stepConfig = getContext().getSequenceConfig().getAuthenticationGraph().getStepMap().get(step);
-        if (stepConfig != null) {
-            return stepConfig.getAuthenticatedIdP();
-        }
-        return null;
+        Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
+                .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
+        return optionalStepConfig.map(StepConfig::getAuthenticatedIdP).orElse(null);
     }
 }

@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-core</artifactId>
-        <version>5.15.21-SNAPSHOT</version>
+        <version>5.15.52-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -204,7 +204,7 @@
 
                             org.xml.sax,
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
-                            ua_parser,
+                            ua_parser; version="${ua_parser.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.core.internal,

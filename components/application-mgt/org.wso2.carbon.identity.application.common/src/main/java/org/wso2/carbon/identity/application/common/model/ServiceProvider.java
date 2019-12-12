@@ -46,6 +46,9 @@ public class ServiceProvider implements Serializable {
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
 
+    private static final String ACCESS_URL = "AccessUrl";
+    private static final String IMAGE_URL = "ImageUrl";
+
     @XmlTransient
     private int applicationID = 0;
 
@@ -97,12 +100,12 @@ public class ServiceProvider implements Serializable {
     private String applicationResourceId;
 
     @IgnoreNullElement
-    @XmlElement(name = "ImageUrl")
+    @XmlElement(name = IMAGE_URL)
     private String imageUrl;
 
     @IgnoreNullElement
-    @XmlElement(name = "LoginUrl")
-    private String loginUrl;
+    @XmlElement(name = ACCESS_URL)
+    private String accessUrl;
 
     @XmlElement(name = "IsDiscoverable")
     private boolean isDiscoverable;
@@ -146,10 +149,10 @@ public class ServiceProvider implements Serializable {
                 }
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
-            } else if ("ImageUrl".equals(elementName)) {
-                serviceProvider.setDescription(element.getText());
-            } else if ("LoginUrl".equals(elementName)) {
-                serviceProvider.setDescription(element.getText());
+            } else if (IMAGE_URL.equals(elementName)) {
+                serviceProvider.setImageUrl(element.getText());
+            } else if (ACCESS_URL.equals(elementName)) {
+                serviceProvider.setAccessUrl(element.getText());
             } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
             } else if ("JwksUri".equals(elementName)) {
@@ -431,14 +434,14 @@ public class ServiceProvider implements Serializable {
         this.imageUrl = imageUrl;
     }
 
-    public String getLoginUrl() {
+    public String getAccessUrl() {
 
-        return loginUrl;
+        return accessUrl;
     }
 
-    public void setLoginUrl(String loginUrl) {
+    public void setAccessUrl(String accessUrl) {
 
-        this.loginUrl = loginUrl;
+        this.accessUrl = accessUrl;
     }
 
     public String getJwksUri() {

@@ -52,6 +52,7 @@ import org.wso2.carbon.idp.mgt.internal.IdPManagementServiceComponent;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
+import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
@@ -330,7 +331,7 @@ public class IdentityProviderManager implements IdpManager {
         }
         X509Certificate cert = null;
         try {
-            IdentityTenantUtil.initializeRegistry(tenantId, tenantDomain);
+            IdentityTenantUtil.initializeRegistry(tenantId);
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
             carbonContext.setTenantDomain(tenantDomain, true);
@@ -1923,7 +1924,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param identityProvider new Identity Provider information
      * @throws IdentityProviderManagementException Error when adding Identity Provider
      *                                             information
+     *
+     * @deprecated use {@link IdentityProviderManager#addIdPWithResourceId(IdentityProvider, String)} instead.
      */
+    @Deprecated
     @Override
     public void addIdP(IdentityProvider identityProvider, String tenantDomain)
             throws IdentityProviderManagementException {
@@ -1989,7 +1993,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param idPName Name of the IdP to be deleted
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      *                                             information
+     *
+     * @deprecated use {@link IdentityProviderManager#deleteIdPByResourceId(String, String)} instead.
      */
+    @Deprecated
     @Override
     public void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
 
@@ -2064,7 +2071,10 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param idpName      name of IDP to be deleted
      * @param tenantDomain tenantDomain to which the IDP belongs to
+     *
+     * @deprecated use {@link IdentityProviderManager#forceDeleteIdpByResourceId(String, String)} instead.
      */
+    @Deprecated
     public void forceDeleteIdp(String idpName, String tenantDomain) throws IdentityProviderManagementException {
 
         // Invoking the pre listeners.
@@ -2143,7 +2153,10 @@ public class IdentityProviderManager implements IdpManager {
      * @param newIdentityProvider new IdP information
      * @throws IdentityProviderManagementException Error when updating Identity Provider
      *                                             information
+     *
+     * @deprecated use {@link IdentityProviderManager#updateIdPByResourceId(String, IdentityProvider, String)} instead.
      */
+    @Deprecated
     @Override
     public void updateIdP(String oldIdPName, IdentityProvider newIdentityProvider,
                           String tenantDomain) throws IdentityProviderManagementException {
@@ -2399,6 +2412,29 @@ public class IdentityProviderManager implements IdpManager {
 
         return null;
 
+    }
+
+    @Override
+    public ConnectedAppsResult getConnectedApplications(String resourceId, Integer limit, Integer offset, String
+            tenantDomain) throws IdentityProviderManagementException {
+
+        validateResourceId(resourceId, tenantDomain);
+        limit = validateLimit(limit);
+        offset = validateOffset(offset);
+        return dao.getConnectedApplications(resourceId, limit, offset);
+    }
+
+    private void validateResourceId(String resourceId, String tenantDomain) throws IdentityProviderManagementException {
+
+        if (StringUtils.isEmpty(resourceId)) {
+            String data = "Invalid argument: Identity Provider resource ID value is empty";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS, data);
+        }
+        if (getIdPByResourceId(resourceId, tenantDomain, true) == null) {
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                    .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
+        }
     }
 
     /**

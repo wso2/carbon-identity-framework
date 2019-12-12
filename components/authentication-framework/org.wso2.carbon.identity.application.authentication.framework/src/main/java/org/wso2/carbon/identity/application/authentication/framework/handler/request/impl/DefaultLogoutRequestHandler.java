@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
@@ -29,16 +30,19 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.LogoutRequestHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.model.CommonAuthResponseWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
@@ -48,6 +52,9 @@ import java.net.URLEncoder;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
+        SAML2SSO.FED_AUTH_NAME;
 
 public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
@@ -81,20 +88,35 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             log.trace("Inside handle()");
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        // Retrieve session information from cache.
+        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
         ExternalIdPConfig externalIdPConfig = null;
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null &&
-                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context)) {
-            // Retrieve session information from cache in order to publish event
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(context.getSessionIdentifier());
-            if (sessionContext != null) {
-                Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-                AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-                if (authenticatedUserObj != null) {
-                    authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+                FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy().isEnabled(context) &&
+                    sessionContext != null) {
+            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+            if (authenticatedUserObj instanceof AuthenticatedUser) {
+                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            }
+            FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
+                    sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
+                            .SESSION_TERMINATE);
+        }
+
+        // Remove federated authentication session details from the database.
+        if (sessionContext != null && StringUtils.isNotBlank(context.getSessionIdentifier()) &&
+                sessionContext.getSessionAuthHistory().getHistory() != null) {
+            for (AuthHistory authHistory : sessionContext.getSessionAuthHistory().getHistory()) {
+                if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName())) {
+                    try {
+                        UserSessionStore.getInstance().removeFederatedAuthSessionInfo(context.getSessionIdentifier());
+                        break;
+                    } catch (UserSessionException e) {
+                        throw new FrameworkException("Error while deleting federated authentication session details for"
+                                + " the session context key :" + context.getSessionIdentifier(), e);
+                    }
                 }
-                FrameworkUtils.publishSessionEvent(context.getSessionIdentifier(), request, context,
-                        sessionContext, authenticatedUser, FrameworkConstants.AnalyticsAttributes
-                                .SESSION_TERMINATE);
             }
         }
 
@@ -211,7 +233,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         } else {
             redirectURL = context.getCallerPath();
         }
-        
+
         /*
          * TODO Cache retaining is a temporary fix. Remove after Google fixes
          * http://code.google.com/p/gdata-issues/issues/detail?id=6628

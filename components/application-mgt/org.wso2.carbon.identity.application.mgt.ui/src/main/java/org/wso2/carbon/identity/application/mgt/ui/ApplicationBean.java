@@ -1106,6 +1106,9 @@ public class ApplicationBean {
         String isDiscoverableApp = request.getParameter("isDiscoverableApp");
         serviceProvider.setDiscoverable("on".equals(isDiscoverableApp));
 
+        String accessUrl = request.getParameter("accessURL");
+        serviceProvider.setAccessUrl(accessUrl);
+
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
             // create fresh one.
             serviceProvider
