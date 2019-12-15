@@ -123,6 +123,7 @@
     }
     String spName = appBean.getServiceProvider().getApplicationName();
     String accessURL = appBean.getServiceProvider().getAccessUrl();
+    String imageURL = appBean.getServiceProvider().getImageUrl();
 
     List<String> permissions = null;
     permissions = appBean.getPermissions();
@@ -413,6 +414,11 @@
             var accessUrl = document.getElementById("accessURL").value;
             if (accessUrl == '') {
                 CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.access.url.value")%>');
+                return false;
+            }
+            var imageURL = document.getElementById("imageURL").value;
+            if (imageURL == '') {
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.image.url.value")%>');
                 return false;
             }
         }
@@ -1477,13 +1483,27 @@
                         <!--Access URL TEXT BOX-->
                         <tr id="use_access_url">
                             <td style="width:15%" class="leftCol-med labelField">
-                                <fmt:message key="config.application.accessUrl"/>
+                                <fmt:message key="config.application.access.url"/>
                             </td>
                             <td style="width:50%" class="leftCol-med labelField">
                                 <input style="width:50%" id="accessURL" name="accessURL" type="text"
-                                value="<%=accessURL != null ? Encode.forHtmlAttribute(accessURL) : "" %>" autofocus />
+                                       value="<%=accessURL != null ? Encode.forHtmlAttribute(accessURL) : "" %>" autofocus />
                                 <div class="sectionHelp">
-                                    <fmt:message key='help.accessUrl'/>
+                                    <fmt:message key='help.access.url'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <!--Image URL TEXT BOX-->
+                        <tr id="use_image_url">
+                            <td style="width:15%" class="leftCol-med labelField">
+                                <fmt:message key="config.application.image.url"/>
+                            </td>
+                            <td style="width:50%" class="leftCol-med labelField">
+                                <input style="width:50%" id="imageURL" name="imageURL" type="text"
+                                       value="<%=imageURL != null ? Encode.forHtmlAttribute(imageURL) : "" %>"
+                                       autofocus />
+                                <div class="sectionHelp">
+                                    <fmt:message key='help.image.url'/>
                                 </div>
                             </td>
                         </tr>

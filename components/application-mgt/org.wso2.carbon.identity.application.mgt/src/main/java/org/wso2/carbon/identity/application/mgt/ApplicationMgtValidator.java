@@ -101,8 +101,14 @@ public class ApplicationMgtValidator {
     private void validateDiscoverabilityConfigs(List<String> validationErrors,
                                                 ServiceProvider serviceProvider) {
 
-        if (serviceProvider.isDiscoverable() && StringUtils.isBlank(serviceProvider.getAccessUrl())) {
-            validationErrors.add("A valid accessURL needs to be defined if an application is marked as discoverable.");
+        String validationErrorFormat = "A valid %s needs to be defined if an application is marked as discoverable.";
+        if (serviceProvider.isDiscoverable()) {
+            if (StringUtils.isBlank(serviceProvider.getAccessUrl())) {
+                validationErrors.add(String.format(validationErrorFormat, "accessURL"));
+            }
+            if (StringUtils.isBlank(serviceProvider.getImageUrl())) {
+                validationErrors.add(String.format(validationErrorFormat, "imageURL"));
+            }
         }
     }
 
