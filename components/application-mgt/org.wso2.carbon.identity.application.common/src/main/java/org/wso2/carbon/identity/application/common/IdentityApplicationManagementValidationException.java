@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.common;
 
+import java.util.Arrays;
+
 /**
  * Exception class handling exceptions during application validation. Validation errors have to added to the
  * validationMsg list.
@@ -57,7 +59,7 @@ public class IdentityApplicationManagementValidationException extends IdentityAp
 
         StringBuilder builder = new StringBuilder(super.getMessage());
         if (validationMsg != null && validationMsg.length > 0) {
-            builder.append(" ").append(validationMsg[0]);
+            Arrays.stream(validationMsg).forEach(message -> builder.append(" ").append(message));
         }
         return builder.toString();
     }
