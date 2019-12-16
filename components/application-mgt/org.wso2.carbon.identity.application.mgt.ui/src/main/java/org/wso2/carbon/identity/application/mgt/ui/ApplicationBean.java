@@ -505,14 +505,14 @@ public class ApplicationBean {
     }
 
     /**
-     * Returns whether consent needs to be skipped for this service provider.
+     * Returns whether logout consent needs to be skipped for this service provider.
      *
-     * @return true of consent is skipped, false otherwise.
+     * @return true of logout consent is skipped, false otherwise.
      */
     public boolean isSkipLogoutConsent() {
 
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-        return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSkipLogoutConsent();
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSkipLogoutConsent();
         }
         return false;
     }
