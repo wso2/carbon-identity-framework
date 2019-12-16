@@ -2822,6 +2822,14 @@
                                                         <fmt:message key='help.skip.consent'/>
                                                     </div>
                                                 </tr>
+                                                <tr>
+                                                    <input type="checkbox" id="skipLogoutConsent" name="skipLogoutConsent" <%=appBean.isSkipLogoutConsent() ? "checked" : ""%> value="true"/>
+                                                    <label for="skipLogoutConsent"><fmt:message key="config.application.skip.logout.consent"/></label>
+                                                    </br>
+                                                    <div class="sectionHelp">
+                                                        <fmt:message key='help.skip.logout.consent'/>
+                                                    </div>
+                                                </tr>
                                             </table>
 
 

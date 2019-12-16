@@ -2225,6 +2225,30 @@ public class FrameworkUtils {
     }
 
     /**
+     * Check whether skip logout consent page or not.
+     *
+     * @param serviceProvider Service provider.
+     * @return true/false Skip the logout consent page or not.
+     */
+    public static boolean isLogoutConsentPageSkippedForSP(ServiceProvider serviceProvider) {
+
+        if (serviceProvider == null) {
+            throw new IllegalArgumentException("A null reference received for service provider.");
+        }
+        boolean isSkipLogoutConsent = false;
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+            isSkipLogoutConsent = serviceProvider.getLocalAndOutBoundAuthenticationConfig().isSkipLogoutConsent();
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("SkipLogoutConsent: " + isSkipLogoutConsent + " for application: " +
+                    serviceProvider.getApplicationName() + " with id: " + serviceProvider.getApplicationID());
+        }
+
+        return isSkipLogoutConsent;
+    }
+
+    /**
      * Check whether the specified column of the specified table exists in the Identity database.
      *
      * @param tableName name of the table.
