@@ -81,7 +81,10 @@
   "oauth.response_type.id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenResponseTypeHandler",
   "oauth.response_type.id_token_token.enable": true,
   "oauth.response_type.id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler",
-
+  "oauth.response_type.device.enable": false,
+  "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
+  "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
+  
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
   "oauth.grant_type.password.enable": true,
@@ -109,6 +112,9 @@
   "oauth.grant_type.account_switch.enable": true,
   "oauth.grant_type.account_switch.grant_handler": "org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler",
   "oauth.grant_type.account_switch.grant_validator": "org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator",
+  "oauth.grant_type.device_code.enable": false,
+  "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
+  "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
 
   "oauth.extensions.callback_handlers": [
     {
@@ -220,7 +226,7 @@
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
-  "identity_mgt.recovery.callback_url": "${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do",
+  "identity_mgt.recovery.callback_url": ".*",
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",

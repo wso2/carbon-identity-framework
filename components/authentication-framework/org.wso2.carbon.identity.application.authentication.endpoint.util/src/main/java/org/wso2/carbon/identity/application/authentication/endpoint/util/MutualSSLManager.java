@@ -106,11 +106,11 @@ public class MutualSSLManager {
                 try (InputStream inputStream = new FileInputStream(configFile)) {
 
                     prop.load(inputStream);
-                    //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
+                    // Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
                     // feature is enabled.
                     if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.
                             MUTUAL_SSL_MANAGER_ENABLED)) && isSecuredPropertyAvailable(prop)) {
-                        // Resolve encrypted properties with secure vault
+                        // Resolve encrypted properties with secure vault.
                         resolveSecrets(prop);
 
                     }
@@ -132,7 +132,7 @@ public class MutualSSLManager {
                 }
             }
 
-            //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
+            // Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
             // feature is enabled.
             if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
                 usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
@@ -243,7 +243,7 @@ public class MutualSSLManager {
                 properties.put(key, value);
             }
         }
-        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated.
         if (isSecuredPropertyAvailable(properties)) {
             SecretResolver resolver = SecretResolverFactory.create(properties, "");
             String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
@@ -255,7 +255,7 @@ public class MutualSSLManager {
                     if (log.isDebugEnabled()) {
                         log.debug("Resolving and replacing secret for " + element);
                     }
-                    // Replaces the original encrypted property with resolved property
+                    // Replaces the original encrypted property with resolved property.
                     properties.put(element, resolver.resolve(element));
                 } else {
                     if (log.isDebugEnabled()) {

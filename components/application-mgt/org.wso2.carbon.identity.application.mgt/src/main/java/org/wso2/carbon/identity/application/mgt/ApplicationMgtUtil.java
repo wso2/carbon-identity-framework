@@ -53,6 +53,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -197,14 +198,43 @@ public class ApplicationMgtUtil {
             try {
                 userStoreManager.updateRoleListOfUser(username, null, newRoles);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while updating application role: " +
-                        roleName + " with user " + username, e1);
+                String msg = "Error while updating application role: " + roleName + " with user " + username;
 
+                // If concurrent requests were made, the role could already be assigned to the user. When that
+                // validation is done upon a user store exception(rather than checking it prior updating the role
+                // list of the user), even the extreme case where the concurrent request assigns the role just before
+                // db query is executed, is handled.
+                try {
+                    if (isRoleAlreadyApplied(username, roleName, userStoreManager)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("The role: " + roleName + ", is already assigned to the user: " + username
+                                    + ". Skip assigning");
+                        }
+                        return;
+                    }
+                } catch (UserStoreException ex ) {
+                    msg = "Error while getting existing application roles of the user " + username;
+                    throw new IdentityApplicationManagementException(msg, ex);
+                }
+
+                // Throw the error, unless the error caused from role being already assigned.
+                throw new IdentityApplicationManagementException(msg, e1);
             }
         } else {
             throw new IdentityApplicationManagementException("Error while creating application role: " + roleName +
                     " with user " + username, e);
         }
+    }
+
+    private static boolean isRoleAlreadyApplied(String username, String roleName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        boolean isRoleAlreadyApplied = false;
+        String[] roleListOfUser = userStoreManager.getRoleListOfUser(username);
+        if (roleListOfUser != null) {
+            isRoleAlreadyApplied = Arrays.asList(roleListOfUser).contains(roleName);
+        }
+        return isRoleAlreadyApplied;
     }
 
     private static String getAppRoleName(String applicationName) {
