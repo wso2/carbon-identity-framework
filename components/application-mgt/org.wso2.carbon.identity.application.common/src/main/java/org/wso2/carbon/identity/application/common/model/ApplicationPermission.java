@@ -22,11 +22,15 @@ import org.apache.axiom.om.OMElement;
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Permissions of an application.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "ApplicationPermission")
 public class ApplicationPermission implements Serializable {

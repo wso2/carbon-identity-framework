@@ -31,10 +31,12 @@ public class ExternalClaimCache extends BaseCache<ExternalClaimCacheKey, ArrayLi
     private static final ExternalClaimCache instance = new ExternalClaimCache();
 
     private ExternalClaimCache() {
+
         super(CACHE_NAME);
     }
 
     public static ExternalClaimCache getInstance() {
+
         return instance;
     }
 }

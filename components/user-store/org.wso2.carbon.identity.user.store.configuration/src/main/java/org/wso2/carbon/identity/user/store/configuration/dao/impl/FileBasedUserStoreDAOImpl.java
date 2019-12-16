@@ -17,21 +17,22 @@
 package org.wso2.carbon.identity.user.store.configuration.dao.impl;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.store.configuration.beans.RandomPassword;
+import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanceDTO;
-import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigListenersHolder;
-import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreClientException;
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.XMLProcessorUtils;
@@ -53,11 +54,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getRandomPasswords;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.writeUserMgtXMLFile;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
 
@@ -109,9 +112,9 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private void validateFileName(String domainName, String fileName) throws IdentityUserStoreMgtException {
 
         if (!IdentityUtil.isValidFileName(fileName)) {
-            String message = "Provided domain name : '" + domainName + "' is invalid.";
+            String message = "Provided domain name: '" + domainName + "' is invalid.";
             log.error(message);
-            throw new IdentityUserStoreMgtException(message);
+            throw new IdentityUserStoreClientException(message);
         }
     }
 
@@ -122,11 +125,13 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     }
 
     private void writeToUserStoreConfigurationFile(Path userStoreConfigFile, UserStoreDTO userStoreDTO,
-                                                   boolean editSecondaryUserStore, boolean isStateChange)
+                                                   boolean editSecondaryUserStore, boolean isStateChange,
+                                                   String existingDomainName)
             throws IdentityUserStoreMgtException {
 
         try {
-            writeUserMgtXMLFile(userStoreConfigFile, userStoreDTO, editSecondaryUserStore, isStateChange);
+            writeUserMgtXMLFile(userStoreConfigFile, userStoreDTO, editSecondaryUserStore, isStateChange,
+                    existingDomainName);
             if (log.isDebugEnabled()) {
                 log.debug("New user store successfully written to the file" + userStoreConfigFile.toAbsolutePath());
             }
@@ -136,19 +141,23 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         }
     }
 
-    private void throwException(String domainName, boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
+    private IdentityUserStoreMgtException buildException(String domainName, boolean editSecondaryUserStore) {
 
         String msg = "Cannot add user store " + domainName + ". User store already exists.";
+        String errorCode = UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_XML_FILE_ALREADY_EXISTS.getCode();
         if (editSecondaryUserStore) {
             msg = "Cannot edit user store " + domainName + ". User store cannot be edited.";
+            errorCode = UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_XML_FILE_NOT_FOUND.getCode();
         }
-        throw new IdentityUserStoreMgtException(msg);
+        return new IdentityUserStoreClientException(errorCode, msg);
     }
 
     @Override
     public void deleteUserStore(String domain) throws IdentityUserStoreMgtException {
 
-        deleteUserStores(new String[]{domain});
+        if (isDomainNameExists(domain)) {
+            deleteUserStores(new String[]{domain});
+        }
     }
 
     @Override
@@ -241,17 +250,16 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 if (uuid == null) {
                     uuid = UUID.randomUUID().toString();
                 }
-                String randomPhrase = UserStoreConfigurationConstant.RANDOM_PHRASE_PREFIX + uuid;
                 String className = secondaryRealmConfiguration.getUserStoreClass();
                 UserStoreDTO userStoreDTO = getUserStoreDTO(secondaryRealmConfiguration, userStoreProperties);
                 userStoreProperties.put("Class", className);
                 userStoreProperties.put(UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT, uuid);
-                RandomPassword[] randomPasswords = getRandomPasswords(secondaryRealmConfiguration, userStoreProperties,
-                        uuid, randomPhrase, className);
+                MaskedProperty[] maskedProperties = setMaskInUserStoreProperties(secondaryRealmConfiguration,
+                        userStoreProperties, ENCRYPTED_PROPERTY_MASK, className);
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
                 // Now revert back to original password.
-                for (RandomPassword randomPassword : randomPasswords) {
-                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
+                for (MaskedProperty maskedProperty : maskedProperties) {
+                    userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
                 }
                 domains.add(userStoreDTO);
                 secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
@@ -265,21 +273,22 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
-            Boolean validDomain = xmlProcessorUtils.isValidDomain(domainName, true);
+            boolean validDomain = isValidDomainToAdd(domainName);
             validateForFederatedDomain(domainName);
             if (validDomain) {
                 Path userStoreConfigFile = getUserStoreConfigurationFile(userStorePersistanceDTO.getUserStoreDTO());
                 if (Files.exists(userStoreConfigFile)) {
-                    throwException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), false);
+                    throw buildException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), false);
                 }
-                writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(), false, false);
+                writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(),
+                        false, false, domainName);
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("The user store domain: " + domainName + "is not a valid domain name.");
                 }
             }
         } catch (UserStoreException e) {
-            throw new IdentityUserStoreMgtException("Error occured while adding the user store with the domain: " +
+            throw new IdentityUserStoreClientException("Error occurred while adding the user store with the domain: " +
                     domainName, e);
         }
     }
@@ -292,20 +301,20 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
             validateForFederatedDomain(domainName);
-            isValidDomain = xmlProcessorUtils.isValidDomain(domainName, false);
+            isValidDomain = isDomainNameExists(domainName);
         } catch (UserStoreException e) {
-            throw new IdentityUserStoreMgtException("Error while updating the user store.", e);
+            throw new IdentityUserStoreClientException("Error while updating the user store.", e);
         }
         if (isValidDomain) {
             Path userStoreConfigFile = getUserStoreConfigurationFile(userStorePersistanceDTO.getUserStoreDTO());
             if (!Files.exists(userStoreConfigFile)) {
-                throwException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), true);
+                throw buildException(userStorePersistanceDTO.getUserStoreDTO().getDomainId(), true);
             }
-            writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(), true,
-                    isStateChange);
+            writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(),
+                    true, isStateChange, domainName);
         } else {
             String errorMessage = "Trying to edit an invalid domain : " + domainName;
-            throw new IdentityUserStoreMgtException(errorMessage);
+            throw new IdentityUserStoreClientException(errorMessage);
         }
     }
 
@@ -323,23 +332,28 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
             createUserStoreDirectory(null, fileName, false);
-            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + ".xml");
-            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + FILE_EXTENSION_XML);
+            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + FILE_EXTENSION_XML);
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
             createUserStoreDirectory(tenantFilePath, fileName, true);
-            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), fileName + ".xml");
-            previousUserStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), previousFileName + ".xml");
+            userStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES,
+                    fileName + FILE_EXTENSION_XML);
+            previousUserStoreConfigFile = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES,
+                    previousFileName + FILE_EXTENSION_XML);
         }
         if (!Files.exists(previousUserStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. Previous domain name " + previousDomainName +
                     " does not exists.";
-            throw new IdentityUserStoreMgtException(errorMessage);
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage
+                    .ERROR_CODE_XML_FILE_NOT_FOUND.getCode(),
+                    errorMessage);
         }
         if (Files.exists(userStoreConfigFile)) {
             String errorMessage = "Cannot update user store domain name. An user store already exists with new domain " +
                     domainName + ".";
-            throw new IdentityUserStoreMgtException(errorMessage);
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
+                    ERROR_CODE_XML_FILE_ALREADY_EXISTS.getCode(), errorMessage);
         }
         try {
             // Run pre user-store name update listeners
@@ -354,7 +368,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         }
         try {
             Files.delete(previousUserStoreConfigFile);
-            writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(), true, false);
+            writeToUserStoreConfigurationFile(userStoreConfigFile, userStorePersistanceDTO.getUserStoreDTO(),
+                    true, false, previousDomainName);
         } catch (IOException e) {
             log.info("Error when deleting previous configuration files " + previousUserStoreConfigFile);
         }
@@ -392,18 +407,17 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                 if (uuid == null) {
                     uuid = UUID.randomUUID().toString();
                 }
-                String randomPhrase = UserStoreConfigurationConstant.RANDOM_PHRASE_PREFIX + uuid;
                 String className = secondaryRealmConfiguration.getUserStoreClass();
                 UserStoreDTO userStoreDTO = getUserStoreDTO(secondaryRealmConfiguration, userStoreProperties);
                 userStoreProperties.put("Class", className);
                 userStoreProperties.put(UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT, uuid);
-                RandomPassword[] randomPasswords = getRandomPasswords(secondaryRealmConfiguration, userStoreProperties,
-                        uuid, randomPhrase, className);
+                MaskedProperty[] maskedProperties = setMaskInUserStoreProperties(secondaryRealmConfiguration,
+                        userStoreProperties, ENCRYPTED_PROPERTY_MASK, className);
                 userStoreDTO.setProperties(convertMapToArray(userStoreProperties));
 
                 // Now revert back to original password.
-                for (RandomPassword randomPassword : randomPasswords) {
-                    userStoreProperties.put(randomPassword.getPropertyName(), randomPassword.getPassword());
+                for (MaskedProperty maskedProperty : maskedProperties) {
+                    userStoreProperties.put(maskedProperty.getName(), maskedProperty.getValue());
                 }
                 userStorePersistanceDTO.setUserStoreDTO(userStoreDTO);
                 userStorePersistanceDAOList.add(userStorePersistanceDTO);
@@ -425,5 +439,86 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             userStoreDTO.setDisabled(Boolean.valueOf(userStoreProperties.get(DISABLED)));
         }
         return userStoreDTO;
+    }
+
+    /**
+     * To check whether the provided domain name is valid to add user store.
+     *
+     * @param domainName user store domain name
+     * @return true or false
+     * @throws IdentityUserStoreMgtException
+     */
+    private boolean isValidDomainToAdd(String domainName) throws IdentityUserStoreMgtException {
+
+        if (StringUtils.isEmpty(domainName)) {
+            throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
+        }
+
+        if (domainName.contains("_")) {
+            throw new IdentityUserStoreClientException(" User store domain name should not contain \"_\".");
+        }
+
+        if (getDomainNames().contains(domainName)) {
+            // if add, user store domain name shouldn't already exists
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
+                    ERROR_CODE_USER_STORE_DOMAIN_ALREADY_EXISTS.getCode(),
+                    " Cannot add user store. Domain name: " + domainName + " already exists.");
+        }
+        return true;
+    }
+
+    /**
+     * Get a List of existing domain names.
+     *
+     * @return : list of domain names
+     * @throws IdentityUserStoreMgtException
+     */
+    private List<String> getDomainNames() throws IdentityUserStoreMgtException {
+
+        List<String> domains = new ArrayList<String>();
+
+        RealmConfiguration realmConfiguration = null;
+        try {
+            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException(" Error occurred while retrieving the realm configuration ", e);
+        }
+
+        // To add PRIMARY domain to the domains list
+        String domain = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+        if (domain == null) {
+            domain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+        }
+        domains.add(domain);
+
+        RealmConfiguration secondaryRealmConfiguration = realmConfiguration.getSecondaryRealmConfig();
+        while (secondaryRealmConfiguration != null) {
+            domains.add(secondaryRealmConfiguration.getUserStoreProperty(UserCoreConstants.
+                    RealmConfig.PROPERTY_DOMAIN_NAME));
+            secondaryRealmConfiguration = secondaryRealmConfiguration.getSecondaryRealmConfig();
+        }
+        return domains;
+    }
+
+    /**
+     * To check whether the provided domain name already exists to update or delete.
+     *
+     * @param domainName user store domain name
+     * @return true or false
+     * @throws IdentityUserStoreMgtException
+     */
+    private boolean isDomainNameExists(String domainName) throws IdentityUserStoreMgtException {
+
+        if (StringUtils.isEmpty(domainName)) {
+            throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
+        }
+
+        if (!getDomainNames().contains(domainName)) {
+            // if edit or delete, user store domain name should already exists
+            throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
+                    ERROR_CODE_USER_STORE_DOMAIN_NOT_FOUND.getCode(), " Cannot find the domain name " +
+                    domainName + " to perform this operation");
+        }
+        return true;
     }
 }

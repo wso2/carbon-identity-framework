@@ -18,9 +18,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%@ page import="org.apache.commons.lang.StringUtils" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointConstants" %>
-<%@ page import="org.wso2.carbon.identity.mgt.endpoint.IdentityManagementEndpointUtil" %>
-<%@ page import="java.net.URISyntaxException" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants" %>
+<%@ page import="org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil" %>
+<%@ page import="java.net.MalformedURLException" %>
 <jsp:directive.include file="localize.jsp"/>
 <%
     boolean isEmailNotificationEnabled = false;
@@ -90,9 +90,9 @@
             <%
             try {
             %>
-                location.href = "<%= IdentityManagementEndpointUtil.getURLEncodedCallback(callback)%>";
+                location.href = "<%= IdentityManagementEndpointUtil.encodeURL(callback)%>";
             <%
-            } catch (URISyntaxException e) {
+            } catch (MalformedURLException e) {
                 request.setAttribute("error", true);
                 request.setAttribute("errorMsg", "Invalid callback URL found in the request.");
                 request.getRequestDispatcher("error.jsp").forward(request, response);

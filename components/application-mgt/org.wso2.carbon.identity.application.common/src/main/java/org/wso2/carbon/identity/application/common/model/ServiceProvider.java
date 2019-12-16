@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +27,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -33,6 +35,9 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+/**
+ * Application configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "ServiceProvider")
 public class ServiceProvider implements Serializable {
@@ -40,6 +45,9 @@ public class ServiceProvider implements Serializable {
     private static final long serialVersionUID = 4754526832588478582L;
     private static final Log log = LogFactory.getLog(ServiceProvider.class);
     private static final String CONSENT_CONFIG_ELEM = "ConsentConfig";
+
+    private static final String ACCESS_URL = "AccessUrl";
+    private static final String IMAGE_URL = "ImageUrl";
 
     @XmlTransient
     private int applicationID = 0;
@@ -53,6 +61,9 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "Certificate")
     private String certificateContent;
 
+    @XmlElement(name = "JwksUri")
+    private String jwksUri;
+
     @XmlTransient
     private User owner;
 
@@ -62,7 +73,7 @@ public class ServiceProvider implements Serializable {
     @XmlElement(name = "LocalAndOutBoundAuthenticationConfig")
     private LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig;
 
-    @XmlElementWrapper(name="RequestPathAuthenticatorConfigs")
+    @XmlElementWrapper(name = "RequestPathAuthenticatorConfigs")
     @XmlElement(name = "RequestPathAuthenticatorConfig")
     private RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs;
 
@@ -83,6 +94,21 @@ public class ServiceProvider implements Serializable {
 
     @XmlTransient
     private ServiceProviderProperty[] spProperties = new ServiceProviderProperty[0];
+
+    @IgnoreNullElement
+    @XmlTransient
+    private String applicationResourceId;
+
+    @IgnoreNullElement
+    @XmlElement(name = IMAGE_URL)
+    private String imageUrl;
+
+    @IgnoreNullElement
+    @XmlElement(name = ACCESS_URL)
+    private String accessUrl;
+
+    @XmlElement(name = "IsDiscoverable")
+    private boolean isDiscoverable;
 
 
     /*
@@ -123,8 +149,14 @@ public class ServiceProvider implements Serializable {
                 }
             } else if ("Description".equals(elementName)) {
                 serviceProvider.setDescription(element.getText());
-            } else if( "Certificate".equals(elementName)){
+            } else if (IMAGE_URL.equals(elementName)) {
+                serviceProvider.setImageUrl(element.getText());
+            } else if (ACCESS_URL.equals(elementName)) {
+                serviceProvider.setAccessUrl(element.getText());
+            } else if ("Certificate".equals(elementName)) {
                 serviceProvider.setCertificateContent(element.getText());
+            } else if ("JwksUri".equals(elementName)) {
+                serviceProvider.setJwksUri(element.getText());
             } else if ("IsSaaSApp".equals(elementName)) {
                 if (element.getText() != null && "true".equals(element.getText())) {
                     serviceProvider.setSaasApp(true);
@@ -380,6 +412,56 @@ public class ServiceProvider implements Serializable {
      */
     public void setCertificateContent(String certificateContent) {
         this.certificateContent = certificateContent;
+    }
+
+    public String getApplicationResourceId() {
+
+        return applicationResourceId;
+    }
+
+    public void setApplicationResourceId(String applicationResourceId) {
+
+        this.applicationResourceId = applicationResourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    public String getAccessUrl() {
+
+        return accessUrl;
+    }
+
+    public void setAccessUrl(String accessUrl) {
+
+        this.accessUrl = accessUrl;
+    }
+
+    public String getJwksUri() {
+
+        return jwksUri;
+    }
+
+    public void setJwksUri(String jwksUri) {
+
+        this.jwksUri = jwksUri;
+    }
+
+    public boolean isDiscoverable() {
+
+        return isDiscoverable;
+    }
+
+    public void setDiscoverable(boolean discoverable) {
+
+        isDiscoverable = discoverable;
     }
 }
 

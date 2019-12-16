@@ -30,15 +30,33 @@ public class SessionMgtConstants {
 
     public enum ErrorMessages {
 
-        ERROR_CODE_UNABLE_TO_GET_SESSION("USM-00001", "Unable to retrieve session information"),
-        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-00002", "Unable to retrieve sessions");
+        ERROR_CODE_UNABLE_TO_GET_SESSION("USM-15001",
+                "Unable to retrieve session information",
+                "Server encountered an error while retrieving session information."),
+        ERROR_CODE_UNABLE_TO_GET_SESSIONS("USM-15002",
+                "Unable to retrieve sessions",
+                "Server encountered an error while retrieving session list of user, %s."),
+        ERROR_CODE_UNABLE_TO_AUTHORIZE_USER("USM-15006",
+                "Unable to validate user",
+                "Server encountered an error while authorizing user, %s."),
+        ERROR_CODE_FORBIDDEN_ACTION("USM-10007",
+                "Action forbidden",
+                "User is not authorized to terminate this session."),
+        ERROR_CODE_INVALID_USER("USM-10008",
+                "Invalid user",
+                "User is not provided to perform session management tasks."),
+        ERROR_CODE_INVALID_SESSION("USM-10009",
+                "Invalid session",
+                "Session ID is not provided to perform session termination.");
 
         private final String code;
         private final String message;
+        private final String description;
 
-        ErrorMessages(String code, String message) {
+        ErrorMessages(String code, String message, String description) {
             this.code = code;
             this.message = message;
+            this.description = description;
         }
 
         public String getCode() {
@@ -47,6 +65,10 @@ public class SessionMgtConstants {
 
         public String getMessage() {
             return message;
+        }
+
+        public String getDescription() {
+            return description;
         }
 
         @Override

@@ -18,24 +18,80 @@
 
 package org.wso2.carbon.identity.application.common;
 
+/**
+ * Exception class that represents exceptions thrown upon application management.
+ */
 public class IdentityApplicationManagementException extends Exception {
 
-    private String message;
+    private String errorCode;
 
     private static final long serialVersionUID = -1982152066401023165L;
 
+    /**
+     * Constructs a new exception with the specified message.
+     *
+     * @param message Detailed message
+     */
     public IdentityApplicationManagementException(String message) {
+
         super(message);
-        this.message = message;
     }
 
+    /**
+     * Constructs a new exception with the specified message and cause.
+     *
+     * @param message Detailed message
+     * @param e       Cause as {@link Throwable}
+     */
     public IdentityApplicationManagementException(String message, Throwable e) {
+
         super(message, e);
-        this.message = message;
     }
 
+    /**
+     * Constructs a new exception with the specified error code and cause.
+     *
+     * @param errorCode Error code
+     * @param message   Detailed message
+     */
+    public IdentityApplicationManagementException(String errorCode, String message) {
+
+        super(message);
+        this.errorCode = errorCode;
+    }
+
+    /**
+     * Constructs a new exception with the specified error code, message and cause.
+     *
+     * @param errorCode Error code
+     * @param message   Detailed message
+     * @param cause     Cause as {@link Throwable}
+     */
+    public IdentityApplicationManagementException(String errorCode, String message, Throwable cause) {
+
+        super(message, cause);
+        this.errorCode = errorCode;
+    }
+
+    /**
+     * Retuns the error code.
+     *
+     * @return Error code
+     */
+    public String getErrorCode() {
+
+        return errorCode;
+    }
+
+    /**
+     * This public method is required by the stub.
+     * // TODO: Need to find a way to include inherited methods during stub generation.
+     *
+     * @return
+     */
     @Override
     public String getMessage() {
-        return message;
+
+        return super.getMessage();
     }
 }

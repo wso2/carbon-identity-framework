@@ -51,7 +51,7 @@
     "    return dob.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);",
     "};",
     "",
-    "function onLoginRequest(context) {",
+    "var onLoginRequest = function(context) {",
     "    executeStep(1, {",
     "        onSuccess: function (context) {",
     "            var underAge = true;",
@@ -70,9 +70,9 @@
     "            }",
     "        }",
     "    });",
-    "}",
+    "};",
     "",
-    "function getAge(birthDate) {",
+    "var getAge = function(birthDate) {",
     "    var today = new Date();",
     "    var age = today.getFullYear() - birthDate.getFullYear();",
     "    var m = today.getMonth() - birthDate.getMonth();",
@@ -80,6 +80,6 @@
     "        age--;",
     "    }",
     "    return age;",
-    "}"
+    "};"
   ]
 }

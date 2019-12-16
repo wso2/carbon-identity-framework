@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+
 <!--
 ~ Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
 ~
@@ -28,9 +29,9 @@
             following property to "true". -->
         <SkipDBSchemaCreation>{{identity_data_source.skip_db_schema_creation}}</SkipDBSchemaCreation>
         <SessionDataPersist>
-            <Enable>{{session_data.persistence.enable_persistance}}</Enable>
+            <Enable>{{session_data.persistence.enable_persistence}}</Enable>
             <Temporary>{{session_data.persistence.persist_temporary_data}}</Temporary>
-            <PoolSize>{{session_data.persistence.persistance_pool_size}}</PoolSize>
+            <PoolSize>{{session_data.persistence.persistence_pool_size}}</PoolSize>
             <SessionDataCleanUp>
                 <Enable>{{session_data.cleanup.enable_expired_data_cleanup}}</Enable>
                 <CleanUpTimeout>{{session_data.cleanup.expire_session_data_after}}</CleanUpTimeout>
@@ -84,6 +85,9 @@
     <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
     <ServiceProviders>
         <SPNameRegex>{{service_provider.sp_name_regex}}</SPNameRegex>
+        {% if service_provider.fetch_chunk_size is defined %}
+        <FetchChunkSize>{{service_provider.fetch_chunk_size}}</FetchChunkSize>
+        {% endif %}
     </ServiceProviders>
 
     <OpenID>
@@ -148,12 +152,13 @@
              Default: org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl.
              Applicable values: org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer
         -->
-        {% if oauth.extension.token_generator is defined%}
-        <IdentityOAuthTokenGenerator>{{oauth.extension.token_generator}}</IdentityOAuthTokenGenerator>
+        {% if oauth.extensions.token_generator is defined %}
+        <IdentityOAuthTokenGenerator>{{oauth.extensions.token_generator}}</IdentityOAuthTokenGenerator>
         {% else %}
         <IdentityOAuthTokenGenerator>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</IdentityOAuthTokenGenerator>
         {% endif %}
-        <!-- True, if access token alias is stored in the database instead of access token.
+        <!--
+             True, if access token alias is stored in the database instead of access token.
              Eg. token alias and token is same when default AccessTokenValueGenerator is used.
              When JWTTokenIssuer is used, jti is used as the token alias
              Default: true.
@@ -167,8 +172,8 @@
              Applicable values: org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator,
                                 org.apache.oltu.oauth2.as.issuer.MD5Generator,
                                 org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator-->
-        {% if oauth.extension.token_value_generator is defined %}
-        <AccessTokenValueGenerator>{{oauth.extension.token_value_generator}}</AccessTokenValueGenerator>
+        {% if oauth.extensions.token_value_generator is defined %}
+        <AccessTokenValueGenerator>{{oauth.extensions.token_value_generator}}</AccessTokenValueGenerator>
         {% else %}
         <AccessTokenValueGenerator>org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator</AccessTokenValueGenerator>
         {% endif %}
@@ -223,8 +228,8 @@
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>{{oauth.token_renewal.renew_refresh_token}}</RenewRefreshTokenForRefreshGrant>
         <!-- Process the token before storing it in database, e.g. encrypting -->
-        {% if oauth.extensions.token_persistance_processor is defined %}
-        <TokenPersistenceProcessor>{{oauth.extensions.token_persistance_processor}}</TokenPersistenceProcessor>
+        {% if oauth.extensions.token_persistence_processor is defined %}
+        <TokenPersistenceProcessor>{{oauth.extensions.token_persistence_processor}}</TokenPersistenceProcessor>
         {% else %}
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
         {% endif %}
@@ -264,10 +269,18 @@
                 <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_token.class}}</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.device.enable is sameas true %}
+                <SupportedResponseType>
+                <ResponseTypeName>device</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.device.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{oauth.response_type.device.validator}}</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% for response_type in oauth.custom_response_type %}
             <SupportedResponseType>
                 <ResponseTypeName>{{response_type.name}}</ResponseTypeName>
                 <ResponseTypeHandlerImplClass>{{response_type.class}}</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>{{response_type.validator}}</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
             {% endfor %}
         </SupportedResponseTypes>
@@ -332,10 +345,28 @@
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.kerberos.grant_validator}}</GrantTypeValidatorImplClass>
             </SupportedGrantType>
             {% endif %}
+            {% if oauth.grant_type.account_switch.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>account_switch</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.account_switch.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.account_switch.grant_validator}}</GrantTypeValidatorImplClass>
+            </SupportedGrantType>
+            {% endif %}
+            {% if oauth.grant_type.device_code.enable is sameas true %}
+            <SupportedGrantType>
+                <GrantTypeName>urn:ietf:params:oauth:grant-type:device_code</GrantTypeName>
+                <GrantTypeHandlerImplClass>{{oauth.grant_type.device_code.grant_handler}}</GrantTypeHandlerImplClass>
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.device_code.grant_validator}}</GrantTypeValidatorImplClass>
+                <IdTokenAllowed>true</IdTokenAllowed>
+            </SupportedGrantType>
+            {% endif %}
             {% for grant_type in oauth.custom_grant_type %}
             <SupportedGrantType>
                 <GrantTypeName>{{grant_type.name}}</GrantTypeName>
-                <GrantTypeHandlerImplClass>{{grant_type.handler_class}}</GrantTypeHandlerImplClass>
+                <GrantTypeHandlerImplClass>{{grant_type.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if grant_type.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{grant_type.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
                 {% for key,value in grant_type.properties.items() %}
                 <{{key}}>{{value}}</{{key}}>
                 {% endfor %}
@@ -361,9 +392,20 @@
         </UserConsentEnabledGrantTypes>
 
         <OAuthCallbackHandlers>
-        {% for callback_handler in oauth.extensions.callback_handlers %}
-            <OAuthCallbackHandler Class="{{callback_handler}}"/>
-        {% endfor %}
+           {% for callback_handler in oauth.extensions.callback_handlers %}
+              <OAuthCallbackHandler Class="{{callback_handler.class}}">
+                {% if callback_handler.priority is defined %}
+                	<Priority Value="{{callback_handler.priority}}"/>
+                {% endif %}
+                {% if callback_handler.properties is defined %}
+                  <Properties>
+                    {% for key,value in callback_handler.properties.items() %}
+                      <Properties> name="{{key}}">{{value}} </Properties>
+                    {% endfor %}
+                  </Properties>
+                 {% endif %}
+               </OAuthCallbackHandler>
+           {% endfor %}
         </OAuthCallbackHandlers>
 
         <TokenValidators>
@@ -461,7 +503,6 @@
             <IATValidityPeriod>30</IATValidityPeriod>
         </JWTGrant>
 
-
         <SAML2Grant>
             <!--SAML2TokenHandler></SAML2TokenHandler-->
             <!-- UserType conifg decides whether the SAML assertion carrying user is local user or a federated user.
@@ -528,7 +569,19 @@
             {% if oauth.oidc.id_token.sign_with_sp_key is defined %}
             <SignJWTWithSPKey>{{oauth.oidc.id_token.sign_with_sp_key}}</SignJWTWithSPKey>
             {% else %}
-            <SignJWTWithSPKey>false</SignJWTWithSPKey>
+            <SignJWTWithSPKey>true</SignJWTWithSPKey>
+            {% endif %}
+            <!-- Add tenant domain to 'realm' claim of ID Token-->
+            {% if oauth.oidc.id_token.add_tenant_domain_to_realm is defined %}
+            <AddTenantDomainToIdToken>{{oauth.oidc.id_token.add_tenant_domain_to_realm}}</AddTenantDomainToIdToken>
+            {% else %}
+            <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
+            {% endif %}
+            <!-- Add userstore domain to 'realm' claim of ID Token-->
+            % if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
+            <AddUserstoreDomainToIdToken>{{oauth.oidc.id_token.add_userstore_domain_to_realm}}</AddUserstoreDomainToIdToken>
+            {% else %}
+            <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
             {% endif %}
             <!--
                 Expiry period of the logout token used in OIDC Back Channel Logout in seconds.
@@ -560,13 +613,14 @@
                 Supported versions: IS 5.4.0 onwards
             -->
             <RequestObjectValidator>{{oauth.oidc.extensions.request_object_validator}}</RequestObjectValidator>
+            <RedirectToPostLogoutUriOnConsentDenial>{{oauth.oidc.redirect_to_post_logout_uri_on_consent_denial}}</RedirectToPostLogoutUriOnConsentDenial>
         </OpenIDConnect>
 
         <!-- Configs related to OAuth2 token persistence -->
         <TokenPersistence>
             <Enable>true</Enable>
             <PoolSize>0</PoolSize>
-            <RetryCount>{{oauth.token_generation.retry_count_on_persistance_failures}}</RetryCount>
+            <RetryCount>{{oauth.token_generation.retry_count_on_persistence_failures}}</RetryCount>
         </TokenPersistence>
 
         <!--
@@ -600,6 +654,10 @@
         <Introspection>
             <EnableDataProviders>{{oauth.grant_type.uma_ticket.retrieve_uma_permission_info_through_introspection}}</EnableDataProviders>
         </Introspection>
+
+        {% if oauth.redirect_to_idp_error_page_on_error is sameas true %}
+        <RedirectToRequestedRedirectUri>false</RedirectToRequestedRedirectUri>
+        {% endif %}
 
     </OAuth>
 
@@ -818,6 +876,13 @@
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
     </Recovery>
 
+    <Notification>
+        <DefaultNotificationChannel>{{identity_mgt.notification.default_notification_channel}}</DefaultNotificationChannel>
+        <ResolveNotificationChannels>
+            <Enable>{{identity_mgt.notification.resolve_notification_channel}}</Enable>
+        </ResolveNotificationChannels>
+    </Notification>
+
     <EmailVerification>
         <Enable>{{identity_mgt.user_onboarding.enable_email_verification}}</Enable>
 	    <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
@@ -833,6 +898,10 @@
 
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
+        <EnableAccountLockForVerifiedPreferredChannel>{{identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel}}</EnableAccountLockForVerifiedPreferredChannel>
+        <API>
+            <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
+        </API>
         <LockOnCreation>{{identity_mgt.user_self_registration.lock_on_creation}}</LockOnCreation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
@@ -1137,6 +1206,13 @@
                    timeout="{{cache.idp_cache_by_name.timeout}}"
                    capacity="{{cache.idp_cache_by_name.capacity}}"
                    isDistributed="false"/>
+            {% for cache in cache.manager %}
+             <Cache name="{{cache.name}}"
+                    enable="true"
+                    timeout="{{cache.timeout}}"
+                    capacity="{{cache.capacity}}"
+                    isDistributed="false"/>
+            {% endfor %}
         </CacheManager>
     </CacheConfig>
 
@@ -1145,57 +1221,87 @@
     </Cookies-->
 
 
+    {% if resource_access_control.default_access_allow is sameas true %}
+    <ResourceAccessControl>
+    {% else %}
     <ResourceAccessControl default-access="deny">
+    {% endif %}
+        {% for resource in resource.access_control %}
+        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
+            {% for permission in resource.permissions %}
+            <Permissions>{{permission}}</Permissions>
+            {% endfor %}
+            {% for scope in resource.scopes %}
+            <Scopes>{{scope}}</Scopes>
+            {% endfor %}
+        </Resource>
+        {% endfor %}
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+             <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+            <Scopes>internal_user_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+            <Scopes>internal_user_mgt_view</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/configmgt/list</Permissions>
+            <Scopes>internal_config_mgt_list</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
@@ -1203,91 +1309,125 @@
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
+            <Scopes>internal_consent_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purposes(.+)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
+            <Scopes>internal_consent_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
+            <Scopes>internal_consent_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/pii-categories(.+)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
+            <Scopes>internal_consent_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/consentmgt/add</Permissions>
+            <Scopes>internal_consent_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/purpose-categories(.+)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/consentmgt/delete</Permissions>
+            <Scopes>internal_consent_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/recovery/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/.well-known(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/identity/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/identity/connect/register(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_create</Scopes>
         </Resource>
-        <Resource context="(.*)/oauth2/introspect(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+        <Resource context="(.*)/oauth2/introspect(.*)"
+                secured="{{resource_access_control.introspect.secured}}"
+                http-method="all">
+            {% for permission in resource_access_control.introspect.permissions %}
+            <Permissions>{{permission}}</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
+            {% endfor %}
         </Resource>
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
+            <Scopes>internal_manage_pep</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
+            <Scopes>internal_user_mgt_craete</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
+            <Scopes>internal_user_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+            <Scopes>internal_user_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="PATCH">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+            <Scopes>internal_user_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/usermgt/delete</Permissions>
+            <Scopes>internal_user_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="PATCH">
             <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+            <Scopes>internal_role_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+            <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
         {% if resource_access_control.scim2_me_get_method.keep_resource is sameas true %}
         <Resource
@@ -1295,6 +1435,7 @@
                 secured="{{resource_access_control.scim2_me_get_method.secured}}"
                 http-method="GET">
             <Permissions>{{resource_access_control.scim2_me_get_method.permission}}</Permissions>
+            <Scopes>internal_login</Scopes>
         </Resource>
         {% endif %}
         {% if resource_access_control.scim2_me_delete_method.keep_resource is sameas true %}
@@ -1302,6 +1443,7 @@
                   secured="{{resource_access_control.scim2_me_delete_method.secured}}"
                   http-method="DELETE">
             <Permissions>{{resource_access_control.scim2_me_delete_method.permission}}</Permissions>
+            <Scopes>internal_user_mgt_delete</Scopes>
         </Resource>
         {% endif %}
         {% if resource_access_control.scim2_me_put_method.keep_resource is sameas true %}
@@ -1309,6 +1451,7 @@
                   secured="{{resource_access_control.scim2_me_put_method.secured}}"
                   http-method="PUT">
             <Permissions>{{resource_access_control.scim2_me_put_method.permission}}</Permissions>
+            <Scopes>internal_login</Scopes>
         </Resource>
         {% endif %}
         {% if resource_access_control.scim2_me_patch_method.keep_resource is sameas true %}
@@ -1316,6 +1459,7 @@
                   secured="{{resource_access_control.scim2_me_patch_method.secured}}"
                   http-method="PATCH">
             <Permissions>{{resource_access_control.scim2_me_patch_method.permission}}</Permissions>
+           <Scopes>internal_login</Scopes>
         </Resource>
         {% endif %}
         {% if resource_access_control.scim2_me_post_method.keep_resource is sameas true %}
@@ -1323,6 +1467,7 @@
                   secured="{{resource_access_control.scim2_me_post_method.secured}}"
                   http-method="POST">
             <Permissions>{{resource_access_control.scim2_me_post_method.permission}}</Permissions>
+            <Scopes>internal_user_mgt_craete</Scopes>
         </Resource>
         {% endif %}
         <Resource context="/scim2/ServiceProviderConfig" secured="false" http-method="all">
@@ -1331,11 +1476,20 @@
         <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="/scim2/Bulk(.*)" secured="true"  http-method="all">
+        <Resource context="/scim2/Schemas" secured="true" http-method="all"/>
+        <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_view</Scopes>
+            <Scopes>internal_user_mgt_list</Scopes>
+            <Scopes>internal_user_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/dcr/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/applicationmgt</Permissions>
+            <Scopes>internal_application_mgt_create</Scopes>
+            <Scopes>internal_application_mgt_update</Scopes>
+            <Scopes>internal_application_mgt_view</Scopes>
+            <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
@@ -1343,41 +1497,68 @@
 
         <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
-
         <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
+            <Scopes>internal_user_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/validate-username(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="all">
+
+        <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
+            <Scopes>internal_humantask_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/login</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/view</Permissions>
+        <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, POST, PATCH">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+            <Scopes>internal_application_mgt_create</Scopes>
+         </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/update</Permissions>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="DELETE">
-            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/delete</Permissions>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
-        <Resource context="/dashboard(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="/user-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
@@ -1389,40 +1570,62 @@
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
         <Resource context="/passivests(.*)" secured="false" http-method="all"/>
         <Resource context="/samlartresolve(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth/request-token(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth/authorize-url(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth/access-token(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth2/token(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth2/authorize(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth2/revoke(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth2/userinfo(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth2/jwks(.*)" secured="false" http-method="all"/>
-        <Resource context="/oidc/checksession(.*)" secured="false" http-method="all"/>
-        <Resource context="/oidc/logout(.*)" secured="false" http-method="all"/>
-        <Resource context="/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
-        <Resource context="/wso2/scim/Users(.*)" secured="false" http-method="all"/>
-        <Resource context="/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth/access-token(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/token(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/authorize(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/revoke(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/userinfo(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/jwks(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/device_authorize(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oidc/checksession(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oidc/logout(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/login-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="/api/health-check/v1(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
         <Resource context="/mexut(.*)" secured="false" http-method="all"/>
-        <Resource context="/shindig(.*)" secured="false" http-method="all"/>
         <Resource context="/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
         <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
+        <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/identity/cas(.*)" secured="false" http-method="all"/>
+        <Resource context="/identity/saml/slo(.*)" secured="false" http-method="all"/>
+        <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="/duoauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/fileupload(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/filedownload(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/logincontext(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/resourceContent(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/resource(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/tags(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/registry/atom(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/tryit/JAXRSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(.*)/admin/jsp/WSRequestXSSproxy_ajaxprocessor.jsp" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="PUT"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
 
-        {% for resource in resource.access_control %}
-        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
-            {% for permission in resource.permissions %}
-            <Permissions>{{permission}}</Permissions>
-            {% endfor %}
-        </Resource>
-        {% endfor %}
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -1549,5 +1752,12 @@
             {% endfor %}
         </FIDO2TrustedOrigins>
     </FIDO>
+
+    <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>
+    <DefaultItemsPerPage>{{pagination.default_items_per_page}}</DefaultItemsPerPage>
+
+    <UserFiltering>
+        <ShowDisplayName>{{user_filtering.show_display_name_of_user}}</ShowDisplayName>
+    </UserFiltering>
 
 </Server>

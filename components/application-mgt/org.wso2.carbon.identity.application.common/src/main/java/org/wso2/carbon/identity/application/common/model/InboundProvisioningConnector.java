@@ -17,8 +17,8 @@
  */
 package org.wso2.carbon.identity.application.common.model;
 
-/*
-    Marker interface to identify inbound authentication request processor
+/**
+ * Marker interface to identify inbound authentication request processor
  */
 public interface InboundProvisioningConnector {
 

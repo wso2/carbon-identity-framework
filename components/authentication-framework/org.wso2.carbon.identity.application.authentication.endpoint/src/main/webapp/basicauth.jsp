@@ -21,7 +21,7 @@
 <%@ page import="org.apache.cxf.jaxrs.client.WebClient" %>
 <%@ page import="org.apache.http.HttpStatus" %>
 <%@ page import="org.owasp.encoder.Encode" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.client.SelfUserRegistrationResource" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.client.SelfUserRegistrationResource" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.AuthenticationEndpointUtil" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.ResendCodeRequestDTO" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.bean.UserDTO" %>
@@ -38,7 +38,7 @@
 
 <jsp:directive.include file="init-loginform-action-url.jsp"/>
 
-<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script>
     function goBack() {
         window.history.back();
@@ -58,9 +58,20 @@
                     var userName = document.getElementById("username");
                     userName.value = userName.value.trim();
                     if(userName.value){
-                        // Mark it so that the next submit can be ignored.
-                        $form.data('submitted', true);
-                        document.getElementById("loginForm").submit();
+                        $.ajax({
+                            type: "GET",
+                            url: "/logincontext?sessionDataKey=" + getParameterByName("sessionDataKey") + "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName("tenantDomain"),
+                            success: function (data) {
+                                if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
+                                    window.location.href = data.redirectUrl;
+                                } else {
+                                    // Mark it so that the next submit can be ignored.
+                                    $form.data('submitted', true);
+                                    document.getElementById("loginForm").submit();
+                                }
+                            },
+                            cache: false
+                        });
                     }
                 }
             });
@@ -155,7 +166,8 @@
     <% if (!isIdentifierFirstLogin(inputType)) { %>
     <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
         <label for="username"><%=AuthenticationEndpointUtil.i18n(resourceBundle, "username")%></label>
-        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required>
+        <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="" required
+               autofocus>
     </div>
     <% } else {%>
         <input id="username" name="username" type="hidden" value="<%=username%>">

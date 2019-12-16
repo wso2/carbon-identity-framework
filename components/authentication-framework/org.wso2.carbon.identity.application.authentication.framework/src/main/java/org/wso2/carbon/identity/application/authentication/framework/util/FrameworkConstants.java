@@ -212,6 +212,7 @@ public abstract class FrameworkConstants {
         public static final String QNAME_EXT_ROLE_HANDLER = "ClaimHandler";
         public static final String QNAME_EXT_PROVISIONING_HANDLER = "ProvisioningHandler";
         public static final String QNAME_EXT_AUTHORIZATION_HANDLER = "AuthorizationHandler";
+        public static final String QNAME_EXT_USER_STORE_ORDER_CALLBACK_HANDLER = "CallbackFactory";
         public static final String QNAME_EXT_POST_AUTHENTICATION_HANDLER = "PostAuthenticationHandler";
 
         /**
@@ -264,6 +265,18 @@ public abstract class FrameworkConstants {
         public static final String USER_ATTRIBUTES = "userAttributes";
 
         private ResponseParams() {
+        }
+    }
+
+    public static class StandardInboundProtocols {
+
+        public static final String OAUTH2 = "oauth2";
+        public static final String WS_TRUST = "wstrust";
+        public static final String SAML2 = "samlsso";
+        public static final String PASSIVE_STS = "passivests";
+
+        private StandardInboundProtocols() {
+
         }
     }
 

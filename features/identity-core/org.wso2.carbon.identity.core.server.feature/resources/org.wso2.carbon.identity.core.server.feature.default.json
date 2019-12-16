@@ -5,8 +5,8 @@
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
   "server.clock_skew": "5m",
-  "session_data.persistence.enable_persistance": true,
-  "session_data.persistence.persistance_pool_size": "0",
+  "session_data.persistence.enable_persistence": true,
+  "session_data.persistence.persistence_pool_size": "0",
   "session_data.persistence.persist_temporary_data": true,
   "session_data.persistence.enable_user_session_mapping": true,
   "session_data.cleanup.enable_expired_data_cleanup": true,
@@ -26,7 +26,7 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
-  "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]*$",
+  "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
@@ -36,7 +36,7 @@
   "oauth.token_validation.app_access_token_validity": "1h",
   "oauth.token_validation.user_access_token_validity": "1h",
   "oauth.token_validation.refresh_token_validity": "1d",
-  "oauth.timestamp_skew": "$ref{server.clock_skew}",
+  "oauth.timestamp_skew": "0m",
   "oauth.token_renewal.renew_refresh_token": true,
   "oauth.token_renewal.renew_access_token_per_request": false,
   "oauth.hash_tokens_and_secrets": false,
@@ -51,7 +51,7 @@
   "oauth.extensions.token_context_dialect_uri": "http://wso2.org/claims",
   "oauth.token_validation.validation_response_signing_algorithm": "SHA256withRSA",
   "oauth.token.validation.validation_response_jwt_validity": "15m",
-  "oauth.token_generation.retry_count_on_persistance_failures": "5",
+  "oauth.token_generation.retry_count_on_persistence_failures": "5",
 
   "oauth.endpoints.oauth1_request_token_url": "$ref{server.base_path}/oauth/request-token",
   "oauth.endpoints.oauth1_authorize_url": "$ref{server.base_path}/oauth/authorize-url",
@@ -81,7 +81,10 @@
   "oauth.response_type.id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenResponseTypeHandler",
   "oauth.response_type.id_token_token.enable": true,
   "oauth.response_type.id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler",
-
+  "oauth.response_type.device.enable": false,
+  "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
+  "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
+  
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
   "oauth.grant_type.password.enable": true,
@@ -106,9 +109,17 @@
   "oauth.grant_type.kerberos.enable": false,
   "oauth.grant_type.kerberos.grant_handler": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrant",
   "oauth.grant_type.kerberos.grant_validator": "org.wso2.carbon.identity.oauth2.grant.kerberos.KerberosGrantValidator",
+  "oauth.grant_type.account_switch.enable": true,
+  "oauth.grant_type.account_switch.grant_handler": "org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler",
+  "oauth.grant_type.account_switch.grant_validator": "org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator",
+  "oauth.grant_type.device_code.enable": false,
+  "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
+  "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
 
   "oauth.extensions.callback_handlers": [
-    "org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
+    {
+      "class":"org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
+    }
   ],
   "oauth.token_validator.bearer.enable": true,
   "oauth.token_validator.bearer.class": "org.wso2.carbon.identity.oauth2.validators.DefaultOAuth2TokenValidator",
@@ -150,6 +161,7 @@
 
   "oauth.oidc.request_object_builder.request_param_value_builder.enabled": true,
   "oauth.oidc.request_object_builder.request_param_value_builder.class": "org.wso2.carbon.identity.openidconnect.RequestParamRequestObjectBuilder",
+  "oauth.oidc.redirect_to_post_logout_uri_on_consent_denial": true,
 
   "saml.entity_id": "${carbon.host}",
   "saml.attribute_claim_dialect": "http://wso2.org/claims",
@@ -214,7 +226,7 @@
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
-  "identity_mgt.recovery.callback_url": "${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do",
+  "identity_mgt.recovery.callback_url": ".*",
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -239,6 +251,9 @@
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
+  "identity_mgt.notification.default_notification_channel" : "EMAIL",
+  "identity_mgt.notification.resolve_notification_channel" : false,
+
   "identity_mgt.user_onboarding.enable_email_verification": false,
   "identity_mgt.user_onboarding.ask_password_from_user": true,
   "identity_mgt.user_onboarding.lock_on_creation": true,
@@ -247,6 +262,8 @@
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
 
   "identity_mgt.user_self_registration.allow_self_registration": false,
+  "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel" : true,
+  "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -369,6 +386,11 @@
   "cache.idp_cache_by_name.timeout": "900ms",
   "cache.idp_cache_by_name.capacity": "$ref{cache.default_capacity}",
 
+  "resource_access_control.default_access_allow": false,
+  "resource_access_control.introspect.secured": true,
+  "resource_access_control.introspect.permissions": [
+    "/permission/admin/manage/identity/applicationmgt/view"
+  ],
   "resource_access_control.scim2_me_get_method.secured": true,
   "resource_access_control.scim2_me_get_method.permission": "/permission/admin/login",
   "resource_access_control.scim2_me_get_method.keep_resource": true,
@@ -396,6 +418,9 @@
     "/api/identity/oauth2/dcr/v1.1/",
     "/api/identity/template/mgt/v1.0.0/",
     "/api/identity/oauth2/v1.0/",
+    "/api/identity/oauth2/uma/permission/v1.0/",
+    "/api/identity/oauth2/uma/resourceregistration/v1.0/",
+    "/api/identity/config-mgt/v1.0/",
     "/api/"
   ],
   "tenant_context.rewrite.servlets": [
@@ -431,5 +456,9 @@
   "fido.webauthn.enable": true,
   "fido.trusted.origins": [
     "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
-  ]
+  ],
+  "pagination.max_items_per_page": "100",
+  "pagination.default_items_per_page": "15",
+
+  "user_filtering.show_display_name_of_user": false
 }

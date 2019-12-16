@@ -28,6 +28,7 @@ public class Claim implements Serializable {
     private String claimDialectURI;
     private String claimURI;
     private Map<String, String> claimProperties;
+    private static final long serialVersionUID = 8056821380681603558L;
 
     public Claim(String claimDialectURI, String claimURI) {
         this.claimDialectURI = claimDialectURI;
@@ -60,7 +61,7 @@ public class Claim implements Serializable {
 
     public String getClaimProperty(String propertyName) {
         if (this.getClaimProperties().containsKey(propertyName)) {
-            this.getClaimProperties().get(propertyName);
+            return this.getClaimProperties().get(propertyName);
         }
         return null;
     }

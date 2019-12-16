@@ -17,7 +17,7 @@
   --%>
 
 <%@ page import="org.owasp.encoder.Encode" %>
-<script src="libs/jquery_1.11.3/jquery-1.11.3.js"></script>
+<script src="libs/jquery_3.4.1/jquery-3.4.1.js"></script>
 <script>
     // Handle form submission preventing double submission.
     $(document).ready(function(){

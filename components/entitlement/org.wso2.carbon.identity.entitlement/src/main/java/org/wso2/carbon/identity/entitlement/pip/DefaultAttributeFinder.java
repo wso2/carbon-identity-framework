@@ -52,6 +52,7 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
     private Set<String> supportedAttrs = new HashSet<String>();
     private boolean mapFederatedUsersToLocal = false;
     private static final String MAP_FEDERATED_USERS_TO_LOCAL = "MapFederatedUsersToLocal";
+    private static final String FEDERATED_USER_DOMAIN = "FEDERATED";
 
     /**
      * Loads all the claims defined under http://wso2.org/claims dialect.
@@ -72,12 +73,13 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
     }
 
     /**
-     * This method is introduced in order to check whether the user is a local or federated and if it is a
-     * federated user, prevent from obtaining user attributes from userstore.
-     * @param attributeType
-     * @param attributeId The unique id of the required attribute.
-     * @param category  The category of the required attribute.
-     * @param issuer The attribute issuer.
+     * This method is introduced in order to check whether the user is local or federated. If it is a
+     * federated user, obtaining user attributes from userstore will be prevented.
+     *
+     * @param attributeType The type of the required attribute.
+     * @param attributeId   The unique id of the required attribute.
+     * @param category      The category of the required attribute.
+     * @param issuer        The attribute issuer.
      * @param evaluationCtx The evaluation context object.
      * @return return the set of values for the required attribute.
      * @throws Exception throws if fails.
@@ -95,12 +97,12 @@ public class DefaultAttributeFinder extends AbstractPIPAttributeFinder {
             if (bagAttribute.size() > 0) {
                 userTypeId = ((AttributeValue) bagAttribute.iterator().next()).encode();
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format("The user is a %1$s user", userTypeId));
+                    log.debug(String.format("The user type of the user is %s", userTypeId));
                 }
             }
         }
 
-        if (!StringUtils.equalsIgnoreCase(userTypeId, "FEDERATED")) {
+        if (!StringUtils.equalsIgnoreCase(userTypeId, FEDERATED_USER_DOMAIN)) {
             // If the user is not a federated user, user attributes should be be populated from local userstore.
             values = super.getAttributeValues(attributeType, attributeId, category, issuer, evaluationCtx);
         } else if (mapFederatedUsersToLocal) {

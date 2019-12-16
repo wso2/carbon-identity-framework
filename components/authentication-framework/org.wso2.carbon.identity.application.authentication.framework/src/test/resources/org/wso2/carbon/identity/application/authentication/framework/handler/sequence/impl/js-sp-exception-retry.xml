@@ -84,9 +84,9 @@
 
 var step3RetryCount = 0;
 
-function onLoginRequest(context) {
+var onLoginRequest = function(context) {
     doLogin(context);
-}
+};
 
 function step02(context) {
     executeStep(2);

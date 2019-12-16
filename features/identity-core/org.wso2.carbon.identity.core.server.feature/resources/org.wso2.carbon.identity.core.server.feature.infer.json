@@ -2,11 +2,15 @@
   "authentication.sign_auth_response_with_tenant_of": {
     "sp": {
       "oauth.oidc.id_token.sign_with_sp_key": true,
+      "oauth.oidc.id_token.add_tenant_domain_to_realm":false,
+      "oauth.oidc.id_token.add_userstore_domain_to_realm":false,
       "oauth.access_token.generate_with_sp_tenant_domain": true,
       "saml.enable_user_domain_crpto": false
     },
     "user": {
       "oauth.oidc.id_token.sign_with_sp_key": false,
+      "oauth.oidc.id_token.add_tenant_domain_to_realm":true,
+      "oauth.oidc.id_token.add_userstore_domain_to_realm":true,
       "oauth.access_token.generate_with_sp_tenant_domain": false,
       "saml.enable_user_domain_crpto": true
     }
@@ -14,19 +18,19 @@
 
   "oauth.token_generation.access_token_type": {
     "self_contained": {
-      "oauth.extension.token_generator": "org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer"
+      "oauth.extensions.token_generator": "org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer"
     }
   },
 
   "oauth.token_generation.access_token_value_type": {
     "md5": {
-      "oauth.extension.token_value_generator": "org.apache.oltu.oauth2.as.issuer.MD5Generator"
+      "oauth.extensions.token_value_generator": "org.apache.oltu.oauth2.as.issuer.MD5Generator"
     },
     "sha256": {
-      "oauth.extension.token_value_generator": "org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator"
+      "oauth.extensions.token_value_generator": "org.wso2.carbon.identity.oauth.tokenvaluegenerator.SHA256Generator"
     },
     "uuid": {
-      "oauth.extension.token_value_generator": "org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator"
+      "oauth.extensions.token_value_generator": "org.apache.oltu.oauth2.as.issuer.UUIDValueGenerator"
     }
   },
 
@@ -40,12 +44,15 @@
     }
   },
 
-  "oauth.hash_tokens_and_secrets": {
-    "true": {
-      "oauth.extensions.token_persistance_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.EncryptionDecryptionPersistenceProcessor"
+  "oauth.token_storage_method": {
+    "hashed": {
+      "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.HashingPersistenceProcessor"
     },
-    "false": {
-      "oauth.extensions.token_persistance_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor"
+    "encrypted": {
+      "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.EncryptionDecryptionPersistenceProcessor"
+    },
+    "plaintext": {
+      "oauth.extensions.token_persistence_processor": "org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor"
     }
   },
 
@@ -89,6 +96,12 @@
       "identity_mgt.recovery.notification.manage_internally": false,
       "identity_mgt.user_onboarding.notification.manage_internally": false,
       "identity_mgt.user_self_registration.notification.manage_internally": false
+    }
+  },
+
+  "resource_access_control.default_access": {
+    "allow": {
+      "resource_access_control.default_access_allow": true
     }
   }
 }

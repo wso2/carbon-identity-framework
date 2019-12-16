@@ -44,6 +44,13 @@ public class SessionManagementException extends IdentityException {
         this.description = description;
     }
 
+    public SessionManagementException(SessionMgtConstants.ErrorMessages error, String description) {
+
+        super(error.getMessage());
+        this.errorCode = error.getCode();
+        this.description = description;
+    }
+
     /**
      * The constructor is made private to avoid generating exceptions without error code and description.
      */

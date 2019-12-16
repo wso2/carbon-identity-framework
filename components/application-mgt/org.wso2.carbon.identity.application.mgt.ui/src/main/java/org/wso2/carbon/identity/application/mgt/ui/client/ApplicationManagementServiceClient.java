@@ -50,6 +50,13 @@ public class ApplicationManagementServiceClient {
     boolean debugEnabled = log.isErrorEnabled();
     private UserAdminStub userAdminStub;
 
+    // A static variable is used to track if pagination support from the remote API is verified, as the client is
+    // initiated per request.
+    private static boolean paginationSupportVerified = false;
+    // A static variable is used to track if pagination is supported from the remote API, as the client is
+    // initiated per request.
+    private static boolean paginationSupported = false;
+
     /**
      * @param cookie
      * @param backendServerURL
@@ -152,6 +159,7 @@ public class ApplicationManagementServiceClient {
      * @throws AxisFault
      */
     public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws Exception {
+
         try {
             return stub.getAllPaginatedApplicationBasicInfo(pageNumber);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -184,6 +192,7 @@ public class ApplicationManagementServiceClient {
      * @throws AxisFault
      */
     public int getCountOfAllApplications() throws Exception {
+
         try {
             return stub.getCountOfAllApplications();
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
@@ -523,5 +532,35 @@ public class ApplicationManagementServiceClient {
                 "Server error occurred.");
     }
 
+    /**
+     * Returns if pagination is supported in the remote API.
+     * This API is introduced to ensure that nothing breaks by invoking paginated APIs when API backend is not
+     * available.
+     *
+     * @return 'true' if pagination is supported
+     */
+    public boolean isPaginationSupported() {
+
+        if (!paginationSupportVerified) {
+            try {
+                this.getCountOfAllApplications();
+                paginationSupported = true;
+                if (log.isDebugEnabled()) {
+                    log.debug("IdentityApplicationManagementService stub and backend supports for SP pagination. Set " +
+                            "'paginationSupported' flag to 'true'.");
+                }
+            } catch (Exception | NoSuchMethodError e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("IdentityApplicationManagementService stub or backend does not supports for SP " +
+                            "pagination. Set 'paginationSupported' flag to 'false'.");
+                }
+                paginationSupported = false;
+            }
+
+            paginationSupportVerified = true;
+        }
+
+        return paginationSupported;
+    }
 }
 

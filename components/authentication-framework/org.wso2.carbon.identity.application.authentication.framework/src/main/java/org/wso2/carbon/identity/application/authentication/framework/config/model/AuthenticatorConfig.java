@@ -53,6 +53,24 @@ public class AuthenticatorConfig implements Serializable {
         this.parameterMap = parameterMap;
     }
 
+    /**
+     * Deep clone of AuthenticatorConfig.
+     *
+     * @param authenticatorConfig   authenticatorConfig to be cloned
+     */
+    public AuthenticatorConfig(AuthenticatorConfig authenticatorConfig) {
+
+        this.name = authenticatorConfig.getName();
+        this.applicationAuthenticator = authenticatorConfig.getApplicationAuthenticator();
+        this.authenticatorStateInfo = authenticatorConfig.getAuthenticatorStateInfo();
+        this.enabled = authenticatorConfig.isEnabled();
+        this.idpNames = authenticatorConfig.getIdpNames() != null ?
+                new ArrayList<>(authenticatorConfig.getIdpNames()) : null;
+        this.idps = authenticatorConfig.getIdps() != null ? new HashMap<>(authenticatorConfig.getIdps()) : null;
+        this.parameterMap = authenticatorConfig.getParameterMap() != null ?
+                new HashMap<>(authenticatorConfig.getParameterMap()) : null;
+    }
+
     public String getName() {
         return name;
     }
@@ -102,5 +120,4 @@ public class AuthenticatorConfig implements Serializable {
     public Map<String, IdentityProvider> getIdps() {
         return idps;
     }
-
 }

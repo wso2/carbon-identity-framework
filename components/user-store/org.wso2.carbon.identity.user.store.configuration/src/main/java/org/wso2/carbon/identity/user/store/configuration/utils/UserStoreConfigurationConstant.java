@@ -26,6 +26,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 
 public class UserStoreConfigurationConstant {
 
+    public static final String ENCRYPTED_PROPERTY_MASK = "ENCRYPTED PROPERTY";
     public static final String UNIQUE_ID_CONSTANT = "UniqueID";
     public static final String RANDOM_PHRASE_PREFIX = "random-password-generated!@#$%^&*(0)+_";
     public static final String ENCRYPT_TEXT = "#encrypt";
@@ -42,8 +43,46 @@ public class UserStoreConfigurationConstant {
     public static final String deploymentDirectory = CarbonUtils.getCarbonRepository() + USERSTORES;
     public static final String PERIOD = ".";
     public static final String DISABLED = "Disabled";
+    public static final String FILE_EXTENSION_XML = ".xml";
 
     private UserStoreConfigurationConstant() {
 
+    }
+
+    public enum ErrorMessage {
+
+        ERROR_CODE_XML_FILE_NOT_FOUND("SUS-60001", "Cannot find a configuration file with the " +
+                "provided domain identifier."),
+        ERROR_CODE_XML_FILE_ALREADY_EXISTS("SUS-60002", "There is a user store configuration file " +
+                "already exists with same domain name."),
+        ERROR_CODE_USER_STORE_DOMAIN_ALREADY_EXISTS("SUS-60002",
+                "User store domain already exists with same domain name."),
+        ERROR_CODE_USER_STORE_DOMAIN_NOT_FOUND("SUS-60001",
+                "Unable to find any user store's domain id with the provided identifier.");
+
+        private final String code;
+        private final String message;
+
+        ErrorMessage(String code, String message) {
+
+            this.code = code;
+            this.message = message;
+        }
+
+        public String getCode() {
+
+            return code;
+        }
+
+        public String getMessage() {
+
+            return message;
+        }
+
+        @Override
+        public String toString() {
+
+            return code + ":" + message;
+        }
     }
 }

@@ -24,6 +24,7 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.stub.dto.UserStoreDTO" %>
 <%@ page import="org.wso2.carbon.identity.user.store.configuration.ui.client.UserStoreConfigAdminServiceClient" %>
+<%@ page import="org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -140,8 +141,13 @@
 
 
     function edit(domain, className ,repository) {
-        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className+
+
+        <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
+        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className +
             "&repositoryName=" +repository;
+        <% } else { %>
+        document.userStoreForm.action = "userstore-config.jsp?domain=" + domain + "&className=" + className;
+        <% } %>
         document.userStoreForm.submit();
 
     }
@@ -154,7 +160,11 @@
             headers: {
                 Accept: "text/html"
             },
+            <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
             data: 'domain=' + domain + '&action=' + action + '&repository=' + repository,
+            <% } else { %>
+            data: 'domain=' + domain + '&action=' + action,
+            <% } %>
             async: false,
             success: function (responseText, status) {
                 if (status == "success") {
@@ -210,8 +220,12 @@
                         String description = userstoreDTO.getDescription();
                         String domainId = userstoreDTO.getDomainId();
                         Boolean isDisabled = userstoreDTO.getDisabled();
-                        String repository = userstoreDTO.getRepositoryClass();
-                        String properties = domainId + ":" + repository;
+                        String properties = null;
+                        String repository = null;
+                        if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
+                            repository = userstoreDTO.getRepositoryClass();
+                            properties = domainId + ":" + repository;
+                        }
                         if (className == null) {
                             className = "";
                         }
@@ -225,10 +239,17 @@
                 %>
                 <tr id=<%=Encode.forHtmlAttribute(domainId)%>>
                     <td style="width: 5%;margin-top:10px;">
+                        <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
                         <input type="checkbox" name="userStores"
                                value="<%=Encode.forHtmlAttribute(properties)%>"
                                onclick="resetVars()"
                                class="chkBox"/>
+                        <% } else { %>
+                        <input type="checkbox" name="userStores"
+                               value="<%=Encode.forHtmlAttribute(domainId)%>"
+                               onclick="resetVars()"
+                               class="chkBox"/>
+                        <% } %>
                     </td>
                     <td style="width: 10%;margin-top:10px;">
                         <a><%=Encode.forHtml(domainId)%>
@@ -240,22 +261,36 @@
                     </td>
                     <td style="width: 45%;margin-top:10px;">
                         <a title="<fmt:message key='edit.userstore'/>"
+                           <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
                            onclick="edit('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(className))%>'
                                    ,'<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');"
+                           <% } else { %>
+                           onclick="edit('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(className))%>');"
+                           <% } %>
                            href="#" style="background-image: url(images/edit.gif);" class="icon-link">
                             <fmt:message key='edit.userstore'/></a>
                         <% if (!isDisabled) { %>
                         <a title="<fmt:message key='disable.userstore'/>"
+                           <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
                            onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable'
                                    ,'<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');
                                    return false;"
+                           <% } else { %>
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'disable');
+                                   return false;"
+                           <% } %>
                            href="#" style="background-image: url(images/disable.gif);" class="icon-link">
                             <fmt:message key='disable.userstore'/></a>
                         <% } else { %>
                         <a title="<fmt:message key='enable.userstore'/>"
+                           <% if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) { %>
                            onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>',
                                    'enable','<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(repository))%>');
                                    return false;"
+                           <% } else { %>
+                           onclick="enableDisableDomain('<%=Encode.forJavaScriptAttribute(Encode.forUriComponent(domainId))%>', 'enable');
+                                   return false;"
+                           <% } %>
                            href="#" style="background-image: url(images/enable.gif);" class="icon-link">
                             <fmt:message key='enable.userstore'/></a>
                         <%

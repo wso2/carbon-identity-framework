@@ -105,4 +105,19 @@ public class SQLQueries {
             "IDN_AUTH_SESSION_APP_INFO SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
             "SESSION_ID = ?";
 
+    public static final String SQL_GET_SESSIONS_BY_USER = "SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING " +
+            "WHERE USER_ID = (SELECT USER_ID FROM IDN_AUTH_USER WHERE USER_NAME =? AND TENANT_ID =? AND " +
+            "DOMAIN_NAME =? AND IDP_ID = ?)";
+
+    public static final String SQL_GET_SESSION_MAPPING_BY_USER =
+            "SELECT * FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID =? AND USER_ID = (SELECT USER_ID FROM " +
+                    "IDN_AUTH_USER WHERE USER_NAME =? AND TENANT_ID =? AND DOMAIN_NAME =? AND IDP_ID = ?)";
+
+    // Store federated authentication session details to map the session context key with the idp session index.
+    public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FEDERATED_AUTH_SESSION_MAPPING "
+            + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
+
+    // Remove federated authentication session details of a given session context key.
+    public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FEDERATED_AUTH_SESSION_MAPPING"
+            + " WHERE SESSION_ID=?";
 }

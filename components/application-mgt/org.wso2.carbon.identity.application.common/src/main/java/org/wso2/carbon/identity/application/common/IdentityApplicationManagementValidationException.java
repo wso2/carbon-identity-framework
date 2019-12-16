@@ -18,24 +18,49 @@
 
 package org.wso2.carbon.identity.application.common;
 
+import java.util.Arrays;
+
 /**
  * Exception class handling exceptions during application validation. Validation errors have to added to the
  * validationMsg list.
  */
-public class IdentityApplicationManagementValidationException extends IdentityApplicationManagementException {
+public class IdentityApplicationManagementValidationException extends IdentityApplicationManagementClientException {
 
     private static final long serialVersionUID = 546145354402013968L;
+    private static final String DEFAULT_ERROR_MESSAGE = "Error validating application configurations.";
 
     private String[] validationMsg;
 
+    public IdentityApplicationManagementValidationException(String code, String[] validationMsg) {
+
+        super(code, DEFAULT_ERROR_MESSAGE);
+        this.validationMsg = validationMsg;
+    }
+
+    public IdentityApplicationManagementValidationException(String code, String message, String[] validationMsg) {
+
+        super(code, message);
+        this.validationMsg = validationMsg;
+    }
+
     public IdentityApplicationManagementValidationException(String[] validationMsg) {
 
-        super("Validation Error");
+        super(DEFAULT_ERROR_MESSAGE);
         this.validationMsg = validationMsg;
     }
 
     public String[] getValidationMsg() {
 
         return validationMsg;
+    }
+
+    @Override
+    public String getMessage() {
+
+        StringBuilder builder = new StringBuilder(super.getMessage());
+        if (validationMsg != null && validationMsg.length > 0) {
+            Arrays.stream(validationMsg).forEach(message -> builder.append(" ").append(message));
+        }
+        return builder.toString();
     }
 }

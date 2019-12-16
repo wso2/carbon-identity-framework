@@ -24,11 +24,15 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.Serializable;
 import java.util.Iterator;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Local role configuration.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "LocalRole")
 public class LocalRole implements Serializable {
@@ -52,11 +56,13 @@ public class LocalRole implements Serializable {
     }
 
     public LocalRole(String userStoreId, String localRoleName) {
+
         this.userStoreId = userStoreId;
         this.localRoleName = localRoleName;
     }
 
     public LocalRole(String combinedRoleName) {
+
         this.userStoreId = IdentityUtil.extractDomainFromName(combinedRoleName);
         this.localRoleName = UserCoreUtil.removeDomainFromName(combinedRoleName);
     }
@@ -65,6 +71,7 @@ public class LocalRole implements Serializable {
      * <LocalRole> <LocalRoleName></LocalRoleName> <UserStoreId></UserStoreId> </LocalRole>
      */
     public static LocalRole build(OMElement localRoleOM) {
+
         LocalRole localRole = new LocalRole();
 
         Iterator<?> iter = localRoleOM.getChildElements();
@@ -85,23 +92,28 @@ public class LocalRole implements Serializable {
     }
 
     public String getLocalRoleName() {
+
         return localRoleName;
     }
 
     public void setLocalRoleName(String localRoleName) {
+
         this.localRoleName = localRoleName;
     }
 
     public String getUserStoreId() {
+
         return userStoreId;
     }
 
     public void setUserStoreId(String userStoreId) {
+
         this.userStoreId = userStoreId;
     }
 
     @Override
     public boolean equals(Object o) {
+
         if (this == o) {
             return true;
         }
@@ -110,17 +122,19 @@ public class LocalRole implements Serializable {
         }
         LocalRole localRole1 = (LocalRole) o;
 
-        if (!localRoleName.equals(localRole1.localRoleName))
+        if (!localRoleName.equals(localRole1.localRoleName)) {
             return false;
-        if (userStoreId != null ? !userStoreId.equals(localRole1.userStoreId)
-                : localRole1.userStoreId != null)
+        }
+        if (userStoreId != null ? !userStoreId.equals(localRole1.userStoreId) : localRole1.userStoreId != null) {
             return false;
+        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
+
         int result = localRoleName.hashCode();
         result = 31 * result + (userStoreId != null ? userStoreId.hashCode() : 0);
         return result;

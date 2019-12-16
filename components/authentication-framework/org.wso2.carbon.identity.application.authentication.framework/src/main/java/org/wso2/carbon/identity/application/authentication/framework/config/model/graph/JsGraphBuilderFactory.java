@@ -45,6 +45,9 @@ public class JsGraphBuilderFactory {
 
     private static final Log LOG = LogFactory.getLog(JsGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
+
+    // Suppress the Nashorn deprecation warnings in jdk 11
+    @SuppressWarnings("removal")
     private NashornScriptEngineFactory factory;
 
 

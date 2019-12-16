@@ -16,17 +16,22 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.dao.impl;
 
+import java.io.InputStream;
+import java.sql.Blob;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.RowMapper;
+import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
@@ -39,6 +44,30 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition
 import org.wso2.carbon.identity.configuration.mgt.core.search.exception.PrimitiveConditionValidationException;
 import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
+
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_FILE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_VALUE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES_BY_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_INSERT_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILES_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_FILE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -218,6 +247,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
                                         .setFileId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_ID))
+                                        .setFileName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_NAME))
                                         .setHasFile(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_HAS_FILE))
                                         .setHasAttribute(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE));
                         if (useCreatedTimeField()) {
@@ -826,7 +856,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             if (!resourceFileIdSet.get(eachResourceId).contains(configurationRawDataCollector.getFileId())) {
                 resourceFileIdSet.get(eachResourceId).add(configurationRawDataCollector.getFileId());
                 if (configurationRawDataCollector.getFileId() != null) {
-                    resourceFiles.get(eachResourceId).add(new ResourceFile(configurationRawDataCollector.getFileId()));
+                    resourceFiles.get(eachResourceId).add(new ResourceFile(configurationRawDataCollector.getFileId(),
+                            configurationRawDataCollector.getFileName()));
                 }
             }
         });
@@ -872,7 +903,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             if (!fileIdSet.contains(configurationRawDataCollector.getFileId())) {
                 fileIdSet.add(configurationRawDataCollector.getFileId());
                 if (configurationRawDataCollector.getFileId() != null) {
-                    resourceFiles.add(new ResourceFile(configurationRawDataCollector.getFileId()));
+                    resourceFiles.add(new ResourceFile(configurationRawDataCollector.getFileId(),
+                            configurationRawDataCollector.getFileName()));
                 }
             }
         });
@@ -960,4 +992,225 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 )
         );
     }
+
+    @Override
+    public void addFile(String fileId, String resourceId, String fileName, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                    preparedStatement.setString(1, fileId);
+                    preparedStatement.setBlob(2, fileStream);
+                    preparedStatement.setString(3, resourceId);
+                    preparedStatement.setString(4, fileName);
+                });
+                template.executeUpdate(SQLConstants.UPDATE_HAS_FILE_SQL, preparedStatement -> {
+                    preparedStatement.setBoolean(1, true);
+                    preparedStatement.setString(2, resourceId);
+                });
+                updateResourceLastModified(template, resourceId);
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_INSERT_FILE, fileId, e);
+        }
+    }
+
+    @Override
+    public InputStream getFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
+                    (resultSet, rowNumber) -> {
+                        Blob fileBlob = resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE);
+                        if (fileBlob == null) {
+                            return null;
+                        }
+                        return fileBlob.getBinaryStream();
+                    },
+                    preparedStatement -> {
+                        preparedStatement.setString(1, fileId);
+                        preparedStatement.setString(2, resourceName);
+                        preparedStatement.setString(3, resourceType);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
+        }
+    }
+
+    @Override
+    public void deleteFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+
+                // Get resource id for the deleting file.
+                String resourceId = template.fetchSingleRecord(GET_FILE_BY_ID_SQL,
+                        (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_ID),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, fileId);
+                            preparedStatement.setString(2, resourceName);
+                            preparedStatement.setString(3, resourceType);
+                        });
+                template.executeUpdate(DELETE_FILE_SQL, (
+                        preparedStatement -> preparedStatement.setString(1, fileId)
+                ));
+
+                List<String> availableFilesForTheResource = template.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL,
+                        ((resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID)),
+                        preparedStatement -> preparedStatement.setString(1, resourceId));
+                if (availableFilesForTheResource.isEmpty()) {
+                    template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
+                        preparedStatement.setBoolean(1, false);
+                        preparedStatement.setString(2, resourceId);
+                    });
+                }
+                updateResourceLastModified(template, resourceId);
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_DELETE_FILE, fileId, e);
+        }
+    }
+
+    private void updateResourceLastModified(Template<Object> template, String resourceId)
+            throws DataAccessException {
+
+        template.executeUpdate(UPDATE_LAST_MODIFIED_SQL, preparedStatement -> {
+            preparedStatement.setTimestamp(1, new Timestamp(new Date().getTime()),
+                    Calendar.getInstance(TimeZone.getTimeZone(UTC)));
+            preparedStatement.setString(2, resourceId);
+        });
+    }
+
+    @Override
+    public List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName)
+            throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_ID_SQL, ((resultSet, rowNumber) -> {
+                String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME);
+                return new ResourceFile(resourceFileId, getFilePath(resourceFileId, resourceTypeName, resourceName),
+                        resourceFileName);
+            }), preparedStatement -> preparedStatement.setString(1, resourceId));
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILES, resourceName, e);
+        }
+    }
+
+    @Override
+    public List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_TYPE_ID_SQL,
+                    ((resultSet, rowNumber) -> {
+                        String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_NAME);
+                        String resourceName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME);
+                        String resourceTypeName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME);
+                        return new ResourceFile(
+                                resourceFileId,
+                                getFilePath(resourceFileId, resourceTypeName, resourceName),
+                                resourceFileName
+                        );
+                    }),
+                    preparedStatement -> preparedStatement.setString(1, resourceTypeId));
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceTypeId, e);
+        }
+    }
+
+    @Override
+    public void deleteFiles(String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+
+                template.executeUpdate(DELETE_FILES_SQL, (
+                        preparedStatement -> preparedStatement.setString(1, resourceId)
+                ));
+
+                template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
+                    preparedStatement.setBoolean(1, false);
+                    preparedStatement.setString(2, resourceId);
+                });
+                updateResourceLastModified(template, resourceId);
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_DELETE_FILES, resourceId, e);
+        }
+    }
+
+    @Override
+    public List<Resource> getResourcesByType(int tenantId, String resourceTypeId)
+            throws ConfigurationManagementServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL,
+                    (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
+                        String resourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String resourceName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME);
+                        String resourceLastModified = resultSet.getString(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED);
+                        String resourceCreatedTime = resultSet.getString(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
+                        String resourceHasFile = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_FILE);
+                        String resourceHasAttribute = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE);
+                        Resource resource = new Resource();
+                        resource.setCreatedTime(resourceCreatedTime);
+                        resource.setHasAttribute(Boolean.valueOf(resourceHasAttribute));
+                        resource.setResourceId(resourceId);
+                        resource.setResourceName(resourceName);
+                        resource.setLastModified(resourceLastModified);
+                        resource.setHasFile(Boolean.valueOf(resourceHasFile));
+                        resource.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
+                        resource.setFiles(getFilesByResourceType(resourceTypeId));
+                        resource.setAttributes(getAttributesByResourceId(resourceId));
+                        return resource;
+                    })),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceTypeId);
+                        preparedStatement.setString(2, Integer.toString(tenantId));
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, e);
+        }
+    }
+
+    /**
+     * Get Attributes for the {@link Resource}.
+     *
+     * @param resourceId      Id of the {@link Resource}.
+     * @return A list of {@link Attribute} for the given resource.
+     */
+    private List<Attribute> getAttributesByResourceId(String resourceId)
+            throws ConfigurationManagementServerException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_ATTRIBUTES_BY_RESOURCE_ID_SQL,
+                    ((resultSet, rowNumber) -> {
+                        String attributeId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String attributeKey = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY);
+                        String attributeValue = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE);
+                        return new Attribute(
+                                attributeKey,
+                                attributeValue,
+                                attributeId
+                        );
+                    }),
+                    preparedStatement -> preparedStatement.setString(1, resourceId));
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceId, e);
+        }
+    }
+
 }

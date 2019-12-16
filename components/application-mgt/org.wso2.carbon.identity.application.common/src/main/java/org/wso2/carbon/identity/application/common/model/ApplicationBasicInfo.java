@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
 
+/**
+ * Basic information of an application.
+ */
 public class ApplicationBasicInfo implements Serializable {
 
     private static final long serialVersionUID = -16127229981193883L;
@@ -26,6 +29,12 @@ public class ApplicationBasicInfo implements Serializable {
     private int applicationId;
     private String applicationName;
     private String description;
+
+    private String applicationResourceId;
+    private String imageUrl;
+    private String accessUrl;
+
+    private User appOwner;
 
     /**
      * Get application id.
@@ -51,6 +60,7 @@ public class ApplicationBasicInfo implements Serializable {
      * @return
      */
     public String getApplicationName() {
+
         return applicationName;
     }
 
@@ -58,6 +68,7 @@ public class ApplicationBasicInfo implements Serializable {
      * @param applicationName
      */
     public void setApplicationName(String applicationName) {
+
         this.applicationName = applicationName;
     }
 
@@ -65,6 +76,7 @@ public class ApplicationBasicInfo implements Serializable {
      * @return
      */
     public String getDescription() {
+
         return description;
     }
 
@@ -72,7 +84,47 @@ public class ApplicationBasicInfo implements Serializable {
      * @param description
      */
     public void setDescription(String description) {
+
         this.description = description;
     }
 
+    public String getApplicationResourceId() {
+
+        return applicationResourceId;
+    }
+
+    public void setApplicationResourceId(String applicationResourceId) {
+
+        this.applicationResourceId = applicationResourceId;
+    }
+
+    public String getImageUrl() {
+
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+
+        this.imageUrl = imageUrl;
+    }
+
+    public String getAccessUrl() {
+
+        return accessUrl;
+    }
+
+    public void setAccessUrl(String accessUrl) {
+
+        this.accessUrl = accessUrl;
+    }
+
+    public User getAppOwner() {
+
+        return appOwner;
+    }
+
+    public void setAppOwner(User appOwner) {
+
+        this.appOwner = appOwner;
+    }
 }

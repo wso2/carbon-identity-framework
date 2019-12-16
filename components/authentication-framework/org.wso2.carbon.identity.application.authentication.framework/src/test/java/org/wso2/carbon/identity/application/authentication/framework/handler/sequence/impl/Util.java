@@ -51,9 +51,15 @@ public class Util {
         List<String> localUserRoles = Arrays.asList(new String[]{"LOCAL_ROLE1", "ADMIN", "LOCAL_ROLE2"});
         String localRoles = "LOCAL_ROLE1,ADMIN,LOCAL_ROLE2";
 
+        List<String> localUserRolesWithInternal = Arrays.asList(new String[] {
+                "LOCAL_ROLE1", "ADMIN", "LOCAL_ROLE2", "Internal/everyone"
+        });
+        String localRolesWithInternal = "LOCAL_ROLE1,ADMIN,LOCAL_ROLE2,Internal/everyone";
+
         return new Object[][]{
                 {spRoleMappings, localUserRoles, "##", "SP_ROLE1##SP_ROLE2##ADMIN"},
                 {null, localUserRoles, ",", localRoles},
+                {null, localUserRolesWithInternal, ",", localRolesWithInternal},
                 {new HashMap<>(), localUserRoles, ",", localRoles},
                 {spRoleMappings, new ArrayList<>(), ",", null},
                 {spRoleMappings, null, ",", null},

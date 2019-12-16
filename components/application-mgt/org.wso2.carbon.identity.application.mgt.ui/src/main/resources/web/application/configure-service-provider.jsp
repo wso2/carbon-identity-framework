@@ -87,6 +87,7 @@
 <script src="codemirror/util/formatting.js"></script>
 <script src="js/handlebars.min-v4.0.11.js"></script>
 <script src="../admin/js/main.js" type="text/javascript"></script>
+<script type="text/javascript" src="../identity/encode/js/identity-encode.js"></script>
 
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -121,6 +122,8 @@
         return;
     }
     String spName = appBean.getServiceProvider().getApplicationName();
+    String accessURL = appBean.getServiceProvider().getAccessUrl();
+    String imageURL = appBean.getServiceProvider().getImageUrl();
 
     List<String> permissions = null;
     permissions = appBean.getPermissions();
@@ -141,29 +144,9 @@
     boolean isAdvanceConsentManagementEnabled = false;
 
     //adding code to support jwks URI
-    String jwksUri = null;
-    boolean hasJWKSUri = false;
-
-    // SP bound consent skip
-    boolean skipContent = false;
-
-    ServiceProviderProperty[] spProperties = appBean.getServiceProvider().getSpProperties();
-
-    if (spProperties != null) {
-        for (ServiceProviderProperty spProperty : spProperties) {
-            if (ApplicationMgtUIUtil.JWKS_URI.equals(spProperty.getName())) {
-                hasJWKSUri = true;
-                jwksUri = spProperty.getValue();
-            } else if (ApplicationMgtUIConstants.SKIP_CONSENT.equals(spProperty.getName())) {
-                skipContent = Boolean.parseBoolean(spProperty.getValue());
-            }
-        }
-    }
-
-    if (jwksUri == null) {
-       jwksUri = "";
-    }
-
+    String jwksUri = appBean.getServiceProvider().getJwksUri();
+    boolean hasJWKSUri = StringUtils.isNotEmpty(jwksUri);
+    
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
         appBean.setAuthenticationType(authTypeReq);
@@ -427,6 +410,18 @@
     }
 
     function validateSPConfigurations() {
+        if (document.getElementById("isDiscoverableApp").checked) {
+            var accessUrl = document.getElementById("accessURL").value;
+            if (accessUrl == '') {
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.access.url.value")%>');
+                return false;
+            }
+            var imageURL = document.getElementById("imageURL").value;
+            if (imageURL == '') {
+                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.image.url.value")%>');
+                return false;
+            }
+        }
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
             var isValied = true;
             $.each($('.spClaimVal'), function () {
@@ -810,8 +805,11 @@
             $("#spClaimDialects").val(spClaimDialect);
             var row =
                 '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
-                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
-                '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' +
+                encodeForHTML(spClaimDialect) +
+                '</td><td><a onclick="removeSpClaimDialect(\'' + encodeForHTML(encodeQuotesForJavascript(spClaimDialect)) +
+                '\', \'spClaimDialectUri_' +
+                parseInt(currentColumnId) + '\');return false;"' +
                 ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
             $('#spClaimDialectsTable tbody').append(row);
         } else {
@@ -830,8 +828,12 @@
             $("#spClaimDialects").val(spClaimDialects + "," + spClaimDialect);
             var row =
                 '<tr id="spClaimDialectUri_' + parseInt(currentColumnId) + '">' +
-                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' + spClaimDialect +
-                '</td><td><a onclick="removeSpClaimDialect(\'' + spClaimDialect + '\', \'spClaimDialectUri_' + parseInt(currentColumnId) + '\');return false;"' +
+                '</td><td style="padding-left: 30px !important; color: rgb(119, 119, 119);font-style: italic;">' +
+                encodeForHTML(spClaimDialect) +
+                '</td><td><a onclick="removeSpClaimDialect(\'' +
+                encodeForHTML(encodeQuotesForJavascript(spClaimDialect)) +
+                '\', \'spClaimDialectUri_' +
+                parseInt(currentColumnId) + '\');return false;"' +
                 ' href="#" class="icon-link" style="background-image: url(../admin/images/delete.gif)">Delete</a></td></tr>';
             $('#spClaimDialectsTable tr:last').after(row);
         }
@@ -1445,7 +1447,7 @@
                             <fmt:message key="config.application.JWKS"/>
                             </td>
                             <td style="width:50%" class="leftCol-med labelField">
-                               <input style="width:50%" id="jwksUri" name="jwksUri" type="text" value="<%=Encode.forHtmlAttribute(jwksUri)%>"
+                               <input style="width:50%" id="jwksUri" name="jwksUri" type="text" value="<%=jwksUri != null ? Encode.forHtmlAttribute(jwksUri) : "" %>"
                                 autofocus required/>
                             </td>
                         </tr>
@@ -1460,6 +1462,48 @@
                                     <span style="display:inline-block" class="sectionHelp">
                                     <fmt:message key='help.saas'/>
                                 </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med">
+                                <label for="isDiscoverableApp"><fmt:message key="config.application.isDiscoverableApp"/></label>
+                            </td>
+                            <td>
+                                <div class="sectionCheckbox">
+                                    <input type="checkbox" id="isDiscoverableApp"
+                                           name="isDiscoverableApp" <%=appBean.getServiceProvider().getDiscoverable() ? "checked" :
+                                            "" %>/>
+                                    <span style="display:inline-block" class="sectionHelp">
+                                    <fmt:message key='help.discoverable'/>
+                                </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!--Access URL TEXT BOX-->
+                        <tr id="use_access_url">
+                            <td style="width:15%" class="leftCol-med labelField">
+                                <fmt:message key="config.application.access.url"/>
+                            </td>
+                            <td style="width:50%" class="leftCol-med labelField">
+                                <input style="width:50%" id="accessURL" name="accessURL" type="text"
+                                       value="<%=accessURL != null ? Encode.forHtmlAttribute(accessURL) : "" %>" autofocus />
+                                <div class="sectionHelp">
+                                    <fmt:message key='help.access.url'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <!--Image URL TEXT BOX-->
+                        <tr id="use_image_url">
+                            <td style="width:15%" class="leftCol-med labelField">
+                                <fmt:message key="config.application.image.url"/>
+                            </td>
+                            <td style="width:50%" class="leftCol-med labelField">
+                                <input style="width:50%" id="imageURL" name="imageURL" type="text"
+                                       value="<%=imageURL != null ? Encode.forHtmlAttribute(imageURL) : "" %>"
+                                       autofocus />
+                                <div class="sectionHelp">
+                                    <fmt:message key='help.image.url'/>
                                 </div>
                             </td>
                         </tr>
@@ -2176,7 +2220,7 @@
                                                         </td>
                                                         <td style="white-space: nowrap;">
                                                             <a title="Edit Service Providers"
-                                                               onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>');"
+                                                               onclick="updateBeanAndRedirect('../oauth/edit.jsp?appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
                                                                class="icon-link"
                                                                style="background-image: url(../admin/images/edit.gif)">Edit</a>
 
@@ -2771,11 +2815,19 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= skipContent ? "checked" : ""%> value="true"/>
+                                                    <input type="checkbox" id="skipConsent" name="skipConsent" <%= appBean.isSkipConsent() ? "checked" : ""%> value="true"/>
                                                     <label for="skipConsent"><fmt:message key="config.application.skip.consent"/></label>
                                                     </br>
                                                     <div class="sectionHelp">
                                                         <fmt:message key='help.skip.consent'/>
+                                                    </div>
+                                                </tr>
+                                                <tr>
+                                                    <input type="checkbox" id="skipLogoutConsent" name="skipLogoutConsent" <%=appBean.isSkipLogoutConsent() ? "checked" : ""%> value="true"/>
+                                                    <label for="skipLogoutConsent"><fmt:message key="config.application.skip.logout.consent"/></label>
+                                                    </br>
+                                                    <div class="sectionHelp">
+                                                        <fmt:message key='help.skip.logout.consent'/>
                                                     </div>
                                                 </tr>
                                             </table>

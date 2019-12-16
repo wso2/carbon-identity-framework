@@ -19,65 +19,73 @@ package org.wso2.carbon.identity.application.common.model;
 
 import java.io.Serializable;
 
+/**
+ * Property of an application.
+ */
 public class ServiceProviderProperty implements Serializable {
 
-	private static final long serialVersionUID = 1231265490501221548L;
-	private String name;
-	private String value;
-	private String displayName;
+    private static final long serialVersionUID = 1231265490501221548L;
+    private String name;
+    private String value;
+    private String displayName;
 
-	/**
-	 * Get Value
-	 * 
-	 * @return value
-	 */
-	public String getValue() {
-		return value;
-	}
+    /**
+     * Get Value
+     *
+     * @return value
+     */
+    public String getValue() {
 
-	/**
-	 * Set Value
-	 * 
-	 * @param value
-	 */
-	public void setValue(String value) {
-		this.value = value;
-	}
+        return value;
+    }
 
-	/**
-	 * Get Display name
-	 * 
-	 * @return Display name
-	 */
-	public String getDisplayName() {
-		return displayName;
-	}
+    /**
+     * Set Value
+     *
+     * @param value
+     */
+    public void setValue(String value) {
 
-	/**
-	 * Set display name
-	 * 
-	 * @param displayName
-	 */
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
+        this.value = value;
+    }
 
-	/**
-	 * Get name
-	 * 
-	 * @return Name (This is the key)
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * Get Display name
+     *
+     * @return Display name
+     */
+    public String getDisplayName() {
 
-	/**
-	 * Set Name
-	 * 
-	 * @param name
-	 *            (This is the key)
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+        return displayName;
+    }
+
+    /**
+     * Set display name
+     *
+     * @param displayName
+     */
+    public void setDisplayName(String displayName) {
+
+        this.displayName = displayName;
+    }
+
+    /**
+     * Get name
+     *
+     * @return Name (This is the key)
+     */
+    public String getName() {
+
+        return name;
+    }
+
+    /**
+     * Set Name
+     *
+     * @param name (This is the key)
+     */
+    public void setName(String name) {
+
+        this.name = name;
+    }
 }

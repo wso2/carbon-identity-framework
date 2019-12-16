@@ -38,7 +38,7 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
         UserStorePersistanceDTO userStorePersistanceDTO = getUserStorePersistanceDTO(userStoreDTO,
-                getUserStoreProperties(userStoreDTO));
+                getUserStoreProperties(userStoreDTO, userStoreDTO.getDomainId()));
         doAddUserStore(userStorePersistanceDTO);
     }
 
@@ -49,7 +49,7 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
             userStoreDTO = getUserStoreProperty(userStoreDTO);
         }
         UserStorePersistanceDTO userStorePersistanceDTO = getUserStorePersistanceDTO(userStoreDTO,
-                getUserStoreProperties(userStoreDTO));
+                getUserStoreProperties(userStoreDTO, userStoreDTO.getDomainId()));
         userStorePersistanceDTO.setUserStoreDTO(userStoreDTO);
         doUpdateUserStore(userStorePersistanceDTO, isStateChange);
     }
@@ -76,7 +76,7 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
             throws IdentityUserStoreMgtException {
 
         UserStorePersistanceDTO userStorePersistanceDTO = getUserStorePersistanceDTO(userStoreDTO,
-                getUserStoreProperties(userStoreDTO));
+                getUserStoreProperties(userStoreDTO, previousDomainName));
         doUpdateUserStoreDomainName(previousDomainName, userStorePersistanceDTO);
     }
 
@@ -114,9 +114,10 @@ public abstract class AbstractUserStoreDAO implements UserStoreDAO {
 
     protected abstract UserStorePersistanceDTO[] doGetAllUserStores() throws IdentityUserStoreMgtException;
 
-    private String getUserStoreProperties(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
+    private String getUserStoreProperties(UserStoreDTO userStoreDTO, String existingDomainName)
+            throws IdentityUserStoreMgtException {
 
-        return SecondaryUserStoreConfigurationUtil.getUserStoreProperties(userStoreDTO);
+        return SecondaryUserStoreConfigurationUtil.getUserStoreProperties(userStoreDTO, existingDomainName);
     }
 
     private UserStorePersistanceDTO getUserStorePersistanceDTO(UserStoreDTO userStoreDTO, String userStoreProperties) {

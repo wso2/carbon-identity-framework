@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.application.common.model;
 
+/**
+ * SCIM provisioning connector config.
+ */
 public class SCIMProvisioningConnectorConfig extends ProvisioningConnectorConfig {
 
     private static final long serialVersionUID = 2385742204639503L;

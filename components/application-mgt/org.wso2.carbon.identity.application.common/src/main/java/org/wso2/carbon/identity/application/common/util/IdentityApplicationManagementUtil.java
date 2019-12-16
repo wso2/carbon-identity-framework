@@ -42,6 +42,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
@@ -67,17 +68,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.namespace.QName;
 
+/**
+ * Utility functionality for application management.
+ */
 public class IdentityApplicationManagementUtil {
 
-    private IdentityApplicationManagementUtil(){
+    private IdentityApplicationManagementUtil() {
+
     }
 
     private static final Log log = LogFactory.getLog(IdentityApplicationManagementUtil.class);
-    private static ThreadLocal<ThreadLocalProvisioningServiceProvider> threadLocalProvisioningServiceProvider = new ThreadLocal<ThreadLocalProvisioningServiceProvider>();
+    private static ThreadLocal<ThreadLocalProvisioningServiceProvider> threadLocalProvisioningServiceProvider =
+            new ThreadLocal<>();
     
     private static final Map<String, String> xmlSignatureAlgorithms;
     private static final Map<String, String> xmlDigestAlgorithms;
@@ -89,7 +96,7 @@ public class IdentityApplicationManagementUtil {
     
     static {
         //initialize xmlSignatureAlgorithms
-        Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<String, String>();
+        Map<String, String> xmlSignatureAlgorithmMap = new LinkedHashMap<>();
         xmlSignatureAlgorithmMap.put(IdentityApplicationConstants.XML.SignatureAlgorithm.DSA_SHA1,
                 IdentityApplicationConstants.XML.SignatureAlgorithmURI.DSA_SHA1);
         xmlSignatureAlgorithmMap.put(
@@ -123,7 +130,7 @@ public class IdentityApplicationManagementUtil {
         xmlSignatureAlgorithms = Collections.unmodifiableMap(xmlSignatureAlgorithmMap);
 
         //initialize xmlDigestAlgorithms
-        Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<String, String>();
+        Map<String, String> xmlDigestAlgorithmMap = new LinkedHashMap<>();
         xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.MD5,
                 IdentityApplicationConstants.XML.DigestAlgorithmURI.MD5);
         xmlDigestAlgorithmMap.put(IdentityApplicationConstants.XML.DigestAlgorithm.RIPEMD160,
@@ -139,7 +146,7 @@ public class IdentityApplicationManagementUtil {
         xmlDigestAlgorithms = Collections.unmodifiableMap(xmlDigestAlgorithmMap);
 
         // initialize xmlAssertionEncryptionAlgorithms
-        Map<String, String> xmlAssertionEncryptionAlgorithmMap = new LinkedHashMap<String, String>();
+        Map<String, String> xmlAssertionEncryptionAlgorithmMap = new LinkedHashMap<>();
         xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES256,
                 IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES256);
         xmlAssertionEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.AssertionEncryptionAlgorithm.AES192,
@@ -157,7 +164,7 @@ public class IdentityApplicationManagementUtil {
         xmlAssertionEncryptionAlgorithms = Collections.unmodifiableMap(xmlAssertionEncryptionAlgorithmMap);
 
         // initialize xmlKeyEncryptionAlgorithms
-        Map<String, String> xmlKeyEncryptionAlgorithmMap = new LinkedHashMap<String, String>();
+        Map<String, String> xmlKeyEncryptionAlgorithmMap = new LinkedHashMap<>();
         xmlKeyEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.KeyEncryptionAlgorithm.RSAOAEP,
                 IdentityApplicationConstants.XML.KeyEncryptionAlgorithmURI.RSAOAEP);
         xmlKeyEncryptionAlgorithmMap.put(IdentityApplicationConstants.XML.KeyEncryptionAlgorithm.RSA15,
@@ -167,7 +174,7 @@ public class IdentityApplicationManagementUtil {
         xmlKeyEncryptionAlgorithms = Collections.unmodifiableMap(xmlKeyEncryptionAlgorithmMap);
         
         //initialize samlAuthnContextClasses
-        Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<String, String>();
+        Map<String, String> samlAuthnContextClassMap = new LinkedHashMap<>();
         samlAuthnContextClassMap.put(IdentityApplicationConstants.SAML2.AuthnContextClass.IP,
                 IdentityApplicationConstants.SAML2.AuthnContextClassURI.IP);
         samlAuthnContextClassMap.put(
@@ -242,7 +249,7 @@ public class IdentityApplicationManagementUtil {
         samlAuthnContextClasses = Collections.unmodifiableMap(samlAuthnContextClassMap);
         
         ////initialize samlAuthnContextComparisonLevels map
-        List<String> samlAuthnContextComparisonLevelList = new ArrayList<String>();
+        List<String> samlAuthnContextComparisonLevelList = new ArrayList<>();
         samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.EXACT);
         samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MINIMUM);
         samlAuthnContextComparisonLevelList.add(IdentityApplicationConstants.SAML2.AuthnContextComparison.MAXIMUM);
@@ -258,14 +265,15 @@ public class IdentityApplicationManagementUtil {
     }
 
     /**
-     * @param serviceProvider
+     *
+     * @return
      */
     public static ThreadLocalProvisioningServiceProvider getThreadLocalProvisioningServiceProvider() {
         return threadLocalProvisioningServiceProvider.get();
     }
 
     /**
-     * @param serviceProviderName In-bound - or Just-in-Time provisioning service provider.
+     * @param serviceProvider In-bound - or Just-in-Time provisioning service provider.
      */
     public static void setThreadLocalProvisioningServiceProvider(
             ThreadLocalProvisioningServiceProvider serviceProvider) {
@@ -436,8 +444,9 @@ public class IdentityApplicationManagementUtil {
 
     /**
      * extract one certificate from series of certificates.
-     * @param decodedCertificate                series of certificate value in readable format
-     * @param ordinal                           relating to the order of the certificate in a series of certificate values
+     *
+     * @param decodedCertificate series of certificate value in readable format
+     * @param ordinal            relating to the order of the certificate in a series of certificate values
      * @return
      */
     public static String extractCertificate(String decodedCertificate, int ordinal) {
@@ -605,7 +614,8 @@ public class IdentityApplicationManagementUtil {
 
         Properties properties = new Properties();
         OMElement propsElem = configElem
-                .getFirstChildWithName(getQNameWithIdentityApplicationNS(IdentityApplicationConstants.ConfigElements.PROPERTIES));
+                .getFirstChildWithName(
+                        getQNameWithIdentityApplicationNS(IdentityApplicationConstants.ConfigElements.PROPERTIES));
         if (propsElem != null) {
             Iterator propItr = propsElem
                     .getChildrenWithLocalName(IdentityApplicationConstants.ConfigElements.PROPERTY);
@@ -733,8 +743,8 @@ public class IdentityApplicationManagementUtil {
             jwtHeader = "{\"typ\":\"JWT\", \"alg\":\"none\"}";
         }
 
-        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes());
-        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes());
+        String base64EncodedHeader = Base64Utils.encode(jwtHeader.getBytes(StandardCharsets.UTF_8));
+        String base64EncodedBody = Base64Utils.encode(jwtBody.getBytes(StandardCharsets.UTF_8));
 
         if (log.isDebugEnabled()) {
             log.debug("JWT Header :" + jwtHeader);
@@ -751,7 +761,7 @@ public class IdentityApplicationManagementUtil {
                 signedAssertion = calculateHmacSha1(oauthConsumerSecret, assertion);
                 return assertion + "." + signedAssertion;
             } catch (SignatureException e) {
-                log.error("Error while siging the assertion", e);
+                log.error("Error while signing the assertion", e);
                 return assertion + ".";
             }
         }
@@ -766,16 +776,21 @@ public class IdentityApplicationManagementUtil {
     public static String calculateHmacSha1(String key, String value) throws SignatureException {
         String result;
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "HmacSHA1");
+            SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(signingKey);
-            byte[] rawHmac = mac.doFinal(value.getBytes());
+            byte[] rawHmac = mac.doFinal(value.getBytes(StandardCharsets.UTF_8));
             result = Base64Utils.encode(rawHmac);
-        } catch (Exception e) {
+        } catch (NoSuchAlgorithmException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Failed to create the HMAC Signature", e);
             }
-            throw new SignatureException("Failed to calculate HMAC : " + e.getMessage());
+            throw new SignatureException("Invalid algorithm provided while calculating HMAC signature.", e);
+        } catch (InvalidKeyException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to create the HMAC Signature", e);
+            }
+            throw new SignatureException("Failed to calculate HMAC signature.", e);
         }
         return result;
     }
@@ -844,9 +859,11 @@ public class IdentityApplicationManagementUtil {
      * @return the Assertion Encryption Algorithm URI defined in configuration
      */
     public static String getAssertionEncryptionAlgorithmURIByConfig() {
+
         if (StringUtils.isNotBlank(IdentityUtil.getProperty(IdentityConstants.ServerConfig
                 .SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM))) {
-            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM).trim();
+            return IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_DEFAULT_ASSERTION_ENCRYPTION_ALGORITHM)
+                    .trim();
         } else {
             return IdentityApplicationConstants.XML.AssertionEncryptionAlgorithmURI.AES256;
         }
@@ -874,7 +891,7 @@ public class IdentityApplicationManagementUtil {
      */
     public static List<String> getPropertyValuesForNameStartsWith(FederatedAuthenticatorConfig[] authnConfigs, String
             authenticatorName, String propNameStartsWith) {
-        List<String> propValueSet = new ArrayList<String>();
+        List<String> propValueSet = new ArrayList<>();
         for (FederatedAuthenticatorConfig config : authnConfigs) {
             if (authenticatorName.equals(config.getName())) {
                 for (Property prop : config.getProperties()) {

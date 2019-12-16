@@ -24,6 +24,7 @@
 <%@ page import="org.wso2.carbon.utils.ServerConstants"%>
 <%@ page import="java.util.ResourceBundle"%>
 <%@ page import="org.apache.commons.lang.StringUtils" %>
+<%@ page import="java.text.Normalizer" %>
 
 <%! public static final String BYTES = "bytes";
     private static final String CONTENT_LENGTH = "Content-Length";
@@ -61,7 +62,8 @@
             response.setHeader(CONTENT_DISPOSITION, ATTACHMENT_FILENAME + spName + XML + "\"");
             response.setHeader(CONTENT_TYPE, APPLICATION_OCTET_STREAM);
             response.setHeader(ACCEPT_RANGES, BYTES);
-            response.setHeader(CONTENT_LENGTH, String.valueOf(appData.length()));
+            String normalizedAppData = Normalizer.normalize(appData, Normalizer.Form.NFD);
+            response.setHeader(CONTENT_LENGTH, String.valueOf(normalizedAppData.length()));
             out.write(appData);
         } catch (Exception e) {
             String message = resourceBundle.getString("application.list.error.while.exporting.app") + " : " + e.getMessage();

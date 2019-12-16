@@ -155,9 +155,9 @@
                        resourceBundle="org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources"
                        topPage="false" request="<%=request%>"/>
 
-    <script type="text/javascript" src="../carbon/admin/js/breadcrumbs.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/cookies.js"></script>
-    <script type="text/javascript" src="../carbon/admin/js/main.js"></script>
+    <script type="text/javascript" src="../admin/js/breadcrumbs.js"></script>
+    <script type="text/javascript" src="../admin/js/cookies.js"></script>
+    <script type="text/javascript" src="../admin/js/main.js"></script>
     <script type="text/javascript" src="./js/claim-metadata-mgt.js"></script>
 
     <div id="middle">
@@ -354,7 +354,7 @@
                                 var claimDataElements = claimData[j].split("_");
                                 if (claimDataElements.length == 2 && claimDataElements[1] === combinedValue) {
                                     duplicatedClaimUris.push(claimDataElements[0]);
-                                    if (!attributeArr.includes(combinedValue)) {
+                                    if (!(attributeArr.indexOf(combinedValue) >= 0)) {
                                          attributeArr.push(combinedValue);
                                     }
                                 }

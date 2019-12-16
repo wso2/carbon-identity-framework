@@ -17,14 +17,24 @@
 package org.wso2.carbon.identity.configuration.mgt.core.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementRuntimeException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementServerException;
 import org.wso2.carbon.identity.configuration.mgt.core.internal.ConfigurationManagerComponentDataHolder;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.net.URI;
 import java.util.UUID;
 
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.SERVER_API_PATH_COMPONENT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_CONTEXT_PATH_COMPONENT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_NAME_FROM_CONTEXT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
 
 /**
@@ -41,7 +51,7 @@ public class ConfigurationUtils {
      * @return ConfigurationManagementClientException.
      */
     public static ConfigurationManagementClientException handleClientException(ConfigurationConstants.ErrorMessages error,
-                                                                               String data) {
+                                                                               String ...data) {
 
         String message = populateMessageWithData(error, data);
         return new ConfigurationManagementClientException(message, error.getCode());
@@ -73,6 +83,13 @@ public class ConfigurationUtils {
                                                                                String data, Throwable e) {
 
         String message = populateMessageWithData(error, data);
+        return new ConfigurationManagementServerException(message, error.getCode(), e);
+    }
+
+    public static ConfigurationManagementServerException handleServerException(
+            ConfigurationConstants.ErrorMessages error, Throwable e) {
+
+        String message = populateMessageWithData(error);
         return new ConfigurationManagementServerException(message, error.getCode(), e);
     }
 
@@ -128,14 +145,62 @@ public class ConfigurationUtils {
         return ConfigurationManagerComponentDataHolder.getUseCreatedTime();
     }
 
-    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String data) {
+    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String... data) {
 
         String message;
-        if (StringUtils.isNotBlank(data)) {
+        if (data.length != 0) {
             message = String.format(error.getMessage(), data);
         } else {
             message = error.getMessage();
         }
         return message;
     }
+
+    private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error) {
+
+        return error.getMessage();
+    }
+
+    /**
+     * Creates the file endpoint using the parameters.
+     *
+     * @param fileId file id.
+     * @param resourceName resource name.
+     * @param resourceType resource type name.
+     * @return tenant domain of the request is being served.
+     */
+    public static String getFilePath(String fileId, String resourceType, String resourceName) {
+
+        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE + '/' + fileId;
+    }
+
+    /**
+     * Build URI prepending the user API context with to the endpoint.
+     * /t/<tenant-domain>/api/identity/config-mgt/v1.0/<endpoint>
+     *
+     * @param endpoint relative endpoint path.
+     * @return Fully qualified URI.
+     */
+    public static String buildURIForBody(String endpoint) {
+
+        String tenantQualifiedRelativePath =
+                String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
+        String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, true, true);
+        return URI.create(url).toString();
+    }
+
+    /**
+     * Retrieves loaded tenant domain from carbon context.
+     *
+     * @return tenant domain of the request is being served.
+     */
+    public static String getTenantDomainFromContext() {
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        if (IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT) != null) {
+            tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get(TENANT_NAME_FROM_CONTEXT);
+        }
+        return tenantDomain;
+    }
+
 }

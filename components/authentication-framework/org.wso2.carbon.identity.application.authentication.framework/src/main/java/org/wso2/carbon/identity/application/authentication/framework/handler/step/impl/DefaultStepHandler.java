@@ -57,6 +57,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
+        SAML2SSO.FED_AUTH_NAME;
+import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
+
 public class DefaultStepHandler implements StepHandler {
 
     private static final Log log = LogFactory.getLog(DefaultStepHandler.class);
@@ -555,7 +559,24 @@ public class DefaultStepHandler implements StepHandler {
             authenticatedIdPData.addAuthenticator(authenticatorConfig);
             //add authenticated idp data to the session wise map
             context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
-            context.addAuthenticationStepHistory(new AuthHistory(authenticator.getName(), idpName));
+
+            // Add SAML federated idp session index into the authentication step history.
+            String idpSessionIndex = null;
+            String parameterName = FEDERATED_IDP_SESSION_ID + idpName;
+            AuthHistory authHistory = new AuthHistory(authenticator.getName(), idpName);
+
+            if (context.getParameters().containsKey(parameterName)) {
+                Object idpSessionIndexParamValue = context.getParameter(parameterName);
+                if (idpSessionIndexParamValue != null) {
+                    idpSessionIndex = idpSessionIndexParamValue.toString();
+                }
+            }
+            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)
+                  && FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
+                authHistory.setIdpSessionIndex(idpSessionIndex);
+                authHistory.setRequestType(context.getRequestType());
+            }
+            context.addAuthenticationStepHistory(authHistory);
 
         } catch (InvalidCredentialsException e) {
             if (log.isDebugEnabled()) {

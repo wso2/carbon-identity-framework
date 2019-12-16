@@ -59,54 +59,6 @@ public interface ApplicationDAO {
     ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException;
 
     /**
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
-
-    /**
-     * Get all paginated basic application information for a matching filter.
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(int pageNumber, String filter) throws IdentityApplicationManagementException {
-        return new ApplicationBasicInfo[0];
-    }
-
-    /**
-     * Get count of applications for user
-     *
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default int getCountOfAllApplications() throws IdentityApplicationManagementException {
-        return 0;
-    }
-
-    /**
-     * Get count of applications for user which has the filter string
-     *
-     * @param filter
-     * @return
-     * @throws IdentityApplicationManagementException
-     */
-    default int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
-        return 0;
-    }
-
-    /**
-     * Get all basic application information for a matching filter.
-     *
-     * @param filter Application name filter
-     * @return Application Basic Information array
-     * @throws IdentityApplicationManagementException
-     */
-    ApplicationBasicInfo[] getApplicationBasicInfo(String filter) throws IdentityApplicationManagementException;
-
-    /**
      * @param applicationDTO
      * @throws IdentityApplicationManagementException
      */
@@ -178,5 +130,96 @@ public interface ApplicationDAO {
     default boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException {
 
         return false;
+    }
+
+    default ApplicationBasicInfo getApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    default String addApplication(ServiceProvider application, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    default ServiceProvider getApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    default void updateApplicationByResourceId(String resourceId, String tenantDomain, ServiceProvider updatedApp)
+            throws IdentityApplicationManagementException {
+
+    }
+
+    default void deleteApplicationByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+    }
+
+    /**
+     * Returns basic application information of applications that are flagged as discoverable in the given tenant
+     * matching given criteria.
+     *
+     * @param limit        Maximum no of applications to be returned in the result set (optional).
+     * @param offset       Zero based index of the first application to be returned in the result set (optional).
+     * @param filter       Filter to search for applications (optional).
+     * @param sortOrder    Sort order, ascending or descending (optional).
+     * @param sortBy       Attribute to sort from (optional).
+     * @param tenantDomain Tenant domain to be filtered from.
+     * @return List of ApplicationBasicInfo of applications matching the given criteria.
+     * @throws IdentityApplicationManagementException
+     */
+    default List<ApplicationBasicInfo> getDiscoverableApplicationBasicInfo(int limit, int offset, String filter,
+                                                                           String sortOrder, String sortBy, String
+                                                                                   tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    /**
+     * Returns basic application information of the application matching given resource Id if discoverable.
+     *
+     * @param resourceId   Unique resource identifier of the application.
+     * @param tenantDomain Tenant domain of the application.
+     * @return ApplicationBasicInfo including application basic information.
+     * @throws IdentityApplicationManagementException
+     */
+    default ApplicationBasicInfo getDiscoverableApplicationBasicInfoByResourceId(String resourceId, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        return null;
+    }
+
+    /**
+     * Returns if application matching given resource Id in given tenant is discoverable.
+     *
+     * @param resourceId   Unique resource identifier of the application.
+     * @param tenantDomain Tenant domain of the application.
+     * @return True if application is flagged as discoverable, false otherwise.
+     * @throws IdentityApplicationManagementException
+     */
+    default boolean isApplicationDiscoverable(String resourceId, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        return false;
+    }
+
+    /**
+     * Returns the count of discoverable applications matching given filter.
+     *
+     * @param filter       Filter to search for applications (optional).
+     * @param tenantDomain
+     * @return Count of discoverable applications matching given filter.
+     * @throws IdentityApplicationManagementException
+     */
+    default int getCountOfDiscoverableApplications(String filter, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        return 0;
     }
 }

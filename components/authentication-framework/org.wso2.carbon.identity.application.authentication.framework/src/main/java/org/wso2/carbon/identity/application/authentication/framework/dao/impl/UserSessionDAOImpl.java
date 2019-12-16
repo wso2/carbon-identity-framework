@@ -80,9 +80,9 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                 return userSession;
             }
         } catch (DataAccessException e) {
-            throw new SessionManagementServerException(SessionMgtConstants.ErrorMessages
-                    .ERROR_CODE_UNABLE_TO_GET_SESSION, "Server encountered an error while retrieving session " +
-                    "information.", e);
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
         return null;
     }

@@ -84,6 +84,9 @@
         <AuthenticatorConfig name="IdentifierExecutor" enabled="true">
             <Parameter name="ValidateUsername">false</Parameter>
         </AuthenticatorConfig>
+        <AuthenticatorConfig name="SessionExecutor" enabled="true">
+            <Parameter name="MaxSessionCount">1</Parameter>
+        </AuthenticatorConfig>
         <AuthenticatorConfig name="OAuthRequestPathAuthenticator" enabled="true"/>
         <AuthenticatorConfig name="BasicAuthRequestPathAuthenticator" enabled="true">
             <Parameter name="AuthMechanism">basic</Parameter>
@@ -180,6 +183,7 @@
             <Parameter name="windowSize">3</Parameter>
             <Parameter name="authenticationMandatory">true</Parameter>
             <Parameter name="enrolUserInAuthenticationFlow">true</Parameter>
+            <Parameter name="useEventHandlerBasedEmailSender">true</Parameter>
             <Parameter name="usecase">local</Parameter>
             <Parameter name="secondaryUserstore">primary</Parameter>
             <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>

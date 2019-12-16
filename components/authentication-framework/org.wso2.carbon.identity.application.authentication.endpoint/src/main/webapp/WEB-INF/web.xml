@@ -169,6 +169,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>handle-multiple-sessions.do</servlet-name>
+        <jsp-file>/handle-multiple-sessions.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>claims.do</servlet-name>
         <jsp-file>/requested-claims.jsp</jsp-file>
     </servlet>
@@ -291,6 +296,11 @@
     <servlet-mapping>
         <servlet-name>dynamic_prompt.do</servlet-name>
         <url-pattern>/dynamic_prompt.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>handle-multiple-sessions.do</servlet-name>
+        <url-pattern>/handle-multiple-sessions.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

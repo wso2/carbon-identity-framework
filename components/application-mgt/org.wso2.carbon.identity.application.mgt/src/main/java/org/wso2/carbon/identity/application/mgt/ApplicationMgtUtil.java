@@ -24,11 +24,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.ApplicationPermission;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
@@ -53,6 +53,7 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,8 +71,10 @@ public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
     public static final String PATH_CONSTANT = RegistryConstants.PATH_SEPARATOR;
-    // Regex for validating application name
-    public static String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9 ._-]*$";
+    // Default regex for validating application name.
+    // This regex allows alphanumeric characters, dot, underscore, hyphen and spaces in the name.
+    // Does not allow leading and trailing whitespaces.
+    public static final String APP_NAME_VALIDATING_REGEX = "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$";
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
@@ -195,14 +198,43 @@ public class ApplicationMgtUtil {
             try {
                 userStoreManager.updateRoleListOfUser(username, null, newRoles);
             } catch (UserStoreException e1) {
-                throw new IdentityApplicationManagementException("Error while updating application role: " +
-                        roleName + " with user " + username, e1);
+                String msg = "Error while updating application role: " + roleName + " with user " + username;
 
+                // If concurrent requests were made, the role could already be assigned to the user. When that
+                // validation is done upon a user store exception(rather than checking it prior updating the role
+                // list of the user), even the extreme case where the concurrent request assigns the role just before
+                // db query is executed, is handled.
+                try {
+                    if (isRoleAlreadyApplied(username, roleName, userStoreManager)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("The role: " + roleName + ", is already assigned to the user: " + username
+                                    + ". Skip assigning");
+                        }
+                        return;
+                    }
+                } catch (UserStoreException ex ) {
+                    msg = "Error while getting existing application roles of the user " + username;
+                    throw new IdentityApplicationManagementException(msg, ex);
+                }
+
+                // Throw the error, unless the error caused from role being already assigned.
+                throw new IdentityApplicationManagementException(msg, e1);
             }
         } else {
             throw new IdentityApplicationManagementException("Error while creating application role: " + roleName +
                     " with user " + username, e);
         }
+    }
+
+    private static boolean isRoleAlreadyApplied(String username, String roleName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        boolean isRoleAlreadyApplied = false;
+        String[] roleListOfUser = userStoreManager.getRoleListOfUser(username);
+        if (roleListOfUser != null) {
+            isRoleAlreadyApplied = Arrays.asList(roleListOfUser).contains(roleName);
+        }
+        return isRoleAlreadyApplied;
     }
 
     private static String getAppRoleName(String applicationName) {
@@ -291,7 +323,7 @@ public class ApplicationMgtUtil {
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
         try {
             tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-            IdentityTenantUtil.initializeRegistry(tenantId, IdentityTenantUtil.getTenantDomain(tenantId));
+            IdentityTenantUtil.initializeRegistry(tenantId);
         } catch (IdentityException e) {
             throw new IdentityApplicationManagementException("Error loading tenant registry for tenant domain: " +
                     IdentityTenantUtil.getTenantDomain(tenantId), e);
@@ -627,8 +659,8 @@ public class ApplicationMgtUtil {
     public static boolean isValidApplicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
 
         try {
-            String userName = null;
-            String userNameWithDomain = null;
+            String userName;
+            String userNameWithDomain;
             if (serviceProvider.getOwner() != null) {
                 userName = serviceProvider.getOwner().getUserName();
                 if (StringUtils.isEmpty(userName) || CarbonConstants.REGISTRY_SYSTEM_USERNAME.equals(userName)) {
@@ -636,18 +668,23 @@ public class ApplicationMgtUtil {
                 }
                 String userStoreDomain = serviceProvider.getOwner().getUserStoreDomain();
                 userNameWithDomain = IdentityUtil.addDomainToName(userName, userStoreDomain);
-            }
-            org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
-            if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+
+                org.wso2.carbon.user.api.UserRealm realm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
+                if (realm == null || StringUtils.isEmpty(userNameWithDomain)) {
+                    return false;
+                }
+                boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
+                if (!isUserExist) {
+                    throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
+                            "application: " +
+                            serviceProvider.getApplicationName() + " as user is not existing.");
+                }
+            } else {
                 return false;
             }
-            boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
-            if (!isUserExist) {
-                throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
-                        serviceProvider.getApplicationName() + " as user is not existing.");
-            }
         } catch (UserStoreException | IdentityApplicationManagementException e) {
-            throw new IdentityApplicationManagementException("User validation failed for owner update in the application: " +
+            throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
+                    "application: " +
                     serviceProvider.getApplicationName(), e);
         }
         return true;
@@ -701,17 +738,31 @@ public class ApplicationMgtUtil {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
-    public static ArrayList<ApplicationBasicInfo> processApplicationBasicInfos(ApplicationBasicInfo[] applicationBasicInfos, String userName) throws IdentityApplicationManagementException {
-        ArrayList<ApplicationBasicInfo> appInfo = new ArrayList<>();
-        for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
-            if (ApplicationMgtUtil.isUserAuthorized(applicationBasicInfo.getApplicationName(), userName)) {
-                appInfo.add(applicationBasicInfo);
+    /**
+     * Method to get the ItemsPerPage property configured in the carbon.xml file.
+     *
+     * @return Items per page in pagination.
+     */
+    public static int getItemsPerPage() {
+
+        String itemsPerPagePropertyValue =
+                ServerConfiguration.getInstance().getFirstProperty(ApplicationConstants.ITEMS_PER_PAGE_PROPERTY);
+
+        try {
+            if (StringUtils.isNotBlank(itemsPerPagePropertyValue)) {
+                int itemsPerPage = Math.abs(Integer.parseInt(itemsPerPagePropertyValue));
                 if (log.isDebugEnabled()) {
-                    log.debug("Retrieving basic information of application: " +
-                            applicationBasicInfo.getApplicationName() + "username: " + userName);
+                    log.debug("Items per page for pagination is set to : " + itemsPerPage);
                 }
+                return itemsPerPage;
             }
+        } catch (NumberFormatException e) {
+            // No need to handle exception since the default value is already set.
+            log.warn("Error occurred while parsing the 'ItemsPerPage' property value in carbon.xml. Defaulting to: "
+                    + ApplicationConstants.DEFAULT_RESULTS_PER_PAGE);
         }
-        return appInfo;
+
+        return ApplicationConstants.DEFAULT_RESULTS_PER_PAGE;
     }
+
 }

@@ -62,13 +62,13 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-function onLoginRequest(context) {
+var onLoginRequest = function(context) {
     executeStep({id :'0'});
     makeDecisionWith(function(c) {return 's';})
         .when('s').thenExecute('1')
         .when('s').thenExecute('1')
         .whenNoMatch().thenExecute('0');
-}
+};
 ]]></AuthenticationScript>
     </LocalAndOutBoundAuthenticationConfig>
     <RequestPathAuthenticatorConfigs></RequestPathAuthenticatorConfigs>

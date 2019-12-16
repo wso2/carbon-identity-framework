@@ -21,10 +21,11 @@ package org.wso2.carbon.identity.application.common.model;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 
+/**
+ * SAML2 federated authenticator Configuration.
+ */
 public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticatorConfig {
-    /**
-     *
-     */
+
     private static final long serialVersionUID = -171672098979315832L;
 
     /**
@@ -36,6 +37,11 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
      * If Single Logout is enabled
      */
     private boolean isLogoutEnabled;
+
+    /**
+     * If Single Logout Request from the identity provider is accepted.
+     */
+    private boolean isSLORequestAccepted;
 
     /**
      * The SAML2 Web SSO URL of the IdP
@@ -121,6 +127,9 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
                 case IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL:
                     logoutRequestUrl = property.getValue();
                     break;
+                case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_SLO_REQUEST_ACCEPTED:
+                    isSLORequestAccepted = Boolean.parseBoolean(property.getValue());
+                    break;
                 case IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_RESP_SIGNED:
                     isAuthnResponseSigned = Boolean.parseBoolean(property.getValue());
                     break;
@@ -168,6 +177,11 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
         return isLogoutEnabled;
     }
 
+    public boolean isSLORequestAccepted() {
+
+        return isSLORequestAccepted;
+    }
+
     public boolean isLogoutRequestSigned() {
         return isLogoutRequestSigned;
     }
@@ -212,5 +226,7 @@ public class SAML2SSOFederatedAuthenticatorConfig extends FederatedAuthenticator
         return isArtifactResponseSigned;
     }
 
-    public String getArtifactResolveUrl() { return artifactResolveUrl; }
+    public String getArtifactResolveUrl() {
+        return artifactResolveUrl;
+    }
 }

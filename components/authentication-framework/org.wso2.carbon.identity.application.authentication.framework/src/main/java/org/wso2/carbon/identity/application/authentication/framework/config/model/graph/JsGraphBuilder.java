@@ -491,10 +491,14 @@ public class JsGraphBuilder {
         }
 
         StepConfig stepConfig = graph.getStepMap().get(stepId);
+        // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
+        StepConfig clonedStepConfig = new StepConfig(stepConfig);
+        clonedStepConfig
+                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
         if (log.isDebugEnabled()) {
-            log.debug("Found step for the Step ID : " + stepId + ", Step Config " + stepConfig);
+            log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
         }
-        StepConfigGraphNode newNode = wrap(stepConfig);
+        StepConfigGraphNode newNode = wrap(clonedStepConfig);
         if (currentNode == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Setting a new node at the first time. Node : " + newNode.getName());
@@ -517,7 +521,7 @@ public class JsGraphBuilder {
             // There is an argument with options present
             if (params[0] instanceof Map) {
                 Map<String, Object> options = (Map<String, Object>) params[0];
-                handleOptions(options, stepConfig);
+                handleOptions(options, clonedStepConfig);
             }
         }
     }

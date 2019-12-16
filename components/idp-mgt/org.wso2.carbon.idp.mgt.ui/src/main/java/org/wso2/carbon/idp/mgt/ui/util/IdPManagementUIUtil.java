@@ -75,6 +75,8 @@ public class IdPManagementUIUtil {
 
     public static final String IDP_LIST = "identityProviderList";
 
+    public static final String PAGE_NUMBER = "pageNumber";
+
     public static final String IDP_LIST_UNIQUE_ID = "idpUniqueIdMap";
 
     /**
@@ -1259,7 +1261,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(oidcAuthnConfig);
         }
 
-        Property[] properties = new Property[9];
+        Property[] properties = new Property[10];
         Property property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.Facebook.CLIENT_ID);
         property.setValue(paramMap.get("clientId"));
@@ -1311,13 +1313,18 @@ public class IdPManagementUIUtil {
         properties[7] = property;
 
         property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+        property.setValue(paramMap.get("logoutUrlOIDC"));
+        properties[8] = property;
+
+        property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.OIDC.IS_BASIC_AUTH_ENABLED);
         if (paramMap.get("oidcBasicAuthEnabled") != null && "on".equals(paramMap.get("oidcBasicAuthEnabled"))) {
             property.setValue("true");
         } else {
             property.setValue("false");
         }
-        properties[8] = property;
+        properties[9] = property;
 
         oidcAuthnConfig.setProperties(properties);
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
@@ -1582,6 +1589,15 @@ public class IdPManagementUIUtil {
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
         property.setValue(paramMap.get("logoutUrl"));
+        properties.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_SLO_REQUEST_ACCEPTED);
+        if ("on".equals(paramMap.get("sloRequestAccepted"))) {
+            property.setValue("true");
+        } else {
+            property.setValue("false");
+        }
         properties.add(property);
 
         property = new Property();

@@ -19,14 +19,23 @@
 package org.wso2.carbon.identity.application.common.model;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.axis2.databinding.annotation.IgnoreNullElement;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Property object.
+ */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "Property")
 public class Property implements Serializable {
@@ -45,13 +54,11 @@ public class Property implements Serializable {
     @XmlElement(name = "DefaultValue")
     private String defaultValue;
 
-
     @XmlElement(name = "DisplayName")
     private String displayName;
 
     @XmlElement(name = "Required")
     private boolean required;
-
 
     @XmlElement(name = "DefaultValue")
     private String description;
@@ -64,6 +71,20 @@ public class Property implements Serializable {
 
     @XmlElement(name = "IsAdvanced")
     private boolean isAdvanced;
+
+    @IgnoreNullElement
+    @XmlElement(name = "Regex")
+    private String regex;
+
+    @IgnoreNullElement
+    @XmlElementWrapper(name = "Options")
+    @XmlElement(name = "Option")
+    private String[] options = new String[0];
+
+    @IgnoreNullElement
+    @XmlElementWrapper(name = "SubProperties")
+    @XmlElement(name = "SubProperty")
+    private SubProperty[] subProperties = new SubProperty[0];
 
     public Property() {
 
@@ -113,6 +134,40 @@ public class Property implements Serializable {
             } else if ("IsAdvanced".equals(elementName)) {
                 if (element.getText() != null && element.getText().trim().length() > 0) {
                     property.setAdvanced(Boolean.parseBoolean(element.getText()));
+                }
+            } else if ("Regex".equals(elementName)) {
+                if (element.getText() != null && element.getText().trim().length() > 0) {
+                    property.setRegex(element.getText());
+                }
+            } else if ("Options".equals(elementName)) {
+                Iterator<?> optionsIter = element.getChildElements();
+                List<String> optionsArrList = new ArrayList<String>();
+
+                while (optionsIter.hasNext()) {
+                    OMElement optionsElement = (OMElement) (optionsIter.next());
+                    if (optionsElement.getText() != null) {
+                        optionsArrList.add(optionsElement.getText());
+                    }
+                }
+
+                if (CollectionUtils.isNotEmpty(optionsArrList)) {
+                    String[] optionsArr = optionsArrList.toArray(new String[0]);
+                    property.setOptions(optionsArr);
+                }
+            } else if ("SubProperties".equals(elementName)) {
+                Iterator<?> subPropsIter = element.getChildElements();
+                List<SubProperty> subPropsArrList = new ArrayList<>();
+
+                while (subPropsIter.hasNext()) {
+                    OMElement subPropElement = (OMElement) (subPropsIter.next());
+                    if (subPropElement != null) {
+                        subPropsArrList.add(SubProperty.build(subPropElement));
+                    }
+                }
+
+                if (CollectionUtils.isNotEmpty(subPropsArrList)) {
+                    SubProperty[] subPropsArr = subPropsArrList.toArray(new SubProperty[0]);
+                    property.setSubProperties(subPropsArr);
                 }
             }
         }
@@ -246,6 +301,32 @@ public class Property implements Serializable {
 
     public void setAdvanced(boolean isAdvanced) {
         this.isAdvanced = isAdvanced;
+    }
+
+    public String getRegex() {
+        return regex;
+    }
+
+    public void setRegex(String regex) {
+        this.regex = regex;
+    }
+
+    public String[] getOptions() {
+        return options;
+    }
+
+    public void setOptions(String[] options) {
+        this.options = options;
+    }
+
+    public SubProperty[] getSubProperties() {
+
+        return subProperties;
+    }
+
+    public void setSubProperties(SubProperty[] subProperties) {
+
+        this.subProperties = subProperties;
     }
 
     @Override

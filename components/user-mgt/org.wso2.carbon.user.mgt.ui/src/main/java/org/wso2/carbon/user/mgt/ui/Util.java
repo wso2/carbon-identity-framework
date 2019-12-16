@@ -260,14 +260,16 @@ public class Util {
                     for (ConnectorConfig connectorConfig : connectorConfigs) {
                         Property[] properties = connectorConfig.getProperties();
                         for (Property property : properties) {
-                            if (EMAIL_VERIFICATION_ENABLE_PROP_NAME.equals(property.getName())) {
-                                String propValue = property.getValue();
-                                boolean isEmailVerificationEnabled = false;
+                            if (property != null) {
+                                if (EMAIL_VERIFICATION_ENABLE_PROP_NAME.equals(property.getName())) {
+                                    String propValue = property.getValue();
+                                    boolean isEmailVerificationEnabled = false;
 
-                                if (!StringUtils.isEmpty(propValue)) {
-                                    isEmailVerificationEnabled = Boolean.parseBoolean(propValue);
+                                    if (!StringUtils.isEmpty(propValue)) {
+                                        isEmailVerificationEnabled = Boolean.parseBoolean(propValue);
+                                    }
+                                    return isEmailVerificationEnabled;
                                 }
-                                return isEmailVerificationEnabled;
                             }
                         }
                     }
