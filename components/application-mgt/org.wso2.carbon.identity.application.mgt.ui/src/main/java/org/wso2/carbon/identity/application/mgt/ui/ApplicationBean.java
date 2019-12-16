@@ -504,6 +504,19 @@ public class ApplicationBean {
         return false;
     }
 
+    /**
+     * Returns whether consent needs to be skipped for this service provider.
+     *
+     * @return true of consent is skipped, false otherwise.
+     */
+    public boolean isSkipLogoutConsent() {
+
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
+        return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getSkipLogoutConsent();
+        }
+        return false;
+    }
+
     public boolean isEnableAuthorization() {
 
         return serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null &&
@@ -1361,6 +1374,9 @@ public class ApplicationBean {
 
         boolean skipConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_CONSENT));
         serviceProvider.getLocalAndOutBoundAuthenticationConfig().setSkipConsent(skipConsent);
+
+        boolean skipLogoutConsent = Boolean.parseBoolean(request.getParameter(IdentityConstants.SKIP_LOGOUT_CONSENT));
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig().setSkipLogoutConsent(skipLogoutConsent);
 
         String enableAuthorization = request.getParameter(
                 "enable_authorization");

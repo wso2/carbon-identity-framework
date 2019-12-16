@@ -218,6 +218,8 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.U
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.UPDATE_SP_PERMISSIONS;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT;
 import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_CONSENT_DISPLAY_NAME;
+import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT;
+import static org.wso2.carbon.identity.base.IdentityConstants.SKIP_LOGOUT_CONSENT_DISPLAY_NAME;
 
 /**
  * This class access the IDN_APPMGT database to store/update and delete application configurations.
@@ -2788,7 +2790,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 if (USE_DOMAIN_IN_ROLES.equals(name)) {
                     localAndOutboundConfig.setUseUserstoreDomainInRoles(value == null || Boolean.parseBoolean(value));
                 } else if (SKIP_CONSENT.equals(name)) {
-                    localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
+                        localAndOutboundConfig.setSkipConsent(Boolean.parseBoolean(value));
+                } else if (SKIP_LOGOUT_CONSENT.equals(name)) {
+                        localAndOutboundConfig.setSkipLogoutConsent(Boolean.parseBoolean(value));
                 }
             }
         }
@@ -4333,6 +4337,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             ServiceProviderProperty skipConsentProperty = buildSkipConsentProperty(sp);
             spPropertyMap.put(skipConsentProperty.getName(), skipConsentProperty);
+
+            ServiceProviderProperty skipLogoutConsentProperty = buildSkipLogoutConsentProperty(sp);
+            spPropertyMap.put(skipLogoutConsentProperty.getName(), skipLogoutConsentProperty);
         }
 
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
@@ -4358,6 +4365,16 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         skipConsentProperty.setValue(String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isSkipConsent()));
         return skipConsentProperty;
+    }
+
+    private ServiceProviderProperty buildSkipLogoutConsentProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty skipLogoutConsentProperty = new ServiceProviderProperty();
+        skipLogoutConsentProperty.setName(SKIP_LOGOUT_CONSENT);
+        skipLogoutConsentProperty.setDisplayName(SKIP_LOGOUT_CONSENT_DISPLAY_NAME);
+
+        skipLogoutConsentProperty.setValue(String.valueOf(sp.getLocalAndOutBoundAuthenticationConfig().isSkipLogoutConsent()));
+        return skipLogoutConsentProperty;
     }
 
     private ServiceProviderProperty buildUserStoreDomainInRolesProperty(ServiceProvider sp) {
