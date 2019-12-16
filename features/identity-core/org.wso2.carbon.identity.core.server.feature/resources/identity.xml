@@ -1198,6 +1198,9 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+        </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
@@ -1290,6 +1293,7 @@
             <Context>/api/identity/oauth2/v1.0/</Context>
             <Context>/api/identity/config-mgt/v1.0/</Context>
             <Context>/api/</Context>
+            <Context>/api/users/v2/me/webauthn</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
