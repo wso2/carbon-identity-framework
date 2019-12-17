@@ -33,6 +33,7 @@ import org.wso2.carbon.user.core.common.User;
 import org.wso2.carbon.user.core.internal.UMListenerServiceComponent;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.model.Condition;
+import org.wso2.carbon.user.core.model.UniqueIDUserClaimSearchEntry;
 import org.wso2.carbon.user.core.model.UserClaimSearchEntry;
 
 import java.util.List;
@@ -54,7 +55,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
             return orderId;
         }
-        return 77;
+        return 14;
     }
 
     @Override
@@ -853,18 +854,22 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUsersClaimValuesWithID(List<String> userIDs, List<String> claims, String profileName,
-            List<UserClaimSearchEntry> userClaimSearchEntries) throws UserStoreException {
+            List<UniqueIDUserClaimSearchEntry> uniqueIDUserClaimSearchEntries, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
         }
 
-        // TODO: 12/17/19 Need to find a way to resolve usernames
+        List<String> userNamesList = ((AbstractUserStoreManager) userStoreManager).getUserNamesFromUserIDs(userIDs);
+        String[] userNames = userNamesList.toArray(new String[0]);
+        List<UserClaimSearchEntry> userClaimSearchEntries = ((AbstractUserStoreManager) userStoreManager)
+                .getUserClaimSearchEntries(uniqueIDUserClaimSearchEntries);
         for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
 
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetUsersClaimValues(userIDs.toArray(new String[0]), claims.toArray(new String[0]),
-                        profileName, userClaimSearchEntries.toArray(new UserClaimSearchEntry[0]));
+                return listener.doPostGetUsersClaimValues(userNames, claims.toArray(new String[0]), profileName,
+                        userClaimSearchEntries.toArray(new UserClaimSearchEntry[0]));
             }
 
         }
@@ -968,18 +973,18 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     }
 
     @Override
-    public boolean doPostGetRoleListOfUsersWithID(List<String> userIDs, Map<String, List<String>> rolesOfUsersMap)
-            throws UserStoreException {
+    public boolean doPostGetRoleListOfUsersWithID(List<String> userIDs, Map<String, List<String>> rolesOfUsersMap,
+            UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
         }
 
-        // TODO: 12/17/19 Need to find a way to resolve usernames
+        List<String> userNamesList = ((AbstractUserStoreManager) userStoreManager).getUserNamesFromUserIDs(userIDs);
         for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
 
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetRoleListOfUsers(userIDs.toArray(new String[0]), rolesOfUsersMap);
+                return listener.doPostGetRoleListOfUsers(userNamesList.toArray(new String[0]), rolesOfUsersMap);
             }
 
         }
