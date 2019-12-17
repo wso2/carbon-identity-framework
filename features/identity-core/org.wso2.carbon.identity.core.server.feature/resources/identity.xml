@@ -1199,7 +1199,8 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Permissions>/permission/admin/login</Permissions>
+            <Scopes>internal_login</Scopes>
         </Resource>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
