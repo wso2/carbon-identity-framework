@@ -18,20 +18,23 @@
 
 package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
+import org.apache.axis2.AxisFault;
+import org.apache.axis2.client.ServiceClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
+
+import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.idp.xsd.IdentityProviderProperty;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
+import org.wso2.carbon.idp.mgt.stub.IdentityProviderMgtServiceStub;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
+
 import java.net.URLEncoder;
 
 /**
@@ -68,10 +71,14 @@ public class CallBackValidator {
 
         IdentityProvider residentIdP;
         try {
-            residentIdP = IdentityProviderManager.getInstance().getResidentIdP(tenantDomain);
-        } catch (IdentityProviderManagementException e) {
-            throw new IdentityRecoveryException("Error occurred while reading the resident IdP for the tenant domain : "
-                    + tenantDomain, e);
+            IdentityProviderMgtServiceStub idPMgtStub = new IdentityProviderMgtServiceStub();
+            ServiceClient idpClient = idPMgtStub._getServiceClient();
+            IdentityManagementEndpointUtil.authenticate(idpClient);
+            residentIdP = idPMgtStub.getResidentIdP();
+        } catch (AxisFault axisFault) {
+            throw new IdentityRecoveryException("Error while instantiating IdentityProviderMgtServiceStub", axisFault);
+        } catch (Exception e) {
+            throw new IdentityRecoveryException("Error occurred when getting residentIDP configurations.", e);
         }
 
         IdentityProviderProperty[] idpProperties = null;

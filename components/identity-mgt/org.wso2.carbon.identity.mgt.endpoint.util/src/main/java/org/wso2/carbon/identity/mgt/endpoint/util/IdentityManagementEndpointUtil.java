@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.mgt.endpoint.util;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.util.Base64;
+import org.apache.axis2.client.Options;
+import org.apache.axis2.client.ServiceClient;
+import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -38,6 +41,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -47,6 +51,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -601,5 +606,29 @@ public class IdentityManagementEndpointUtil {
             log.error("Exception while retrieving error details from original exception. Original exception:", e);
             return buildUnexpectedRetryError();
         }
+    }
+
+    public static void authenticate(ServiceClient client) throws Exception {
+
+        Properties properties = new Properties();
+        InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
+                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME);
+        properties.load(inputStream);
+
+        String accessUsername = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                .SERVICE_ACCESS_USERNAME);
+        String accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                .SERVICE_ACCESS_PASSWORD);
+
+        if (accessUsername != null && accessPassword != null) {
+            setOptions(client, accessUsername, accessPassword);
+        } else {
+            throw new Exception("Authentication username or password not set");
+        }
+    }
+
+    public static void setOptions(ServiceClient client, String accessUsername, String accessPassword) {
+
+        IdentityManagementServiceUtil.setAutheticationOptions(client, accessUsername, accessPassword);
     }
 }
