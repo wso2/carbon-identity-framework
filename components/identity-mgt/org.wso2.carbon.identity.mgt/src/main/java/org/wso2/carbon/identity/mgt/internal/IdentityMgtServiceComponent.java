@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfigException;
 import org.wso2.carbon.identity.mgt.IdentityMgtEventListener;
+import org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener;
 import org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener;
 import org.wso2.carbon.identity.mgt.RecoveryProcessor;
 import org.wso2.carbon.identity.mgt.config.Config;
@@ -206,6 +207,17 @@ public class IdentityMgtServiceComponent {
             }
         } else {
             log.error("Identity Management - UserOperationNotificationListener could not be registered.");
+        }
+
+        ServiceRegistration identityUserIdResolverListener = context.getBundleContext()
+                .registerService(UserOperationEventListener.class.getName(), new IdentityUserIdResolverListener(),
+                        null);
+        if (identityUserIdResolverListener != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Identity Management - IdentityUserIdResolverListener registered.");
+            }
+        } else {
+            log.error("Identity Management - IdentityUserIdResolverListener could not be registered.");
         }
 
         ServiceRegistration identityUserNameResolverListener = context.getBundleContext()
