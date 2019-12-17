@@ -1569,6 +1569,11 @@ public class IdPManagementUIUtil {
         properties.add(property);
 
         property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.ACS_URL);
+        property.setValue(paramMap.get("acsUrl"));
+        properties.add(property);
+
+        property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.IS_AUTHN_REQ_SIGNED);
         if ("on".equals(paramMap.get("authnRequestSigned"))) {
             property.setValue("true");
