@@ -35,6 +35,7 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<jsp:directive.include file="init-url.jsp"/>
 
 <%
     String BUNDLE = "org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources";
@@ -94,7 +95,7 @@
         for (String challengeQuestionSet : challengeQuestionMap.keySet()) {
     %>
     <br><br>
-    <form action="../commonauth" method="post" id="profile" name="">
+    <form action=<%=commonauthURL%> method="post" id="profile" name="">
         <dev class="form-horizontal">
             <legend><%=AuthenticationEndpointUtil.i18n(resourceBundle, "challenge.question.set")%>
             </legend>

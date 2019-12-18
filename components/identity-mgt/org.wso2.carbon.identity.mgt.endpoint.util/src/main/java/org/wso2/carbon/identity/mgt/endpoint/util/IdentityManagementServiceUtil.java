@@ -155,6 +155,10 @@ public class IdentityManagementServiceUtil {
      * @param client service client
      */
     public void authenticate(ServiceClient client) {
+        setAutheticationOptions(client, accessUsername, accessPassword);
+    }
+
+    static void setAutheticationOptions(ServiceClient client, String accessUsername, String accessPassword) {
         Options option = client.getOptions();
         HttpTransportProperties.Authenticator auth = new HttpTransportProperties.Authenticator();
         auth.setUsername(accessUsername);
