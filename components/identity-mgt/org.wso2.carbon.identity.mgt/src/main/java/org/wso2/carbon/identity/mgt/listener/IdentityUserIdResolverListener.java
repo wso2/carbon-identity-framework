@@ -50,6 +50,7 @@ import java.util.Map;
 public class IdentityUserIdResolverListener extends AbstractIdentityUserOperationEventListener {
 
     private static final Log log = LogFactory.getLog(IdentityUserIdResolverListener.class);
+    private static final String DO_PRE_DELETE_USER_USER_ID = "doPreDeleteUserUserID";
 
     @Override
     public int getExecutionOrderId() {
@@ -99,6 +100,8 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         AuthenticationResult authenticationResult;
         if (authenticated) {
             authenticationResult = new AuthenticationResult(AuthenticationResult.AuthenticationStatus.SUCCESS);
+            User user = ((AbstractUserStoreManager) userStoreManager).getUser(userID, userName);
+            authenticationResult.setAuthenticatedUser(user);
         } else {
             authenticationResult = new AuthenticationResult(AuthenticationResult.AuthenticationStatus.FAIL);
         }
@@ -252,6 +255,8 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         if (userID == null) {
             return handleUserIDResolveFailure(userName, userStoreManager);
         }
+        // Setting the thread-local to keep userID for doPostDeleteUserWithID listener.
+        IdentityUtil.threadLocalProperties.get().put(DO_PRE_DELETE_USER_USER_ID, userID);
 
         for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -262,7 +267,6 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         return true;
     }
 
-    // TODO: 12/17/19 Need to find a way to get userID
     @Override
     public boolean doPostDeleteUser(String userName, UserStoreManager userStoreManager) throws UserStoreException {
 
@@ -270,11 +274,19 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
-            if (!(listener instanceof IdentityUserNameResolverListener)) {
-                return ((UniqueIDUserOperationEventListener) listener)
-                        .doPostDeleteUserWithID(userName, userStoreManager);
+        try {
+            // Getting the userName from thread-local which has been set from doPreDeleteUserWithID.
+            String userID = (String) IdentityUtil.threadLocalProperties.get().get(DO_PRE_DELETE_USER_USER_ID);
+
+            for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+                if (!(listener instanceof IdentityUserNameResolverListener)) {
+                    return ((UniqueIDUserOperationEventListener) listener)
+                            .doPostDeleteUserWithID(userID, userStoreManager);
+                }
             }
+        } finally {
+            // Remove thread local variable.
+            IdentityUtil.threadLocalProperties.get().remove(DO_PRE_DELETE_USER_USER_ID);
         }
 
         return true;
@@ -987,11 +999,11 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         return true;
     }
 
-    private String[] getUserIdsFromUserNames(String[] deletedUsers, AbstractUserStoreManager userStoreManager)
+    private String[] getUserIdsFromUserNames(String[] userNames, AbstractUserStoreManager userStoreManager)
             throws UserStoreException {
 
-        List<String> deletedUserIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(deletedUsers));
-        return deletedUserIDsList.toArray(new String[0]);
+        List<String> userIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
+        return userIDsList.toArray(new String[0]);
     }
 
     private boolean handleUserIDResolveFailure(String userName, UserStoreManager userStoreManager) {
