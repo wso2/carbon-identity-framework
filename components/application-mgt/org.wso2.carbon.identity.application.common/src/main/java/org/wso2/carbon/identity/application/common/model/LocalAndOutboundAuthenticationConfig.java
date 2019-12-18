@@ -45,6 +45,7 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     private static final String USE_TENANT_DOMAIN_IN_USERNAME = "UseTenantDomainInUsername";
     private static final String USE_USERSTORE_DOMAIN_IN_ROLES = "UseUserstoreDomainInRoles";
     private static final String SKIP_CONSENT = "SkipConsent";
+    private static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
     private static final String ENABLE_AUTHORIZATION = "EnableAuthorization";
     private static final String SUBJECT_CLAIM_URI = "subjectClaimUri";
     private static final String ALWAYS_SEND_BACK_AUTHENTICATED_LIST_OF_ID_PS = "alwaysSendBackAuthenticatedListOfIdPs";
@@ -84,6 +85,9 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
 
     @XmlElement(name = SKIP_CONSENT)
     private boolean skipConsent = false;
+
+    @XmlElement(name = SKIP_LOGOUT_CONSENT)
+    private boolean skipLogoutConsent = false;
 
     @XmlElement(name = ENABLE_AUTHORIZATION)
     private boolean enableAuthorization = false;
@@ -179,6 +183,10 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
             } else if (SKIP_CONSENT.equals(member.getLocalName())) {
                 if (Boolean.parseBoolean(member.getText())) {
                     localAndOutboundAuthenticationConfig.setSkipConsent(true);
+                }
+            } else if (SKIP_LOGOUT_CONSENT.equals(member.getLocalName())) {
+                if (Boolean.parseBoolean(member.getText())) {
+                    localAndOutboundAuthenticationConfig.setSkipLogoutConsent(true);
                 }
             }
         }
@@ -324,5 +332,15 @@ public class LocalAndOutboundAuthenticationConfig implements Serializable {
     public void setSkipConsent(boolean skipConsent) {
 
         this.skipConsent = skipConsent;
+    }
+
+    public boolean isSkipLogoutConsent() {
+
+        return skipLogoutConsent;
+    }
+
+    public void setSkipLogoutConsent(boolean skipLogoutConsent) {
+
+        this.skipLogoutConsent = skipLogoutConsent;
     }
 }

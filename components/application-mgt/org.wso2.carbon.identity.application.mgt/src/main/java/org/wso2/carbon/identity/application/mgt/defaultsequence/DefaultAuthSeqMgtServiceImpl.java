@@ -406,6 +406,7 @@ public class DefaultAuthSeqMgtServiceImpl implements DefaultAuthSeqMgtService {
         authenticationConfig.setUseUserstoreDomainInRoles(false);
         authenticationConfig.setEnableAuthorization(false);
         authenticationConfig.setSkipConsent(false);
+        authenticationConfig.setSkipLogoutConsent(false);
     }
 
     private void validateLocalAuthenticatorConfig(List<String> validationMsg,

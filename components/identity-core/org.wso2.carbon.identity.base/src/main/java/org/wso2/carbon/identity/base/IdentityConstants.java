@@ -142,6 +142,8 @@ public class IdentityConstants {
     // Service provider constants
     public static final String SKIP_CONSENT_DISPLAY_NAME="Skip Consent";
     public static final String SKIP_CONSENT="skipConsent";
+    public static final String SKIP_LOGOUT_CONSENT_DISPLAY_NAME = "Skip Logout Consent";
+    public static final String SKIP_LOGOUT_CONSENT = "skipLogoutConsent";
 
     // Use display name of a user when filtering users.
     public static final String SHOW_DISPLAY_NAME = "UserFiltering.ShowDisplayName";
