@@ -1026,6 +1026,19 @@
                        orderId="{{event.default_listener.subject_identifier_handler.priority}}"
                        enable="{{event.default_listener.subject_identifier_handler.enable}}"/>
 
+        <!-- Special UserOperationEventListeners to preserve the backward compatibility with the new unique user ID
+                related APIs  -->
+                <EventListener id="username_resolver"
+                               type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                               name="org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener"
+                               orderId="{{event.default_listener.username_resolver.priority}}"
+                               enable="{{event.default_listener.username_resolver.enable}}"/>
+                <EventListener id="userid_resolver"
+                               type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
+                               name="org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener"
+                               orderId="{{event.default_listener.userid_resolver.priority}}"
+                               enable="{{event.default_listener.userid_resolver.enable}}"/>
+
         <!-- Audit Loggers -->
 
         <!-- Old Audit Logger -->
@@ -1495,8 +1508,8 @@
         <Resource context="(.*)/api/identity/oauth2/uma/resourceregistration/v1.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/uma/permission/v1.0/(.*)" secured="true" http-method="all"/>
 
-        <Resource context="(.*)/api/identity/auth/v1.2/data(.*)" secured="true" http-method="all"/>
-        <Resource context="(.*)/api/identity/auth/v1.2/context(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">

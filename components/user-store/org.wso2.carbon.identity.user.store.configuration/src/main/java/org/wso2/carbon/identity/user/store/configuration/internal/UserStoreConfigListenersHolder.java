@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service holder for required OSGi services.
+ */
 public class UserStoreConfigListenersHolder {
 
     private static UserStoreConfigListenersHolder userStoreConfigListenersHolder = new UserStoreConfigListenersHolder();

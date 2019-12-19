@@ -25,6 +25,9 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
+/**
+ * Abstract implementation of {@link UserStoreConfigListener}.
+ */
 public abstract class AbstractUserStoreConfigListener implements UserStoreConfigListener {
 
     public boolean isEnable() {
@@ -52,12 +55,14 @@ public abstract class AbstractUserStoreConfigListener implements UserStoreConfig
     }
 
     @Override
-    public void onUserStoreNamePreUpdate(int tenantId, String currentUserStoreName, String newUserStoreName) throws UserStoreException {
+    public void onUserStoreNamePreUpdate(int tenantId, String currentUserStoreName, String newUserStoreName)
+            throws UserStoreException {
         /* Method not implemented */
     }
 
     @Override
-    public void onUserStoreNamePostUpdate(int tenantId, String currentUserStoreName, String newUserStoreName) throws UserStoreException {
+    public void onUserStoreNamePostUpdate(int tenantId, String currentUserStoreName, String newUserStoreName)
+            throws UserStoreException {
         /* Method not implemented */
     }
 

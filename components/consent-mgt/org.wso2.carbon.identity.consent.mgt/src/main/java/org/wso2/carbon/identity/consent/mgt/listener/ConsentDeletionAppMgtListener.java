@@ -30,7 +30,6 @@ import org.wso2.carbon.identity.consent.mgt.IdentityConsentMgtUtils;
 import org.wso2.carbon.identity.consent.mgt.internal.IdentityConsentDataHolder;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -111,8 +110,8 @@ public class ConsentDeletionAppMgtListener extends AbstractApplicationMgtListene
         ConsentManager consentManager = IdentityConsentDataHolder.getInstance().getConsentManager();
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("Deleting consents on deletion of application: %s, in tenant domain", applicationName,
-                    tenantDomain));
+            log.debug(String.format("Deleting consents on deletion of application: %s, in tenant domain: %s.",
+                                    applicationName, tenantDomain));
         }
         try {
             List<ReceiptListResponse> receiptListResponses = consentManager.searchReceipts(consentSearchLimit, 0,

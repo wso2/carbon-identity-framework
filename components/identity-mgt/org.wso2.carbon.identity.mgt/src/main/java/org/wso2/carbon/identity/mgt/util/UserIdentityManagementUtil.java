@@ -574,7 +574,7 @@ public class UserIdentityManagementUtil {
             if (claim.getClaimUri() != null && claim.getClaimValue() != null) {
 
                 String[] userList = getUserList(tenantId, claim.getClaimUri(),
-                        claim.getClaimValue());
+                        claim.getClaimValue(), null);
 
                 if (userList != null && userList.length > 0) {
                     if (userList.length == 1) {
@@ -604,7 +604,7 @@ public class UserIdentityManagementUtil {
         return userName;
     }
 
-    private static String[] getUserList(int tenantId, String claim, String value) throws IdentityMgtServiceException {
+    private static String[] getUserList(int tenantId, String claim, String value, String profileName) throws IdentityMgtServiceException {
 
         org.wso2.carbon.user.core.UserStoreManager userStoreManager = null;
         String[] userList = null;
@@ -622,7 +622,7 @@ public class UserIdentityManagementUtil {
         }
         try {
             if (userStoreManager != null) {
-                userList = userStoreManager.getUserList(claim, value, null);
+                userList = userStoreManager.getUserList(claim, value, profileName);
             }
             return userList;
         } catch (Exception e) {

@@ -23,7 +23,6 @@ import org.wso2.carbon.utils.CarbonUtils;
 /**
  * Constant class to hold IdentityUserStoreMgtConstants
  */
-
 public class UserStoreConfigurationConstant {
 
     public static final String ENCRYPTED_PROPERTY_MASK = "ENCRYPTED PROPERTY";
@@ -40,7 +39,7 @@ public class UserStoreConfigurationConstant {
     public static final String USERSTORES = "userstores";
     public static final String USERSTORE = "USERSTORE";
     public static final String XML = "XML";
-    public static final String deploymentDirectory = CarbonUtils.getCarbonRepository() + USERSTORES;
+    public static final String DEPLOYMENT_DIRECTORY = CarbonUtils.getCarbonRepository() + USERSTORES;
     public static final String PERIOD = ".";
     public static final String DISABLED = "Disabled";
     public static final String FILE_EXTENSION_XML = ".xml";
@@ -49,6 +48,9 @@ public class UserStoreConfigurationConstant {
 
     }
 
+    /**
+     * Error message enums.
+     */
     public enum ErrorMessage {
 
         ERROR_CODE_XML_FILE_NOT_FOUND("SUS-60001", "Cannot find a configuration file with the " +

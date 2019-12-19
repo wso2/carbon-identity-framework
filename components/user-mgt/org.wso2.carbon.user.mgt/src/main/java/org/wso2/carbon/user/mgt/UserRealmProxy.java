@@ -43,6 +43,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
+import org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.bulkimport.BulkImportConfig;
 import org.wso2.carbon.user.mgt.bulkimport.CSVUserBulkImport;
@@ -78,6 +79,7 @@ public class UserRealmProxy {
             + CarbonConstants.UI_PERMISSION_NAME + RegistryConstants.PATH_SEPARATOR
             + "applications";
     private static final String DISAPLAY_NAME_CLAIM = "http://wso2.org/claims/displayName";
+
     public static final String FALSE = "false";
     public static final String PERMISSION = "/permission";
     public static final String PERMISSION_ADMIN = "/permission/admin";
@@ -1074,6 +1076,10 @@ public class UserRealmProxy {
                 filter = domain + CarbonConstants.DOMAIN_SEPARATOR + filter;
             }
 
+            UserStoreManager usMan = realm.getUserStoreManager();
+            String[] usersOfRole;
+            boolean canLimitAndFilterUsersFromUMLevel = canLimitAndFilterUsersFromUMLevel(roleName, usMan);
+
             if (domain == null && limit != 0) {
                 if (filter != null) {
                     filter = CarbonConstants.DOMAIN_SEPARATOR + filter;
@@ -1082,10 +1088,24 @@ public class UserRealmProxy {
                 }
             }
 
-            UserStoreManager usMan = realm.getUserStoreManager();
-            String[] usersOfRole = usMan.getUserListOfRole(roleName);
+            /*
+            With the fix delivered for https://github.com/wso2/product-is/issues/6511, limiting and filtering from
+            the JDBC UserStoreManager is possible thus making the in-memory filtering and limiting logic in here
+            irrelevant for JDBC UM. But still, Read Only LDAP UM does not supports DB level limiting and filtering
+            (refer to https://github.com/wso2/product-is/issues/6573) thus the logic is kept as it is.
+             */
+            if (canLimitAndFilterUsersFromUMLevel) {
+                int userCountLimit = getUserCountLimit(limit);
+                String domainFreeFilter = getDomainFreeFilter(filter);
+
+                AbstractUserStoreManager abstractUsMan = (AbstractUserStoreManager) usMan;
+                usersOfRole = abstractUsMan.getUserListOfRole(roleName, domainFreeFilter, userCountLimit);
+            } else {
+                usersOfRole = usMan.getUserListOfRole(roleName);
+            }
             Arrays.sort(usersOfRole);
             Map<String, Integer> userCount = new HashMap<String, Integer>();
+
             if (limit == 0) {
                 filter = filter.replace("*", ".*");
                 Pattern pattern = Pattern.compile(filter, Pattern.CASE_INSENSITIVE);
@@ -1103,7 +1123,6 @@ public class UserRealmProxy {
                     if (!matcher.matches()) {
                         continue;
                     }
-
                     FlaggedName fName = new FlaggedName();
                     fName.setSelected(true);
                     if (combinerIndex > 0) { //if display name is appended
@@ -2344,5 +2363,48 @@ public class UserRealmProxy {
         public int compare(ClaimMapping o1, ClaimMapping o2) {
             return o1.getClaim().getClaimUri().compareTo(o2.getClaim().getClaimUri());
         }
+    }
+
+    /**
+     *  Checks whether the user store containing the given role name supports filter and limit.
+     */
+    private boolean canLimitAndFilterUsersFromUMLevel(String roleName, UserStoreManager userStoreManager) {
+
+        // Currently filter and limit for users in the role is supported only with the JDBC user store manager.
+        boolean canLimitAndFilterWithUM = false;
+
+        int domainSeparatorIndex = roleName.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
+        if (domainSeparatorIndex > 0) {
+            String domainInRole = roleName.substring(0, domainSeparatorIndex);
+            UserStoreManager secondaryUserStoreManager = userStoreManager.getSecondaryUserStoreManager(domainInRole);
+            if (secondaryUserStoreManager != null) {
+                canLimitAndFilterWithUM = secondaryUserStoreManager instanceof JDBCUserStoreManager;
+            }
+        } else {
+            canLimitAndFilterWithUM = userStoreManager instanceof JDBCUserStoreManager;
+        }
+        return canLimitAndFilterWithUM;
+    }
+
+    private String getDomainFreeFilter(String filter) {
+
+        String domainFreeFilter = filter;
+        int domainSeparatorIndex = filter.indexOf(CarbonConstants.DOMAIN_SEPARATOR);
+        if (!CarbonConstants.DOMAIN_SEPARATOR.equalsIgnoreCase(filter) && domainSeparatorIndex >= 0) {
+            domainFreeFilter = filter.substring(domainSeparatorIndex + 1);
+        }
+        return domainFreeFilter;
+    }
+
+    private int getUserCountLimit(int limit) {
+
+        // User store level filtering with "getUserListOfRole" interpret getting all users as limit < 0.
+        // However, the current method "getUsersOfRole" interpret it as 0. Therefore, following conversion is
+        // done to preserve backward compatibility.
+        int userCountLimit = limit;
+        if (limit == 0) {
+            userCountLimit = -1;
+        }
+        return userCountLimit;
     }
 }

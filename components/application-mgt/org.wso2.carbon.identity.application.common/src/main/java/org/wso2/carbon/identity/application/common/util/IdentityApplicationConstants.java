@@ -141,6 +141,7 @@ public class IdentityApplicationConstants {
             public static final String IDP_ENTITY_ID = "IdPEntityId";
             public static final String SP_ENTITY_ID = "SPEntityId";
             public static final String SSO_URL = "SSOUrl";
+            public static final String ACS_URL = "ACSUrl";
             public static final String ECP_URL = "ECPUrl";
             public static final String IS_AUTHN_REQ_SIGNED = "ISAuthnReqSigned";
             public static final String IS_ENABLE_ASSERTION_ENCRYPTION = "IsAssertionEncrypted";

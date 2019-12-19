@@ -53,16 +53,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.writeUserMgtXMLFile;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .convertMapToArray;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .triggerListnersOnUserStorePreDelete;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .triggerListnersOnUserStorePreUpdate;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .validateForFederatedDomain;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .writeUserMgtXMLFile;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant
+        .DEPLOYMENT_DIRECTORY;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant
+        .ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
 
 /**
  * This class contains the implementation of CRUD operations of the file based user Stores.
@@ -90,7 +98,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throws IdentityUserStoreMgtException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        Path userStore = Paths.get(deploymentDirectory);
+        Path userStore = Paths.get(DEPLOYMENT_DIRECTORY);
         if (isTenant) {
             userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
         }
@@ -166,7 +174,7 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         Path path;
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
-            path = Paths.get(deploymentDirectory);
+            path = Paths.get(DEPLOYMENT_DIRECTORY);
         } else {
             path = Paths.get(CarbonUtils.getCarbonTenantsDirPath(), String.valueOf(tenantId), USERSTORES);
         }
@@ -269,7 +277,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     }
 
     @Override
-    protected void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO) throws IdentityUserStoreMgtException {
+    protected void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO) throws
+            IdentityUserStoreMgtException {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
@@ -319,8 +328,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     }
 
     @Override
-    protected void doUpdateUserStoreDomainName(String previousDomainName, UserStorePersistanceDTO userStorePersistanceDTO)
-            throws IdentityUserStoreMgtException {
+    protected void doUpdateUserStoreDomainName(String previousDomainName, UserStorePersistanceDTO
+            userStorePersistanceDTO) throws IdentityUserStoreMgtException {
 
         Path userStoreConfigFile;
         Path previousUserStoreConfigFile;
@@ -332,8 +341,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
             createUserStoreDirectory(null, fileName, false);
-            userStoreConfigFile = Paths.get(deploymentDirectory, fileName + FILE_EXTENSION_XML);
-            previousUserStoreConfigFile = Paths.get(deploymentDirectory, previousFileName + FILE_EXTENSION_XML);
+            userStoreConfigFile = Paths.get(DEPLOYMENT_DIRECTORY, fileName + FILE_EXTENSION_XML);
+            previousUserStoreConfigFile = Paths.get(DEPLOYMENT_DIRECTORY, previousFileName + FILE_EXTENSION_XML);
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
             createUserStoreDirectory(tenantFilePath, fileName, true);
@@ -350,8 +359,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                     errorMessage);
         }
         if (Files.exists(userStoreConfigFile)) {
-            String errorMessage = "Cannot update user store domain name. An user store already exists with new domain " +
-                    domainName + ".";
+            String errorMessage = "Cannot update user store domain name. An user store already exists with new domain" +
+                                  " " + domainName + ".";
             throw new IdentityUserStoreClientException(UserStoreConfigurationConstant.ErrorMessage.
                     ERROR_CODE_XML_FILE_ALREADY_EXISTS.getCode(), errorMessage);
         }
@@ -428,12 +437,15 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         return userStorePersistanceDAOList.toArray(new UserStorePersistanceDTO[userStorePersistanceDAOList.size()]);
     }
 
-    private UserStoreDTO getUserStoreDTO(RealmConfiguration secondaryRealmConfiguration, Map<String, String> userStoreProperties) {
+    private UserStoreDTO getUserStoreDTO(RealmConfiguration secondaryRealmConfiguration, Map<String, String>
+            userStoreProperties) {
 
         UserStoreDTO userStoreDTO = new UserStoreDTO();
         userStoreDTO.setClassName(secondaryRealmConfiguration.getUserStoreClass());
-        userStoreDTO.setDescription(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigurationConstant.DESCRIPTION));
-        userStoreDTO.setDomainId(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME));
+        userStoreDTO.setDescription(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigurationConstant
+                                                                                             .DESCRIPTION));
+        userStoreDTO.setDomainId(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigConstants
+                                                                                          .DOMAIN_NAME));
         userStoreDTO.setRepositoryClass(FILE_BASED);
         if (userStoreProperties.get(DISABLED) != null) {
             userStoreDTO.setDisabled(Boolean.valueOf(userStoreProperties.get(DISABLED)));

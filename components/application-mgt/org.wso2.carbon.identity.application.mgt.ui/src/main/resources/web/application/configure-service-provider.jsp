@@ -416,11 +416,6 @@
                 CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.access.url.value")%>');
                 return false;
             }
-            var imageURL = document.getElementById("imageURL").value;
-            if (imageURL == '') {
-                CARBON.showWarningDialog('<%=resourceBundle.getString("alert.please.provide.image.url.value")%>');
-                return false;
-            }
         }
         if ($('input:radio[name=claim_dialect]:checked').val() == "custom") {
             var isValied = true;

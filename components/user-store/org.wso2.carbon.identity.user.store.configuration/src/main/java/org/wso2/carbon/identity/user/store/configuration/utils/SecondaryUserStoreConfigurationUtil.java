@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.crypto.Cipher;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -77,18 +78,19 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant
+        .DEPLOYMENT_DIRECTORY;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant
+        .ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.deploymentDirectory;
 
 /**
  * Util class responsible for processing encryption and decryption over secondary user store
  */
-
 public class SecondaryUserStoreConfigurationUtil {
 
-    public static final Log log = LogFactory.getLog(SecondaryUserStoreConfigurationUtil.class);
+    private static final Log LOG = LogFactory.getLog(SecondaryUserStoreConfigurationUtil.class);
     private static final String SERVER_KEYSTORE_FILE = "Security.KeyStore.Location";
     private static final String SERVER_KEYSTORE_TYPE = "Security.KeyStore.Type";
     private static final String SERVER_KEYSTORE_PASSWORD = "Security.KeyStore.Password";
@@ -143,7 +145,7 @@ public class SecondaryUserStoreConfigurationUtil {
                     store = KeyStore.getInstance(keyStoreType);
                     store.load(inputStream, password.toCharArray());
                     Certificate[] certs = store.getCertificateChain(keyAlias);
-                    if(System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY) != null) {
+                    if (System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY) != null) {
                         cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
                         certificate = certs[0];
                         cipher = Cipher.getInstance(cipherTransformation, "BC");
@@ -172,14 +174,14 @@ public class SecondaryUserStoreConfigurationUtil {
                         try {
                             inputStream.close();
                         } catch (IOException e) {
-                            log.error("Exception occurred while trying to close the keystore " +
-                                    "file", e);
+                            LOG.error("Exception occurred while trying to close the keystore " +
+                                      "file", e);
                         }
                     }
                 }
             } else {
                 String errMsg = "ServerConfigurationService is null - this situation can't occur";
-                log.error(errMsg);
+                LOG.error(errMsg);
             }
 
         }
@@ -216,7 +218,7 @@ public class SecondaryUserStoreConfigurationUtil {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
-            userStore = Paths.get(deploymentDirectory);
+            userStore = Paths.get(DEPLOYMENT_DIRECTORY);
         } else {
             String tenantFilePath = CarbonUtils.getCarbonTenantsDirPath();
             userStore = Paths.get(tenantFilePath, String.valueOf(tenantId), USERSTORES);
@@ -230,10 +232,10 @@ public class SecondaryUserStoreConfigurationUtil {
         if (!Files.exists(userStore)) {
             try {
                 Files.createDirectory(userStore);
-                log.info("folder 'userstores' created to store configurations for tenant = " + tenantId);
+                LOG.info("folder 'userstores' created to store configurations for tenant = " + tenantId);
             } catch (IOException e) {
-                log.error("Error while creating 'userstores' directory to store configurations for tenant = "
-                        + tenantId);
+                LOG.error("Error while creating 'userstores' directory to store configurations for tenant = "
+                          + tenantId);
             }
         }
         return Paths.get(userStore.toString(), fileName + FILE_EXTENSION_XML);
@@ -315,7 +317,8 @@ public class SecondaryUserStoreConfigurationUtil {
      * @return user store properties as a String.
      * @throws IdentityUserStoreMgtException throws if an error occurred while getting the user store properties.
      */
-    public static String getUserStoreProperties(UserStoreDTO userStoreDTO, String existingDomainName) throws IdentityUserStoreMgtException {
+    public static String getUserStoreProperties(UserStoreDTO userStoreDTO, String existingDomainName)
+            throws IdentityUserStoreMgtException {
 
         String userStoreProperties;
         DocumentBuilderFactory documentFactory = IdentityUtil.getSecuredDocumentBuilderFactory();
@@ -373,15 +376,16 @@ public class SecondaryUserStoreConfigurationUtil {
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
-        if (log.isDebugEnabled()) {
-            log.debug("Closing the output stream from " + userStoreConfigFile);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Closing the output stream from " + userStoreConfigFile);
         }
         result.getOutputStream().close();
 
     }
 
     private static Document getDocument(UserStoreDTO userStoreDTO, boolean editSecondaryUserStore,
-                                        DocumentBuilder documentBuilder, String existingDomainName) throws IdentityUserStoreMgtException {
+                                        DocumentBuilder documentBuilder, String existingDomainName)
+            throws IdentityUserStoreMgtException {
 
         Document doc = documentBuilder.newDocument();
 
@@ -398,7 +402,8 @@ public class SecondaryUserStoreConfigurationUtil {
                         doc, userStoreElement, editSecondaryUserStore);
             }
             addProperty(UserStoreConfigConstants.DOMAIN_NAME, userStoreDTO.getDomainId(), doc, userStoreElement, false);
-            addProperty(UserStoreConfigurationConstant.DESCRIPTION, userStoreDTO.getDescription(), doc, userStoreElement, false);
+            addProperty(UserStoreConfigurationConstant.DESCRIPTION, userStoreDTO.getDescription(), doc,
+                        userStoreElement, false);
         }
         return doc;
     }
@@ -420,14 +425,14 @@ public class SecondaryUserStoreConfigurationUtil {
         StreamResult result = new StreamResult(Files.newOutputStream(userStoreConfigFile));
         DOMSource source = new DOMSource(doc);
         transformProperties().transform(source, result);
-        if (log.isDebugEnabled()) {
-            log.debug("Closing the output stream from " + userStoreConfigFile);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Closing the output stream from " + userStoreConfigFile);
         }
         result.getOutputStream().close();
 
-        if (log.isDebugEnabled()) {
-            log.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully " +
-                    "written to the file system");
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("New state :" + isDisable + " of the user store \'" + domain + "\' successfully " +
+                      "written to the file system");
         }
     }
 
@@ -513,8 +518,9 @@ public class SecondaryUserStoreConfigurationUtil {
      * @param doc          Document
      * @param parent       Parent element of the properties to be added
      */
-    private static void addProperties(String userStoreDomain, String userStoreClass, PropertyDTO[] propertyDTOs, Document doc,
-                                      Element parent, boolean editSecondaryUserStore) throws IdentityUserStoreMgtException {
+    private static void addProperties(String userStoreDomain, String userStoreClass, PropertyDTO[] propertyDTOs,
+                                      Document doc, Element parent, boolean editSecondaryUserStore)
+            throws IdentityUserStoreMgtException {
 
         if (editSecondaryUserStore) {
             String uniqueID = getUniqueIDFromUserDTO(propertyDTOs);
@@ -545,7 +551,7 @@ public class SecondaryUserStoreConfigurationUtil {
                         propertyDTOValue = SecondaryUserStoreConfigurationUtil.encryptPlainText(propertyDTOValue);
                         encrypted = true;
                     } catch (IdentityUserStoreMgtException e) {
-                        log.error("addProperties failed to encrypt", e);
+                        LOG.error("addProperties failed to encrypt", e);
                         //its ok to continue from here
                     }
                 }
@@ -564,8 +570,8 @@ public class SecondaryUserStoreConfigurationUtil {
      * @return If property value is masked, returns the actual value to be stored instead of the mask. Otherwise the
      * same propertyDTOValue passed as the argument.
      */
-    private static String getPropertyValueIfMasked(Map<String, String> secondaryUserStoreProperties, String propertyDTOName,
-                                            String propertyDTOValue) {
+    private static String getPropertyValueIfMasked(Map<String, String> secondaryUserStoreProperties,
+                                                   String propertyDTOName, String propertyDTOValue) {
 
         if (ENCRYPTED_PROPERTY_MASK.equalsIgnoreCase(propertyDTOValue)) {
             propertyDTOValue = getExistingPropertyValue(secondaryUserStoreProperties, propertyDTOName);
@@ -573,7 +579,8 @@ public class SecondaryUserStoreConfigurationUtil {
         return propertyDTOValue;
     }
 
-    private static String getExistingPropertyValue(Map<String, String> secondaryUserStoreProperties, String propertyDTOName) {
+    private static String getExistingPropertyValue(Map<String, String> secondaryUserStoreProperties,
+                                                   String propertyDTOName) {
 
         String existingPropertyValue = null;
         if (secondaryUserStoreProperties != null) {
@@ -591,8 +598,8 @@ public class SecondaryUserStoreConfigurationUtil {
         if (userStoreManager != null) {
             secondaryUserStoreManager = userStoreManager.getSecondaryUserStoreManager(userStoreDomain);
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not locate user store manager for user store domain: " + userStoreDomain);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Could not locate user store manager for user store domain: " + userStoreDomain);
             }
         }
         return secondaryUserStoreManager;
@@ -612,7 +619,8 @@ public class SecondaryUserStoreConfigurationUtil {
      */
     public static void validateForFederatedDomain(String domain) throws UserStoreException {
 
-        if (IdentityUtil.isNotBlank(domain) && domain.toUpperCase().startsWith(UserStoreConfigurationConstant.FEDERATED)) {
+        if (IdentityUtil.isNotBlank(domain) && domain.toUpperCase().startsWith(UserStoreConfigurationConstant
+                                                                                       .FEDERATED)) {
             throw new UserStoreException("'FEDERATED' is a reserved user domain prefix. "
                     + "Please start the domain name in a different manner.");
         }
@@ -700,7 +708,8 @@ public class SecondaryUserStoreConfigurationUtil {
      * @param domainName current user store domain name
      * @throws UserStoreException throws when an error occured when triggering listeners.
      */
-    public static void triggerListnersOnUserStorePreUpdate(String previousDomainName, String domainName) throws UserStoreException {
+    public static void triggerListnersOnUserStorePreUpdate(String previousDomainName, String domainName)
+            throws UserStoreException {
 
         List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
                 .getUserStoreConfigListeners();

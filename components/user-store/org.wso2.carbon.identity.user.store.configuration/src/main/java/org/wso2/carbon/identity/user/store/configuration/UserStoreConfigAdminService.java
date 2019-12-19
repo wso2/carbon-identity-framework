@@ -44,11 +44,17 @@ import java.util.Set;
 
 import javax.xml.transform.TransformerConfigurationException;
 
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory;
-import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .getFileBasedUserStoreDAOFactory;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
+        .validateForFederatedDomain;
 
+/**
+ * User store config admin service.
+ */
 public class UserStoreConfigAdminService extends AbstractAdmin {
-    public static final Log log = LogFactory.getLog(UserStoreConfigAdminService.class);
+
+    public static final Log LOG = LogFactory.getLog(UserStoreConfigAdminService.class);
 
     private static final String FILE_BASED_REPOSITORY_CLASS =
             "org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory";
@@ -85,9 +91,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 return new UserStoreDTO[0];
             }
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Repository separation of user-stores has been disabled. Returning empty " +
-                        "UserStoreDTO array.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Repository separation of user-stores has been disabled. Returning empty " +
+                          "UserStoreDTO array.");
             }
             return new UserStoreDTO[0];
         }
@@ -108,8 +114,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     /**
      * Get User Store Manager default properties for a given implementation
      *
-     * @param className:Implementation class name for the user store
-     * @return : list of default properties(mandatory+optional)
+     * @param className Implementation class name for the user store
+     * @return list of default properties(mandatory+optional)
      */
     public Properties getUserStoreManagerProperties(String className) throws IdentityUserStoreMgtException {
         Properties properties = UserStoreManagerRegistry.getUserStoreProperties(className);
@@ -125,10 +131,10 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 }
             }
             if (!foundUniqueIDProperty) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Inserting property : " + UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT +
-                            " since " + UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT +
-                            " property not defined as an optional property in " + className + " class");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Inserting property : " + UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT +
+                              " since " + UserStoreConfigurationConstant.UNIQUE_ID_CONSTANT +
+                              " property not defined as an optional property in " + className + " class");
                 }
                 List<Property> optionalPropertyList = new ArrayList<>(Arrays.asList(optionalProperties));
                 Property uniqueIDProperty = new Property(
@@ -161,8 +167,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     /**
      * Edit existing user store.
      *
-     * @param userStoreDTO: Represent the configuration of user store {@link UserStoreDTO}
-     * @throws IdentityUserStoreMgtException if an error occured while editing a userstore.
+     * @param userStoreDTO Represent the configuration of user store {@link UserStoreDTO}
+     * @throws IdentityUserStoreMgtException if an error occurred while editing a userstore.
      */
     public void editUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
@@ -178,17 +184,17 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     /**
      * Edit currently existing user store with a change of its domain name
      *
-     * @param userStoreDTO:      Represent the configuration of new user store
-     * @param previousDomainName
-     * @throws IdentityUserStoreMgtException
+     * @param userStoreDTO Represent the configuration of new user store
+     * @param previousDomainName previous name of the user store
+     * @throws IdentityUserStoreMgtException if an error occurred while editing a userstore.
      */
     public void editUserStoreWithDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
 
-        boolean isDebugEnabled = log.isDebugEnabled();
+        boolean isDebugEnabled = LOG.isDebugEnabled();
         String domainName = userStoreDTO.getDomainId();
         if (isDebugEnabled) {
-            log.debug("Changing user store " + previousDomainName + " to " + domainName);
+            LOG.debug("Changing user store " + previousDomainName + " to " + domainName);
         }
         try {
             validateForFederatedDomain(domainName);
@@ -215,9 +221,9 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             Object[] repositoryArr = userStoreFactories.keySet().toArray(new String[0]);
             return Arrays.copyOf(repositoryArr, repositoryArr.length, String[].class);
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Repository separation of user-stores has been disabled. Returning empty " +
-                        "repository class array.");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Repository separation of user-stores has been disabled. Returning empty " +
+                          "repository class array.");
             }
             return new String[0];
         }
@@ -226,7 +232,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     /**
      * Deletes the user store specified from file
      *
-     * @param domainName: domain name of the user stores to be deleted
+     * @param domainName domain name of the user stores to be deleted
      */
     public void deleteUserStore(String domainName) throws IdentityUserStoreMgtException {
 
@@ -251,7 +257,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
     /**
      * Delete the given list of user stores from file repository.
      *
-     * @param domains: domain names of user stores to be deleted
+     * @param domains domain names of user stores to be deleted
      */
     public void deleteUserStoresSet(String[] domains) throws IdentityUserStoreMgtException {
 
@@ -297,20 +303,22 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
                 }
             }
             String[] domains = domainList.toArray(new String[0]);
-            if (log.isDebugEnabled()) {
-                log.debug("Repository separation of user-stores has been disabled. Attempting to remove " +
-                        "user-stores with file-based configurations. For user-stores " + String.join(",", domainList));
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Repository separation of user-stores has been disabled. Attempting to remove " +
+                          "user-stores with file-based configurations. For user-stores " + String.join(",",
+                                                                                                       domainList));
             }
             deleteUserStoresSet(domains);
         }
     }
 
-
-    /*
-     * Update a domain to be disabled/enabled in file repository
+    /**
+     * Update a domain to be disabled/enabled in file repository.
      *
-     * @param domain:   Name of the domain to be updated
-     * @param isDisable : Whether to disable/enable domain(true/false)
+     * @param domain Name of the domain to be updated
+     * @param isDisable Whether to disable/enable domain(true/false)
+     * @throws IdentityUserStoreMgtException If error occurs during domain validation
+     * @throws TransformerConfigurationException If error occurs during configuration transformation
      */
     public void changeUserStoreState(String domain, Boolean isDisable) throws IdentityUserStoreMgtException,
             TransformerConfigurationException {
@@ -361,7 +369,7 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
         }
 
         if (currentUserDomain != null && currentUserDomain.equalsIgnoreCase(domain) && isDisable) {
-            log.error("Error while disabling user store from a user who is in the same user store.");
+            LOG.error("Error while disabling user store from a user who is in the same user store.");
             throw new IdentityUserStoreMgtException("Error while updating user store state.");
         }
     }
@@ -388,7 +396,8 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
      * @throws IdentityUserStoreMgtException
      */
     public boolean testRDBMSConnection(String domainName, String driverName, String connectionURL, String username,
-                                       String connectionPassword, String messageID) throws IdentityUserStoreMgtException {
+                                       String connectionPassword, String messageID) throws
+            IdentityUserStoreMgtException {
 
         return UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService().testRDBMSConnection(domainName,
                 driverName, connectionURL, username, connectionPassword, messageID);
