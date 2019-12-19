@@ -20,6 +20,10 @@ package org.wso2.carbon.identity.mgt.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class IdentityMgtServiceDataHolder {
 
@@ -28,6 +32,8 @@ public class IdentityMgtServiceDataHolder {
     private static Log log = LogFactory.getLog(IdentityMgtServiceDataHolder.class);
 
     private boolean userSessionMappingEnabled;
+
+    private static Map<Integer, UserOperationEventListener> userOperationEventListeners = new HashMap<>();
 
     private IdentityMgtServiceDataHolder() {
 
@@ -64,5 +70,23 @@ public class IdentityMgtServiceDataHolder {
         }
 
         this.userSessionMappingEnabled = userSessionMappingEnabled;
+    }
+
+    public Map<Integer, UserOperationEventListener> getUserOperationEventListeners() {
+
+        return userOperationEventListeners;
+    }
+
+    public void setUserOperationEventListeners(
+            Map<Integer, UserOperationEventListener> userOperationEventListeners) {
+
+        IdentityMgtServiceDataHolder.userOperationEventListeners = userOperationEventListeners;
+    }
+
+    public void addUserOperationEventListener(
+            UserOperationEventListener userOperationEventListener) {
+
+        userOperationEventListeners.put(userOperationEventListener.getExecutionOrderId(),
+                userOperationEventListener);
     }
 }
