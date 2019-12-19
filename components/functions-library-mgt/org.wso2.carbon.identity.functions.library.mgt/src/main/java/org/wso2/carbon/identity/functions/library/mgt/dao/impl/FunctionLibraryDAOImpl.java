@@ -33,6 +33,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -223,7 +224,8 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
                             oldFunctionLibName, e1);
                 }
             } catch (SQLException e) {
-                throw new FunctionLibraryManagementException("Failed to update Function library" + oldFunctionLibName, e);
+                throw new FunctionLibraryManagementException("Failed to update Function library" +
+                                                             oldFunctionLibName, e);
             } catch (IOException e) {
                 throw new FunctionLibraryManagementException("An error occurred while processing content stream " +
                         "of function library script.", e);
@@ -326,7 +328,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
     private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
 
         if (value != null) {
-            InputStream inputStream = new ByteArrayInputStream(value.getBytes());
+            InputStream inputStream = new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8));
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());
         } else {
             prepStmt.setBinaryStream(index, new ByteArrayInputStream(new byte[0]), 0);

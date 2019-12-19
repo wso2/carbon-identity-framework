@@ -122,7 +122,8 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             functionLibraryManagementService.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
 
             assertEquals(functionLibraryManagementService.getFunctionLibrary(
-                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain).getFunctionLibraryName(),
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)
+                                                         .getFunctionLibraryName(),
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName());
 
             // Clean after test
@@ -243,8 +244,9 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibraryDAOImpl functionLibraryDAO = PowerMockito.mock(FunctionLibraryDAOImpl.class);
         PowerMockito.whenNew(FunctionLibraryDAOImpl.class).withNoArguments().thenReturn(functionLibraryDAO);
         for (Object functionLibrary : functionLibraries) {
-            when(functionLibraryDAO.isFunctionLibraryExists(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
-                    tenantDomain)).thenReturn(false);
+            when(functionLibraryDAO.isFunctionLibraryExists(
+                    ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain))
+                    .thenReturn(false);
         }
         List<FunctionLibrary> functionLibraries1 = Arrays.asList(new FunctionLibrary[3]);
         int i = 0;
@@ -255,7 +257,8 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         when(functionLibraryDAO.listFunctionLibraries(SAMPLE_TENANT_DOMAIN)).thenReturn(functionLibraries1);
         addFunctionLibraries(functionLibraryManagementService, functionLibraries, tenantDomain);
 
-        List<FunctionLibrary> functionLibrariesList = functionLibraryManagementService.listFunctionLibraries(tenantDomain);
+        List<FunctionLibrary> functionLibrariesList = functionLibraryManagementService.listFunctionLibraries
+                (tenantDomain);
         assertTrue(functionLibrariesList != null && functionLibrariesList.size() != 0,
                 "Failed to retrieve scopes.");
 
@@ -329,7 +332,8 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         }
         try {
             when(functionLibraryDAO.isFunctionLibraryExists("sample", tenantDomain)).thenReturn(true);
-            when(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain)).thenReturn(funLib);
+            when(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain)).thenReturn
+                    (funLib);
             functionLibraryManagementService.updateFunctionLibrary(oldName, funLib, tenantDomain);
 
             assertNotNull(functionLibraryManagementService.getFunctionLibrary(funLib.getFunctionLibraryName(),

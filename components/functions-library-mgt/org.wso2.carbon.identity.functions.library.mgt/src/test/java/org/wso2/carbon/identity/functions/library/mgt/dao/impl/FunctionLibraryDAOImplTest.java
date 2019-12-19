@@ -300,9 +300,9 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
                     tenantDomain);
 
             when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
-            assertNull(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary).getFunctionLibraryName(),
-                    tenantDomain), "Failed to delete the functionLibrary" +
-                    " by name.");
+            assertNull(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary)
+                                                                     .getFunctionLibraryName(), tenantDomain),
+                       "Failed to delete the functionLibrary by name.");
 
         }
     }
