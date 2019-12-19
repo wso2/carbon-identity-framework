@@ -35,11 +35,15 @@ import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
+
 import javax.crypto.Cipher;
 
+/**
+ * Configuration utility to for encrypting secondary user store properties.
+ */
 public class SecondaryUserStoreConfigurator {
 
-    public static final Log log = LogFactory.getLog(SecondaryUserStoreConfigurator.class);
+    private static final Log LOG = LogFactory.getLog(SecondaryUserStoreConfigurator.class);
     private static final String SERVER_KEYSTORE_FILE = "Security.KeyStore.Location";
     private static final String SERVER_KEYSTORE_TYPE = "Security.KeyStore.Type";
     private static final String SERVER_KEYSTORE_PASSWORD = "Security.KeyStore.Password";
@@ -90,7 +94,7 @@ public class SecondaryUserStoreConfigurator {
                     store = KeyStore.getInstance(keyStoreType);
                     store.load(inputStream, password.toCharArray());
                     Certificate[] certs = store.getCertificateChain(keyAlias);
-                    if(System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY) != null) {
+                    if (System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY) != null) {
                         cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
                         certificate = certs[0];
                         cipher = Cipher.getInstance(cipherTransformation, "BC");
@@ -119,19 +123,21 @@ public class SecondaryUserStoreConfigurator {
                         try {
                             inputStream.close();
                         } catch (IOException e) {
-                            log.error("Exception occurred while trying to close the keystore " +
-                                    "file", e);
+                            LOG.error("Exception occurred while trying to close the keystore " +
+                                      "file", e);
                         }
                     }
                 }
             } else {
                 String errMsg = "ServerConfigurationService is null - this situation can't occur";
-                log.error(errMsg);
+                LOG.error(errMsg);
             }
         }
     }
 
     /**
+     * Encrypt a given text.
+     *
      * @param plainText Cipher text to be encrypted
      * @return Returns the encrypted text
      * @throws IdentityUserStoreMgtException Encryption failed
@@ -154,7 +160,7 @@ public class SecondaryUserStoreConfigurator {
             String errMsg = "Failed to generate the cipher text";
             throw new IdentityUserStoreMgtException(errMsg, e);
         } catch (ArrayIndexOutOfBoundsException e) {
-            log.error("Error while adding the password - too much data for RSA block");
+            LOG.error("Error while adding the password - too much data for RSA block");
             throw e;
         }
     }

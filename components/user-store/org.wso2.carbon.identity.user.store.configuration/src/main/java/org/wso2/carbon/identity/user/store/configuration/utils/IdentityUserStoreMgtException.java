@@ -16,6 +16,9 @@
 
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
+/**
+ * Parent exception for secondary user store management exceptions.
+ */
 public class IdentityUserStoreMgtException extends Exception {
 
     private static final long serialVersionUID = 148397950276334073L;

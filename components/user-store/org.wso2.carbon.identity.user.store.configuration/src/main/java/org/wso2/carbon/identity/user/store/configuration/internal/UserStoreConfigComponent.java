@@ -39,11 +39,15 @@ import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfi
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
 
+/**
+ * User store configuration service OSGi component.
+ */
 @Component(
         name = "org.wso2.carbon.identity.user.store.configuration.component",
         immediate = true
 )
 public class UserStoreConfigComponent {
+
     private static final Log log = LogFactory.getLog(UserStoreConfigComponent.class);
     private static RealmService realmService = null;
     private static RealmConfiguration realmConfiguration = null;
