@@ -106,9 +106,6 @@ public class ApplicationMgtValidator {
             if (StringUtils.isBlank(serviceProvider.getAccessUrl())) {
                 validationErrors.add(String.format(validationErrorFormat, "accessURL"));
             }
-            if (StringUtils.isBlank(serviceProvider.getImageUrl())) {
-                validationErrors.add(String.format(validationErrorFormat, "imageURL"));
-            }
         }
     }
 
