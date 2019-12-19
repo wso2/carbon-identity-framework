@@ -29,6 +29,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 
+/**
+ *
+ * Expose component "org.wso2.carbon.identity.idp.mgt.ui" as an OSGi service
+ */
 @Component(
         name = "org.wso2.carbon.identity.idp.mgt.ui",
         immediate = true
