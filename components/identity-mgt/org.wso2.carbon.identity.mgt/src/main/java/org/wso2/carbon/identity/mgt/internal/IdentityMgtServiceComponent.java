@@ -39,14 +39,14 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfig;
 import org.wso2.carbon.identity.mgt.IdentityMgtConfigException;
 import org.wso2.carbon.identity.mgt.IdentityMgtEventListener;
-import org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener;
-import org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener;
 import org.wso2.carbon.identity.mgt.RecoveryProcessor;
 import org.wso2.carbon.identity.mgt.config.Config;
 import org.wso2.carbon.identity.mgt.config.ConfigBuilder;
 import org.wso2.carbon.identity.mgt.config.EmailNotificationConfig;
 import org.wso2.carbon.identity.mgt.config.StorageType;
 import org.wso2.carbon.identity.mgt.constants.IdentityMgtConstants;
+import org.wso2.carbon.identity.mgt.listener.IdentityUserIdResolverListener;
+import org.wso2.carbon.identity.mgt.listener.IdentityUserNameResolverListener;
 import org.wso2.carbon.identity.mgt.listener.TenantManagementListener;
 import org.wso2.carbon.identity.mgt.listener.UserOperationsNotificationListener;
 import org.wso2.carbon.identity.mgt.listener.UserSessionTerminationListener;
@@ -59,7 +59,6 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
-import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -361,5 +360,22 @@ public class IdentityMgtServiceComponent {
     public static UserSessionManagementService getUserSessionManagementService() {
 
         return userSessionManagementService;
+    }
+
+    @Reference(name = "user.operation.event.listener.service", cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC, unbind = "unsetUserOperationEventListenerService")
+    protected synchronized void setUserOperationEventListenerService(
+            UserOperationEventListener userOperationEventListenerService) {
+
+        IdentityMgtServiceDataHolder.getInstance().addUserOperationEventListener(userOperationEventListenerService);
+    }
+
+    protected synchronized void unsetUserOperationEventListenerService(
+            UserOperationEventListener userOperationEventListenerService) {
+
+        if (userOperationEventListenerService != null) {
+            IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().remove(
+                    userOperationEventListenerService.getExecutionOrderId());
+        }
     }
 }

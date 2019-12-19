@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.mgt.internal.IdentityMgtServiceDataHolder;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -33,12 +34,12 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.common.AuthenticationResult;
 import org.wso2.carbon.user.core.common.LoginIdentifier;
 import org.wso2.carbon.user.core.common.User;
-import org.wso2.carbon.user.core.internal.UMListenerServiceComponent;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.model.Condition;
 import org.wso2.carbon.user.core.model.UniqueIDUserClaimSearchEntry;
 import org.wso2.carbon.user.core.model.UserClaimSearchEntry;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -75,7 +76,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreAuthenticate(userName, credential, userStoreManager);
             }
@@ -102,7 +103,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostAuthenticate(userName, authenticated, userStoreManager);
             }
@@ -119,7 +120,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreAddUser(userName, credential, roleList, claims, profile, userStoreManager);
             }
@@ -130,6 +131,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     // TODO: 12/19/19 This doPostAddUserWithID signature will be changed in the carbon-kernel 4.6.0-beta. This should
     //  be updated accordingly.
+
     @Override
     public boolean doPostAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
             String profile, UserStoreManager userStoreManager) throws UserStoreException {
@@ -143,7 +145,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager);
             }
@@ -151,7 +153,6 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         return true;
     }
-
     @Override
     public boolean doPreUpdateCredentialWithID(String userID, Object newCredential, Object oldCredential,
             UserStoreManager userStoreManager) throws UserStoreException {
@@ -165,7 +166,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreUpdateCredential(userName, newCredential, oldCredential, userStoreManager);
             }
@@ -187,7 +188,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostUpdateCredential(userName, credential, userStoreManager);
             }
@@ -209,7 +210,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreUpdateCredentialByAdmin(userName, newCredential, userStoreManager);
             }
@@ -231,7 +232,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostUpdateCredentialByAdmin(userName, credential, userStoreManager);
             }
@@ -255,7 +256,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         // Setting the thread-local to keep userName for doPostDeleteUserWithID listener.
         IdentityUtil.threadLocalProperties.get().put(DO_PRE_DELETE_USER_USER_NAME, userName);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreDeleteUser(userName, userStoreManager);
             }
@@ -275,7 +276,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             // Getting the userName from thread-local which has been set from doPreDeleteUserWithID.
             String userName = (String) IdentityUtil.threadLocalProperties.get().get(DO_PRE_DELETE_USER_USER_NAME);
 
-            for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+            for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
                 if (!(listener instanceof IdentityUserIdResolverListener)) {
                     return listener.doPostDeleteUser(userName, userStoreManager);
                 }
@@ -301,7 +302,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreSetUserClaimValue(userName, claimURI, claimValue, profileName, userStoreManager);
             }
@@ -323,7 +324,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostSetUserClaimValue(userName, userStoreManager);
             }
@@ -345,7 +346,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreSetUserClaimValues(userName, claims, profileName, userStoreManager);
             }
@@ -367,7 +368,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostSetUserClaimValues(userName, claims, profileName, userStoreManager);
             }
@@ -389,7 +390,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreDeleteUserClaimValues(userName, claims, profileName, userStoreManager);
             }
@@ -411,7 +412,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostDeleteUserClaimValues(userName, userStoreManager);
             }
@@ -433,7 +434,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreDeleteUserClaimValue(userName, claimURI, profileName, userStoreManager);
             }
@@ -455,7 +456,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostDeleteUserClaimValue(userName, userStoreManager);
             }
@@ -474,7 +475,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreAddRole(roleName, userNames, permissions, userStoreManager);
             }
@@ -493,7 +494,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostAddRole(roleName, userNames, permissions, userStoreManager);
             }
@@ -512,7 +513,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreAddInternalRole(roleName, userNames, permissions, userStoreManager);
             }
@@ -531,7 +532,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostAddInternalRole(roleName, userNames, permissions, userStoreManager);
             }
@@ -552,7 +553,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                 (AbstractUserStoreManager) userStoreManager);
         String[] newUserNames = getUserNamesFromUserIDs(newUserIDs, (AbstractUserStoreManager) userStoreManager);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager);
             }
@@ -573,7 +574,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                 (AbstractUserStoreManager) userStoreManager);
         String[] newUserNames = getUserNamesFromUserIDs(newUserIDs, (AbstractUserStoreManager) userStoreManager);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager);
             }
@@ -595,7 +596,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager);
             }
@@ -617,7 +618,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager);
             }
@@ -639,7 +640,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreGetUserClaimValue(userName, claim, profileName, userStoreManager);
             }
@@ -661,7 +662,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager);
             }
@@ -683,7 +684,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetUserClaimValue(userName, claim, claimValue, profileName, userStoreManager);
             }
@@ -705,7 +706,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager);
             }
@@ -724,7 +725,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager);
             }
@@ -743,7 +744,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener
                         .doPreGetUserList(claimUri, claimValue, limit, offset, returnUserNamesList, userStoreManager);
@@ -763,7 +764,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager);
             }
@@ -782,7 +783,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener
                         .doPostGetUserList(claimUri, claimValue, returnUserNamesList, limit, offset, userStoreManager);
@@ -802,7 +803,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetPaginatedUserList(claimUri, claimValue, returnUserNamesList, userStoreManager);
             }
@@ -821,7 +822,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostListUsers(filter, limit, offset, returnUserNamesList, userStoreManager);
             }
@@ -843,7 +844,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetRoleListOfUser(userName, filter, roleList, userStoreManager);
             }
@@ -860,7 +861,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreGetUserList(condition, domain, profileName, limit, offset, sortBy, sortOrder,
                         userStoreManager);
@@ -882,7 +883,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> userNamesList = users.stream().map(User::getUsername).collect(Collectors.toList());
         String[] userNames = userNamesList.toArray(new String[0]);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener
                         .doPostGetUserList(condition, domain, profileName, limit, offset, sortBy, sortOrder, userNames,
@@ -904,7 +905,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = userList.stream().map(User::getUsername).collect(Collectors.toList());
         String[] returnUserNames = returnUserNamesList.toArray(new String[0]);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetUserListOfRole(roleName, returnUserNames, userStoreManager);
             }
@@ -927,7 +928,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<UserClaimSearchEntry> userClaimSearchEntries = ((AbstractUserStoreManager) userStoreManager)
                 .getUserClaimSearchEntries(uniqueIDUserClaimSearchEntries);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetUsersClaimValues(userNames, claims.toArray(new String[0]), profileName,
                         userClaimSearchEntries.toArray(new UserClaimSearchEntry[0]));
@@ -953,7 +954,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreAuthenticate(userName, credential, userStoreManager);
             }
@@ -984,7 +985,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             }
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostAuthenticate(userName, authenticated, userStoreManager);
             }
@@ -1005,7 +1006,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         //  kernel 4.6.0-beta
         String username = null;
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPreAuthenticate(username, credential, userStoreManager);
             }
@@ -1031,7 +1032,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostAuthenticate(userName, authenticated, userStoreManager);
             }
@@ -1050,7 +1051,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         List<String> userNamesList = ((AbstractUserStoreManager) userStoreManager).getUserNamesFromUserIDs(userIDs);
 
-        for (UserOperationEventListener listener : UMListenerServiceComponent.getUserOperationEventListeners()) {
+        for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
                 return listener.doPostGetRoleListOfUsers(userNamesList.toArray(new String[0]), rolesOfUsersMap);
             }
@@ -1086,4 +1087,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         return userNamesList.toArray(new String[0]);
     }
 
+    private Collection<UserOperationEventListener> getUserStoreManagerListeners() {
+
+        return IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().values();
+    }
 }
