@@ -28,6 +28,7 @@ public interface UserStoreDAO {
 
     /**
      * Add a userStore {@link UserStoreDTO}.
+     *
      * @param userStoreDTO {@link UserStoreDTO} to insert.
      * @throws IdentityUserStoreMgtException
      */
@@ -35,18 +36,20 @@ public interface UserStoreDAO {
 
     /**
      * Update the state of the userStore {@link UserStoreDTO}
-     * @param userStoreDTO {@link UserStoreDTO} to update.
-     * @param  isStateChange true, if the update is a user store state change.
+     *
+     * @param userStoreDTO  {@link UserStoreDTO} to update.
+     * @param isStateChange true, if the update is a user store state change.
      * @throws IdentityUserStoreMgtException throws if an error occured while updating the userStore.
      */
-    void updateUserStore(UserStoreDTO userStoreDTO , boolean isStateChange) throws IdentityUserStoreMgtException;
+    void updateUserStore(UserStoreDTO userStoreDTO, boolean isStateChange) throws IdentityUserStoreMgtException;
 
     /**
      * Update the name of the userStore domain.
+     *
      * @param previousDomainName the domain name to be replaced
      * @throws IdentityUserStoreMgtException throws if an error occured while updating the domain name.
      */
-    void updateUserStoreDomainName(String previousDomainName ,UserStoreDTO userStoreDTO)
+    void updateUserStoreDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException;
 
     /**

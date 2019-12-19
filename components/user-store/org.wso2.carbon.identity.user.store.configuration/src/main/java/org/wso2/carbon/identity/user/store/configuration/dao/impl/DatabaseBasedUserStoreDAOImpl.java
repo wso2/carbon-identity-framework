@@ -60,7 +60,7 @@ import java.util.UUID;
 
 import javax.xml.stream.XMLStreamException;
 
-import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries.GET_All_USERSTORE_PROPERTIES;
+import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries.GET_ALL_USERSTORE_PROPERTIES;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
@@ -70,6 +70,9 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreC
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORE;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.XML;
 
+/**
+ * This class contains the implementation of CRUD operations of the database based user Stores.
+ */
 public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
     private static final Log log = LogFactory.getLog(DatabaseBasedUserStoreDAOImpl.class);
@@ -78,7 +81,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private XMLProcessorUtils xmlProcessorUtils = new XMLProcessorUtils();
 
     @Override
-    protected void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO) throws IdentityUserStoreMgtException {
+    protected void doAddUserStore(UserStorePersistanceDTO userStorePersistanceDTO) throws
+            IdentityUserStoreMgtException {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
@@ -157,12 +161,13 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                     }
                 } else {
                     if (log.isDebugEnabled()) {
-                        log.debug("No user store properties found for domain: " + domainName + " in tenant: " + tenantId);
+                        log.debug("No user store properties found for domain: " + domainName + " in tenant: " +
+                                  tenantId);
                     }
                 }
             } catch (IOException | UserStoreException | XMLStreamException e) {
-                throw new IdentityUserStoreMgtException("Error occured while getting user store properties for domain:" +
-                        domainName + " in tenant:" + tenantId, e);
+                throw new IdentityUserStoreMgtException("Error occured while getting user store properties for " +
+                                                        "domain:" + domainName + " in tenant:" + tenantId, e);
             } finally {
                 try {
                     if (scriptBinaryStream != null) {
@@ -190,7 +195,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         List<UserStorePersistanceDTO> userStorePersistanceDTOs = new ArrayList<>();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement prepStmt = connection.prepareStatement
-                     (GET_All_USERSTORE_PROPERTIES)) {
+                     (GET_ALL_USERSTORE_PROPERTIES)) {
             prepStmt.setInt(1, tenantId);
             prepStmt.setString(2, USERSTORE);
             try (ResultSet rSet = prepStmt.executeQuery()) {
@@ -229,7 +234,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
                         tenantId, e);
             }
         } catch (SQLException e) {
-            throw new IdentityUserStoreMgtException("Could not read the user store properties in tenant:" + tenantId, e);
+            throw new IdentityUserStoreMgtException("Could not read the user store properties in tenant:" + tenantId,
+                                                    e);
         }
         return userStorePersistanceDTOs.toArray(new UserStorePersistanceDTO[userStorePersistanceDTOs.size()]);
     }
@@ -302,8 +308,10 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         UserStoreDTO userStoreDTO = new UserStoreDTO();
         userStoreDTO.setClassName(secondaryRealmConfiguration.getUserStoreClass());
-        userStoreDTO.setDescription(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigurationConstant.DESCRIPTION));
-        userStoreDTO.setDomainId(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigConstants.DOMAIN_NAME));
+        userStoreDTO.setDescription(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigurationConstant
+                                                                                             .DESCRIPTION));
+        userStoreDTO.setDomainId(secondaryRealmConfiguration.getUserStoreProperty(UserStoreConfigConstants
+                                                                                          .DOMAIN_NAME));
         userStoreDTO.setRepositoryClass(DATABASE_BASED);
         if (userStoreProperties.get(DISABLED) != null) {
             userStoreDTO.setDisabled(Boolean.valueOf(userStoreProperties.get(DISABLED)));
@@ -362,9 +370,11 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
     private void deleteUserStore(String domain, int tenantId) throws IdentityUserStoreMgtException {
 
-        String msg = "Error while removing the user store with the domain name: " + domain + " in the tenant: " + tenantId;
+        String msg = "Error while removing the user store with the domain name: " + domain + " in the tenant: " +
+                     tenantId;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries.DELETE_USERSTORE_PROPERTIES)) {
+            try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries
+                                                                            .DELETE_USERSTORE_PROPERTIES)) {
                 ps.setString(1, domain);
                 ps.setInt(2, tenantId);
                 ps.setString(3, USERSTORE);
@@ -398,12 +408,13 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         String msg = "Error while removing the user store in the tenant: " + tenantId;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries.DELETE_USERSTORE_PROPERTIES)) {
+            try (PreparedStatement ps = connection.prepareStatement(UserStoreMgtDBQueries
+                                                                            .DELETE_USERSTORE_PROPERTIES)) {
                 for (String domain : domains) {
                     addToBatchForDeleteUserStores(domain, tenantId, ps);
                     if (log.isDebugEnabled()) {
-                        log.debug("The userstore domain :" + domain + "in tenant :" + tenantId + " added to the batch to " +
-                                "remove.");
+                        log.debug("The userstore domain :" + domain + "in tenant :" + tenantId + " added to the batch" +
+                                  " to remove.");
                     }
                     removeRealmFromSecondaryUserStoreManager(domain);
                 }
@@ -424,10 +435,11 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             throws IdentityUserStoreMgtException {
 
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-        String msg = "Error occured while updating user store properties for the domain:" + domainName + "in the tenant:"
-                + tenantId;
+        String msg = "Error occured while updating user store properties for the domain:" + domainName + "in the " +
+                     "tenant:" + tenantId;
         try (Connection connection = IdentityDatabaseUtil.getDBConnection()) {
-            try (PreparedStatement pst = connection.prepareStatement(UserStoreMgtDBQueries.UPDATE_USERSTORE_PROPERTIES)) {
+            try (PreparedStatement pst = connection.prepareStatement(UserStoreMgtDBQueries
+                                                                             .UPDATE_USERSTORE_PROPERTIES)) {
                 setBlobValue(userStorePersistanceDTO.getUserStoreProperties(), pst, 1);
                 pst.setString(2, userStorePersistanceDTO.getUserStoreDTO().getDomainId());
                 pst.setString(3, domainName);
@@ -449,7 +461,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         }
     }
 
-        private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException, IOException {
+        private void setBlobValue(String value, PreparedStatement prepStmt, int index) throws SQLException,
+                IOException {
 
         if (value != null) {
             InputStream inputStream = new ByteArrayInputStream(value.getBytes());
@@ -475,7 +488,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         UserRealm userRealm = (UserRealm) CarbonContext.getThreadLocalCarbonContext().getUserRealm();
         AbstractUserStoreManager primaryUSM = (AbstractUserStoreManager) userRealm.getUserStoreManager();
-        InputStream targetStream = new ByteArrayInputStream(userStorePersistanceDTO.getUserStoreProperties().getBytes());
+        InputStream targetStream = new ByteArrayInputStream(userStorePersistanceDTO.getUserStoreProperties()
+                                                                                   .getBytes());
         RealmConfiguration realmConfiguration = getRealmConfiguration(userStorePersistanceDTO.getUserStoreDTO().
                 getDomainId(), targetStream);
         primaryUSM.addSecondaryUserStoreManager(realmConfiguration, userRealm);

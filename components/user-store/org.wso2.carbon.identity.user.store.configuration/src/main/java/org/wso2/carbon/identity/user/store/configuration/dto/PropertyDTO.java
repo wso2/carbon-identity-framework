@@ -17,8 +17,11 @@
 */
 package org.wso2.carbon.identity.user.store.configuration.dto;
 
-
+/**
+ * DTO for user store properties.
+ */
 public class PropertyDTO {
+
     String name;
     String value;
 

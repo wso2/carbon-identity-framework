@@ -19,6 +19,9 @@ package org.wso2.carbon.identity.user.store.configuration.dto;
 
 import org.apache.axis2.databinding.annotation.IgnoreNullElement;
 
+/**
+ * DTO for user store
+ */
 public class UserStoreDTO {
 
     private String domainId;

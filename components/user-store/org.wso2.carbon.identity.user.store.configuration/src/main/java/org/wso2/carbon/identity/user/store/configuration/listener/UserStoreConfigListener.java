@@ -19,13 +19,16 @@ package org.wso2.carbon.identity.user.store.configuration.listener;
 
 import org.wso2.carbon.user.api.UserStoreException;
 
+/**
+ * Listener Interface for user stores. Listeners will be trigger upon operations on the user stores.
+ */
 public interface UserStoreConfigListener {
 
-    void onUserStoreNamePreUpdate(int tenantId, String currentUserStoreName, String newUserStoreName) throws
-                                                                                                      UserStoreException;
+    void onUserStoreNamePreUpdate(int tenantId, String currentUserStoreName, String newUserStoreName)
+            throws UserStoreException;
 
     void onUserStoreNamePostUpdate(int tenantId, String currentUserStoreName, String newUserStoreName) throws
-                                                                                                      UserStoreException;
+            UserStoreException;
 
     void onUserStorePreDelete(int tenantId, String userStoreName) throws UserStoreException;
 
