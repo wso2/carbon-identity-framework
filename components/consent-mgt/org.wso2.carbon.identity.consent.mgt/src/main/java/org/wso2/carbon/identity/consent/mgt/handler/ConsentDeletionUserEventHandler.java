@@ -48,7 +48,7 @@ import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowCon
 public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
 
     private static final Log log = LogFactory.getLog(ConsentDeletionUserEventHandler.class);
-    private static int consentSearchLimit = 100;
+    private int consentSearchLimit = 100;
     private static final String HANDLER_NAME = "user.consent.delete";
     private static final String SEARCH_LIMIT_PROPERTY = HANDLER_NAME + ".receipt.search.limit";
 
@@ -89,7 +89,7 @@ public class ConsentDeletionUserEventHandler extends AbstractEventHandler {
         super.init(configuration);
         String receiptSearchLimit = this.configs.getModuleProperties().getProperty(SEARCH_LIMIT_PROPERTY);
         try {
-            consentSearchLimit = Integer.valueOf(receiptSearchLimit);
+            this.consentSearchLimit = Integer.parseInt(receiptSearchLimit);
         } catch (NumberFormatException e) {
             log.error("Configured receipt.search.limit cannot be parsed as an integer. " +
                     "Hence using default value: " + consentSearchLimit);
