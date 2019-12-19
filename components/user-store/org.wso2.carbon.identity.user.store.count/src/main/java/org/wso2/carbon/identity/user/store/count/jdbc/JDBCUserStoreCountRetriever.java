@@ -36,8 +36,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import javax.sql.DataSource;
 
+/**
+ * Use for retrieve users and roles count from JDBC user store.
+ */
 public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever {
 
     private static final Log log = LogFactory.getLog(JDBCUserStoreCountRetriever.class);
@@ -137,7 +141,8 @@ public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever
         String mappedAttribute = null;
 
         try {
-            String domainName = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME);
+            String domainName = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig
+                    .PROPERTY_DOMAIN_NAME);
             if (StringUtils.isEmpty(domainName)) {
                 domainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
             }

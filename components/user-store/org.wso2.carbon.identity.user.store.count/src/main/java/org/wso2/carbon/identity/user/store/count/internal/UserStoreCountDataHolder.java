@@ -20,12 +20,14 @@ package org.wso2.carbon.identity.user.store.count.internal;
 
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory;
-import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * DataHolder for count users and roles in user store.
+ */
 public class UserStoreCountDataHolder {
     private static UserStoreCountDataHolder instance = new UserStoreCountDataHolder();
 
