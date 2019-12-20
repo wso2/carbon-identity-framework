@@ -38,7 +38,9 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.model.Condition;
 import org.wso2.carbon.user.core.model.UniqueIDUserClaimSearchEntry;
 import org.wso2.carbon.user.core.model.UserClaimSearchEntry;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -1185,8 +1187,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         if (userIDList == null) {
             return new String[0];
         }
-
-        List<String> userNamesList = userStoreManager.getUserNamesFromUserIDs(Arrays.asList(userIDList));
+        List<String> userNamesList =
+                userStoreManager.getUserNamesFromUserIDs(getDomainLessNamesAsList(userIDList));
         return userNamesList.toArray(new String[0]);
     }
 
@@ -1194,4 +1196,13 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         return IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().values();
     }
+
+    private List<String> getDomainLessNamesAsList(String[] names) {
+
+        if (names == null) {
+            return new ArrayList<>();
+        }
+        return java.util.Arrays.stream(names).map(UserCoreUtil::removeDomainFromName).collect(Collectors.toList());
+    }
+
 }
