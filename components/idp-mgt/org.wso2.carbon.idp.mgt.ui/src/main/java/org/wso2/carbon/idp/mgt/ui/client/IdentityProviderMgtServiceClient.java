@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Client class for IdentityProviderMgtServiceStub
+ * Client class for IdentityProviderMgtServiceStub.
  */
 public class IdentityProviderMgtServiceClient {
 
@@ -319,7 +319,7 @@ public class IdentityProviderMgtServiceClient {
     }
 
     /**
-     * Retrieve all the federated authenticators
+     * Retrieve all the federated authenticators.
      *
      * @return Map containing the federated authenticators.
      * @throws Exception if an error occurs while retrieving the federated authenticators.
@@ -380,8 +380,8 @@ public class IdentityProviderMgtServiceClient {
     /**
      * Retrieve all the local claim URIs.
      *
-     * @return All the local claim URIs
-     * @throws Exception if an error occurs while retrieving the local claim URIs
+     * @return All the local claim URIs.
+     * @throws Exception if an error occurs while retrieving the local claim URIs.
      */
     public String[] getAllLocalClaimUris() throws Exception {
 

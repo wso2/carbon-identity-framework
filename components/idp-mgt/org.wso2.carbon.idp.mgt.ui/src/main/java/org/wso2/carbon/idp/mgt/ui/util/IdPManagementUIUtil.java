@@ -62,7 +62,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Utility class for IdPManagementUI component
+ * Utility class for IdPManagementUI component.
  */
 public class IdPManagementUIUtil {
 
@@ -1022,7 +1022,7 @@ public class IdPManagementUIUtil {
             certFile = handleCertificateAddition(oldCertFile, certFile);
         } else if (oldCertFile != null && certFile == null
                 && (Boolean.parseBoolean(deletePublicCert))) {
-            // if there is no new certificate and there is at least one deletion then update
+            // If there is no new certificate and there is at least one deletion then update
             // the new value by removing the deleted values.
             String deletedCertificateValue = paramMap.get(IdentityApplicationConstants.CERTIFICATE_VAL);
             certFile = handleCertificateDeletion(oldCertFile, deletedCertificateValue);
@@ -2031,11 +2031,11 @@ public class IdPManagementUIUtil {
     }
 
     /**
-     * This is used in front end. Property is the type of stub generated property
+     * This is used in front end. Property is the type of stub generated property.
      *
-     * @param properties properties list to iterate
-     * @param startWith  the name which the property should start
-     * @return propertySet the property list starts with the given name
+     * @param properties properties list to iterate.
+     * @param startWith  the name which the property should start.
+     * @return propertySet the property list starts with the given name.
      */
     public static List<Property> getPropertySetStartsWith(Property[] properties, String startWith) {
         List<Property> propertySet = new ArrayList<Property>();

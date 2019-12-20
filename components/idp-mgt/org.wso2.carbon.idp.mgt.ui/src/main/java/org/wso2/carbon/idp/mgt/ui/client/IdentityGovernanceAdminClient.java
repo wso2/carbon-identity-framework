@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Client class for IdentityGovernanceAdminServiceStub
+ * Client class for IdentityGovernanceAdminServiceStub.
  */
 public class IdentityGovernanceAdminClient {
 
