@@ -28,6 +28,9 @@ import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.persistence.IdentityPersistenceManager;
 import org.wso2.carbon.registry.core.Registry;
 
+/**
+ * Implementation of {@link SAMLApplicationDAO}.
+ */
 public class SAMLApplicationDAOImpl implements SAMLApplicationDAO {
 
     private static final Log log = LogFactory.getLog(SAMLApplicationDAOImpl.class);

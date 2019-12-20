@@ -26,11 +26,15 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Static class to hold services discovered via OSGI on this component, solely for the use within this component.
+ */
 public class ApplicationManagementServiceComponentHolder {
 
-    private static ApplicationManagementServiceComponentHolder instance=new
+    private static ApplicationManagementServiceComponentHolder instance = new
             ApplicationManagementServiceComponentHolder();
-    private static Map<String, AbstractInboundAuthenticatorConfig> inboundAuthenticatorConfigs = new HashMap<String, AbstractInboundAuthenticatorConfig>();
+    private static Map<String, AbstractInboundAuthenticatorConfig> inboundAuthenticatorConfigs =
+            new HashMap<String, AbstractInboundAuthenticatorConfig>();
 
     private String authnTemplatesJson;
 
@@ -44,10 +48,14 @@ public class ApplicationManagementServiceComponentHolder {
 
     private ConsentManager consentManager;
 
-    private ApplicationManagementServiceComponentHolder(){
+    private ApplicationManagementServiceComponentHolder() {
+
     }
 
-    public static ApplicationManagementServiceComponentHolder getInstance(){return instance;}
+    public static ApplicationManagementServiceComponentHolder getInstance() {
+
+        return instance;
+    }
 
     /**
      * Add inbound authenticator configuration
@@ -55,79 +63,97 @@ public class ApplicationManagementServiceComponentHolder {
      * @param inboundAuthenticator
      */
     public static void addInboundAuthenticatorConfig(AbstractInboundAuthenticatorConfig inboundAuthenticator) {
+
         inboundAuthenticatorConfigs.put(inboundAuthenticator.getName() + ":" + inboundAuthenticator.getConfigName(),
                 inboundAuthenticator);
     }
 
     /**
      * Get inbound authenticator configuration
+     *
      * @param type
      * @return
      */
     public static AbstractInboundAuthenticatorConfig getInboundAuthenticatorConfig(String type) {
+
         return inboundAuthenticatorConfigs.get(type);
     }
 
     /**
      * Get inbound authenticator configurations
+     *
      * @return inbound authenticator configs
      */
     public static Map<String, AbstractInboundAuthenticatorConfig> getAllInboundAuthenticatorConfig() {
+
         return inboundAuthenticatorConfigs;
     }
 
     /**
      * Remove inbound authenticator configuration
+     *
      * @param type
      */
     public static void removeInboundAuthenticatorConfig(String type) {
+
         inboundAuthenticatorConfigs.remove(type);
     }
 
-
     public RegistryService getRegistryService() {
+
         return registryService;
     }
 
     public void setRegistryService(RegistryService registryService) {
+
         this.registryService = registryService;
     }
 
     public RealmService getRealmService() {
+
         return realmService;
     }
 
     public void setRealmService(RealmService realmService) {
+
         this.realmService = realmService;
     }
 
     public ConfigurationContextService getConfigContextService() {
+
         return configContextService;
     }
 
     public void setConfigContextService(
             ConfigurationContextService configContextService) {
+
         this.configContextService = configContextService;
     }
 
-    public void setDatabaseBackedCertificateStoringSupportAvailable(boolean databaseBackedCertificateStoringSupportAvailable) {
+    public void setDatabaseBackedCertificateStoringSupportAvailable(
+            boolean databaseBackedCertificateStoringSupportAvailable) {
+
         this.databaseBackedCertificateStoringSupportAvailable = databaseBackedCertificateStoringSupportAvailable;
     }
 
     public boolean isDatabaseBackedCertificateStoringSupportAvailable() {
+
         return databaseBackedCertificateStoringSupportAvailable;
     }
 
-    public void setAuthenticationTemplatesJson(String jsonTemplate){
+    public void setAuthenticationTemplatesJson(String jsonTemplate) {
+
         authnTemplatesJson = jsonTemplate;
     }
 
-    public String getAuthenticationTemplatesJson(){
+    public String getAuthenticationTemplatesJson() {
+
         return authnTemplatesJson;
     }
 
     /**
      * Set ConsentManager service instance.
+     *
      * @param consentManager ConsentManager service instance.
      */
     public void setConsentManager(ConsentManager consentManager) {
@@ -137,6 +163,7 @@ public class ApplicationManagementServiceComponentHolder {
 
     /**
      * Get ConsentManager service instance.
+     *
      * @return ConsentManager service instance.
      */
     public ConsentManager getConsentManager() {

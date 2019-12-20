@@ -223,7 +223,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     }
 
     @Override
-    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit) throws IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getApplicationBasicInfo(int offset, int limit)
+            throws IdentityApplicationManagementException {
 
         if (appDAO instanceof PaginatableFilterableApplicationDAO) {
             // No need to cache the returned list.
@@ -371,7 +372,8 @@ public class CacheBackedApplicationDAO extends ApplicationDAOImpl {
     @Override
     public void updateApplicationByResourceId(String resourceId,
                                               String tenantDomain,
-                                              ServiceProvider updatedApp) throws IdentityApplicationManagementException {
+                                              ServiceProvider updatedApp)
+            throws IdentityApplicationManagementException {
 
         ServiceProvider storedApp = getApplicationByResourceId(resourceId, tenantDomain);
         clearAllAppCache(storedApp, tenantDomain);

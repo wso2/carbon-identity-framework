@@ -20,17 +20,21 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
+/**
+ * Cache key used to access application based on authenticated application information for the request.
+ *
+ */
 public class ServiceProviderCacheInboundAuthKey extends CacheKey {
 
     private static final long serialVersionUID = -2977524029670977142L;
-    private String ServiceProvideCacheInboundAuthKey;
-    private String ServiceProvideCacheInboundAuthType;
+    private String serviceProvideCacheInboundAuthKey;
+    private String serviceProvideCacheInboundAuthType;
 
     public ServiceProviderCacheInboundAuthKey(String serviceProvideCacheInboundAuthKey, String
             serviceProvideCacheInboundAuthType, String tenantDomain) {
 
-        ServiceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
-        ServiceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
+        this.serviceProvideCacheInboundAuthKey = serviceProvideCacheInboundAuthKey;
+        this.serviceProvideCacheInboundAuthType = serviceProvideCacheInboundAuthType;
         this.tenantDomain = tenantDomain;
     }
 
@@ -49,8 +53,12 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
 
         ServiceProviderCacheInboundAuthKey that = (ServiceProviderCacheInboundAuthKey) o;
 
-        if (!ServiceProvideCacheInboundAuthKey.equals(that.ServiceProvideCacheInboundAuthKey)) return false;
-        if (!ServiceProvideCacheInboundAuthType.equals(that.ServiceProvideCacheInboundAuthType)) return false;
+        if (!serviceProvideCacheInboundAuthKey.equals(that.serviceProvideCacheInboundAuthKey)) {
+            return false;
+        }
+        if (!serviceProvideCacheInboundAuthType.equals(that.serviceProvideCacheInboundAuthType)) {
+            return false;
+        }
         return tenantDomain.equals(that.tenantDomain);
     }
 
@@ -58,8 +66,8 @@ public class ServiceProviderCacheInboundAuthKey extends CacheKey {
     public int hashCode() {
 
         int result = super.hashCode();
-        result = 31 * result + ServiceProvideCacheInboundAuthKey.hashCode();
-        result = 31 * result + ServiceProvideCacheInboundAuthType.hashCode();
+        result = 31 * result + serviceProvideCacheInboundAuthKey.hashCode();
+        result = 31 * result + serviceProvideCacheInboundAuthType.hashCode();
         result = 31 * result + tenantDomain.hashCode();
         return result;
     }

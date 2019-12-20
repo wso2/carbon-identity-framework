@@ -30,6 +30,10 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * OSGI service component for Aplication management listeners.
+ *
+ */
 @Component(
         name = "org.wso2.carbon.identity.application.mgt.listener",
         immediate = true
@@ -52,7 +56,8 @@ public class ApplicationMgtListenerServiceComponent {
         applicationMgtListeners.sort(appMgtListenerComparator);
     }
 
-    protected synchronized void unsetApplicationMgtListenerService(ApplicationMgtListener applicationMgtListenerService) {
+    protected synchronized void unsetApplicationMgtListenerService(
+            ApplicationMgtListener applicationMgtListenerService) {
 
         applicationMgtListeners.remove(applicationMgtListenerService);
     }

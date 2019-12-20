@@ -43,7 +43,8 @@ public interface ApplicationDAO {
      * @return
      * @throws IdentityApplicationManagementException
      */
-    ServiceProvider getApplication(String applicationName, String tenantDomain) throws IdentityApplicationManagementException;
+    ServiceProvider getApplication(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * @param applicationId
@@ -96,7 +97,8 @@ public interface ApplicationDAO {
      * @return
      */
     Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
-                                                                 String tenantDomain) throws IdentityApplicationManagementException;
+                                                                 String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * [local-idp-claim-uri,sp-claim-uri]
@@ -107,7 +109,8 @@ public interface ApplicationDAO {
      * @throws IdentityApplicationManagementException
      */
     Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
-                                                                 String tenantDomain) throws IdentityApplicationManagementException;
+                                                                 String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Returns back the requested set of claims by the provided service provider in local idp claim
@@ -118,7 +121,8 @@ public interface ApplicationDAO {
      * @return
      */
     List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
-                                                        String tenantDomain) throws IdentityApplicationManagementException;
+                                                        String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Checks whether the application already exists with the name.
@@ -127,7 +131,8 @@ public interface ApplicationDAO {
      * @param tenantName          tenant name
      * @return whether the application exists or not
      */
-    default boolean isApplicationExists(String serviceProviderName, String tenantName) throws IdentityApplicationManagementException {
+    default boolean isApplicationExists(String serviceProviderName, String tenantName)
+            throws IdentityApplicationManagementException {
 
         return false;
     }

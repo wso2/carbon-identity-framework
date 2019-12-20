@@ -72,10 +72,10 @@ public class ApplicationMgtUtilTest extends PowerMockTestCase {
     @Test(dataProvider = "getAppNamesForCustomRegex")
     public void testSpNameValidationWithCustomRegex(String appName, boolean isValidName) {
 
-        final String CUSTOM_REGEX = "^[a-zA-Z0-9]+";
+        final String customRegEx = "^[a-zA-Z0-9]+";
 
         mockStatic(IdentityUtil.class);
-        when(IdentityUtil.getProperty("ServiceProviders.SPNameRegex")).thenReturn(CUSTOM_REGEX);
+        when(IdentityUtil.getProperty("ServiceProviders.SPNameRegex")).thenReturn(customRegEx);
 
         Assert.assertEquals(ApplicationMgtUtil.isRegexValidated(appName), isValidName);
     }

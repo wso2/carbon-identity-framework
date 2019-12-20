@@ -29,7 +29,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerS
  */
 public class DefaultApplicationResourceMgtListener implements ApplicationResourceManagementListener {
 
-    public static final Log log = LogFactory.getLog(DefaultApplicationResourceMgtListener.class);
+    private static final Log log = LogFactory.getLog(DefaultApplicationResourceMgtListener.class);
 
     @Override
     public int getDefaultOrderId() {
@@ -73,7 +73,8 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     public boolean doPreUpdateApplicationByResourceId(ServiceProvider application,
                                                       String resourceId,
                                                       String tenantDomain,
-                                                      String userPerformingAction) throws IdentityApplicationManagementException {
+                                                      String userPerformingAction)
+            throws IdentityApplicationManagementException {
 
         int applicationId = getApplicationId(resourceId, tenantDomain);
 
@@ -99,7 +100,8 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     public boolean doPostUpdateApplicationByResourceId(ServiceProvider application,
                                                        String resourceId,
                                                        String tenantDomain,
-                                                       String userPerformingAction) throws IdentityApplicationManagementException {
+                                                       String userPerformingAction)
+            throws IdentityApplicationManagementException {
 
         int applicationId = getApplicationId(resourceId, tenantDomain);
         application.setApplicationID(applicationId);
@@ -116,7 +118,8 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     @Override
     public boolean doPreDeleteApplicationByResourceId(String resourceId,
                                                       String tenantDomain,
-                                                      String userPerformingAction) throws IdentityApplicationManagementException {
+                                                      String userPerformingAction)
+            throws IdentityApplicationManagementException {
 
         String applicationName = getApplicationName(resourceId, tenantDomain);
         if (isApplicationExists(applicationName)) {
@@ -147,7 +150,8 @@ public class DefaultApplicationResourceMgtListener implements ApplicationResourc
     public boolean doPostDeleteApplicationByResourceId(ServiceProvider deletedApplication,
                                                        String applicationResourceId,
                                                        String tenantDomain,
-                                                       String userPerformingAction) throws IdentityApplicationManagementException {
+                                                       String userPerformingAction)
+            throws IdentityApplicationManagementException {
 
         for (ApplicationMgtListener listener : ApplicationMgtListenerServiceComponent.getApplicationMgtListeners()) {
             if (listener.isEnable()

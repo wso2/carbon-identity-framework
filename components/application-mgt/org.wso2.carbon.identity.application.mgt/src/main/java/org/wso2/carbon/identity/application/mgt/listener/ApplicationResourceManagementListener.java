@@ -117,7 +117,8 @@ public interface ApplicationResourceManagementListener {
     boolean doPreUpdateApplicationByResourceId(ServiceProvider serviceProvider,
                                                String resourceId,
                                                String tenantDomain,
-                                               String userPerformingAction) throws IdentityApplicationManagementException;
+                                               String userPerformingAction)
+            throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after updating an application.
@@ -132,7 +133,8 @@ public interface ApplicationResourceManagementListener {
     boolean doPostUpdateApplicationByResourceId(ServiceProvider serviceProvider,
                                                 String resourceId,
                                                 String tenantDomain,
-                                                String userPerformingAction) throws IdentityApplicationManagementException;
+                                                String userPerformingAction)
+            throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before deleting an application.
@@ -145,7 +147,8 @@ public interface ApplicationResourceManagementListener {
      */
     boolean doPreDeleteApplicationByResourceId(String resourceId,
                                                String tenantDomain,
-                                               String userPerformingAction) throws IdentityApplicationManagementException;
+                                               String userPerformingAction)
+            throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after deleting an application.
@@ -160,13 +163,14 @@ public interface ApplicationResourceManagementListener {
     boolean doPostDeleteApplicationByResourceId(ServiceProvider deletedApplication,
                                                 String resourceId,
                                                 String tenantDomain,
-                                                String userPerformingAction) throws IdentityApplicationManagementException;
+                                                String userPerformingAction)
+            throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before retrieving an application by resourceId.
      *
-     * @param resourceId           Unique resource identifier of the application
-     * @param tenantDomain         Tenant domain of the user
+     * @param resourceId   Unique resource identifier of the application
+     * @param tenantDomain Tenant domain of the user
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
@@ -176,9 +180,9 @@ public interface ApplicationResourceManagementListener {
     /**
      * Define any additional actions before retrieving an application by resourceId.
      *
-     * @param serviceProvider      Retrieved Service Provider
-     * @param resourceId           Unique resource identifier of the application
-     * @param tenantDomain         Tenant domain of the user
+     * @param serviceProvider Retrieved Service Provider
+     * @param resourceId      Unique resource identifier of the application
+     * @param tenantDomain    Tenant domain of the user
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
@@ -189,8 +193,8 @@ public interface ApplicationResourceManagementListener {
     /**
      * Define any additional actions before retrieving basic information an application by resourceId.
      *
-     * @param resourceId           Unique resource identifier of the application
-     * @param tenantDomain         Tenant domain of the user
+     * @param resourceId   Unique resource identifier of the application
+     * @param tenantDomain Tenant domain of the user
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
@@ -200,14 +204,15 @@ public interface ApplicationResourceManagementListener {
     /**
      * Define any additional actions after retrieving basic information an application by resourceId.
      *
-     * @param appInfo              Basic Information of the application
-     * @param resourceId           Unique resource identifier of the application
-     * @param tenantDomain         Tenant domain of the user
+     * @param appInfo      Basic Information of the application
+     * @param resourceId   Unique resource identifier of the application
+     * @param tenantDomain Tenant domain of the user
      * @return Whether execution of this operation is allowed to continue.
      * @throws IdentityApplicationManagementException
      */
     boolean doPostGetApplicationBasicInfoByResourceId(ApplicationBasicInfo appInfo,
                                                       String resourceId,
-                                                      String tenantDomain) throws IdentityApplicationManagementException;
+                                                      String tenantDomain)
+            throws IdentityApplicationManagementException;
 
 }

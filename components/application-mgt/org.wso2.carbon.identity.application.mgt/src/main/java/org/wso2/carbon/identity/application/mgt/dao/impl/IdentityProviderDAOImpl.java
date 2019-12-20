@@ -34,10 +34,13 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Default implementation DAO for Identity provider.
+ */
 public class IdentityProviderDAOImpl implements IdentityProviderDAO {
 
     public static final String BASIC = "basic";
-    public static final String IWA = "iwa";
+    public static final String IWA =  "iwa";
     public static final String OAUTH_BEARER = "oauth-bearer";
     public static final String BASIC_AUTH = "basic-auth";
     public static final String SAML_SSO = "samlsso";
@@ -121,7 +124,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
             return identityProvider;
 
         } catch (IdentityProviderManagementException e) {
-            throw new IdentityApplicationManagementException("Error when retrieving identity provider "+ idpName, e);
+            throw new IdentityApplicationManagementException("Error when retrieving identity provider " + idpName, e);
         }
     }
 
@@ -140,7 +143,7 @@ public class IdentityProviderDAOImpl implements IdentityProviderDAO {
                     .getIdPs(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
         } catch (IdentityProviderManagementException e) {
             throw new IdentityApplicationManagementException("Error when retrieving all identity providers in " +
-                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain() +" tenant domain.", e);
+                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain() + " tenant domain.", e);
         }
 
         List<IdentityProvider> federatedIdentityProviders = new ArrayList<IdentityProvider>();

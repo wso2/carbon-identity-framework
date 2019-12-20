@@ -29,10 +29,10 @@ import org.wso2.carbon.identity.application.mgt.dao.OAuthApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.SAMLApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationTemplateDAOImpl;
+import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.IdentityProviderDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.OAuthApplicationDAOImpl;
 import org.wso2.carbon.identity.application.mgt.dao.impl.SAMLApplicationDAOImpl;
-import org.wso2.carbon.identity.application.mgt.dao.impl.CacheBackedApplicationDAO;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.utils.CarbonUtils;
 
@@ -59,8 +59,8 @@ public class ApplicationMgtSystemConfig {
     private String appTemplateDAOClassName = null;
     private String claimDialect = null;
 
-
     private ApplicationMgtSystemConfig() {
+
         buildSystemConfiguration();
     }
 
@@ -70,6 +70,7 @@ public class ApplicationMgtSystemConfig {
      * @return
      */
     public static ApplicationMgtSystemConfig getInstance() {
+
         CarbonUtils.checkSecurity();
         if (instance == null) {
             synchronized (ApplicationMgtSystemConfig.class) {
@@ -89,8 +90,9 @@ public class ApplicationMgtSystemConfig {
         OMElement spConfigElem = IdentityConfigParser.getInstance().getConfigElement(CONFIG_ELEMENT_SP_MGT);
 
         if (spConfigElem == null) {
-            if(log.isDebugEnabled()){
-                log.debug("No ServiceProvidersManagement configuration found. System Starts with default configuration");
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "No ServiceProvidersManagement configuration found. System Starts with default configuration");
             }
         } else {
             // application DAO class
@@ -235,7 +237,6 @@ public class ApplicationMgtSystemConfig {
         return samlDAO;
     }
 
-
     /**
      * Return an instance of the SystemIDPDAO
      *
@@ -275,6 +276,7 @@ public class ApplicationMgtSystemConfig {
      * @return
      */
     public ApplicationTemplateDAO getApplicationTemplateDAO() {
+
         ApplicationTemplateDAO applicationTemplateDAO = null;
         if (appTemplateDAOClassName != null) {
             try {
@@ -302,6 +304,7 @@ public class ApplicationMgtSystemConfig {
      * @return
      */
     public String getClaimDialect() {
+
         if (claimDialect != null) {
             return claimDialect;
         }

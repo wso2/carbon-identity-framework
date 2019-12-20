@@ -18,6 +18,9 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 
+/**
+ * Cache entry for basic information for the application.
+ */
 public class ApplicationBasicInfoResourceIdCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = -8407506285763321118L;

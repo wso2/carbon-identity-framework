@@ -27,11 +27,11 @@ public interface DefaultAuthSeqMgtService {
      * Create default authentication sequence.
      *
      * @param authenticationSequence default authentication sequence
-     * @param tenantDomain tenant domain
+     * @param tenantDomain           tenant domain
      * @throws DefaultAuthSeqMgtException
      */
     void createDefaultAuthenticationSeq(DefaultAuthenticationSequence authenticationSequence,
-                                                        String tenantDomain) throws DefaultAuthSeqMgtException;
+                                        String tenantDomain) throws DefaultAuthSeqMgtException;
 
     /**
      * Retrieve default authentication sequence.
@@ -91,10 +91,11 @@ public interface DefaultAuthSeqMgtService {
      * Update default authentication sequence.
      *
      * @param sequenceName name of the default authentication sequence
-     * @param sequence default authentication sequence
+     * @param sequence     default authentication sequence
      * @param tenantDomain tenant domain
      * @throws DefaultAuthSeqMgtException
      */
-    void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence, String tenantDomain)
+    void updateDefaultAuthenticationSeq(String sequenceName, DefaultAuthenticationSequence sequence,
+                                        String tenantDomain)
             throws DefaultAuthSeqMgtException;
 }

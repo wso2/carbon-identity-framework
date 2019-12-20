@@ -20,11 +20,11 @@ package org.wso2.carbon.identity.application.mgt.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
+/**
+ * Cache key for lookup Application (aka. Service Provieder) from the cache.
+ */
 public class IdentityServiceProviderCacheKey extends CacheKey {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = 8263255365985309443L;
 
     private String serviceProviderKey;
@@ -34,6 +34,7 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
      * @param tenantDomain
      */
     public IdentityServiceProviderCacheKey(String serviceProviderName, String tenantDomain) {
+
         this.serviceProviderKey = serviceProviderName;
         if (tenantDomain != null) {
             this.tenantDomain = tenantDomain.toLowerCase();
@@ -44,11 +45,13 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
      * @return
      */
     public String getServiceProviderKey() {
+
         return serviceProviderKey;
     }
 
     @Override
     public boolean equals(Object o) {
+
         if (this == o) {
             return true;
         }
@@ -61,14 +64,19 @@ public class IdentityServiceProviderCacheKey extends CacheKey {
 
         IdentityServiceProviderCacheKey that = (IdentityServiceProviderCacheKey) o;
 
-        if (!serviceProviderKey.equals(that.serviceProviderKey)) return false;
-        if (!tenantDomain.equals(that.tenantDomain)) return false;
+        if (!serviceProviderKey.equals(that.serviceProviderKey)) {
+            return false;
+        }
+        if (!tenantDomain.equals(that.tenantDomain)) {
+            return false;
+        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
+
         int result = super.hashCode();
         result = 31 * result + serviceProviderKey.hashCode();
         result = 31 * result + tenantDomain.hashCode();
