@@ -1003,6 +1003,10 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
     private String[] getUserIdsFromUserNames(String[] userNames, AbstractUserStoreManager userStoreManager)
             throws UserStoreException {
 
+        if (userNames == null) {
+            return new String[0];
+        }
+
         List<String> userIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
         return userIDsList.toArray(new String[0]);
     }
