@@ -37,11 +37,14 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.model.Condition;
 import org.wso2.carbon.user.core.model.UniqueIDUserClaimSearchEntry;
 import org.wso2.carbon.user.core.model.UserClaimSearchEntry;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This is an implementation of UserOperationEventListener. This will call the
@@ -150,10 +153,16 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
+        String userID = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(userName);
+        if (userID == null) {
+            return handleUserIDResolveFailure(userName, userStoreManager);
+        }
+
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
-                        .doPostAddUserWithID(userName, credential, roleList, claims, profile, userStoreManager)) {
+                        .doPostAddUserWithID(userID, credential, roleList, claims, profile,
+                                userStoreManager)) {
                     return false;
                 }
             }
@@ -808,8 +817,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(returnUserNameList);
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager, returnUserNameList);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -854,8 +862,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(returnUserNameList);
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager, returnUserNameList);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -878,8 +885,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(returnUserNameList);
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager, returnUserNameList);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -901,8 +907,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(returnUserNameList);
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager, returnUserNameList);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -927,8 +932,8 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(Arrays.asList(returnUserNameList));
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager,
+                Arrays.asList(returnUserNameList));
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -943,6 +948,28 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         return true;
     }
 
+    private List<User> getUsersFromNames(AbstractUserStoreManager userStoreManager, List<String> userList)
+            throws UserStoreException {
+
+        return userStoreManager.getUsersFromUserNames(getDomainLessNamesFromList(userList));
+    }
+
+    private List<String> getDomainLessNamesFromList(List<String> userList) {
+
+        if (userList == null) {
+            return new ArrayList<>();
+        }
+        return userList.stream().map(UserCoreUtil::removeDomainFromName).collect(Collectors.toList());
+    }
+
+    private String[] getDomainLessNames(String[] names) {
+
+        if (names == null) {
+            return new String[0];
+        }
+        return Arrays.stream(names).map(UserCoreUtil::removeDomainFromName).toArray(String[]::new);
+    }
+
     @Override
     public boolean doPostGetPaginatedUserList(String claimUri, String claimValue, List<String> returnUserNameList,
                                               UserStoreManager userStoreManager) throws UserStoreException {
@@ -951,8 +978,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(returnUserNameList);
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager, returnUserNameList);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -974,8 +1000,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(returnUserNameList);
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager, returnUserNameList);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -1022,8 +1047,8 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        List<User> returnUsersList = ((AbstractUserStoreManager) userStoreManager)
-                .getUsersFromUserNames(Arrays.asList(returnUserNameList));
+        List<User> returnUsersList = getUsersFromNames((AbstractUserStoreManager) userStoreManager,
+                Arrays.asList(getDomainLessNames(returnUserNameList)));
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -1071,7 +1096,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         List<String> userIDsList = ((AbstractUserStoreManager) userStoreManager)
-                .getUserIDsFromUserNames(Arrays.asList(userNames));
+                .getUserIDsFromUserNames(Arrays.asList(getDomainLessNames(userNames)));
         List<String> claimsList = Arrays.asList(claims);
         List<UniqueIDUserClaimSearchEntry> uniqueIDUserClaimSearchEntriesList =
                 ((AbstractUserStoreManager) userStoreManager)
@@ -1097,7 +1122,8 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return new String[0];
         }
 
-        List<String> userIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
+        List<String> userIDsList =
+                userStoreManager.getUserIDsFromUserNames(Arrays.asList(getDomainLessNames((userNames))));
         return userIDsList.toArray(new String[0]);
     }
 
