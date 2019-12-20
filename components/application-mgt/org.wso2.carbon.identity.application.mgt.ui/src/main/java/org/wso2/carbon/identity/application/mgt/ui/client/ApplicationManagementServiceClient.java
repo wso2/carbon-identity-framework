@@ -43,18 +43,26 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * SOAP service client to perform Applicationmanagement operations.
+ */
 public class ApplicationManagementServiceClient {
 
-    IdentityApplicationManagementServiceStub stub;
+    private IdentityApplicationManagementServiceStub stub;
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceClient.class);
     boolean debugEnabled = log.isErrorEnabled();
     private UserAdminStub userAdminStub;
 
-    // A static variable is used to track if pagination support from the remote API is verified, as the client is
-    // initiated per request.
+    /**
+     * A static variable is used to track if pagination support from the remote API is verified, as the client is
+     * initiated per request.
+     */
     private static boolean paginationSupportVerified = false;
-    // A static variable is used to track if pagination is supported from the remote API, as the client is
-    // initiated per request.
+
+    /**
+     *  A static variable is used to track if pagination is supported from the remote API, as the client is
+     *  initiated per request.
+     */
     private static boolean paginationSupported = false;
 
     /**
@@ -345,6 +353,7 @@ public class ApplicationManagementServiceClient {
     }
 
     public ImportResponse importApplication(SpFileContent spFileContent) throws AxisFault {
+
         try {
             if (debugEnabled) {
                 log.debug("Importing Service Provider from file : " + spFileContent.getFileName());
@@ -357,9 +366,10 @@ public class ApplicationManagementServiceClient {
     }
 
     public String exportApplication(String appid, boolean exportSecrets) throws AxisFault {
+
         try {
             if (debugEnabled) {
-                log.debug("Exporting Service Provider to file" );
+                log.debug("Exporting Service Provider to file");
             }
             return stub.exportApplication(appid, exportSecrets);
         } catch (RemoteException | IdentityApplicationManagementServiceIdentityApplicationManagementException e) {

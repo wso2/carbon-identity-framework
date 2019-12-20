@@ -29,6 +29,9 @@ import org.wso2.carbon.identity.application.authentication.framework.stub.Condit
 
 import java.rmi.RemoteException;
 
+/**
+ * SOAP service client for Conditional Authentication (aka Adaptive Authentication) UI management.
+ */
 public class ConditionalAuthMgtClient {
 
     private static final Log LOG = LogFactory.getLog(ApplicationManagementServiceClient.class);

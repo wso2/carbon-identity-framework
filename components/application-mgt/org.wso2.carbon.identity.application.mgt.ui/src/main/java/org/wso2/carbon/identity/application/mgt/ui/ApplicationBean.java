@@ -48,7 +48,6 @@ import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
-import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
 import java.util.ArrayList;
@@ -57,9 +56,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * UI bean to represent an application.
+ */
 public class ApplicationBean {
 
     public static final String AUTH_TYPE_DEFAULT = "default";
@@ -472,21 +474,24 @@ public class ApplicationBean {
 
     public boolean isAlwaysSendBackAuthenticatedListOfIdPs() {
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAlwaysSendBackAuthenticatedListOfIdPs();
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().
+                    getAlwaysSendBackAuthenticatedListOfIdPs();
         }
         return false;
     }
 
     public boolean isUseTenantDomainInLocalSubjectIdentifier() {
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseTenantDomainInLocalSubjectIdentifier();
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().
+                    getUseTenantDomainInLocalSubjectIdentifier();
         }
         return false;
     }
 
     public boolean isUseUserstoreDomainInLocalSubjectIdentifier() {
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null) {
-            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().getUseUserstoreDomainInLocalSubjectIdentifier();
+            return serviceProvider.getLocalAndOutBoundAuthenticationConfig().
+                    getUseUserstoreDomainInLocalSubjectIdentifier();
         }
         return false;
     }
@@ -649,7 +654,8 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest =
+                    new ArrayList<InboundAuthenticationRequestConfig>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("samlsso".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -684,7 +690,8 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest =
+                    new ArrayList<InboundAuthenticationRequestConfig>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("oauth2".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -711,7 +718,8 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest =
+                    new ArrayList<InboundAuthenticationRequestConfig>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("kerberos".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -738,7 +746,8 @@ public class ApplicationBean {
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
 
         if (authRequest != null && authRequest.length > 0) {
-            List<InboundAuthenticationRequestConfig> tempAuthRequest = new ArrayList<InboundAuthenticationRequestConfig>();
+            List<InboundAuthenticationRequestConfig> tempAuthRequest =
+                    new ArrayList<InboundAuthenticationRequestConfig>();
             for (int i = 0; i < authRequest.length; i++) {
                 if ("wstrust".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
                     continue;
@@ -1068,8 +1077,10 @@ public class ApplicationBean {
             }
             if (CollectionUtils.isNotEmpty(authStepList)) {
 
-                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
-                localAndOutboundAuthenticationConfig.setAuthenticationSteps(authStepList.toArray(new AuthenticationStep[authStepList.size()]));
+                LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
+                        serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+                localAndOutboundAuthenticationConfig.setAuthenticationSteps(
+                        authStepList.toArray(new AuthenticationStep[authStepList.size()]));
             }
         }
     }
@@ -1080,7 +1091,8 @@ public class ApplicationBean {
     public void conditionalAuthentication(HttpServletRequest request) {
 
         AuthenticationScriptConfig authenticationScriptConfig = new AuthenticationScriptConfig();
-        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig = serviceProvider.getLocalAndOutBoundAuthenticationConfig();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig =
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig();
         String flawByScript = request.getParameter("scriptTextArea");
 
         if (StringUtils.isBlank(flawByScript)) {
@@ -1132,7 +1144,8 @@ public class ApplicationBean {
         }
 
         // authentication type : default, local, federated or advanced.
-        serviceProvider.getLocalAndOutBoundAuthenticationConfig().setAuthenticationType(request.getParameter("auth_type"));
+        serviceProvider.getLocalAndOutBoundAuthenticationConfig()
+                .setAuthenticationType(request.getParameter("auth_type"));
 
         // update inbound provisioning data.
         String provisioningUserStore = request.getParameter("scim-inbound-userstore");
@@ -1294,7 +1307,8 @@ public class ApplicationBean {
                 Property[] properties = customAuthConfig.getProperties();
                 if (!ArrayUtils.isEmpty(properties)) {
                     for (Property prop : properties) {
-                        String propVal = request.getParameter("custom_auth_prop_name_" + type + "_" + prop.getName());
+                        String propVal = request.getParameter(
+                                "custom_auth_prop_name_" + type + "_" + prop.getName());
                         prop.setValue(propVal);
                     }
                 }
@@ -1497,92 +1511,7 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                         && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
-        // Will be supported with 'Advance Consent Management Feature'.
-        /*
-        String IS_CONSENT_ENABLED = "is_consent_enabled";
-        boolean consentEnabled = request.getParameter(IS_CONSENT_ENABLED) != null;
-
-        ArrayList<ConsentPurpose> consentPurposesList = new ArrayList<>();
-        processConsentPurposesInput(request, consentPurposesList);
-
-        ConsentConfig consentConfig = new ConsentConfig();
-        consentConfig.setEnabled(consentEnabled);
-        ConsentPurposeConfigs consentPurposeConfigs = new ConsentPurposeConfigs();
-        consentPurposeConfigs.setConsentPurpose(consentPurposesList.toArray(new ConsentPurpose[0]));
-        consentConfig.setConsentPurposeConfigs(consentPurposeConfigs);
-        serviceProvider.setConsentConfig(consentConfig);
-        */
-
     }
-
-    // Will be supported with 'Advance Consent Management Feature'.
-    /*
-    private void processConsentPurposesInput(HttpServletRequest request, ArrayList<ConsentPurpose> consentPurposesList) {
-
-        processAppConsentPurposesInput(request, consentPurposesList);
-        processSharedConsentPurposesInput(request, consentPurposesList);
-    }
-
-    private void processSharedConsentPurposesInput(HttpServletRequest request,
-                                                   ArrayList<ConsentPurpose> consentPurposesList) {
-
-        String SHARED_PURPOSE_ID_PARAM_KEY = "shared_purpose_id";
-        String DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX = "display_order_shared_purpose_id_";
-
-        String[] sharedPurposeIds = request.getParameterValues(SHARED_PURPOSE_ID_PARAM_KEY);
-        if (nonNull(sharedPurposeIds)) {
-            for (String sharedPurposeId : sharedPurposeIds) {
-                String displayOrderValue = request.getParameter(DISPLAY_ORDER_SHARED_PURPOSE_ID_PREFIX +
-                                                                sharedPurposeId);
-                if (nonNull(displayOrderValue)) {
-                    ConsentPurpose consentPurpose = new ConsentPurpose();
-                    consentPurpose.setPurposeId(Integer.parseInt(sharedPurposeId));
-
-                    int displayOrder = DEFAULT_DISPLAY_ORDER;
-                    try {
-                        displayOrder = Integer.parseInt(displayOrderValue);
-                    } catch (NumberFormatException e) {
-                        // Do nothing. Default display order '0' will be used.
-                    }
-                    consentPurpose.setDisplayOrder(displayOrder);
-                    consentPurposesList.add(consentPurpose);
-                }
-            }
-        }
-    }
-
-    private void processAppConsentPurposesInput(HttpServletRequest request,
-                                                ArrayList<ConsentPurpose> consentPurposesList) {
-
-        String APP_PURPOSE_ID_PARAM_KEY = "app_purpose_id";
-        String SELECTED_PURPOSE_ID_PARAM_PREFIX = "selected_purpose_id_";
-        String DISPLAY_ORDER_PURPOSE_ID_PREFIX = "display_order_purpose_id_";
-
-        String[] appPurposeIds = request.getParameterValues(APP_PURPOSE_ID_PARAM_KEY);
-        if (nonNull(appPurposeIds)) {
-            for (String appPurposeId : appPurposeIds) {
-                String selectedAppPurpose = request.getParameter(SELECTED_PURPOSE_ID_PARAM_PREFIX + appPurposeId);
-                if (nonNull(selectedAppPurpose)) {
-                    String displayOrderValue = request.getParameter(DISPLAY_ORDER_PURPOSE_ID_PREFIX + appPurposeId);
-                    // If app specific purpose is selected, get the display order and add to consentPurposesList.
-                    if (nonNull(displayOrderValue)) {
-                        ConsentPurpose consentPurpose = new ConsentPurpose();
-                        consentPurpose.setPurposeId(Integer.parseInt(appPurposeId));
-
-                        int displayOrder = DEFAULT_DISPLAY_ORDER;
-                        try {
-                            displayOrder = Integer.parseInt(displayOrderValue);
-                        } catch (NumberFormatException e) {
-                            // Do nothing. Default display order '0' will be used.
-                        }
-                        consentPurpose.setDisplayOrder(displayOrder);
-                        consentPurposesList.add(consentPurpose);
-                    }
-                }
-            }
-        }
-    }
-    */
 
     /**
      * @return
