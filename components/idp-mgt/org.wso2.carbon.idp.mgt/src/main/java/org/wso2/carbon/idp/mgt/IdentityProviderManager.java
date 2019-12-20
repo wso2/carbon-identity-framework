@@ -2008,6 +2008,12 @@ public class IdentityProviderManager implements IdpManager {
             }
         }
 
+        if (StringUtils.isEmpty(idPName)) {
+            String data = "IdP name is empty.";
+            throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
+                            .ERROR_CODE_IDP_NAME_INVALID, data);
+        }
+
         IdentityProvider identityProvider = this.getIdPByName(idPName, tenantDomain, true);
         if (identityProvider == null) {
             return;
