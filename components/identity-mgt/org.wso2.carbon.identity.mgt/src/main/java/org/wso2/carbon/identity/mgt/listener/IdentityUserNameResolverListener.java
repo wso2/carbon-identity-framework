@@ -38,7 +38,9 @@ import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.model.Condition;
 import org.wso2.carbon.user.core.model.UniqueIDUserClaimSearchEntry;
 import org.wso2.carbon.user.core.model.UserClaimSearchEntry;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public int getExecutionOrderId() {
+
         int orderId = getOrderId();
         if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
             return orderId;
@@ -78,7 +81,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreAuthenticate(userName, credential, userStoreManager);
+                if (!listener.doPreAuthenticate(userName, credential, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -87,7 +92,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostAuthenticateWithID(String userID, AuthenticationResult authenticationResult,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                            UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -105,7 +110,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostAuthenticate(userName, authenticated, userStoreManager);
+                if (!listener.doPostAuthenticate(userName, authenticated, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -114,7 +121,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreAddUserWithID(String userName, Object credential, String[] roleList, Map<String, String> claims,
-            String profile, UserStoreManager userStoreManager) throws UserStoreException {
+                                      String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -122,7 +129,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreAddUser(userName, credential, roleList, claims, profile, userStoreManager);
+                if (!listener.doPreAddUser(userName, credential, roleList, claims, profile, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -134,7 +143,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
-            String profile, UserStoreManager userStoreManager) throws UserStoreException {
+                                       String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -147,15 +156,18 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager);
+                if (!listener.doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
         return true;
     }
+
     @Override
     public boolean doPreUpdateCredentialWithID(String userID, Object newCredential, Object oldCredential,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                               UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -168,7 +180,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreUpdateCredential(userName, newCredential, oldCredential, userStoreManager);
+                if (!listener.doPreUpdateCredential(userName, newCredential, oldCredential, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -190,7 +204,10 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostUpdateCredential(userName, credential, userStoreManager);
+                if (!listener.doPostUpdateCredential(userName, credential, userStoreManager)) {
+                    return false;
+                }
+
             }
         }
 
@@ -199,7 +216,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreUpdateCredentialByAdminWithID(String userID, Object newCredential,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                      UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -212,7 +229,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreUpdateCredentialByAdmin(userName, newCredential, userStoreManager);
+                if (!listener.doPreUpdateCredentialByAdmin(userName, newCredential, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -221,7 +240,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostUpdateCredentialByAdminWithID(String userID, Object credential,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                       UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -234,7 +253,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostUpdateCredentialByAdmin(userName, credential, userStoreManager);
+                if (!listener.doPostUpdateCredentialByAdmin(userName, credential, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -258,7 +279,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreDeleteUser(userName, userStoreManager);
+                if (!listener.doPreDeleteUser(userName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -278,7 +301,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
             for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
                 if (!(listener instanceof IdentityUserIdResolverListener)) {
-                    return listener.doPostDeleteUser(userName, userStoreManager);
+                    if (!listener.doPostDeleteUser(userName, userStoreManager)) {
+                        return false;
+                    }
                 }
             }
         } finally {
@@ -291,7 +316,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreSetUserClaimValueWithID(String userID, String claimURI, String claimValue, String profileName,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -304,7 +329,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreSetUserClaimValue(userName, claimURI, claimValue, profileName, userStoreManager);
+                if (!listener.doPreSetUserClaimValue(userName, claimURI, claimValue, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -326,7 +353,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostSetUserClaimValue(userName, userStoreManager);
+                if (!listener.doPostSetUserClaimValue(userName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -335,7 +364,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreSetUserClaimValuesWithID(String userID, Map<String, String> claims, String profileName,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                 UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -348,7 +377,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreSetUserClaimValues(userName, claims, profileName, userStoreManager);
+                if (!listener.doPreSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -357,7 +388,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostSetUserClaimValuesWithID(String userID, Map<String, String> claims, String profileName,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                  UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -370,7 +401,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostSetUserClaimValues(userName, claims, profileName, userStoreManager);
+                if (!listener.doPostSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -379,7 +412,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreDeleteUserClaimValuesWithID(String userID, String[] claims, String profileName,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                    UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -392,7 +425,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreDeleteUserClaimValues(userName, claims, profileName, userStoreManager);
+                if (!listener.doPreDeleteUserClaimValues(userName, claims, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -414,7 +449,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostDeleteUserClaimValues(userName, userStoreManager);
+                if (!listener.doPostDeleteUserClaimValues(userName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -423,7 +460,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreDeleteUserClaimValueWithID(String userID, String claimURI, String profileName,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -436,7 +473,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreDeleteUserClaimValue(userName, claimURI, profileName, userStoreManager);
+                if (!listener.doPreDeleteUserClaimValue(userName, claimURI, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -458,7 +497,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostDeleteUserClaimValue(userName, userStoreManager);
+                if (!doPostDeleteUserClaimValue(userName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -467,7 +508,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreAddRoleWithID(String roleName, String[] userIDList, Permission[] permissions,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                      UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -477,7 +518,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreAddRole(roleName, userNames, permissions, userStoreManager);
+                if (!doPreAddRole(roleName, userNames, permissions, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -486,7 +529,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostAddRoleWithID(String roleName, String[] userIDList, Permission[] permissions,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                       UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -496,7 +539,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostAddRole(roleName, userNames, permissions, userStoreManager);
+                if (!doPostAddRole(roleName, userNames, permissions, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -505,7 +550,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreAddInternalRoleWithID(String roleName, String[] userIDList, Permission[] permissions,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                              UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -515,7 +560,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreAddInternalRole(roleName, userNames, permissions, userStoreManager);
+                if (!doPreAddInternalRole(roleName, userNames, permissions, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -524,7 +571,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostAddInternalRoleWithID(String roleName, String[] userIDList, Permission[] permissions,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                               UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -534,7 +581,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostAddInternalRole(roleName, userNames, permissions, userStoreManager);
+                if (!doPostAddInternalRole(roleName, userNames, permissions, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -543,7 +592,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreUpdateUserListOfRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -555,7 +604,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager);
+                if (!doPreUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -564,7 +615,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostUpdateUserListOfRoleWithID(String roleName, String[] deletedUserIDs, String[] newUserIDs,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                    UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -576,7 +627,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager);
+                if (!doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -585,7 +638,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreUpdateRoleListOfUserWithID(String userID, String[] deletedRoles, String[] newRoles,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                   UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -598,7 +651,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager);
+                if (!doPreUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -607,7 +662,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostUpdateRoleListOfUserWithID(String userID, String[] deletedRoles, String[] newRoles,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                    UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -620,7 +675,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager);
+                if (!doPostUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -629,7 +686,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreGetUserClaimValueWithID(String userID, String claim, String profileName,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -642,7 +699,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreGetUserClaimValue(userName, claim, profileName, userStoreManager);
+                if (!doPreGetUserClaimValue(userName, claim, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -651,7 +710,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreGetUserClaimValuesWithID(String userID, String[] claims, String profileName,
-            Map<String, String> claimMap, UserStoreManager userStoreManager) throws UserStoreException {
+                                                 Map<String, String> claimMap, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -664,7 +724,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager);
+                if (!doPreGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -673,7 +735,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserClaimValueWithID(String userID, String claim, List<String> claimValue,
-            String profileName, UserStoreManager userStoreManager) throws UserStoreException {
+                                                 String profileName, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -686,7 +749,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetUserClaimValue(userName, claim, claimValue, profileName, userStoreManager);
+                if (!doPostGetUserClaimValue(userName, claim, claimValue, profileName, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -695,7 +760,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserClaimValuesWithID(String userID, String[] claims, String profileName,
-            Map<String, String> claimMap, UserStoreManager userStoreManager) throws UserStoreException {
+                                                  Map<String, String> claimMap, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -708,7 +774,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager);
+                if (!doPostGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -717,7 +785,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreGetUserListWithID(String claimUri, String claimValue, List<User> returnUsersList,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                          UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -727,7 +795,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager);
+                if (!doPreGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -736,7 +806,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreGetUserListWithID(String claimUri, String claimValue, int limit, int offset,
-            List<User> returnUsersList, UserStoreManager userStoreManager) throws UserStoreException {
+                                          List<User> returnUsersList, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -756,7 +827,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserListWithID(String claimUri, String claimValue, List<User> returnUsersList,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                           UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -766,7 +837,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager);
+                if (!doPostGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -775,7 +848,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserListWithID(String claimUri, String claimValue, List<User> returnUsersList, int limit,
-            int offset, UserStoreManager userStoreManager) throws UserStoreException {
+                                           int offset, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -795,7 +868,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetPaginatedUserListWithID(String claimUri, String claimValue, List<User> returnUsersList,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                    UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -805,7 +878,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetPaginatedUserList(claimUri, claimValue, returnUserNamesList, userStoreManager);
+                if (!doPostGetPaginatedUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -814,7 +889,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostListUsersWithID(String filter, int limit, int offset, List<User> returnUsersList,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                         UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -824,7 +899,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostListUsers(filter, limit, offset, returnUserNamesList, userStoreManager);
+                if (!doPostListUsers(filter, limit, offset, returnUserNamesList, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -833,7 +910,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetRoleListOfUserWithID(String userID, String filter, String[] roleList,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                 UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -846,7 +923,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetRoleListOfUser(userName, filter, roleList, userStoreManager);
+                if (!doPostGetRoleListOfUser(userName, filter, roleList, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -855,7 +934,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreGetUserListWithID(Condition condition, String domain, String profileName, int limit, int offset,
-            String sortBy, String sortOrder, UserStoreManager userStoreManager) throws UserStoreException {
+                                          String sortBy, String sortOrder, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -863,8 +943,10 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreGetUserList(condition, domain, profileName, limit, offset, sortBy, sortOrder,
-                        userStoreManager);
+                if (!doPreGetUserList(condition, domain, profileName, limit, offset, sortBy, sortOrder,
+                        userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -873,7 +955,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserListWithID(Condition condition, String domain, String profileName, int limit,
-            int offset, String sortBy, String sortOrder, List<User> users, UserStoreManager userStoreManager)
+                                           int offset, String sortBy, String sortOrder, List<User> users,
+                                           UserStoreManager userStoreManager)
             throws UserStoreException {
 
         if (!isEnable()) {
@@ -896,7 +979,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUserListOfRoleWithID(String roleName, List<User> userList,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                 UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -907,7 +990,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetUserListOfRole(roleName, returnUserNames, userStoreManager);
+                if (!doPostGetUserListOfRole(roleName, returnUserNames, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -916,7 +1001,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetUsersClaimValuesWithID(List<String> userIDs, List<String> claims, String profileName,
-            List<UniqueIDUserClaimSearchEntry> uniqueIDUserClaimSearchEntries, UserStoreManager userStoreManager)
+                                                   List<UniqueIDUserClaimSearchEntry> uniqueIDUserClaimSearchEntries,
+                                                   UserStoreManager userStoreManager)
             throws UserStoreException {
 
         if (!isEnable()) {
@@ -930,8 +1016,10 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetUsersClaimValues(userNames, claims.toArray(new String[0]), profileName,
-                        userClaimSearchEntries.toArray(new UserClaimSearchEntry[0]));
+                if (!doPostGetUsersClaimValues(userNames, claims.toArray(new String[0]), profileName,
+                        userClaimSearchEntries.toArray(new UserClaimSearchEntry[0]))) {
+                    return false;
+                }
             }
         }
 
@@ -940,7 +1028,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreAuthenticateWithID(String preferredUserNameClaim, String preferredUserNameValue,
-            Object credential, UserStoreManager userStoreManager) throws UserStoreException {
+                                           Object credential, UserStoreManager userStoreManager)
+            throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -956,7 +1045,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreAuthenticate(userName, credential, userStoreManager);
+                if (!doPreAuthenticate(userName, credential, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -965,7 +1056,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostAuthenticateWithID(String preferredUserNameClaim, String preferredUserNameValue,
-            AuthenticationResult authenticationResult, UserStoreManager userStoreManager) throws UserStoreException {
+                                            AuthenticationResult authenticationResult,
+                                            UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -987,7 +1079,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostAuthenticate(userName, authenticated, userStoreManager);
+                if (!doPostAuthenticate(userName, authenticated, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -996,7 +1090,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPreAuthenticateWithID(List<LoginIdentifier> loginIdentifiers, Object credential,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                           UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -1008,7 +1102,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPreAuthenticate(username, credential, userStoreManager);
+                if (!doPreAuthenticate(username, credential, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -1017,7 +1113,8 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostAuthenticateWithID(List<LoginIdentifier> loginIdentifiers,
-            AuthenticationResult authenticationResult, UserStoreManager userStoreManager) throws UserStoreException {
+                                            AuthenticationResult authenticationResult,
+                                            UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -1034,7 +1131,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostAuthenticate(userName, authenticated, userStoreManager);
+                if (!doPostAuthenticate(userName, authenticated, userStoreManager)) {
+                    return false;
+                }
             }
         }
 
@@ -1043,7 +1142,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     @Override
     public boolean doPostGetRoleListOfUsersWithID(List<String> userIDs, Map<String, List<String>> rolesOfUsersMap,
-            UserStoreManager userStoreManager) throws UserStoreException {
+                                                  UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
@@ -1053,7 +1152,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserIdResolverListener)) {
-                return listener.doPostGetRoleListOfUsers(userNamesList.toArray(new String[0]), rolesOfUsersMap);
+                if (!doPostGetRoleListOfUsers(userNamesList.toArray(new String[0]), rolesOfUsersMap)) {
+                    return false;
+                }
             }
         }
 
@@ -1083,7 +1184,11 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     private String[] getUserNamesFromUserIDs(String[] userIDList, AbstractUserStoreManager userStoreManager)
             throws UserStoreException {
 
-        List<String> userNamesList = userStoreManager.getUserNamesFromUserIDs(Arrays.asList(userIDList));
+        if (userIDList == null) {
+            return new String[0];
+        }
+        List<String> userNamesList =
+                userStoreManager.getUserNamesFromUserIDs(getDomainLessNamesAsList(userIDList));
         return userNamesList.toArray(new String[0]);
     }
 
@@ -1091,4 +1196,13 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         return IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().values();
     }
+
+    private List<String> getDomainLessNamesAsList(String[] names) {
+
+        if (names == null) {
+            return new ArrayList<>();
+        }
+        return java.util.Arrays.stream(names).map(UserCoreUtil::removeDomainFromName).collect(Collectors.toList());
+    }
+
 }
