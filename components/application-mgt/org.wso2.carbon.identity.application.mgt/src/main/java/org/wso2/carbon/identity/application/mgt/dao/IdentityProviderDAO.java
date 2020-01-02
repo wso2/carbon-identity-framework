@@ -25,16 +25,49 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 
 import java.util.List;
 
+/**
+ * Definition of DAO for Identity Provider.
+ */
 public interface IdentityProviderDAO {
 
+    /**
+     * Returns the Identity provider with given IdP name.
+     * May return null if there is no such IdP found for the given name.
+     * @param idpName
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
     IdentityProvider getIdentityProvider(String idpName) throws IdentityApplicationManagementException;
 
+    /**
+     * Returns all the identity providers available.
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
     List<IdentityProvider> getAllIdentityProviders() throws IdentityApplicationManagementException;
 
+    /**
+     * Returns all the local authenticators available on the system.
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
     List<LocalAuthenticatorConfig> getAllLocalAuthenticators() throws IdentityApplicationManagementException;
 
-    List<RequestPathAuthenticatorConfig> getAllRequestPathAuthenticators() throws IdentityApplicationManagementException;
+    /**
+     * Returns all the request path authenticators available in the system.
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
+    List<RequestPathAuthenticatorConfig> getAllRequestPathAuthenticators()
+            throws IdentityApplicationManagementException;
 
+    /**
+     * Returns the default authenticator configured for the IdP.
+     *
+     * @param idpName
+     * @return
+     * @throws IdentityApplicationManagementException
+     */
     String getDefaultAuthenticator(String idpName) throws IdentityApplicationManagementException;
 
 }

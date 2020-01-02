@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 
+/**
+ * Cache entry when Service Provider is loaded as Application ID.
+ */
 public class ServiceProviderIDCacheEntry extends CacheEntry {
 
     private static final long serialVersionUID = 5060231898427225662L;

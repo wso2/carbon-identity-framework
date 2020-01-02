@@ -26,11 +26,11 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.ImportResponse;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -88,14 +88,16 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * Creates a service provider with the provided service provider template.
      *
      * @param serviceProvider Service provider
-     * @param templateName SP template name
+     * @param templateName    SP template name
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public ServiceProvider createApplicationWithTemplate(ServiceProvider serviceProvider, String templateName)
             throws IdentityApplicationManagementException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
-            return applicationMgtService.createApplicationWithTemplate(serviceProvider, getTenantDomain(), getUsername(),
+            return applicationMgtService.createApplicationWithTemplate(serviceProvider, getTenantDomain(),
+                    getUsername(),
                     templateName);
         } catch (IdentityApplicationManagementException ex) {
             String message = "Error while creating application: " + serviceProvider.getApplicationName() + " for " +
@@ -134,20 +136,21 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public ApplicationBasicInfo[] getAllApplicationBasicInfo() throws IdentityApplicationManagementException {
 
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             ApplicationBasicInfo[] applicationBasicInfos =
                     applicationMgtService.getAllApplicationBasicInfo(getTenantDomain(), getUsername());
-            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
+            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos,
+                    getUsername());
             return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
         } catch (IdentityApplicationManagementException ex) {
             String message = "Error while retrieving all application basic info for tenant: " + getTenantDomain();
             throw handleException(message, ex);
         }
     }
-
 
     /**
      * Get all basic application information for a matching filter.
@@ -163,7 +166,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             applicationMgtService = ApplicationManagementService.getInstance();
             ApplicationBasicInfo[] applicationBasicInfos =
                     applicationMgtService.getApplicationBasicInfo(getTenantDomain(), getUsername(), filter);
-            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos, getUsername());
+            List<ApplicationBasicInfo> appInfo = getAuthorizedApplicationBasicInfo(applicationBasicInfos,
+                    getUsername());
             return appInfo.toArray(new ApplicationBasicInfo[appInfo.size()]);
         } catch (IdentityApplicationManagementException ex) {
             String message = "Error while retrieving all application basic info for tenant: " + getTenantDomain() +
@@ -178,7 +182,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Application Basic information array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
-    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber) throws IdentityApplicationManagementException {
+    public ApplicationBasicInfo[] getAllPaginatedApplicationBasicInfo(int pageNumber)
+            throws IdentityApplicationManagementException {
 
         return getPaginatedApplicationBasicInfo(pageNumber, "*");
     }
@@ -280,7 +285,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             return expectedFilteredAuthorizedAppInfoList;
         } else {
             expectedFilteredAuthorizedAppInfoList.addAll(authorizedAppBasicInfo);
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("No. of authorized app information found for user " + authorizedUser + " in tenant domain "
                         + authorizedUserTenantDomain + ": " + expectedFilteredAuthorizedAppInfoList.size());
             }
@@ -307,6 +312,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Number of applications
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public int getCountOfAllApplications() throws IdentityApplicationManagementException {
 
         List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
@@ -398,7 +404,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             return applicationMgtService.getIdentityProvider(federatedIdPName, getTenantDomain());
         } catch (IdentityApplicationManagementException idpException) {
             log.error("Error while retrieving identity provider: " + federatedIdPName + " for tenant: " +
-                            getTenantDomain(), idpException);
+                    getTenantDomain(), idpException);
             throw idpException;
 
         }
@@ -410,6 +416,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Identity providers array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public IdentityProvider[] getAllIdentityProviders() throws IdentityApplicationManagementException {
 
         try {
@@ -428,6 +435,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return local authenticators array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public LocalAuthenticatorConfig[] getAllLocalAuthenticators() throws IdentityApplicationManagementException {
 
         try {
@@ -447,6 +455,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return Request path authenticator config array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators()
             throws IdentityApplicationManagementException {
 
@@ -467,6 +476,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return claim uri array
      * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public String[] getAllLocalClaimUris() throws IdentityApplicationManagementException {
 
         try {
@@ -481,8 +491,10 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
 
     /**
      * Retrieve the set of authentication templates configured from file system in JSON format
+     *
      * @return Authentication templates.
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public String getAuthenticationTemplatesJSON() {
 
         return applicationMgtService.getAuthenticationTemplatesJSON();
@@ -541,6 +553,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @throws IdentityApplicationManagementClientException
      */
     public void createApplicationTemplate(SpTemplate spTemplate) throws IdentityApplicationManagementClientException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.createApplicationTemplate(spTemplate, getTenantDomain());
@@ -549,7 +562,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while creating application template: %s for tenant: %s.",
                     spTemplate.getName(), getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 
@@ -557,11 +570,12 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * Add configured service provider as a template.
      *
      * @param serviceProvider Service provider to be configured as a template
-     * @param spTemplate   service provider template basic info
+     * @param spTemplate      service provider template basic info
      * @throws IdentityApplicationManagementClientException
      */
     public void createApplicationTemplateFromSP(ServiceProvider serviceProvider, SpTemplate spTemplate)
             throws IdentityApplicationManagementClientException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.createApplicationTemplateFromSP(serviceProvider, spTemplate,
@@ -571,7 +585,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while creating service provider template for the configured SP: %s for " +
                     "tenant: %s.", serviceProvider.getApplicationName(), getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 
@@ -583,6 +597,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @throws IdentityApplicationManagementClientException
      */
     public SpTemplate getApplicationTemplate(String templateName) throws IdentityApplicationManagementClientException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getApplicationTemplate(templateName, getTenantDomain());
@@ -591,7 +606,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while retrieving application template: %s for tenant: %s.",
                     templateName, getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 
@@ -602,6 +617,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @throws IdentityApplicationManagementClientException
      */
     public void deleteApplicationTemplate(String templateName) throws IdentityApplicationManagementClientException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.deleteApplicationTemplate(templateName, getTenantDomain());
@@ -610,7 +626,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while deleting application template: %s in tenant: %s.",
                     templateName, getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 
@@ -618,11 +634,12 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * Update an application template.
      *
      * @param templateName name of the template
-     * @param spTemplate SP template info to be updated
+     * @param spTemplate   SP template info to be updated
      * @throws IdentityApplicationManagementClientException
      */
     public void updateApplicationTemplate(String templateName, SpTemplate spTemplate)
             throws IdentityApplicationManagementClientException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             applicationMgtService.updateApplicationTemplate(templateName, spTemplate, getTenantDomain());
@@ -631,7 +648,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while updating application template: %s in tenant: %s.",
                     spTemplate.getName(), getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 
@@ -652,8 +669,8 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
             throw e;
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while checking existence of application template: %s in tenant: %s.",
-                            templateName, getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+                    templateName, getTenantDomain()), e);
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 
@@ -663,7 +680,9 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      * @return list of all application template info
      * @throws IdentityApplicationManagementClientException
      */
+    @SuppressWarnings("ValidExternallyBoundObject")
     public List<SpTemplate> getAllApplicationTemplateInfo() throws IdentityApplicationManagementClientException {
+
         try {
             applicationMgtService = ApplicationManagementService.getInstance();
             return applicationMgtService.getAllApplicationTemplateInfo(getTenantDomain());
@@ -672,7 +691,7 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
         } catch (IdentityApplicationManagementException e) {
             log.error(String.format("Error while getting all the application template basic info for tenant: %s.",
                     getTenantDomain()), e);
-            throw new IdentityApplicationManagementClientException(new String[] {"Server error occurred."});
+            throw new IdentityApplicationManagementClientException(new String[]{"Server error occurred."});
         }
     }
 

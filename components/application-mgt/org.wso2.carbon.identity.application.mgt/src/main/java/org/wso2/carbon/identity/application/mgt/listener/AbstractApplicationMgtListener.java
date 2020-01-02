@@ -27,58 +27,85 @@ import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+/**
+ * Abstract implementation for the {@link ApplicationMgtListener}.
+ */
 public abstract class AbstractApplicationMgtListener implements ApplicationMgtListener {
 
-    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPreCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPreUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName) throws IdentityApplicationManagementException {
+    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     public boolean doPreGetServiceProvider(String applicationName, String tenantDomain)
-            throws IdentityApplicationManagementException{
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPostGetServiceProvider(ServiceProvider serviceProvider, String applicationName, String tenantDomain) throws IdentityApplicationManagementException{
+    public boolean doPostGetServiceProvider(ServiceProvider serviceProvider, String applicationName,
+                                            String tenantDomain) throws IdentityApplicationManagementException {
+
         return true;
     }
 
     public boolean doPreGetServiceProviderByClientId(String clientId, String clientType,
-                                                     String tenantDomain)throws IdentityApplicationManagementException{
+                                                     String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
-    public boolean doPostGetServiceProviderByClientId(ServiceProvider serviceProvider, String clientId, String clientType,
-                                                      String tenantDomain)throws IdentityApplicationManagementException{
+    public boolean doPostGetServiceProviderByClientId(ServiceProvider serviceProvider, String clientId,
+                                                      String clientType,
+                                                      String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPreGetAllApplicationBasicInfo(String tenantDomain, String username) throws IdentityApplicationManagementException {
+    public boolean doPreGetAllApplicationBasicInfo(String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPostGetAllApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username) throws IdentityApplicationManagementException {
+    public boolean doPostGetAllApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
@@ -128,12 +155,15 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * use {@link AbstractApplicationMgtListener#doPreGetApplicationBasicInfo(String, String, int, int)} method.
      */
     public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
-                                                          int pageNumber) throws IdentityApplicationManagementException {
+                                                          int pageNumber)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     /**
-     * Define any additional actions after getting all applications' basic information for matching filter with pagination.
+     * Define any additional actions after getting all applications' basic information for matching filter with
+     * pagination.
      * This method will be included in ApplicationMgtListener interface when Java 8 is supported.
      *
      * @param appDAO
@@ -143,8 +173,10 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
      * @return
      * @throws IdentityApplicationManagementException
      */
-    public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username, int pageNumber,
-                                                 String filter) throws IdentityApplicationManagementException {
+    public boolean doPostGetPaginatedApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
+                                                          int pageNumber,
+                                                          String filter) throws IdentityApplicationManagementException {
+
         return true;
     }
 
@@ -306,32 +338,47 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     @Override
-    public boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPreGetApplicationExcludingFileBasedSPs(String applicationName, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName,
+                                                             String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPreGetServiceProviderNameByClientId(String clientId, String clientType, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPostGetServiceProviderNameByClientId(String name, String clientId, String clientType,
+                                                          String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) throws IdentityApplicationManagementException {
+    public boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type,
+                                                                              String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         return true;
     }
 
     @Override
-    public boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) {
+    public boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId,
+                                                                               String type, String tenantDomain) {
+
         return true;
     }
 
@@ -370,6 +417,7 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     public boolean isEnable() {
+
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (ApplicationMgtListener.class.getName(), this.getClass().getName());
         if (identityEventListenerConfig == null) {
@@ -383,6 +431,7 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     }
 
     public int getExecutionOrderId() {
+
         IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty
                 (ApplicationMgtListener.class.getName(), this.getClass().getName());
         int orderId;

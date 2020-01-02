@@ -60,6 +60,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+/**
+ * Validator class to be used to validate the consistency of the Application/Service Provider, before it is persisted.
+ */
 public class ApplicationMgtValidator {
 
     private static Log log = LogFactory.getLog(ApplicationMgtValidator.class);
@@ -70,22 +73,25 @@ public class ApplicationMgtValidator {
     private static final String PROVISIONING_CONNECTOR_NOT_CONFIGURED = "No Provisioning connector configured for %s.";
     private static final String FEDERATED_IDP_NOT_AVAILABLE =
             "Federated Identity Provider %s is not available in the server.";
-    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server for tenantDomain:%s.";
-    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server for tenantDomain:%s.";
+    private static final String CLAIM_DIALECT_NOT_AVAILABLE = "Claim Dialect %s is not available in the server " +
+            "for tenantDomain:%s.";
+    private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server " +
+            "for tenantDomain:%s.";
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
-
     public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
-                                            String userName) throws IdentityApplicationManagementException {
+                                         String userName) throws IdentityApplicationManagementException {
 
         List<String> validationErrors = new ArrayList<>();
         validateDiscoverabilityConfigs(validationErrors, serviceProvider);
         validateInboundAuthenticationConfig(serviceProvider.getInboundAuthenticationConfig(), tenantDomain,
                 serviceProvider.getApplicationID());
-        validateLocalAndOutBoundAuthenticationConfig(validationErrors, serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
+        validateLocalAndOutBoundAuthenticationConfig(validationErrors,
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig(),
                 tenantDomain);
-        validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(), tenantDomain);
+        validateRequestPathAuthenticationConfig(validationErrors, serviceProvider.getRequestPathAuthenticatorConfigs(),
+                tenantDomain);
         validateOutBoundProvisioning(validationErrors, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(validationErrors, serviceProvider.getClaimConfig(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
@@ -191,7 +197,8 @@ public class ApplicationMgtValidator {
      *                                                authenticator params
      */
     private void validateLocalAndOutBoundAuthenticationConfig(List<String> validationMsg,
-            LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig, String tenantDomain)
+              LocalAndOutboundAuthenticationConfig localAndOutBoundAuthenticationConfig,
+              String tenantDomain)
             throws IdentityApplicationManagementException {
 
         if (localAndOutBoundAuthenticationConfig == null) {
@@ -238,15 +245,15 @@ public class ApplicationMgtValidator {
     /**
      * Validate request path authenticator related configurations and append to the validation msg list.
      *
-     * @param validationMsg                        validation error messages
+     * @param validationMsg                   validation error messages
      * @param requestPathAuthenticatorConfigs request path authentication config
-     * @param tenantDomain                         tenant domain
+     * @param tenantDomain                    tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception when unable to get the
      *                                                authenticator params
      */
     private void validateRequestPathAuthenticationConfig(List<String> validationMsg,
-                                                         RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs,
-                                                         String tenantDomain)
+             RequestPathAuthenticatorConfig[] requestPathAuthenticatorConfigs,
+             String tenantDomain)
             throws IdentityApplicationManagementException {
 
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
@@ -300,7 +307,7 @@ public class ApplicationMgtValidator {
     /**
      * Validate outbound provisioning related configurations and append to the validation msg list.
      *
-     * @param validationMsg                        validation error messages
+     * @param validationMsg              validation error messages
      * @param outboundProvisioningConfig Outbound provisioning config
      * @param tenantDomain               tenant domain
      */
@@ -335,10 +342,10 @@ public class ApplicationMgtValidator {
     /**
      * Validate claim related configurations and append to the validation msg list.
      *
-     * @param validationMsg                        validation error messages
-     * @param claimConfig  claim config
+     * @param validationMsg   validation error messages
+     * @param claimConfig     claim config
      * @param subjectClaimUri Subject claim Uri
-     * @param tenantDomain tenant domain
+     * @param tenantDomain    tenant domain
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     private void validateClaimsConfigs(List<String> validationMsg, ClaimConfig claimConfig, String subjectClaimUri,
@@ -370,35 +377,38 @@ public class ApplicationMgtValidator {
             if (StringUtils.isNotBlank(userClaimUri) && !Arrays.asList(allLocalClaimUris).contains(userClaimUri)) {
                 validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, userClaimUri, tenantDomain));
             }
-            if (StringUtils.isNotBlank(subjectClaimUri) && !Arrays.asList(allLocalClaimUris).contains(subjectClaimUri)) {
+            if (StringUtils.isNotBlank(subjectClaimUri) && !Arrays.asList(allLocalClaimUris).contains(
+                    subjectClaimUri)) {
                 validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, subjectClaimUri, tenantDomain));
             }
         }
 
         String[] spClaimDialects = claimConfig.getSpClaimDialects();
-        if (spClaimDialects != null) try {
-            ClaimMetadataManagementServiceImpl claimAdminService = new ClaimMetadataManagementServiceImpl();
-            List<ClaimDialect> serverClaimMapping = claimAdminService.getClaimDialects(tenantDomain);
-            if (serverClaimMapping != null) {
-                List<String> serverDialectURIS = serverClaimMapping.stream()
-                        .map(ClaimDialect::getClaimDialectURI).collect(Collectors.toList());
-                for (String spClaimDialect : spClaimDialects) {
-                    if (!serverDialectURIS.contains(spClaimDialect)) {
-                        validationMsg.add(String.format(CLAIM_DIALECT_NOT_AVAILABLE, spClaimDialect, tenantDomain));
+        if (spClaimDialects != null) {
+            try {
+                ClaimMetadataManagementServiceImpl claimAdminService = new ClaimMetadataManagementServiceImpl();
+                List<ClaimDialect> serverClaimMapping = claimAdminService.getClaimDialects(tenantDomain);
+                if (serverClaimMapping != null) {
+                    List<String> serverDialectURIS = serverClaimMapping.stream()
+                            .map(ClaimDialect::getClaimDialectURI).collect(Collectors.toList());
+                    for (String spClaimDialect : spClaimDialects) {
+                        if (!serverDialectURIS.contains(spClaimDialect)) {
+                            validationMsg.add(String.format(CLAIM_DIALECT_NOT_AVAILABLE, spClaimDialect, tenantDomain));
+                        }
                     }
                 }
+            } catch (ClaimMetadataException e) {
+                validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
             }
-        } catch (ClaimMetadataException e) {
-            validationMsg.add(String.format("Error in getting claim dialect for %s. ", tenantDomain));
         }
     }
 
     /**
      * Validate local roles in role mapping configuration.
      *
-     * @param validationMsg                        validation error messages
+     * @param validationMsg            validation error messages
      * @param permissionsAndRoleConfig permission and role configurations
-     * @param tenantDomain tenant domain
+     * @param tenantDomain             tenant domain
      */
     private void validateRoleConfigs(List<String> validationMsg, PermissionsAndRoleConfig permissionsAndRoleConfig,
                                      String tenantDomain) {

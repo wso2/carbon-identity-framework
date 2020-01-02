@@ -22,6 +22,9 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 
+/**
+ * Definition for the listeners which listens to Application/Service Provider CRUD events.
+ */
 public interface ApplicationMgtListener {
 
     /**
@@ -112,8 +115,8 @@ public interface ApplicationMgtListener {
      * is overridden.
      *
      * @param applicationName name of the Service Provider.
-     * @param tenantDomain tenant domain of the user who created the Service Provider.
-     * @param userName userName of the user who created the Service Provider.
+     * @param tenantDomain    tenant domain of the user who created the Service Provider.
+     * @param userName        userName of the user who created the Service Provider.
      * @return whether the postDelete action is complete.
      * @throws IdentityApplicationManagementException
      */
@@ -128,8 +131,8 @@ public interface ApplicationMgtListener {
      * is overridden.
      *
      * @param serviceProvider created Service Provider object.
-     * @param tenantDomain tenant domain of the user who created the Service Provider.
-     * @param userName userName of the user who created the Service Provider.
+     * @param tenantDomain    tenant domain of the user who created the Service Provider.
+     * @param userName        userName of the user who created the Service Provider.
      * @return whether the postDelete action is complete.
      * @throws IdentityApplicationManagementException
      */
@@ -183,9 +186,9 @@ public interface ApplicationMgtListener {
      * @return
      * @throws IdentityApplicationManagementException
      */
-    boolean doPostGetServiceProviderByClientId(ServiceProvider serviceprovider, String clientId, String clientType, String tenantDomain)
+    boolean doPostGetServiceProviderByClientId(ServiceProvider serviceprovider, String clientId, String clientType,
+                                               String tenantDomain)
             throws IdentityApplicationManagementException;
-
 
     /**
      * Define any additional actions before getting all applications' basic information
@@ -231,14 +234,15 @@ public interface ApplicationMgtListener {
      * @throws IdentityApplicationManagementException
      */
     boolean doPostGetApplicationExcludingFileBasedSPs(ServiceProvider serviceProvider, String applicationName,
-                                                      String tenantDomain) throws IdentityApplicationManagementException;
+                                                      String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions before getting all applications' basic information for matching filter.
      *
      * @param tenantDomain Tenant Domain
-     * @param username User Name
-     * @param filter Application name filter
+     * @param username     User Name
+     * @param filter       Application name filter
      * @return Boolean based on pre processing
      * @throws IdentityApplicationManagementException
      */
@@ -251,21 +255,21 @@ public interface ApplicationMgtListener {
     /**
      * Define any additional actions after getting all applications' basic information for matching filter.
      *
-     * @param appDAO Application Data Access Object
+     * @param appDAO       Application Data Access Object
      * @param tenantDomain Tenant Domain
-     * @param username User Name
-     * @param filter Application name filter
+     * @param username     User Name
+     * @param filter       Application name filter
      * @return Boolean based on post processing
      * @throws IdentityApplicationManagementException
      */
     default boolean doPostGetApplicationBasicInfo(ApplicationDAO appDAO, String tenantDomain, String username,
-                                                 String filter) throws IdentityApplicationManagementException {
+                                                  String filter) throws IdentityApplicationManagementException {
 
         return true;
     }
 
     /**
-     *  Define any additional actions before getting service provider name by client id.
+     * Define any additional actions before getting service provider name by client id.
      *
      * @param clientId
      * @param clientType
@@ -300,7 +304,8 @@ public interface ApplicationMgtListener {
      * @throws IdentityApplicationManagementException
      */
     boolean doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type,
-                                                                       String tenantDomain) throws IdentityApplicationManagementException;
+                                                                       String tenantDomain)
+            throws IdentityApplicationManagementException;
 
     /**
      * Define any additional actions after getting service provider name by client id, excluding file based ones.
@@ -311,7 +316,8 @@ public interface ApplicationMgtListener {
      * @param tenantDomain
      * @return
      */
-    default boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId, String type, String tenantDomain) {
+    default boolean doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(String name, String clientId,
+                                                                                String type, String tenantDomain) {
 
         return true;
     }
@@ -322,7 +328,8 @@ public interface ApplicationMgtListener {
      * @param serviceProvider service Provider
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
-    default void doImportServiceProvider(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+    default void doImportServiceProvider(ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
 
         return;
     }
@@ -357,7 +364,7 @@ public interface ApplicationMgtListener {
      * Define any additional actions before creating an application template.
      *
      * @param serviceProvider SP template
-     * @param tenantDomain tenant domain
+     * @param tenantDomain    tenant domain
      * @return true when pre import application template
      * @throws IdentityApplicationManagementException
      */
@@ -371,7 +378,7 @@ public interface ApplicationMgtListener {
      * Define any additional actions before updating an application template.
      *
      * @param serviceProvider SP template
-     * @param tenantDomain tenant domain
+     * @param tenantDomain    tenant domain
      * @return true when pre update application template
      * @throws IdentityApplicationManagementException
      */

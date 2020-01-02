@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.application.mgt.cache;
 
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 
+/**
+ * Cache implementation for Application (the Service Provider) cache.
+ */
 public class IdentityServiceProviderCache extends
         BaseCache<IdentityServiceProviderCacheKey, IdentityServiceProviderCacheEntry> {
 

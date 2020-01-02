@@ -53,7 +53,6 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.user.mgt.UserMgtConstants;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,12 +60,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import static org.wso2.carbon.user.core.constants.UserCoreErrorConstants.ErrorMessages.ERROR_CODE_ROLE_ALREADY_EXISTS;
 
+/**
+ * Few common utility functions related to Application (aka. Service Provider) Management.
+ */
 public class ApplicationMgtUtil {
 
     public static final String APPLICATION_ROOT_PERMISSION = "applications";
@@ -78,9 +81,9 @@ public class ApplicationMgtUtil {
     private static final String SERVICE_PROVIDERS_NAME_REGEX = "ServiceProviders.SPNameRegex";
 
     private static Log log = LogFactory.getLog(ApplicationMgtUtil.class);
-    private static boolean perSPCertificateSupportAvailable;
 
     private ApplicationMgtUtil() {
+
     }
 
     public static org.wso2.carbon.user.api.Permission[] buildPermissions(String applicationName,
@@ -212,7 +215,7 @@ public class ApplicationMgtUtil {
                         }
                         return;
                     }
-                } catch (UserStoreException ex ) {
+                } catch (UserStoreException ex) {
                     msg = "Error while getting existing application roles of the user " + username;
                     throw new IdentityApplicationManagementException(msg, ex);
                 }
@@ -238,6 +241,7 @@ public class ApplicationMgtUtil {
     }
 
     private static String getAppRoleName(String applicationName) {
+
         return ApplicationConstants.APPLICATION_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + applicationName;
     }
 
@@ -248,6 +252,7 @@ public class ApplicationMgtUtil {
      * @throws IdentityApplicationManagementException
      */
     public static void deleteAppRole(String applicationName) throws IdentityApplicationManagementException {
+
         String roleName = getAppRoleName(applicationName);
 
         try {
@@ -273,7 +278,8 @@ public class ApplicationMgtUtil {
                     + " to new role : " + UserCoreUtil.addInternalDomainName(newName));
         }
         CarbonContext.getThreadLocalCarbonContext().getUserRealm().getUserStoreManager()
-                .updateRoleName(UserCoreUtil.addInternalDomainName(oldName), UserCoreUtil.addInternalDomainName(newName));
+                .updateRoleName(UserCoreUtil.addInternalDomainName(oldName),
+                        UserCoreUtil.addInternalDomainName(newName));
 
     }
 
@@ -317,7 +323,8 @@ public class ApplicationMgtUtil {
      * @param permissionsConfig
      * @throws IdentityApplicationManagementException
      */
-    public static void storePermissions(String applicationName, String username, PermissionsAndRoleConfig permissionsConfig)
+    public static void storePermissions(String applicationName, String username,
+                                        PermissionsAndRoleConfig permissionsConfig)
             throws IdentityApplicationManagementException {
 
         int tenantId = MultitenantConstants.INVALID_TENANT_ID;
@@ -440,10 +447,12 @@ public class ApplicationMgtUtil {
 
     private static void addPermission(String applicationNode, ApplicationPermission[] permissions, Registry
             tenantGovReg) throws RegistryException {
+
         for (ApplicationPermission permission : permissions) {
             String permissionValue = permission.getValue();
 
-            if ("/".equals(permissionValue.substring(0, 1))) {         //if permissions are starts with slash remove that
+            if ("/".equals(
+                    permissionValue.substring(0, 1))) {         //if permissions are starts with slash remove that
                 permissionValue = permissionValue.substring(1);
             }
             String[] splitedPermission = permissionValue.split("/");
@@ -468,6 +477,7 @@ public class ApplicationMgtUtil {
      */
     public static List<ApplicationPermission> loadPermissions(String applicationName)
             throws IdentityApplicationManagementException {
+
         String applicationNode = getApplicationPermissionPath() + PATH_CONSTANT + applicationName;
         Registry tenantGovReg = CarbonContext.getThreadLocalCarbonContext().getRegistry(
                 RegistryType.USER_GOVERNANCE);
@@ -495,10 +505,8 @@ public class ApplicationMgtUtil {
                 loggedInUserChanged = true;
             }
 
-
             paths.clear();             //clear current paths
             List<ApplicationPermission> permissions = new ArrayList<ApplicationPermission>();
-
 
             permissionPath(tenantGovReg, applicationNode, paths, applicationNode);      //get permission paths
             // recursively
@@ -570,6 +578,7 @@ public class ApplicationMgtUtil {
      * @return
      */
     public static Property[] concatArrays(Property[] o1, Property[] o2) {
+
         Property[] ret = new Property[o1.length + o2.length];
 
         System.arraycopy(o1, 0, ret, 0, o1.length);
@@ -577,7 +586,6 @@ public class ApplicationMgtUtil {
 
         return ret;
     }
-
 
     public static String getApplicationPermissionPath() {
 
@@ -599,6 +607,7 @@ public class ApplicationMgtUtil {
 
     /**
      * Return the Service Provider validation regex.
+     *
      * @return regex.
      */
     public static String getSPValidatorRegex() {
@@ -656,7 +665,8 @@ public class ApplicationMgtUtil {
      * @return true if the application owner is valid.
      * @throws IdentityApplicationManagementException when an error occurs while validating the user.
      */
-    public static boolean isValidApplicationOwner(ServiceProvider serviceProvider) throws IdentityApplicationManagementException {
+    public static boolean isValidApplicationOwner(ServiceProvider serviceProvider)
+            throws IdentityApplicationManagementException {
 
         try {
             String userName;

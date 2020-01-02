@@ -87,6 +87,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -161,8 +162,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // Call pre listeners.
-        Collection<ApplicationMgtListener> listeners =
-                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
                 throw buildServerException("Pre create application operation of listener: "
@@ -201,9 +201,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider;
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetApplicationExcludingFileBasedSPs(applicationName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetApplicationExcludingFileBasedSPs(applicationName,
+                    tenantDomain)) {
                 return null;
             }
         }
@@ -218,7 +219,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         // invoking the listeners
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetApplicationExcludingFileBasedSPs(serviceProvider, applicationName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetApplicationExcludingFileBasedSPs(serviceProvider,
+                    applicationName, tenantDomain)) {
                 return null;
             }
         }
@@ -239,8 +241,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ApplicationDAO appDAO = null;
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
-                .getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreGetApplicationBasicInfo(tenantDomain, username, filter)) {
                 return new ApplicationBasicInfo[0];
@@ -292,7 +293,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
 
                 // invoking pre listeners
-                Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
                 for (ApplicationMgtListener listener : listeners) {
                     if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
                             !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo
@@ -346,7 +347,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
                 // Invoking pre listeners.
                 Collection<ApplicationMgtListener> listeners =
-                        ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                        getApplicationMgtListeners();
                 for (ApplicationMgtListener listener : listeners) {
                     if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
                             !((AbstractApplicationMgtListener) listener).doPreGetApplicationBasicInfo
@@ -404,11 +405,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
             // invoking pre listeners
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
-                Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent
-                        .getApplicationMgtListeners();
+                Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
                 for (ApplicationMgtListener listener : listeners) {
                     if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
-                            !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(tenantDomain, username,
+                            !((AbstractApplicationMgtListener) listener).doPreGetPaginatedApplicationBasicInfo(
+                                    tenantDomain, username,
                                     pageNumber, filter)) {
                         return new ApplicationBasicInfo[0];
                     }
@@ -461,7 +462,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             if (appDAO instanceof PaginatableFilterableApplicationDAO) {
                 // Invoking pre listeners.
                 Collection<ApplicationMgtListener> listeners =
-                        ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                        getApplicationMgtListeners();
                 for (ApplicationMgtListener listener : listeners) {
                     if (listener.isEnable() && listener instanceof AbstractApplicationMgtListener &&
                             !((AbstractApplicationMgtListener) listener).doPreGetApplicationBasicInfo
@@ -507,7 +508,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public int getCountOfAllApplications(String tenantDomain, String username) throws IdentityApplicationManagementException {
+    public int getCountOfAllApplications(String tenantDomain, String username)
+            throws IdentityApplicationManagementException {
 
         try {
             startTenantFlow(tenantDomain, username);
@@ -557,7 +559,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         validateApplicationConfigurations(serviceProvider, tenantDomain, username);
 
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreUpdateApplication(serviceProvider, tenantDomain, username)) {
                 throw buildServerException("Pre Update application failed");
@@ -664,7 +666,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider;
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreDeleteApplication(applicationName, tenantDomain, username)) {
 
@@ -819,9 +821,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String name = null;
 
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(name, clientId, type, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientIdExcludingFileBasedSPs(name,
+                    clientId, type, tenantDomain)) {
                 return null;
             }
         }
@@ -836,7 +839,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(name, clientId, type, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProviderNameByClientIdExcludingFileBasedSPs(name,
+                    clientId, type, tenantDomain)) {
                 return null;
             }
         }
@@ -943,9 +947,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String name = null;
 
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientId(clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProviderNameByClientId(clientId, clientType,
+                    tenantDomain)) {
                 return null;
             }
         }
@@ -988,7 +993,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreGetServiceProvider(serviceProviderName, tenantDomain)) {
                 return null;
@@ -1039,9 +1044,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         // TODO: are invoking doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain) listener
         // TODO: method here as well.
         // invoking the post listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProvider(serviceProvider, serviceProviderName,
+                    tenantDomain)) {
                 return null;
             }
         }
@@ -1060,9 +1066,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             throws IdentityApplicationManagementException {
 
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreGetServiceProviderByClientId(clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreGetServiceProviderByClientId(clientId, clientType,
+                    tenantDomain)) {
                 return null;
             }
         }
@@ -1113,7 +1120,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId, clientType, tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostGetServiceProviderByClientId(serviceProvider, clientId,
+                    clientType, tenantDomain)) {
                 return null;
             }
         }
@@ -1157,10 +1165,10 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private ImportResponse importApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
-                                              boolean isUpdate) throws IdentityApplicationManagementException {
+                                             boolean isUpdate) throws IdentityApplicationManagementException {
 
         Collection<ApplicationMgtListener> listeners =
-                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                getApplicationMgtListeners();
 
         ServiceProvider savedSP = null;
         String appName = serviceProvider.getApplicationName();
@@ -1266,7 +1274,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         ServiceProvider serviceProvider = getApplicationExcludingFileBasedSPs(applicationName, tenantDomain);
         // invoking the listeners
-        Collection<ApplicationMgtListener> listeners = ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        Collection<ApplicationMgtListener> listeners = getApplicationMgtListeners();
         for (ApplicationMgtListener listener : listeners) {
             if (listener.isEnable()) {
                 listener.doExportServiceProvider(serviceProvider, exportSecrets);
@@ -1287,7 +1295,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
-                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                    getApplicationMgtListeners();
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
                     listener.doPreCreateApplicationTemplate(serviceProvider, tenantDomain);
@@ -1319,7 +1327,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
                         CarbonContext.getThreadLocalCarbonContext().getUsername());
                 Collection<ApplicationMgtListener> listeners =
-                        ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                        getApplicationMgtListeners();
                 for (ApplicationMgtListener listener : listeners) {
                     if (listener.isEnable()) {
                         listener.doPreCreateApplicationTemplate(serviceProvider, tenantDomain);
@@ -1389,7 +1397,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
-                    ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+                    getApplicationMgtListeners();
             for (ApplicationMgtListener listener : listeners) {
                 if (listener.isEnable()) {
                     listener.doPreUpdateApplicationTemplate(serviceProvider, tenantDomain);
@@ -1806,7 +1814,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     }
 
     private <T> T doAddApplication(ServiceProvider serviceProvider, String tenantDomain, String username,
-                                    ApplicationPersistFunction<ServiceProvider, T> applicationPersistFunction)
+                                   ApplicationPersistFunction<ServiceProvider, T> applicationPersistFunction)
             throws IdentityApplicationManagementException {
 
         try {
@@ -2080,7 +2088,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         String resourceId = doAddApplication(application, tenantDomain, username, applicationDAO::addApplication);
 
         for (ApplicationResourceManagementListener listener : listeners) {
-            if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain, username)) {
+            if (listener.isEnabled() && !listener.doPostCreateApplication(resourceId, application, tenantDomain,
+                    username)) {
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + application.getApplicationName() + " of tenantDomain: " + tenantDomain);
                 break;
@@ -2413,6 +2422,15 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private interface ApplicationPersistFunction<S extends ServiceProvider, T> {
 
         T persistApplication(S application, String tenantDomain) throws IdentityApplicationManagementException;
+    }
+
+    /**
+     * Returns the Collection of ApplicationMgtListener, discovered via the component.
+     * @return
+     */
+    private Collection<ApplicationMgtListener> getApplicationMgtListeners() {
+
+        return ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
     }
 }
 

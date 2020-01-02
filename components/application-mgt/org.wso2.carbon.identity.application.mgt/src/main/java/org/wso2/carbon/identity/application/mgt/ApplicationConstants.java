@@ -22,6 +22,10 @@ import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
 
+/**
+ * Definitions of few constants shared across with other components from this component.
+ * You may not instantiate this class directly. However you can access the constants declared as static.
+ */
 public class ApplicationConstants {
 
     private ApplicationConstants() {
@@ -60,12 +64,12 @@ public class ApplicationConstants {
     public static final String FILE_EXT_JSON = ".json";
     public static final String CATEGORIES_METADATA_FILE = "categories.json";
     public static final String TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
-        + File.separator + "resources" + File.separator + "identity" + File.separator + "authntemplates" + File
-        .separator;
+            + File.separator + "resources" + File.separator + "identity" + File.separator + "authntemplates" + File
+            .separator;
     public static final String PURPOSE_GROUP_TYPE_SP = "SP";
     public static final String PURPOSE_GROUP_TYPE_SYSTEM = "SYSTEM";
     public static final String PURPOSE_GROUP_SHARED = "SHARED";
-    
+
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String MY_SQL = "MySQL";
     public static final String POSTGRE_SQL = "PostgreSQL";
@@ -87,7 +91,11 @@ public class ApplicationConstants {
     public static final String ONE_BASED_START_INDEX = "ONE_BASED_START_INDEX";
     public static final String END_INDEX = "END_INDEX";
 
+    /**
+     * Grouping of constants related to database table names.
+     */
     public static class ApplicationTableColumns {
+
         public static final String ID = "ID";
         public static final String APP_NAME = "APP_NAME";
         public static final String DESCRIPTION = "DESCRIPTION";
@@ -115,5 +123,9 @@ public class ApplicationConstants {
         public static final String UUID = "UUID";
         public static final String IMAGE_URL = "IMAGE_URL";
         public static final String ACCESS_URL = "ACCESS_URL";
+
+        private ApplicationTableColumns() {
+
+        }
     }
 }

@@ -16,7 +16,6 @@
  * under the License.
  */
 
-
 package org.wso2.carbon.identity.application.mgt.dao.impl;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,28 +35,37 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Application (aka. Service Provider) DAO which reads Application from file system.
+ * Modifications (Create, Update, Delate) operations are not supported.
+ * Use this DAO to load applications as immutable artifact.
+ */
 public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
     @Override
     public int createApplication(ServiceProvider applicationDTO, String tenantDomain)
             throws IdentityApplicationManagementException {
+
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
 
     @Override
     public ServiceProvider getApplication(String applicationName, String tenantDomain)
             throws IdentityApplicationManagementException {
+
         return ApplicationManagementServiceComponent.getFileBasedSPs().get(applicationName);
     }
 
     @Override
     public ServiceProvider getApplication(int applicationId) throws IdentityApplicationManagementException {
+
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
 
     @Override
     public ApplicationBasicInfo[] getAllApplicationBasicInfo()
             throws IdentityApplicationManagementException {
+
         Map<String, ServiceProvider> spMap = ApplicationManagementServiceComponent
                 .getFileBasedSPs();
 
@@ -108,12 +116,14 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
     @Override
     public void updateApplication(ServiceProvider applicationDTO, String tenantDomain)
             throws IdentityApplicationManagementException {
+
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
 
     @Override
     public void deleteApplication(String applicationName)
             throws IdentityApplicationManagementException {
+
         throw new IdentityApplicationManagementException("Not supported in file based dao.");
     }
 
@@ -172,7 +182,8 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
     @Override
     public Map<String, String> getServiceProviderToLocalIdPClaimMapping(String serviceProviderName,
-                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+                                                                        String tenantDomain)
+            throws IdentityApplicationManagementException {
 
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
@@ -203,7 +214,9 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
     @Override
     public Map<String, String> getLocalIdPToServiceProviderClaimMapping(String serviceProviderName,
-                                                                        String tenantDomain) throws IdentityApplicationManagementException {
+                                                                        String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
         Map<String, String> claimMap = new HashMap<String, String>();
@@ -232,7 +245,9 @@ public class FileBasedApplicationDAO extends AbstractApplicationDAOImpl {
 
     @Override
     public List<String> getAllRequestedClaimsByServiceProvider(String serviceProviderName,
-                                                               String tenantDomain) throws IdentityApplicationManagementException {
+                                                               String tenantDomain)
+            throws IdentityApplicationManagementException {
+
         ServiceProvider serviceProvider = ApplicationManagementServiceComponent.getFileBasedSPs()
                 .get(serviceProviderName);
 
