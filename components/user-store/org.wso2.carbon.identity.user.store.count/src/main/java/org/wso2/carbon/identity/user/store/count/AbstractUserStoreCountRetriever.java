@@ -22,7 +22,7 @@ import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
- * Abstract class for retrieve users and roles count from user stores.
+ * Abstract class to retrieve users and roles count from user stores.
  */
 public abstract class AbstractUserStoreCountRetriever implements UserStoreCountRetriever {
 

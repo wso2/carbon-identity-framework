@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterExcep
 import org.wso2.carbon.user.api.RealmConfiguration;
 
 /**
- * Interface for retrieve users and roles count.
+ * Interface to retrieve users and roles count.
  */
 public interface UserStoreCountRetriever {
 
