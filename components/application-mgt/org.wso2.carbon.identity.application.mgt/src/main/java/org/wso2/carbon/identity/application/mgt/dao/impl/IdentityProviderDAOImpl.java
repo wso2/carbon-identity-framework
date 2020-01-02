@@ -40,7 +40,7 @@ import java.util.List;
 public class IdentityProviderDAOImpl implements IdentityProviderDAO {
 
     public static final String BASIC = "basic";
-    public static final String IWA =  "iwa";
+    public static final String IWA = "iwa";
     public static final String OAUTH_BEARER = "oauth-bearer";
     public static final String BASIC_AUTH = "basic-auth";
     public static final String SAML_SSO = "samlsso";
