@@ -31,6 +31,9 @@ import org.wso2.carbon.consent.mgt.core.ConsentManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
+/**
+ * OSGI service component for the application management UI.
+ */
 @Component(
         name = "org.wso2.carbon.identity.application.mgt.ui",
         immediate = true
@@ -41,6 +44,7 @@ public class ApplicationMgtUIServiceComponent {
 
     @Activate
     protected void activate(ComponentContext context) {
+
         if (log.isDebugEnabled()) {
             log.debug("Application Management UI bundle acticated!");
         }
@@ -48,6 +52,7 @@ public class ApplicationMgtUIServiceComponent {
 
     @Deactivate
     protected void deactivate(ComponentContext context) {
+
         if (log.isDebugEnabled()) {
             log.debug("Application Management UI bundle is deactivated");
         }
@@ -61,6 +66,7 @@ public class ApplicationMgtUIServiceComponent {
             unbind = "unsetConfigurationContextService"
     )
     protected void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
         ApplicationMgtServiceComponentHolder.getInstance().setConfigurationContextService(configurationContextService);
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService Instance was set.");
@@ -68,12 +74,17 @@ public class ApplicationMgtUIServiceComponent {
     }
 
     protected void unsetConfigurationContextService(ConfigurationContextService configurationContextService) {
+
         ApplicationMgtServiceComponentHolder.getInstance().setConfigurationContextService(null);
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService Instance was unset.");
         }
     }
 
+    /**
+     * Reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+     * is started
+     */
     @Reference(
             name = "identityCoreInitializedEventService",
             service = IdentityCoreInitializedEvent.class,
@@ -82,13 +93,17 @@ public class ApplicationMgtUIServiceComponent {
             unbind = "unsetIdentityCoreInitializedEventService"
     )
     protected void setIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-                /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+
     }
 
+    /**
+     * Reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
+     * is started
+     *
+     * @param identityCoreInitializedEvent
+     */
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
-                 /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
-         is started */
+
     }
 
     @Reference(
