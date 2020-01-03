@@ -22,8 +22,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class IdentityMgtServiceDataHolder {
 
@@ -33,7 +33,7 @@ public class IdentityMgtServiceDataHolder {
 
     private boolean userSessionMappingEnabled;
 
-    private static Map<Integer, UserOperationEventListener> userOperationEventListeners = new HashMap<>();
+    private static Map<Integer, UserOperationEventListener> userOperationEventListeners = new TreeMap<>();
 
     private IdentityMgtServiceDataHolder() {
 
