@@ -85,6 +85,7 @@ public class MutualSSLManager {
     private static KeyStore trustStore;
     private static char[] keyStorePassword;
     private static SSLSocketFactory sslSocketFactory;
+    private static boolean initialized = false;
 
     private MutualSSLManager() {
 
@@ -96,75 +97,79 @@ public class MutualSSLManager {
     public static synchronized void init() {
 
         try {
-            prop = new Properties();
-            String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
-            File configFile = new File(configFilePath);
+            if (!initialized) {
+                prop = new Properties();
+                String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
+                File configFile = new File(configFilePath);
 
-            if (configFile.exists()) {
-                log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " + Constants
-                        .TenantConstants.CONFIG_RELATIVE_PATH);
-                try (InputStream inputStream = new FileInputStream(configFile)) {
+                if (configFile.exists()) {
+                    log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
+                            Constants.TenantConstants.CONFIG_RELATIVE_PATH);
+                    try (InputStream inputStream = new FileInputStream(configFile)) {
 
-                    prop.load(inputStream);
-                    // Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
-                    // feature is enabled.
-                    if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.
-                            MUTUAL_SSL_MANAGER_ENABLED)) && isSecuredPropertyAvailable(prop)) {
-                        // Resolve encrypted properties with secure vault.
-                        resolveSecrets(prop);
-
-                    }
-                }
-
-            } else {
-                try (InputStream inputStream = MutualSSLManager.class.getClassLoader()
-                        .getResourceAsStream(Constants.TenantConstants.CONFIG_FILE_NAME)) {
-
-                    if (inputStream != null) {
                         prop.load(inputStream);
-                        log.debug(Constants.TenantConstants.CONFIG_FILE_NAME
-                                + " file loaded from authentication endpoint webapp");
-                    } else {
-                        if (log.isDebugEnabled()) {
-                            log.debug("Input stream is null while loading authentication endpoint from webapp");
+                        //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
+                        // feature is enabled.
+                        if (isMutualSSLManagerEnabled(getPropertyValue
+                                (Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED)) &&
+                                isSecuredPropertyAvailable(prop)) {
+                            // Resolve encrypted properties with secure vault.
+                            resolveSecrets(prop);
+                        }
+                    }
+
+                } else {
+                    try (InputStream inputStream = MutualSSLManager.class.getClassLoader().getResourceAsStream
+                            (Constants.TenantConstants.CONFIG_FILE_NAME)) {
+
+                        if (inputStream != null) {
+                            prop.load(inputStream);
+                            if (log.isDebugEnabled()) {
+                                log.debug(Constants.TenantConstants.CONFIG_FILE_NAME +
+                                        " file loaded from authentication endpoint webapp");
+                            }
+                        } else {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Input stream is null while loading authentication endpoint from webapp");
+                            }
                         }
                     }
                 }
-            }
 
-            // Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
-            // feature is enabled.
-            if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
-                usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
-                carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
+                // Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
+                // feature is enabled.
+                if (isMutualSSLManagerEnabled(getPropertyValue(Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
+                    usernameHeaderName = getPropertyValue(Constants.TenantConstants.USERNAME_HEADER);
+                    carbonLogin = getPropertyValue(Constants.TenantConstants.USERNAME);
 
-                // Base64 encoded username
-                carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
+                    // Base64 encoded username
+                    carbonLogin = Base64.encode(carbonLogin.getBytes(Constants.TenantConstants.CHARACTER_ENCODING));
 
-                String clientKeyStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE));
-                String clientTrustStorePath = buildFilePath(getPropertyValue(Constants.TenantConstants
-                        .CLIENT_TRUST_STORE));
+                    String clientKeyStorePath = buildFilePath(getPropertyValue
+                            (Constants.TenantConstants.CLIENT_KEY_STORE));
+                    String clientTrustStorePath = buildFilePath(getPropertyValue
+                            (Constants.TenantConstants.CLIENT_TRUST_STORE));
 
-                if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
-                    TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants
-                            .TLS_PROTOCOL));
+                    if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL))) {
+                        TenantMgtAdminServiceClient.setProtocol(getPropertyValue(Constants.TenantConstants.TLS_PROTOCOL));
+                    }
+
+                    if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
+                        TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue
+                                (Constants.TenantConstants.KEY_MANAGER_TYPE));
+                    }
+                    if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
+                        TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue
+                                (Constants.TenantConstants.TRUST_MANAGER_TYPE));
+                    }
+
+                    loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants.CLIENT_KEY_STORE_PASSWORD));
+                    loadTrustStore(clientTrustStorePath, getPropertyValue
+                            (Constants.TenantConstants.CLIENT_TRUST_STORE_PASSWORD));
+                    initMutualSSLConnection(Boolean.parseBoolean(getPropertyValue
+                            (Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
+                    initialized = true;
                 }
-
-                if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.KEY_MANAGER_TYPE))) {
-                    TenantMgtAdminServiceClient.setKeyManagerType(getPropertyValue(Constants.TenantConstants
-                            .KEY_MANAGER_TYPE));
-                }
-                if (StringUtils.isNotBlank(getPropertyValue(Constants.TenantConstants.TRUST_MANAGER_TYPE))) {
-                    TenantMgtAdminServiceClient.setTrustManagerType(getPropertyValue(Constants.TenantConstants
-                            .TRUST_MANAGER_TYPE));
-                }
-
-                loadKeyStore(clientKeyStorePath, getPropertyValue(Constants.TenantConstants
-                        .CLIENT_KEY_STORE_PASSWORD));
-                loadTrustStore(clientTrustStorePath, getPropertyValue(Constants.TenantConstants
-                        .CLIENT_TRUST_STORE_PASSWORD));
-                initMutualSSLConnection(Boolean.parseBoolean(
-                        getPropertyValue(Constants.TenantConstants.HOSTNAME_VERIFICATION_ENABLED)));
             }
         } catch (AuthenticationException | IOException e) {
             log.error("Initialization failed : ", e);
