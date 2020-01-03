@@ -40,7 +40,7 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 /**
- * Use for retrieve users and roles count from JDBC user store.
+ * Use to retrieve users and roles count from the JDBC user store.
  */
 public class JDBCUserStoreCountRetriever extends AbstractUserStoreCountRetriever {
 

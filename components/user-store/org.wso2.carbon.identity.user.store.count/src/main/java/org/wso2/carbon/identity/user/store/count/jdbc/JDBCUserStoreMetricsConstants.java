@@ -18,7 +18,7 @@
 package org.wso2.carbon.identity.user.store.count.jdbc;
 
 /**
- * Constants metrics that use in JDBC user store.
+ * JDBC User Store Count Retriever SQL statements.
  */
 public class JDBCUserStoreMetricsConstants {
 
