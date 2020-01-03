@@ -361,10 +361,13 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
         try {
             // Run pre user-store name update listeners
             triggerListnersOnUserStorePreDelete(domain);
-            deleteUserStore(domain, tenantId);
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext.
                     getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
+            if (userStoreManager == null) {
+                throw new IdentityUserStoreMgtException("Unable to find a user for delete user store.");
+            }
             userStoreManager.deletePersistedDomain(domain);
+            deleteUserStore(domain, tenantId);
             removeRealmFromSecondaryUserStoreManager(domain);
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error while triggering the userstore pre delete listeners.");
