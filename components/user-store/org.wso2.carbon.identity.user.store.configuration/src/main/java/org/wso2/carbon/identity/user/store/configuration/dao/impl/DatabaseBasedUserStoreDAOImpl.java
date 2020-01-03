@@ -364,7 +364,7 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager) CarbonContext.
                     getThreadLocalCarbonContext().getUserRealm().getUserStoreManager();
             if (userStoreManager == null) {
-                throw new IdentityUserStoreMgtException("Unable to find a user for delete user store.");
+                throw new IdentityUserStoreMgtException("Unable to find a user store from the ThreadLocalCarbonContext.");
             }
             userStoreManager.deletePersistedDomain(domain);
             deleteUserStore(domain, tenantId);
