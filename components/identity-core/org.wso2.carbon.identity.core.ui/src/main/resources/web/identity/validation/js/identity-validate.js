@@ -75,6 +75,9 @@ function getPattern(pattern) {
         case "fragment-free-url":
             regex = /^(([^:/?#]+):)?(([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?([^#])?/;
             break;
+        case "user-search-exists":
+            regex = /.*[&<>"]+.*/;
+            break;
         default:
             regex = new RegExp(pattern);
             break;
