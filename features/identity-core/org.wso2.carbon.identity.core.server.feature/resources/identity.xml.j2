@@ -834,6 +834,17 @@
         -->
         <MandateDomainForGroupNamesInGroupsResponse>{{scim2.mandate_domain_for_group_names_in_groups_response}}</MandateDomainForGroupNamesInGroupsResponse>
 
+        <!--
+            When the group PATCH operations are performed, by default the updated group is returned in the PATCH response.
+            But when according to the spec(https://tools.ietf.org/html/rfc7644#section-3.5.2) if 'attributes' are
+            not requested, we can return a 204 response without the update group information.
+
+            This behaviour to return a 204 response can be enabled by setting the value to false.
+
+            Default value : true
+            Supported versions : IS 5.9.0 onwards
+        -->
+        <ReturnUpdatedGroupInPatchResponse>{{scim2.return_updated_group_in_group_patch_response}}</ReturnUpdatedGroupInPatchResponse>
     </SCIM2>
 
       <Recovery>

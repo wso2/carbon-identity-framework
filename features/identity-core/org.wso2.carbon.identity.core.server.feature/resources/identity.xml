@@ -686,6 +686,18 @@
             Supported versions : IS 5.8.0 onwards
         -->
         <!--<MandateDomainForGroupNamesInGroupsResponse>false</MandateDomainForGroupNamesInGroupsResponse>-->
+
+        <!--
+            When the group PATCH operations are performed, by default the updated group is returned in the PATCH response.
+            But when according to the spec(https://tools.ietf.org/html/rfc7644#section-3.5.2) if 'attributes' are
+            not requested, we can return a 204 response without the update group information.
+
+            This behaviour to return a 204 response can be enabled by setting the value to false.
+
+            Default value : true
+            Supported versions : IS 5.9.0 onwards
+        -->
+        <!--<ReturnUpdatedGroupInPatchResponse>true</ReturnUpdatedGroupInPatchResponse>-->
     </SCIM2>
 
     <!--Recovery>
