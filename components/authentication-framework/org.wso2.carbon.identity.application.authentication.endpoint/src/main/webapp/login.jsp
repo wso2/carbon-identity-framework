@@ -151,7 +151,9 @@
 	function checkSessionKey() {
                 $.ajax({
                     type: "GET",
-                    url: "<%=loginContextURL%>?sessionDataKey=" + getParameterByName("sessionDataKey") + "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName("tenantDomain"),
+                    url: "<%=loginContextURL%>?sessionDataKey=" + getParameterByName("sessionDataKey") +
+                    "&relyingParty=" + getParameterByName("relyingParty") + "&tenantDomain=" + getParameterByName
+                    ("tenantDomain") + "&clearSession=" + getParameterByName("clearSession"),
                     success: function (data) {
                         if (data && data.status == 'redirect' && data.redirectUrl && data.redirectUrl.length > 0) {
                             window.location.href = data.redirectUrl;
