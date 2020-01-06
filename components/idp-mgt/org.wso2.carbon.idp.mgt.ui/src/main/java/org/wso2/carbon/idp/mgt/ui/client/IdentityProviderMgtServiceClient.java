@@ -95,7 +95,7 @@ public class IdentityProviderMgtServiceClient {
             return idPMgtStub.getResidentIdP();
         } catch (Exception e) {
             log.error("Error in retrieving list of Identity Providers ", e);
-            throw new Exception(e.getMessage(), e);
+            throw new Exception("Error occurred while retrieving list of Identity Providers");
         }
     }
 
@@ -111,7 +111,7 @@ public class IdentityProviderMgtServiceClient {
             idPMgtStub.updateResidentIdP(identityProvider);
         } catch (Exception e) {
             log.error("Error in retrieving the list of Resident Identity Providers", e);
-            throw new Exception(e.getMessage(), e);
+            throw new Exception("Error occurred while retrieving list of Identity Providers");
         }
     }
 
