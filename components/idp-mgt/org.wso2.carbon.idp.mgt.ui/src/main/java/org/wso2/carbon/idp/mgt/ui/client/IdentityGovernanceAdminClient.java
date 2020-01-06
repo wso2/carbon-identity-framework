@@ -33,6 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Client class for IdentityGovernanceAdminServiceStub.
+ */
 public class IdentityGovernanceAdminClient {
 
     protected IdentityGovernanceAdminServiceStub stub = null;
@@ -44,8 +47,10 @@ public class IdentityGovernanceAdminClient {
     public IdentityGovernanceAdminClient(String cookie, String backendServerURL,
                                          ConfigurationContext configContext)
             throws Exception {
+
         try {
-            stub = new IdentityGovernanceAdminServiceStub(configContext, backendServerURL + IDENTITY_MGT_ADMIN_SERVICE_URL);
+            stub = new IdentityGovernanceAdminServiceStub(configContext,
+                    backendServerURL + IDENTITY_MGT_ADMIN_SERVICE_URL);
             ServiceClient client = stub._getServiceClient();
             Options option = client.getOptions();
             option.setManageSession(true);
@@ -55,10 +60,11 @@ public class IdentityGovernanceAdminClient {
         }
     }
 
-    public Map<String, Map<String, List<ConnectorConfig>>> getConnectorList() throws RemoteException, IdentityGovernanceAdminServiceIdentityGovernanceExceptionException {
+    public Map<String, Map<String, List<ConnectorConfig>>> getConnectorList() throws RemoteException,
+            IdentityGovernanceAdminServiceIdentityGovernanceExceptionException {
 
         ConnectorConfig[] configs = stub.getConnectorList();
-        Map<String, Map<String, List<ConnectorConfig>>> catMap = new HashMap<String, Map<String, List<ConnectorConfig>>>();
+        Map<String, Map<String, List<ConnectorConfig>>> catMap = new HashMap<>();
         if (configs != null) {
             for (ConnectorConfig conf : configs) {
                 String categoryName = StringUtils.isBlank(conf.getCategory()) ? DEFAULT : conf.getCategory();
@@ -85,7 +91,9 @@ public class IdentityGovernanceAdminClient {
         return catMap;
     }
 
-    public void updateConfigurations(Property[] properties) throws RemoteException, IdentityGovernanceAdminServiceIdentityGovernanceExceptionException {
+    public void updateConfigurations(Property[] properties) throws RemoteException,
+            IdentityGovernanceAdminServiceIdentityGovernanceExceptionException {
+
         stub.updateConfigurations(properties);
     }
 
