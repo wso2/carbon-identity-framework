@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
 import java.util.Set;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
@@ -37,6 +38,8 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 public class UserStoreCountService {
 
     private static final Log log = LogFactory.getLog(UserStoreCountService.class);
+    private RealmConfiguration realmConfiguration = null;
+    int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
     /**
      * Get the count of users having a matching user name for the filter
      *
@@ -173,12 +176,10 @@ public class UserStoreCountService {
 
     }
 
-    private RealmConfiguration realmConfiguration = null;
-
     /**
      * Get User count.
      *
-     * @param claimURI claim uri
+     * @param claimURI    claim uri
      * @param valueFilter filter
      * @return user count
      * @throws UserStoreCounterException UserStoreCounterException
@@ -187,11 +188,17 @@ public class UserStoreCountService {
 
         try {
             realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
-            return UserStoreCountDSComponent.getRealmService().getUserRealm(this.realmConfiguration).
-                    getUserStoreManager().getUserCountWithClaims(claimURI, valueFilter);
+            UserStoreManager userStoreManager =
+                    UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
+            if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
+                return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getUserCountWithClaims(claimURI,
+                        valueFilter);
+            } else {
+                throw new UserStoreCounterException("Error while retrieving User Store from core");
+            }
 
         } catch (UserStoreException e) {
-            String ErrorMsg = "No user count is retrieved from the user store.";
+            String ErrorMsg = "Error while retrieving user count from user store";
             throw new UserStoreCounterException(ErrorMsg, e);
         }
     }
@@ -207,11 +214,16 @@ public class UserStoreCountService {
 
         try {
             realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
-            return UserStoreCountDSComponent.getRealmService().getUserRealm(this.realmConfiguration).
-                    getUserStoreManager().countRoles(filter);
+            UserStoreManager userStoreManager =
+                    UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
+            if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
+                return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).countRoles(filter);
+            } else {
+                throw new UserStoreCounterException("Error while retrieving role count from core");
+            }
 
         } catch (UserStoreException e) {
-            String ErrorMsg = "No role count is retrieved from the user store.";
+            String ErrorMsg = "Error while retrieving role count from user store";
             throw new UserStoreCounterException(ErrorMsg, e);
         }
     }
