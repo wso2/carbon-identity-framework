@@ -57,10 +57,10 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
 
         try {
             dbConnection = getDBConnection(false);
-            if(filter.startsWith(UserCoreConstants.INTERNAL_DOMAIN)){
+            if (filter.startsWith(UserCoreConstants.INTERNAL_DOMAIN)) {
                 sqlStmt = InternalStoreCountConstants.COUNT_INTERNAL_ONLY_ROLES_SQL;
-                filter = filter.replace(UserCoreConstants.INTERNAL_DOMAIN,"");
-            }  else {
+                filter = filter.replace(UserCoreConstants.INTERNAL_DOMAIN, "");
+            } else {
                 sqlStmt = InternalStoreCountConstants.COUNT_INTERNAL_ROLES_SQL;
             }
             prepStmt = dbConnection.prepareStatement(sqlStmt);
@@ -128,7 +128,7 @@ public class InternalCountRetriever extends AbstractUserStoreCountRetriever {
         if (dbConnection == null) {
             throw new UserStoreException("Could not create a database connection to User database");
         }
-        if(shouldApplyTransaction) {
+        if (shouldApplyTransaction) {
             dbConnection.setAutoCommit(false);
             if (dbConnection.getTransactionIsolation() != Connection.TRANSACTION_READ_COMMITTED) {
                 dbConnection.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);

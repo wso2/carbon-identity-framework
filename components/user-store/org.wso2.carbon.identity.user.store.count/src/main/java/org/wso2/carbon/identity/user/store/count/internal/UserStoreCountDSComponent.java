@@ -29,14 +29,14 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.count.AbstractCountRetrieverFactory;
-import org.wso2.carbon.identity.user.store.count.UserStoreCountRetriever;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.JDBCCountRetrieverFactory;
-import org.wso2.carbon.identity.user.store.count.jdbc.JDBCUserStoreCountRetriever;
-import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetriever;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetrieverFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 
+/**
+ * User store count OSGi service component.
+ */
 @Component(
         name = "identity.user.store.count.component",
         immediate = true

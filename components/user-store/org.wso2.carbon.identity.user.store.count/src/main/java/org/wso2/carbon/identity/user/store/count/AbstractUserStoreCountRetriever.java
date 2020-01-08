@@ -21,8 +21,9 @@ import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterExcep
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
-import java.util.Map;
-
+/**
+ * Abstract class to retrieve users and roles count from user stores.
+ */
 public abstract class AbstractUserStoreCountRetriever implements UserStoreCountRetriever {
 
     public int searchTime = UserCoreConstants.MAX_SEARCH_TIME;
