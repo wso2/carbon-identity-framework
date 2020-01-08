@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalCountRetr
 import org.wso2.carbon.user.core.service.RealmService;
 
 /**
- * UserStore DSComponent.
+ * User store count OSGi service component.
  */
 @Component(
         name = "identity.user.store.count.component",
