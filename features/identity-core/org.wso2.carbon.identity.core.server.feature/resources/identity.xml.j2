@@ -857,8 +857,17 @@
             </Username>
         </ReCaptcha>
         <Notification>
+            <ExpiryTime>
+                <!--Validity period of the recovery code given when username or password recovery is initiated-->
+                <RecoveryCode>{{identity_mgt.notification_channel_recovery.recovery_code_validity}}</RecoveryCode>
+                <!--Validity period of the resend code given during user account recovery-->
+                <ResendCode>{{identity_mgt.resend_notification.resend_code_validity}}</ResendCode>
+            </ExpiryTime>
             <Password>
                 <Enable>{{identity_mgt.password_reset_email.enable_password_reset_email}}</Enable>
+                <ExpiryTime>
+                    <smsOtp>{{identity_mgt.password_reset_sms.sms_otp_validity}}</smsOtp>
+                </ExpiryTime>
             </Password>
             <Username>
                 <Enable>{{identity_mgt.username_recovery.email.enable_username_recovery}}</Enable>
