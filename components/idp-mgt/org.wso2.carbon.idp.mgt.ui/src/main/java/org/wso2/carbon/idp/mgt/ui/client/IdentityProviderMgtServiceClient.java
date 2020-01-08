@@ -40,6 +40,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Client class for IdentityProviderMgtServiceStub.
+ */
 public class IdentityProviderMgtServiceClient {
 
     private static final Log log = LogFactory.getLog(IdentityProviderMgtServiceClient.class);
@@ -87,6 +90,7 @@ public class IdentityProviderMgtServiceClient {
      * @throws Exception Error when getting Resident Identity Providers
      */
     public IdentityProvider getResidentIdP() throws Exception {
+
         try {
             return idPMgtStub.getResidentIdP();
         } catch (Exception e) {
@@ -98,10 +102,11 @@ public class IdentityProviderMgtServiceClient {
     /**
      * Updated Resident Identity provider for a given tenant
      *
-     * @return <code>FederatedIdentityProvider</code>
+     * @param identityProvider <code>FederatedIdentityProvider</code>
      * @throws Exception Error when getting Resident Identity Providers
      */
     public void updateResidentIdP(IdentityProvider identityProvider) throws Exception {
+
         try {
             idPMgtStub.updateResidentIdP(identityProvider);
         } catch (Exception e) {
@@ -124,7 +129,7 @@ public class IdentityProviderMgtServiceClient {
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             String message = "Error in retrieving the list of Identity Providers for a given tenant ";
             log.error(message, e);
-            throw new IdentityException(message);
+            throw new IdentityException(message, e);
         }
     }
 
@@ -142,7 +147,7 @@ public class IdentityProviderMgtServiceClient {
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             String message = "Error in retrieving the list of Identity Providers for a given tenant ";
             log.error(message, e);
-            throw new IdentityException(message);
+            throw new IdentityException(message, e);
         }
     }
 
@@ -161,7 +166,7 @@ public class IdentityProviderMgtServiceClient {
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             String message = "Error in retrieving the list of filtered Identity Providers for a given tenant ";
             log.error(message, e);
-            throw new IdentityException(message);
+            throw new IdentityException(message, e);
         }
     }
 
@@ -178,7 +183,7 @@ public class IdentityProviderMgtServiceClient {
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             String message = "Error in retrieving the count of Identity Providers for a given tenant ";
             log.error(message, e);
-            throw new IdentityException(message);
+            throw new IdentityException(message, e);
         }
     }
 
@@ -196,18 +201,20 @@ public class IdentityProviderMgtServiceClient {
         } catch (RemoteException | IdentityProviderMgtServiceIdentityProviderManagementExceptionException e) {
             String message = "Error in retrieving the count of registered Identity Providers for a given tenant ";
             log.error(message, e);
-            throw new IdentityException(message);
+            throw new IdentityException(message, e);
         }
     }
 
     /**
      * Retrieves registered Identity providers for a given tenant by Identity Provider name
+     *
      * @param filter
      * @return List of <code>FederatedIdentityProvider</code>. IdP names, primary IdP and home realm
      * identifiers of each IdP
      * @throws Exception Error when getting list of Identity Providers
      */
     public List<IdentityProvider> getIdPsSearch(String filter) throws Exception {
+
         try {
             IdentityProvider[] identityProviders = idPMgtStub.getAllIdPsSearch(filter);
             if (identityProviders != null && identityProviders.length > 0) {
@@ -217,10 +224,10 @@ public class IdentityProviderMgtServiceClient {
             }
         } catch (Exception e) {
             log.error("Error in retrieving the Identity Provider", e);
-            throw new Exception("Error occurred while retrieving Identity Providers");
+            throw new Exception("Error occurred while retrieving Identity Providers", e);
         }
     }
-    
+
     /**
      * Retrieves Enabled registered Identity providers for a given tenant
      *
@@ -229,6 +236,7 @@ public class IdentityProviderMgtServiceClient {
      * @throws Exception Error when getting list of Identity Providers
      */
     public List<IdentityProvider> getEnabledIdPs() throws Exception {
+
         try {
             IdentityProvider[] identityProviders = idPMgtStub.getEnabledAllIdPs();
             if (identityProviders != null && identityProviders.length > 0) {
@@ -239,7 +247,7 @@ public class IdentityProviderMgtServiceClient {
         } catch (Exception e) {
             log.error("Error in retrieving the list of enabled registered Identity Providers for a given tenant", e);
             throw new Exception(
-                    "Error occurred while retrieving list of Enabled Identity Providers");
+                    "Error occurred while retrieving list of Enabled Identity Providers", e);
         }
     }
 
@@ -251,11 +259,12 @@ public class IdentityProviderMgtServiceClient {
      * @throws Exception Error when getting Identity Provider information by IdP name
      */
     public IdentityProvider getIdPByName(String idPName) throws Exception {
+
         try {
             return idPMgtStub.getIdPByName(idPName);
         } catch (Exception e) {
             log.error("Error in retrieving the information about Identity provider for a given tenant", e);
-            throw new Exception("Error occurred while retrieving information about " + idPName);
+            throw new Exception("Error occurred while retrieving information about " + idPName, e);
         }
     }
 
@@ -272,7 +281,7 @@ public class IdentityProviderMgtServiceClient {
             idPMgtStub.addIdP(identityProvider);
         } catch (Exception e) {
             log.error("Error in adding a Identity Provider for a given tenant", e);
-            throw new Exception(e.getMessage());
+            throw new Exception(e.getMessage(), e);
         }
     }
 
@@ -283,11 +292,12 @@ public class IdentityProviderMgtServiceClient {
      * @throws Exception Error when deleting Identity Provider information
      */
     public void deleteIdP(String idPName) throws Exception {
+
         try {
             idPMgtStub.deleteIdP(idPName);
         } catch (Exception e) {
             log.error("Error in deleting the Identity Provider for a given tenant", e);
-            throw new Exception("Error in deleting the Identity Provider");
+            throw new Exception("Error in deleting the Identity Provider", e);
         }
     }
 
@@ -299,17 +309,20 @@ public class IdentityProviderMgtServiceClient {
      * @throws Exception Error when updating Identity Provider information
      */
     public void updateIdP(String oldIdPName, IdentityProvider identityProvider) throws Exception {
+
         try {
             idPMgtStub.updateIdP(oldIdPName, identityProvider);
         } catch (Exception e) {
             log.error("Error in updating the Identity Provider for a given tenant", e);
-            throw new Exception(e.getMessage());
+            throw new Exception(e.getMessage(), e);
         }
     }
 
     /**
-     * @return
-     * @throws Exception
+     * Retrieve all the federated authenticators.
+     *
+     * @return Map containing the federated authenticators.
+     * @throws Exception if an error occurs while retrieving the federated authenticators.
      */
     public Map<String, FederatedAuthenticatorConfig> getAllFederatedAuthenticators()
             throws Exception {
@@ -327,7 +340,7 @@ public class IdentityProviderMgtServiceClient {
             }
         } catch (Exception e) {
             log.error("Error in retrieving Federated Authenticators", e);
-            throw new Exception("Error occurred while retrieving all Federated Authenticators");
+            throw new Exception("Error occurred while retrieving all Federated Authenticators", e);
         }
 
         return configMap;
@@ -335,11 +348,14 @@ public class IdentityProviderMgtServiceClient {
     }
 
     /**
-     * @return
-     * @throws Exception
+     * Retrieve the custom provisioning connectors.
+     *
+     * @return Map containing the custom provisioning connectors.
+     * @throws Exception if an error occurs while retrieving the custom provisioning connectors.
      */
     public Map<String, ProvisioningConnectorConfig> getCustomProvisioningConnectors() throws Exception {
-        Map<String, ProvisioningConnectorConfig> provisioningConnectors = new HashMap<String, ProvisioningConnectorConfig>();
+
+        Map<String, ProvisioningConnectorConfig> provisioningConnectors = new HashMap<>();
         try {
             ProvisioningConnectorConfig[] provisioningConnectorConfigs = idPMgtStub
                     .getAllProvisioningConnectors();
@@ -348,21 +364,24 @@ public class IdentityProviderMgtServiceClient {
                 for (ProvisioningConnectorConfig config : provisioningConnectorConfigs) {
                     if (!(("spml").equals(config.getName()) || ("scim").equals(config.getName())
                             || ("salesforce").equals(config.getName()) ||
-                            ("googleapps").equals(config.getName())))
+                            ("googleapps").equals(config.getName()))) {
                         provisioningConnectors.put(config.getName(), config);
+                    }
 
                 }
             }
         } catch (Exception e) {
             log.error("Error in retrieving Provisioning Connector", e);
-            throw new Exception("Error occurred while retrieving all Provisioning Connectors");
+            throw new Exception("Error occurred while retrieving all Provisioning Connectors", e);
         }
         return provisioningConnectors;
     }
 
     /**
-     * @return
-     * @throws Exception
+     * Retrieve all the local claim URIs.
+     *
+     * @return All the local claim URIs.
+     * @throws Exception if an error occurs while retrieving the local claim URIs.
      */
     public String[] getAllLocalClaimUris() throws Exception {
 
@@ -370,13 +389,15 @@ public class IdentityProviderMgtServiceClient {
             return idPMgtStub.getAllLocalClaimUris();
         } catch (Exception e) {
             log.error("Error in retrieving localClaim Uris", e);
-            throw new Exception("Error occurred while retrieving all local claim URIs");
+            throw new Exception("Error occurred while retrieving all local claim URIs", e);
         }
     }
 
     /**
-     * @return
-     * @throws Exception
+     * Retrieve the user store domains.
+     *
+     * @return Array of user store domains.
+     * @throws Exception if an error occurs while retrieving user store domains.
      */
     public String[] getUserStoreDomains() throws Exception {
 
@@ -392,11 +413,14 @@ public class IdentityProviderMgtServiceClient {
         } catch (Exception e) {
             log.error("Error in retrieving User Store Domain IDs", e);
             throw new Exception(
-                    "Error occurred while retrieving Read-Write User Store Domain IDs for logged-in user's tenant realm");
+                    "Error occurred while retrieving Read-Write User Store Domain IDs " +
+                            "for logged-in user's tenant realm", e);
         }
     }
 
-    public String getResidentIDPMetadata() throws java.rmi.RemoteException, IdentityProviderMgtServiceIdentityProviderManagementExceptionException {
+    public String getResidentIDPMetadata() throws java.rmi.RemoteException,
+            IdentityProviderMgtServiceIdentityProviderManagementExceptionException {
+
         return idPMgtStub.getResidentIDPMetadata();
     }
 

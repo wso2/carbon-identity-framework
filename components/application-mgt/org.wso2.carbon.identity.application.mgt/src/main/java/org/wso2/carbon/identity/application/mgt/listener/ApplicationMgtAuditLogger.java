@@ -25,11 +25,15 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+/**
+ * Audit log implementation for Application (Service Provider) changes.
+ */
 public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
 
     private static final Log audit = CarbonConstants.AUDIT_LOG;
-    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | Result : %s ";
-    private static String SUCCESS = "Success";
+    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Data : { %s } | " +
+            "Result : %s ";
+    private static final String SUCCESS = "Success";
 
     @Override
     public int getDefaultOrderId() {

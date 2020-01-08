@@ -20,6 +20,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderSAMLException;
+
 /**
  * This interface provides functionality to convert a string to federatedAuthenticatorConfig and vise versa
  */
@@ -27,15 +28,18 @@ public interface MetadataConverter {
 
     boolean canHandle(Property property);
 
-    FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(Property properties [], StringBuilder builder)
+    FederatedAuthenticatorConfig getFederatedAuthenticatorConfig(Property[] properties, StringBuilder builder)
             throws IdentityProviderManagementException, javax.xml.stream.XMLStreamException;//TODO
 
     String getMetadataString(FederatedAuthenticatorConfig federatedAuthenticatorConfig) throws IdentityProviderSAMLException;
 
     boolean canHandle(FederatedAuthenticatorConfig federatedAuthenticatorConfig);
 
-    void saveMetadataString(int tenantId, String idpName, String metadata) throws IdentityProviderManagementException;
+    void saveMetadataString(int tenantId, String idpName, String fedAuthName, String metadata) throws IdentityProviderManagementException;
 
     void deleteMetadataString(int tenantId, String idPName)throws IdentityProviderManagementException;
 
+    default boolean canDelete(int tenantId, String idPName) throws IdentityProviderManagementException{
+        return false;
+    }
 }

@@ -80,7 +80,8 @@ public interface ApplicationPaginationAndSearching {
      * use {@link ApplicationPaginationAndSearching#getApplicationBasicInfo(String, String, String, int, int)} method.
      */
     @Deprecated
-    ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber, String filter)
+    ApplicationBasicInfo[] getPaginatedApplicationBasicInfo(String tenantDomain, String username, int pageNumber,
+                                                            String filter)
             throws IdentityApplicationManagementException;
 
     /**

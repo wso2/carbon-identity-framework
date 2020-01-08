@@ -611,9 +611,10 @@ public class IdentityManagementEndpointUtil {
     public static void authenticate(ServiceClient client) throws Exception {
 
         Properties properties = new Properties();
-        InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
-                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME);
-        properties.load(inputStream);
+        try (InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
+                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
+            properties.load(inputStream);
+        }
 
         String accessUsername = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
                 .SERVICE_ACCESS_USERNAME);

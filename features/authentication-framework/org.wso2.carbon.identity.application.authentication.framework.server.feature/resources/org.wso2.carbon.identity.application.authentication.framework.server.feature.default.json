@@ -14,6 +14,7 @@
   "identity.auth_framework.endpoint.app_name": "dashboard",
   "identity.auth_framework.endpoint.app_password": "dashboard",
   "identity.auth_framework.identity_server_origin": "${carbon.protocol}://${carbon.host}:${carbon.management.port}",
+  "identity.auth_framework.endpoint.securevault_secret_handler": "org.wso2.securevault.secret.handler.SecretManagerSecretCallbackHandler",
 
   "authentication.proxy_mode": "smart",
   "authentication.endpoints.login_url": "/authenticationendpoint/login.do",

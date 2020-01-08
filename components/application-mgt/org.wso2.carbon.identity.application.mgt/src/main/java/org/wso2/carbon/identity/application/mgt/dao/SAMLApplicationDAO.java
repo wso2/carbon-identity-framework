@@ -20,7 +20,18 @@ package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 
+/**
+ * Definition for Application DAO for SAML based application.
+ * The purpose of this is to access the information kept in the registry related to SAML per application.
+ *
+ */
 public interface SAMLApplicationDAO {
 
+    /**
+     * Removes the SAML configuration related to the application, idenfied by the issuer.
+     *
+     * @param issuer
+     * @throws IdentityApplicationManagementException
+     */
     void removeServiceProviderConfiguration(String issuer) throws IdentityApplicationManagementException;
 }

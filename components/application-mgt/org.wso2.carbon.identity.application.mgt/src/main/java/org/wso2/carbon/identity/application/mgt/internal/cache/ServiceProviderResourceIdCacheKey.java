@@ -17,6 +17,9 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
+/**
+ * Service provider cache key, when saved against resource ID.
+ */
 public class ServiceProviderResourceIdCacheKey extends CacheKey {
 
     private static final long serialVersionUID = -643393899130921459L;

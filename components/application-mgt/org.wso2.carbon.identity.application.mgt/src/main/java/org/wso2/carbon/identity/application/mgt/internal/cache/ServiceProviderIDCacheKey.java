@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.mgt.internal.cache;
 
 import org.wso2.carbon.identity.application.common.cache.CacheKey;
 
+/**
+ * Cache key for Service provider, when it is loaded with Application ID.
+ */
 public class ServiceProviderIDCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 5638400636618465149L;
@@ -56,7 +59,9 @@ public class ServiceProviderIDCacheKey extends CacheKey {
 
         ServiceProviderIDCacheKey that = (ServiceProviderIDCacheKey) o;
 
-        if (!serviceProviderKey.equals(that.serviceProviderKey)) return false;
+        if (!serviceProviderKey.equals(that.serviceProviderKey)) {
+            return false;
+        }
         return tenantDomain.equals(that.tenantDomain);
     }
 

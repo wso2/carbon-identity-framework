@@ -834,6 +834,17 @@
         -->
         <MandateDomainForGroupNamesInGroupsResponse>{{scim2.mandate_domain_for_group_names_in_groups_response}}</MandateDomainForGroupNamesInGroupsResponse>
 
+        <!--
+            When the group PATCH operations are performed, by default the updated group is returned in the PATCH response.
+            But when according to the spec(https://tools.ietf.org/html/rfc7644#section-3.5.2) if 'attributes' are
+            not requested, we can return a 204 response without the update group information.
+
+            This behaviour to return a 204 response can be enabled by setting the value to false.
+
+            Default value : true
+            Supported versions : IS 5.9.0 onwards
+        -->
+        <ReturnUpdatedGroupInPatchResponse>{{scim2.return_updated_group_in_group_patch_response}}</ReturnUpdatedGroupInPatchResponse>
     </SCIM2>
 
       <Recovery>
@@ -1396,7 +1407,7 @@
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
@@ -1480,7 +1491,7 @@
                   secured="{{resource_access_control.scim2_me_post_method.secured}}"
                   http-method="POST">
             <Permissions>{{resource_access_control.scim2_me_post_method.permission}}</Permissions>
-            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
         {% endif %}
         <Resource context="/scim2/ServiceProviderConfig" secured="false" http-method="all">
@@ -1489,10 +1500,10 @@
         <Resource context="/scim2/ResourceTypes" secured="false" http-method="all">
             <Permissions></Permissions>
         </Resource>
-        <Resource context="/scim2/Schemas" secured="true" http-method="all"/>
+        <Resource context="(.*)/scim2/Schemas" secured="true" http-method="all"/>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
-            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
             <Scopes>internal_user_mgt_view</Scopes>
             <Scopes>internal_user_mgt_list</Scopes>
             <Scopes>internal_user_mgt_delete</Scopes>
@@ -1593,7 +1604,7 @@
         </Resource>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -1682,6 +1693,11 @@
             <Context>{{servlet}}</Context>
             {% endfor %}
         </Servlet>
+        <OverwriteDispatch>
+            {% for context in tenant_context.rewrite.overwrite.dispatch %}
+            <Context>{{context}}</Context>
+            {% endfor %}
+        </OverwriteDispatch>
     </TenantContextsToRewrite>
 
     <!-- Server Synchronization Tolerance Configuration in seconds -->

@@ -29,13 +29,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+/**
+ * Implementation of {@link OAuthApplicationDAO}
+ */
 public class OAuthApplicationDAOImpl implements OAuthApplicationDAO {
 
-    public static final Log log = LogFactory.getLog(OAuthApplicationDAOImpl.class);
+    private static final Log log = LogFactory.getLog(OAuthApplicationDAOImpl.class);
 
-    /**
-     *
-     */
     @Override
     public void removeOAuthApplication(String clientIdentifier) throws IdentityApplicationManagementException {
 

@@ -450,7 +450,7 @@
                         <td>
                             <input type="text" name="<%=UserAdminUIConstants.USER_LIST_FILTER%>"
                                    value="<%=Encode.forHtmlAttribute(filter)%>" label="<fmt:message key="list.users"/>"
-                                   black-list-patterns="xml-meta-exists"/>
+                                   black-list-patterns="invalid-username-search"/>
 
                             <input class="button" type="submit"
                                    value="<fmt:message key="user.search"/>"/>
@@ -537,7 +537,7 @@
                         <td>
                             <input type="text" name="<%=UserAdminUIConstants.USER_COUNT_FILTER%>"
                                    value="<%=Encode.forHtmlAttribute(countFilter)%>" label="<fmt:message key="count.users"/>"
-                                   black-list-patterns="xml-meta-exists"/>
+                                   black-list-patterns="invalid-username-search"/>
 
                             <input class="button" type="submit"
                                    value="<fmt:message key="user.count"/>"/>

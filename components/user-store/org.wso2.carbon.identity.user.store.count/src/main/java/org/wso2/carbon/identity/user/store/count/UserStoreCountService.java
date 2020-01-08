@@ -23,9 +23,9 @@ import org.wso2.carbon.identity.user.store.count.dto.PairDTO;
 import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterException;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.Set;
-import org.wso2.carbon.user.core.UserCoreConstants;
 
 /**
  * Service class that expose count functionality for underline user stores on users, roles and claims.
@@ -120,7 +120,8 @@ public class UserStoreCountService {
                 try {
                     count = counter.countClaim(claimURI, valueFilter);
                 } catch (UserStoreCounterException e) {
-                    log.error("Error while getting user count with claim : " + claimURI + " from user store domain : " + userStoreDomain, e);
+                    log.error("Error while getting user count with claim : " + claimURI + " from user store domain : "
+                            + userStoreDomain, e);
                 }
             } else {
                 //no action
@@ -180,7 +181,8 @@ public class UserStoreCountService {
      * @param valueFilter filter for the claim values
      * @return the number of users matching the given claim and filter within this user store domain
      */
-    public Long countByClaimInDomain(String claimURI, String valueFilter, String domain) throws UserStoreCounterException {
+    public Long countByClaimInDomain(String claimURI, String valueFilter, String domain) throws
+            UserStoreCounterException {
 
         UserStoreCountRetriever counter = UserStoreCountUtils.getCounterInstanceForDomain(domain);
         if (counter != null) {

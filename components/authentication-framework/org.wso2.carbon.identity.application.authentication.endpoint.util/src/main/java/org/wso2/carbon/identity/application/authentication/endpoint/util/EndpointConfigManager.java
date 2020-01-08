@@ -49,47 +49,52 @@ public class EndpointConfigManager {
     private static String appName = null;
     private static char[] appPassword = null;
     private static String serverOrigin;
+    private static boolean initialized = false;
 
     /**
      * Initialize Tenant data manager
      */
     public static void init() {
 
-        prop = new Properties();
-
         try {
-            String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
-            File configFile = new File(configFilePath);
+            if (!initialized) {
+                prop = new Properties();
+                String configFilePath = buildFilePath(Constants.TenantConstants.CONFIG_RELATIVE_PATH);
+                File configFile = new File(configFilePath);
 
-            InputStream inputStream;
-            if (configFile.exists()) {
-                log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " + Constants
-                        .TenantConstants.CONFIG_RELATIVE_PATH);
-                inputStream = new FileInputStream(configFile);
+                InputStream inputStream;
+                if (configFile.exists()) {
+                    log.info(Constants.TenantConstants.CONFIG_FILE_NAME + " file loaded from " +
+                            Constants.TenantConstants.CONFIG_RELATIVE_PATH);
+                    inputStream = new FileInputStream(configFile);
 
-                prop.load(inputStream);
-
-                // Resolve encrypted properties with secure vault
-                resolveSecrets(prop);
-            } else {
-                inputStream = EndpointConfigManager.class.getClassLoader()
-                        .getResourceAsStream(Constants.TenantConstants.CONFIG_FILE_NAME);
-                if (inputStream != null) {
                     prop.load(inputStream);
-                    log.debug(Constants.TenantConstants.CONFIG_FILE_NAME
-                            + " file loaded from authentication endpoint webapp");
+
+                    // Resolve encrypted properties with secure vault
+                    resolveSecrets(prop);
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug(Constants.TenantConstants.CONFIG_FILE_NAME + " could not be located in "
-                                + Constants.TenantConstants.CONFIG_RELATIVE_PATH + " or authentication endpoint webapp");
+                    inputStream = EndpointConfigManager.class.getClassLoader().getResourceAsStream
+                            (Constants.TenantConstants.CONFIG_FILE_NAME);
+                    if (inputStream != null) {
+                        prop.load(inputStream);
+                        if (log.isDebugEnabled()) {
+                            log.debug(Constants.TenantConstants.CONFIG_FILE_NAME +
+                                    " file loaded from authentication endpoint webapp");
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(Constants.TenantConstants.CONFIG_FILE_NAME + " could not be located in " +
+                                    Constants.TenantConstants.CONFIG_RELATIVE_PATH + " or authentication endpoint webapp");
+                        }
                     }
                 }
-            }
-            appName = getPropertyValue(Constants.CONFIG_APP_NAME);
-            appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD).toCharArray();
-            serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
-            if (StringUtils.isNotBlank(serverOrigin)) {
-                serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
+                appName = getPropertyValue(Constants.CONFIG_APP_NAME);
+                appPassword = getPropertyValue(Constants.CONFIG_APP_PASSWORD).toCharArray();
+                serverOrigin = getPropertyValue(Constants.CONFIG_SERVER_ORIGIN);
+                if (StringUtils.isNotBlank(serverOrigin)) {
+                    serverOrigin = IdentityUtil.fillURLPlaceholders(serverOrigin);
+                }
+                initialized = true;
             }
         } catch (IOException e) {
             log.error("Initialization failed : ", e);

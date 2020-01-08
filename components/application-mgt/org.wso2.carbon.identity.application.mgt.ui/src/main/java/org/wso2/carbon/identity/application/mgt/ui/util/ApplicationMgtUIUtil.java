@@ -25,10 +25,14 @@ import org.wso2.carbon.identity.application.mgt.ui.ApplicationBean;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.servlet.http.HttpSession;
 
 import static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.DEFAULT_FILTER;
 
+/**
+ * Few utility functions related to Application management UI.
+ */
 public class ApplicationMgtUIUtil {
 
     private static final String SP_UNIQUE_ID_MAP = "spUniqueIdMap";
@@ -50,7 +54,7 @@ public class ApplicationMgtUIUtil {
             spUniqueIdMap = new HashMap<>();
             session.setAttribute(SP_UNIQUE_ID_MAP, spUniqueIdMap);
         } else {
-            spUniqueIdMap = (HashMap<String, UUID>)session.getAttribute(SP_UNIQUE_ID_MAP);
+            spUniqueIdMap = (HashMap<String, UUID>) session.getAttribute(SP_UNIQUE_ID_MAP);
         }
 
         if (spUniqueIdMap.get(spName) == null) {
@@ -73,7 +77,7 @@ public class ApplicationMgtUIUtil {
         if (session.getAttribute(SP_UNIQUE_ID_MAP) == null) {
             return;
         }
-        Map<String, UUID> spUniqueIdMap = (HashMap<String, UUID>)session.getAttribute(SP_UNIQUE_ID_MAP);
+        Map<String, UUID> spUniqueIdMap = (HashMap<String, UUID>) session.getAttribute(SP_UNIQUE_ID_MAP);
 
         if (spUniqueIdMap.get(spName) == null) {
             return;
@@ -88,7 +92,7 @@ public class ApplicationMgtUIUtil {
      * @param filterString String to resolve.
      * @return filterString, If the filterString is null then use the default filter.
      */
-    public static String resolveFilterString(String filterString){
+    public static String resolveFilterString(String filterString) {
 
         if (!StringUtils.isNotBlank(filterString)) {
             return DEFAULT_FILTER;
@@ -103,7 +107,7 @@ public class ApplicationMgtUIUtil {
      * @param filterString String to resolve.
      * @return paginationValue.
      */
-    public static String resolvePaginationValue(String filterString, String region, String item){
+    public static String resolvePaginationValue(String filterString, String region, String item) {
 
         if (filterString != null) {
             return String.format(ApplicationMgtUIConstants.PAGINATION_VALUE_WITH_FILTER, region, item, filterString);
@@ -112,89 +116,4 @@ public class ApplicationMgtUIUtil {
         }
     }
 
-    // Will be supported with 'Advance Consent Management Feature'.
-    /*
-    public static ApplicationPurposes getApplicationSpecificPurposes(ServiceProvider serviceProvider)
-            throws ConsentManagementException {
-
-        ConsentConfig consentConfig = serviceProvider.getConsentConfig();
-        ConsentManagementServiceClient consentServiceClient = new ConsentManagementServiceClient();
-        Purpose[] spPurposes;
-        List<ApplicationPurpose> appPurposes = new ArrayList<>();
-        List<ApplicationPurpose> appSharedPurposes = new ArrayList<>();
-        ConsentPurpose[] consentPurposes = new ConsentPurpose[0];
-        if (isConsentPurposesAvailable(consentConfig)) {
-            consentPurposes = consentConfig.getConsentPurposeConfigs().getConsentPurpose();
-        }
-
-        // Get application specific purposes associated with the service provider.
-        spPurposes = consentServiceClient.listPurposes(serviceProvider.getApplicationName(), PURPOSE_GROUP_TYPE_SP);
-        if (nonNull(spPurposes)) {
-            for (Purpose spPurpose : spPurposes) {
-                boolean isPurposeAssociated = false;
-                for (ConsentPurpose consentPurpose : consentPurposes) {
-                    if (consentPurpose.getPurposeId() == spPurpose.getId()) {
-                        ApplicationPurpose appPurpose = buildApplicationPurpose(consentPurpose, spPurpose);
-                        isPurposeAssociated = true;
-                        appPurposes.add(appPurpose);
-                        break;
-                    }
-                }
-                if (!isPurposeAssociated) {
-                    ApplicationPurpose appPurpose = new ApplicationPurpose();
-                    appPurpose.setId(spPurpose.getId());
-                    appPurpose.setName(spPurpose.getName());
-                    appPurpose.setDescription(spPurpose.getDescription());
-                    appPurpose.setDisplayOrder(DEFAULT_DISPLAY_ORDER);
-                    appPurpose.setSelected(false);
-                    appPurposes.add(appPurpose);
-                }
-            }
-        }
-
-        // Add shared purposes associated with the service provider.
-        Purpose[] sharedPurposes;
-        sharedPurposes = consentServiceClient.listPurposes(PURPOSE_GROUP_SHARED, PURPOSE_GROUP_TYPE_SYSTEM);
-        if (nonNull(sharedPurposes)) {
-            for (ConsentPurpose consentPurpose : consentPurposes) {
-                for (Purpose sharedPurpose : sharedPurposes) {
-                    if (consentPurpose.getPurposeId() == sharedPurpose.getId()) {
-                        ApplicationPurpose appPurpose = buildApplicationPurpose(consentPurpose, sharedPurpose);
-                        appSharedPurposes.add(appPurpose);
-                        break;
-                    }
-                }
-            }
-        }
-
-        ApplicationPurposes applicationPurposes = new ApplicationPurposes();
-        applicationPurposes.setAppPurposes(appPurposes);
-        applicationPurposes.setAppSharedPurposes(appSharedPurposes);
-
-        return applicationPurposes;
-    }
-
-    public static Purpose[] getSharedPurposes() throws ConsentManagementException {
-
-        ConsentManagementServiceClient consentServiceClient = new ConsentManagementServiceClient();
-        return consentServiceClient.listPurposes(PURPOSE_GROUP_SHARED, PURPOSE_GROUP_TYPE_SYSTEM);
-    }
-
-    private static ApplicationPurpose buildApplicationPurpose(ConsentPurpose consentPurpose, Purpose sharedPurpose) {
-
-        ApplicationPurpose appPurpose = new ApplicationPurpose();
-        appPurpose.setId(sharedPurpose.getId());
-        appPurpose.setName(sharedPurpose.getName());
-        appPurpose.setDescription(sharedPurpose.getDescription());
-        appPurpose.setDisplayOrder(consentPurpose.getDisplayOrder());
-        appPurpose.setSelected(true);
-        return appPurpose;
-    }
-
-    private static boolean isConsentPurposesAvailable(ConsentConfig consentConfig) {
-
-        return consentConfig != null && consentConfig.getConsentPurposeConfigs() != null
-            && consentConfig.getConsentPurposeConfigs().getConsentPurpose() != null;
-    }
-    */
 }

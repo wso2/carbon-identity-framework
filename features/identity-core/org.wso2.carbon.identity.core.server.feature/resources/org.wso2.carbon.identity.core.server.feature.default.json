@@ -84,7 +84,7 @@
   "oauth.response_type.device.enable": true,
   "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
   "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
-  
+
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
   "oauth.grant_type.password.enable": true,
@@ -224,6 +224,7 @@
   "scim2.filter_users_and_groups_from_primary_domain": false,
   "scim2.mandate_domain_for_uesrnames_and_group_names_in_response": false,
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
+  "scim2.return_updated_group_in_group_patch_response": true,
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
@@ -426,10 +427,14 @@
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
     "/api/identity/config-mgt/v1.0/",
     "/api/",
-    "/api/users/v2/me/webauthn"
+    "/api/users/v2/me/webauthn",
+    "/user-portal/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)"
+  ],
+  "tenant_context.rewrite.overwrite.dispatch": [
+    "/user-portal/"
   ],
   "intermediate_cert_validation.cert_cns": [
     "localhost"

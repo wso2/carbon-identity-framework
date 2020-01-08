@@ -31,6 +31,7 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -43,6 +44,7 @@ public class LoginContextManagementUtil {
 
     private static final String SP_REDIRECT_URL_RESOURCE_PATH = "/identity/config/relyingPartyRedirectUrls";
     private static final Log log = LogFactory.getLog(LoginContextManagementUtil.class);
+    private static final String CLEAR_EXISTING_SESSION_PARAM = "clearSession";
 
     public static void handleLoginContext(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
@@ -72,6 +74,15 @@ public class LoginContextManagementUtil {
             result.addProperty("status", "success");
             response.getWriter().write(result.toString());
         } else {
+            String clearCookieFlagValue = request.getParameter(CLEAR_EXISTING_SESSION_PARAM);
+            if (Boolean.parseBoolean(clearCookieFlagValue)) {
+                Cookie cookie = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, null);
+                cookie.setMaxAge(0);
+                cookie.setSecure(true);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/");
+                response.addCookie(cookie);
+            }
             String redirectUrl = getRelyingPartyRedirectUrl(relyingParty, tenantDomain);
             if (StringUtils.isBlank(redirectUrl)) {
                 if (log.isDebugEnabled()) {

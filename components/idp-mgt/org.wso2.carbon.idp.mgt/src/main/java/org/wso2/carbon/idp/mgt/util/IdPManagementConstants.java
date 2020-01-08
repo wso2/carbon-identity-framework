@@ -385,7 +385,8 @@ public class IdPManagementConstants {
                 "validation failed. %s"),
         ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
         ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected applications of " +
-                "Identity Provider with resource ID: %s."),;
+                "Identity Provider with resource ID: %s."),
+        ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),;
 
         private final String code;
         private final String message;

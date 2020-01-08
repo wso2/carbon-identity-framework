@@ -58,8 +58,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * Utility class for IdPManagementUI component.
+ */
 public class IdPManagementUIUtil {
 
     private static final Log log = LogFactory.getLog(IdPManagementUIUtil.class);
@@ -120,14 +124,14 @@ public class IdPManagementUIUtil {
             FileItemFactory factory = new DiskFileItemFactory();
             ServletFileUpload upload = new ServletFileUpload(factory);
             List items = upload.parseRequest(servletContext);
-            Map<String, String> paramMap = new HashMap<String, String>();
-            List<String> idpClaims = new ArrayList<String>();
-            List<String> idpRoles = new ArrayList<String>();
-            List<String> customAuthenticatorNames = new ArrayList<String>();
-            List<String> proConnectorNames = new ArrayList<String>();
+            Map<String, String> paramMap = new HashMap<>();
+            List<String> idpClaims = new ArrayList<>();
+            List<String> idpRoles = new ArrayList<>();
+            List<String> customAuthenticatorNames = new ArrayList<>();
+            List<String> proConnectorNames = new ArrayList<>();
 
-            Map<String, List<Property>> customAuthenticatorProperties = new HashMap<String, List<Property>>();
-            Map<String, List<Property>> customProProperties = new HashMap<String, List<Property>>();
+            Map<String, List<Property>> customAuthenticatorProperties = new HashMap<>();
+            Map<String, List<Property>> customProProperties = new HashMap<>();
             String idpUUID = StringUtils.EMPTY;
             StringBuilder deletedCertificateValue = new StringBuilder();
 
@@ -142,7 +146,8 @@ public class IdPManagementUIUtil {
                     }
                     if (IdPManagementUIUtil.META_DATA_SAML.equals(key)) {
 
-                        if (StringUtils.isNotEmpty(diskFileItem.getName())  && !diskFileItem.getName().trim().endsWith(".xml")) {
+                        if (StringUtils.isNotEmpty(diskFileItem.getName())
+                                && !diskFileItem.getName().trim().endsWith(".xml")) {
                             throw new CarbonException("File not supported!");
                         } else {
                             paramMap.put(key, Base64.encode(value));
@@ -151,21 +156,21 @@ public class IdPManagementUIUtil {
                     if ("certFile".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith(IdentityApplicationConstants.CERTIFICATE_VAL)) {
-                        deletedCertificateValue.append(new String(value));
+                        deletedCertificateValue.append(new String(value, StandardCharsets.UTF_8));
                     } else if ("google_prov_private_key".equals(key)) {
                         paramMap.put(key, Base64.encode(value));
                     } else if (key.startsWith("claimrowname_")) {
-                        String strValue = new String(value);
+                        String strValue = new String(value, StandardCharsets.UTF_8);
                         idpClaims.add(strValue);
                         paramMap.put(key, strValue);
                     } else if (key.startsWith("rolerowname_")) {
-                        String strValue = new String(value);
+                        String strValue = new String(value, StandardCharsets.UTF_8);
                         idpRoles.add(strValue);
                         paramMap.put(key, strValue);
                     } else if (key.startsWith("custom_auth_name")) {
-                        customAuthenticatorNames.add(new String(value));
+                        customAuthenticatorNames.add(new String(value, StandardCharsets.UTF_8));
                     } else if (key.startsWith("custom_pro_name")) {
-                        proConnectorNames.add(new String(value));
+                        proConnectorNames.add(new String(value, StandardCharsets.UTF_8));
                     } else if (key.startsWith("cust_auth_prop_")) {
                         int length = "cust_auth_prop_".length();
                         String authPropString = new String(key).substring(length);
@@ -174,7 +179,7 @@ public class IdPManagementUIUtil {
                                     authPropString.indexOf("#"));
                             String propName = authPropString.substring(authPropString
                                     .indexOf("#") + 1);
-                            String propVal = new String(value);
+                            String propVal = new String(value, StandardCharsets.UTF_8);
                             Property prop = new Property();
                             prop.setName(propName);
                             prop.setValue(propVal);
@@ -198,7 +203,7 @@ public class IdPManagementUIUtil {
                                     provPropString.indexOf("#"));
                             String propName = provPropString.substring(provPropString
                                     .indexOf("#") + 1);
-                            String propVal = new String(value);
+                            String propVal = new String(value, StandardCharsets.UTF_8);
                             Property prop = new Property();
                             prop.setName(propName);
                             prop.setValue(propVal);
@@ -214,7 +219,7 @@ public class IdPManagementUIUtil {
                             customProProperties.put(proConName, propList);
                         }
                     } else {
-                        paramMap.put(key, new String(value));
+                        paramMap.put(key, new String(value, StandardCharsets.UTF_8));
                     }
 
                     String updatedValue = paramMap.get(key);
@@ -246,10 +251,11 @@ public class IdPManagementUIUtil {
                     }
                     StringBuilder multipleCertificate = new StringBuilder();
                     for (CertificateInfo certificateInfo : oldIdentityProvider.getCertificateInfoArray()) {
-                        multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue())));
+                        multipleCertificate.append(new String(Base64.decode(certificateInfo.getCertValue()),
+                                StandardCharsets.UTF_8));
                     }
-                    paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE, Base64.encode(multipleCertificate.toString().
-                            getBytes(StandardCharsets.UTF_8)));
+                    paramMap.put(IdentityApplicationConstants.OLD_CERT_FILE,
+                            Base64.encode(multipleCertificate.toString().getBytes(StandardCharsets.UTF_8)));
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("Only one certificate has been found as old certificate.");
@@ -323,13 +329,15 @@ public class IdPManagementUIUtil {
 
         return fedIdp;
     }
+
     /**
      * @param fedIdp
      * @param paramMap
      * @throws IdentityApplicationManagementException
      */
     private static void buildOutboundProvisioningConfiguration(IdentityProvider fedIdp,
-                                                               Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                               Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         // build SPML provisioning configuration.
         buildSPMLProvisioningConfiguration(fedIdp, paramMap);
@@ -351,7 +359,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildSPMLProvisioningConfiguration(IdentityProvider fedIdp,
-                                                           Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                           Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
         proConnector.setName("spml");
@@ -427,7 +436,9 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildGoogleProvisioningConfiguration(IdentityProvider fedIdp,
-                                                             Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                             Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
+
         ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
         proConnector.setName("googleapps");
 
@@ -575,7 +586,9 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildSCIMProvisioningConfiguration(IdentityProvider fedIdp,
-                                                           Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                           Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
+
         ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
         proConnector.setName("scim");
 
@@ -672,7 +685,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildSalesforceProvisioningConfiguration(IdentityProvider fedIdp,
-                                                                 Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                                 Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         ProvisioningConnectorConfig proConnector = new ProvisioningConnectorConfig();
         proConnector.setName("salesforce");
@@ -797,7 +811,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildClaimConfiguration(IdentityProvider fedIdp,
-                                                Map<String, String> paramMap, List<String> idpClaims, ClaimMapping[] currentClaimMapping)
+                                                Map<String, String> paramMap, List<String> idpClaims,
+                                                ClaimMapping[] currentClaimMapping)
             throws IdentityApplicationManagementException {
 
         ClaimConfig claimConfiguration = new ClaimConfig();
@@ -1007,8 +1022,8 @@ public class IdPManagementUIUtil {
             certFile = handleCertificateAddition(oldCertFile, certFile);
         } else if (oldCertFile != null && certFile == null
                 && (Boolean.parseBoolean(deletePublicCert))) {
-            // if there is no new certificate and there is atleast one deletion then update the new value by removing the
-            // deleted values.
+            // If there is no new certificate and there is at least one deletion then update
+            // the new value by removing the deleted values.
             String deletedCertificateValue = paramMap.get(IdentityApplicationConstants.CERTIFICATE_VAL);
             certFile = handleCertificateDeletion(oldCertFile, deletedCertificateValue);
         } else if (oldCertFile != null && certFile != null
@@ -1033,8 +1048,8 @@ public class IdPManagementUIUtil {
 
     private static String handleCertificateDeletion(String oldCertificateValues, String deletedCertificateValues) {
 
-        String decodedOldCertificate = new String(Base64.decode(oldCertificateValues));
-        String decodedDeletedCertificate = new String(Base64.decode(deletedCertificateValues));
+        String decodedOldCertificate = new String(Base64.decode(oldCertificateValues), StandardCharsets.UTF_8);
+        String decodedDeletedCertificate = new String(Base64.decode(deletedCertificateValues), StandardCharsets.UTF_8);
 
         Set<String> updatedCertificateSet = new LinkedHashSet<>(getExtractedCertificateValues(decodedOldCertificate));
         updatedCertificateSet.removeAll(getExtractedCertificateValues(decodedDeletedCertificate));
@@ -1043,8 +1058,8 @@ public class IdPManagementUIUtil {
 
     private static String handleCertificateAddition(String oldCertValues, String newCertValues) {
 
-        String decodedOldCertificate = new String(Base64.decode(oldCertValues));
-        String decodedNewCertificate = new String(Base64.decode(newCertValues));
+        String decodedOldCertificate = new String(Base64.decode(oldCertValues), StandardCharsets.UTF_8);
+        String decodedNewCertificate = new String(Base64.decode(newCertValues), StandardCharsets.UTF_8);
 
         Set<String> updatedCertificateSet = new LinkedHashSet<>(getExtractedCertificateValues
                 (decodedOldCertificate));
@@ -1055,6 +1070,7 @@ public class IdPManagementUIUtil {
 
     /**
      * get extracted certificate values from decodedCertificate
+     *
      * @param decodedCertificate decoded series of certificate value.
      * @return list of decoded certificate values.
      */
@@ -1075,7 +1091,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildOutboundAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                                 Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                                 Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
         // build OpenID authentication configuration.
         buildOpenIDAuthenticationConfiguration(fedIdp, paramMap);
 
@@ -1099,7 +1116,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildOpenIDAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                               Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                               Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         FederatedAuthenticatorConfig openIdAuthnConfig = new FederatedAuthenticatorConfig();
         openIdAuthnConfig.setName("OpenIDAuthenticator");
@@ -1164,7 +1182,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildFacebookAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                                 Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                                 Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         FederatedAuthenticatorConfig facebookAuthnConfig = new FederatedAuthenticatorConfig();
         facebookAuthnConfig.setName("FacebookAuthenticator");
@@ -1246,8 +1265,9 @@ public class IdPManagementUIUtil {
      * @param paramMap
      * @throws IdentityApplicationManagementException
      */
-    private static void buildOpenIDConnectAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                                      Map<String, String> paramMap) throws IdentityApplicationManagementException {
+    private static void buildOpenIDConnectAuthenticationConfiguration(
+            IdentityProvider fedIdp, Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         FederatedAuthenticatorConfig oidcAuthnConfig = new FederatedAuthenticatorConfig();
         oidcAuthnConfig.setName("OpenIDConnectAuthenticator");
@@ -1348,7 +1368,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildPassiveSTSAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                                   Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                                   Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         FederatedAuthenticatorConfig passiveSTSAuthnConfig = new FederatedAuthenticatorConfig();
         passiveSTSAuthnConfig.setName("PassiveSTSAuthenticator");
@@ -1429,8 +1450,9 @@ public class IdPManagementUIUtil {
     }
 
     private static void buildCustomProvisioningConfiguration(IdentityProvider fedIdp,
-                                                             List<String> proConnectorNames, Map<String, List<Property>> customProProperties,
-                                                             Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                             List<String> proConnectorNames, Map<String,
+            List<Property>> customProProperties, Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         if (CollectionUtils.isNotEmpty(proConnectorNames)) {
 
@@ -1477,8 +1499,9 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildCustomAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                               List<String> authenticatorNames,
-                                                               Map<String, List<Property>> customAuthenticatorProperties, Map<String, String> paramMap)
+                                                               List<String> authenticatorNames, Map<String,
+            List<Property>> customAuthenticatorProperties,
+                                                               Map<String, String> paramMap)
             throws IdentityApplicationManagementException {
 
         if (CollectionUtils.isNotEmpty(authenticatorNames)) {
@@ -1529,7 +1552,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildSAMLAuthenticationConfiguration(IdentityProvider fedIdp,
-                                                             Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                             Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         FederatedAuthenticatorConfig saml2SSOAuthnConfig = new FederatedAuthenticatorConfig();
         saml2SSOAuthnConfig.setName("SAMLSSOAuthenticator");
@@ -1542,7 +1566,7 @@ public class IdPManagementUIUtil {
             fedIdp.setDefaultAuthenticatorConfig(saml2SSOAuthnConfig);
         }
 
-        List<Property> properties  = new ArrayList<>();
+        List<Property> properties = new ArrayList<>();
 
         if ("on".equals(paramMap.get("saml2SSOEnabled"))) {
             saml2SSOAuthnConfig.setEnabled(true);
@@ -1706,9 +1730,13 @@ public class IdPManagementUIUtil {
                 .get(IdentityApplicationConstants.Authenticator.SAML2SSO.SIGNATURE_ALGORITHM_POST));
         properties.add(property);
 
-        String authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
-        if (IdentityApplicationConstants.Authenticator.SAML2SSO.CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
-            authenticationContextClass = paramMap.get(IdentityApplicationConstants.Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
+        String authenticationContextClass = paramMap.get(
+                IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
+
+        if (IdentityApplicationConstants.Authenticator.SAML2SSO.
+                CUSTOM_AUTHENTICATION_CONTEXT_CLASS_OPTION.equals(authenticationContextClass)) {
+            authenticationContextClass = paramMap.get(IdentityApplicationConstants.
+                    Authenticator.SAML2SSO.ATTRIBUTE_CUSTOM_AUTHENTICATION_CONTEXT_CLASS);
         }
         property = new Property();
         property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.AUTHENTICATION_CONTEXT_CLASS);
@@ -1785,7 +1813,8 @@ public class IdPManagementUIUtil {
 
         property = new Property();
         property.setName(IdPManagementUIUtil.META_DATA_SAML);
-        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
+        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null
+                && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
             property.setValue(paramMap.get(IdPManagementUIUtil.META_DATA_SAML));
         } else {
             property.setValue(null);
@@ -1807,7 +1836,8 @@ public class IdPManagementUIUtil {
         saml2SSOAuthnConfig.setProperties(properties.toArray(new Property[properties.size()]));
 
         FederatedAuthenticatorConfig[] authenticators = fedIdp.getFederatedAuthenticatorConfigs();
-        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
+        if (paramMap.get(IdPManagementUIUtil.META_DATA_SAML) != null
+                && paramMap.get(IdPManagementUIUtil.META_DATA_SAML).length() > 0) {
             if (authenticators == null || authenticators.length == 0) {
                 fedIdp.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[]{saml2SSOAuthnConfig});
             } else {
@@ -1835,8 +1865,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
 
-    private static void buildRoleConfiguration(IdentityProvider fedIdp,
-                                               Map<String, String> paramMap, List<String> idpRoles, RoleMapping[] currentRoleMapping)
+    private static void buildRoleConfiguration(IdentityProvider fedIdp, Map<String,
+            String> paramMap, List<String> idpRoles, RoleMapping[] currentRoleMapping)
             throws IdentityApplicationManagementException {
 
         PermissionsAndRoleConfig roleConfiguration = new PermissionsAndRoleConfig();
@@ -1894,7 +1924,8 @@ public class IdPManagementUIUtil {
      * @throws IdentityApplicationManagementException
      */
     private static void buildInboundProvisioningConfiguration(IdentityProvider fedIdp,
-                                                              Map<String, String> paramMap) throws IdentityApplicationManagementException {
+                                                              Map<String, String> paramMap)
+            throws IdentityApplicationManagementException {
 
         String modifyUserNamePassword = "prompt_username_password_consent";
         String modifyPassword = "prompt_password_consent";
@@ -1946,7 +1977,7 @@ public class IdPManagementUIUtil {
     /**
      * @param o1
      * @param o2
-     * @return
+     * @return ret
      */
     private static ProvisioningConnectorConfig[] concatArrays(ProvisioningConnectorConfig[] o1,
                                                               ProvisioningConnectorConfig[] o2) {
@@ -1961,7 +1992,7 @@ public class IdPManagementUIUtil {
     /**
      * @param o1
      * @param o2
-     * @return
+     * @return ret
      */
     private static FederatedAuthenticatorConfig[] concatArrays(FederatedAuthenticatorConfig[] o1,
                                                                FederatedAuthenticatorConfig[] o2) {
@@ -1973,8 +2004,10 @@ public class IdPManagementUIUtil {
         return ret;
     }
 
-    public static org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig getFederatedAuthenticator(
-            org.wso2.carbon.identity.application.common.model.idp.xsd.FederatedAuthenticatorConfig[] federatedAuthenticators,
+    public static org.wso2.carbon.identity.application.
+            common.model.idp.xsd.FederatedAuthenticatorConfig getFederatedAuthenticator(
+            org.wso2.carbon.identity.application.common.model.
+                    idp.xsd.FederatedAuthenticatorConfig[] federatedAuthenticators,
             String authenticatorName) {
 
         for (FederatedAuthenticatorConfig authenticator : federatedAuthenticators) {
@@ -1998,11 +2031,11 @@ public class IdPManagementUIUtil {
     }
 
     /**
-     * This is used in front end. Property is the type of stub generated property
+     * This is used in front end. Property is the type of stub generated property.
      *
-     * @param properties properties list to iterate
-     * @param startWith  the peoperty list startswith the given name
-     * @return
+     * @param properties properties list to iterate.
+     * @param startWith  the name which the property should start.
+     * @return propertySet the property list starts with the given name.
      */
     public static List<Property> getPropertySetStartsWith(Property[] properties, String startWith) {
         List<Property> propertySet = new ArrayList<Property>();

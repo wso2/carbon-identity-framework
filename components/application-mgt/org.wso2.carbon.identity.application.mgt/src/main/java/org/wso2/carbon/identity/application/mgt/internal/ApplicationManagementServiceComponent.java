@@ -66,6 +66,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * OSGI Service component for Application (aka Service Provider) management.
+ */
 @Component(
         name = "identity.application.management.component",
         immediate = true
@@ -86,7 +89,8 @@ public class ApplicationManagementServiceComponent {
             // Registering Application management service as a OSGIService
             bundleContext.registerService(ApplicationManagementService.class.getName(),
                     ApplicationManagementServiceImpl.getInstance(), null);
-            bundleContext.registerService(IdentityProviderMgtListener.class.getName(), new ApplicationIdentityProviderMgtListener(), null);
+            bundleContext.registerService(IdentityProviderMgtListener.class.getName(),
+                    new ApplicationIdentityProviderMgtListener(), null);
             ApplicationMgtSystemConfig.getInstance();
             bundleContext.registerService(ApplicationMgtListener.class.getName(), new ApplicationMgtAuditLogger(),
                     null);

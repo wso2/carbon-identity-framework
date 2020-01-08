@@ -20,12 +20,17 @@ package org.wso2.carbon.identity.application.mgt.dao;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 
+/**
+ * DAO to access OAuth Application information from Application management component.
+ */
 public interface OAuthApplicationDAO {
 
     /**
+     * Removes the OAuth application, which is held at different table.
+     *
      * @param clientIdentifier
      * @throws IdentityApplicationManagementException
      */
-    public void removeOAuthApplication(String clientIdentifier) throws IdentityApplicationManagementException;
+    void removeOAuthApplication(String clientIdentifier) throws IdentityApplicationManagementException;
 
 }

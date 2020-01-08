@@ -41,7 +41,7 @@ public class ClaimMetadataMgtServiceClient {
      * @param cookie           For session management
      * @param backendServerURL URL of the back end server where ClaimManagementServiceStub is running.
      * @param configCtx        ConfigurationContext
-     * @throws org.apache.axis2.AxisFault if error occurs when instantiating the stub
+     * @throws                 AxisFault if error occurs when instantiating the stub
      */
     public ClaimMetadataMgtServiceClient(String cookie, String backendServerURL, ConfigurationContext configCtx)
             throws AxisFault {
@@ -54,9 +54,9 @@ public class ClaimMetadataMgtServiceClient {
         option.setProperty(org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING, cookie);
     }
 
-
     public ClaimDialectDTO[] getClaimDialects() throws RemoteException,
             ClaimMetadataManagementServiceClaimMetadataException {
+
         return stub.getClaimDialects();
     }
 }

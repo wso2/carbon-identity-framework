@@ -42,7 +42,7 @@ import java.util.Set;
  * Util class for user store counting functionality for users, roles and by claims
  */
 public class UserStoreCountUtils {
-    public static final String countRetrieverClass = "CountRetrieverClass";
+    public static final String COUNT_RETRIEVER_CLASS = "CountRetrieverClass";
     private static final Log log = LogFactory.getLog(UserStoreCountUtils.class);
 
     /**
@@ -94,7 +94,7 @@ public class UserStoreCountUtils {
             while (realmConfiguration != null) {
                 if (!Boolean.valueOf(realmConfiguration.getUserStoreProperty(
                         UserCoreConstants.RealmConfig.USER_STORE_DISABLED))) {
-                    if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(countRetrieverClass))) {
+                    if (StringUtils.isNotEmpty(realmConfiguration.getUserStoreProperty(COUNT_RETRIEVER_CLASS))) {
                         userStoreList.add(realmConfiguration
                                 .getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
                     }
@@ -131,8 +131,8 @@ public class UserStoreCountUtils {
         }
 
         RealmConfiguration realmConfiguration = getUserStoreList().get(domain);
-        if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(countRetrieverClass) != null) {
-            String retrieverType = realmConfiguration.getUserStoreProperty(countRetrieverClass);
+        if (realmConfiguration != null && realmConfiguration.getUserStoreProperty(COUNT_RETRIEVER_CLASS) != null) {
+            String retrieverType = realmConfiguration.getUserStoreProperty(COUNT_RETRIEVER_CLASS);
             UserStoreCountRetriever userStoreCountRetriever = UserStoreCountDataHolder.getInstance()
                     .getCountRetrieverFactories().get(retrieverType).buildCountRetriever(realmConfiguration);
             if (userStoreCountRetriever == null) {
@@ -157,7 +157,8 @@ public class UserStoreCountUtils {
 
         try {
             countRetreiver = UserStoreCountDataHolder.getInstance().getCountRetrieverFactories()
-                    .get(InternalCountRetriever.class.getName()).buildCountRetriever(CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration());
+                    .get(InternalCountRetriever.class.getName()).buildCountRetriever(CarbonContext
+                            .getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration());
             if (countRetreiver == null) {
                 throw new UserStoreCounterException("Could not create a count retriever for Internal domain");
             }
