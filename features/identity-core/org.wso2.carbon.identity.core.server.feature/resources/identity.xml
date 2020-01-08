@@ -1065,7 +1065,7 @@
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
@@ -1129,7 +1129,7 @@
         </Resource>
         <Resource context="(.*)/scim2/Me" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
-            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
         </Resource>
         <Resource context="/scim2/ServiceProviderConfig" secured="false" http-method="all">
             <Permissions></Permissions>
@@ -1142,7 +1142,7 @@
         </Resource>
         <Resource context="(.*)/scim2/Bulk(.*)" secured="true"  http-method="all">
             <Permissions>/permission/admin/manage/identity/usermgt</Permissions>
-            <Scopes>internal_user_mgt_craete</Scopes>
+            <Scopes>internal_user_mgt_create</Scopes>
             <Scopes>internal_user_mgt_view</Scopes>
             <Scopes>internal_user_mgt_list</Scopes>
             <Scopes>internal_user_mgt_delete</Scopes>
