@@ -5,4 +5,11 @@ cache:
   directories:
   - .autoconf
   - $HOME/.m2
-script:  mvn clean install
+addons:
+  sonarcloud:
+    organization: "sonarcloud_organization_key" # the key of the org you chose at step #3
+    token:
+      secure: "*********" # encrypted value of your token
+script:
+  - mvn clean install
+  - sonar-scanner
