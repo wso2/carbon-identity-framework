@@ -25,13 +25,12 @@ import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterExcep
 import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
-
-import java.util.Set;
-
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
+
+import java.util.Set;
 
 /**
  * Service class that expose count functionality for underline user stores on users, roles and claims.
@@ -206,8 +205,8 @@ public class UserStoreCountService {
             }
 
         } catch (UserStoreException e) {
-            String ErrorMsg = "Error while retrieving user count from user store";
-            throw new UserStoreCounterException(ErrorMsg, e);
+            String errorMsg = "error while retrieving user count from user store";
+            throw new UserStoreCounterException(errorMsg, e);
         }
     }
 
@@ -231,8 +230,8 @@ public class UserStoreCountService {
             }
 
         } catch (UserStoreException e) {
-            String ErrorMsg = "Error while retrieving role count from user store";
-            throw new UserStoreCounterException(ErrorMsg, e);
+            String errorMsg = "Error while retrieving role count from user store";
+            throw new UserStoreCounterException(errorMsg, e);
         }
     }
 
