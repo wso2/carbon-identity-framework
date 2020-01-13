@@ -1149,6 +1149,9 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
 
     private Collection<UserOperationEventListener> getUserStoreManagerListeners() {
 
-        return IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners().values();
+        Map<Integer, UserOperationEventListener> userOperationEventListeners =
+                IdentityMgtServiceDataHolder.getInstance().getUserOperationEventListeners();
+        userOperationEventListeners.remove(getExecutionOrderId());
+        return userOperationEventListeners.values();
     }
 }
