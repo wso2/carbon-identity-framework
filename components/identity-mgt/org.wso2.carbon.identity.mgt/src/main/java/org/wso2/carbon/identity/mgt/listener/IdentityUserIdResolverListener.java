@@ -1123,7 +1123,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         List<String> userIDsList =
-                userStoreManager.getUserIDsFromUserNames(Arrays.asList(getDomainLessNames((userNames))));
+                userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
         return userIDsList.toArray(new String[0]);
     }
 
