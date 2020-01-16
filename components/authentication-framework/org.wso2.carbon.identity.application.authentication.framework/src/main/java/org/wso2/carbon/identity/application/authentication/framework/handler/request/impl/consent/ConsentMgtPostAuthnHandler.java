@@ -103,11 +103,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
         }
 
-        // Check whether currently engaged SP has skipLogoutConsent enabled
-        if (FrameworkUtils.isLogoutConsentPageSkippedForSP(getServiceProvider(context))) {
-            return PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
-        }
-
         if (isConsentPrompted(context)) {
             return handlePostConsent(request, response, context);
         } else {
