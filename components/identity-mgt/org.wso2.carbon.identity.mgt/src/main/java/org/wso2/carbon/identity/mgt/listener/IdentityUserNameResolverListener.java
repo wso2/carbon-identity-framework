@@ -141,16 +141,16 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
     //  be updated accordingly.
 
     @Override
-    public boolean doPostAddUserWithID(String userID, Object credential, String[] roleList, Map<String, String> claims,
+    public boolean doPostAddUserWithID(User user, Object credential, String[] roleList, Map<String, String> claims,
                                        String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (!isEnable()) {
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(user.getUserID());
         if (userName == null) {
-            return handleUserNameResolveFailure(userID, userStoreManager);
+            return handleUserNameResolveFailure(user.getUserID(), userStoreManager);
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
