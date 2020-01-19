@@ -1,0 +1,6 @@
+# Codeowners for user components.
+/components/user-mgt @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
+
+/components/user-store @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
+
+/components/provisioning @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
