@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,46 +18,21 @@
 
 package org.wso2.carbon.identity.functions.library.mgt.exception;
 
-import org.wso2.carbon.identity.base.IdentityException;
-
 /**
- * Function library manager Exception.
+ * Function library manager client Exception.
  */
-public class FunctionLibraryManagementException extends IdentityException {
+public class FunctionLibraryManagementClientException extends FunctionLibraryManagementException {
 
     private String message;
-    private String errorCode = null;
+    private String errorCode;
 
     /**
-     * FunctionLibraryManagementException.
-     *
-     * @param message Error message
-     */
-    public FunctionLibraryManagementException(String message) {
-
-        super(message);
-        this.message = message;
-    }
-
-    /**
-     * FunctionLibraryManagementException.
-     *
-     * @param message Error message
-     * @param e       Error
-     */
-    public FunctionLibraryManagementException(String message, Throwable e) {
-
-        super(message, e);
-        this.message = message;
-    }
-
-    /**
-     * FunctionLibraryManagementException.
+     * FunctionLibraryManagementClientException.
      *
      * @param message   Error message
      * @param errorCode Error code
      */
-    public FunctionLibraryManagementException(String errorCode, String message) {
+    public FunctionLibraryManagementClientException(String errorCode, String message) {
 
         super(errorCode, message);
         this.errorCode = errorCode;
@@ -65,13 +40,13 @@ public class FunctionLibraryManagementException extends IdentityException {
     }
 
     /**
-     * FunctionLibraryManagementException.
+     * FunctionLibraryManagementClientException.
      *
      * @param message   Error message
      * @param errorCode Error code
      * @param cause     Error
      */
-    public FunctionLibraryManagementException(String errorCode, String message, Throwable cause) {
+    public FunctionLibraryManagementClientException(String errorCode, String message, Throwable cause) {
 
         super(errorCode, message, cause);
         this.errorCode = errorCode;

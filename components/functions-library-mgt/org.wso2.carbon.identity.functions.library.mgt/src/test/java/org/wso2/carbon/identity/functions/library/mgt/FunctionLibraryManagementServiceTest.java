@@ -123,7 +123,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
             assertEquals(functionLibraryManagementService.getFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)
-                                                         .getFunctionLibraryName(),
+                            .getFunctionLibraryName(),
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName());
 
             // Clean after test
@@ -131,20 +131,20 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         } catch (FunctionLibraryManagementException e) {
             if (((FunctionLibrary) functionLibrary).getFunctionLibraryName() == null) {
-                assertEquals(e.getMessage(), "Function Library Name is required");
+                assertEquals(e.getMessage(), "script Library Name is required");
             } else if (!isRegexValidated(((FunctionLibrary) functionLibrary).getFunctionLibraryName())) {
-                assertEquals(e.getMessage(), "The function library name " + ((FunctionLibrary) functionLibrary).
-                        getFunctionLibraryName() + " is not valid! It is not adhering " +
-                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
+                assertEquals(e.getMessage(), "The script library name is not valid! It is not adhering to the regex " +
+                        FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
             } else {
                 try {
                     if (functionLibraryDAO.isFunctionLibraryExists(
                             ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain)) {
                         assertEquals(e.getMessage(),
-                                "Already a function library available with the same name.");
+                                "Already a script library available with the name: " +
+                                        ((FunctionLibrary) functionLibrary).getFunctionLibraryName() + ".");
                     }
                 } catch (FunctionLibraryManagementException e1) {
-                    log.error("Function Library Management Exception");
+                    log.error("Script Library Management Exception");
                 }
             }
         } catch (Exception e) {
@@ -197,7 +197,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
             assertTrue(functionLibraryManagementService.getFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain) != null,
-                    "Failed to retrieve function library");
+                    "Failed to retrieve script library");
             // Clean after test
             deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
                     tenantDomain);
@@ -230,7 +230,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                                 functionLibrary6,
                                 functionLibrary7,
                                 functionLibrary8
-                        ),
+                                     ),
                         SAMPLE_TENANT_DOMAIN
                 }
         };
@@ -337,7 +337,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             functionLibraryManagementService.updateFunctionLibrary(oldName, funLib, tenantDomain);
 
             assertNotNull(functionLibraryManagementService.getFunctionLibrary(funLib.getFunctionLibraryName(),
-                    tenantDomain), "Failed to update function library.");
+                    tenantDomain), "Failed to update script library.");
 
             // Clean after test
             deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
@@ -345,12 +345,13 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         } catch (FunctionLibraryManagementException e) {
             if (!funLib.getFunctionLibraryName().equals(oldName) && functionLibraryDAO.isFunctionLibraryExists
                     (funLib.getFunctionLibraryName(), tenantDomain)) {
-                assertEquals(e.getMessage(), "Already a function library available with the same name.");
+                assertEquals(e.getMessage(),
+                        "Already a script library available with the name: " +
+                                ((FunctionLibrary) functionLibrary).getFunctionLibraryName() + ".");
             }
             if (!isRegexValidated(funLib.getFunctionLibraryName())) {
-                assertEquals(e.getMessage(), "The function library name " +
-                        funLib.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                        "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
+                assertEquals(e.getMessage(), "The script library name is not valid! It is not adhering to the regex " +
+                        FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
             }
         } catch (Exception e) {
             log.error("Exception");
@@ -365,7 +366,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                 functionLibraryManagementService.createFunctionLibrary((FunctionLibrary) functionLibrary, tenantDomain);
             } catch (FunctionLibraryManagementException e) {
                 if (((FunctionLibrary) functionLibrary).getFunctionLibraryName() == null) {
-                    assertEquals(e.getMessage(), "Function Library Name is required");
+                    assertEquals(e.getMessage(), "script Library Name is required");
                 }
             }
         }

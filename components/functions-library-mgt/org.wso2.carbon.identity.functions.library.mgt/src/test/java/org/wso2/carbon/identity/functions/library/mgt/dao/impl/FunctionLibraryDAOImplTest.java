@@ -145,7 +145,9 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
         } catch (SQLException e) {
             log.error("SQLException");
         } catch (FunctionLibraryManagementException e) {
-            assertEquals(e.getMessage(), "Error while creating Function Library.");
+            assertEquals(e.getMessage(),
+                    "Error while creating the script library: " +
+                            ((FunctionLibrary) functionLibrary).getFunctionLibraryName() + ".");
         }
     }
 
@@ -177,14 +179,14 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
                         Arrays.asList(
                                 functionLibrary4,
                                 functionLibrary5
-                        ),
+                                     ),
                         SAMPLE_TENANT_DOMAIN
                 },
                 {
                         Arrays.asList(
                                 functionLibrary6,
                                 functionLibrary7
-                        ),
+                                     ),
                         SAMPLE_TENANT_DOMAIN2
                 },
         };
@@ -204,7 +206,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
             List<FunctionLibrary> functionLibrariesList = functionLibraryDAO.listFunctionLibraries(tenantDomain);
             assertTrue(functionLibrariesList != null && functionLibrariesList.size() != 0,
-                    "Failed to retrieve function libraries.");
+                    "Failed to retrieve script libraries.");
 
             // Clean after test
             deleteFunctionLibraries(functionLibraryDAO, functionLibraries, tenantDomain);
@@ -253,7 +255,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection);
             assertTrue(functionLibraryDAO.getFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain) != null,
-                    "Failed to retrieve function library");
+                    "Failed to retrieve script library");
             // Clean after test
             deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
         }
@@ -301,8 +303,8 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
             when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertNull(functionLibraryDAO.getFunctionLibrary(((FunctionLibrary) functionLibrary)
-                                                                     .getFunctionLibraryName(), tenantDomain),
-                       "Failed to delete the functionLibrary by name.");
+                            .getFunctionLibraryName(), tenantDomain),
+                    "Failed to delete the functionLibrary by name.");
 
         }
     }
@@ -365,7 +367,7 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
 
             when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertNotNull(functionLibraryDAO.getFunctionLibrary(funLib.getFunctionLibraryName(), tenantDomain),
-                    "Failed to update function library.");
+                    "Failed to update script library.");
 
             // Clean after test
             deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
@@ -429,11 +431,11 @@ public class FunctionLibraryDAOImplTest extends PowerMockIdentityBaseTest {
             assertTrue(functionLibraryDAO.isFunctionLibraryExists(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain),
                     "Failed to check existence " +
-                            "by function library name.");
+                            "by script library name.");
             when(IdentityDatabaseUtil.getDBConnection(false)).thenReturn(connection2);
             assertFalse(functionLibraryDAO.isFunctionLibraryExists("InvalidName", tenantDomain),
                     "Failed to check existence " +
-                            "by function library name.");
+                            "by script library name.");
 
             // Clean after test
             deleteFunctionLibraries(functionLibraryDAO, Collections.singletonList(functionLibrary), tenantDomain);
