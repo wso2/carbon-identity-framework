@@ -1,0 +1,16 @@
+# Code owners
+/components/workflow-mgt @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/identity-core @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/identity-event @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/identity-mgt @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/captcha-mgt @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/configuration-mgt @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/notification-mgt @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
+
+/components/claim-mgt @somindatommy @IsuraD @ayshsandu @vihanga-liyanage @GDRDABARERA @NilukaSripalim @ShanChathusanda93
