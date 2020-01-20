@@ -23,7 +23,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDAOImpl;
-import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementClientException;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryExceptionManagementUtil;
@@ -146,9 +145,9 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
      * Check for required attributes.
      *
      * @param functionLibrary Function library
-     * @throws FunctionLibraryManagementClientException
+     * @throws FunctionLibraryManagementException
      */
-    private void validateInputs(FunctionLibrary functionLibrary) throws FunctionLibraryManagementClientException {
+    private void validateInputs(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
@@ -165,7 +164,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
      * @param functionLibrary Function Library
      * @throws FunctionLibraryManagementException
      */
-    private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementClientException {
+    private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
@@ -176,7 +175,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
             code = head + code;
             engine.eval(code);
         } catch (ScriptException e) {
-            log.debug("Script library script of " + functionLibrary.getFunctionLibraryName() +
+            log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
                     " contains errors." + e);
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
                     FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,

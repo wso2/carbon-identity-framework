@@ -174,7 +174,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             code = head + code;
             engine.eval(code);
         } catch (ScriptException e) {
-            log.debug("Script library script of " + functionLibrary.getFunctionLibraryName() +
+            log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
                     " contains errors." + e);
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
                     FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,

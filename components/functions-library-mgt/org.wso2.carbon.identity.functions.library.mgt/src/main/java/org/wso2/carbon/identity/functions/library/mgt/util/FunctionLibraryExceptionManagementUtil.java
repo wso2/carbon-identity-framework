@@ -35,17 +35,14 @@ public class FunctionLibraryExceptionManagementUtil {
      * @return FunctionLibraryManagementClientException.
      */
     public static FunctionLibraryManagementClientException handleClientException(
-            FunctionLibraryManagementConstants.ErrorMessage
-                    error, String data) {
+            FunctionLibraryManagementConstants.ErrorMessage error, String data) {
 
         String message = includeData(error, data);
         return new FunctionLibraryManagementClientException(error.getCode(), message);
     }
 
     public static FunctionLibraryManagementClientException handleClientException(
-            FunctionLibraryManagementConstants.ErrorMessage
-                    error, String data,
-            Throwable e) {
+            FunctionLibraryManagementConstants.ErrorMessage error, String data, Throwable e) {
 
         String message = includeData(error, data);
         return new FunctionLibraryManagementClientException(error.getCode(), message, e);
@@ -91,7 +88,7 @@ public class FunctionLibraryExceptionManagementUtil {
      * Include the data to the error message.
      *
      * @param error FunctionLibraryManagementConstants.ErrorMessage.
-     * @param data data to replace if message needs to be replaced.
+     * @param data  data to replace if message needs to be replaced.
      * @return message format with data.
      */
     private static String includeData(FunctionLibraryManagementConstants.ErrorMessage error, String data) {

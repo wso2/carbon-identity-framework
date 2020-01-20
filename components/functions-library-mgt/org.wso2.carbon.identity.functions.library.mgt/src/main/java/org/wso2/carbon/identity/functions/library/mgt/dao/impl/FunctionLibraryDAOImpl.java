@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibMgtDBQueries;
 import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
-import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementServerException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryExceptionManagementUtil;
 import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryManagementConstants;
@@ -59,7 +58,7 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      * @throws FunctionLibraryManagementException
      */
     public void createFunctionLibrary(FunctionLibrary functionLibrary, String tenantDomain)
-            throws FunctionLibraryManagementServerException {
+            throws FunctionLibraryManagementException {
 
         // get logged-in users tenant identifier.
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
@@ -112,10 +111,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      * @param functionLibraryName Function library name
      * @param tenantDomain        Tenant domain
      * @return Function library
-     * @throws FunctionLibraryManagementServerException
+     * @throws FunctionLibraryManagementException
      */
     public FunctionLibrary getFunctionLibrary(String functionLibraryName, String tenantDomain)
-            throws FunctionLibraryManagementServerException {
+            throws FunctionLibraryManagementException {
 
         // get logged-in users tenant identifier.
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
@@ -162,10 +161,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      *
      * @param tenantDomain Tenant domain
      * @return A list of function libraries
-     * @throws FunctionLibraryManagementServerException
+     * @throws FunctionLibraryManagementException
      */
     public List<FunctionLibrary> listFunctionLibraries(String tenantDomain)
-            throws FunctionLibraryManagementServerException {
+            throws FunctionLibraryManagementException {
 
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
 
@@ -208,10 +207,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      * @param oldFunctionLibName Previous name of the function library
      * @param functionLibrary    Function library
      * @param tenantDomain       Tenant domain
-     * @throws FunctionLibraryManagementServerException
+     * @throws FunctionLibraryManagementException
      */
     public void updateFunctionLibrary(String oldFunctionLibName, FunctionLibrary functionLibrary, String tenantDomain)
-            throws FunctionLibraryManagementServerException {
+            throws FunctionLibraryManagementException {
 
         // get logged-in users tenant identifier.
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
@@ -261,10 +260,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      *
      * @param functionLibraryName Function library name
      * @param tenantDomain        Tenant domain
-     * @throws FunctionLibraryManagementServerException
+     * @throws FunctionLibraryManagementException
      */
     public void deleteFunctionLibrary(String functionLibraryName, String tenantDomain)
-            throws FunctionLibraryManagementServerException {
+            throws FunctionLibraryManagementException {
 
         int tenantID = MultitenantConstants.INVALID_TENANT_ID;
 
@@ -305,10 +304,10 @@ public class FunctionLibraryDAOImpl implements FunctionLibraryDAO {
      * @param functionLibraryName Name of the function library
      * @param tenantDomain        Tenant domain
      * @return Existence of the function library
-     * @throws FunctionLibraryManagementServerException
+     * @throws FunctionLibraryManagementException
      */
     public boolean isFunctionLibraryExists(String functionLibraryName, String tenantDomain)
-            throws FunctionLibraryManagementServerException {
+            throws FunctionLibraryManagementException {
 
         boolean isFunctionLibraryExists = false;
         int tenantID = MultitenantConstants.SUPER_TENANT_ID;
