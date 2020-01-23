@@ -565,6 +565,16 @@
             {% else %}
             <SkipUserConsent>true</SkipUserConsent>
             {% endif %}
+            {% if oauth.prompt_login_consent is sameas true %}
+            <SkipLoginConsent>false</SkipLoginConsent>
+            {% else %}
+            <SkipLoginConsent>true</SkipLoginConsent>
+            {% endif %}
+            {% if oauth.prompt_logout_consent is sameas true %}
+            <SkipLogoutConsent>false</SkipLogoutConsent>
+            {% else %}
+            <SkipLogoutConsent>true</SkipLogoutConsent>
+            {% endif %}
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
             {% if oauth.oidc.id_token.sign_with_sp_key is defined %}
             <SignJWTWithSPKey>{{oauth.oidc.id_token.sign_with_sp_key}}</SignJWTWithSPKey>

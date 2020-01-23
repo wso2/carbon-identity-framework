@@ -89,6 +89,54 @@ public class IdentityEventConstants {
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
         public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
 
+        public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
+        public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";
+        public static final String PRE_GET_USER_CLAIM_VALUE_WITH_ID = "PRE_GET_USER_CLAIM_VALUE_WITH_ID";
+        public static final String PRE_GET_USER_CLAIM_VALUES_WITH_ID = "PRE_GET_USER_CLAIM_VALUES_WITH_ID";
+        public static final String POST_GET_USER_CLAIM_VALUE_WITH_ID = "POST_GET_USER_CLAIM_VALUE_WITH_ID";
+        public static final String POST_GET_USER_CLAIM_VALUES_WITH_ID = "POST_GET_USER_CLAIM_VALUES_WITH_ID";
+        public static final String PRE_GET_USER_LIST_WITH_ID = "PRE_GET_USER_LIST_WITH_ID";
+        public static final String PRE_GET_USER_LIST_PAGINATION_WITH_ID = "PRE_GET_USER_LIST_PAGINATION_WITH_ID";
+        public static final String PRE_GET_USER_LIST_CONDITION_WITH_ID = "PRE_GET_USER_LIST_CONDITION_WITH_ID";
+        public static final String POST_GET_USER_LIST_WITH_ID = "POST_GET_USER_LIST_WITH_ID";
+        public static final String POST_GET_USER_LIST_PAGINATION_WITH_ID = "POST_GET_USER_LIST_PAGINATION_WITH_ID";
+        public static final String POST_GET_USER_LIST_CONDITION_WITH_ID = "POST_GET_USER_LIST_CONDITION_WITH_ID";
+        public static final String PRE_GET_USER_WITH_ID = "PRE_GET_USER_WITH_ID";
+        public static final String POST_GET_USER_WITH_ID = "POST_GET_USER_WITH_ID";
+        public static final String POST_GET_PAGINATED_USER_LIST_WITH_ID = "POST_GET_PAGINATED_USER_LIST_WITH_ID";
+        public static final String POST_LIST_USERS_WITH_ID = "POST_LIST_USERS_WITH_ID";
+        public static final String POST_GET_ROLE_LIST_OF_USER_WITH_ID = "POST_GET_ROLE_LIST_OF_USER_WITH_ID";
+        public static final String POST_GET_USER_LIST_OF_ROLE_WITH_ID = "POST_GET_USER_LIST_OF_ROLE_WITH_ID";
+        public static final String POST_GET_USERS_CLAIM_VALUES_WITH_ID = "POST_GET_USERS_CLAIM_VALUES_WITH_ID";
+        public static final String PRE_AUTHENTICATE_WITH_ID = "PRE_AUTHENTICATE_WITH_ID";
+        public static final String POST_AUTHENTICATE_WITH_ID = "POST_AUTHENTICATE_WITH_ID";
+        public static final String PRE_AUTHENTICATE_CLAIM_WITH_ID = "PRE_AUTHENTICATE_CLAIM_WITH_ID";
+        public static final String POST_AUTHENTICATE_CLAIM_WITH_ID = "POST_AUTHENTICATE_CLAIM_WITH_ID";
+        public static final String PRE_AUTHENTICATE_LOGIN_IDENTIFIER_WITH_ID = "PRE_AUTHENTICATE_LOGIN_IDENTIFIER_WITH_ID";
+        public static final String POST_AUTHENTICATE_LOGIN_IDENTIFIER_WITH_ID = "POST_AUTHENTICATE_LOGIN_IDENTIFIER_WITH_ID";
+        public static final String PRE_ADD_USER_WITH_ID = "PRE_ADD_USER_WITH_ID";
+        public static final String POST_ADD_USER_WITH_ID = "POST_ADD_USER_WITH_ID";
+        public static final String PRE_UPDATE_CREDENTIAL_WITH_ID = "PRE_UPDATE_CREDENTIAL_WITH_ID";
+        public static final String POST_UPDATE_CREDENTIAL_WITH_ID = "POST_UPDATE_CREDENTIAL_WITH_ID";
+        public static final String PRE_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID = "PRE_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID";
+        public static final String POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID = "POST_UPDATE_CREDENTIAL_BY_ADMIN_WITH_ID";
+        public static final String PRE_DELETE_USER_WITH_ID = "PRE_DELETE_USER_WITH_ID";
+        public static final String POST_DELETE_USER_WITH_ID = "POST_DELETE_USER_WITH_ID";
+        public static final String PRE_SET_USER_CLAIM_VALUE_WITH_ID = "PRE_SET_USER_CLAIM_VALUE_WITH_ID";
+        public static final String POST_SET_USER_CLAIM_VALUE_WITH_ID = "POST_SET_USER_CLAIM_VALUE_WITH_ID";
+        public static final String PRE_SET_USER_CLAIM_VALUES_WITH_ID = "PRE_SET_USER_CLAIM_VALUES_WITH_ID";
+        public static final String POST_SET_USER_CLAIM_VALUES_WITH_ID = "POST_SET_USER_CLAIM_VALUES_WITH_ID";
+        public static final String PRE_DELETE_USER_CLAIM_VALUES_WITH_ID = "PRE_DELETE_USER_CLAIM_VALUES_WITH_ID";
+        public static final String POST_DELETE_USER_CLAIM_VALUES_WITH_ID = "POST_DELETE_USER_CLAIM_VALUES_WITH_ID";
+        public static final String PRE_DELETE_USER_CLAIM_VALUE_WITH_ID = "PRE_DELETE_USER_CLAIM_VALUE_WITH_ID";
+        public static final String POST_DELETE_USER_CLAIM_VALUE_WITH_ID = "POST_DELETE_USER_CLAIM_VALUE_WITH_ID";
+        public static final String PRE_ADD_ROLE_WITH_ID = "PRE_ADD_ROLE_WITH_ID";
+        public static final String POST_ADD_ROLE_WITH_ID = "POST_ADD_ROLE_WITH_ID";
+        public static final String PRE_UPDATE_USER_LIST_OF_ROLE_WITH_ID = "PRE_UPDATE_USER_LIST_OF_ROLE_WITH_ID";
+        public static final String POST_UPDATE_USER_LIST_OF_ROLE_WITH_ID = "POST_UPDATE_USER_LIST_OF_ROLE_WITH_ID";
+        public static final String PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
+        public static final String POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
+        public static final String POST_GET_ROLE_LIST_OF_USERS_WITH_ID = "POST_GET_ROLE_LIST_OF_USERS_WITH_ID";
     }
 
     /**
@@ -138,6 +186,18 @@ public class IdentityEventConstants {
         public static final String PROFILE_NAME = "PROFILE_NAME";
 
         public static final String REQUEST = "request";
+        public static final String USER_ID = "USER_ID";
+        public static final String USER_IDS = "USER_IDS";
+        public static final String CONDITION = "CONDITION";
+        public static final String LIMIT = "LIMIT";
+        public static final String AUTHENTICATION_RESULT = "AUTHENTICATION_RESULT";
+        public static final String OFFSET = "OFFSET";
+        public static final String SORT_BY = "SORT_BY";
+        public static final String SORT_ORDER = "SORT_ORDER";
+        public static final String USER = "USER";
+        public static final String FILTER = "FILTER";
+        public static final String USER_CLAIM_SEARCH_ENTRIES = "USER_CLAIM_SEARCH_ENTRIES";
+        public static final String LOGIN_IDENTIFIERS = "LOGIN_IDENTIFIERS";
         public static final String CONTEXT = "context";
         public static final String SESSION_CONTEXT = "sessionContext";
         public static final String PARAMS = "params";

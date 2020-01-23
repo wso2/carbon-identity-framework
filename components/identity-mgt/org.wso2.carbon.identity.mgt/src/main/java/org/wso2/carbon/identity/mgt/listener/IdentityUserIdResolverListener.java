@@ -153,15 +153,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String userID = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(userName);
-        if (userID == null) {
+        User user = ((AbstractUserStoreManager) userStoreManager).getUser(null, userName);
+        if (user == null) {
             return handleUserIDResolveFailure(userName, userStoreManager);
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
-                        .doPostAddUserWithID(userID, credential, roleList, claims, profile,
+                        .doPostAddUserWithID(user, credential, roleList, claims, profile,
                                 userStoreManager)) {
                     return false;
                 }
@@ -1123,7 +1123,7 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         List<String> userIDsList =
-                userStoreManager.getUserIDsFromUserNames(Arrays.asList(getDomainLessNames((userNames))));
+                userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
         return userIDsList.toArray(new String[0]);
     }
 
