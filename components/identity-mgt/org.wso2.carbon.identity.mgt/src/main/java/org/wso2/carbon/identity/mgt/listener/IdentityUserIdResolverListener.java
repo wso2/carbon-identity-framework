@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.mgt.listener;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -532,6 +533,10 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
 
         String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
+        if (ArrayUtils.isEmpty(userIDs)) {
+            return true;
+        }
+
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
 
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -555,6 +560,10 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
 
         String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
+        if (ArrayUtils.isEmpty(userIDs)) {
+            return true;
+        }
+
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
@@ -576,6 +585,10 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
+
+        if (ArrayUtils.isEmpty(userIDs)) {
+            return true;
+        }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -599,6 +612,10 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
 
         String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
+        if (ArrayUtils.isEmpty(userIDs)) {
+            return true;
+        }
+
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
                 if (!((UniqueIDUserOperationEventListener) listener)
@@ -620,7 +637,16 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
+
+        if (ArrayUtils.isEmpty(deletedUserIDs)) {
+            return true;
+        }
+
         String[] newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
+
+        if (ArrayUtils.isEmpty(newUserIDs)) {
+            return true;
+        }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -643,7 +669,16 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
+
+        if (ArrayUtils.isEmpty(deletedUserIDs)) {
+            return true;
+        }
+
         String[] newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
+
+        if (ArrayUtils.isEmpty(newUserIDs)) {
+            return true;
+        }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (!(listener instanceof IdentityUserNameResolverListener)) {
@@ -1115,15 +1150,23 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         return true;
     }
 
-    private String[] getUserIdsFromUserNames(String[] userNames, AbstractUserStoreManager userStoreManager)
-            throws UserStoreException {
+    private String[] getUserIdsFromUserNames(String[] userNames, AbstractUserStoreManager userStoreManager) {
 
         if (userNames == null) {
             return new String[0];
         }
 
-        List<String> userIDsList =
-                userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
+        List<String> userIDsList = new ArrayList<>();
+        try {
+            userIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
+        }
+
         return userIDsList.toArray(new String[0]);
     }
 
