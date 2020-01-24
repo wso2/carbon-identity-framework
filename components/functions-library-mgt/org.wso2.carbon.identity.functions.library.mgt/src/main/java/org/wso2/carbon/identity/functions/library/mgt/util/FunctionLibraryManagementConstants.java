@@ -41,9 +41,9 @@ public class FunctionLibraryManagementConstants {
                 "An error occurred while processing content stream of script library script: %s."),
         ERROR_CODE_INVALID_TENANT("SCL-65004", "Error while creating script library due to invalid tenant."),
         ERROR_CODE_RETRIEVE_SCRIPT_LIBRARY("SCL-65005", "Error while getting the script library: %s."),
-        ERROR_CODE_RETRIEVE_SCRIPT_LIBRARIES("SCL-65006", "Error while reading Script libraries."),
+        ERROR_CODE_RETRIEVE_SCRIPT_LIBRARIES("SCL-65006", "Error while reading script libraries."),
         ERROR_CODE_UPDATE_SCRIPT_LIBRARY("SCL-65007", "Failed to update Script library: %s."),
-        ERROR_CODE_DELETE_SCRIPT_LIBRARY("SCL-65008", "Error while deleting Script library: %s."),
+        ERROR_CODE_DELETE_SCRIPT_LIBRARY("SCL-65008", "Error while deleting script library: %s."),
         ERROR_CODE_FAILED_TO_CHECK_SCRIPT_LIBRARY("SCL-60002", "Script library with resource ID: %s does not exists.");
 
         private final String code;
