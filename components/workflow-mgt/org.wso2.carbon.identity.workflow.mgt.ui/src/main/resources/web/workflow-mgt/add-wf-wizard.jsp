@@ -153,7 +153,7 @@
 
         function submitPage(){
             var workflowForm = document.getElementById("id_workflow");
-            if(validateWorkflowName()){
+            if(validateWorkflowName() && validateWorkflowDescription()){
                 workflowForm.submit();
             }
         }
@@ -172,6 +172,16 @@
 
             if ((!workflowId || 0 === workflowId.length) && $.inArray(workflow_name, existingWorkflowNames) !== -1) {
                 CARBON.showWarningDialog("<fmt:message key="workflow.error.duplicate.workflow.name"/>", null, null);
+                return false;
+            }
+            return true;
+        }
+
+        function validateWorkflowDescription(){
+            var workflow_description = $('#id_workflow_description').val();
+            if(workflow_description.length > 255){
+                CARBON.showWarningDialog("<fmt:message key="workflow.error.length.workflow.description"/>" , null
+                    ,null) ;
                 return false;
             }
             return true;
@@ -204,7 +214,12 @@
                                 <tr>
                                     <td><fmt:message key='workflow.description'/></td>
                                     <td>
-                                        <textarea name="<%=WorkflowUIConstants.PARAM_WORKFLOW_DESCRIPTION%>" cols="60" rows="4"><%=(workflowWizard != null && workflowWizard.getWorkflowDescription() != null) ? Encode.forHtmlAttribute(workflowWizard.getWorkflowDescription()) : ""%></textarea>
+                                        <textarea id="id_workflow_description"
+                                                  name="<%=WorkflowUIConstants.PARAM_WORKFLOW_DESCRIPTION%>"
+                                                  cols="60" rows="4"><%=(workflowWizard != null &&
+                                                  workflowWizard.getWorkflowDescription() != null) ?
+                                                 Encode.forHtmlAttribute(workflowWizard.getWorkflowDescription()) : ""%>
+                                        </textarea>
                                     </td>
                                 </tr>
                             </table>
