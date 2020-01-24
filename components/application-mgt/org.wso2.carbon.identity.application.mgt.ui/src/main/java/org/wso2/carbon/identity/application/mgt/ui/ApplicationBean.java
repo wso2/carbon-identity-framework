@@ -1278,7 +1278,7 @@ public class ApplicationBean {
         String passiveSTSRealm = request.getParameter("passiveSTSRealm");
         String passiveSTSWReply = request.getParameter("passiveSTSWReply");
 
-        if (passiveSTSRealm != null) {
+        if (StringUtils.isNotEmpty(passiveSTSRealm)) {
             InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
             opicAuthenticationRequest.setInboundAuthKey(passiveSTSRealm);
             opicAuthenticationRequest.setInboundAuthType("passivests");
@@ -1294,7 +1294,7 @@ public class ApplicationBean {
 
         String openidRealm = request.getParameter("openidRealm");
 
-        if (openidRealm != null) {
+        if (StringUtils.isNotEmpty(openidRealm)) {
             InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
             opicAuthenticationRequest.setInboundAuthKey(openidRealm);
             opicAuthenticationRequest.setInboundAuthType("openid");
