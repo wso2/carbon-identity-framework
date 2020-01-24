@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,7 +29,6 @@ import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 import java.util.List;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 /**
@@ -162,7 +162,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         try {
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+            ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
             String head = "var module = { exports:{} }; \n" +
                     "var exports = {}; \n" +
                     "function require(name){};";
