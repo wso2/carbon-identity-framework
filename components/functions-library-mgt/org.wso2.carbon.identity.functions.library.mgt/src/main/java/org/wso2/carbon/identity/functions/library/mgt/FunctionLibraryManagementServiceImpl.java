@@ -72,7 +72,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
 
         if (functionLibraryDAO.isFunctionLibraryExists(functionLibrary.getFunctionLibraryName(), tenantDomain)) {
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
-                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_ALL_READY_EXIST_SCRIPT_LIBRARY,
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_ALREADY_EXIST_SCRIPT_LIBRARY,
                     functionLibrary.getFunctionLibraryName());
         }
 
@@ -120,7 +120,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
         if (!functionLibrary.getFunctionLibraryName().equals(oldFunctionLibraryName) &&
                 functionLibraryDAO.isFunctionLibraryExists(functionLibrary.getFunctionLibraryName(), tenantDomain)) {
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
-                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_ALL_READY_EXIST_SCRIPT_LIBRARY,
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_ALREADY_EXIST_SCRIPT_LIBRARY,
                     functionLibrary.getFunctionLibraryName());
         }
 

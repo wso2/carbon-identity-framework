@@ -33,7 +33,7 @@ public class FunctionLibraryManagementConstants {
         ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT("SCL-60002", "Script library script of %s contains errors."),
         ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_NAME("SCL-60003", "Script library name is required"),
         ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_SCRIPT("SCL-60003", "Script library script is required"),
-        ERROR_CODE_ALL_READY_EXIST_SCRIPT_LIBRARY("SCL-65004", "Already a script library available with the name: %s."),
+        ERROR_CODE_ALREADY_EXIST_SCRIPT_LIBRARY("SCL-65004", "Already a script library available with the name: %s."),
         ERROR_CODE_INVALID_SCRIPT_LIBRARY_NAME("SCL-65004", "The script library name is not valid! It is not adhering" +
                 " to the regex %s."),
         ERROR_CODE_ADD_SCRIPT_LIBRARY("SCL-65002", "Error while creating the script library: %s."),
