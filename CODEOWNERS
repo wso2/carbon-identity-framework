@@ -18,3 +18,8 @@
 /components/template-mgt @thanujalk @omindu @nilasini @pamodaaw @sachiniWettasinghe @ShanikaWickramasinghe
 /components/idp-mgt @thanujalk @omindu @nilasini @pamodaaw @sachiniWettasinghe @ShanikaWickramasinghe
 /components/directory-server-manager @thanujalk @omindu @nilasini @pamodaaw @sachiniWettasinghe @ShanikaWickramasinghe
+
+# Codeowners for user components.
+/components/user-mgt @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
+/components/user-store @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
+/components/provisioning @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc

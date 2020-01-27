@@ -24,6 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryExceptionManagementUtil;
+import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryManagementConstants;
 
 import java.util.List;
 
@@ -53,7 +55,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.createFunctionLibrary(functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
-            log.error("Error while creating function library " + functionLibrary.getFunctionLibraryName() +
+            log.error("Error while creating script library " + functionLibrary.getFunctionLibraryName() +
                     " for tenant domain " + getTenantDomain() + ".", e);
             throw e;
         }
@@ -72,7 +74,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             List<FunctionLibrary> functionLibraries = functionLibMgtService.listFunctionLibraries(getTenantDomain());
             return functionLibraries;
         } catch (FunctionLibraryManagementException e) {
-            log.error("Error while retrieving function libraries for tenant: " + getTenantDomain() + ".", e);
+            log.error("Error while retrieving script libraries for tenant: " + getTenantDomain() + ".", e);
             throw e;
         }
     }
@@ -88,11 +90,11 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
 
         try {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
-            FunctionLibrary functionLibrary = null;
+            FunctionLibrary functionLibrary;
             functionLibrary = functionLibMgtService.getFunctionLibrary(functionLibraryName, getTenantDomain());
             return functionLibrary;
         } catch (FunctionLibraryManagementException e) {
-            log.error("Error while retrieving function library " + functionLibraryName +
+            log.error("Error while retrieving script library " + functionLibraryName +
                     " for tenant domain " + getTenantDomain() + ".", e);
             throw e;
         }
@@ -110,7 +112,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.deleteFunctionLibrary(functionLibraryName, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
-            log.error("Error while deleting function library " + functionLibraryName +
+            log.error("Error while deleting script library " + functionLibraryName +
                     " for tenant domain " + getTenantDomain(), e);
             throw e;
         }
@@ -132,7 +134,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             functionLibMgtService = FunctionLibraryManagementServiceImpl.getInstance();
             functionLibMgtService.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, getTenantDomain());
         } catch (FunctionLibraryManagementException e) {
-            log.error("Error while updating function library " + oldFunctionLibraryName +
+            log.error("Error while updating script library " + oldFunctionLibraryName +
                     "for tenant domain " + getTenantDomain(), e);
             throw e;
         }
@@ -147,9 +149,11 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     private void validateInputs(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
-            throw new FunctionLibraryManagementException("Function Library Name is required.");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_NAME);
         } else if (StringUtils.isBlank(functionLibrary.getFunctionLibraryScript())) {
-            throw new FunctionLibraryManagementException("Function Library Script is required.");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_SCRIPT);
         }
     }
 
@@ -170,10 +174,11 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
             code = head + code;
             engine.eval(code);
         } catch (ScriptException e) {
-            log.error("Function library script of " + functionLibrary.getFunctionLibraryName() +
+            log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
                     " contains errors." + e);
-            throw new FunctionLibraryManagementException("Function library script of " +
-                    functionLibrary.getFunctionLibraryName() + " contains errors.", e);
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,
+                    functionLibrary.getFunctionLibraryName(), e);
         }
     }
 }
