@@ -15,3 +15,7 @@
 /components/carbon-authenticators   @pulasthi7 @DMHP @Kanapriya @Abilashini @senthalan @piraveena @thushaaanthan
 /components/consent-mgt @pulasthi7 @DMHP @Kanapriya @Abilashini @senthalan @piraveena @thushaaanthan
 
+# Codeowners for user components.
+/components/user-mgt @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
+/components/user-store @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
+/components/provisioning @tharindu-bandara @JKAUSHALYA @madurangasiriwardena @ashensw @sarubi @wijith7 @gayashanbc
