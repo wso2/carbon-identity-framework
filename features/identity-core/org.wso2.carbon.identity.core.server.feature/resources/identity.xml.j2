@@ -1724,6 +1724,7 @@
     <!-- JWT validator configurations -->
     <JWTValidatorConfigs>
         <Enable>{{oauth.jwks_endpoint.enable}}</Enable>
+        <EnforceCertificateExpiryTimeValidity>{{oauth.jwks_endpoint.enforce_certificate_expiry_time_validity}}</EnforceCertificateExpiryTimeValidity>
         <JWKSEndpoint>
             <HTTPConnectionTimeout>{{oauth.jwks_endpoint.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{oauth.jwks_endpoint.read_timeout}}</HTTPReadTimeout>

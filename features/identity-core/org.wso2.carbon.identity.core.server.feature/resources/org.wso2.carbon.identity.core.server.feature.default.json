@@ -448,6 +448,7 @@
   ],
 
   "oauth.jwks_endpoint.enable": true,
+  "oauth.jwks_endpoint.enforce_certificate_expiry_time_validity": true,
   "oauth.jwks_endpoint.connection_timeout": "1s",
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",
