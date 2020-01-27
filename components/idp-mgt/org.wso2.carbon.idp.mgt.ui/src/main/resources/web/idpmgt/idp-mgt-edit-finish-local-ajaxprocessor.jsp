@@ -111,6 +111,27 @@
         }
         property.setValue(samlMetadataSigningEnabled);
         propertyList.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_WANT_AUTHN_REQUESTS_SIGNED_ENABLED);
+        String WantAuthnRequestsSignedEnabled = "false";
+        if (StringUtils.containsIgnoreCase(request.getParameter("WantAuthnRequestsSigned"), "on")) {
+                    WantAuthnRequestsSignedEnabled = "true";
+                }
+        property.setValue(WantAuthnRequestsSignedEnabled);
+        propertyList.add(property);
+
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_NAME_ID_FORMAT);
+        property.setValue(request.getParameter("NameIDFormat"));
+        propertyList.add(property);
+
+        property = new Property();
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_ATTRIBUTE_PROFILE);
+        property.setValue(request.getParameter("AttributeProfile"));
+        propertyList.add(property);
+
         Property[] properties = new Property[propertyList.size()];
         properties = propertyList.toArray(properties);
         samlFedAuthn.setProperties(properties);
