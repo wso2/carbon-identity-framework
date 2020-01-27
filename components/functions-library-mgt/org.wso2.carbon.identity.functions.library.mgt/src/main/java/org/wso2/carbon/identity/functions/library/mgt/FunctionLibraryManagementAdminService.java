@@ -162,7 +162,7 @@ public class FunctionLibraryManagementAdminService extends AbstractAdmin {
     private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         try {
-            ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine();
+            ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine("--no-java");
             String head = "var module = { exports:{} }; \n" +
                     "var exports = {}; \n" +
                     "function require(name){};";
