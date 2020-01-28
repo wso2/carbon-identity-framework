@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.user.store.count.exception.UserStoreCounterExcep
 import org.wso2.carbon.identity.user.store.count.internal.UserStoreCountDSComponent;
 import org.wso2.carbon.identity.user.store.count.jdbc.internal.InternalStoreCountConstants;
 import org.wso2.carbon.identity.user.store.count.util.UserStoreCountUtils;
-import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -38,7 +37,6 @@ import java.util.Set;
 public class UserStoreCountService {
 
     private static final Log log = LogFactory.getLog(UserStoreCountService.class);
-    private RealmConfiguration realmConfiguration = null;
     int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
     /**
@@ -59,7 +57,8 @@ public class UserStoreCountService {
             try {
                 count = getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
             } catch (UserStoreCounterException e) {
-                log.error("Error while getting user count from user store domain : " + userStoreDomain, e);
+                String errorMsg = "Error while getting user count from user store domain : ";
+                throw new UserStoreCounterException(errorMsg, e);
             }
             userCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
@@ -76,7 +75,7 @@ public class UserStoreCountService {
     public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
 
         Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
-        //add 2 more for the counts of Internal, Application domains
+        //Add 2 more for the counts of Internal, Application domains.
         PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 2];
         int i = 0;
 
@@ -85,7 +84,7 @@ public class UserStoreCountService {
             String filterWithDomain = getFilterWithDomain(userStoreDomain, filter);
 
             try {
-                count = getCountRoles(filterWithDomain);
+                count = getRoleCount(filterWithDomain);
             } catch (UserStoreCounterException e) {
                 log.error("Error while getting role count from user store domain : " + userStoreDomain, e);
             }
@@ -93,12 +92,13 @@ public class UserStoreCountService {
             roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
-        String internalDomainFilter = UserCoreConstants.INTERNAL_DOMAIN + "/" + filter;
-        String applicationDomainFilter = InternalStoreCountConstants.APPLICATION_DOMAIN + "/" + filter;
+        String internalDomainFilter = UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + filter;
+        String applicationDomainFilter = InternalStoreCountConstants.APPLICATION_DOMAIN +
+                UserCoreConstants.DOMAIN_SEPARATOR + filter;
         roleCounts[i] = new PairDTO(UserCoreConstants.INTERNAL_DOMAIN, String.valueOf(
-                getCountRoles(internalDomainFilter)));
+                getRoleCount(internalDomainFilter)));
         roleCounts[++i] = new PairDTO(InternalStoreCountConstants.APPLICATION_DOMAIN, String.valueOf(
-                getCountRoles(applicationDomainFilter)));
+                getRoleCount(applicationDomainFilter)));
 
         return roleCounts;
     }
@@ -123,7 +123,7 @@ public class UserStoreCountService {
             try {
                 count = getUserCountWithClaims(claimURI, filterWithDomain);
             } catch (UserStoreCounterException e) {
-                log.error("Error while getting user count with claim : " + claimURI + " from user store domain : "
+                log.error("Error while getting user count with claim : " + claimURI + ", from user store domain : "
                         + userStoreDomain, e);
             }
             claimCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
@@ -153,7 +153,7 @@ public class UserStoreCountService {
     public long countRolesInDomain(String filter, String domain) throws UserStoreCounterException {
 
         String filterWithDomain = getFilterWithDomain(domain, filter);
-        return getCountRoles(filterWithDomain);
+        return getRoleCount(filterWithDomain);
     }
 
     /**
@@ -173,7 +173,7 @@ public class UserStoreCountService {
     /**
      * Get count enabled user stores.
      *
-     * @return
+     * @return CountEnabledUserStore Array.
      * @throws UserStoreCounterException
      */
     public String[] getCountEnabledUserStores() throws UserStoreCounterException {
@@ -186,64 +186,67 @@ public class UserStoreCountService {
     /**
      * Get User count.
      *
-     * @param claimURI    claim uri
-     * @param valueFilter filter
-     * @return user count
-     * @throws UserStoreCounterException UserStoreCounterException
+     * @param claimURI    claim uri.
+     * @param valueFilter filter that filter the users.
+     * @return user count.
+     * @throws UserStoreCounterException UserStoreCounterException.
      */
     private long getUserCountWithClaims(String claimURI, String valueFilter) throws UserStoreCounterException {
 
         try {
-            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
+            if (UserStoreCountDSComponent.getRealmService() == null) {
+                String errorMsg = "Unable to retrieve realm service";
+                throw new UserStoreCounterException(errorMsg);
+            }
             UserStoreManager userStoreManager =
                     UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
-            if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
-                return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getUserCountWithClaims(claimURI,
-                        valueFilter);
-            } else {
+            if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(userStoreManager.getClass() + " is not not an instance of " + userStoreManager);
+                }
                 throw new UserStoreCounterException("Error while retrieving User Store from core");
             }
-
+            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getUserCountWithClaims(claimURI,
+                    valueFilter);
         } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving role count from tenent Id " +
+                        tenantId + " and the filter " + valueFilter);
+            }
             String errorMsg = "error while retrieving user count from user store";
             throw new UserStoreCounterException(errorMsg, e);
         }
     }
 
-    /**
-     * Get role count.
-     *
-     * @param filter filter
-     * @return role count
-     * @throws UserStoreCounterException UserStoreCounterException
-     */
-    private long getCountRoles(String filter) throws UserStoreCounterException {
+    private long getRoleCount(String filter) throws UserStoreCounterException {
 
         try {
-            realmConfiguration = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration();
+            if (UserStoreCountDSComponent.getRealmService() == null) {
+                String errorMsg = "Unable to retrieve realm service";
+                throw new UserStoreCounterException(errorMsg);
+            }
             UserStoreManager userStoreManager =
                     UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
-            if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
-                return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).countRoles(filter);
-            } else {
+
+            if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(userStoreManager.getClass() + " is not not an instance of " + userStoreManager);
+                }
                 throw new UserStoreCounterException("Error while retrieving role count from core");
             }
-
+            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).countRoles(filter);
         } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while retrieving role count from tenent Id " +
+                        tenantId + " and the filter " + filter);
+            }
             String errorMsg = "Error while retrieving role count from user store";
             throw new UserStoreCounterException(errorMsg, e);
         }
     }
 
-    /**
-     * Get filter with domain
-     *
-     * @param domain Domain
-     * @param filter Filter
-     * @return domain/filter
-     */
     private String getFilterWithDomain(String domain, String filter) {
 
-        return domain + "/" + filter;
+        return domain + UserCoreConstants.DOMAIN_SEPARATOR + filter;
     }
 }
