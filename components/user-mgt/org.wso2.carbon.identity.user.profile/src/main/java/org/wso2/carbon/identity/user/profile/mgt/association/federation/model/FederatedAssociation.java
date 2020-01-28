@@ -24,13 +24,13 @@ package org.wso2.carbon.identity.user.profile.mgt.association.federation.model;
 public class FederatedAssociation {
 
     private String id;
-    private String idpId;
+    private AssociatedIdentityProvider idp;
     private String federatedUserId;
 
-    public FederatedAssociation(String id, String idpId, String federatedUserId) {
+    public FederatedAssociation(String id, AssociatedIdentityProvider idp, String federatedUserId) {
 
         this.id = id;
-        this.idpId = idpId;
+        this.idp = idp;
         this.federatedUserId = federatedUserId;
     }
 
@@ -44,14 +44,14 @@ public class FederatedAssociation {
         this.id = id;
     }
 
-    public String getIdpId() {
+    public AssociatedIdentityProvider getIdp() {
 
-        return idpId;
+        return idp;
     }
 
-    public void setIdpId(String idpId) {
+    public void setIdp(AssociatedIdentityProvider idp) {
 
-        this.idpId = idpId;
+        this.idp = idp;
     }
 
     public String getFederatedUserId() {
