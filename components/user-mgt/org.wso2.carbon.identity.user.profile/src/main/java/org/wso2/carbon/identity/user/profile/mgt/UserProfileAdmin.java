@@ -794,7 +794,8 @@ public class UserProfileAdmin extends AbstractAdmin {
                 .getFederatedAssociationsOfUser(user);
         List<AssociatedAccountDTO> associatedAccountDTOS = new ArrayList<>();
         for (FederatedAssociation federatedAssociation : federatedAssociations) {
-            String identityProviderName = getIdentityProviderName(getTenantDomain(), federatedAssociation.getIdpId());
+            String identityProviderName = getIdentityProviderName(getTenantDomain(),
+                    federatedAssociation.getIdp().getId());
             associatedAccountDTOS.add(new AssociatedAccountDTO(
                     federatedAssociation.getId(),
                     identityProviderName,
