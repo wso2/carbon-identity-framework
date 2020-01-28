@@ -22,7 +22,6 @@
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",
-  "key_mgt.userstore_password_encryption": "InternalKeyStore",
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
@@ -449,6 +448,7 @@
   ],
 
   "oauth.jwks_endpoint.enable": true,
+  "oauth.jwks_endpoint.enforce_certificate_expiry_time_validity": true,
   "oauth.jwks_endpoint.connection_timeout": "1s",
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",

@@ -31,6 +31,7 @@ import java.net.URI;
 import java.util.UUID;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.PATH_SEPARATOR;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.RESOURCE_PATH;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.SERVER_API_PATH_COMPONENT;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.TENANT_CONTEXT_PATH_COMPONENT;
@@ -171,7 +172,8 @@ public class ConfigurationUtils {
      */
     public static String getFilePath(String fileId, String resourceType, String resourceName) {
 
-        return RESOURCE_PATH + '/' + resourceType + '/' + resourceName + '/' + FILE + '/' + fileId;
+        return RESOURCE_PATH + PATH_SEPARATOR + resourceType + PATH_SEPARATOR + resourceName + PATH_SEPARATOR + FILE
+                + PATH_SEPARATOR + fileId;
     }
 
     /**
