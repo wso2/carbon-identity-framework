@@ -17,11 +17,15 @@ package org.wso2.carbon.identity.claim.metadata.mgt.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStoreFactory;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimConfigListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
@@ -44,12 +48,15 @@ public class IdentityClaimManagementServiceComponent {
     @Activate
     protected void activate(ComponentContext ctxt) {
         try {
-            IdentityClaimManagementServiceDataHolder.getInstance().setBundleContext(ctxt.getBundleContext());
+            BundleContext bundleCtx = ctxt.getBundleContext();
+
+            IdentityClaimManagementServiceDataHolder.getInstance().setBundleContext(bundleCtx);
             ClaimMetadataStoreFactory claimMetadataStoreFactory = new ClaimMetadataStoreFactory();
-            ctxt.getBundleContext().registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory, null);
+            bundleCtx.registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory, null);
             ClaimMetadataManagementService claimManagementService = new ClaimMetadataManagementServiceImpl();
-            ctxt.getBundleContext().registerService(ClaimMetadataManagementService.class.getName(), claimManagementService, null);
+            bundleCtx.registerService(ClaimMetadataManagementService.class.getName(), claimManagementService, null);
             IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagementService(claimManagementService);
+            registerClaimConfigListener(bundleCtx);
             if (log.isDebugEnabled()) {
                 log.debug("Identity Claim Management Core bundle is activated");
             }
@@ -57,6 +64,27 @@ public class IdentityClaimManagementServiceComponent {
             log.error("Error occurred while activating Identity Claim Management Service Component", e);
         }
     }
+
+    /**
+     * Register ClaimConfigListener as a UserStoreConfigListener service.
+     *
+     * @param bundleCtx BundleContext
+     */
+    private void registerClaimConfigListener(BundleContext bundleCtx) {
+
+        UserStoreConfigListener claimConfigListener = new ClaimConfigListener();
+        ServiceRegistration mappedClaimConfigListenerSR =
+                bundleCtx.registerService(UserStoreConfigListener.class.getName(), claimConfigListener
+                        , null);
+        if (mappedClaimConfigListenerSR != null) {
+            if (log.isDebugEnabled()) {
+                log.debug("ClaimConfigListener Service registered.");
+            }
+        } else {
+            log.error("Error registering ClaimConfigListener Service.");
+        }
+    }
+
 
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {

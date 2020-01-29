@@ -140,4 +140,15 @@ public interface ClaimMetadataManagementService {
      */
     void removeExternalClaim(String externalClaimDialectURI, String externalClaimURI, String tenantDomain) throws
             ClaimMetadataException;
+
+    /**
+     * Remove attribute claim mappings related to a tenant domain.
+     *
+     * @param tenantId        Tenant Id
+     * @param userstoreDomain Tenant domain
+     * @throws ClaimMetadataException If an error occurred while removing local claim mappings
+     */
+    default void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
+
+    }
 }

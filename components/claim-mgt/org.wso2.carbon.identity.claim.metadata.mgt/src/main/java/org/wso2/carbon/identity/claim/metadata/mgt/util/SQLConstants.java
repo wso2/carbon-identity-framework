@@ -17,7 +17,7 @@
 package org.wso2.carbon.identity.claim.metadata.mgt.util;
 
 /**
- * Holds the SQL queries and related constants
+ * Holds the SQL queries and related constants.
  */
 public class SQLConstants {
 
@@ -85,4 +85,8 @@ public class SQLConstants {
     public static final String IS_CLAIM_MAPPING = "SELECT MAPPED_LOCAL_CLAIM_ID FROM IDN_CLAIM_MAPPING WHERE " +
             "MAPPED_LOCAL_CLAIM_ID=(SELECT ID FROM IDN_CLAIM WHERE DIALECT_ID=(SELECT ID FROM IDN_CLAIM_DIALECT WHERE" +
             " DIALECT_URI=? AND TENANT_ID=?) AND CLAIM_URI=? AND TENANT_ID=?) AND TENANT_ID=?";
+
+    // Delete claim mapped attributes.
+    public static final String DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE = "DELETE FROM IDN_CLAIM_MAPPED_ATTRIBUTE WHERE " +
+            "USER_STORE_DOMAIN_NAME=? AND TENANT_ID=?";
 }
