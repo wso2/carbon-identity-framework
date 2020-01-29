@@ -532,14 +532,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] userIDs;
-        if (ArrayUtils.isNotEmpty(userList)) {
+        try {
             userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(userIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            userIDs = new String[0];
+            return true;
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -564,14 +565,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] userIDs;
-        if (ArrayUtils.isNotEmpty(userList)) {
+        try {
             userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(userIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            userIDs = new String[0];
+            return true;
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -595,14 +597,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] userIDs;
-        if (ArrayUtils.isNotEmpty(userList)) {
+        try {
             userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(userIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            userIDs = new String[0];
+            return true;
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -626,14 +629,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] userIDs;
-        if (ArrayUtils.isNotEmpty(userList)) {
+        try {
             userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(userIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            userIDs = new String[0];
+            return true;
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -657,25 +661,27 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] deletedUserIDs;
-        if (ArrayUtils.isNotEmpty(deletedUsers)) {
+        try {
             deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(deletedUserIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            deletedUserIDs = new String[0];
+            return true;
         }
 
         String[] newUserIDs;
-        if (ArrayUtils.isNotEmpty(newUsers)) {
+        try {
             newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(newUserIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            newUserIDs = new String[0];
+            return true;
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -699,25 +705,27 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         }
 
         String[] deletedUserIDs;
-        if (ArrayUtils.isNotEmpty(deletedUsers)) {
+        try {
             deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(deletedUserIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            deletedUserIDs = new String[0];
+            return true;
         }
 
         String[] newUserIDs;
-        if (ArrayUtils.isNotEmpty(newUsers)) {
+        try {
             newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
-
-            if (ArrayUtils.isEmpty(newUserIDs)) {
-                return true;
+        } catch (UserStoreException e) {
+            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
+            // supported user store.
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
             }
-        } else {
-            newUserIDs = new String[0];
+            return true;
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -1190,22 +1198,14 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
         return true;
     }
 
-    private String[] getUserIdsFromUserNames(String[] userNames, AbstractUserStoreManager userStoreManager) {
+    private String[] getUserIdsFromUserNames(String[] userNames, AbstractUserStoreManager userStoreManager)
+            throws UserStoreException {
 
-        if (userNames == null) {
+        if (ArrayUtils.isEmpty(userNames)) {
             return new String[0];
         }
 
-        List<String> userIDsList = new ArrayList<>();
-        try {
-            userIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
-        } catch (UserStoreException e) {
-            // User ID cannot get for the user names. This is probably the user store manager is not an unique id
-            // supported user store.
-            if (log.isDebugEnabled()) {
-                log.debug(e.getMessage(), e);
-            }
-        }
+        List<String> userIDsList = userStoreManager.getUserIDsFromUserNames(Arrays.asList(userNames));
 
         return userIDsList.toArray(new String[0]);
     }
