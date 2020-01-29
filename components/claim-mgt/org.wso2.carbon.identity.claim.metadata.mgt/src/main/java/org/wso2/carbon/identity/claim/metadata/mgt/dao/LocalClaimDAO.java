@@ -159,22 +159,18 @@ public class LocalClaimDAO extends ClaimDAO {
             throw new UserStoreException(message);
         }
         userstoreDomain = userstoreDomain.toUpperCase();
-        Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
-        PreparedStatement preparedStatement = null;
-        try {
-            preparedStatement = dbConnection.prepareStatement(SQLConstants.DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE);
+        try (Connection dbConnection = IdentityDatabaseUtil.getDBConnection(true);
+             PreparedStatement preparedStatement = dbConnection
+                     .prepareStatement(SQLConstants.DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE)) {
             preparedStatement.setString(1, userstoreDomain);
             preparedStatement.setInt(2, tenantId);
             preparedStatement.executeUpdate();
             IdentityDatabaseUtil.commitTransaction(dbConnection);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(dbConnection);
             String message =
                     String.format(ClaimConstants.ErrorMessage.ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE.getMessage(),
                             userstoreDomain, tenantId);
             throw new UserStoreException(message, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(dbConnection, null, preparedStatement);
         }
     }
 
