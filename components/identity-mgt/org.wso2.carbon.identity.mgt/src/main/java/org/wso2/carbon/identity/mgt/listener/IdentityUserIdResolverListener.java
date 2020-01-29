@@ -531,10 +531,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
+        String[] userIDs;
+        if (ArrayUtils.isNotEmpty(userList)) {
+            userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(userIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(userIDs)) {
+                return true;
+            }
+        } else {
+            userIDs = new String[0];
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -558,10 +563,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
+        String[] userIDs;
+        if (ArrayUtils.isNotEmpty(userList)) {
+            userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(userIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(userIDs)) {
+                return true;
+            }
+        } else {
+            userIDs = new String[0];
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -584,10 +594,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
+        String[] userIDs;
+        if (ArrayUtils.isNotEmpty(userList)) {
+            userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(userIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(userIDs)) {
+                return true;
+            }
+        } else {
+            userIDs = new String[0];
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -610,10 +625,15 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String[] userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
+        String[] userIDs;
+        if (ArrayUtils.isNotEmpty(userList)) {
+            userIDs = getUserIdsFromUserNames(userList, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(userIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(userIDs)) {
+                return true;
+            }
+        } else {
+            userIDs = new String[0];
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -636,16 +656,26 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String[] deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
+        String[] deletedUserIDs;
+        if (ArrayUtils.isNotEmpty(deletedUsers)) {
+            deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(deletedUserIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(deletedUserIDs)) {
+                return true;
+            }
+        } else {
+            deletedUserIDs = new String[0];
         }
 
-        String[] newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
+        String[] newUserIDs;
+        if (ArrayUtils.isNotEmpty(newUsers)) {
+            newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(newUserIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(newUserIDs)) {
+                return true;
+            }
+        } else {
+            newUserIDs = new String[0];
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -668,16 +698,26 @@ public class IdentityUserIdResolverListener extends AbstractIdentityUserOperatio
             return true;
         }
 
-        String[] deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
+        String[] deletedUserIDs;
+        if (ArrayUtils.isNotEmpty(deletedUsers)) {
+            deletedUserIDs = getUserIdsFromUserNames(deletedUsers, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(deletedUserIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(deletedUserIDs)) {
+                return true;
+            }
+        } else {
+            deletedUserIDs = new String[0];
         }
 
-        String[] newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
+        String[] newUserIDs;
+        if (ArrayUtils.isNotEmpty(newUsers)) {
+            newUserIDs = getUserIdsFromUserNames(newUsers, (AbstractUserStoreManager) userStoreManager);
 
-        if (ArrayUtils.isEmpty(newUserIDs)) {
-            return true;
+            if (ArrayUtils.isEmpty(newUserIDs)) {
+                return true;
+            }
+        } else {
+            newUserIDs = new String[0];
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
