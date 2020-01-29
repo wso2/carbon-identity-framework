@@ -1343,6 +1343,7 @@
     <!-- JWT validator configurations -->
     <JWTValidatorConfigs>
         <Enable>true</Enable>
+        <EnforceCertificateExpiryTimeValidity>true</EnforceCertificateExpiryTimeValidity>
         <JWKSEndpoint>
             <HTTPConnectionTimeout>1000</HTTPConnectionTimeout>
             <HTTPReadTimeout>1000</HTTPReadTimeout>
