@@ -114,10 +114,10 @@ public class SQLQueries {
                     "IDN_AUTH_USER WHERE USER_NAME =? AND TENANT_ID =? AND DOMAIN_NAME =? AND IDP_ID = ?)";
 
     // Store federated authentication session details to map the session context key with the idp session index.
-    public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FEDERATED_AUTH_SESSION_MAPPING "
+    public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
     // Remove federated authentication session details of a given session context key.
-    public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FEDERATED_AUTH_SESSION_MAPPING"
+    public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
             + " WHERE SESSION_ID=?";
 }
