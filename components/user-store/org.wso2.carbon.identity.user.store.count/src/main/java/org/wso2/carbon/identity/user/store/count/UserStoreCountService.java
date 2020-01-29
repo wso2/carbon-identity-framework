@@ -194,18 +194,8 @@ public class UserStoreCountService {
     private long getUserCountWithClaims(String claimURI, String valueFilter) throws UserStoreCounterException {
 
         try {
-            if (UserStoreCountDSComponent.getRealmService() == null) {
-                String errorMsg = "Unable to retrieve realm service";
-                throw new UserStoreCounterException(errorMsg);
-            }
-            UserStoreManager userStoreManager =
-                    UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
-            if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
-                if (log.isDebugEnabled()) {
-                    log.debug(userStoreManager.getClass() + " is not not an instance of " + userStoreManager);
-                }
-                throw new UserStoreCounterException("Error while retrieving User Store from core");
-            }
+            UserStoreManager userStoreManager = getUserStoreManager();
+            checkUserStoreManager(userStoreManager);
             return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getUserCountWithClaims(claimURI,
                     valueFilter);
         } catch (UserStoreException e) {
@@ -221,19 +211,8 @@ public class UserStoreCountService {
     private long getRoleCount(String filter) throws UserStoreCounterException {
 
         try {
-            if (UserStoreCountDSComponent.getRealmService() == null) {
-                String errorMsg = "Unable to retrieve realm service";
-                throw new UserStoreCounterException(errorMsg);
-            }
-            UserStoreManager userStoreManager =
-                    UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
-
-            if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
-                if (log.isDebugEnabled()) {
-                    log.debug(userStoreManager.getClass() + " is not not an instance of " + userStoreManager);
-                }
-                throw new UserStoreCounterException("Error while retrieving role count from core");
-            }
+            UserStoreManager userStoreManager = getUserStoreManager();
+            checkUserStoreManager(userStoreManager);
             return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).countRoles(filter);
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
@@ -248,5 +227,30 @@ public class UserStoreCountService {
     private String getFilterWithDomain(String domain, String filter) {
 
         return domain + UserCoreConstants.DOMAIN_SEPARATOR + filter;
+    }
+
+    private UserStoreManager getUserStoreManager() throws UserStoreCounterException {
+
+        if (UserStoreCountDSComponent.getRealmService() == null) {
+            String errorMsg = "Unable to retrieve realm service";
+            throw new UserStoreCounterException(errorMsg);
+        }
+        try {
+            return UserStoreCountDSComponent.getRealmService().getTenantUserRealm(tenantId).getUserStoreManager();
+        } catch (UserStoreException e) {
+            throw new UserStoreCounterException("Error while retrieving userStoreManager");
+        }
+    }
+
+    private boolean checkUserStoreManager(UserStoreManager userStoreManager) throws UserStoreCounterException {
+
+        if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
+            if (log.isDebugEnabled()) {
+                log.debug(userStoreManager.getClass() + " is not not an instance of " + userStoreManager);
+            }
+            throw new UserStoreCounterException("Error while retrieving role count from core");
+
+        }
+        return true;
     }
 }
