@@ -1765,7 +1765,7 @@
     </AdaptiveAuth>
 
     <!--Intermediate certificate validation for certificate based requests-->
-    <IntermediateCertValidation enable="false">
+    <IntermediateCertValidation enable="{{intermediate_cert_validation.enable}}">
         <IntermediateCerts>
             <!--Add intermediate certificate CN. Multiple <CertCN> elements can be used for multiple certificates.-->
             {% for cert in intermediate_cert_validation.cert_cns %}
