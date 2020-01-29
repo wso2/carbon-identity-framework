@@ -26,6 +26,7 @@ public class ClaimMetadataException extends IdentityException {
     private static final long serialVersionUID = -1228322936730202713L;
 
     public ClaimMetadataException(String errorDescription) {
+
         super(errorDescription);
     }
 
@@ -35,6 +36,19 @@ public class ClaimMetadataException extends IdentityException {
     }
 
     public ClaimMetadataException(String message, Throwable e) {
+
         super(message, e);
+    }
+
+    /**
+     * Constructs a new exception with an error code, detail message and throwable.
+     *
+     * @param errorCode The error code
+     * @param message   The detail message
+     * @param cause     Throwable
+     */
+    public ClaimMetadataException(String errorCode, String message, Throwable cause) {
+
+        super(errorCode, message, cause);
     }
 }

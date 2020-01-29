@@ -27,11 +27,13 @@ import org.wso2.carbon.identity.claim.metadata.mgt.dao.ExternalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataServerException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.List;
 
@@ -332,5 +334,24 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         this.externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaimURI, tenantId);
 
         // Add listener
+    }
+
+    @Override
+    public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
+
+        if (StringUtils.isEmpty(userstoreDomain)) {
+            throw new ClaimMetadataClientException(ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN.getCode(),
+                    ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN.getMessage());
+        }
+        try {
+            this.localClaimDAO.removeClaimMappingAttributes(tenantId, userstoreDomain);
+        } catch (UserStoreException e) {
+            String errorMessage = String.format(
+                    ClaimConstants.ErrorMessage.ERROR_CODE_SERVER_ERROR_DELETING_CLAIM_MAPPINGS.getMessage(),
+                    tenantId, userstoreDomain);
+            throw new ClaimMetadataServerException(
+                    ClaimConstants.ErrorMessage.ERROR_CODE_SERVER_ERROR_DELETING_CLAIM_MAPPINGS.getCode(),
+                    errorMessage, e);
+        }
     }
 }

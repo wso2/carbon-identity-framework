@@ -16,19 +16,20 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt.dao;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.cache.LocalClaimCache;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * Caching wrapper for org.wso2.carbon.identity.claim.metadata.mgt.dao.LocalClaimDAO
- *
  */
 public class CacheBackedLocalClaimDAO {
 
@@ -77,6 +78,26 @@ public class CacheBackedLocalClaimDAO {
     public void removeLocalClaim(String localClaimURI, int tenantId) throws ClaimMetadataException {
 
         localClaimDAO.removeLocalClaim(localClaimURI, tenantId);
+        localClaimInvalidationCache.clearCacheEntry(tenantId);
+    }
+
+    /**
+     * Remove attribute claim mappings related to tenant id and domain.
+     *
+     * @param tenantId        Tenant Id
+     * @param userstoreDomain Domain name
+     * @throws UserStoreException If an error occurred while removing local claims
+     */
+    public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws UserStoreException {
+
+        if (StringUtils.isEmpty(userstoreDomain)) {
+            String message = ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN.getMessage();
+            if (log.isDebugEnabled()) {
+                log.debug(message);
+            }
+            throw new UserStoreException(message);
+        }
+        localClaimDAO.deleteClaimMappingAttributes(tenantId, userstoreDomain);
         localClaimInvalidationCache.clearCacheEntry(tenantId);
     }
 }
