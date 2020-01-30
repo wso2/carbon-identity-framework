@@ -108,8 +108,8 @@
     String samlMetadataValidityPeriod = null;
     boolean samlMetadataSigningEnabled = false;
     String samlMetadataSigningEnabledChecked = "";
-    boolean samlAuthnRequestsSignedEnabled = false;
-    String samlAuthnRequestsSignedChecked = "";
+    boolean samlAuthnRequestsSigningEnabled = false;
+    String samlAuthnRequestsSigningChecked = "";
 
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
@@ -142,10 +142,10 @@
             if (samlMetadataSigningEnabled) {
                 samlMetadataSigningEnabledChecked = "checked=\'checked\'";
             }
-             samlAuthnRequestsSignedEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
-                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNED_ENABLED).getValue());
-             if (samlAuthnRequestsSignedEnabled) {
-                 samlAuthnRequestsSignedChecked = "checked=\'checked\'";
+             samlAuthnRequestsSigningEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED).getValue());
+             if (samlAuthnRequestsSigningEnabled) {
+                 samlAuthnRequestsSigningChecked = "checked=\'checked\'";
              }
         } else if(IdentityApplicationConstants.OAuth10A.NAME.equals(federatedAuthenticator.getName())) {
             oauth1RequestTokenUrl = IdPManagementUIUtil.getProperty(properties,
@@ -726,13 +726,13 @@ function removeDefaultAuthSeq() {
                         </tr>
                         <tr>
                         <td class="leftCol-med labelField">
-                            <label for="samlAuthnRequestsSignedEnabled"><fmt:message key='saml.metadata.AuthnRequests.signing.enabled'/>
+                            <label for="samlAuthnRequestsSigningEnabled"><fmt:message key='saml.metadata.AuthnRequests.signing.enabled'/>
                             </label>
                         </td>
                          <td>
                              <div class="sectionCheckbox">
-                                  <input id="samlAuthnRequestsSignedEnabled" name="samlAuthnRequestsSignedEnabled"
-                                         type="checkbox" <%=samlAuthnRequestsSignedChecked%>/>
+                                  <input id="samlAuthnRequestsSigningEnabled" name="samlAuthnRequestsSigningEnabled"
+                                         type="checkbox" <%=samlAuthnRequestsSigningChecked%>/>
                              </div>
                          </td>
                     </tr>

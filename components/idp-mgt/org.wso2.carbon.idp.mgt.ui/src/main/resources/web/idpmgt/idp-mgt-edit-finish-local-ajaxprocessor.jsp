@@ -112,12 +112,12 @@
         property.setValue(samlMetadataSigningEnabled);
         propertyList.add(property);
         property = new Property();
-        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNED_ENABLED);
-        String samlAuthnRequestsSignedEnabled = "false";
-        if (StringUtils.containsIgnoreCase(request.getParameter("samlAuthnRequestsSignedEnabled"), "on")) {
-                    samlAuthnRequestsSignedEnabled = "true";
+        property.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
+        String samlAuthnRequestsSigningEnabled = "false";
+        if (StringUtils.containsIgnoreCase(request.getParameter("samlAuthnRequestsSigningEnabled"), "on")) {
+                    samlAuthnRequestsSigningEnabled = "true";
         }
-        property.setValue(samlAuthnRequestsSignedEnabled);
+        property.setValue(samlAuthnRequestsSigningEnabled);
         propertyList.add(property);
         Property[] properties = new Property[propertyList.size()];
         properties = propertyList.toArray(properties);

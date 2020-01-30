@@ -174,8 +174,8 @@ public class IdentityApplicationConstants {
             public static final String SAML_METADATA_VALIDITY_PERIOD_DEFAULT = "60";
             public static final String SAML_METADATA_SIGNING_ENABLED = "SAMLMetadataSigningEnabled";
             public static final String SAML_METADATA_SIGNING_ENABLED_DEFAULT = "false";
-            public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNED_ENABLED ="SAMLAuthnRequestsSignedEnabled";
-            public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNED_DEFAULT ="false";
+            public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED ="samlAuthnRequestsSigningEnabled";
+            public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_DEFAULT ="false";
             public static final String UNSPECIFIED_NAME_ID_FORMAT =
                     "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified";
             public static final String IS_ARTIFACT_BINDING_ENABLED = "ISArtifactBindingEnabled";
