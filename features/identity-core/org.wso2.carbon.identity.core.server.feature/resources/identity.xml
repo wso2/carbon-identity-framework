@@ -577,8 +577,7 @@
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>5</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>false</SAMLSPCertificateExpiryValidationEnabled>
-        <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
-        <AttributeProfile>http://sample.com</AttributeProfile>
+        <SAMLAuthnRequestsSignedEnabled>false</SAMLAuthnRequestsSignedEnabled>
     </SSOService>
 
     <Consent>

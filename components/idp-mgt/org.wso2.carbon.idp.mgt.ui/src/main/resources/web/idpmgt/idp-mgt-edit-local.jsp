@@ -108,10 +108,8 @@
     String samlMetadataValidityPeriod = null;
     boolean samlMetadataSigningEnabled = false;
     String samlMetadataSigningEnabledChecked = "";
-    boolean wantAuthnRequestsSignedEnabled = false;
-    String wantAuthnRequestsSignedChecked = "";
-    String samlNameIDFormat=null;
-    String attributeProfile=null;
+    boolean samlAuthnRequestsSignedEnabled = false;
+    String samlAuthnRequestsSignedChecked = "";
 
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
@@ -144,20 +142,11 @@
             if (samlMetadataSigningEnabled) {
                 samlMetadataSigningEnabledChecked = "checked=\'checked\'";
             }
-             wantAuthnRequestsSignedEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
-                                 IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_WANT_AUTHN_REQUESTS_SIGNED_ENABLED).getValue());
-                         if (wantAuthnRequestsSignedEnabled) {
-                             wantAuthnRequestsSignedChecked = "checked=\'checked\'";
-
-                         }
-
-             samlNameIDFormat=IdPManagementUIUtil.getProperty(properties,
-                                 IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_NAME_ID_FORMAT).getValue();
-
-             attributeProfile=IdPManagementUIUtil.getProperty(properties,
-                                              IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_ATTRIBUTE_PROFILE).getValue();
-
-
+             samlAuthnRequestsSignedEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNED_ENABLED).getValue());
+             if (samlAuthnRequestsSignedEnabled) {
+                 samlAuthnRequestsSignedChecked = "checked=\'checked\'";
+             }
         } else if(IdentityApplicationConstants.OAuth10A.NAME.equals(federatedAuthenticator.getName())) {
             oauth1RequestTokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL).getValue();
@@ -592,11 +581,6 @@ function removeDefaultAuthSeq() {
                                        type="text" value="<%=Encode.forHtmlContent(samlSSOUrl)%>"
                                        white-list-patterns="http-url https-url"/></td>
                         </tr>
-                          <tr>
-                                 <td class="leftCol-med labelField"><fmt:message key='saml.metadata.name.id.format'/>:</td>
-                                 <td><input id="NameIDFormat" name="NameIDFormat"
-                                        type="text" value="<%=Encode.forHtmlContent(samlNameIDFormat)%>"/></td>
-                          </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='logout.url'/>:</td>
                             <td><input id="samlSLOUrl" name="samlSLOUrl"
@@ -611,14 +595,7 @@ function removeDefaultAuthSeq() {
                             <td class="leftCol-med labelField"><fmt:message key='artifact.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlArtifactUrl)%></td>
                         </tr>
-
                         <tr>
-                          <tr>
-                               <td class="leftCol-med labelField"><fmt:message key='saml.metadata.attribute.profile'/>:</td>
-                                   <td><input id="AttributeProfile" name="AttributeProfile"
-                                   type="text" value="<%=Encode.forHtmlContent(attributeProfile)%>"/></td>
-                           </tr>
-                           <tr>
                             <td class="leftCol-med labelField"><fmt:message key='saml.metadata.validity.period'/>:</td>
                             <td>
                                 <input id="samlMetadataValidityPeriod" name="samlMetadataValidityPeriod" type="text"
@@ -748,17 +725,17 @@ function removeDefaultAuthSeq() {
                             </td>
                         </tr>
                         <tr>
-                                                    <td class="leftCol-med labelField">
-                                                        <label for="WantAuthnRequestsSigned"><fmt:message key='saml.metadata.wantAuthnRequests.signing.enabled'/>
-                                                        </label>
-                                                    </td>
-                                                    <td>
-                                                        <div class="sectionCheckbox">
-                                                            <input id="WantAuthnRequestsSigned" name="WantAuthnRequestsSigned"
-                                                                   type="checkbox" <%=wantAuthnRequestsSignedChecked%>/>
-                                                        </div>
-                                                    </td>
-                                                </tr>
+                        <td class="leftCol-med labelField">
+                            <label for="samlAuthnRequestsSignedEnabled"><fmt:message key='saml.metadata.AuthnRequests.signing.enabled'/>
+                            </label>
+                        </td>
+                         <td>
+                             <div class="sectionCheckbox">
+                                  <input id="samlAuthnRequestsSignedEnabled" name="samlAuthnRequestsSignedEnabled"
+                                         type="checkbox" <%=samlAuthnRequestsSignedChecked%>/>
+                             </div>
+                         </td>
+                    </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='passive.sts.url'/>:</td>
                             <td><%=Encode.forHtmlContent(passiveSTSUrl)%></td>
