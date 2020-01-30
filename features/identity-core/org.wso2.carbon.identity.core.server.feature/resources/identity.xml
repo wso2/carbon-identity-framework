@@ -1245,6 +1245,7 @@
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/admin-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -1328,12 +1329,14 @@
             <Context>/api/</Context>
             <Context>/api/users/v2/me/webauthn</Context>
             <Context>/user-portal/</Context>
+            <Context>/admin-portal/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
         </Servlet>
         <OverwriteDispatch>
             <Context>/user-portal/</Context>
+            <Context>/admin-portal/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
