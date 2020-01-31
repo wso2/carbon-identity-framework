@@ -1139,7 +1139,8 @@ public class IdentityProviderManager implements IdpManager {
                                         message);
                     }
                 }
-            }expression.add((ExpressionNode) node);
+            }
+            expression.add((ExpressionNode) node);
         } else if (node instanceof OperationNode) {
             setExpressionNodeList(node.getLeftNode(), expression);
             setExpressionNodeList(node.getRightNode(), expression);

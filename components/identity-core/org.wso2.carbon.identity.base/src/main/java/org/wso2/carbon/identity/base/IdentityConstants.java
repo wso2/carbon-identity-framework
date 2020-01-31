@@ -249,7 +249,7 @@ public class IdentityConstants {
         public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
-        public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED ="SSOService" +
+        public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
 
         //Identity Persistence Manager
