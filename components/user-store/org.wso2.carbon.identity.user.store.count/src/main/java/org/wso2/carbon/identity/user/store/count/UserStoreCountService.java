@@ -195,15 +195,22 @@ public class UserStoreCountService {
 
         try {
             UserStoreManager userStoreManager = getUserStoreManager();
-            checkUserStoreManager(userStoreManager);
+            if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(" Cannot get user count. Provided user store manager : "
+                            + userStoreManager.getClass() + ", is not not an instance of : "
+                            + org.wso2.carbon.user.core.UserStoreManager.class);
+                }
+                throw new UserStoreCounterException("Unsupported user store manager to retrieve user count");
+            }
             return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getUserCountWithClaims(claimURI,
                     valueFilter);
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving role count from tenent Id " +
-                        tenantId + " and the filter " + valueFilter);
+                log.debug("Error while retrieving user count with tenant Id : " + tenantId + ", and the filter : "
+                        + valueFilter);
             }
-            String errorMsg = "error while retrieving user count from user store";
+            String errorMsg = "Error occurred while retrieving user count";
             throw new UserStoreCounterException(errorMsg, e);
         }
     }
@@ -212,14 +219,21 @@ public class UserStoreCountService {
 
         try {
             UserStoreManager userStoreManager = getUserStoreManager();
-            checkUserStoreManager(userStoreManager);
+            if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
+                if (log.isDebugEnabled()) {
+                    log.debug(" Cannot get role count. Provided user store manager : "
+                            + userStoreManager.getClass() + ", is not not an instance of : "
+                            + org.wso2.carbon.user.core.UserStoreManager.class);
+                }
+                throw new UserStoreCounterException("Unsupported user store manager to retrieve role count");
+            }
             return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).countRoles(filter);
         } catch (UserStoreException e) {
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving role count from tenent Id " +
-                        tenantId + " and the filter " + filter);
+                log.debug("Error while retrieving role count with tenent Id " + tenantId + ", and the filter "
+                        + filter);
             }
-            String errorMsg = "Error while retrieving role count from user store";
+            String errorMsg = "Error occurred while retrieving role count";
             throw new UserStoreCounterException(errorMsg, e);
         }
     }
@@ -240,17 +254,5 @@ public class UserStoreCountService {
         } catch (UserStoreException e) {
             throw new UserStoreCounterException("Error while retrieving userStoreManager");
         }
-    }
-
-    private boolean checkUserStoreManager(UserStoreManager userStoreManager) throws UserStoreCounterException {
-
-        if (!(userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager)) {
-            if (log.isDebugEnabled()) {
-                log.debug(userStoreManager.getClass() + " is not not an instance of " + userStoreManager);
-            }
-            throw new UserStoreCounterException("Error while retrieving role count from core");
-
-        }
-        return true;
     }
 }
