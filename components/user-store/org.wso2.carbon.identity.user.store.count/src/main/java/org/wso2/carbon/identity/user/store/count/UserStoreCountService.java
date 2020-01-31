@@ -57,7 +57,7 @@ public class UserStoreCountService {
             try {
                 count = getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
             } catch (UserStoreCounterException e) {
-                String errorMsg = "Error while getting user count from user store domain : ";
+                String errorMsg = "Error while getting user count from user store domain : " + userStoreDomain;
                 throw new UserStoreCounterException(errorMsg, e);
             }
             userCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
@@ -75,20 +75,14 @@ public class UserStoreCountService {
     public PairDTO[] countRoles(String filter) throws UserStoreCounterException {
 
         Set<String> userStoreDomains = UserStoreCountUtils.getCountEnabledUserStores();
-        //Add 2 more for the counts of Internal, Application domains.
+        // Add 2 more for the counts of Internal, Application domains.
         PairDTO[] roleCounts = new PairDTO[userStoreDomains.size() + 2];
         int i = 0;
 
         for (String userStoreDomain : userStoreDomains) {
             long count = -1L;
             String filterWithDomain = getFilterWithDomain(userStoreDomain, filter);
-
-            try {
-                count = getRoleCount(filterWithDomain);
-            } catch (UserStoreCounterException e) {
-                log.error("Error while getting role count from user store domain : " + userStoreDomain, e);
-            }
-
+            count = getRoleCount(filterWithDomain);
             roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
@@ -119,7 +113,6 @@ public class UserStoreCountService {
         for (String userStoreDomain : userStoreDomains) {
             long count = -1L;
             String filterWithDomain = getFilterWithDomain(userStoreDomain, valueFilter);
-
             try {
                 count = getUserCountWithClaims(claimURI, filterWithDomain);
             } catch (UserStoreCounterException e) {
