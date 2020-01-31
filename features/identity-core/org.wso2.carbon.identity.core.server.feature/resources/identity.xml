@@ -577,7 +577,7 @@
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>5</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>false</SAMLSPCertificateExpiryValidationEnabled>
-        <SAMLAuthnRequestsSigningEnabled>false</SAMLAuthnRequestsSigningEnabled>
+        <SAML2AuthnRequestsSigningEnabled>false</SAML2AuthnRequestsSigningEnabled>
     </SSOService>
 
     <Consent>

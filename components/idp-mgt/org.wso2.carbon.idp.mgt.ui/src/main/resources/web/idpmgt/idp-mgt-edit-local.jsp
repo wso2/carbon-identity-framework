@@ -726,7 +726,7 @@ function removeDefaultAuthSeq() {
                         </tr>
                         <tr>
                         <td class="leftCol-med labelField">
-                            <label for="samlAuthnRequestsSigningEnabled"><fmt:message key='saml.metadata.AuthnRequests.signing.enabled'/>
+                            <label for="samlAuthnRequestsSigningEnabled"><fmt:message key='saml.metadata.authn.requests.signing.enabled'/>
                             </label>
                         </td>
                          <td>
