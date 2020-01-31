@@ -108,6 +108,9 @@
     String samlMetadataValidityPeriod = null;
     boolean samlMetadataSigningEnabled = false;
     String samlMetadataSigningEnabledChecked = "";
+    boolean samlAuthnRequestsSigningEnabled = false;
+    String samlAuthnRequestsSigningChecked = "";
+
     List<Property> destinationURLList = new ArrayList<Property>();
     FederatedAuthenticatorConfig[] federatedAuthenticators = residentIdentityProvider.getFederatedAuthenticatorConfigs();
     for(FederatedAuthenticatorConfig federatedAuthenticator : federatedAuthenticators){
@@ -139,6 +142,11 @@
             if (samlMetadataSigningEnabled) {
                 samlMetadataSigningEnabledChecked = "checked=\'checked\'";
             }
+             samlAuthnRequestsSigningEnabled = Boolean.parseBoolean(IdPManagementUIUtil.getProperty(properties,
+                    IdentityApplicationConstants.Authenticator.SAML2SSO.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED).getValue());
+             if (samlAuthnRequestsSigningEnabled) {
+                 samlAuthnRequestsSigningChecked = "checked=\'checked\'";
+             }
         } else if(IdentityApplicationConstants.OAuth10A.NAME.equals(federatedAuthenticator.getName())) {
             oauth1RequestTokenUrl = IdPManagementUIUtil.getProperty(properties,
                     IdentityApplicationConstants.OAuth10A.OAUTH1_REQUEST_TOKEN_URL).getValue();
@@ -587,7 +595,6 @@ function removeDefaultAuthSeq() {
                             <td class="leftCol-med labelField"><fmt:message key='artifact.url'/>:</td>
                             <td><%=Encode.forHtmlContent(samlArtifactUrl)%></td>
                         </tr>
-
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='saml.metadata.validity.period'/>:</td>
                             <td>
@@ -717,7 +724,18 @@ function removeDefaultAuthSeq() {
                                 </div>
                             </td>
                         </tr>
-
+                        <tr>
+                        <td class="leftCol-med labelField">
+                            <label for="samlAuthnRequestsSigningEnabled"><fmt:message key='saml.metadata.authn.requests.signing.enabled'/>
+                            </label>
+                        </td>
+                         <td>
+                             <div class="sectionCheckbox">
+                                  <input id="samlAuthnRequestsSigningEnabled" name="samlAuthnRequestsSigningEnabled"
+                                         type="checkbox" <%=samlAuthnRequestsSigningChecked%>/>
+                             </div>
+                         </td>
+                    </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='passive.sts.url'/>:</td>
                             <td><%=Encode.forHtmlContent(passiveSTSUrl)%></td>
