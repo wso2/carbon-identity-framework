@@ -212,6 +212,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
     private void handleRememberMeOptionFromLoginPage(HttpServletRequest request, AuthenticationContext context) {
 
+        // If the remember me flag is already set in one step, we don't need to override.
+        if (context.isRememberMe()) {
+            return;
+        }
+
         String rememberMe = request.getParameter(FrameworkConstants.RequestParams.REMEMBER_ME);
 
         if (FrameworkConstants.REMEMBER_ME_OPT_ON.equalsIgnoreCase(rememberMe)) {
