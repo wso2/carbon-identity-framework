@@ -196,6 +196,7 @@
 
   "saml.metadata.validity_period": "1h",
   "saml.metadata.enable_signing": false,
+  "saml.metadata.enable_authentication_requests_signing": false,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
 
