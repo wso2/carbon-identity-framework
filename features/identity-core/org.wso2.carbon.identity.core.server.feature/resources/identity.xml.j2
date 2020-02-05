@@ -1259,9 +1259,13 @@
         </CacheManager>
     </CacheConfig>
 
-    <!--Cookies>
-        <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
-    </Cookies-->
+    {% if identity.cookies is defined %}
+    <Cookies>
+    {% for cookie in identity.cookies %}
+        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" />
+    {% endfor %}
+    </Cookies>
+    {% endif %}
 
 
     {% if resource_access_control.default_access_allow is sameas true %}
