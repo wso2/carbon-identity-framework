@@ -433,15 +433,13 @@
     "/api/identity/config-mgt/v1.0/",
     "/api/",
     "/api/users/v2/me/webauthn",
-    "/user-portal/",
-    "/admin-portal/"
+    "/user-portal/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
-    "/user-portal/",
-    "/admin-portal/"
+    "/user-portal/"
   ],
   "intermediate_cert_validation.cert_cns": [
     "localhost"
