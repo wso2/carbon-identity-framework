@@ -1115,7 +1115,7 @@
             <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Me" secured="true"    http-method="GET">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Me" secured="true" http-method="DELETE">
@@ -1123,11 +1123,11 @@
             <Scopes>internal_user_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Me" secured="true"    http-method="PUT">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Me" secured="true"   http-method="PATCH">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Me" secured="true" http-method="POST">
@@ -1176,7 +1176,7 @@
             <Scopes>internal_humantask_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="all">
@@ -1255,7 +1255,7 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
 
