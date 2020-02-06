@@ -79,7 +79,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!isUniqueIdResolverListener(listener)) {
+            if (shouldTrigger(listener)) {
                 if (!listener.doPreAuthenticate(userName, credential, userStoreManager)) {
                     return false;
                 }
@@ -108,7 +108,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostAuthenticate(userName, authenticated, userStoreManager)) {
                     return false;
                 }
@@ -127,7 +127,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreAddUser(userName, credential, roleList, claims, profile, userStoreManager)) {
                     return false;
                 }
@@ -153,7 +153,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostAddUser(userName, credential, roleList, claims, profile, userStoreManager)) {
                     return false;
                 }
@@ -177,7 +177,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreUpdateCredential(userName, newCredential, oldCredential, userStoreManager)) {
                     return false;
                 }
@@ -201,7 +201,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostUpdateCredential(userName, credential, userStoreManager)) {
                     return false;
                 }
@@ -226,7 +226,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreUpdateCredentialByAdmin(userName, newCredential, userStoreManager)) {
                     return false;
                 }
@@ -250,7 +250,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostUpdateCredentialByAdmin(userName, credential, userStoreManager)) {
                     return false;
                 }
@@ -276,7 +276,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         IdentityUtil.threadLocalProperties.get().put(DO_PRE_DELETE_USER_USER_NAME, userName);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreDeleteUser(userName, userStoreManager)) {
                     return false;
                 }
@@ -298,7 +298,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             String userName = (String) IdentityUtil.threadLocalProperties.get().get(DO_PRE_DELETE_USER_USER_NAME);
 
             for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-                if (!(isUniqueIdResolverListener(listener))) {
+                if (!(shouldTrigger(listener))) {
                     if (!listener.doPostDeleteUser(userName, userStoreManager)) {
                         return false;
                     }
@@ -326,7 +326,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreSetUserClaimValue(userName, claimURI, claimValue, profileName, userStoreManager)) {
                     return false;
                 }
@@ -350,7 +350,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostSetUserClaimValue(userName, userStoreManager)) {
                     return false;
                 }
@@ -374,7 +374,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -398,7 +398,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostSetUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -422,7 +422,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreDeleteUserClaimValues(userName, claims, profileName, userStoreManager)) {
                     return false;
                 }
@@ -446,7 +446,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostDeleteUserClaimValues(userName, userStoreManager)) {
                     return false;
                 }
@@ -470,7 +470,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreDeleteUserClaimValue(userName, claimURI, profileName, userStoreManager)) {
                     return false;
                 }
@@ -494,7 +494,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostDeleteUserClaimValue(userName, userStoreManager)) {
                     return false;
                 }
@@ -515,7 +515,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreAddRole(roleName, userNames, permissions, userStoreManager)) {
                     return false;
                 }
@@ -536,7 +536,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostAddRole(roleName, userNames, permissions, userStoreManager)) {
                     return false;
                 }
@@ -557,7 +557,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreAddInternalRole(roleName, userNames, permissions, userStoreManager)) {
                     return false;
                 }
@@ -578,7 +578,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] userNames = getUserNamesFromUserIDs(userIDList, (AbstractUserStoreManager) userStoreManager);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostAddInternalRole(roleName, userNames, permissions, userStoreManager)) {
                     return false;
                 }
@@ -601,7 +601,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] newUserNames = getUserNamesFromUserIDs(newUserIDs, (AbstractUserStoreManager) userStoreManager);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager)) {
                     return false;
                 }
@@ -624,7 +624,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] newUserNames = getUserNamesFromUserIDs(newUserIDs, (AbstractUserStoreManager) userStoreManager);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostUpdateUserListOfRole(roleName, deletedUserNames, newUserNames, userStoreManager)) {
                     return false;
                 }
@@ -648,7 +648,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager)) {
                     return false;
                 }
@@ -672,7 +672,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostUpdateRoleListOfUser(userName, deletedRoles, newRoles, userStoreManager)) {
                     return false;
                 }
@@ -696,7 +696,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreGetUserClaimValue(userName, claim, profileName, userStoreManager)) {
                     return false;
                 }
@@ -721,7 +721,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager)) {
                     return false;
                 }
@@ -746,7 +746,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetUserClaimValue(userName, claim, claimValue, profileName, userStoreManager)) {
                     return false;
                 }
@@ -771,7 +771,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetUserClaimValues(userName, claims, profileName, claimMap, userStoreManager)) {
                     return false;
                 }
@@ -792,7 +792,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
                     return false;
                 }
@@ -814,7 +814,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 return listener
                         .doPreGetUserList(claimUri, claimValue, limit, offset, returnUserNamesList, userStoreManager);
             }
@@ -834,7 +834,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
                     return false;
                 }
@@ -855,7 +855,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 return listener
                         .doPostGetUserList(claimUri, claimValue, returnUserNamesList, limit, offset, userStoreManager);
             }
@@ -875,7 +875,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetPaginatedUserList(claimUri, claimValue, returnUserNamesList, userStoreManager)) {
                     return false;
                 }
@@ -896,7 +896,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> returnUserNamesList = returnUsersList.stream().map(User::getUsername).collect(Collectors.toList());
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostListUsers(filter, limit, offset, returnUserNamesList, userStoreManager)) {
                     return false;
                 }
@@ -920,7 +920,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetRoleListOfUser(userName, filter, roleList, userStoreManager)) {
                     return false;
                 }
@@ -940,7 +940,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreGetUserList(condition, domain, profileName, limit, offset, sortBy, sortOrder,
                         userStoreManager)) {
                     return false;
@@ -965,7 +965,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] userNames = userNamesList.toArray(new String[0]);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 return listener
                         .doPostGetUserList(condition, domain, profileName, limit, offset, sortBy, sortOrder, userNames,
                                 userStoreManager);
@@ -987,7 +987,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String[] returnUserNames = returnUserNamesList.toArray(new String[0]);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetUserListOfRole(roleName, returnUserNames, userStoreManager)) {
                     return false;
                 }
@@ -1013,7 +1013,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
                 .getUserClaimSearchEntries(uniqueIDUserClaimSearchEntries);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetUsersClaimValues(userNames, claims.toArray(new String[0]), profileName,
                         userClaimSearchEntries.toArray(new UserClaimSearchEntry[0]))) {
                     return false;
@@ -1042,7 +1042,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreAuthenticate(userName, credential, userStoreManager)) {
                     return false;
                 }
@@ -1076,7 +1076,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostAuthenticate(userName, authenticated, userStoreManager)) {
                     return false;
                 }
@@ -1099,7 +1099,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         String username = null;
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPreAuthenticate(username, credential, userStoreManager)) {
                     return false;
                 }
@@ -1128,7 +1128,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostAuthenticate(userName, authenticated, userStoreManager)) {
                     return false;
                 }
@@ -1149,7 +1149,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         List<String> userNamesList = ((AbstractUserStoreManager) userStoreManager).getUserNamesFromUserIDs(userIDs);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
-            if (!(isUniqueIdResolverListener(listener))) {
+            if (!(shouldTrigger(listener))) {
                 if (!listener.doPostGetRoleListOfUsers(userNamesList.toArray(new String[0]), rolesOfUsersMap)) {
                     return false;
                 }
@@ -1205,9 +1205,9 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         return java.util.Arrays.stream(names).map(UserCoreUtil::removeDomainFromName).collect(Collectors.toList());
     }
 
-    private boolean isUniqueIdResolverListener(UserOperationEventListener listener) {
+    private boolean shouldTrigger(UserOperationEventListener listener) {
 
-        return listener instanceof IdentityUserIdResolverListener
-                || listener instanceof IdentityUserNameResolverListener;
+        return !(listener instanceof IdentityUserIdResolverListener) 
+                && !(listener instanceof IdentityUserNameResolverListener);
     }
 }
