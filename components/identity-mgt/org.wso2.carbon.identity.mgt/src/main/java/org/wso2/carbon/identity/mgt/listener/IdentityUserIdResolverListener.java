@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
  */
 public class IdentityUserIdResolverListener extends AbstractIdentityUserOperationEventListener {
 
-
     private static final Log log = LogFactory.getLog(IdentityUserIdResolverListener.class);
     private static final String DO_PRE_DELETE_USER_USER_ID = "doPreDeleteUserUserID";
 

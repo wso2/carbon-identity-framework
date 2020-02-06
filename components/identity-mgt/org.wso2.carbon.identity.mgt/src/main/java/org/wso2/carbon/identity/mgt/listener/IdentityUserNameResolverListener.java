@@ -137,7 +137,6 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         return true;
     }
 
-
     // TODO: 12/19/19 This doPostAddUserWithID signature will be changed in the carbon-kernel 4.6.0-beta. This should
     //  be updated accordingly.
     @Override
