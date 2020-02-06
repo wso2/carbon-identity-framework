@@ -137,8 +137,6 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         return true;
     }
 
-    // TODO: 12/19/19 This doPostAddUserWithID signature will be changed in the carbon-kernel 4.6.0-beta. This should
-    //  be updated accordingly.
     @Override
     public boolean doPostAddUserWithID(User user, Object credential, String[] roleList, Map<String, String> claims,
                                        String profile, UserStoreManager userStoreManager) throws UserStoreException {
@@ -1094,9 +1092,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        // TODO: 12/19/19 getUsernameByClaims(List<LoginIdentifier> loginIdentifiers) method should be used here from
-        //  kernel 4.6.0-beta
-        String username = null;
+        String username = ((AbstractUserStoreManager) userStoreManager).getUsernameByClaims(loginIdentifiers);
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
             if (isNotAResolverListener(listener)) {
@@ -1207,7 +1203,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
     private boolean isNotAResolverListener(UserOperationEventListener listener) {
 
-        return !(listener instanceof IdentityUserIdResolverListener) 
+        return !(listener instanceof IdentityUserIdResolverListener)
                 && !(listener instanceof IdentityUserNameResolverListener);
     }
 }
