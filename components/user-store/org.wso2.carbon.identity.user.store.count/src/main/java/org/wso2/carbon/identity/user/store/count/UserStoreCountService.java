@@ -86,13 +86,10 @@ public class UserStoreCountService {
             roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
-        String internalDomainFilter = UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + filter;
-        String applicationDomainFilter = InternalStoreCountConstants.APPLICATION_DOMAIN +
-                UserCoreConstants.DOMAIN_SEPARATOR + filter;
-        roleCounts[i] = new PairDTO(UserCoreConstants.INTERNAL_DOMAIN, String.valueOf(
-                getRoleCount(internalDomainFilter)));
-        roleCounts[++i] = new PairDTO(InternalStoreCountConstants.APPLICATION_DOMAIN, String.valueOf(
-                getRoleCount(applicationDomainFilter)));
+        roleCounts[i] =  new PairDTO(UserCoreConstants.INTERNAL_DOMAIN, String.valueOf(
+                UserStoreCountUtils.getInternalRoleCount(filter)));
+        roleCounts[++i] =  new PairDTO(InternalStoreCountConstants.APPLICATION_DOMAIN, String.valueOf(
+                UserStoreCountUtils.getApplicationRoleCount(filter)));
 
         return roleCounts;
     }
