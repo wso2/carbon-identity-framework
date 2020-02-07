@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core.model;
 
+import org.wso2.carbon.core.SameSiteCookie;
+
 public class IdentityCookieConfig {
 
     private String name;
@@ -28,6 +30,7 @@ public class IdentityCookieConfig {
     private boolean secure;
     private int version;
     private boolean isHttpOnly;
+    private SameSiteCookie sameSiteCookie;
 
     public IdentityCookieConfig(String name) {
         this.name = name;
@@ -91,6 +94,16 @@ public class IdentityCookieConfig {
 
     public void setIsHttpOnly(boolean isHttpOnly) {
         this.isHttpOnly = isHttpOnly;
+    }
+
+    public SameSiteCookie getSameSite() {
+
+        return sameSiteCookie;
+    }
+
+    public void setSameSite(SameSiteCookie sameSite) {
+
+        this.sameSiteCookie = sameSite;
     }
 
     @Override
