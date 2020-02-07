@@ -22,6 +22,7 @@ import org.apache.axiom.om.impl.builder.StAXOMBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -356,6 +357,15 @@ public class IdentityConfigParser {
                         cookieConfig.setIsHttpOnly(Boolean.valueOf(httpOnly));
                     }
 
+                    String sameSiteString = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_SAME_SITE));
+                    if (StringUtils.isNotEmpty(sameSiteString)) {
+                        try {
+                            SameSiteCookie sameSite = SameSiteCookie.valueOf(sameSiteString);
+                            cookieConfig.setSameSite(sameSite);
+                        } catch (IllegalArgumentException ex) {
+                            throw new IllegalArgumentException("sameSite value should be Strict or Lax or None. ", ex);
+                        }
+                    }
                     // Add the config to container
                     identityCookieConfigurationHolder.put(cookieName, cookieConfig);
                 }
