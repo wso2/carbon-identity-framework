@@ -73,7 +73,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -104,7 +104,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
         if (authenticated) {
             userName = authenticationResult.getAuthenticatedUser().get().getUsername();
         } else {
-            userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+            userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         }
 
         for (UserOperationEventListener listener : getUserStoreManagerListeners()) {
@@ -145,7 +145,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(user.getUserID());
+        String userName = getUserNameFromUserID(user.getUserID(), (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(user.getUserID(), userStoreManager);
         }
@@ -169,7 +169,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -193,7 +193,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -218,7 +218,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -242,7 +242,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -265,7 +265,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -318,7 +318,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -342,7 +342,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -366,7 +366,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -390,7 +390,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -414,7 +414,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -438,7 +438,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -462,7 +462,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -486,7 +486,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -640,7 +640,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -664,7 +664,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -688,7 +688,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -713,7 +713,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -738,7 +738,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -763,7 +763,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -912,7 +912,7 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
             return true;
         }
 
-        String userName = ((AbstractUserStoreManager) userStoreManager).getUserNameFromUserID(userID);
+        String userName = getUserNameFromUserID(userID, (AbstractUserStoreManager) userStoreManager);
         if (userName == null) {
             return handleUserNameResolveFailure(userID, userStoreManager);
         }
@@ -1205,5 +1205,11 @@ public class IdentityUserNameResolverListener extends AbstractIdentityUserOperat
 
         return !(listener instanceof IdentityUserIdResolverListener)
                 && !(listener instanceof IdentityUserNameResolverListener);
+    }
+
+    private String getUserNameFromUserID(String userID, AbstractUserStoreManager userStoreManager) throws
+            UserStoreException {
+
+        return UserCoreUtil.removeDomainFromName(userStoreManager.getUserNameFromUserID(userID));
     }
 }
