@@ -49,12 +49,13 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     private static final int DEFAULT_EXECUTION_ORDER = 9;
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Claims : { %s }";
     private static String AUDIT_MESSAGE_FOR_UPDATED_CLAIMS = "Initiator : %s | Action : %s | Target : %s | " +
-            "Updated Claims : { %s }";
+            "Added Claims : { %s } | Updated Claims : { %s } | Removed Claims : { %s }";
     private static final String CONFIG_CHANGE_LOG_CLAIMS = "LoggableUserClaims.LoggableUserClaim";
     private static final String LOG_UPDATED_CLAIMS_ONLY_PROPERTY = "LogUpdatedClaimsOnly";
     private static final String EVENT_LISTENER_TYPE = "org.wso2.carbon.user.core.listener.UserOperationEventListener";
     private String[] loggableClaimURIs;
     private static final String DEFAULT = "default";
+    private static final String ROLE_CLAIM_URI = "http://wso2.org/claims/role";
 
     @Override
     public int getExecutionOrderId() {
@@ -162,22 +163,40 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
                                   UserStoreManager userStoreManager) {
 
         try {
+            Map<String, String> addedClaims = new HashMap<>();
             Map<String, String> updatedClaims = new HashMap<>();
+            Map<String, String> removedClaims = new HashMap<>();
             Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName, loggableClaimURIs,
                     DEFAULT);
+            resolveLoggableClaims(loggableClaims);
 
             for (Map.Entry<String, String> entry : loggableClaims.entrySet()) {
                 String claimURI = entry.getKey();
                 String claimValue = entry.getValue();
                 String updatedClaimValue = claims.get(claimURI);
+                // Get updated claims.
                 if (StringUtils.isNotEmpty(updatedClaimValue) && !updatedClaimValue.equals(claimValue)) {
                     updatedClaims.put(claimURI, updatedClaimValue);
                 }
+                // Get claims when the claim value is removed.
+                if (StringUtils.isEmpty(updatedClaimValue) && StringUtils.isNotEmpty(claimValue)) {
+                    removedClaims.put(claimURI, claimValue);
+                }
             }
 
-            if (MapUtils.isNotEmpty(updatedClaims)) {
+            // Get claims when the claim value is set.
+            for (String loggableClaim : loggableClaimURIs) {
+                String claimValue = loggableClaims.get(loggableClaim);
+                String updatedClaimValue = claims.get(loggableClaim);
+                if (StringUtils.isNotEmpty(updatedClaimValue) && StringUtils.isEmpty(claimValue)) {
+                    addedClaims.put(loggableClaim, updatedClaimValue);
+                }
+            }
+
+            if (MapUtils.isNotEmpty(addedClaims) || MapUtils.isNotEmpty(updatedClaims) ||
+                    MapUtils.isNotEmpty(removedClaims)) {
                 audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, getUser(), action, userName,
-                        formatClaims(updatedClaims)));
+                        formatClaims(addedClaims), formatClaims(updatedClaims), formatClaims(removedClaims)));
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Updated claims are not configured under the user: " + userName);
@@ -188,6 +207,19 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
         }
     }
 
+    /**
+     * Resolve the map of loggable claims to remove read-only claims, as those claims cannot be updated and cannot be
+     * logged as an audit log.
+     *
+     * @param loggableClaims Claims configured under LoggableUserClaims.
+     */
+    private void resolveLoggableClaims(Map<String, String> loggableClaims) {
+
+        loggableClaims.remove(ROLE_CLAIM_URI);
+        if (log.isDebugEnabled()) {
+            log.debug(ROLE_CLAIM_URI + " claim is removed from the loggable claims as it is a read-only claim.");
+        }
+    }
 
     private void logClaims(String userName, String action, UserStoreManager userStoreManager) {
 
