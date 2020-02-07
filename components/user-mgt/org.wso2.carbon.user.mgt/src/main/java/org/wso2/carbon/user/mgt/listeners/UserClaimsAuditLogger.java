@@ -27,11 +27,12 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +48,11 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static final int DEFAULT_EXECUTION_ORDER = 9;
     private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s | Claims : { %s }";
+    private static String AUDIT_MESSAGE_FOR_UPDATED_CLAIMS = "Initiator : %s | Action : %s | Target : %s | " +
+            "Updated Claims : { %s }";
     private static final String CONFIG_CHANGE_LOG_CLAIMS = "LoggableUserClaims.LoggableUserClaim";
+    private static final String LOG_UPDATED_CLAIMS_ONLY_PROPERTY = "LogUpdatedClaimsOnly";
+    private static final String EVENT_LISTENER_TYPE = "org.wso2.carbon.user.core.listener.UserOperationEventListener";
     private String[] loggableClaimURIs;
     private static final String DEFAULT = "default";
 
@@ -105,7 +110,11 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     public boolean doPreSetUserClaimValues(String userName, Map<String, String> claims, String profileName, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (isEnable()) {
-            logClaims(userName, "doPreSetUserClaimValues", userStoreManager);
+            if (isLogUpdatedClaimsOnlyPropertyEnabled()) {
+                logUpdatedClaims(userName, claims, "doPreSetUserClaimValues", userStoreManager);
+            } else {
+                logClaims(userName, "doPreSetUserClaimValues", userStoreManager);
+            }
         }
         return true;
     }
@@ -114,9 +123,69 @@ public class UserClaimsAuditLogger extends AbstractIdentityUserOperationEventLis
     public boolean doPostSetUserClaimValues(String userName, Map<String, String> claims, String profileName, UserStoreManager userStoreManager) throws UserStoreException {
 
         if (isEnable()) {
-            logClaims(userName, "doPostSetUserClaimValues", userStoreManager);
+            if (isLogUpdatedClaimsOnlyPropertyEnabled()) {
+                return true;
+            } else {
+                logClaims(userName, "doPostSetUserClaimValues", userStoreManager);
+            }
         }
         return true;
+    }
+
+    /**
+     * This method is to check whether the 'LogUpdatedClaimsOnly' property is enabled for the EventListener
+     * UserOperationEventListener in the identity.xml file.
+     *
+     * @return Whether 'LogUpdatedClaimsOnly' property is enabled or not.
+     */
+    private boolean isLogUpdatedClaimsOnlyPropertyEnabled() {
+
+        Object propertyValue = IdentityUtil.readEventListenerProperty(EVENT_LISTENER_TYPE, this.getClass().getName())
+                .getProperties().get(LOG_UPDATED_CLAIMS_ONLY_PROPERTY);
+        if (propertyValue != null) {
+            return Boolean.parseBoolean(propertyValue.toString());
+        }
+
+        return false;
+    }
+
+    /**
+     * This will log only the updated user claims rather than logging every claim that is added under the loggable
+     * claims configuration.
+     *
+     * @param userName         Username.
+     * @param claims           User claims.
+     * @param action           Action to be logged in the audit log.
+     * @param userStoreManager Userstore manager.
+     */
+    private void logUpdatedClaims(String userName, Map<String, String> claims, String action,
+                                  UserStoreManager userStoreManager) {
+
+        try {
+            Map<String, String> updatedClaims = new HashMap<>();
+            Map<String, String> loggableClaims = userStoreManager.getUserClaimValues(userName, loggableClaimURIs,
+                    DEFAULT);
+
+            for (Map.Entry<String, String> entry : loggableClaims.entrySet()) {
+                String claimURI = entry.getKey();
+                String claimValue = entry.getValue();
+                String updatedClaimValue = claims.get(claimURI);
+                if (StringUtils.isNotEmpty(updatedClaimValue) && !updatedClaimValue.equals(claimValue)) {
+                    updatedClaims.put(claimURI, updatedClaimValue);
+                }
+            }
+
+            if (MapUtils.isNotEmpty(updatedClaims)) {
+                audit.info(String.format(AUDIT_MESSAGE_FOR_UPDATED_CLAIMS, getUser(), action, userName,
+                        formatClaims(updatedClaims)));
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Updated claims are not configured under the user: " + userName);
+                }
+            }
+        } catch (UserStoreException e) {
+            log.error("Error occurred while logging updated user claim changes.", e);
+        }
     }
 
 
