@@ -318,6 +318,7 @@
   "event.default_listener.user_failure_audit_logger.enable": true,
   "event.default_listener.user_claim_audit_logger.priority": "9",
   "event.default_listener.user_claim_audit_logger.enable": false,
+  "event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly": false,
   "event.default_listener.username_resolver.priority": "14",
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
