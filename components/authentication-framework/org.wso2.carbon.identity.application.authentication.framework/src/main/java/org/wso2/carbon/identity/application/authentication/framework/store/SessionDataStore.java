@@ -422,49 +422,35 @@ public class SessionDataStore {
     }
 
     /**
-     * Removes the records related to expired sessions from DB
+     * Removes the records related to expired sessions from DB.
      */
     private void removeExpiredSessionData(String sqlQuery) {
-
-        Connection connection = null;
-        PreparedStatement statement = null;
-
-        try {
-            connection = IdentityDatabaseUtil.getDBConnection();
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
 
         if (log.isDebugEnabled()) {
             log.debug("DB query for removing expired data: " + sqlQuery);
         }
-
         long currentTime = FrameworkUtils.getCurrentStandardNano();
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             boolean deleteCompleted = false;
             int totalDeletedEntries = 0;
             while (!deleteCompleted) {
-                statement = connection.prepareStatement(sqlQuery);
-                statement.setLong(1, currentTime);
-
-                int noOfDeletedRecords = statement.executeUpdate();
-                deleteCompleted = noOfDeletedRecords < deleteChunkSize;
-                totalDeletedEntries += noOfDeletedRecords;
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format("Removed %d expired session records.",
-                            noOfDeletedRecords));
+                try (PreparedStatement statement = connection.prepareStatement(sqlQuery)) {
+                    statement.setLong(1, currentTime);
+                    int noOfDeletedRecords = statement.executeUpdate();
+                    deleteCompleted = noOfDeletedRecords < deleteChunkSize;
+                    totalDeletedEntries += noOfDeletedRecords;
+                    // Commit the chunk deletion.
+                    IdentityDatabaseUtil.commitTransaction(connection);
+                    if (log.isDebugEnabled()) {
+                        log.debug(String.format("Removed %d expired session records.", noOfDeletedRecords));
+                    }
                 }
-                IdentityDatabaseUtil.rollbackTransaction(connection);
             }
             if (log.isDebugEnabled()) {
-                log.debug(String.format("Deleted total of %d entries ", totalDeletedEntries));
+                log.debug(String.format("Deleted total of %d entries", totalDeletedEntries));
             }
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while removing session data from the database for nano time " + currentTime, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, statement);
+        } catch (SQLException | IdentityRuntimeException e) {
+            log.error("Error while removing session data from the database for nano time: " + currentTime, e);
         }
     }
 
