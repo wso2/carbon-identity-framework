@@ -426,24 +426,15 @@ public class SessionDataStore {
      */
     private void removeExpiredSessionData(String sqlQuery) {
 
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getDBConnection(true);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return;
-        }
-
         if (log.isDebugEnabled()) {
             log.debug("DB query for removing expired data: " + sqlQuery);
         }
-
         long currentTime = FrameworkUtils.getCurrentStandardNano();
-        try {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             boolean deleteCompleted = false;
             int totalDeletedEntries = 0;
             while (!deleteCompleted) {
-                try (PreparedStatement statement = connection.prepareStatement(sqlQuery)){
+                try (PreparedStatement statement = connection.prepareStatement(sqlQuery)) {
                     statement.setLong(1, currentTime);
                     int noOfDeletedRecords = statement.executeUpdate();
                     deleteCompleted = noOfDeletedRecords < deleteChunkSize;
@@ -458,11 +449,8 @@ public class SessionDataStore {
             if (log.isDebugEnabled()) {
                 log.debug(String.format("Deleted total of %d entries", totalDeletedEntries));
             }
-        } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
+        } catch (SQLException | IdentityRuntimeException e) {
             log.error("Error while removing session data from the database for nano time: " + currentTime, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, null);
         }
     }
 
