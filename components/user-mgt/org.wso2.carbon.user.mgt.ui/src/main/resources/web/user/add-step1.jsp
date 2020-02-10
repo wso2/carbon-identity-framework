@@ -343,9 +343,9 @@
             <form method="post" action="add-finish-ajaxprocessor.jsp" name="dataForm" onsubmit="return doValidation();">
 
                 <input type="hidden" id="pwd_primary_null" name="pwd_primary_null"
-                       value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getPasswordRegEx())%>>
+                       value=<%=Encode.forHtml(userRealmInfo.getPrimaryUserStoreInfo().getPasswordRegEx())%>>
                 <input type="hidden" id="usr_primary_null" name="usr_primary_null"
-                       value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getUserNameRegEx())%>>
+                       value=<%=Encode.forHtml(userRealmInfo.getPrimaryUserStoreInfo().getUserNameRegEx())%>>
 
                 <%
 
@@ -360,11 +360,11 @@
                 <input type="hidden"
                        id="pwd_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
                        name="pwd_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
-                       value=<%=Encode.forHtmlAttribute(pwdRegEx)%>>
+                       value=<%=Encode.forHtml(pwdRegEx)%>>
                 <input type="hidden"
                        id="usr_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
                        name="usr_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
-                       value=<%=Encode.forHtmlAttribute(usrRegEx)%>>
+                       value=<%=Encode.forHtml(usrRegEx)%>>
 
                 <% }
 
