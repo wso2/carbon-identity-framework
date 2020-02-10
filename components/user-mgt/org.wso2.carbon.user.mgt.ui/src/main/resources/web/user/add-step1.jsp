@@ -59,6 +59,9 @@
     boolean isAskPasswordEnabled = false;
     boolean isUserOnBoardingEnabled = false;
 
+    String GREATER_THAN_CHARACTER = ">";
+    String GREATER_THAN_ENCODING_STRING = "&gt;";
+
     String BUNDLE = "org.wso2.carbon.userstore.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
@@ -343,9 +346,11 @@
             <form method="post" action="add-finish-ajaxprocessor.jsp" name="dataForm" onsubmit="return doValidation();">
 
                 <input type="hidden" id="pwd_primary_null" name="pwd_primary_null"
-                       value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getPasswordRegEx())%>>
+                       value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getPasswordRegEx())
+                       .replace(GREATER_THAN_CHARACTER, GREATER_THAN_ENCODING_STRING)%>>
                 <input type="hidden" id="usr_primary_null" name="usr_primary_null"
-                       value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getUserNameRegEx())%>>
+                       value=<%=Encode.forHtmlAttribute(userRealmInfo.getPrimaryUserStoreInfo().getUserNameRegEx())
+                       .replace(GREATER_THAN_CHARACTER, GREATER_THAN_ENCODING_STRING)%>>
 
                 <%
 
@@ -360,11 +365,13 @@
                 <input type="hidden"
                        id="pwd_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
                        name="pwd_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
-                       value=<%=Encode.forHtmlAttribute(pwdRegEx)%>>
+                       value=<%=Encode.forHtmlAttribute(pwdRegEx).replace(GREATER_THAN_CHARACTER,
+                       GREATER_THAN_ENCODING_STRING)%>>
                 <input type="hidden"
                        id="usr_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
                        name="usr_<%=Encode.forHtmlAttribute(allUserStoreInfo[i].getDomainName().toUpperCase())%>"
-                       value=<%=Encode.forHtmlAttribute(usrRegEx)%>>
+                       value=<%=Encode.forHtmlAttribute(usrRegEx).replace(GREATER_THAN_CHARACTER,
+                       GREATER_THAN_ENCODING_STRING)%>>
 
                 <% }
 
