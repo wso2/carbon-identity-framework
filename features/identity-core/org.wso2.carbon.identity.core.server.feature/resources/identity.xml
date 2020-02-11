@@ -945,28 +945,35 @@
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
             <Scopes>internal_user_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
             <Scopes>internal_user_mgt_view</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/search(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/list</Permissions>
             <Scopes>internal_config_mgt_list</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
             <Scopes>internal_config_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource-type/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
             <Scopes>internal_config_mgt_add</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="PUT">
