@@ -943,6 +943,17 @@
         <CallbackRegex>{{identity_mgt.user_self_registration.callback_url}}</CallbackRegex>
     </SelfRegistration>
 
+    <UserClaimUpdate>
+        <Claim uri = "http://wso2.org/claims/emailaddress">
+            <VerificationOnUpdate>
+                <Enable>{{identity_mgt.user_claim_update.email.enable_verification}}</Enable>
+                <VerificationCode>
+                    <ExpiryTime>{{identity_mgt.user_claim_update.email.verification_email_validity}}</ExpiryTime>
+                </VerificationCode>
+            </VerificationOnUpdate>
+        </Claim>
+    </UserClaimUpdate>
+
     <!--
          This configuration is used to filter the SP configured role mappings. If the property value is,
 

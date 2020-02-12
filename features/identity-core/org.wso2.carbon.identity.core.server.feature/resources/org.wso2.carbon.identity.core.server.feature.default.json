@@ -275,6 +275,9 @@
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_self_registration.callback_url": "${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do",
 
+  "identity_mgt.user_claim_update.email.enable_verification": false,
+  "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+
   "sp_role_management.return_only_mapped_local_roles": false,
 
   "authentication_policy.check_account_exist": true,
