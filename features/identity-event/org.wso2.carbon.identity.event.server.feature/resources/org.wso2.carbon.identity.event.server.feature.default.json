@@ -48,7 +48,9 @@
   "identity_mgt.events.schemes.userEmailVerification.module_index": "7",
   "identity_mgt.events.schemes.userEmailVerification.subscriptions": [
     "PRE_ADD_USER",
-    "POST_ADD_USER"
+    "POST_ADD_USER",
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
   ],
   "identity_mgt.events.schemes.passwordPolicy.module_index": "8",
   "identity_mgt.events.schemes.passwordPolicy.subscriptions": [
