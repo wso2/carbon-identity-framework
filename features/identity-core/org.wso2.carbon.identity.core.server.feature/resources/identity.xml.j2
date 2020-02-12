@@ -390,21 +390,19 @@
             </UserConsentEnabledGrantType>
         </UserConsentEnabledGrantTypes>
 
+        {% if oauth.extensions.token_types is defined %}
         <SupportedTokenTypes>
-            {% for tokenType in oauth.extensions.token_types%}
-           	    <SupportedTokenType>
-                    {% if tokenType.name is defined %}
-               	        <TokenTypeName>{{tokenType.name}}</TokenTypeName>
-                    {% endif %}
-                    {% if tokenType.issuer is defined %}
-                	    <TokenTypeImplClass>{{tokenType.issuer}}</TokenTypeImplClass>
-                	{% endif %}
-                    {% if tokenType.persist_accessToken_alias is defined %}
-                    	<PersistAccessTokenAlias>{{tokenType.persist_accessToken_alias}}</PersistAccessTokenAlias>
-                    {% endif %}
-                </SupportedTokenType>
-            {% endfor %}
+           {% for token_type in oauth.extensions.token_types %}
+           <SupportedTokenType>
+              <TokenTypeName>{{token_type.name}}</TokenTypeName>
+              <TokenTypeImplClass>{{token_type.issuer}}</TokenTypeImplClass>
+              {% if token_type.persist_access_token_alias is defined %}
+              <PersistAccessTokenAlias>{{token_type.persist_access_token_alias}}</PersistAccessTokenAlias>
+              {% endif %}
+           </SupportedTokenType>
+           {% endfor %}
         </SupportedTokenTypes>
+        {% endif %}
 
         <OAuthCallbackHandlers>
            {% for callback_handler in oauth.extensions.callback_handlers %}
