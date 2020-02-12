@@ -1281,11 +1281,7 @@
     {% endif %}
 
 
-    {% if resource_access_control.default_access_allow is sameas true %}
-    <ResourceAccessControl>
-    {% else %}
-    <ResourceAccessControl default-access="deny">
-    {% endif %}
+    <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
             {% for permission in resource.permissions %}
