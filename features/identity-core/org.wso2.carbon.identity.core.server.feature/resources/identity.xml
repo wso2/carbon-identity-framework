@@ -320,6 +320,20 @@
             </UserConsentEnabledGrantType>
         </UserConsentEnabledGrantTypes>
 
+        <!--Custom token issuers can be configured as follows.-->
+        <!--<SupportedTokenTypes>-->
+            <!--<SupportedTokenType>-->
+                <!--<TokenTypeName>Default</TokenTypeName>-->
+                <!--<TokenTypeImplClass>org.wso2.carbon.identity.oauth2.token.OauthTokenIssuerImpl</TokenTypeImplClass>-->
+                <!--<PersistAccessTokenAlias>true</PersistAccessTokenAlias>-->
+            <!--</SupportedTokenType>-->
+            <!--<SupportedTokenType>-->
+                <!--<TokenTypeName>JWT</TokenTypeName>-->
+                <!--<TokenTypeImplClass>org.wso2.carbon.identity.oauth2.token.JWTTokenIssuer</TokenTypeImplClass>-->
+                <!--<PersistAccessTokenAlias>true</PersistAccessTokenAlias>-->
+            <!--</SupportedTokenType>-->
+        <!--</SupportedTokenTypes>-->
+
         <OAuthCallbackHandlers>
             <OAuthCallbackHandler Class="org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"/>
         </OAuthCallbackHandlers>

@@ -390,6 +390,20 @@
             </UserConsentEnabledGrantType>
         </UserConsentEnabledGrantTypes>
 
+        {% if oauth.extensions.token_types is defined %}
+        <SupportedTokenTypes>
+           {% for token_type in oauth.extensions.token_types %}
+           <SupportedTokenType>
+              <TokenTypeName>{{token_type.name}}</TokenTypeName>
+              <TokenTypeImplClass>{{token_type.issuer}}</TokenTypeImplClass>
+              {% if token_type.persist_access_token_alias is defined %}
+              <PersistAccessTokenAlias>{{token_type.persist_access_token_alias}}</PersistAccessTokenAlias>
+              {% endif %}
+           </SupportedTokenType>
+           {% endfor %}
+        </SupportedTokenTypes>
+        {% endif %}
+
         <OAuthCallbackHandlers>
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler.class}}">
@@ -1285,11 +1299,7 @@
     {% endif %}
 
 
-    {% if resource_access_control.default_access_allow is sameas true %}
-    <ResourceAccessControl>
-    {% else %}
-    <ResourceAccessControl default-access="deny">
-    {% endif %}
+    <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
             {% for permission in resource.permissions %}

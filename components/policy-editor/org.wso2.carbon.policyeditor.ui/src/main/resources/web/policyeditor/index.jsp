@@ -186,7 +186,7 @@
         disableLastBreadcrumbLink();
 
         if (currentPolicyURL != "null") {
-            getPolicyDoc('<%=Encode.forJavaScriptAttribute(policyURL)%>');
+            getPolicyDoc('<%=Encode.forJavaScript(policyURL)%>');
         } else if (policyText != "") {
             // loading the Policy document to Raw View
             syncRawPolicyView(policyText);
