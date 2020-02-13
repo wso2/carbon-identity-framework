@@ -1308,6 +1308,7 @@
         <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
