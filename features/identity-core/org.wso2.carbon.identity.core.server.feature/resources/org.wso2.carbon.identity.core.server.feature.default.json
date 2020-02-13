@@ -278,6 +278,8 @@
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
+  "identity_mgt_account_suspension.use_identity_claims": true,
+
   "sp_role_management.return_only_mapped_local_roles": false,
 
   "authentication_policy.check_account_exist": true,
@@ -480,7 +482,5 @@
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
 
-  "user_filtering.show_display_name_of_user": false,
-
-  "account_suspension.lastLogin_as_default_claim": false
+  "user_filtering.show_display_name_of_user": false
 }

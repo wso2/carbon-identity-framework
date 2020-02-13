@@ -783,9 +783,9 @@
 	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
 
-    <Suspension>
-        <HandleLastLoginTimeAsDefaultClaim>false</HandleLastLoginTimeAsDefaultClaim>
-    </Suspension>
+    <AccountSuspension>
+        <UseIdentityClaims>true</UseIdentityClaims>
+    </AccountSuspension>
 
     <!--
          This configuration is used to filter the SP configured role mappings. If the property value is,
