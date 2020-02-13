@@ -574,7 +574,7 @@
 				<Description>Unlock Time</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/lastLoginTime</ClaimURI>
+				<ClaimURI>http://wso2.org/claims/identity/lastLoginTime</ClaimURI>
 				<DisplayName>Last Login</DisplayName>
 				<!-- Proper attribute Id in your user store must be configured for this -->
 				<AttributeID>lastLoginTime</AttributeID>
