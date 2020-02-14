@@ -35,7 +35,7 @@ public class CookieBuilder {
     private boolean secure = true;
     private int version = 0;
     private boolean isHttpOnly = true;
-    private SameSiteCookie sameSite = SameSiteCookie.Strict;
+    private SameSiteCookie sameSite = SameSiteCookie.STRICT;
 
     public CookieBuilder(String name, String value) {
         this.name = name;
