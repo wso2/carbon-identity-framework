@@ -619,7 +619,7 @@ public class FrameworkUtils {
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp) {
 
-        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.None);
+        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE);
     }
 
     /**
@@ -708,7 +708,7 @@ public class FrameworkUtils {
      */
     public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age) {
 
-        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.None);
+        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE);
     }
 
     /**
