@@ -1369,8 +1369,8 @@
             <Context>/api/identity/oauth2/dcr/v1.1/</Context>
             <Context>/api/identity/oauth2/v1.0/</Context>
             <Context>/api/identity/config-mgt/v1.0/</Context>
-            <Context>/api/</Context>
             <Context>/api/users/v2/me/webauthn</Context>
+            <Context>/api/</Context>
             <Context>/user-portal/</Context>
         </WebApp>
         <Servlet>
