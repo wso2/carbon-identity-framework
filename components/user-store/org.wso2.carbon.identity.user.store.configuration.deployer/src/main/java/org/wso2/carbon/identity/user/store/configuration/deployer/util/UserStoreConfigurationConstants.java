@@ -39,6 +39,13 @@ public class UserStoreConfigurationConstants {
     public static final String SERVER_KEYSTORE_PASSWORD = "Security.KeyStore.Password";
     public static final String SERVER_KEYSTORE_KEY_ALIAS = "Security.KeyStore.KeyAlias";
 
+    // Internal keystore related properties.
+    public static final String INTERNAL_KEYSTORE = "InternalKeystore";
+    public static final String SERVER_INTERNAL_KEYSTORE_FILE = "Security.InternalKeyStore.Location";
+    public static final String SERVER_INTERNAL_KEYSTORE_TYPE = "Security.InternalKeyStore.Type";
+    public static final String SERVER_INTERNAL_KEYSTORE_PASSWORD = "Security.InternalKeyStore.Password";
+    public static final String SERVER_INTERNAL_KEYSTORE_KEY_ALIAS = "Security.InternalKeyStore.KeyAlias";
+    public static final String ENCRYPTION_KEYSTORE = "Security.UserStorePasswordEncryption";
 
     private UserStoreConfigurationConstants() {
 
