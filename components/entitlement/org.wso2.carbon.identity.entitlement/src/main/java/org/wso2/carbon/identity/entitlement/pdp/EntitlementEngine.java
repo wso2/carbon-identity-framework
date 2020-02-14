@@ -17,6 +17,9 @@
  */
 package org.wso2.carbon.identity.entitlement.pdp;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Element;
@@ -36,13 +39,13 @@ import org.wso2.balana.finder.ResourceFinderModule;
 import org.wso2.balana.finder.impl.CurrentEnvModule;
 import org.wso2.balana.finder.impl.SelectorModule;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementException;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
 import org.wso2.carbon.identity.entitlement.PDPConstants;
 import org.wso2.carbon.identity.entitlement.cache.DecisionCache;
-import org.wso2.carbon.identity.entitlement.cache.EntitlementEngineCache;
 import org.wso2.carbon.identity.entitlement.cache.PolicyCache;
 import org.wso2.carbon.identity.entitlement.cache.SimpleDecisionCache;
 import org.wso2.carbon.identity.entitlement.internal.EntitlementServiceComponent;
@@ -68,6 +71,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -86,8 +91,9 @@ public class EntitlementEngine {
     private boolean pdpDecisionCacheEnable;
     private List<AttributeFinderModule> attributeModules = new ArrayList<AttributeFinderModule>();
     private List<ResourceFinderModule> resourceModules = new ArrayList<ResourceFinderModule>();
-    private static EntitlementEngineCache entitlementEngines = EntitlementEngineCache.getInstance();
     private static EntitlementEngine entitlementEngine;
+    private static final long DEFAULT_ENTITLEMENT_ENGINE_CACHING_INTERVAL = 900;
+    private static LoadingCache<Integer, EntitlementEngine> entitlementEngineLoadingCache;
 
     private DecisionCache decisionCache = null;
     private PolicyCache policyCache = null;
@@ -95,7 +101,6 @@ public class EntitlementEngine {
     private SimpleDecisionCache simpleDecisionCache = null;
 
     private static final Log log = LogFactory.getLog(EntitlementEngine.class);
-
 
     public PolicyCache getPolicyCache() {
         return policyCache;
@@ -114,8 +119,7 @@ public class EntitlementEngine {
      */
     public static EntitlementEngine getInstance() {
 
-        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
-
+        Integer tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
         if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
             if (entitlementEngine == null) {
                 synchronized (lock) {
@@ -124,18 +128,61 @@ public class EntitlementEngine {
                     }
                 }
             }
-
             return entitlementEngine;
         }
-
-        if (!entitlementEngines.contains(tenantId)) {
+        if (entitlementEngineLoadingCache == null) {
             synchronized (lock) {
-                if (!entitlementEngines.contains(tenantId)) {
-                    entitlementEngines.put(tenantId, new EntitlementEngine(tenantId));
+                if (entitlementEngineLoadingCache == null) {
+                    entitlementEngineLoadingCache = CacheBuilder.newBuilder().weakValues().expireAfterAccess
+                            (getCacheInterval(), TimeUnit.SECONDS)
+                            .build(new CacheLoader<Integer, EntitlementEngine>() {
+                                @Override
+                                public EntitlementEngine load(Integer key) {
+
+                                    return new EntitlementEngine(key);
+                                }
+                            });
                 }
             }
         }
-        return entitlementEngines.get(tenantId);
+
+        EntitlementEngine entitleEngine = entitlementEngineLoadingCache.getIfPresent(tenantId);
+        if (entitleEngine == null) {
+            synchronized (lock) {
+                entitleEngine = entitlementEngineLoadingCache.getIfPresent(tenantId);
+                if (entitleEngine == null) {
+                    entitlementEngineLoadingCache.put(tenantId, new EntitlementEngine(tenantId));
+                }
+            }
+        }
+        try {
+            entitleEngine = entitlementEngineLoadingCache.get(tenantId);
+        } catch (ExecutionException e) {
+            log.error("Error while getting the entitle engine for the tenant : " + tenantId);
+        }
+        return entitleEngine;
+    }
+
+    private static long getCacheInterval() {
+
+        Properties properties = EntitlementServiceComponent.getEntitlementConfig().getEngineProperties();
+        String engineCachingInterval = properties.getProperty(PDPConstants
+                .ENTITLEMENT_ENGINE_CACHING_INTERVAL);
+        long entitlementEngineCachingInterval = DEFAULT_ENTITLEMENT_ENGINE_CACHING_INTERVAL;
+        if (engineCachingInterval != null) {
+            try {
+                entitlementEngineCachingInterval = Long.parseLong(engineCachingInterval);
+            } catch (NumberFormatException e) {
+                log.warn("Invalid value for " + PDPConstants.ENTITLEMENT_ENGINE_CACHING_INTERVAL + ". Using " +
+                        "default value " + entitlementEngineCachingInterval + " seconds.");
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(PDPConstants.ENTITLEMENT_ENGINE_CACHING_INTERVAL + " not set. Using default value " +
+                        entitlementEngineCachingInterval + " seconds.");
+            }
+        }
+        return entitlementEngineCachingInterval;
     }
 
     private EntitlementEngine(int tenantId) {

@@ -196,6 +196,7 @@
 
   "saml.metadata.validity_period": "1h",
   "saml.metadata.enable_signing": false,
+  "saml.metadata.enable_authentication_requests_signing": false,
 
   "sts.endpoint.idp": "$ref{server.base_path}/services/wso2carbon-sts",
 
@@ -274,6 +275,11 @@
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_self_registration.callback_url": "${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do",
 
+  "identity_mgt.user_claim_update.email.enable_verification": false,
+  "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+
+  "identity_mgt_account_suspension.use_identity_claims": true,
+
   "sp_role_management.return_only_mapped_local_roles": false,
 
   "authentication_policy.check_account_exist": true,
@@ -317,6 +323,7 @@
   "event.default_listener.user_failure_audit_logger.enable": true,
   "event.default_listener.user_claim_audit_logger.priority": "9",
   "event.default_listener.user_claim_audit_logger.enable": false,
+  "event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly": false,
   "event.default_listener.username_resolver.priority": "14",
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
@@ -430,8 +437,8 @@
     "/api/identity/oauth2/uma/permission/v1.0/",
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
     "/api/identity/config-mgt/v1.0/",
-    "/api/",
     "/api/users/v2/me/webauthn",
+    "/api/",
     "/user-portal/"
   ],
   "tenant_context.rewrite.servlets": [
@@ -448,6 +455,7 @@
   ],
 
   "oauth.jwks_endpoint.enable": true,
+  "oauth.jwks_endpoint.enforce_certificate_expiry_time_validity": true,
   "oauth.jwks_endpoint.connection_timeout": "1s",
   "oauth.jwks_endpoint.read_timeout": "1s",
   "oauth.jwks_endpoint.size_limit_bytes": "51200",

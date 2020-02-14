@@ -972,6 +972,8 @@ public class PolicyEditorUtil {
                     designatorDTO);
         } else if (PolicyConstants.Functions.FUNCTION_EQUAL.equals(rowDTO.getFunction())) {
             applyElementDTO = processEqualFunctions(function, dataType, attributeValue, designatorDTO);
+        } else if (PolicyConstants.Functions.FUNCTION_EQUAL_MATCH_REGEXP.equals(rowDTO.getFunction())) {
+            applyElementDTO = processRegexpFunctions(function, dataType, attributeValue, designatorDTO);
         } else {
             applyElementDTO = processBagFunction(function, dataType, attributeValue, designatorDTO);
         }
@@ -1268,6 +1270,37 @@ public class PolicyEditorUtil {
             return applyElementDTO;
 
         }
+    }
+
+    /**
+     * Process regexp-match functions.
+     *
+     * @param function       Function name.
+     * @param dataType       Data type.
+     * @param attributeValue Attribute Value.
+     * @param designatorDTO  AttributeDesignator information.
+     * @return ApplyElementDTO.
+     */
+    public static ApplyElementDTO processRegexpFunctions(String function, String dataType, String attributeValue,
+                                                         AttributeDesignatorDTO designatorDTO) {
+
+        if (PolicyConstants.Functions.FUNCTION_EQUAL_MATCH_REGEXP.equals(function)) {
+            ApplyElementDTO applyElementDTO = new ApplyElementDTO();
+            applyElementDTO.setFunctionId(PolicyConstants.XACMLData.FUNCTION_ANY_OF);
+            if (applyElementMap.containsKey(attributeValue)) {
+                applyElementDTO.setApplyElement(applyElementMap.get(attributeValue));
+            } else {
+                AttributeValueElementDTO valueElementDTO = new AttributeValueElementDTO();
+                valueElementDTO.setAttributeDataType(dataType);
+                valueElementDTO.setAttributeValue(attributeValue);
+                applyElementDTO.setAttributeValueElementDTO(valueElementDTO);
+            }
+            applyElementDTO.setFunctionFunctionId(
+                    processFunction(PolicyConstants.Functions.FUNCTION_EQUAL_MATCH_REGEXP, dataType));
+            applyElementDTO.setAttributeDesignators(designatorDTO);
+            return applyElementDTO;
+        }
+        return null;
     }
 
     /**

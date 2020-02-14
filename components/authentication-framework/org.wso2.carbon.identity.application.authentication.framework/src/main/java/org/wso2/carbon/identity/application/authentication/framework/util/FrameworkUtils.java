@@ -30,6 +30,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
@@ -617,7 +618,8 @@ public class FrameworkUtils {
      * @param resp HttpServlet response which the cookie must be written.
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp) {
-        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE);
+
+        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE);
     }
 
     /**
@@ -656,6 +658,40 @@ public class FrameworkUtils {
     }
 
     /**
+     * Removes a cookie which is already stored.
+     *
+     * @param req            Incoming HttpServletRequest.
+     * @param resp           HttpServletResponse which should be stored.
+     * @param cookieName     Name of the cookie which should be removed.
+     * @param sameSiteCookie SameSite attribute value for the cookie.
+     */
+    public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName,
+                                    SameSiteCookie sameSiteCookie) {
+
+        Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals(cookieName)) {
+                    CookieBuilder cookieBuilder = new CookieBuilder(cookieName,
+                            cookie.getValue());
+                    IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
+                    if (cookieConfig != null) {
+                        updateCookieConfig(cookieBuilder, cookieConfig, 0);
+                    } else {
+                        cookieBuilder.setHttpOnly(true);
+                        cookieBuilder.setSecure(true);
+                        cookieBuilder.setPath("/");
+                        cookieBuilder.setSameSite(sameSiteCookie);
+                    }
+                    cookieBuilder.setMaxAge(0);
+                    resp.addCookie(cookieBuilder.build());
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
      * @param req
      * @param resp
      * @param id
@@ -672,7 +708,7 @@ public class FrameworkUtils {
      */
     public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age) {
 
-        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age);
+        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE);
     }
 
     /**
@@ -704,6 +740,35 @@ public class FrameworkUtils {
             }
         }
 
+        resp.addCookie(cookieBuilder.build());
+    }
+
+    /**
+     * Stores a cookie to the response taking configurations from identity.xml file.
+     *
+     * @param req         Incoming HttpServletRequest.
+     * @param resp        Outgoing HttpServletResponse.
+     * @param cookieName  Name of the cookie to be stored.
+     * @param id          Cookie id.
+     * @param age         Max age of the cookie.
+     * @param setSameSite SameSite attribute value for the cookie.
+     */
+    public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
+                                 Integer age, SameSiteCookie setSameSite) {
+
+        CookieBuilder cookieBuilder = new CookieBuilder(cookieName, id);
+        IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
+        if (cookieConfig != null) {
+            updateCookieConfig(cookieBuilder, cookieConfig, age);
+        } else {
+            cookieBuilder.setSecure(true);
+            cookieBuilder.setHttpOnly(true);
+            cookieBuilder.setPath("/");
+            cookieBuilder.setSameSite(setSameSite);
+            if (age != null) {
+                cookieBuilder.setMaxAge(age);
+            }
+        }
         resp.addCookie(cookieBuilder.build());
     }
 
@@ -1650,6 +1715,10 @@ public class FrameworkUtils {
 
         if (cookieConfig.getVersion() > 0) {
             cookieBuilder.setVersion(cookieConfig.getVersion());
+        }
+
+        if (cookieConfig.getSameSite() != null) {
+            cookieBuilder.setSameSite(cookieConfig.getSameSite());
         }
 
         cookieBuilder.setHttpOnly(cookieConfig.isHttpOnly());

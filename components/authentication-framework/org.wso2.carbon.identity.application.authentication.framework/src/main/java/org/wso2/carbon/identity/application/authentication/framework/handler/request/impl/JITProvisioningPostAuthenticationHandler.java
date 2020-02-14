@@ -292,7 +292,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
                     String associatedLocalUser =
                             getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                                    stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), context.getTenantDomain());
 
                     String username;
                     String userIdClaimUriInLocalDialect = getUserIdClaimUriInLocalDialect(externalIdPConfig);
@@ -456,9 +456,11 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param authenticatedSubjectIdentifier Authenticated subject identifier.
      * @return username associated locally.
      */
-    private String getLocalUserAssociatedForFederatedIdentifier(String idpName, String authenticatedSubjectIdentifier)
+    private String getLocalUserAssociatedForFederatedIdentifier(String idpName, String authenticatedSubjectIdentifier,
+                                                                String tenantDomain)
             throws PostAuthenticationFailedException {
 
+        FrameworkUtils.startTenantFlow(tenantDomain);
         String username = null;
         try {
             UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
@@ -467,6 +469,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             handleExceptions(
                     String.format(ErrorMessages.ERROR_WHILE_GETTING_USERNAME_ASSOCIATED_WITH_IDP.getMessage(), idpName),
                     ErrorMessages.ERROR_WHILE_GETTING_USERNAME_ASSOCIATED_WITH_IDP.getCode(), e);
+        } finally {
+            FrameworkUtils.endTenantFlow();
         }
         return username;
     }
@@ -702,7 +706,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             throws PostAuthenticationFailedException {
 
         String userName = getLocalUserAssociatedForFederatedIdentifier(stepConfig.getAuthenticatedIdP(),
-                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier());
+                stepConfig.getAuthenticatedUser().getAuthenticatedSubjectIdentifier(), tenantDomain);
         String consent = request.getParameter("consent");
         String policyURL = request.getParameter("policy");
         if (StringUtils.isNotEmpty(consent)) {

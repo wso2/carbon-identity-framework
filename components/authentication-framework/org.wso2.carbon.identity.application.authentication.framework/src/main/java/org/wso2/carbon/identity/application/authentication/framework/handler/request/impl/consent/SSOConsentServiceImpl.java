@@ -36,12 +36,9 @@ import org.wso2.carbon.consent.mgt.core.model.ReceiptPurposeInput;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptService;
 import org.wso2.carbon.consent.mgt.core.model.ReceiptServiceInput;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
-        .SSOConsentDisabledException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception
-        .SSOConsentServiceException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentDisabledException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.exception.SSOConsentServiceException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -57,6 +54,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,7 +66,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.xml.namespace.QName;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -82,22 +79,14 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ACTIVE_
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PII_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_CAT_NAME_INVALID;
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.CONFIG_ELEM_CONSENT;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.CONSENT_VALIDITY_TYPE_SEPARATOR;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.FEDERATED_USER_DOMAIN_PREFIX;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.FEDERATED_USER_DOMAIN_SEPARATOR;
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant
-        .SSOConsentConstants.USERNAME_CLAIM;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_SEPARATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.FEDERATED_USER_DOMAIN_PREFIX;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.FEDERATED_USER_DOMAIN_SEPARATOR;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.USERNAME_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DESCRIPTION_PROPERTY;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.DISPLAY_NAME_PROPERTY;
 import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE;
@@ -216,7 +205,6 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 }
             }
         }
-        mandatoryClaims.add(subjectClaimUri);
 
         List<ClaimMetaData> receiptConsentMetaData = new ArrayList<>();
         Receipt receipt = getConsentReceiptOfUser(serviceProvider, authenticatedUser, spName, spTenantDomain, subject);

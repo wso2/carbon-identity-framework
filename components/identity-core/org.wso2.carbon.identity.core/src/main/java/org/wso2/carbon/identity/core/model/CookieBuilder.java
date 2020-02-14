@@ -18,6 +18,9 @@
 
 package org.wso2.carbon.identity.core.model;
 
+import org.wso2.carbon.core.SameSiteCookie;
+import org.wso2.carbon.core.ServletCookie;
+
 import javax.servlet.http.Cookie;
 
 
@@ -32,6 +35,7 @@ public class CookieBuilder {
     private boolean secure = true;
     private int version = 0;
     private boolean isHttpOnly = true;
+    private SameSiteCookie sameSite = SameSiteCookie.STRICT;
 
     public CookieBuilder(String name, String value) {
         this.name = name;
@@ -73,11 +77,16 @@ public class CookieBuilder {
         return this;
     }
 
+    public CookieBuilder setSameSite(SameSiteCookie sameSite) {
+        this.sameSite = sameSite;
+        return this;
+    }
+
     public Cookie build() {
         return new IdentityCookie(this);
     }
 
-    private static class IdentityCookie extends Cookie  {
+    private static class IdentityCookie extends ServletCookie {
         private IdentityCookie(CookieBuilder builder)   {
             super(builder.name, builder.value);
             this.setComment(builder.comment);
@@ -89,6 +98,7 @@ public class CookieBuilder {
             this.setMaxAge(builder.maxAge);
             this.setSecure(builder.secure);
             this.setVersion(builder.version);
+            this.setSameSite(builder.sameSite);
         }
     }
 }

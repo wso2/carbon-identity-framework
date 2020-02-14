@@ -19,7 +19,6 @@
 package org.wso2.carbon.identity.core.persistence;
 
 import org.apache.axiom.om.OMElement;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -27,13 +26,13 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 import javax.xml.namespace.QName;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * This class is used for handling identity meta data persistence in the Identity JDBC Store. During
@@ -52,6 +51,7 @@ public class JDBCPersistenceManager {
     private static final String POSTGRESQL_DATABASE = "PostgreSQL";
 
     private JDBCPersistenceManager() {
+
         initDataSource();
     }
 
@@ -65,6 +65,7 @@ public class JDBCPersistenceManager {
      * @throws IdentityException Error when reading the data source configurations
      */
     public static JDBCPersistenceManager getInstance() {
+
         if (instance == null) {
             synchronized (JDBCPersistenceManager.class) {
                 if (instance == null) {
@@ -105,13 +106,14 @@ public class JDBCPersistenceManager {
                 Context ctx = new InitialContext();
                 dataSource = (DataSource) ctx.lookup(dataSourceName);
             }
-        }  catch (NamingException e) {
+        } catch (NamingException e) {
             String errorMsg = "Error when looking up the Identity Data Source.";
             throw IdentityRuntimeException.error(errorMsg, e);
         }
     }
 
     public void initializeDatabase() {
+
         IdentityDBInitializer dbInitializer = new IdentityDBInitializer(dataSource);
         dbInitializer.createIdentityDatabase();
     }
@@ -140,6 +142,7 @@ public class JDBCPersistenceManager {
      * @throws IdentityException Exception occurred when getting the data source.
      */
     public Connection getDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
         try {
             Connection dbConnection = dataSource.getConnection();
             if (shouldApplyTransaction) {
@@ -167,9 +170,10 @@ public class JDBCPersistenceManager {
     /**
      * Returns Identity data source.
      *
-     * @return data source
+     * @return Data source.
      */
-    public DataSource getDataSource(){
+    public DataSource getDataSource() {
+
         return dataSource;
     }
 

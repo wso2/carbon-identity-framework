@@ -122,6 +122,7 @@ public class IdentityConstants {
     public final static String COOKIE_MAX_AGE = "maxAge";
     public final static String COOKIE_SECURE = "secure";
     public final static String COOKIE_HTTP_ONLY = "httpOnly";
+    public final static String COOKIE_SAME_SITE = "sameSite";
 
     // HTTP headers which may contain IP address of the client in the order of priority
     public static final String[] HEADERS_WITH_IP = {
@@ -249,6 +250,8 @@ public class IdentityConstants {
         public static final String SAML_SESSION_NOT_ON_OR_AFTER_PERIOD = "SSOService.SAMLSessionNotOnOrAfterPeriod";
         public static final String SAML_METADATA_SIGNING_ENABLED = "SSOService.SAMLMetadataSigningEnabled";
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
+        public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
+                ".SAML2AuthnRequestsSigningEnabled";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";

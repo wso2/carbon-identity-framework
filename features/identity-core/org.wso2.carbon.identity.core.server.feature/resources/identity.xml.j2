@@ -390,6 +390,20 @@
             </UserConsentEnabledGrantType>
         </UserConsentEnabledGrantTypes>
 
+        {% if oauth.extensions.token_types is defined %}
+        <SupportedTokenTypes>
+           {% for token_type in oauth.extensions.token_types %}
+           <SupportedTokenType>
+              <TokenTypeName>{{token_type.name}}</TokenTypeName>
+              <TokenTypeImplClass>{{token_type.issuer}}</TokenTypeImplClass>
+              {% if token_type.persist_access_token_alias is defined %}
+              <PersistAccessTokenAlias>{{token_type.persist_access_token_alias}}</PersistAccessTokenAlias>
+              {% endif %}
+           </SupportedTokenType>
+           {% endfor %}
+        </SupportedTokenTypes>
+        {% endif %}
+
         <OAuthCallbackHandlers>
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler.class}}">
@@ -724,6 +738,7 @@
         <!-- Request validity period in minutes-->
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>{{saml.enable_saml_sp_certificate_expiry_validation}}</SAMLSPCertificateExpiryValidationEnabled>
+        <SAML2AuthnRequestsSigningEnabled>{{saml.metadata.enable_authentication_requests_signing}}</SAML2AuthnRequestsSigningEnabled>
     </SSOService>
 
     <Consent>
@@ -942,6 +957,21 @@
         <CallbackRegex>{{identity_mgt.user_self_registration.callback_url}}</CallbackRegex>
     </SelfRegistration>
 
+    <UserClaimUpdate>
+        <Claim uri = "http://wso2.org/claims/emailaddress">
+            <VerificationOnUpdate>
+                <Enable>{{identity_mgt.user_claim_update.email.enable_verification}}</Enable>
+                <VerificationCode>
+                    <ExpiryTime>{{identity_mgt.user_claim_update.email.verification_email_validity}}</ExpiryTime>
+                </VerificationCode>
+            </VerificationOnUpdate>
+        </Claim>
+    </UserClaimUpdate>
+
+     <AccountSuspension>
+        <UseIdentityClaims>{{identity_mgt_account_suspension.use_identity_claims}}</UseIdentityClaims>
+     </AccountSuspension>
+
     <!--
          This configuration is used to filter the SP configured role mappings. If the property value is,
 
@@ -1092,7 +1122,9 @@
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.listeners.UserClaimsAuditLogger"
                        orderId="{{event.default_listener.user_claim_audit_logger.priority}}"
-                       enable="{{event.default_listener.user_claim_audit_logger.enable}}"/>
+                       enable="{{event.default_listener.user_claim_audit_logger.enable}}">
+            <Property name="LogUpdatedClaimsOnly">{{event.default_listener.user_claim_audit_logger.LogUpdatedClaimsOnly}}</Property>
+        </EventListener>
         <!-- Custom Audit Loggers-->
         {% for listener in event_listener %}
         <EventListener id="{{listener.id}}"
@@ -1258,16 +1290,16 @@
         </CacheManager>
     </CacheConfig>
 
-    <!--Cookies>
-        <Cookie name="commonAuthId" domain="localhost" httpOnly="true" secure="true" />
-    </Cookies-->
-
-
-    {% if resource_access_control.default_access_allow is sameas true %}
-    <ResourceAccessControl>
-    {% else %}
-    <ResourceAccessControl default-access="deny">
+    {% if identity.cookies is defined %}
+    <Cookies>
+    {% for cookie in identity.cookies %}
+        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" />
+    {% endfor %}
+    </Cookies>
     {% endif %}
+
+
+    <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
             {% for permission in resource.permissions %}
@@ -1476,7 +1508,7 @@
                 context="(.*)/scim2/Me"
                 secured="{{resource_access_control.scim2_me_get_method.secured}}"
                 http-method="GET">
-            <Permissions>{{resource_access_control.scim2_me_get_method.permission}}</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         {% endif %}
@@ -1492,7 +1524,7 @@
         <Resource context="(.*)/scim2/Me"
                   secured="{{resource_access_control.scim2_me_put_method.secured}}"
                   http-method="PUT">
-            <Permissions>{{resource_access_control.scim2_me_put_method.permission}}</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         {% endif %}
@@ -1500,7 +1532,7 @@
         <Resource context="(.*)/scim2/Me"
                   secured="{{resource_access_control.scim2_me_patch_method.secured}}"
                   http-method="PATCH">
-            <Permissions>{{resource_access_control.scim2_me_patch_method.permission}}</Permissions>
+            <Permissions>none</Permissions>
            <Scopes>internal_login</Scopes>
         </Resource>
         {% endif %}
@@ -1554,7 +1586,7 @@
             <Scopes>internal_humantask_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="all">
@@ -1593,22 +1625,38 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-                <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
-                    <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
-                    <Scopes>internal_idp_create</Scopes>
-                </Resource>
-                <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="PUT, PATCH">
-                    <Permissions>/permission/admin/manage/identity/idpmgt/update</Permissions>
-                    <Scopes>internal_idp_update</Scopes>
-                </Resource>
-                <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="DELETE">
-                    <Permissions>/permission/admin/manage/identity/idpmgt/delete</Permissions>
-                    <Scopes>internal_idp_delete</Scopes>
-                </Resource>
-                <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
-                    <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
-                    <Scopes>internal_idp_view</Scopes>
-                </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
+            <Scopes>internal_idp_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="PUT, PATCH">
+            <Permissions>/permission/admin/manage/identity/idpmgt/update</Permissions>
+            <Scopes>internal_idp_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/idpmgt/delete</Permissions>
+            <Scopes>internal_idp_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
+            <Scopes>internal_idp_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/functionsLibrarymgt/create</Permissions>
+            <Scopes>internal_functional_lib_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/functionsLibrarymgt/view</Permissions>
+            <Scopes>internal_functional_lib_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/functionsLibrarymgt/update</Permissions>
+            <Scopes>internal_functional_lib_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/functionsLibrarymgt/delete</Permissions>
+            <Scopes>internal_functional_lib_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -1617,7 +1665,7 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/login</Permissions>
+            <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
@@ -1628,6 +1676,7 @@
         <Resource context="/services(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
         <Resource context="/samlsso(.*)" secured="false" http-method="all"/>
+        <Resource context="/acs(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
         <Resource context="/passivests(.*)" secured="false" http-method="all"/>
@@ -1647,6 +1696,7 @@
         <Resource context="(.*)/oauth2/oidcdiscovery(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
         <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
@@ -1724,6 +1774,7 @@
     <!-- JWT validator configurations -->
     <JWTValidatorConfigs>
         <Enable>{{oauth.jwks_endpoint.enable}}</Enable>
+        <EnforceCertificateExpiryTimeValidity>{{oauth.jwks_endpoint.enforce_certificate_expiry_time_validity}}</EnforceCertificateExpiryTimeValidity>
         <JWKSEndpoint>
             <HTTPConnectionTimeout>{{oauth.jwks_endpoint.connection_timeout}}</HTTPConnectionTimeout>
             <HTTPReadTimeout>{{oauth.jwks_endpoint.read_timeout}}</HTTPReadTimeout>

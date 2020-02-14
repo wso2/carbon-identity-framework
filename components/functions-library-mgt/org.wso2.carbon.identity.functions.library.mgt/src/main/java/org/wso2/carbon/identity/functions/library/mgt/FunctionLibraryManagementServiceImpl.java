@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,11 +26,12 @@ import org.wso2.carbon.identity.functions.library.mgt.dao.FunctionLibraryDAO;
 import org.wso2.carbon.identity.functions.library.mgt.dao.impl.FunctionLibraryDAOImpl;
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
+import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryExceptionManagementUtil;
+import org.wso2.carbon.identity.functions.library.mgt.util.FunctionLibraryManagementConstants;
 
 import java.util.List;
 
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtUtil.isRegexValidated;
@@ -69,16 +71,17 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
         FunctionLibraryDAO functionLibraryDAO = new FunctionLibraryDAOImpl();
 
         if (functionLibraryDAO.isFunctionLibraryExists(functionLibrary.getFunctionLibraryName(), tenantDomain)) {
-            throw new FunctionLibraryManagementException("Already a function library available with the same name.");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_ALREADY_EXIST_SCRIPT_LIBRARY,
+                    functionLibrary.getFunctionLibraryName());
         }
 
         String functionLibraryName = functionLibrary.getFunctionLibraryName();
         if (!isRegexValidated(functionLibraryName)) {
-            throw new FunctionLibraryManagementException("The function library name " +
-                    functionLibrary.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                    "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_INVALID_SCRIPT_LIBRARY_NAME,
+                    FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
         }
-
         functionLibraryDAO.createFunctionLibrary(functionLibrary, tenantDomain);
     }
 
@@ -116,14 +119,16 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
 
         if (!functionLibrary.getFunctionLibraryName().equals(oldFunctionLibraryName) &&
                 functionLibraryDAO.isFunctionLibraryExists(functionLibrary.getFunctionLibraryName(), tenantDomain)) {
-            throw new FunctionLibraryManagementException("Already a function library available with the same name.");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_ALREADY_EXIST_SCRIPT_LIBRARY,
+                    functionLibrary.getFunctionLibraryName());
         }
 
         String functionLibraryName = functionLibrary.getFunctionLibraryName();
         if (!isRegexValidated(functionLibraryName)) {
-            throw new FunctionLibraryManagementException("The function library name " +
-                    functionLibrary.getFunctionLibraryName() + " is not valid! It is not adhering " +
-                    "to the regex " + FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_INVALID_SCRIPT_LIBRARY_NAME,
+                    FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX);
         }
         functionLibraryDAO.updateFunctionLibrary(oldFunctionLibraryName, functionLibrary, tenantDomain);
     }
@@ -145,9 +150,11 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     private void validateInputs(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         if (StringUtils.isBlank(functionLibrary.getFunctionLibraryName())) {
-            throw new FunctionLibraryManagementException("Function Library Name is required.");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_NAME);
         } else if (StringUtils.isBlank(functionLibrary.getFunctionLibraryScript())) {
-            throw new FunctionLibraryManagementException("Function Library Script is required.");
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_REQUIRE_SCRIPT_LIBRARY_SCRIPT);
         }
     }
 
@@ -160,7 +167,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
     private void evaluateScript(FunctionLibrary functionLibrary) throws FunctionLibraryManagementException {
 
         try {
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+            ScriptEngine engine = new NashornScriptEngineFactory().getScriptEngine("--no-java");
             String head = "var module = { exports:{} }; \n" +
                     "var exports = {}; \n" +
                     "function require(name){};";
@@ -168,10 +175,12 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
             code = head + code;
             engine.eval(code);
         } catch (ScriptException e) {
-            log.error("Function library script of " + functionLibrary.getFunctionLibraryName() +
+            log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
                     " contains errors." + e);
-            throw new FunctionLibraryManagementException("Function library script of " +
-                    functionLibrary.getFunctionLibraryName() + " contains errors.", e);
+            throw FunctionLibraryExceptionManagementUtil.handleClientException(
+                    FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,
+                    functionLibrary.getFunctionLibraryName(), e);
+
         }
     }
 }

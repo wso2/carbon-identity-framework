@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerClientException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerServerException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.AssociatedIdentityProvider;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.model.FederatedAssociation;
 import org.wso2.carbon.identity.user.profile.mgt.dao.UserProfileMgtDAO;
 import org.wso2.carbon.identity.user.profile.mgt.internal.IdentityUserProfileServiceDataHolder;
@@ -111,12 +112,12 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
             List<AssociatedAccountDTO> associatedAccountDTOS = UserProfileMgtDAO.getInstance()
                     .getAssociatedFederatedAccountsForUser(tenantId, user.getUserStoreDomain(), user.getUserName());
             for (AssociatedAccountDTO associatedAccount : associatedAccountDTOS) {
-                String identityProviderId = getIdentityProviderId(user.getTenantDomain(),
+                AssociatedIdentityProvider idp = getAssociatedIdentityProvider(user.getTenantDomain(),
                         associatedAccount.getIdentityProviderName());
                 federatedAssociations.add(
                         new FederatedAssociation(
                                 associatedAccount.getId(),
-                                identityProviderId,
+                                idp,
                                 associatedAccount.getUsername()
                         )
                 );
@@ -337,7 +338,7 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         FederatedAssociation[] federatedUserAccountAssociationDTOS = getFederatedAssociationsOfUser(user);
         if (federatedUserAccountAssociationDTOS != null) {
             for (FederatedAssociation eachFederatedAssociation : federatedUserAccountAssociationDTOS) {
-                if (idpName.equals(getResolvedIdPName(user, eachFederatedAssociation.getIdpId()))
+                if (idpName.equals(getResolvedIdPName(user, eachFederatedAssociation.getIdp().getId()))
                         && federatedUserId.equals(eachFederatedAssociation.getFederatedUserId())) {
                     return true;
                 }
@@ -413,14 +414,18 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         }
     }
 
-    private String getIdentityProviderId(String tenantDomain, String identityProviderName)
+    private AssociatedIdentityProvider getAssociatedIdentityProvider(String tenantDomain, String identityProviderName)
             throws FederatedAssociationManagerServerException {
 
         try {
             IdpManager idpManager = IdentityUserProfileServiceDataHolder.getInstance().getIdpManager();
             if (idpManager != null) {
-                IdentityProvider identityProvider = idpManager.getIdPByName(identityProviderName, tenantDomain);
-                return identityProvider.getResourceId();
+                IdentityProvider idp = idpManager.getIdPByName(identityProviderName, tenantDomain);
+                return new AssociatedIdentityProvider(
+                        idp.getResourceId(),
+                        idp.getIdentityProviderName(),
+                        idp.getDisplayName(),
+                        idp.getImageUrl());
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("The IdpManager service is not available in the runtime");

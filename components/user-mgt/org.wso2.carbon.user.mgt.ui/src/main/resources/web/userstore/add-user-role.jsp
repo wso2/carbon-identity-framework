@@ -140,7 +140,7 @@
                             if (show && ((multipleUserStores || !userRealmInfo.getPrimaryUserStoreInfo().getReadOnly())
                                     && userRealmInfo.getPrimaryUserStoreInfo().getExternalIdP() == null
                                     && CarbonUIUtil.isUserAuthorized(request,
-                                    "/permission/admin/manage/identity/usermgt/users"))) {
+                                    "/permission/admin/manage/identity/usermgt/create"))) {
                         %>
                         <table width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:2px;">
                             <tr>

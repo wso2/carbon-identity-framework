@@ -80,6 +80,8 @@ public class UserProfileAdmin extends AbstractAdmin {
     private static final String USER_PROFILE_DELETE_PERMISSION = "/manage/identity/userprofile/delete";
     private static final String USER_PROFILE_VIEW_PERMISSION = "/manage/identity/userprofile/view";
     private static final String USER_PROFILE_MANAGE_PERMISSION = "/manage/identity/userprofile";
+    private static final String TRANSPORT_HTTP_SERVLET_REQUEST = "transport.http.servletRequest";
+    private static final String LOGGED_IN_DOMAIN = "logged_in_domain";
 
     public static UserProfileAdmin getInstance() {
         return userProfileAdmin;
@@ -787,6 +789,81 @@ public class UserProfileAdmin extends AbstractAdmin {
         }
     }
 
+    /**
+     * Retrieve a claim of the authorized user.
+     *
+     * @param claimUri    Claim URI in wso2 dialect.
+     * @param profileName User profile name.
+     * @return Claim value.
+     * @throws UserProfileException
+     */
+    public String getUserClaim(String claimUri, String profileName) throws UserProfileException {
+
+        if (StringUtils.isBlank(claimUri)) {
+            throw new UserProfileException("Invalid input parameter. Claim URI cannot be null.");
+        }
+        if (StringUtils.isBlank(profileName)) {
+            throw new UserProfileException("Invalid input parameter. Profile name cannot be null.");
+        }
+        String loggedInUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (StringUtils.isBlank(loggedInUsername)) {
+            throw new UserProfileException("Could not find a logged in user in the current carbon context.");
+        }
+
+        String claimValue = null;
+        try {
+            UserStoreManager userStoreManager = getUserRealm().getUserStoreManager();
+            int index = loggedInUsername.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
+
+            if (index < 0) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Logged in username : '" + loggedInUsername + "' does not contain domain name.");
+                }
+                /* if domain is not provided, this can be the scenario where user from a secondary user store
+                logs in without domain name and tries to view his own profile. */
+                MessageContext messageContext = MessageContext.getCurrentMessageContext();
+                HttpServletRequest request = (HttpServletRequest) messageContext
+                        .getProperty(TRANSPORT_HTTP_SERVLET_REQUEST);
+                String domainName = (String) request.getSession().getAttribute(LOGGED_IN_DOMAIN);
+                if (StringUtils.isNotBlank(domainName)) {
+                    loggedInUsername = domainName + UserCoreConstants.DOMAIN_SEPARATOR + loggedInUsername;
+                }
+            }
+            index = loggedInUsername.indexOf(UserCoreConstants.DOMAIN_SEPARATOR);
+            UserStoreManager secUserStoreManager = null;
+
+            // Check whether we have a secondary UserStoreManager setup.
+            if (index > 0) {
+                // Using the short-circuit. User name comes with the domain name.
+                String domain = loggedInUsername.substring(0, index);
+                if (log.isDebugEnabled()) {
+                    log.debug("Domain name found in the logged in username. Domain name: " + domain);
+                }
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    secUserStoreManager = ((AbstractUserStoreManager) userStoreManager)
+                            .getSecondaryUserStoreManager(domain);
+                }
+            }
+            Map<String, String> claimValues;
+            if (secUserStoreManager != null) {
+                claimValues = secUserStoreManager.getUserClaimValues(loggedInUsername, new String[]{claimUri},
+                        profileName);
+            } else {
+                claimValues = userStoreManager.getUserClaimValues(loggedInUsername, new String[]{claimUri},
+                        profileName);
+            }
+            if (claimValues != null) {
+                claimValue = claimValues.get(claimUri);
+            }
+        } catch (UserStoreException e) {
+            String message = String.format("An error occurred while getting the user claim '%s' in '%s' profile of " +
+                    "the user '%s'", claimUri, profileName, loggedInUsername);
+            log.error(message, e);
+            throw new UserProfileException(message, e);
+        }
+        return claimValue;
+    }
+
     private AssociatedAccountDTO[] getAssociatedAccounts(User user)
             throws FederatedAssociationManagerException, UserProfileException {
 
@@ -794,7 +871,8 @@ public class UserProfileAdmin extends AbstractAdmin {
                 .getFederatedAssociationsOfUser(user);
         List<AssociatedAccountDTO> associatedAccountDTOS = new ArrayList<>();
         for (FederatedAssociation federatedAssociation : federatedAssociations) {
-            String identityProviderName = getIdentityProviderName(getTenantDomain(), federatedAssociation.getIdpId());
+            String identityProviderName = getIdentityProviderName(getTenantDomain(),
+                    federatedAssociation.getIdp().getId());
             associatedAccountDTOS.add(new AssociatedAccountDTO(
                     federatedAssociation.getId(),
                     identityProviderName,
