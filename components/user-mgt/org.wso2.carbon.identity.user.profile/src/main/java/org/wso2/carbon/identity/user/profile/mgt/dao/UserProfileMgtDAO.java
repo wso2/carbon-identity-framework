@@ -295,7 +295,7 @@ public class UserProfileMgtDAO {
                         while (resultSet.next()) {
                             associatedFederatedAccounts.add(new AssociatedAccountDTO(
                                     resultSet.getString("ASSOCIATION_ID"),
-                                    resultSet.getString("IDP.NAME"),
+                                    resultSet.getString("NAME"),
                                     resultSet.getString("IDP_USER_ID")
                             ));
                         }
