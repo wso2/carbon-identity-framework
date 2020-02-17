@@ -33,6 +33,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,22 +54,105 @@ public class LocalClaimDAO extends ClaimDAO {
         try {
             Map<Integer, Claim> localClaimMap = getClaims(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI,
                     tenantId);
+            Map<Integer, List<AttributeMapping>> claimAttributeMappingsOfDialect =
+                    getClaimAttributeMappingsOfDialect(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
+            Map<Integer, Map<String, String>> claimPropertiesOfDialect =
+                    getClaimPropertiesOfDialect(connection, ClaimConstants.LOCAL_CLAIM_DIALECT_URI, tenantId);
 
             for (Map.Entry<Integer, Claim> claimEntry : localClaimMap.entrySet()) {
                 int claimId = claimEntry.getKey();
                 Claim claim = claimEntry.getValue();
 
-                List<AttributeMapping> attributeMappings = getClaimAttributeMappings(connection, claimId, tenantId);
-                Map<String, String> claimProperties = getClaimProperties(connection, claimId, tenantId);
+                List<AttributeMapping> attributeMappingsOfClaim = claimAttributeMappingsOfDialect.get(claimId);
+                Map<String, String> propertiesOfClaim = claimPropertiesOfDialect.get(claimId);
 
-                LocalClaim localClaim = new LocalClaim(claim.getClaimURI(), attributeMappings, claimProperties);
-                localClaims.add(localClaim);
+                localClaims.add(new LocalClaim(claim.getClaimURI(), attributeMappingsOfClaim, propertiesOfClaim));
             }
         } finally {
             IdentityDatabaseUtil.closeConnection(connection);
         }
 
         return localClaims;
+    }
+
+    private Map<Integer, List<AttributeMapping>> getClaimAttributeMappingsOfDialect(Connection connection,
+                                                                                    String claimDialectURI,
+                                                                                    int tenantId)
+            throws ClaimMetadataException {
+
+        Map<Integer, List<AttributeMapping>> attributeMappings = new HashMap<>();
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            preparedStatement = connection.prepareStatement(SQLConstants.GET_MAPPED_ATTRIBUTES);
+            preparedStatement.setString(1, claimDialectURI);
+            preparedStatement.setInt(2, tenantId);
+            preparedStatement.setInt(3, tenantId);
+            preparedStatement.setInt(4, tenantId);
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                String userStoreDomainName = resultSet.getString(SQLConstants.USER_STORE_DOMAIN_NAME_COLUMN);
+                String attributeName = resultSet.getString(SQLConstants.ATTRIBUTE_NAME_COLUMN);
+                int localClaimId = resultSet.getInt(SQLConstants.LOCAL_CLAIM_ID_COLUMN);
+
+                AttributeMapping attributeMapping = new AttributeMapping(userStoreDomainName, attributeName);
+                List<AttributeMapping> existingAttributeMapping = attributeMappings.get(localClaimId);
+
+                if (existingAttributeMapping == null) {
+                    existingAttributeMapping = new ArrayList<>();
+                }
+
+                existingAttributeMapping.add(attributeMapping);
+                attributeMappings.put(localClaimId, existingAttributeMapping);
+            }
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error occurred while retrieving attribute mappings.", e);
+        } finally {
+            IdentityDatabaseUtil.closeResultSet(resultSet);
+            IdentityDatabaseUtil.closeStatement(preparedStatement);
+        }
+        return attributeMappings;
+    }
+
+    private Map<Integer, Map<String, String>> getClaimPropertiesOfDialect(Connection connection, String claimDialectURI,
+                                                                          int tenantId) throws ClaimMetadataException {
+
+        Map<Integer, Map<String, String>> claimPropertyMap = new HashMap<>();
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            preparedStatement = connection.prepareStatement(SQLConstants.GET_CLAIMS_PROPERTIES_QUERY);
+            preparedStatement.setString(1, claimDialectURI);
+            preparedStatement.setInt(2, tenantId);
+            preparedStatement.setInt(3, tenantId);
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                String propertyName = resultSet.getString(SQLConstants.PROPERTY_NAME_COLUMN);
+                String propertyValue = resultSet.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
+                int localClaimId = resultSet.getInt(SQLConstants.LOCAL_CLAIM_ID_COLUMN);
+
+                Map<String, String> existingAttributeMap = claimPropertyMap.get(localClaimId);
+
+                if (existingAttributeMap == null) {
+                    existingAttributeMap = new HashMap<>();
+                }
+
+                existingAttributeMap.put(propertyName, propertyValue);
+                claimPropertyMap.put(localClaimId, existingAttributeMap);
+            }
+        } catch (SQLException e) {
+            throw new ClaimMetadataException("Error occurred while retrieving attribute mappings.", e);
+        } finally {
+            IdentityDatabaseUtil.closeResultSet(resultSet);
+            IdentityDatabaseUtil.closeStatement(preparedStatement);
+        }
+        return claimPropertyMap;
     }
 
     public void addLocalClaim(LocalClaim localClaim, int tenantId) throws ClaimMetadataException {
@@ -172,39 +256,6 @@ public class LocalClaimDAO extends ClaimDAO {
                             userstoreDomain, tenantId);
             throw new UserStoreException(message, e);
         }
-    }
-
-    private List<AttributeMapping> getClaimAttributeMappings(Connection connection, int localClaimId, int tenantId)
-            throws ClaimMetadataException {
-
-        List<AttributeMapping> attributeMappings = new ArrayList<>();
-
-        PreparedStatement prepStmt = null;
-        ResultSet rs = null;
-
-        String query = SQLConstants.GET_MAPPED_ATTRIBUTES;
-
-        try {
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setInt(1, localClaimId);
-            prepStmt.setInt(2, tenantId);
-            rs = prepStmt.executeQuery();
-
-            while (rs.next()) {
-                String userStoreDomainName = rs.getString(SQLConstants.USER_STORE_DOMAIN_NAME_COLUMN);
-                String attributeName = rs.getString(SQLConstants.ATTRIBUTE_NAME_COLUMN);
-
-                AttributeMapping attributeMapping = new AttributeMapping(userStoreDomainName, attributeName);
-                attributeMappings.add(attributeMapping);
-            }
-        } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while retrieving attribute mappings", e);
-        } finally {
-            IdentityDatabaseUtil.closeResultSet(rs);
-            IdentityDatabaseUtil.closeStatement(prepStmt);
-        }
-
-        return attributeMappings;
     }
 
     private void addClaimAttributeMappings(Connection connection, int localClaimId, List<AttributeMapping>
