@@ -109,8 +109,9 @@ public class FederatedAssociationManagerImpl implements FederatedAssociationMana
         validateUserExistence(user, tenantId);
         try {
             List<FederatedAssociation> federatedAssociations = new ArrayList<>();
+            String domainFreeUsername = UserCoreUtil.removeDomainFromName(user.getUserName());
             List<AssociatedAccountDTO> associatedAccountDTOS = UserProfileMgtDAO.getInstance()
-                    .getAssociatedFederatedAccountsForUser(tenantId, user.getUserStoreDomain(), user.getUserName());
+                    .getAssociatedFederatedAccountsForUser(tenantId, user.getUserStoreDomain(), domainFreeUsername);
             for (AssociatedAccountDTO associatedAccount : associatedAccountDTOS) {
                 AssociatedIdentityProvider idp = getAssociatedIdentityProvider(user.getTenantDomain(),
                         associatedAccount.getIdentityProviderName());
