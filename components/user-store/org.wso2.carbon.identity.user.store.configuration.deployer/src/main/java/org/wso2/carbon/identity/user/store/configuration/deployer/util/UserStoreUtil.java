@@ -170,10 +170,21 @@ public class UserStoreUtil {
             throw new UserStoreException(errMsg);
         }
 
+        // Get the encryption keystore.
+        String encryptionKeyStore = config.getFirstProperty(UserStoreConfigurationConstants.ENCRYPTION_KEYSTORE);
+
         String filePath = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_FILE);
         String keyStoreType = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_TYPE);
         String password = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_PASSWORD);
         String keyAlias = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_KEY_ALIAS);
+
+        // If the encryption keystore is selected to be internal then select that keystore properties.
+        if (UserStoreConfigurationConstants.INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
+            filePath = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_FILE);
+            keyStoreType = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_TYPE);
+            password = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_PASSWORD);
+            keyAlias = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_KEY_ALIAS);
+        }
 
         KeyStore store;
         InputStream inputStream = null;
