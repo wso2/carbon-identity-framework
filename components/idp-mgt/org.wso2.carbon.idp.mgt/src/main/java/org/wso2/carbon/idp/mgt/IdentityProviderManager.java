@@ -213,6 +213,15 @@ public class IdentityProviderManager implements IdpManager {
             oauth2IntrospectEpUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.INTROSPECT, true, false);
         }
 
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                oauth2IntrospectEpUrl = getTenantUrl(oauth2IntrospectEpUrl, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("OAuth 2 Introspect endpoint is malformed.", e);
+        }
+
         if (StringUtils.isBlank(oauth2UserInfoEPUrl)) {
             oauth2UserInfoEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.USERINFO, true, false);
         }
