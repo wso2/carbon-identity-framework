@@ -30,10 +30,10 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfig;
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
-import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
+import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -331,11 +331,19 @@ public class ApplicationConfig implements Serializable, Cloneable {
             spClaimDialectsList.forEach(spClaimDialect -> {
                 try {
                     String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-                    List<ExternalClaim> externalClaims = FrameworkServiceDataHolder.getInstance()
-                            .getClaimMetadataManagementService().getExternalClaims(spClaimDialect, tenantDomain);
-                    externalClaims.stream().map(externalClaim -> ClaimMapping.build(externalClaim
-                            .getMappedLocalClaim(), externalClaim.getClaimURI(), null, true))
-                            .forEach(spClaimMappings::add);
+                    if (ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT.equals(spClaimDialect)) {
+                        List<LocalClaim> localClaims = FrameworkServiceDataHolder.getInstance()
+                                .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+                        localClaims.stream().map(localClaim -> ClaimMapping.build(localClaim
+                                .getClaimURI(), localClaim.getClaimURI(), null, true))
+                                .forEach(spClaimMappings::add);
+                    } else {
+                        List<ExternalClaim> externalClaims = FrameworkServiceDataHolder.getInstance()
+                                .getClaimMetadataManagementService().getExternalClaims(spClaimDialect, tenantDomain);
+                        externalClaims.stream().map(externalClaim -> ClaimMapping.build(externalClaim
+                                .getMappedLocalClaim(), externalClaim.getClaimURI(), null, true))
+                                .forEach(spClaimMappings::add);
+                    }
                 } catch (ClaimMetadataException e) {
                     log.error("Error when getting external claims of dialect: " + spClaimDialect, e);
                 }
