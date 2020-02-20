@@ -57,6 +57,8 @@ import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataExcept
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -460,17 +462,15 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                                                 String tenantDomain)
             throws PostAuthenticationFailedException {
 
-        FrameworkUtils.startTenantFlow(tenantDomain);
         String username = null;
         try {
-            UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-            username = userProfileAdmin.getNameAssociatedWith(idpName, authenticatedSubjectIdentifier);
-        } catch (UserProfileException e) {
+            FederatedAssociationManager federatedAssociationManager = FrameworkUtils.getFederatedAssociationManager();
+            username = federatedAssociationManager.getUserForFederatedAssociation(tenantDomain, idpName,
+                    authenticatedSubjectIdentifier);
+        } catch (FederatedAssociationManagerException | FrameworkException e) {
             handleExceptions(
                     String.format(ErrorMessages.ERROR_WHILE_GETTING_USERNAME_ASSOCIATED_WITH_IDP.getMessage(), idpName),
                     ErrorMessages.ERROR_WHILE_GETTING_USERNAME_ASSOCIATED_WITH_IDP.getCode(), e);
-        } finally {
-            FrameworkUtils.endTenantFlow();
         }
         return username;
     }

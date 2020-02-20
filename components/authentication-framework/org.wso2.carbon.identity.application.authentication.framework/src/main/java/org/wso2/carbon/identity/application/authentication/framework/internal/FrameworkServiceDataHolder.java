@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
 
@@ -83,6 +84,7 @@ public class FrameworkServiceDataHolder {
     private FunctionLibraryManagementService functionLibraryManagementService = null;
     private String requireCode = "";
     private boolean userSessionMappingEnabled;
+    private FederatedAssociationManager federatedAssociationManager;
 
     private FrameworkServiceDataHolder() {
 
@@ -503,5 +505,15 @@ public class FrameworkServiceDataHolder {
         }
 
         this.userSessionMappingEnabled = userSessionMappingEnabled;
+    }
+
+    public FederatedAssociationManager getFederatedAssociationManager() {
+
+        return federatedAssociationManager;
+    }
+
+    public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
+
+        this.federatedAssociationManager = federatedAssociationManager;
     }
 }

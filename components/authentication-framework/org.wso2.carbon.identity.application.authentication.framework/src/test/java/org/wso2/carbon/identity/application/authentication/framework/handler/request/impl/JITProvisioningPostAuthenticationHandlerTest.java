@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -43,8 +44,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -61,7 +63,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 /**
  * This is a test class for {@link JITProvisioningPostAuthenticationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, UserProfileAdmin.class})
+@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFrameworkTest {
 
@@ -96,7 +98,8 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
     public void testHandleWithoutAuthenticatedUser() throws FrameworkException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, false, false);
-        PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler.handle(request, response, context);
+        PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler.handle(request, response,
+                context);
         Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
                 "Post JIT provisioning handler executed without having a authenticated user");
     }
@@ -113,13 +116,14 @@ public class JITProvisioningPostAuthenticationHandlerTest extends AbstractFramew
     }
 
     @Test(description = "This test case tests the Post JIT provisioning handling flow with an authenticated user")
-    public void testHandleWithAuthenticatedUserWithFederatedIdp() throws FrameworkException, UserProfileException {
+    public void testHandleWithAuthenticatedUserWithFederatedIdp() throws FrameworkException,
+            FederatedAssociationManagerException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
-        mockStatic(UserProfileAdmin.class);
-        UserProfileAdmin userProfileAdmin = Mockito.mock(UserProfileAdmin.class);
-        when(UserProfileAdmin.getInstance()).thenReturn(userProfileAdmin);
-        doReturn("test").when(userProfileAdmin).getNameAssociatedWith(Mockito.anyString(), Mockito.anyString());
+        FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+        when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
+        doReturn("test").when(federatedAssociationManager).getUserForFederatedAssociation
+                (Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
         PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postJITProvisioningHandler
                 .handle(request, response, context);
