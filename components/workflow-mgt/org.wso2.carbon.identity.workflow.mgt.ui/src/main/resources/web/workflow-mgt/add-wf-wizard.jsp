@@ -218,8 +218,7 @@
                                                   name="<%=WorkflowUIConstants.PARAM_WORKFLOW_DESCRIPTION%>"
                                                   cols="60" rows="4"><%=(workflowWizard != null &&
                                                   workflowWizard.getWorkflowDescription() != null) ?
-                                                 Encode.forHtmlAttribute(workflowWizard.getWorkflowDescription()) : ""%>
-                                        </textarea>
+                                                Encode.forHtmlAttribute(workflowWizard.getWorkflowDescription()) : ""%></textarea>
                                     </td>
                                 </tr>
                             </table>
