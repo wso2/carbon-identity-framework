@@ -89,6 +89,7 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -735,5 +736,32 @@ public class FrameworkServiceComponent {
             log.error("Failed to read require.js file. Therefore, require() function doesn't support in" +
                     "adaptive authentication scripts.", e);
         }
+    }
+
+    @Reference(
+            name = "identity.user.profile.mgt.component",
+            service = FederatedAssociationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetFederatedAssociationManagerService"
+    )
+    protected void setFederatedAssociationManagerService(FederatedAssociationManager
+                                                                     federatedAssociationManagerService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Federated Association Manager Service is set in the Application Authentication Framework " +
+                    "bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setFederatedAssociationManager(federatedAssociationManagerService);
+    }
+
+    protected void unsetFederatedAssociationManagerService(FederatedAssociationManager
+                                                                   federatedAssociationManagerService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Federated Association Manager Service is unset in the Application Authentication Framework " +
+                    "bundle");
+        }
+        FrameworkServiceDataHolder.getInstance().setFederatedAssociationManager(null);
     }
 }

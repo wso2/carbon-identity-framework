@@ -98,6 +98,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -2395,6 +2396,23 @@ public class FrameworkUtils {
             }
         }
         return String.join(FrameworkUtils.getMultiAttributeSeparator(), roleList);
+    }
+
+    /**
+     * This method returns the Federated Association Manager service registered during OSGi deployement.
+     *
+     * @return FederatedAssociationManger service.
+     * @throws FrameworkException
+     */
+    public static FederatedAssociationManager getFederatedAssociationManager() throws FrameworkException {
+
+        FederatedAssociationManager federatedAssociationManager = FrameworkServiceDataHolder.getInstance()
+                .getFederatedAssociationManager();
+
+        if (federatedAssociationManager == null) {
+            throw new FrameworkException("Federated Association Manager service is not available.");
+        }
+        return federatedAssociationManager;
     }
 }
 
