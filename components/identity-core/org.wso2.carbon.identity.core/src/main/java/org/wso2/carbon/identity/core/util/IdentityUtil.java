@@ -1044,6 +1044,11 @@ public class IdentityUtil {
         return isOperationSupported;
     }
 
+    /**
+     * Returns whether the recovery endpoint is available or not
+     *
+     * @return true if the EnableRecoveryEndpoint. False if it doesnt
+     */
     public static boolean isRecoveryEPAvailable() {
         String enableRecoveryEPUrlProperty = getProperty(ENABLE_RECOVERY_ENDPOINT);
         if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
@@ -1052,6 +1057,11 @@ public class IdentityUtil {
         return false;
     }
 
+    /**
+     * Returns whether the self signup endpoint is available or not
+     *
+     * @return true if the EnableSelfSignUpEndpoint. False if it doesnt
+     */
     public static boolean isSelfSignUpEPAvailable() {
         String enableSelfSignEPUpUrlProperty = getProperty(ENABLE_SELF_SIGN_UP_ENDPOINT);
         if (StringUtils.isNotBlank(enableSelfSignEPUpUrlProperty)) {
