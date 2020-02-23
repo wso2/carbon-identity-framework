@@ -1076,7 +1076,7 @@ public class IdentityUtil {
      * @return true if the EnableEmailUserName. False if it doesnt
      */
     public static boolean isEmailUsernameEnabled() {
-        String enableEmailUsernameProperty = getProperty(ENABLE_EMAIL_USERNAME);
+        String enableEmailUsernameProperty = ServerConfiguration.getInstance().getFirstProperty(ENABLE_EMAIL_USERNAME);
         if (StringUtils.isNotBlank(enableEmailUsernameProperty)) {
             return Boolean.parseBoolean(enableEmailUsernameProperty);
         }
