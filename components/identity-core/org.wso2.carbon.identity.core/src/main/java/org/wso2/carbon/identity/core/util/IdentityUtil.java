@@ -107,6 +107,7 @@ public class IdentityUtil {
             "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
     private static final String ENABLE_RECOVERY_ENDPOINT = "EnableRecoveryEndpoint";
     private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
+    private static final String ENABLE_EMAIL_USERNAME = "EnableEmailUserName";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
@@ -1055,6 +1056,19 @@ public class IdentityUtil {
         String enableSelfSignEPUpUrlProperty = getProperty(ENABLE_SELF_SIGN_UP_ENDPOINT);
         if (StringUtils.isNotBlank(enableSelfSignEPUpUrlProperty)) {
             return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
+        }
+        return false;
+    }
+
+    /**
+     * Returns whether the email based username is enabled or not
+     *
+     * @return true if the EnableEmailUserName. False if it doesnt
+     */
+    public static boolean isEmailUsernameEnabled() {
+        String enableEmailUsernameProperty = getProperty(ENABLE_EMAIL_USERNAME);
+        if (StringUtils.isNotBlank(enableEmailUsernameProperty)) {
+            return Boolean.parseBoolean(enableEmailUsernameProperty);
         }
         return false;
     }
