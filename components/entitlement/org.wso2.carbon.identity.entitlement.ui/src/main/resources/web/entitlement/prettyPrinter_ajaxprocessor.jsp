@@ -14,6 +14,7 @@
     if (rawXML.startsWith("\n")) {
         rawXML = rawXML.substring(1);
     }
+    response.setContentType("text/plain");
 
 
 %><%=rawXML%>
