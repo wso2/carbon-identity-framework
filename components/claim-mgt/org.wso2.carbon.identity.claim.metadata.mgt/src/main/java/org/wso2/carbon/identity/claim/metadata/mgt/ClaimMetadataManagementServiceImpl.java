@@ -112,7 +112,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
-
+        externalClaimDAO.removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
         // Add listener
 
     }
@@ -133,7 +133,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
-
+        // When deleting a claim dialect the relevant external claim deletion is handled by the DB through
+        // ON DELETE CASCADE. Here we are removing the relevant cache entry.
+        externalClaimDAO.removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
         // Add listener
 
     }

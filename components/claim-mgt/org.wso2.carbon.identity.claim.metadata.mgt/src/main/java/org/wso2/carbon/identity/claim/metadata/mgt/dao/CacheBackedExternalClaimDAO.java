@@ -94,4 +94,16 @@ public class CacheBackedExternalClaimDAO {
         //Need different type of cache
         return externalClaimDAO.isMappedLocalClaim(mappedLocalClaimURI, tenantId);
     }
+
+    /**
+     * Remove mapped external claims at post removing claim dialect.
+     *
+     * @param externalClaimDialectURI External claim dialect uri
+     * @param tenantId                Tenant Id
+     */
+    public void removeExternalClaimCache(String externalClaimDialectURI, int tenantId) {
+
+        ExternalClaimCacheKey cacheKey = new ExternalClaimCacheKey(externalClaimDialectURI, tenantId);
+        externalClaimCache.clearCacheEntry(cacheKey);
+    }
 }
