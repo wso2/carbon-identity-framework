@@ -111,7 +111,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
-
+        externalClaimDAO.removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
         // Add listener
 
     }
@@ -132,29 +132,11 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
-        postRemoveClaimDialect(claimDialect.getClaimDialectURI(), tenantId);
-
+        // When deleting a claim dialect the relevant external claim deletion is handled by the DB through
+        // ON DELETE CASCADE. Here we are removing the relevant cache entry.
+        externalClaimDAO.removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
         // Add listener
 
-    }
-
-    /**
-     * Remove mapped external claims at post removing claim dialect.
-     *
-     * @param externalClaimDialectURI External claim dialect uri
-     * @param tenantId                Tenant Id
-     * @throws ClaimMetadataException If an error occurred while removing external claims.
-     */
-    private void postRemoveClaimDialect(String externalClaimDialectURI, int tenantId)
-            throws ClaimMetadataException {
-
-        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
-        ClaimMetadataManagementServiceImpl claimMetadataService = new ClaimMetadataManagementServiceImpl();
-        List<ExternalClaim> externalClaims = claimMetadataService.
-                getExternalClaims(externalClaimDialectURI, tenantDomain);
-        for (ExternalClaim externalClaim : externalClaims) {
-            externalClaimDAO.removeExternalClaim(externalClaimDialectURI, externalClaim.getClaimURI(), tenantId);
-        }
     }
 
     @Override
