@@ -180,7 +180,7 @@
                             org.wso2.carbon.identity.base;resolution:=optional;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.user.core.*; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
-                            com.google.gson; version="${com.google.code.gson.osgi.version.range}
+                            com.google.gson; version="${com.google.code.gson.osgi.version.range}"
                         </Import-Package>
                     </instructions>
                 </configuration>
