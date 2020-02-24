@@ -22,6 +22,7 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ClaimDialectDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.ExternalClaimDTO;
 import org.wso2.carbon.identity.claim.metadata.mgt.dto.LocalClaimDTO;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
 import org.wso2.carbon.identity.claim.metadata.mgt.internal.IdentityClaimManagementServiceDataHolder;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ClaimDialect;
@@ -238,6 +239,11 @@ public class ClaimMetadataManagementAdminService {
 
             IdentityClaimManagementServiceDataHolder.getInstance().getClaimManagementService()
                     .addExternalClaim(claim, tenantDomain);
+        } catch (ClaimMetadataClientException e) {
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage());
+            }
+            throw new ClaimMetadataException(e.getMessage(), e);
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             throw new ClaimMetadataException(e.getMessage(), e);
