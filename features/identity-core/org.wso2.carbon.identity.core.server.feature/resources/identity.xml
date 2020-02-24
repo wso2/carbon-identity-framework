@@ -1218,6 +1218,22 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/emailmgt/view</Permissions>
+            <Scopes>internal_email_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/emailmgt/create</Permissions>
+            <Scopes>internal_email_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/email/template-types/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/emailmgt/update</Permissions>
+            <Scopes>internal_email_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/email/template-types/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/emailmgt/delete</Permissions>
+            <Scopes>internal_email_mgt_delete</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
