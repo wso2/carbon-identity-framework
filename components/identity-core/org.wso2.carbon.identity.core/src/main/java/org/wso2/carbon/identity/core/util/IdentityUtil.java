@@ -1045,7 +1045,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Returns whether the recovery endpoint is available or not
+     * Returns whether the recovery endpoint is available or not.
      *
      * @return true if the EnableRecoveryEndpoint. False if it doesnt
      */
@@ -1058,7 +1058,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Returns whether the self signup endpoint is available or not
+     * Returns whether the self signup endpoint is available or not.
      *
      * @return true if the EnableSelfSignUpEndpoint. False if it doesnt
      */
@@ -1071,7 +1071,7 @@ public class IdentityUtil {
     }
 
     /**
-     * Returns whether the email based username is enabled or not
+     * Returns whether the email based username is enabled or not.
      *
      * @return true if the EnableEmailUserName. False if it doesnt
      */
