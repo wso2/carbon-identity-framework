@@ -73,6 +73,11 @@ public class IdentityCoreConstants {
         public static final String NOT = "not";
     }
 
+    public static enum UserStoreState {
+
+        ENABLED, DISABLED
+    }
+
     public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
 
     public static final char ENCODED_ZERO = ALPHABET[0];
