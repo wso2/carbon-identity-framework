@@ -64,6 +64,8 @@ public class ClaimConstants {
                 "Invalid Claim URI : %s for Claim Dialect : %s"),
         ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI("100010",
                 "Claim URI : %s already exists for claim dialect : %s"),
+        ERROR_CODE_EXISTING_LOCAL_CLAIM_URI("100011",
+                "Local claim URI : %s already exists."),
         ERROR_CODE_EMPTY_TENANT_DOMAIN("60000", "Empty tenant domain in the request"),
         ERROR_CODE_DELETE_IDN_CLAIM_MAPPED_ATTRIBUTE("65001", "Error occurred while deleting claim " +
                 "mapped attributes for domain : %s with tenant Id : %s from table : IDN_CLAIM_MAPPED_ATTRIBUTE"),

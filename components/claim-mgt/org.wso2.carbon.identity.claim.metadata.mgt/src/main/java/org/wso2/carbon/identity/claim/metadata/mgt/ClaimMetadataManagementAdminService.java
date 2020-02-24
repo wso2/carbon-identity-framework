@@ -162,6 +162,11 @@ public class ClaimMetadataManagementAdminService {
 
             IdentityClaimManagementServiceDataHolder.getInstance().getClaimManagementService()
                     .addLocalClaim(claim, tenantDomain);
+        } catch (ClaimMetadataClientException e) {
+            if (log.isDebugEnabled()) {
+                 log.debug(e.getMessage());
+            }
+            throw new ClaimMetadataException(e.getMessage(), e);
         } catch (Throwable e) {
             log.error(e.getMessage(), e);
             throw new ClaimMetadataException(e.getMessage(), e);
