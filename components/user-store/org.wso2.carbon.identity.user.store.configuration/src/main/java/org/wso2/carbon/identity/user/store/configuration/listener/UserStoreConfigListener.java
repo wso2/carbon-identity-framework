@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.user.store.configuration.listener;
 
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants.UserStoreState;
 import org.wso2.carbon.user.api.UserStoreException;
 
 /**
@@ -33,5 +34,10 @@ public interface UserStoreConfigListener {
     void onUserStorePreDelete(int tenantId, String userStoreName) throws UserStoreException;
 
     void onUserStorePostDelete(int tenantId, String userStoreName) throws UserStoreException;
+
+    default void onUserStorePreStateChange(UserStoreState state, int tenantId, String userStoreName)
+            throws UserStoreException {
+        // Not implemented.
+    }
 
 }

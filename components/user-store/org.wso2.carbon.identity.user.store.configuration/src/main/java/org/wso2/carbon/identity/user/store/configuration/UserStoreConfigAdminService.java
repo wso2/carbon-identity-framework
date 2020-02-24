@@ -46,6 +46,7 @@ import javax.xml.transform.TransformerConfigurationException;
 
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .getFileBasedUserStoreDAOFactory;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreStateChange;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .validateForFederatedDomain;
 
@@ -324,6 +325,14 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
             TransformerConfigurationException {
 
         validateDomain(domain, isDisable);
+
+        try {
+            triggerListenersOnUserStorePreStateChange(domain, isDisable);
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException("Error occurred while triggering the user store pre state change" +
+                    " listeners.");
+        }
+
         UserStoreDTO userStoreDTO = getUserStoreDTO(domain, isDisable, null);
         updateStateInFileRepository(userStoreDTO);
     }
@@ -351,11 +360,15 @@ public class UserStoreConfigAdminService extends AbstractAdmin {
 
         validateDomain(domain, isDisable);
         try {
+            triggerListenersOnUserStorePreStateChange(domain, isDisable);
             UserStoreConfigListenersHolder.getInstance().getUserStoreConfigService()
                     .modifyUserStoreState(domain, isDisable,
                             repositoryClass);
         } catch (IdentityUserStoreClientException e) {
             throw buildIdentityUserStoreMgtException(e, "Error while modifying the userstore state.");
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException("Error occurred while triggering the user store pre state change" +
+                    " listeners.");
         }
     }
 
