@@ -633,7 +633,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void storeSessionMetaData(String sessionId, HttpServletRequest request)
             throws UserSessionException {
         String userAgent = request.getHeader(javax.ws.rs.core.HttpHeaders.USER_AGENT);
-        String ip = request.getRemoteAddr();
+        String ip = IdentityUtil.getClientIpAddress(request);
         String time = Long.toString(System.currentTimeMillis());
 
         Map<String, String> metaDataMap = new HashMap<>();
