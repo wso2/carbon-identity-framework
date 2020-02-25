@@ -1188,6 +1188,7 @@
 
         <Resource context="(.*)/api/identity/auth/v1.1/data(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/auth/v1.1/context(.*)" secured="true" http-method="all"/>
+        <Resource context="(.*)/api/identity/auth/v1.1/authenticate(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/template/mgt/v1.0.0/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/user/v1.0/update-username(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/admin/manage/identity/usermgt/update</Permissions>
