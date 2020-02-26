@@ -48,6 +48,9 @@ public class SQLQueries {
     public static final String SQL_SELECT_USER_IDS_OF_USER_STORE =
             "SELECT USER_ID FROM IDN_AUTH_USER WHERE DOMAIN_NAME = ? AND TENANT_ID =?";
 
+    public static final String SQL_SELECT_INFO_OF_USER_ID =
+            "SELECT USER_ID FROM IDN_AUTH_USER WHERE USER_ID = ?";
+
     /**
      * Queries to retrieve session ID.
      */
