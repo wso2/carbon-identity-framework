@@ -2460,7 +2460,7 @@ public class FrameworkUtils {
                 throw new UserSessionException("Error occurred while resolving Id for the user: " + username);
             }
         } catch (UserStoreException e) {
-            throw new UserSessionException("Unable to retrieve Id for the user: " + username);
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for the user: " + username);
         }
     }
 
