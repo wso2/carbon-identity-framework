@@ -122,7 +122,7 @@ public class IdPManagementDAO {
                         identityProvider.setPrimary(false);
                     }
                     identityProvider.setHomeRealmId(rs.getString("HOME_REALM_ID"));
-                    identityProvider.setIdentityProviderDescription(rs.getString("HOME_REALM_ID"));
+                    identityProvider.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
 
                     // IS_FEDERATION_HUB_IDP
                     if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_FEDERATION_HUB"))) {
