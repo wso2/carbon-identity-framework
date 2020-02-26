@@ -2455,7 +2455,7 @@ public class FrameworkUtils {
                 throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Error occurred while retrieving Id for the user: " + username, e);
+                    log.debug("Error occurred while resolving Id for the user: " + username, e);
                 }
                 throw new UserSessionException("Unable to retrieve Id for the user: " + username);
             }
