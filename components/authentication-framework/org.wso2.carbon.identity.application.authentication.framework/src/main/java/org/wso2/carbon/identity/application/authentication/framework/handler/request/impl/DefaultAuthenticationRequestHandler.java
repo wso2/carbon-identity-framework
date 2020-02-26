@@ -67,6 +67,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -590,7 +591,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
                     try {
                         if (userId == null) {
-                            userId = UUIDGenerator.generateUUID();
+                            userId = UUID.randomUUID().toString();
                             UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain,
                                     idpId);
                         }
@@ -608,7 +609,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         }
                     }
                 } else {
-                    userId = FrameworkUtils.resolveUserIdFromUsername(tenantDomain, userStoreDomain, userName);
+                    userId = FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName);
                 }
                 if (StringUtils.isNotEmpty(userId)) {
                     if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,

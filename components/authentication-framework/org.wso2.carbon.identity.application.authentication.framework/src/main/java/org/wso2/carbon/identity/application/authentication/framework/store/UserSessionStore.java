@@ -749,8 +749,6 @@ public class UserSessionStore {
                         isExisting = true;
                     }
                 }
-            } catch (SQLException e1) {
-                throw new UserSessionException("Error while retrieving information of user id: " + userId, e1);
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving information of user id: " + userId, e);

@@ -2441,8 +2441,8 @@ public class FrameworkUtils {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
                     String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
 
-                    // If only the user store is not read-only, update the user-id claim with the unique id.
-                    // Otherwise there will be no permission to update the userstore.
+                    // If the user id is not present in the userstore, we need to add it to the userstore. But if the
+                    // userstore is read-only, we cannot add the id and empty user id will returned.
                     if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
                         userId = addUserId(username, userStoreManager);
                     }
@@ -2457,17 +2457,18 @@ public class FrameworkUtils {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while resolving Id for the user: " + username, e);
                 }
-                throw new UserSessionException("Error occurred while resolving Id for the user: " + username);
+                throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
             }
         } catch (UserStoreException e) {
-            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for the user: " + username);
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
+                    "the user: " + username, e);
         }
     }
 
     private static String addUserId(String username, UserStoreManager userStoreManager) {
 
         String userId;
-        userId = UUIDGenerator.generateUUID();
+        userId = UUID.randomUUID().toString();
         Map<String, String> claims = new HashMap<>();
         claims.put(UserCoreClaimConstants.USER_ID_CLAIM_URI, userId);
         try {
