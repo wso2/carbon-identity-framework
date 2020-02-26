@@ -122,7 +122,7 @@ public class IdPManagementDAO {
                         identityProvider.setPrimary(false);
                     }
                     identityProvider.setHomeRealmId(rs.getString("HOME_REALM_ID"));
-                    identityProvider.setIdentityProviderDescription(rs.getString("DESCRIPTION"));
+                    identityProvider.setIdentityProviderDescription(rs.getString("HOME_REALM_ID"));
 
                     // IS_FEDERATION_HUB_IDP
                     if ((IdPManagementConstants.IS_TRUE_VALUE).equals(rs.getString("IS_FEDERATION_HUB"))) {
@@ -452,6 +452,12 @@ public class IdPManagementDAO {
             List<IdentityProviderProperty> propertyList = getIdentityPropertiesByIdpId(dbConnection,
                     Integer.parseInt(resultSet.getString("ID")));
             identityProvider.setIdpProperties(propertyList.toArray(new IdentityProviderProperty[0]));
+            String defaultAuthenticatorName = resultSet.getString("DEFAULT_AUTHENTICATOR_NAME");
+            if (defaultAuthenticatorName != null) {
+                FederatedAuthenticatorConfig defaultAuthenticator = new FederatedAuthenticatorConfig();
+                defaultAuthenticator.setName(defaultAuthenticatorName);
+                identityProvider.setDefaultAuthenticatorConfig(defaultAuthenticator);
+            }
         }
         return identityProviderList;
     }
