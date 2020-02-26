@@ -9,6 +9,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     -- DECLARE VARIABLES
     -- ------------------------------------------
     DECLARE deletedSessions INT;
+    DECLARE deletedUserSessionMappings INT;
     DECLARE deletedStoreOperations INT;
     DECLARE deletedDeleteOperations INT;
     DECLARE tracingEnabled BOOLEAN;
@@ -28,9 +29,11 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     -- This defines the number of entries from IDN_AUTH_SESSION_STORE that are taken into a SNAPSHOT
     SET chunkLimit=1000000;
     SET @deletedSessions = 0;
+    SET @deletedUserSessionMappings = 0;
     SET @deletedStoreOperations = 0;
     SET @deletedDeleteOperations = 0;
     SET @sessionCleanupCount = 1;
+    SET @sessionMappingsCleanupCount = 1;
     SET @operationCleanupCount = 1;
     SET tracingEnabled = FALSE;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
     SET sleepTime = 2;          -- Sleep time in seconds.
@@ -85,6 +88,13 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
 
         SELECT 'DELETED SESSION COUNT...!!' AS 'INFO LOG', @sessionCleanupCount;
 
+	    DELETE A
+        FROM IDN_AUTH_USER_SESSION_MAPPING AS A
+          INNER JOIN TEMP_SESSION_BATCH AS B ON
+                                               A.SESSION_ID = B.SESSION_ID;
+        SET @sessionMappingsCleanupCount = row_count();
+        COMMIT;
+        SELECT 'DELETED USER-SESSION MAPPINGS ...!!' AS 'INFO LOG', @sessionMappingsCleanupCount ;
 
         DELETE A
         FROM IDN_AUTH_SESSION_STORE_TMP AS A
@@ -98,7 +108,9 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
 
         IF (tracingEnabled) THEN SET
         @deletedSessions = @deletedSessions + @sessionCleanupCount;
+          SET @deletedUserSessionMappings = @deletedUserSessionMappings + @sessionMappingsCleanupCount;
           SELECT 'REMOVED SESSIONS: ' AS 'INFO LOG', @deletedSessions AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
+          SELECT 'REMOVED USER-SESSION MAPPINGS: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
         END IF;
 
         DO SLEEP(sleepTime);
@@ -114,6 +126,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     IF (tracingEnabled)
     THEN
       SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_STORE: ' AS 'INFO LOG', @deletedSessions AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_USER_SESSON_MAPPING: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
     END IF;
 
     SELECT 'SESSION_CLEANUP_TASK ENDED .... !' AS 'INFO LOG';

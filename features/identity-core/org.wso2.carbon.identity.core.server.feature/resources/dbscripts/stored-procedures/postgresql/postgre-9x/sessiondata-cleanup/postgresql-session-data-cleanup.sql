@@ -20,6 +20,7 @@ cleanupCount bigint :=0;
 sessionCleanupTime bigint :=0;
 operationCleanupTime bigint :=0;
 deleteCount INT := 0;
+deleteMappingCount INT := 0;
 chunkCount INT := 0;
 batchCount INT := 0;
 
@@ -27,6 +28,7 @@ tablesCursor CURSOR FOR SELECT tablename FROM pg_catalog.pg_tables WHERE scheman
 tablename  IN ('idn_auth_session_store');
 
 purgingTable text;
+purgingSessionUserMappingTable text;
 purgingChunkTable text;
 purgingBatchTable text;
 purgeBseColmn text;
@@ -60,6 +62,7 @@ unix_timestamp := TRUNC(extract(epoch from now() at time zone 'utc'));
 IF (operationid = 1 OR operationid = 2)
 THEN
     purgingTable := 'idn_auth_session_store';
+    purgingSessionUserMappingTable = 'idn_auth_user_session_mapping';
     purgeBseColmn := 'session_id';
 	purgeBseColmnType := 'varchar';
 
@@ -328,6 +331,23 @@ auditTable :=  purgingTable||'_auditlog';
             notice := 'BATCH DELETE FINISHED ON TABLE'||purgingTable||' WITH :'||deleteCount;
             RAISE NOTICE '%',notice;
             END IF;
+
+            IF (operationid = 2)
+    		THEN
+	            -- Deleting user-session mappings from 'idn_auth_user_session_mapping' table
+	            IF (enableLog AND logLevel IN ('TRACE')) THEN
+	            notice := 'BATCH DELETE START ON TABLE '||purgingSessionUserMappingTable||' WITH :'||batchCount;
+	            RAISE NOTICE '%',notice;
+	            END IF;
+
+	            EXECUTE 'DELETE from '||quote_ident(purgingSessionUserMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+	            GET diagnostics deleteMappingCount := ROW_COUNT;
+
+	            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+	            notice := 'BATCH DELETE FINISHED ON TABLE'||purgingSessionUserMappingTable||' WITH :'||deleteMappingCount;
+	            RAISE NOTICE '%',notice;
+	            END IF;
+	        END IF;
 
             EXECUTE ' DELETE from '||quote_ident(purgingChunkTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
             IF (enableLog AND logLevel IN ('TRACE')) THEN
