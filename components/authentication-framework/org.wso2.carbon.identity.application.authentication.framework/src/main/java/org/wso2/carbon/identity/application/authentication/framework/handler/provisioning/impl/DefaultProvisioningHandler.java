@@ -167,6 +167,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (StringUtils.isNotEmpty(passwordFromUser)) {
                     password = passwordFromUser;
                 }
+
+                // Check for inconsistencies in username attribute and the username claim.
+                if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
+                    // If so update the username claim with the username attribute.
+                    userClaims.put(USERNAME_CLAIM, username);
+                }
+
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userStoreManager
                         .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
