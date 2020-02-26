@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.hrd.HomeRealmDiscoverer;
@@ -97,15 +98,20 @@ import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -130,6 +136,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -2414,5 +2421,81 @@ public class FrameworkUtils {
         }
         return federatedAssociationManager;
     }
-}
 
+    /**
+     * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
+     * update the userid claim in read/write userstores.
+     *
+     * @param tenantId    id of the tenant domain of the user
+     * @param userStoreDomain userstore of the user
+     * @param username        username
+     * @return unique user id of the user
+     * @throws UserSessionException
+     */
+    public static String resolveUserIdFromUsername(int tenantId, String userStoreDomain, String username) throws
+            UserSessionException {
+
+        try {
+            UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
+            try {
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+
+                    // If only the user store is not read-only, update the user-id claim with the unique id.
+                    // Otherwise there will be no permission to update the userstore.
+                    if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
+                        userId = addUserId(username, userStoreManager);
+                    }
+                    return userId;
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                            "AbstractUserStore manager");
+                }
+                throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+            } catch (org.wso2.carbon.user.core.UserStoreException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while retrieving Id for the user: " + username, e);
+                }
+                throw new UserSessionException("Unable to retrieve Id for the user: " + username);
+            }
+        } catch (UserStoreException e) {
+            throw new UserSessionException("Unable to retrieve Id for the user: " + username);
+        }
+    }
+
+    private static String addUserId(String username, UserStoreManager userStoreManager) {
+
+        String userId;
+        userId = UUIDGenerator.generateUUID();
+        Map<String, String> claims = new HashMap<>();
+        claims.put(UserCoreClaimConstants.USER_ID_CLAIM_URI, userId);
+        try {
+            userStoreManager.setUserClaimValues(username, claims, null);
+        } catch (UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while updating " + UserCoreClaimConstants.USER_ID_CLAIM_URI + " claim of the user: "
+                        + username + " with the unique user id.");
+            }
+        }
+        return userId;
+    }
+
+    private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
+            throws UserStoreException {
+
+        UserStoreManager userStoreManager = FrameworkServiceComponent.getRealmService().getTenantUserRealm(tenantId)
+                .getUserStoreManager();
+        if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
+            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getSecondaryUserStoreManager(
+                    userStoreDomain);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
+                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
+                    "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
+                    "manager: " + userStoreManager.getClass() + ", from the realm.");
+        }
+        return userStoreManager;
+    }
+}

@@ -76,11 +76,10 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
+    public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
-
-    public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
 
     public static DefaultAuthenticationRequestHandler getInstance() {
 
@@ -175,7 +174,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     }
 
     protected void handlePostAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                          AuthenticationContext context) throws FrameworkException {
+                                            AuthenticationContext context) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
             log.debug("Handling post authentication");
@@ -187,7 +186,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (postAuthenticationMgtService != null) {
                 postAuthenticationMgtService.handlePostAuthentication(request, response, context);
             } else {
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("No post authentication service found. Hence not evaluating post authentication.");
                 }
                 LoginContextManagementUtil.markPostAuthenticationCompleted(context);
@@ -377,7 +376,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     }
                 }
 
-                Long createdTime = (Long)sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
+                Long createdTime = (Long) sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
                 if (createdTime != null) {
                     authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTime);
                 }
@@ -487,7 +486,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
-                            UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey, authHistory);
+                            UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey,
+                                    authHistory);
                         } catch (UserSessionException e) {
                             throw new FrameworkException("Error while storing federated authentication session details "
                                     + "of the authenticated user to the database", e);
@@ -524,6 +524,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     /**
      * Polulates the authentication history information and sets it as a request attribute.
      * The inbound protocol
+     *
      * @param authenticationResult
      * @param context
      * @param sessionContext
@@ -549,7 +550,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
      */
     private DateTime calculateCreatedTime(SessionContext sessionContext) {
         Object createdTsObject = sessionContext.getProperty(FrameworkConstants.CREATED_TIMESTAMP);
-        if(createdTsObject != null) {
+        if (createdTsObject != null) {
             long createdTimeLong = Long.parseLong(createdTsObject.toString());
             return new DateTime(createdTimeLong);
         }
@@ -578,40 +579,54 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     .getTenantId(tenantDomain);
             String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
             String idpName = authenticatedIdPData.getIdpName();
+            boolean persistUserToSessionMapping = true;
             String userId;
             try {
                 int idpId = UserSessionStore.getInstance().getIdPId(idpName);
-                userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
 
-                boolean persistUserToSessionMapping = true;
-                try {
-                    if (userId == null) {
-                        userId = UUIDGenerator.generateUUID();
-                        UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain, idpId);
+                // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
+                // table with the tenant id as -1 and user store domain as FEDERATED.
+                if (isFederatedUser(tenantId, userStoreDomain)) {
+                    userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
+                    try {
+                        if (userId == null) {
+                            userId = UUIDGenerator.generateUUID();
+                            UserSessionStore.getInstance().storeUserData(userId, userName, tenantId, userStoreDomain,
+                                    idpId);
+                        }
+                    } catch (DuplicatedAuthUserException e) {
+                        // When the authenticated user is already persisted the respective user to session mapping will
+                        // be persisted from the same node handling the request.
+                        // Thus, persisting the user to session mapping can be gracefully ignored here.
+                        persistUserToSessionMapping = false;
+                        String msg = "User authenticated is already persisted. Username: " + userName + " Tenant " +
+                                "Domain:" + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: "
+                                + idpName;
+                        log.warn(msg);
+                        if (log.isDebugEnabled()) {
+                            log.debug(msg, e);
+                        }
                     }
-                } catch (DuplicatedAuthUserException e) {
-                    // When the authenticated user is already persisted the respective user to session mapping will
-                    // be persisted from the same node handling the request.
-                    // Thus, persisting the user to session mapping can be gracefully ignored here.
-                    persistUserToSessionMapping = false;
-                    String msg = "User authenticated is already persisted. Username: " + userName + " Tenant Domain:" +
-                            " " + tenantDomain + " User Store Domain: " + userStoreDomain + " IdP: " + idpName;
-                    log.warn(msg);
-                    if (log.isDebugEnabled()) {
-                        log.debug(msg, e);
-                    }
+                } else {
+                    userId = FrameworkUtils.resolveUserIdFromUsername(tenantDomain, userStoreDomain, userName);
                 }
-
-                if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
-                        sessionContextKey)) {
-                    UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+                if (StringUtils.isNotEmpty(userId)) {
+                    if (persistUserToSessionMapping && !UserSessionStore.getInstance().isExistingMapping(userId,
+                            sessionContextKey)) {
+                        UserSessionStore.getInstance().storeUserSessionData(userId, sessionContextKey);
+                    }
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("A unique user id is not set for the user," + userName + "of userstore domain, " +
+                                userStoreDomain + "in tenant, " + tenantDomain + ". Hence the session " +
+                                "information of the user is not stored.");
+                    }
                 }
             } catch (UserSessionException e) {
                 throw new UserSessionException("Error while storing session data for user: " + userName + " of " +
-                        "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain , e);
+                        "user store domain: " + userStoreDomain + " in tenant domain: " + tenantDomain, e);
             }
         }
-
         try {
             // AppId is the auto generated id for the applications and it should be a positive integer.
             if (appId > 0 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
@@ -621,6 +636,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);
         }
+    }
+
+    private boolean isFederatedUser(int tenantId, String userStoreDomain) {
+
+        return StringUtils.isEmpty(userStoreDomain) && tenantId == MultitenantConstants.INVALID_TENANT_ID;
     }
 
     /**
@@ -712,7 +732,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             debugMessage.append(String.valueOf(context.isRequestAuthenticated())).append("\n");
             debugMessage.append(FrameworkConstants.ResponseParams.AUTHENTICATED_USER).append(": ");
             if (context.getSequenceConfig().getAuthenticatedUser() != null) {
-                debugMessage.append(context.getSequenceConfig().getAuthenticatedUser().getAuthenticatedSubjectIdentifier()).append("\n");
+                debugMessage.append(context.getSequenceConfig().getAuthenticatedUser()
+                        .getAuthenticatedSubjectIdentifier()).append("\n");
             } else {
                 debugMessage.append("No Authenticated User").append("\n");
             }
@@ -759,7 +780,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             throw new FrameworkException(e.getMessage(), e);
         }
     }
-
 
     /**
      * Populate any error information sent from Authenticators to be sent in the Response from the authentication

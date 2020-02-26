@@ -729,4 +729,32 @@ public class UserSessionStore {
                     "the session index:" + sessionContextKey, e);
         }
     }
+
+    /**
+     * Method to check whether the user id is available in the IDN_AUTH_USER table.
+     *
+     * @param userId    Id of the user
+     * @return the boolean decision
+     * @throws UserSessionException if an error occurs when retrieving the mapping from the database
+     */
+    public boolean isExistingUser(String userId) throws UserSessionException {
+
+        Boolean isExisting = false;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_INFO_OF_USER_ID)) {
+                preparedStatement.setString(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        isExisting = true;
+                    }
+                }
+            } catch (SQLException e1) {
+                throw new UserSessionException("Error while retrieving information of user id: " + userId, e1);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving information of user id: " + userId, e);
+        }
+        return isExisting;
+    }
 }
