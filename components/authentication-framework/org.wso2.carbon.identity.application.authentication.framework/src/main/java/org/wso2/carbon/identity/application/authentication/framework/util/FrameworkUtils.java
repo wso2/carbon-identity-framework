@@ -2457,7 +2457,7 @@ public class FrameworkUtils {
                 if (log.isDebugEnabled()) {
                     log.debug("Error occurred while resolving Id for the user: " + username, e);
                 }
-                throw new UserSessionException("Unable to retrieve Id for the user: " + username);
+                throw new UserSessionException("Error occurred while resolving Id for the user: " + username);
             }
         } catch (UserStoreException e) {
             throw new UserSessionException("Unable to retrieve Id for the user: " + username);
