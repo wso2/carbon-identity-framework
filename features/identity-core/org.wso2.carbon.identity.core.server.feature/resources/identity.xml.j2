@@ -1572,6 +1572,22 @@
         </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/validate-username(.*)" secured="true" http-method="all"/>
 
+        <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/oauth2/v1.0/scopes(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
 
         <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
@@ -1665,6 +1681,22 @@
         <Resource context="(.*)/api/server/v1/script-libraries(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/functionsLibrarymgt/delete</Permissions>
             <Scopes>internal_functional_lib_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
+            <Scopes>internal_application_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
+            <Scopes>internal_application_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/oidc/scopes(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
+            <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
