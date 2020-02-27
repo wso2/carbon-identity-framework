@@ -1213,20 +1213,71 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity</Permissions>
+        <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/user/association/view</Permissions>
+            <Scopes>internal_user_association_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/associations" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/user/association/delete</Permissions>
+            <Scopes>internal_user_association_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/federated-associations" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/user/association/view</Permissions>
+            <Scopes>internal_user_association_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/federated-associations(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/user/association/delete</Permissions>
+            <Scopes>internal_user_association_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/identitymgt/view</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="PUT, PATCH">
+            <Permissions>/permission/admin/manage/identity/identitymgt/update</Permissions>
             <Scopes>internal_identity_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/identitymgt/create</Permissions>
             <Scopes>internal_identity_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenges(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/identitymgt/delete</Permissions>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity</Permissions>
+        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/identitymgt/view</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="PUT, PATCH">
+            <Permissions>/permission/admin/manage/identity/identitymgt/update</Permissions>
             <Scopes>internal_identity_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/identitymgt/create</Permissions>
             <Scopes>internal_identity_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/challenge-answers(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/identitymgt/delete</Permissions>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v1/claim-dialects(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
+            <Scopes>internal_claim_meta_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/claim-dialects(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/view</Permissions>
+            <Scopes>internal_claim_meta_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/claim-dialects/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/update</Permissions>
+            <Scopes>internal_claim_meta_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/claim-dialects/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/claimmgt/metadata/delete</Permissions>
+            <Scopes>internal_claim_meta_delete</Scopes>
+        </Resource>
+
         <Resource context="(.*)/api/server/v1/email/template-types(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/emailmgt/view</Permissions>
             <Scopes>internal_email_mgt_view</Scopes>
@@ -1251,11 +1302,21 @@
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/keystores/certs/public(.*)" secured="false" http-method="GET"/>
-        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, POST, PATCH">
-            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+        <Resource context="(.*)/api/server/v1/keystores/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/keystoremgt/view</Permissions>
+            <Scopes>internal_keystore_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/keystores/certs(.*)" secured="true" http-method="POST, DELETE">
+            <Permissions>/permission/admin/manage/identity/keystoremgt/update</Permissions>
+            <Scopes>internal_keystore_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
-            <Scopes>internal_application_mgt_update</Scopes>
             <Scopes>internal_application_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="PUT, PATCH">
+            <Permissions>/permission/admin/manage/identity/applicationmgt/update</Permissions>
+            <Scopes>internal_application_mgt_update</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/applicationmgt/delete</Permissions>
@@ -1264,6 +1325,47 @@
         <Resource context="(.*)/api/server/v1/applications(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
+            <Scopes>internal_idp_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="PATCH">
+            <Permissions>/permission/admin/manage/identity/idpmgt/update</Permissions>
+            <Scopes>internal_idp_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/permission-management/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/userstores" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/userstore/config/create</Permissions>
+            <Scopes>internal_userstore_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/userstore/config/view</Permissions>
+            <Scopes>internal_userstore_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/userstores(.*)" secured="true" http-method="PUT, PATCH">
+            <Permissions>/permission/admin/manage/identity/userstore/config/update</Permissions>
+            <Scopes>internal_userstore_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/userstores/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/userstore/config/delete</Permissions>
+            <Scopes>internal_userstore_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/userstores/test-connection" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/userstore/config/view</Permissions>
+            <Scopes>internal_userstore_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/me/sessions(.*)" secured="true"
+                  http-method="all">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/(.*)/sessions(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/authentication/session/view</Permissions>
+            <Scopes>internal_session_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
