@@ -52,7 +52,7 @@
     String selectedAttributeId = request.getParameter("selectedAttributeId");
     String category = request.getParameter("category");
 
-    String ruleId = request.getParameter("ruleId");
+    String ruleId = Encode.forHtml(request.getParameter("ruleId"));
     if(ruleId != null && ruleId.trim().length() > 0 && !ruleId.trim().equals("null") ) {
         basicRuleDTO = entitlementPolicyBean.getBasicRuleElement(ruleId);
     }
@@ -943,7 +943,7 @@
                         if (ruleId != null && ruleId.trim().length() > 0 && !ruleId.trim().equals("null")) {
                     %>
                     <input type="text" name="ruleId" id="ruleId" class="text-box-big"
-                           value="<%=Encode.forHtmlAttribute(basicRuleDTO.getRuleId())%>"/>
+                           value="<%=Encode.forHtml(basicRuleDTO.getRuleId())%>"/>
                     <%
                     } else {
                     %>
@@ -1427,15 +1427,15 @@
                 <td>
                     <a class="icon-link" onclick="updownthis(this,'up')" style="background-image:url(../admin/images/up-arrow.gif)"></a>
                     <a class="icon-link" onclick="updownthis(this,'down')" style="background-image:url(../admin/images/down-arrow.gif)"></a>
-                    <input type="hidden" value="<%=ruleElementDTO.getRuleId()%>"/>
-                    <%=ruleElementDTO.getRuleId()%>
+                    <input type="hidden" value="<%=Encode.forHtml(ruleElementDTO.getRuleId())%>"/>
+                    <%=Encode.forHtml(ruleElementDTO.getRuleId())%>
                 </td>
                 <td><%=ruleElementDTO.getRuleEffect()%></td>
                 <td>
-                    <a href="#" onclick="editRule('<%=Encode.forJavaScriptAttribute(ruleElementDTO.getRuleId())%>')"
+                    <a href="#" onclick="editRule('<%=Encode.forJavaScript(ruleElementDTO.getRuleId())%>')"
                        class="icon-link" style="background-image:url(images/edit.gif);"><fmt:message
                             key="edit"/></a>
-                    <a href="#" onclick="deleteRule('<%=Encode.forJavaScriptAttribute(ruleElementDTO.getRuleId())%>')"
+                    <a href="#" onclick="deleteRule('<%=Encode.forJavaScript(ruleElementDTO.getRuleId())%>')"
                        class="icon-link" style="background-image:url(images/delete.gif);"><fmt:message
                             key="delete"/></a>
                 </td>
