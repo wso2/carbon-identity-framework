@@ -107,6 +107,7 @@ public class IdentityUtil {
             "[^<>:\"/\\\\|?*\\x00-\\x1F]*[^<>:\"/\\\\|?*\\x00-\\x1F\\ .]$";
     private static final String ENABLE_RECOVERY_ENDPOINT = "EnableRecoveryEndpoint";
     private static final String ENABLE_SELF_SIGN_UP_ENDPOINT = "EnableSelfSignUpEndpoint";
+    private static final String ENABLE_EMAIL_USERNAME = "EnableEmailUserName";
     private static Log log = LogFactory.getLog(IdentityUtil.class);
     private static Map<String, Object> configuration = new HashMap<>();
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new
@@ -1043,20 +1044,37 @@ public class IdentityUtil {
         return isOperationSupported;
     }
 
+    /**
+     * Returns whether the recovery endpoint is available or not.
+     *
+     * @return true if the EnableRecoveryEndpoint. False if it doesnt
+     */
     public static boolean isRecoveryEPAvailable() {
+
         String enableRecoveryEPUrlProperty = getProperty(ENABLE_RECOVERY_ENDPOINT);
-        if (StringUtils.isNotBlank(enableRecoveryEPUrlProperty)) {
-            return Boolean.parseBoolean(enableRecoveryEPUrlProperty);
-        }
-        return false;
+        return Boolean.parseBoolean(enableRecoveryEPUrlProperty);
     }
 
+    /**
+     * Returns whether the self signup endpoint is available or not.
+     *
+     * @return true if the EnableSelfSignUpEndpoint. False if it doesnt
+     */
     public static boolean isSelfSignUpEPAvailable() {
+
         String enableSelfSignEPUpUrlProperty = getProperty(ENABLE_SELF_SIGN_UP_ENDPOINT);
-        if (StringUtils.isNotBlank(enableSelfSignEPUpUrlProperty)) {
-            return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
-        }
-        return false;
+        return Boolean.parseBoolean(enableSelfSignEPUpUrlProperty);
+    }
+
+    /**
+     * Returns whether the email based username is enabled or not.
+     *
+     * @return true if the EnableEmailUserName. False if it doesnt
+     */
+    public static boolean isEmailUsernameEnabled() {
+
+        String enableEmailUsernameProperty = ServerConfiguration.getInstance().getFirstProperty(ENABLE_EMAIL_USERNAME);
+        return Boolean.parseBoolean(enableEmailUsernameProperty);
     }
 
      /**

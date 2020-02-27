@@ -121,7 +121,9 @@ public class ClaimMetadataAdminClient {
             log.error(e.getMessage(), e);
             throw e;
         } catch (ClaimMetadataManagementServiceClaimMetadataException e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
             throw e;
         }
     }
@@ -174,7 +176,9 @@ public class ClaimMetadataAdminClient {
             log.error(e.getMessage(), e);
             throw e;
         } catch (ClaimMetadataManagementServiceClaimMetadataException e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.debug(e.getMessage(), e);
+            }
             throw e;
         }
     }

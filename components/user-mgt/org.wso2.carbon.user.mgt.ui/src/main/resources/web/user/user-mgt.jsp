@@ -583,7 +583,7 @@
                     %>
 
                     <tr>
-                        <td class="leftCol-big" style="padding-right: 0 !important;"><%=key%>
+                        <td class="leftCol-big" style="padding-right: 0 !important;"><%=Encode.forHtml(key)%>
                         </td>
                         <td>
                             <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"

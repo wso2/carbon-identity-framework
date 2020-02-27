@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.user.store.configuration.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Attr;
@@ -27,6 +28,7 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants.UserStoreState;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.beans.MaskedProperty;
 import org.wso2.carbon.identity.user.store.configuration.dao.UserStoreDAO;
@@ -343,10 +345,17 @@ public class SecondaryUserStoreConfigurationUtil {
 
         Map<String, String> secondaryUserStoreProperties = null;
         try {
-            UserStoreManager secondaryUserStoreManager = getSecondaryUserStoreManager(userStoreDomain);
-            if (secondaryUserStoreManager != null) {
-                secondaryUserStoreProperties = secondaryUserStoreManager.getRealmConfiguration()
-                        .getUserStoreProperties();
+            RealmConfiguration realmConfiguration = UserStoreConfigComponent.getRealmService().getTenantUserRealm(
+                    getTenantIdInTheCurrentContext()).getRealmConfiguration();
+            while (realmConfiguration != null) {
+                String domainName = realmConfiguration.getUserStoreProperty(UserCoreConstants.RealmConfig
+                        .PROPERTY_DOMAIN_NAME);
+                if (StringUtils.equalsIgnoreCase(domainName, userStoreDomain)) {
+                    secondaryUserStoreProperties = realmConfiguration.getUserStoreProperties();
+                    break;
+                } else {
+                    realmConfiguration = realmConfiguration.getSecondaryRealmConfig();
+                }
             }
         } catch (UserStoreException e) {
             String errorMessage = "Error while retrieving user store configurations for user store domain: "
@@ -731,6 +740,26 @@ public class SecondaryUserStoreConfigurationUtil {
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
             userStoreConfigListener.onUserStorePreDelete(CarbonContext.getThreadLocalCarbonContext().getTenantId
                     (), domainName);
+        }
+    }
+
+    /**
+     * Trigger the listeners before a user store state is changed.
+     *
+     * @param domainName User store domain name.
+     * @param isDisable True if disabled, else false.
+     * @throws UserStoreException Thrown when an error occurred while triggering listeners.
+     */
+    public static void triggerListenersOnUserStorePreStateChange(String domainName, boolean isDisable)
+            throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            userStoreConfigListener.onUserStorePreStateChange(isDisable ? UserStoreState.DISABLED
+                    : UserStoreState.ENABLED, tenantId, domainName);
         }
     }
 

@@ -437,8 +437,8 @@
     "/api/identity/oauth2/uma/permission/v1.0/",
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
     "/api/identity/config-mgt/v1.0/",
-    "/api/",
     "/api/users/v2/me/webauthn",
+    "/api/",
     "/user-portal/"
   ],
   "tenant_context.rewrite.servlets": [
@@ -447,6 +447,7 @@
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/"
   ],
+  "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
     "localhost"
   ],

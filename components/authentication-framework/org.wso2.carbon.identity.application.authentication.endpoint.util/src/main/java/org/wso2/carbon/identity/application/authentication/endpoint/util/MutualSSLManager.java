@@ -27,6 +27,15 @@ import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 import org.wso2.securevault.commons.MiscellaneousUtil;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,15 +50,6 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 public class MutualSSLManager {
 
@@ -111,8 +111,7 @@ public class MutualSSLManager {
                         //Initialize the keystores in EndpointConfig.properties only if the "mutualSSLManagerEnabled"
                         // feature is enabled.
                         if (isMutualSSLManagerEnabled(getPropertyValue
-                                (Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED)) &&
-                                isSecuredPropertyAvailable(prop)) {
+                                (Constants.TenantConstants.MUTUAL_SSL_MANAGER_ENABLED))) {
                             // Resolve encrypted properties with secure vault.
                             resolveSecrets(prop);
                         }

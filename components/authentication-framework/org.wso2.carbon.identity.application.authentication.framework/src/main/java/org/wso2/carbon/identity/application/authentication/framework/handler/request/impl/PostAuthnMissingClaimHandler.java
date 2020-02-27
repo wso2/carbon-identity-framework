@@ -28,6 +28,7 @@ import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
@@ -38,6 +39,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimManager;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -241,12 +244,13 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 if (!user.isFederatedUser()) {
                     persistClaims = true;
                 } else {
-                    String associatedID = null;
-                    UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
+                    String associatedID;
                     String subject = user.getAuthenticatedSubjectIdentifier();
                     try {
-                        associatedID = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                                subject);
+                        FederatedAssociationManager federatedAssociationManager = FrameworkUtils
+                                .getFederatedAssociationManager();
+                        associatedID = federatedAssociationManager.getUserForFederatedAssociation(context
+                                .getTenantDomain(), stepConfig.getAuthenticatedIdP(), subject);
                         if (StringUtils.isNotBlank(associatedID)) {
                             String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
                                     associatedID + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
@@ -255,7 +259,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                                     fullQualifiedAssociatedUserId);
                             persistClaims = true;
                         }
-                    } catch (UserProfileException e) {
+                    } catch (FederatedAssociationManagerException | FrameworkException e) {
                         throw new PostAuthenticationFailedException("Error while handling missing mandatory claims",
                                 "Error while getting association for " + subject, e);
                     }

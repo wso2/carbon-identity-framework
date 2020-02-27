@@ -656,14 +656,6 @@
 				<Description>Claim to disable SMSOTP</Description>
 			</Claim>
 			<Claim>
-				<ClaimURI>http://wso2.org/claims/identity/uuid</ClaimURI>
-				<DisplayName>Unique User Id</DisplayName>
-				<!-- If user store based identity store is used, a proper mapped attribute
-				in your user store must be configured for this. -->
-				<AttributeID>uuid</AttributeID>
-				<Description>Claim to store the user's unique id. (UUID)</Description>
-			</Claim>
-			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/emailaddress.pendingValue</ClaimURI>
 				<DisplayName>Verification Pending Email</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute

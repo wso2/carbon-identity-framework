@@ -32,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
@@ -39,6 +40,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -189,13 +192,13 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             throws PostAuthenticationFailedException {
 
         String associatesUserName;
-        UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
         String originalExternalIdpSubjectValueForThisStep = stepConfig.getAuthenticatedUser()
                 .getAuthenticatedSubjectIdentifier();
         try {
             FrameworkUtils.startTenantFlow(context.getTenantDomain());
-            associatesUserName = userProfileAdmin.getNameAssociatedWith(stepConfig.getAuthenticatedIdP(),
-                    originalExternalIdpSubjectValueForThisStep);
+            FederatedAssociationManager federatedAssociationManager = FrameworkUtils.getFederatedAssociationManager();
+            associatesUserName = federatedAssociationManager.getUserForFederatedAssociation(context.getTenantDomain()
+                    , stepConfig.getAuthenticatedIdP(), originalExternalIdpSubjectValueForThisStep);
             if (StringUtils.isNotBlank(associatesUserName)) {
                 if (log.isDebugEnabled()) {
                     log.debug("User : " + stepConfig.getAuthenticatedUser() + " has an associated account as "
@@ -210,7 +213,7 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
                             + " account. Hence continuing as the same user.");
                 }
             }
-        } catch (UserProfileException e) {
+        } catch (FederatedAssociationManagerException | FrameworkException e) {
             throw new PostAuthenticationFailedException(
                     FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_LOCAL_USER_ID.getCode(),
                     String.format(FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_IDP_BY_NAME.getMessage(),

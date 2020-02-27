@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -511,11 +512,11 @@ public class DefaultClaimHandler implements ClaimHandler {
             return new HashMap<>();
         }
 
-        return requestedClaimMappings.entrySet().stream().filter(mapping -> StringUtils.
-                isNotBlank(carbonToStandardClaimMapping.get(mapping.getValue()))).collect(Collectors.
-                toMap(mapping -> carbonToStandardClaimMapping.get(mapping.getValue()), mapping -> mapping.
-                        getValue()));
-
+        return requestedClaimMappings.values().stream()
+                .distinct()
+                .filter(mapping -> StringUtils.
+                isNotBlank(carbonToStandardClaimMapping.get(mapping)))
+                .collect(Collectors.toMap(carbonToStandardClaimMapping::get, Function.identity()));
     }
 
     private void addMultiAttributeSperatorToRequestedClaims(AuthenticatedUser authenticatedUser,

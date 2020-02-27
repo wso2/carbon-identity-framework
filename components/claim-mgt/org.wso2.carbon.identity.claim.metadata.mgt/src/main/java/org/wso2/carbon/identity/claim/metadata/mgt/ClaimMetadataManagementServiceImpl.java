@@ -42,6 +42,8 @@ import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.Er
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI;
@@ -111,7 +113,7 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         this.claimDialectDAO.renameClaimDialect(oldClaimDialect, newClaimDialect, tenantId);
-
+        externalClaimDAO.removeExternalClaimCache(oldClaimDialect.getClaimDialectURI(), tenantId);
         // Add listener
 
     }
@@ -132,7 +134,9 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         this.claimDialectDAO.removeClaimDialect(claimDialect, tenantId);
-
+        // When deleting a claim dialect the relevant external claim deletion is handled by the DB through
+        // ON DELETE CASCADE. Here we are removing the relevant cache entry.
+        externalClaimDAO.removeExternalClaimCache(claimDialect.getClaimDialectURI(), tenantId);
         // Add listener
 
     }
@@ -163,10 +167,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                             .getClaimDialectURI(), localClaim.getClaimURI()));
         }
 
-        // TODO : validate claim dialect already exists?
-
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        if (isExistingLocalClaimURI(localClaim.getClaimURI(), tenantId)) {
+            throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getCode(),
+                    String.format(ERROR_CODE_EXISTING_LOCAL_CLAIM_URI.getMessage(), localClaim.getClaimURI()));
+        }
 
         // Add listener
 
@@ -262,10 +269,14 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
             throw new ClaimMetadataClientException(ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT);
         }
 
-        // TODO : validate claim URI already exists?
-
         // TODO : validate tenant domain?
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        if (isExistingExternalClaimURI(externalClaim.getClaimDialectURI(), externalClaim.getClaimURI(), tenantId)) {
+            throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI.getCode(),
+                    String.format(ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI.getMessage(), externalClaim.getClaimURI(),
+                            externalClaim.getClaimDialectURI()));
+        }
 
         // Add listener
 
@@ -353,5 +364,18 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
                     ClaimConstants.ErrorMessage.ERROR_CODE_SERVER_ERROR_DELETING_CLAIM_MAPPINGS.getCode(),
                     errorMessage, e);
         }
+    }
+
+    private boolean isExistingExternalClaimURI(String externalClaimDialectURI, String externalClaimURI, int tenantId)
+            throws ClaimMetadataException {
+
+        return this.externalClaimDAO.getExternalClaims(externalClaimDialectURI, tenantId).stream().filter(
+                claim -> claim.getClaimURI().equals(externalClaimURI)).findFirst().isPresent();
+    }
+
+    private boolean isExistingLocalClaimURI(String localClaimURI, int tenantId) throws ClaimMetadataException {
+
+        return this.localClaimDAO.getLocalClaims(tenantId).stream().filter(
+                claim -> claim.getClaimURI().equals(localClaimURI)).findFirst().isPresent();
     }
 }

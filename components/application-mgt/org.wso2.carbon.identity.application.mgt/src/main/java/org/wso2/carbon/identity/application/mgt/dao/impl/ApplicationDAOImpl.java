@@ -4875,7 +4875,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL;
             case "Oracle":
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE;
-            case "Microsoft":
+            case "Microsoft SQL Server":
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MSSQL;
             case "PostgreSQL":
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_POSTGRESQL;
@@ -4898,7 +4898,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL;
             case "Oracle":
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE;
-            case "Microsoft":
+            case "Microsoft SQL Server":
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_MSSQL;
             case "PostgreSQL":
                 return LOAD_DISCOVERABLE_APPS_BY_TENANT_POSTGRESQL;

@@ -213,6 +213,15 @@ public class IdentityProviderManager implements IdpManager {
             oauth2IntrospectEpUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.INTROSPECT, true, false);
         }
 
+        try {
+            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
+                    (tenantDomain)) {
+                oauth2IntrospectEpUrl = getTenantUrl(oauth2IntrospectEpUrl, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error("OAuth 2 Introspect endpoint is malformed.", e);
+        }
+
         if (StringUtils.isBlank(oauth2UserInfoEPUrl)) {
             oauth2UserInfoEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.USERINFO, true, false);
         }
@@ -481,7 +490,8 @@ public class IdentityProviderManager implements IdpManager {
             samlAuthnRequestSigningProperty = new Property();
             samlAuthnRequestSigningProperty.setName(IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED);
-            samlAuthnRequestSigningProperty.setValue(samlAuthnRequestsSigningEnabled);
+            samlAuthnRequestSigningProperty.setValue(IdentityApplicationConstants.Authenticator.SAML2SSO.
+                    SAML_METADATA_AUTHN_REQUESTS_SIGNING_DEFAULT);
         }
         propertiesList.add(samlAuthnRequestSigningProperty);
         saml2SSOFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));

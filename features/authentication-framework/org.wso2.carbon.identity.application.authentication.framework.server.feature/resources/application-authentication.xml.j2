@@ -35,8 +35,7 @@
     -->
     <AuthenticationEndpointURL>{{authentication.endpoints.login_url}}</AuthenticationEndpointURL>
     <AuthenticationEndpointRetryURL>{{authentication.endpoints.retry_url}}</AuthenticationEndpointRetryURL>
-    <AuthenticationEndpointMissingClaimsURL>{{authentication.endpoints.request_missing_claims_url}}
-    </AuthenticationEndpointMissingClaimsURL>
+    <AuthenticationEndpointMissingClaimsURL>{{authentication.endpoints.request_missing_claims_url}}</AuthenticationEndpointMissingClaimsURL>
 
     <!--
         Extensions allow extending the default behaviour of the authentication
@@ -44,13 +43,10 @@
     -->
     <Extensions>
         <RequestCoordinator>{{authentication.framework.extensions.request_coordinator}}</RequestCoordinator>
-        <AuthenticationRequestHandler>{{authentication.framework.extensions.authentication_request_handler}}
-        </AuthenticationRequestHandler>
+        <AuthenticationRequestHandler>{{authentication.framework.extensions.authentication_request_handler}}</AuthenticationRequestHandler>
         <LogoutRequestHandler>{{authentication.framework.extensions.logout_request_handler}}</LogoutRequestHandler>
-        <StepBasedSequenceHandler>{{authentication.framework.extensions.step_based_sequence_handler}}
-        </StepBasedSequenceHandler>
-        <RequestPathBasedSequenceHandler>{{authentication.framework.extensions.request_path_sequence_handler}}
-        </RequestPathBasedSequenceHandler>
+        <StepBasedSequenceHandler>{{authentication.framework.extensions.step_based_sequence_handler}}</StepBasedSequenceHandler>
+        <RequestPathBasedSequenceHandler>{{authentication.framework.extensions.request_path_sequence_handler}}</RequestPathBasedSequenceHandler>
         <StepHandler>{{authentication.framework.extensions.step_handler}}</StepHandler>
         <HomeRealmDiscoverer>{{authentication.framework.extensions.home_realm_discoverer}}</HomeRealmDiscoverer>
         <ClaimHandler>{{authentication.framework.extensions.claim_handler}}</ClaimHandler>

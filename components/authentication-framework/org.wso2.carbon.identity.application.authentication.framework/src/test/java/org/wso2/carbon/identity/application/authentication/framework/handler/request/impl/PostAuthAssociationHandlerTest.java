@@ -44,8 +44,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -66,9 +67,10 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, UserProfileAdmin.class})
+@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
+
     public static final String LOCAL_USER = "local-user";
     public static final String SECONDARY = "SECONDARY";
     private UIBasedConfigurationLoader configurationLoader;
@@ -101,24 +103,25 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         ClaimHandler claimHandler = PowerMockito.mock(ClaimHandler.class);
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
-        PowerMockito.doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class), any(AuthenticationContext.class),
-                any(Map.class), anyBoolean());
+        PowerMockito.doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class),
+                any(AuthenticationContext.class), any(Map.class), anyBoolean());
         PowerMockito.when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
     }
 
     @Test(description = "This test case tests the Post Authentication Association handling flow with an authenticated" +
             " user via federated IDP")
     public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore()
-            throws FrameworkException, UserProfileException {
+            throws FrameworkException, FederatedAssociationManagerException {
 
         AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
-        mockStatic(UserProfileAdmin.class);
-        UserProfileAdmin userProfileAdmin = Mockito.mock(UserProfileAdmin.class);
-        when(UserProfileAdmin.getInstance()).thenReturn(userProfileAdmin);
-        doReturn(SECONDARY + "/" + LOCAL_USER).when(userProfileAdmin).getNameAssociatedWith(Mockito.anyString(),
-                Mockito.anyString());
+        FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
+        when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
+        doReturn(SECONDARY + "/" + LOCAL_USER).when(federatedAssociationManager).getUserForFederatedAssociation
+                (Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
+
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(Mockito.mock(StepBasedSequenceHandler.class));
-        PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postAuthAssociationHandler.handle(request, response, context);
+        PostAuthnHandlerFlowStatus postAuthnHandlerFlowStatus = postAuthAssociationHandler.handle(request, response,
+                context);
         AuthenticatedUser authUser = context.getSequenceConfig().getAuthenticatedUser();
         Assert.assertEquals(authUser.getUserName(), LOCAL_USER, "Post Association handler failed to set associated " +
                 "username");

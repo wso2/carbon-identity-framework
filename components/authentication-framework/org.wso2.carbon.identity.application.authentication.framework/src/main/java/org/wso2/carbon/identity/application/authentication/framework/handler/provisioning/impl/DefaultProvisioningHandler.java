@@ -24,18 +24,24 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
+import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -149,10 +155,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
                 }
-
-                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-
-                if (StringUtils.isEmpty(userProfileAdmin.getNameAssociatedWith(idp, subjectVal))) {
+                String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
+                        .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
+                if (StringUtils.isEmpty(associatedUserName)) {
                     // Associate User
                     associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
                 }
@@ -162,6 +167,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 if (StringUtils.isNotEmpty(passwordFromUser)) {
                     password = passwordFromUser;
                 }
+
+                // Check for inconsistencies in username attribute and the username claim.
+                if (userClaims.containsKey(USERNAME_CLAIM) && !userClaims.get(USERNAME_CLAIM).equals(username)) {
+                    // If so update the username claim with the username attribute.
+                    userClaims.put(USERNAME_CLAIM, username);
+                }
+
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 userStoreManager
                         .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
@@ -179,7 +191,8 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
 
-        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException | UserProfileException e) {
+        } catch (org.wso2.carbon.user.api.UserStoreException | CarbonException |
+                FederatedAssociationManagerException e) {
             throw new FrameworkException("Error while provisioning user : " + subject, e);
         } finally {
             IdentityUtil.clearIdentityErrorMsg();
@@ -196,8 +209,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(usernameWithUserstoreDomain);
 
             if (!StringUtils.isEmpty(idp) && !StringUtils.isEmpty(subject)) {
-                UserProfileAdmin userProfileAdmin = UserProfileAdmin.getInstance();
-                userProfileAdmin.associateID(idp, subject);
+                FederatedAssociationManager federatedAssociationManager = FrameworkUtils
+                        .getFederatedAssociationManager();
+                User user = getAssociatedUser(tenantDomain, userStoreDomain, username);
+                federatedAssociationManager.createFederatedAssociation(user, idp, subject);
 
                 if (log.isDebugEnabled()) {
                     log.debug("Associated local user: " + usernameWithUserstoreDomain + " in tenant: " +
@@ -207,7 +222,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 throw new FrameworkException("Error while associating local user: " + usernameWithUserstoreDomain +
                         " in tenant: " + tenantDomain + " to the federated subject : " + subject + " in IdP: " + idp);
             }
-        } catch (UserProfileException e) {
+        } catch (FederatedAssociationManagerException e) {
             if (isUserAlreadyAssociated(e)) {
                 log.info("An association already exists for user: " + subject + ". Skip association while JIT " +
                         "provisioning");
@@ -221,8 +236,19 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         }
     }
 
-    private boolean isUserAlreadyAssociated(UserProfileException e) {
-        return e.getMessage() != null && e.getMessage().contains(ALREADY_ASSOCIATED_MESSAGE);
+    private User getAssociatedUser(String tenantDomain, String userStoreDomain, String username) {
+
+        User user = new User();
+        user.setTenantDomain(tenantDomain);
+        user.setUserStoreDomain(userStoreDomain);
+        user.setUserName(MultitenantUtils.getTenantAwareUsername(username));
+        return user;
+    }
+
+    private boolean isUserAlreadyAssociated(FederatedAssociationManagerException e) {
+
+        return e.getMessage() != null && e.getMessage().contains(FederatedAssociationConstants.ErrorMessages
+                .FEDERATED_ASSOCIATION_ALREADY_EXISTS.getDescription());
     }
 
     private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, List<String> rolesToAdd,
@@ -249,7 +275,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                                                                    Collection<String> deletingRoles)
             throws UserStoreException, FrameworkException {
         if (userStoreManager.getRealmConfiguration().isPrimary()
-            && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
+                && username.equals(realm.getRealmConfiguration().getAdminUserName())) {
             if (log.isDebugEnabled()) {
                 log.debug("Federated user's username is equal to super admin's username of local IdP.");
             }
@@ -259,11 +285,11 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     .contains(realm.getRealmConfiguration().getAdminRoleName())) {
                 if (log.isDebugEnabled()) {
                     log.debug("Federated user doesn't have super admin role. Unable to sync roles, since" +
-                              " super admin role cannot be unassigned from super admin user");
+                            " super admin role cannot be unassigned from super admin user");
                 }
                 throw new FrameworkException(
                         "Federated user which having same username to super admin username of local IdP," +
-                        " trying login without having super admin role assigned");
+                                " trying login without having super admin role assigned");
             }
         }
     }
