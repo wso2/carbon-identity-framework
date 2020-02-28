@@ -461,7 +461,7 @@ function checkProvEnabled(obj) {
     if (jQuery(obj).attr('checked')) {
         if (jQuery(obj).attr('id') == 'googleProvEnabled') {
 
-            if (!jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
+            if (!jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
 
                 jQuery('#googleProvDefault').attr('checked', 'checked');
                 jQuery('#googleProvDefault').attr('disabled', 'disabled');
@@ -473,7 +473,7 @@ function checkProvEnabled(obj) {
 
         } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
 
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
+            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
 
                 jQuery('#sfProvDefault').attr('checked', 'checked');
                 jQuery('#sfProvDefault').attr('disabled', 'disabled');
@@ -485,7 +485,7 @@ function checkProvEnabled(obj) {
 
         } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
 
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked') && !jQuery('#spmlProvEnabled').attr('checked')) {
+            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked')) {
 
                 jQuery('#scimProvDefault').attr('checked', 'checked');
                 jQuery('#scimProvDefault').attr('disabled', 'disabled');
@@ -495,23 +495,12 @@ function checkProvEnabled(obj) {
 
             jQuery('#scim_enable_logo').show();
 
-        } else if (jQuery(obj).attr('id') == 'spmlProvEnabled') {
-
-            if (!jQuery('#googleProvEnabled').attr('checked') && !jQuery('#sfProvEnabled').attr('checked') && !jQuery('#scimProvEnabled').attr('checked')) {
-
-                jQuery('#spmlProvDefault').attr('checked', 'checked');
-                jQuery('#spmlProvDefault').attr('disabled', 'disabled');
-            } else {
-                jQuery('#spmlProvDefault').removeAttr('disabled');
-            }
-
-            jQuery('#spml_enable_logo').show();
         }
     } else {
         if (jQuery(obj).attr('id') == 'googleProvEnabled') {
 
             if (jQuery('#sfProvEnabled').attr('checked') ||
-                jQuery('#spmlProvEnabled').attr('checked') ||
+
                 jQuery('#scimProvEnabled').attr('checked')) {
 
                 if (jQuery('#googleProvDefault').attr('checked')) {
@@ -531,7 +520,6 @@ function checkProvEnabled(obj) {
         } else if (jQuery(obj).attr('id') == 'sfProvEnabled') {
 
             if (jQuery('#googleProvEnabled').attr('checked') ||
-                jQuery('#spmlProvEnabled').attr('checked') ||
                 jQuery('#scimProvEnabled').attr('checked')) {
 
                 if (jQuery('#sfProvDefault').attr('checked')) {
@@ -551,7 +539,6 @@ function checkProvEnabled(obj) {
         } else if (jQuery(obj).attr('id') == 'scimProvEnabled') {
 
             if (jQuery('#sfProvEnabled').attr('checked') ||
-                jQuery('#spmlProvEnabled').attr('checked') ||
                 jQuery('#googleProvEnabled').attr('checked')) {
 
                 if (jQuery('#scimProvDefault').attr('checked')) {
@@ -568,25 +555,6 @@ function checkProvEnabled(obj) {
                 jQuery('#scim_enable_logo').hide();
             }
 
-        } else if (jQuery(obj).attr('id') == 'spmlProvEnabled') {
-
-            if (jQuery('#sfProvEnabled').attr('checked') ||
-                jQuery('#scimProvEnabled').attr('checked') ||
-                jQuery('#googleProvEnabled').attr('checked')) {
-
-                if (jQuery('#spmlProvDefault').attr('checked')) {
-                    // jQuery('#spmlProvEnabled').attr('checked','checked');
-                    // CARBON.showWarningDialog("Make other enabled authenticator to default before disabling default authenticator");
-                } else {
-                    jQuery('#spmlProvDefault').attr('disabled', 'disabled');
-                    jQuery('#spmlProvDefault').removeAttr('checked');
-                    jQuery('#spml_enable_logo').hide();
-                }
-            } else {
-                jQuery('#spmlProvDefault').attr('disabled', 'disabled');
-                jQuery('#spmlProvDefault').removeAttr('checked');
-                jQuery('#spml_enable_logo').hide();
-            }
         }
     }
 }
@@ -595,59 +563,33 @@ function checkProvDefault(obj) {
     if (jQuery(obj).attr('id') == 'googleProvDefault') {
         jQuery('#sfProvDefault').removeAttr('checked');
         jQuery('#scimProvDefault').removeAttr('checked');
-        jQuery('#spmlProvDefault').removeAttr('checked');
         if (jQuery('#sfProvEnabled').attr('checked')) {
             jQuery('#sfProvDefault').removeAttr('disabled');
         }
         if (jQuery('#scimProvEnabled').attr('checked')) {
             jQuery('#scimProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#spmlProvEnabled').attr('checked')) {
-            jQuery('#spmlProvDefault').removeAttr('disabled');
         }
         jQuery('#googleProvDefault').attr('disabled', 'disabled');
     } else if (jQuery(obj).attr('id') == 'sfProvDefault') {
         jQuery('#googleProvDefault').removeAttr('checked');
         jQuery('#scimProvDefault').removeAttr('checked');
-        jQuery('#spmlProvDefault').removeAttr('checked');
         if (jQuery('#googleProvEnabled').attr('checked')) {
             jQuery('#googleProvDefault').removeAttr('disabled');
         }
         if (jQuery('#scimProvEnabled').attr('checked')) {
             jQuery('#scimProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#spmlProvEnabled').attr('checked')) {
-            jQuery('#spmlProvDefault').removeAttr('disabled');
         }
         jQuery('#sfProvDefault').attr('disabled', 'disabled');
     } else if (jQuery(obj).attr('id') == 'scimProvDefault') {
         jQuery('#googleProvDefault').removeAttr('checked');
         jQuery('#sfProvDefault').removeAttr('checked');
-        jQuery('#spmlProvDefault').removeAttr('checked');
         if (jQuery('#googleProvEnabled').attr('checked')) {
             jQuery('#googleProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#spmlProvEnabled').attr('checked')) {
-            jQuery('#spmlProvDefault').removeAttr('disabled');
         }
         if (jQuery('#sfProvEnabled').attr('checked')) {
             jQuery('#sfProvDefault').removeAttr('disabled');
         }
         jQuery('#scimProvDefault').attr('disabled', 'disabled');
-    } else if (jQuery(obj).attr('id') == 'spmlProvDefault') {
-        jQuery('#googleProvDefault').removeAttr('checked');
-        jQuery('#sfProvDefault').removeAttr('checked');
-        jQuery('#scimProvDefault').removeAttr('checked');
-        if (jQuery('#openIdEnabled').attr('checked')) {
-            jQuery('#googleProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#googleProvEnabled').attr('checked')) {
-            jQuery('#sfProvDefault').removeAttr('disabled');
-        }
-        if (jQuery('#scimProvEnabled').attr('checked')) {
-            jQuery('#scimProvDefault').removeAttr('disabled');
-        }
-        jQuery('#spmlProvDefault').attr('disabled', 'disabled');
     }
 }
 
@@ -877,20 +819,6 @@ function doValidation() {
             CARBON.showWarningDialog('Scim Configuration User endpoint cannot be empty');
             return false;
         }
-    }
-
-    if (jQuery('#spmlProvEnabled').attr('checked')) {
-
-        if ($('#spml-ep').val() == "") {
-            CARBON.showWarningDialog('SPML Endpoint cannot be empty');
-            return false;
-        }
-
-        if ($('#spml-oc').val() == "") {
-            CARBON.showWarningDialog('SPML Object class cannot be empty');
-            return false;
-        }
-
     }
 
     for (var i = 0; i <= claimRowId; i++) {
