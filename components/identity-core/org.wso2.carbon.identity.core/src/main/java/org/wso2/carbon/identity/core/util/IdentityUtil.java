@@ -37,6 +37,8 @@ import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.URLResolverException;
+import org.wso2.carbon.identity.core.URLResolverService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -355,36 +357,47 @@ public class IdentityUtil {
         return serverUrl.toString();
     }
 
-    public static String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
+    /**
+     * This util method is used to construct a complete URL out of the given URL context.
+     * @param urlContext URL context.
+     * @param addProxyContextPath add proxy context path to the URL.
+     * @param addWebContextRoot add web context path to the URL.
+     * @return complete URL for the given URL context.
+     * @throws IdentityRuntimeException if error occurred while constructing the URL
+     */
+    public static String getServerURL(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
-        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+
+        //TODO: introduce a config
+        URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
+        String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get("TenantNameFromContext");
+        try {
+            return urlResolverService.resolveUrlContext(urlContext, addProxyContextPath, addWebContextRoot,
+                                                 tenantNameFromContext, null);
+        } catch (URLResolverException e) {
+            throw IdentityRuntimeException.error("Error while resolving URL: " + urlContext, e);
+        }
+    }
+
+    /**
+     * This util method is used to resolve a URL
+     *
+     * @param url
+     * @param addProxyContextPath
+     * @param addWebContextRoot
+     * @return
+     */
+    public static String resolveURL(String url, boolean addProxyContextPath, boolean addWebContextRoot) {
+
+        URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
+        String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get("TenantNameFromContext");
 
         try {
-            if (hostName == null) {
-                hostName = NetworkUtils.getLocalHostname();
-            }
-        } catch (SocketException e) {
-            throw IdentityRuntimeException.error("Error while trying to read hostname.", e);
+            return urlResolverService.resolveUrl(url, addProxyContextPath, addWebContextRoot,
+                                                 tenantNameFromContext, null);
+        } catch (URLResolverException e) {
+            throw IdentityRuntimeException.error("Error while resolving URL: " + url, e);
         }
-
-        String mgtTransport = CarbonUtils.getManagementTransport();
-        AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
-                getServerConfigContext().getAxisConfiguration();
-        int mgtTransportPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
-        if (mgtTransportPort <= 0) {
-            mgtTransportPort = CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
-        }
-        if (hostName.endsWith("/")) {
-            hostName = hostName.substring(0, hostName.length() - 1);
-        }
-        StringBuilder serverUrl = new StringBuilder(mgtTransport).append("://").append(hostName.toLowerCase());
-        // If it's well known HTTPS port, skip adding port
-        if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-            serverUrl.append(":").append(mgtTransportPort);
-        }
-
-        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
-        return serverUrl.toString();
     }
 
     private static void appendContextToUri(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot,
@@ -1150,6 +1163,9 @@ public class IdentityUtil {
             return true;
         }
 
+        URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
+        String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get
+                ("TenantNameFromContext");
         try {
             convertPEMEncodedContentToCertificate(certificateContent);
             return true;
