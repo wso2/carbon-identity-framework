@@ -31,6 +31,8 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.DefaultURLResolverService;
+import org.wso2.carbon.identity.core.URLResolverService;
 import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
 import org.wso2.carbon.identity.core.KeyProviderService;
@@ -59,6 +61,7 @@ public class IdentityCoreServiceComponent {
 
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
+    private static URLResolverService urlResolverService = new DefaultURLResolverService();
     private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
     private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
     private DefaultKeyProviderService defaultKeyProviderService;
@@ -314,5 +317,36 @@ public class IdentityCoreServiceComponent {
 
     protected void unsetKeyStoreManagerExtension(KeyStoreManagerExtension keyStoreManagerExtension) {
         defaultKeyProviderService.setKeyStoreManagerExtension(defaultKeystoreManagerExtension);
+    }
+
+    @Reference(
+            name = "url.resolver.service",
+            service = URLResolverService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetURLResolverService"
+    )
+    protected void setURLResolverService(URLResolverService urlResolverService) {
+
+        // TODO: log if there are multiple resolvers
+        IdentityCoreServiceComponent.urlResolverService = urlResolverService;
+        if (log.isDebugEnabled()) {
+            log.debug("URLResolverService service set to: " + IdentityCoreServiceComponent.urlResolverService
+                    .getClass().getName());
+        }
+    }
+
+    protected void unsetURLResolverService(URLResolverService urlResolverService) {
+
+        IdentityCoreServiceComponent.urlResolverService = new DefaultURLResolverService();
+        if (log.isDebugEnabled()) {
+            log.debug("URLResolverService service reverted to: " + IdentityCoreServiceComponent.urlResolverService
+                    .getClass().getName());
+        }
+    }
+
+    public static URLResolverService getURLResolverService() {
+
+        return urlResolverService;
     }
 }
