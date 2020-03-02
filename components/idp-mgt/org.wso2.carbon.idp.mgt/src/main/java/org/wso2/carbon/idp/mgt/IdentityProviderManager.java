@@ -112,25 +112,6 @@ public class IdentityProviderManager implements IdpManager {
 
         IdPManagementUtil.setTenantSpecifiers(tenantDomain);
 
-//        String oauth2AuthzEPUrl;
-//        String oauth2TokenEPUrl;
-//        String oauth2RevokeEPUrl;
-//        String oauth2IntrospectEpUrl;
-//        String oauth2UserInfoEPUrl;
-//        String oidcCheckSessionEPUrl;
-//        String oidcLogoutEPUrl;
-//        String oIDCWebFingerEPUrl;
-//        String oAuth2DCREPUrl;
-//        String oAuth2JWKSPage;
-//        String oIDCDiscoveryEPUrl;
-//        String passiveStsUrl;
-//        String stsUrl;
-//        String scimUsersEndpoint;
-//        String scimGroupsEndpoint;
-//        String scim2UsersEndpoint;
-//        String scim2GroupsEndpoint;
-//        String samlAuthnRequestsSigningEnabled;
-
         StringBuilder openIdUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL));
         StringBuilder samlECPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL));
         StringBuilder samlArtifactUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL));
@@ -143,7 +124,6 @@ public class IdentityProviderManager implements IdpManager {
         StringBuilder oidcCheckSessionEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL));
         StringBuilder oidcLogoutEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL));
         StringBuilder passiveStsUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL));
-//        StringBuilder stsUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL));
         String stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
         StringBuilder scimUsersEndpoint = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL));
         StringBuilder scimGroupsEndpoint = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL));
@@ -987,7 +967,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isBlank(idpProp.getValue())) {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
                             SAML_METADATA_SIGNING_ENABLED + " of ResidentIdP should be a boolean value ");
-                }else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                         SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED)) {
                     if (StringUtils.isBlank(idpProp.getValue())) {
                         throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
@@ -2049,7 +2029,7 @@ public class IdentityProviderManager implements IdpManager {
         if (StringUtils.isEmpty(idPName)) {
             String data = "IdP name is empty.";
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                            .ERROR_CODE_IDP_NAME_INVALID, data);
+                    .ERROR_CODE_IDP_NAME_INVALID, data);
         }
 
         IdentityProvider identityProvider = this.getIdPByName(idPName, tenantDomain, true);
