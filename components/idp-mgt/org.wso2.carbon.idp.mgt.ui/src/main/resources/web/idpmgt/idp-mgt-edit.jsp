@@ -5465,7 +5465,7 @@
                     </div>
 
                     <h2 id="spml_prov_head" class="sectionSeperator trigger active"
-                        style="background-color: beige;">
+                        style="background-color: beige; display:none;">
                         <a href="#"><fmt:message key="spml.provisioning.connector"/></a>
 
                         <div id="spml_enable_logo" class="enablelogo"
