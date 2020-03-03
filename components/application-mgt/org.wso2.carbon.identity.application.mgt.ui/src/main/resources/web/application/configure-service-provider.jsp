@@ -584,6 +584,21 @@
         });
     }
 
+    function updateBeanAndPostWithConfirmation(postURL, data, redirectURLOnSuccess) {
+
+        var serviceProvider = document.getElementById("spName").value;
+        var configurationType = postURL.indexOf("sso-saml") !== -1 ?
+        "SAML2 Web SSO Configuration" : "OAuth/OpenID Connect Configuration";
+
+        function doDelete() {
+            updateBeanAndPost(postURL, data, redirectURLOnSuccess)
+        }
+
+        CARBON.showConfirmationDialog("Are you sure that you want to remove " +
+         configurationType + " from the service provider " + serviceProvider + "?",
+                               doDelete, null);
+    }
+
     function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
@@ -2134,7 +2149,7 @@
                                                            class="icon-link"
                                                            style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                         <a title="Delete Service Providers"
-                                                           onclick="updateBeanAndPost('../sso-saml/remove_service_provider-finish-ajaxprocessor.jsp',
+                                                           onclick="updateBeanAndPostWithConfirmation('../sso-saml/remove_service_provider-finish-ajaxprocessor.jsp',
                                                                'issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                                'configure-service-provider.jsp?action=delete&samlIssuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');"
                                                            class="icon-link"
@@ -2234,7 +2249,7 @@
 
 
                                                             <a title="Delete Service Providers"
-                                                               onclick="updateBeanAndPost('../oauth/remove-app-ajaxprocessor.jsp',
+                                                               onclick="updateBeanAndPostWithConfirmation('../oauth/remove-app-ajaxprocessor.jsp',
                                                                    'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                                    'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
                                                                class="icon-link"
