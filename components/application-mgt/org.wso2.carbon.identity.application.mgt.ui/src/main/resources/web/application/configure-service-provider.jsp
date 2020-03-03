@@ -584,11 +584,27 @@
         });
     }
 
+    function getConfigurationType(postURL) {
+
+        var configType;
+
+        if(postURL.includes("sso-saml")) {
+            configType = "SAML2 Web SSO Configuration";
+        } else if(postURL.includes("oauth")) {
+            configType = "OAuth/OpenID Connect Configuration";
+        } else if(postURL.includes("generic-sts")) {
+            configType = "WS-Trust Security Token Service Configuration";
+        } else {
+            configType = "Kerberos KDC";
+        }
+
+        return configType;
+    }
+
     function updateBeanAndPostWithConfirmation(postURL, data, redirectURLOnSuccess) {
 
         var serviceProvider = document.getElementById("spName").value;
-        var configurationType = postURL.indexOf("sso-saml") !== -1 ?
-        "SAML2 Web SSO Configuration" : "OAuth/OpenID Connect Configuration";
+        var configurationType = getConfigurationType(postURL);
 
         function doDelete() {
             updateBeanAndPost(postURL, data, redirectURLOnSuccess)
@@ -2406,7 +2422,7 @@
                                                                    class="icon-link"
                                                                    style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                                 <a title="Delete Audience"
-                                                                   onclick="updateBeanAndPost('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
+                                                                   onclick="updateBeanAndPostWithConfirmation('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
                                                                        'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(appBean.getWstrustSP())%>',
                                                                        'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(appBean.getWstrustSP())%>');"
                                                                    class="icon-link"
@@ -2478,7 +2494,7 @@
                                                                        style="background-image: url(../admin/images/edit.gif)">Change
                                                                         Password</a>
                                                                     <a title="Delete"
-                                                                       onclick="updateBeanAndPost('../servicestore/delete-finish-ajaxprocessor.jsp',
+                                                                       onclick="updateBeanAndPostWithConfirmation('../servicestore/delete-finish-ajaxprocessor.jsp',
                                                                            'SPAction=delete&spnName=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                                            'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&kerberos=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>');"
                                                                        class="icon-link"
