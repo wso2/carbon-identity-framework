@@ -148,8 +148,8 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Users of Role", roleName,
-                "Users : " + Arrays.toString(newUsers), SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Users of Role", roleName, "UsersAddedToRole : "
+                + Arrays.toString(newUsers) + ", UsersDeletedFromRole : " + Arrays.toString(deletedUsers), SUCCESS));
         return true;
     }
 
@@ -160,8 +160,8 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
             return true;
         }
 
-        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Roles of User", userName,
-                "Roles : " + Arrays.toString(newRoles), SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Roles of User", userName, "RolesAddedToUser : "
+                + Arrays.toString(newRoles) + ", RolesDeletedFromUser : " + Arrays.toString(deletedRoles), SUCCESS));
         return true;
     }
 
