@@ -617,6 +617,20 @@
         });
     }
 
+    function updateBeanAndPostToWithConfirmation(postURL, data) {
+
+        var serviceProvider = document.getElementById("spName").value;
+        var action = data.includes("revoke")? "Revoke Secret" : "Regenerate Secret";
+
+        function doAction() {
+              updateBeanAndPostTo(postURL, data);
+        }
+
+        CARBON.showConfirmationDialog("Are you sure that you want to " +
+          action + " for OAuth client?",
+          doAction, null);
+    }
+
     function updateBeanAndPostTo(postURL, data) {
         $.ajax({
             type: "POST",
@@ -2221,13 +2235,13 @@
 
 
                                                             <a title="Revoke Service Providers"
-                                                               onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');"
+                                                               onclick="updateBeanAndPostToWithConfirmation('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');"
                                                                class="icon-link"
                                                                style="background-image: url(images/disabled.png)">Revoke</a>
 
 
                                                             <a title="Regenerate Secret Key"
-                                                               onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
+                                                               onclick="updateBeanAndPostToWithConfirmation('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
                                                                class="icon-link"
                                                                style="background-image: url(images/enabled.png)">Regenerate
                                                                 Secret</a>
