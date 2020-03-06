@@ -576,6 +576,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
             String userName = authenticatedIdPData.getUser().getUserName();
             String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
+            if (tenantDomain == null) {
+                tenantDomain = authenticatedIdPData.getUser().getTenantDomain();
+            }
             int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
                     .getTenantId(tenantDomain);
             String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
