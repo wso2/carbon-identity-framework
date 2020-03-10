@@ -216,7 +216,7 @@ public class AbstractApplicationAuthenticatorTest {
         Assert.assertNull(abstractApplicationAuthenticator.getClaimDialectURI());
     }
 
-    @Test(dataProvider = "usernameProvider")
+    @Test(dataProvider = "userProvider")
     public void testSetTenantDomainToUserName(Object userObj, boolean isSuccess) throws Exception {
 
         User user = (User) userObj;
