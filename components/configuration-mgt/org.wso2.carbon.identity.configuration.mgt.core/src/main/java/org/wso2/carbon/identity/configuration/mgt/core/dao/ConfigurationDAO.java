@@ -228,7 +228,7 @@ public interface ConfigurationDAO {
      * @param resourceTypeId Id of the {@link ResourceType}.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException;
+    List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantID) throws ConfigurationManagementException;
 
     /**
      * Delete the file.
