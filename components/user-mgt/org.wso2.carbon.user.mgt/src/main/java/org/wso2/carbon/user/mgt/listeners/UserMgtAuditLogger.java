@@ -174,7 +174,7 @@ public class UserMgtAuditLogger extends AbstractIdentityUserOperationEventListen
         }
 
         audit.info(String.format(AUDIT_MESSAGE, getUser(), "Update Roles of User", userName,
-                "RolesAddedToUser : " + Arrays.toString(newRoles) + ", RolesDeletedFromUser : "
+                "RolesAdded : " + Arrays.toString(newRoles) + ", RolesRemoved : "
                         + Arrays.toString(deletedRoles), SUCCESS));
         return true;
     }
