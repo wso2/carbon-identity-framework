@@ -19,11 +19,13 @@ package org.wso2.carbon.identity.core;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.net.MalformedURLException;
 import java.net.SocketException;
@@ -31,20 +33,24 @@ import java.net.URL;
 import java.util.Map;
 
 /**
- * TODO: Comment
+ * URL Resolver service implementation.
  */
+
 public class DefaultURLResolverService implements URLResolverService {
 
     @Override
     public String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot,
-                             String tenantDomain, Map<String, Object> properties) throws URLResolverException {
+                             Map<String, Object> properties) throws URLResolverException {
 
         try {
             URL parsedUrl = new URL(url);
             StringBuilder urlBuilder = new StringBuilder(parsedUrl.getProtocol())
+                    .append("://")
                     .append(parsedUrl.getHost())
+                    .append(":")
                     .append(parsedUrl.getPort());
-            appendContextToUri(parsedUrl.getPath(), addProxyContextPath, addWebContextRoot, urlBuilder);
+            appendContextToUri(parsedUrl.getPath(), addProxyContextPath, addWebContextRoot, urlBuilder,
+                    false);
             return urlBuilder.toString();
 
         } catch (MalformedURLException e) {
@@ -54,7 +60,8 @@ public class DefaultURLResolverService implements URLResolverService {
 
     @Override
     public String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
-                                    String tenantDomain, Map<String, Object> properties) throws URLResolverException {
+                                    boolean addTenantParamLegacyMode, Map<String, Object> properties)
+            throws URLResolverException {
 
         String hostName = getHostName();
         String mgtTransport = CarbonUtils.getManagementTransport();
@@ -64,12 +71,13 @@ public class DefaultURLResolverService implements URLResolverService {
             hostName = hostName.substring(0, hostName.length() - 1);
         }
         StringBuilder serverUrl = new StringBuilder(mgtTransport).append("://").append(hostName.toLowerCase());
-        // If it's well known HTTPS port, skip adding port
+        // If it's well known HTTPS port, skip adding port.
         if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
             serverUrl.append(":").append(mgtTransportPort);
         }
 
-        appendContextToUri(urlContext, addProxyContextPath, addWebContextRoot, serverUrl);
+        appendContextToUri(urlContext, addProxyContextPath, addWebContextRoot, serverUrl, addTenantParamLegacyMode);
+
         return serverUrl.toString();
     }
 
@@ -98,11 +106,12 @@ public class DefaultURLResolverService implements URLResolverService {
     }
 
     private static void appendContextToUri(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot,
-                                           StringBuilder serverUrl) {
+                                           StringBuilder serverUrl, boolean addTenantParamLegacyMode) {
 
-        // If ProxyContextPath is defined then append it
+        String tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get
+                ("TenantNameFromContext");
+        // If ProxyContextPath is defined then append it.
         if (addProxyContextPath) {
-            // If ProxyContextPath is defined then append it
             String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                                                                                                  .PROXY_CONTEXT_PATH);
             if (StringUtils.isNotBlank(proxyContextPath)) {
@@ -132,13 +141,14 @@ public class DefaultURLResolverService implements URLResolverService {
 
         if (addTenantQualifier) {
 
-            String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get
-                    ("TenantNameFromContext");
-            if (tenantNameFromContext != null) {
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+            if (tenantDomain != null) {
                 if (serverUrl.toString().endsWith("/")) {
-                    serverUrl.append("t/").append(tenantNameFromContext);
+                    serverUrl.append("t/").append(tenantDomain);
                 } else {
-                    serverUrl.append(tenantNameFromContext);
+                    serverUrl.append("/t/").append(tenantDomain);
                 }
             }
         }
@@ -152,6 +162,13 @@ public class DefaultURLResolverService implements URLResolverService {
                 serverUrl.append(endpoint.trim());
             }
         }
+
+        if (!addTenantQualifier && addTenantParamLegacyMode && !StringUtils.isBlank(tenantDomain)) {
+            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+                serverUrl.append("?").append(MultitenantConstants.TENANT_DOMAIN).append("=").append(tenantDomain);
+            }
+        }
+
         if (serverUrl.toString().endsWith("/")) {
             serverUrl.setLength(serverUrl.length() - 1);
         }

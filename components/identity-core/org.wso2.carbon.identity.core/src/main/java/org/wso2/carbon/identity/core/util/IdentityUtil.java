@@ -368,35 +368,46 @@ public class IdentityUtil {
     public static String getServerURL(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
 
-        //TODO: introduce a config
-        URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
-        String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get("TenantNameFromContext");
-        try {
-            return urlResolverService.resolveUrlContext(urlContext, addProxyContextPath, addWebContextRoot,
-                                                 tenantNameFromContext, null);
-        } catch (URLResolverException e) {
-            throw IdentityRuntimeException.error("Error while resolving URL: " + urlContext, e);
-        }
+        return getServerURL(urlContext, addProxyContextPath, addWebContextRoot, false);
     }
 
     /**
-     * This util method is used to resolve a URL
+     * This util method is used to resolve a URL.
      *
-     * @param url
-     * @param addProxyContextPath
-     * @param addWebContextRoot
+     * @param url URL.
+     * @param addProxyContextPath add proxy context path to the URL.
+     * @param addWebContextRoot add web context path to the URL.
      * @return
      */
     public static String resolveURL(String url, boolean addProxyContextPath, boolean addWebContextRoot) {
 
         URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
-        String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get("TenantNameFromContext");
-
         try {
-            return urlResolverService.resolveUrl(url, addProxyContextPath, addWebContextRoot,
-                                                 tenantNameFromContext, null);
+            return urlResolverService.resolveUrl(url, addProxyContextPath, addWebContextRoot, null);
         } catch (URLResolverException e) {
             throw IdentityRuntimeException.error("Error while resolving URL: " + url, e);
+        }
+    }
+
+    /**
+     * This util method is used to construct a complete URL out of the given URL context.
+     * @param urlContext URL context.
+     * @param addProxyContextPath add proxy context path to the URL.
+     * @param addWebContextRoot add web context path to the URL.
+     * @param addTenantQueryParamInLegacyMode add tenant domain as a query parameter in legacy mode.
+     * @return complete URL for the given URL context.
+     * @throws IdentityRuntimeException if error occurred while constructing the URL.
+     */
+    public static String getServerURL(String urlContext, boolean addProxyContextPath,
+                                                     boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode)
+            throws IdentityRuntimeException {
+
+        URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
+        try {
+            return urlResolverService.resolveUrlContext(urlContext, addProxyContextPath, addWebContextRoot,
+                    addTenantQueryParamInLegacyMode, null);
+        } catch (URLResolverException e) {
+            throw IdentityRuntimeException.error("Error while resolving URL: " + urlContext, e);
         }
     }
 
