@@ -16,18 +16,41 @@
 
 package org.wso2.carbon.identity.core;
 
-
 import java.util.Map;
 
 /**
- * TOD: Comment
+ * This interface is defined to resolve a provided URL or a URL context by adding a proxy context path, web context
+ * root, and the tenant domain as specified. The URL would be resolved for the tenant domain by either adding the tenant
+ * context to the path or adding a tenant parameter (legacy mode).
  */
 public interface URLResolverService {
 
-    String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot, String tenantDomain,
+    /**
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL.
+     * @param url URL.
+     * @param addProxyContextPath add proxy context path to the URL.
+     * @param addWebContextRoot add web context path to the URL.
+     * @param properties properties.
+     * @return complete URL for the given URL context.
+     * @throws URLResolverException if error occurred while constructing the URL.
+     */
+    String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot,
                       Map<String, Object> properties) throws URLResolverException;
 
-
-    String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot, String
-            tenantDomain, Map<String, Object> properties) throws URLResolverException;
+    /**
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL context.
+     * @param urlContext URL context.
+     * @param addProxyContextPath add proxy context path to the URL.
+     * @param addWebContextRoot add web context path to the URL.
+     * @param addTenantQueryParamInLegacyMode add tenant as a parameter to the URL instead of a path param during legacy mode
+     * operation.
+     * @param properties properties.
+     * @return complete URL for the given URL context.
+     * @throws URLResolverException if error occurred while constructing the URL.
+     */
+    String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
+                             boolean addTenantQueryParamInLegacyMode, Map<String, Object> properties)
+            throws URLResolverException;
 }

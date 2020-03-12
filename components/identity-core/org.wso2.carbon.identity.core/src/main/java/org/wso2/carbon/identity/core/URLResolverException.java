@@ -18,6 +18,9 @@ package org.wso2.carbon.identity.core;
 
 import org.wso2.carbon.identity.base.IdentityException;
 
+/**
+ * The exception to be thrown in an error which might occur while resolving a URL.
+ */
 public class URLResolverException extends IdentityException {
 
     public URLResolverException(String message) {

@@ -328,7 +328,6 @@ public class IdentityCoreServiceComponent {
     )
     protected void setURLResolverService(URLResolverService urlResolverService) {
 
-        // TODO: log if there are multiple resolvers
         IdentityCoreServiceComponent.urlResolverService = urlResolverService;
         if (log.isDebugEnabled()) {
             log.debug("URLResolverService service set to: " + IdentityCoreServiceComponent.urlResolverService
