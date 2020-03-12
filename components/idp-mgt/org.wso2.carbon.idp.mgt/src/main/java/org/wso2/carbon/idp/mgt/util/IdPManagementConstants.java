@@ -51,6 +51,25 @@ public class IdPManagementConstants {
     public static final String EW = "ew";
     public static final String CO = "co";
 
+    // IdP attributes constants.
+    public static final String IDP_IS_PRIMARY = "isPrimary";
+    public static final String IS_PRIMARY = "IS_PRIMARY";
+    public static final String IDP_IS_FEDERATION_HUB = "isFederationHub";
+    public static final String IS_FEDERATION_HUB = "IS_FEDERATION_HUB";
+    public static final String IDP_CERTIFICATE = "certificate";
+    public static final String CERTIFICATE = "CERTIFICATE";
+    public static final String IDP_ALIAS = "alias";
+    public static final String ALIAS = "ALIAS";
+    public static final String IDP_CLAIMS = "claims";
+    public static final String CLAIMS = "USER_CLAIM_URI, ROLE_CLAIM_URI, IS_LOCAL_CLAIM_DIALECT";
+    public static final String IDP_ROLES = "roles";
+    public static final String ROLES = "PROVISIONING_ROLE";
+    public static final String IDP_FEDERATED_AUTHENTICATORS = "federatedAuthenticators";
+    public static final String FEDERATED_AUTHENTICATORS = "DEFAULT_AUTHENTICATOR_NAME";
+    public static final String IDP_PROVISIONING = "provisioning";
+    public static final String PROVISIONING =
+            "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, DEFAULT_PRO_CONNECTOR_NAME";
+
     // JIT provisioning properties for password provisioning and username provisioning.
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
@@ -65,18 +84,20 @@ public class IdPManagementConstants {
                 "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP " +
                 "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME LIKE ?";
 
-        public static final String GET_IDP_BY_TENANT_MYSQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String FROM_IDP_WHERE = "FROM IDP WHERE ";
+
+        public static final String GET_IDP_BY_TENANT_MYSQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
         public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? ORDER BY %s LIMIT ?, ?";
 
-        public static final String GET_IDP_BY_TENANT_DB2SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_DB2SQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
         public static final String GET_IDP_BY_TENANT_DB2SQL_TAIL = "TENANT_ID = ? ORDER BY %s LIMIT ? OFFSET ?";
 
-        public static final String GET_IDP_BY_TENANT_MSSQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_MSSQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
         public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
@@ -90,15 +111,13 @@ public class IdPManagementConstants {
 
         public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND ROWNUM <= ?) WHERE rnum > ?";
 
-        public static final String GET_IDP_BY_TENANT_POSTGRESQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, " +
-                "DESCRIPTION, IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL," +
-                " UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_POSTGRESQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
         public static final String GET_IDP_BY_TENANT_POSTGRESQL_TAIL = "TENANT_ID = ? ORDER BY %s LIMIT ? OFFSET ?";
 
-        public static final String GET_IDP_BY_TENANT_INFORMIX = "SELECT SKIP ? FIRST ? NAME, IS_PRIMARY, " +
-                "HOME_REALM_ID, DESCRIPTION, IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME," +
-                " ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_INFORMIX =
+                "SELECT SKIP ? FIRST ? ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
         public static final String GET_IDP_BY_TENANT_INFORMIX_TAIL = "TENANT_ID = ? ORDER BY %s";
 

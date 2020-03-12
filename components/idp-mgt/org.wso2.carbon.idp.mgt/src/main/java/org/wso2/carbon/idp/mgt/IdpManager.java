@@ -85,9 +85,30 @@ public interface IdpManager {
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
      * @throws IdentityProviderManagementServerException server related error when getting list of Identity  Providers.
      * @throws IdentityProviderManagementClientException client related error when getting list of Identity  Providers.
+     * @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)} instead.
      */
     IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                             String tenantDomain)
+            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
+
+    /**
+     * Get all identity provider's Basic information along with additionally requested information depends on the
+     * requiredAttributes.
+     *
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param filter             Filter value for IdP search.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       TenantDomain of the user.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementServerException server related error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementClientException client related error when getting list of Identity Providers.
+     */
+    IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                            String tenantDomain, List<String> requiredAttributes)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
 
     /**

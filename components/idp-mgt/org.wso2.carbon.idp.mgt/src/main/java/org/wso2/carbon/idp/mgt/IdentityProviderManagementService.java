@@ -148,7 +148,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         IdpSearchResult idpSearchResult = IdentityProviderManager.getInstance()
                 .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
-                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain);
+                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain, null);
         return idpSearchResult.getIdPs().toArray(new IdentityProvider[0]);
     }
 
