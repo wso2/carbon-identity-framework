@@ -1993,6 +1993,18 @@ public class IdentityProviderManager implements IdpManager {
         addIdPWithResourceId(identityProvider, tenantDomain);
     }
 
+    private FederatedAuthenticatorConfig[] getAllFederatedAuthenticators
+            (FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs) {
+
+        ArrayList<FederatedAuthenticatorConfig> authenticatorConfigArrayList =
+                new ArrayList<>(Arrays.asList(federatedAuthenticatorConfigs));
+        List<FederatedAuthenticatorConfig> allFederatedAuthenticators = new ArrayList<>
+                (ApplicationAuthenticatorService.getInstance().getFederatedAuthenticators());
+        allFederatedAuthenticators.removeAll(authenticatorConfigArrayList);
+        authenticatorConfigArrayList.addAll(allFederatedAuthenticators);
+        return authenticatorConfigArrayList.toArray(new FederatedAuthenticatorConfig[0]);
+    }
+
     /**
      * Adds an Identity Provider to the given tenant
      *
@@ -2005,6 +2017,8 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        identityProvider.setFederatedAuthenticatorConfigs
+                (getAllFederatedAuthenticators(identityProvider.getFederatedAuthenticatorConfigs()));
 
         // invoking the pre listeners
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
