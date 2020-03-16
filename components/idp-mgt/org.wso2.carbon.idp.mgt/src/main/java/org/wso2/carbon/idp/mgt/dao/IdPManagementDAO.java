@@ -365,9 +365,16 @@ public class IdPManagementDAO {
             prepStmt.setInt(filterAttributeValueSize + 2, offset);
             prepStmt.setInt(filterAttributeValueSize + 3, limit);
         } else if (databaseProductName.contains("Oracle")) {
-            sqlQuery = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE, sortedOrder);
-
+            String tempSqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE;
+            if (requiredAttributes != null) {
+                tempSqlQuery = appendRequiredAttributes(tempSqlQuery, requiredAttributes);
+            }
+            String sortBy = String.format(IdPManagementConstants.SQLQueries.FROM_IDP_WHERE_ORACLE, sortedOrder);
             sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE_TAIL;
+            // Keeping legacy query in-order to support older version of oracle such as Oracle 11.
+            sqlQuery = tempSqlQuery + IdPManagementConstants.SQLQueries.FROM + tempSqlQuery +
+                    IdPManagementConstants.SQLQueries.ROWNUM_FOR_ORACLE + tempSqlQuery + sortBy;
+            // Append filter query conditions if provided and tail.
             sqlQuery = sqlQuery + filterQueryBuilder.getFilterQuery() + sqlTail;
             prepStmt = dbConnection.prepareStatement(sqlQuery);
             for (Map.Entry<Integer, String> prepareStatement : filterAttributeValue.entrySet()) {

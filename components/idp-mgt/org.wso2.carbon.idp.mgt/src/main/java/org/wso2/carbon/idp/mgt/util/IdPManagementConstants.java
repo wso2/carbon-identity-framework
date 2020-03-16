@@ -102,12 +102,14 @@ public class IdPManagementConstants {
         public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
 
-        public static final String GET_IDP_BY_TENANT_ORACLE = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION," +
-                " IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM " +
-                "(SELECT ID, NAME, IMAGE_URL, UUID, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, IS_FEDERATION_HUB, " +
-                "IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ROWNUM AS rnum FROM (SELECT ID, NAME, IS_PRIMARY," +
-                " HOME_REALM_ID, DESCRIPTION, IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME FROM " +
-                "IDP ORDER BY %s) WHERE ";
+        public static final String GET_IDP_BY_TENANT_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, " +
+                "UUID, TENANT_ID ";
+
+        public static final String FROM_IDP_WHERE_ORACLE = "FROM IDP ORDER BY %s ) WHERE ";
+
+        public static final String ROWNUM_FOR_ORACLE = ", ROWNUM AS rnum FROM (";
+
+        public static final String FROM = " FROM ( ";
 
         public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND ROWNUM <= ?) WHERE rnum > ?";
 
