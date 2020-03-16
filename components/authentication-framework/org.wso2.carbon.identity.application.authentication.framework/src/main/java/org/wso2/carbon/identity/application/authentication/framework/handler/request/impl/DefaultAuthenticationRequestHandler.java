@@ -576,6 +576,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         for (AuthenticatedIdPData authenticatedIdPData : context.getCurrentAuthenticatedIdPs().values()) {
             String userName = authenticatedIdPData.getUser().getUserName();
             String tenantDomain = getAuthenticatedUserTenantDomain(context, null);
+            if (tenantDomain == null) {
+                tenantDomain = authenticatedIdPData.getUser().getTenantDomain();
+            }
             int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
                     .getTenantId(tenantDomain);
             String userStoreDomain = authenticatedIdPData.getUser().getUserStoreDomain();
@@ -587,7 +590,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (isFederatedUser(tenantId, userStoreDomain)) {
+                if (isFederatedUser(authenticatedIdPData.getUser())) {
                     userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
                     try {
                         if (userId == null) {
@@ -639,9 +642,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
     }
 
-    private boolean isFederatedUser(int tenantId, String userStoreDomain) {
+    private boolean isFederatedUser(AuthenticatedUser authenticatedUser) {
 
-        return StringUtils.isEmpty(userStoreDomain) && tenantId == MultitenantConstants.INVALID_TENANT_ID;
+        return authenticatedUser.isFederatedUser();
     }
 
     /**

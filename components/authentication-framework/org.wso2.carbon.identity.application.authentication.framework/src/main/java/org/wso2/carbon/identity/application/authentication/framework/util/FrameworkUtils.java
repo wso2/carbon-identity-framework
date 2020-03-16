@@ -2436,6 +2436,9 @@ public class FrameworkUtils {
             UserSessionException {
 
         try {
+            if (userStoreDomain == null) {
+                userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+            }
             UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
             try {
                 if (userStoreManager instanceof AbstractUserStoreManager) {
