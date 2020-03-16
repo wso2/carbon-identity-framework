@@ -113,7 +113,7 @@ public class DefaultURLResolverService implements URLResolverService {
         // If ProxyContextPath is defined then append it.
         if (addProxyContextPath) {
             String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
-                                                                                                 .PROXY_CONTEXT_PATH);
+                    .PROXY_CONTEXT_PATH);
             if (StringUtils.isNotBlank(proxyContextPath)) {
                 if (proxyContextPath.trim().charAt(0) != '/') {
                     serverUrl.append("/").append(proxyContextPath.trim());
@@ -126,7 +126,7 @@ public class DefaultURLResolverService implements URLResolverService {
         // If webContextRoot is defined then append it
         if (addWebContextRoot) {
             String webContextRoot = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
-                                                                                               .WEB_CONTEXT_ROOT);
+                    .WEB_CONTEXT_ROOT);
             if (StringUtils.isNotBlank(webContextRoot)) {
                 if (webContextRoot.trim().charAt(0) != '/') {
                     serverUrl.append("/").append(webContextRoot.trim());

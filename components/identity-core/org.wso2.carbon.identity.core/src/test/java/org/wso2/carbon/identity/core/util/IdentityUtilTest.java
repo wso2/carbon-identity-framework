@@ -36,6 +36,8 @@ import org.w3c.dom.Element;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.DefaultURLResolverService;
+import org.wso2.carbon.identity.core.URLResolverService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -81,7 +83,7 @@ import static org.testng.Assert.assertTrue;
 
 
 @PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
-        IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class})
+        IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class, URLResolverService.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
         ".*", "org.apache.xerces.*"})
 public class IdentityUtilTest {
@@ -108,6 +110,8 @@ public class IdentityUtilTest {
     private RealmConfiguration mockRealmConfiguration;
     @Mock
     private HttpServletRequest mockRequest;
+    @Mock
+    private URLResolverService mockURLResolverService = new DefaultURLResolverService();
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -130,6 +134,7 @@ public class IdentityUtilTest {
         when(mockUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
         when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
+        when(IdentityCoreServiceComponent.getURLResolverService()).thenReturn(mockURLResolverService);
         try {
             when(NetworkUtils.getLocalHostname()).thenReturn("localhost");
         } catch (SocketException e) {
