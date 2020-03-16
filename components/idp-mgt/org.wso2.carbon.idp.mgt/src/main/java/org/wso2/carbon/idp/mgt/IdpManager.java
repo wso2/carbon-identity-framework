@@ -107,9 +107,12 @@ public interface IdpManager {
      * @throws IdentityProviderManagementServerException server related error when getting list of Identity Providers.
      * @throws IdentityProviderManagementClientException client related error when getting list of Identity Providers.
      */
-    IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
-                            String tenantDomain, List<String> requiredAttributes)
-            throws IdentityProviderManagementException;
+    default IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                    String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
 
     /**
      * Get all basic identity provider information.

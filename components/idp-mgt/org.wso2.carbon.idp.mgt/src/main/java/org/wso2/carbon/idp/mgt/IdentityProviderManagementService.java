@@ -123,7 +123,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * Retrieves registered Identity providers for the logged-in tenant.
      *
      * @return Array of <code>IdentityProvider</code>. IdP names, primary IdP and home.
-     * realm identifiers of each IdP.getIdPs
+     * realm identifiers of each IdP.
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers.
      */
     public IdentityProvider[] getAllPaginatedIdpInfo(int pageNumber) throws IdentityProviderManagementException {
