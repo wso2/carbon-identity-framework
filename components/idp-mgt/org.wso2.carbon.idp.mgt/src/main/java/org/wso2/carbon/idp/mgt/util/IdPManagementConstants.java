@@ -35,25 +35,29 @@ public class IdPManagementConstants {
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
-    public static final String NAME = "NAME";
-    public static final String IDP_NAME = "name";
-    public static final String DESCRIPTION = "DESCRIPTION";
-    public static final String IDP_DESCRIPTION = "description";
-    public static final String HOME_REALM_ID = "HOME_REALM_ID";
-    public static final String IDP_HOME_REALM_ID = "homeRealmIdentifier";
-    public static final String IDP_UUID = "id";
-    public static final String UUID = "UUID";
-    public static final String IDP_IS_ENABLED = "isEnabled";
-    public static final String IS_ENABLED = "IS_ENABLED";
+
     public static final String RESIDENT_IDP = "LOCAL";
     public static final String EQ = "eq";
     public static final String SW = "sw";
     public static final String EW = "ew";
     public static final String CO = "co";
 
-    // IdP attributes constants.
+    // Idp basic attributes.
+    public static final String NAME = "NAME";
+    public static final String IDP_NAME = "name";
+    public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String IDP_DESCRIPTION = "description";
+    public static final String IDP_UUID = "id";
+    public static final String UUID = "UUID";
+    public static final String IDP_IS_ENABLED = "isEnabled";
+    public static final String IS_ENABLED = "IS_ENABLED";
+    public static final String IDP_IMAGE_URL = "image";
+
+    // IdP optional attributes constants.
     public static final String IDP_IS_PRIMARY = "isPrimary";
     public static final String IS_PRIMARY = "IS_PRIMARY";
+    public static final String IDP_HOME_REALM_ID = "homeRealmIdentifier";
+    public static final String HOME_REALM_ID = "HOME_REALM_ID";
     public static final String IDP_IS_FEDERATION_HUB = "isFederationHub";
     public static final String IS_FEDERATION_HUB = "IS_FEDERATION_HUB";
     public static final String IDP_CERTIFICATE = "certificate";
@@ -407,7 +411,8 @@ public class IdPManagementConstants {
         ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
         ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected applications of " +
                 "Identity Provider with resource ID: %s."),
-        ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),;
+        ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),
+        ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s");
 
         private final String code;
         private final String message;

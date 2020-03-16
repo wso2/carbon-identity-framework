@@ -1066,25 +1066,18 @@ public class IdentityProviderManager implements IdpManager {
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
      * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
      * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
-     *  @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)}
+     * @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)}
      */
     @Override
     public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                                    String tenantDomain)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+            throws IdentityProviderManagementException {
 
-        IdpSearchResult result = new IdpSearchResult();
-        List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
-        setParameters(limit, offset, sortOrder, sortBy, filter, result);
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
-        result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
-                result.getSortOrder(), result.getSortBy()));
-        return result;
+        return getIdPs(limit, offset, filter, sortOrder, sortBy, tenantDomain, new ArrayList<>());
     }
 
     /**
-     * Get all identity provider's Basic information along with additionally requested information depends on the
+     * Get all identity provider's Basic information along with additionally requested information depending on the
      * requiredAttributes.
      *
      * @param limit              Limit per page.
@@ -1102,7 +1095,7 @@ public class IdentityProviderManager implements IdpManager {
     @Override
     public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                                    String tenantDomain, List<String> requiredAttributes)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+            throws IdentityProviderManagementException {
 
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);

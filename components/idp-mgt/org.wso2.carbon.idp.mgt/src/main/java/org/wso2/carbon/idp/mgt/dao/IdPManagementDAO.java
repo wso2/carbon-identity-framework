@@ -341,7 +341,7 @@ public class IdPManagementDAO {
     private ResultSet getIdpQueryResultSet(Connection dbConnection, String sortedOrder, int tenantId, int offset,
                                            int limit, FilterQueryBuilder filterQueryBuilder,
                                            List<String> requiredAttributes)
-            throws SQLException, IdentityProviderManagementServerException {
+            throws SQLException, IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
         String sqlQuery;
         String sqlTail;
@@ -351,9 +351,7 @@ public class IdPManagementDAO {
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
         if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL;
-            if (requiredAttributes != null) {
-                sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
-            }
+            sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL_TAIL, sortedOrder);
             sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_IDP_WHERE
                     + filterQueryBuilder.getFilterQuery() + sqlTail;
@@ -366,9 +364,8 @@ public class IdPManagementDAO {
             prepStmt.setInt(filterAttributeValueSize + 3, limit);
         } else if (databaseProductName.contains("Oracle")) {
             String tempSqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE;
-            if (requiredAttributes != null) {
-                tempSqlQuery = appendRequiredAttributes(tempSqlQuery, requiredAttributes);
-            }
+            tempSqlQuery = appendRequiredAttributes(tempSqlQuery, requiredAttributes);
+
             String sortBy = String.format(IdPManagementConstants.SQLQueries.FROM_IDP_WHERE_ORACLE, sortedOrder);
             sqlTail = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_ORACLE_TAIL;
             // Keeping legacy query in-order to support older version of oracle such as Oracle 11.
@@ -385,9 +382,7 @@ public class IdPManagementDAO {
             prepStmt.setInt(filterAttributeValueSize + 3, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL;
-            if (requiredAttributes != null) {
-                sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
-            }
+            sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MSSQL_TAIL, sortedOrder);
             sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_IDP_WHERE
                     + filterQueryBuilder.getFilterQuery() + sqlTail;
@@ -400,9 +395,7 @@ public class IdPManagementDAO {
             prepStmt.setInt(filterAttributeValueSize + 3, limit);
         } else if (databaseProductName.contains("PostgreSQL")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL;
-            if (requiredAttributes != null) {
-                sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
-            }
+            sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_POSTGRESQL_TAIL, sortedOrder);
             sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_IDP_WHERE
                     + filterQueryBuilder.getFilterQuery() + sqlTail;
@@ -415,9 +408,7 @@ public class IdPManagementDAO {
             prepStmt.setInt(filterAttributeValueSize + 3, offset);
         } else if (databaseProductName.contains("DB2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL;
-            if (requiredAttributes != null) {
-                sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
-            }
+            sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_DB2SQL_TAIL, sortedOrder);
             sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_IDP_WHERE
                     + filterQueryBuilder.getFilterQuery() + sqlTail;
@@ -430,9 +421,8 @@ public class IdPManagementDAO {
             prepStmt.setInt(filterAttributeValueSize + 3, offset);
         } else if (databaseProductName.contains("INFORMIX")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX;
-            if (requiredAttributes != null) {
-                sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
-            }
+            sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
+
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_INFORMIX_TAIL, sortedOrder);
             sqlQuery = sqlQuery + IdPManagementConstants.SQLQueries.FROM_IDP_WHERE
                     + filterQueryBuilder.getFilterQuery() + sqlTail;
@@ -461,11 +451,27 @@ public class IdPManagementDAO {
      * @param requiredAttributes Required attributes which needs to be return.
      * @return modified SQL query.
      */
-    private String appendRequiredAttributes(String sqlQuery, List<String> requiredAttributes) {
+    private String appendRequiredAttributes(String sqlQuery, List<String> requiredAttributes)
+            throws IdentityProviderManagementClientException {
 
-        if (!requiredAttributes.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(requiredAttributes)) {
             for (String attribute : requiredAttributes) {
                 switch (attribute) {
+                    case IdPManagementConstants.IDP_UUID:
+                        // Skip since it is basic attribute which is by default added.
+                        break;
+                    case IdPManagementConstants.IDP_NAME:
+                        // Skip since it is basic attribute which is by default added.
+                        break;
+                    case IdPManagementConstants.IDP_DESCRIPTION:
+                        // Skip since it is basic attribute which is by default added.
+                        break;
+                    case IdPManagementConstants.IDP_IS_ENABLED:
+                        // Skip since it is basic attribute which is by default added.
+                        break;
+                    case IdPManagementConstants.IDP_IMAGE_URL:
+                        // Skip since it is basic attribute which is by default added.
+                        break;
                     case IdPManagementConstants.IDP_IS_PRIMARY:
                         sqlQuery += ", " + IdPManagementConstants.IS_PRIMARY + " ";
                         break;
@@ -493,6 +499,9 @@ public class IdPManagementDAO {
                     case IdPManagementConstants.IDP_PROVISIONING:
                         sqlQuery += ", " + IdPManagementConstants.PROVISIONING + " ";
                         break;
+                    default:
+                        throw IdPManagementUtil.handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_IDP_ATTRIBUTE_INVALID, attribute);
                 }
             }
         }
@@ -563,7 +572,7 @@ public class IdPManagementDAO {
         String idPName = identityProvider.getIdentityProviderName();
 
         try {
-            if (!requiredAttributes.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(requiredAttributes)) {
                 for (String attribute : requiredAttributes) {
                     switch (attribute) {
                         case IdPManagementConstants.IDP_IS_PRIMARY:
@@ -593,7 +602,6 @@ public class IdPManagementDAO {
                                 identityProvider.setClaimConfig(new ClaimConfig());
                             }
 
-                            // IS_LOCAL_CLAIM_DIALECT
                             if (IdPManagementConstants.IS_TRUE_VALUE
                                     .equals(resultSet.getString("IS_LOCAL_CLAIM_DIALECT"))) {
                                 identityProvider.getClaimConfig().setLocalClaimDialect(true);
@@ -608,7 +616,7 @@ public class IdPManagementDAO {
                                 identityProvider.setClaimConfig(getLocalIdPDefaultClaimValues(dbConnection,
                                         idPName, userClaimUri, roleClaimUri, idpId, tenantId));
                             } else {
-                                // get claim configuration.
+                                // Get claim configuration.
                                 identityProvider.setClaimConfig(getIdPClaimConfiguration(dbConnection, idPName,
                                         userClaimUri, roleClaimUri, idpId, tenantId));
                             }

@@ -89,7 +89,7 @@ public interface IdpManager {
      */
     IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                             String tenantDomain)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
+            throws IdentityProviderManagementException;
 
     /**
      * Get all identity provider's Basic information along with additionally requested information depends on the
@@ -109,7 +109,7 @@ public interface IdpManager {
      */
     IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                             String tenantDomain, List<String> requiredAttributes)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException;
+            throws IdentityProviderManagementException;
 
     /**
      * Get all basic identity provider information.
