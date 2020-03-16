@@ -22,6 +22,7 @@ import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
@@ -32,10 +33,11 @@ import java.net.SocketException;
 import java.net.URL;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isTenantURLSupportEnabled;
+
 /**
  * URL Resolver service implementation.
  */
-
 public class DefaultURLResolverService implements URLResolverService {
 
     @Override
@@ -108,8 +110,7 @@ public class DefaultURLResolverService implements URLResolverService {
     private static void appendContextToUri(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot,
                                            StringBuilder serverUrl, boolean addTenantParamLegacyMode) {
 
-        String tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get
-                ("TenantNameFromContext");
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
         // If ProxyContextPath is defined then append it.
         if (addProxyContextPath) {
             String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
@@ -136,11 +137,7 @@ public class DefaultURLResolverService implements URLResolverService {
             }
         }
 
-        String enableTenantUrlSupport = IdentityUtil.getProperty("EnableTenantUrlSupport");
-        boolean addTenantQualifier = Boolean.parseBoolean(enableTenantUrlSupport);
-
-        if (addTenantQualifier) {
-
+        if (isTenantURLSupportEnabled()) {
             if (StringUtils.isBlank(tenantDomain)) {
                 tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
@@ -163,7 +160,7 @@ public class DefaultURLResolverService implements URLResolverService {
             }
         }
 
-        if (!addTenantQualifier && addTenantParamLegacyMode && !StringUtils.isBlank(tenantDomain)) {
+        if (!isTenantURLSupportEnabled() && addTenantParamLegacyMode && !StringUtils.isBlank(tenantDomain)) {
             if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
                 serverUrl.append("?").append(MultitenantConstants.TENANT_DOMAIN).append("=").append(tenantDomain);
             }

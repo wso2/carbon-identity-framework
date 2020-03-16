@@ -358,8 +358,8 @@ public class IdentityUtil {
     }
 
     /**
-     * This util method is used to construct a complete URL out of the given URL context.
-     * @param urlContext URL context.
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL context.
      * @param addProxyContextPath add proxy context path to the URL.
      * @param addWebContextRoot add web context path to the URL.
      * @return complete URL for the given URL context.
@@ -372,8 +372,8 @@ public class IdentityUtil {
     }
 
     /**
-     * This util method is used to resolve a URL.
-     *
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL.
      * @param url URL.
      * @param addProxyContextPath add proxy context path to the URL.
      * @param addWebContextRoot add web context path to the URL.

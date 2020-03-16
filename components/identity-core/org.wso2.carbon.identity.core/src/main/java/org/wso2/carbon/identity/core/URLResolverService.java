@@ -26,7 +26,8 @@ import java.util.Map;
 public interface URLResolverService {
 
     /**
-     * This method is used to construct a complete URL out of the given URL context.
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL.
      * @param url URL.
      * @param addProxyContextPath add proxy context path to the URL.
      * @param addWebContextRoot add web context path to the URL.
@@ -38,7 +39,8 @@ public interface URLResolverService {
                       Map<String, Object> properties) throws URLResolverException;
 
     /**
-     * This method is used to construct a complete URL out of the given URL context.
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL context.
      * @param urlContext URL context.
      * @param addProxyContextPath add proxy context path to the URL.
      * @param addWebContextRoot add web context path to the URL.
