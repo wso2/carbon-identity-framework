@@ -288,6 +288,8 @@ public class IdPManagementDAO {
                                          String sortOrder, String sortBy)
             throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
 
+        // Add 1 to offset as the Resident IDP is the 1st entry in the IDP table.
+        offset = offset +1;
         FilterQueryBuilder filterQueryBuilder = new FilterQueryBuilder();
         appendFilterQuery(expressionNode, filterQueryBuilder);
         String sortedOrder = sortBy + " " + sortOrder;
