@@ -538,10 +538,8 @@ public class IdPManagementDAO {
             identityProvider.setImageUrl(resultSet.getString("IMAGE_URL"));
             identityProvider.setResourceId(resultSet.getString("UUID"));
 
-            if (requiredAttributes != null) {
-                populateRequiredAttributesForIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId,
-                        identityProvider);
-            }
+            populateRequiredAttributesForIdentityProviderList(resultSet, dbConnection, requiredAttributes, tenantId,
+                    identityProvider);
 
             if (!IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
                     .equals(identityProvider.getIdentityProviderName())) {
