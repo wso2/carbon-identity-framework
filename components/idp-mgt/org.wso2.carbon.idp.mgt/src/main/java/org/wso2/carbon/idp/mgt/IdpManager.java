@@ -83,8 +83,7 @@ public interface IdpManager {
      * @param sortBy       the column value need to sort.
      * @param tenantDomain tenantDomain of the user.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
-     * @throws IdentityProviderManagementServerException server related error when getting list of Identity  Providers.
-     * @throws IdentityProviderManagementClientException client related error when getting list of Identity  Providers.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
      * @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)} instead.
      */
     IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
@@ -104,8 +103,7 @@ public interface IdpManager {
      * @param requiredAttributes Required attributes which needs to be return.
      * @return Identity Provider's Basic Information array along with requested attribute
      * information{@link IdpSearchResult}.
-     * @throws IdentityProviderManagementServerException server related error when getting list of Identity Providers.
-     * @throws IdentityProviderManagementClientException client related error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
      */
     default IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                                     String tenantDomain, List<String> requiredAttributes)

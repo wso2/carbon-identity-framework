@@ -1064,8 +1064,7 @@ public class IdentityProviderManager implements IdpManager {
      * @param sortBy       the column value need to sort.
      * @param tenantDomain tenant domain whose IdP names are requested.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
-     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
-     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
      * @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)}
      */
     @Override
@@ -1089,8 +1088,7 @@ public class IdentityProviderManager implements IdpManager {
      * @param requiredAttributes Required attributes which needs to be return.
      * @return Identity Provider's Basic Information array along with requested attribute
      * information{@link IdpSearchResult}.
-     * @throws IdentityProviderManagementServerException server related error when getting list of Identity Providers.
-     * @throws IdentityProviderManagementClientException client related error when getting list of Identity Providers.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
      */
     @Override
     public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
