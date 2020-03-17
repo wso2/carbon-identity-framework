@@ -424,6 +424,7 @@
   "resource_access_control.scim2_me_post_method.keep_resource": true,
 
   "user.association.enable_for_federated_users": false,
+  "tenant.url_support_enable": false,
   "tenant_context.rewrite.webapps": [
     "/api/identity/user/v1.0/",
     "/api/identity/consent-mgt/v1.0/",
