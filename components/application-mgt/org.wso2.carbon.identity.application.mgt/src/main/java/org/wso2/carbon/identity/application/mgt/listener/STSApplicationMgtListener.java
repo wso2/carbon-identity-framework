@@ -17,16 +17,15 @@
  */
 package org.wso2.carbon.identity.application.mgt.listener;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axis2.AxisFault;
-import org.apache.axis2.description.AxisService;
-import org.apache.axis2.description.Parameter;
+//import org.apache.axiom.om.OMElement;
+//import org.apache.axis2.AxisFault;
+//import org.apache.axis2.description.AxisService;
+//import org.apache.axis2.description.Parameter;
 import org.apache.axis2.engine.AxisConfiguration;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.rahas.impl.SAMLTokenIssuerConfig;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
@@ -34,15 +33,10 @@ import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRe
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.WSTrust;
 import org.wso2.carbon.identity.application.mgt.ApplicationMgtSystemConfig;
-import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.security.SecurityConfigException;
-import org.wso2.carbon.security.config.SecurityServiceAdmin;
-import org.wso2.carbon.security.sts.service.STSAdminServiceImpl;
 import org.wso2.carbon.security.sts.service.util.TrustedServiceData;
-import org.wso2.carbon.utils.ServerConstants;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
@@ -93,20 +87,20 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
         if (isAssociationRemoved(storedWstrustInbound, updatedWsTrustInbound)) {
             // Remove WSTrust inbound data.
             String trustedService = storedWstrustInbound.getInboundAuthKey();
-            try {
-                if (log.isDebugEnabled()) {
-                    log.debug("WSTrust inbound with trustService: " + trustedService + " has been removed from " +
-                            "service provider with id: " + appId + ". Removing the stale WSTrust data for " +
-                            "trustService: " + trustedService);
-                }
+//            try {
+//                if (log.isDebugEnabled()) {
+//                    log.debug("WSTrust inbound with trustService: " + trustedService + " has been removed from " +
+//                            "service provider with id: " + appId + ". Removing the stale WSTrust data for " +
+//                            "trustService: " + trustedService);
+//                }
 
-                STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
-                stsAdminService.removeTrustedService(trustedService);
-            } catch (SecurityConfigException e) {
-                String msg = "Error removing wsTrust inbound data with trustedService: %s associated with " +
-                        "service provider with id: %s during application update.";
-                throw new IdentityApplicationManagementException(String.format(msg, trustedService, appId), e);
-            }
+//                STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
+//                stsAdminService.removeTrustedService(trustedService);
+//            } catch (SecurityConfigException e) {
+//                String msg = "Error removing wsTrust inbound data with trustedService: %s associated with " +
+//                        "service provider with id: %s during application update.";
+//                throw new IdentityApplicationManagementException(String.format(msg, trustedService, appId), e);
+//            }
         }
     }
 
@@ -136,42 +130,42 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
     public boolean doPreDeleteApplication(String applicationName, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
-        if (serviceProvider != null &&
-                serviceProvider.getInboundAuthenticationConfig() != null &&
-                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
-            InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
-                    .getInboundAuthenticationRequestConfigs();
-            for (InboundAuthenticationRequestConfig config : configs) {
-                if (WSTrust.NAME.equalsIgnoreCase(
-                        config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
-                    try {
-                        AxisService stsService = getAxisConfig().getService(ServerConstants.STS_NAME);
-                        Parameter origParam =
-                                stsService.getParameter(SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG.getLocalPart());
-
-                        if (origParam != null) {
-                            OMElement samlConfigElem = origParam.getParameterElement()
-                                    .getFirstChildWithName(SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG);
-
-                            SAMLTokenIssuerConfig samlConfig = new SAMLTokenIssuerConfig(samlConfigElem);
-                            samlConfig.getTrustedServices().remove(config.getInboundAuthKey());
-                            setSTSParameter(samlConfig);
-                            STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
-                            stsAdminService.removeTrustedService(config.getInboundAuthKey());
-                        } else {
-                            throw new IdentityApplicationManagementException(
-                                    "missing parameter : " + SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG.getLocalPart());
-                        }
-                    } catch (Exception e) {
-                        String error = "Error while removing a trusted service: " + config.getInboundAuthKey();
-                        throw new IdentityApplicationManagementException(error, e);
-                    }
-                    break;
-                }
-            }
-        }
+//        ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
+//        ServiceProvider serviceProvider = appDAO.getApplication(applicationName, tenantDomain);
+//        if (serviceProvider != null &&
+//                serviceProvider.getInboundAuthenticationConfig() != null &&
+//                serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs() != null) {
+//            InboundAuthenticationRequestConfig[] configs = serviceProvider.getInboundAuthenticationConfig()
+//                    .getInboundAuthenticationRequestConfigs();
+//            for (InboundAuthenticationRequestConfig config : configs) {
+//                if (WSTrust.NAME.equalsIgnoreCase(
+//                        config.getInboundAuthType()) && config.getInboundAuthKey() != null) {
+//                    try {
+//                        AxisService stsService = getAxisConfig().getService(ServerConstants.STS_NAME);
+//                        Parameter origParam =
+//                                stsService.getParameter(SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG.getLocalPart());
+//
+//                        if (origParam != null) {
+//                            OMElement samlConfigElem = origParam.getParameterElement()
+//                                    .getFirstChildWithName(SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG);
+//
+//                            SAMLTokenIssuerConfig samlConfig = new SAMLTokenIssuerConfig(samlConfigElem);
+//                            samlConfig.getTrustedServices().remove(config.getInboundAuthKey());
+//                            setSTSParameter(samlConfig);
+//                            STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
+//                            stsAdminService.removeTrustedService(config.getInboundAuthKey());
+//                        } else {
+//                            throw new IdentityApplicationManagementException(
+//                                    "missing parameter : " + SAMLTokenIssuerConfig.SAML_ISSUER_CONFIG.getLocalPart());
+//                        }
+//                    } catch (Exception e) {
+//                        String error = "Error while removing a trusted service: " + config.getInboundAuthKey();
+//                        throw new IdentityApplicationManagementException(error, e);
+//                    }
+//                    break;
+//                }
+//            }
+//        }
         return true;
     }
 
@@ -230,50 +224,50 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
                                 "%s", serviceProvider.getApplicationName());
                         throw new IdentityApplicationManagementException(errorMsg);
                     }
-                    try {
-                        STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
-                        stsAdminService.addTrustedService(trustedServiceData.getServiceAddress(),
-                                trustedServiceData.getCertAlias());
-                    } catch (SecurityConfigException e) {
-                        throw new IdentityApplicationManagementException(String.format("Error in adding trusted " +
-                                "service data for %s", serviceProvider.getApplicationName()), e);
-                    }
+//                    try {
+//                        STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
+//                        stsAdminService.addTrustedService(trustedServiceData.getServiceAddress(),
+//                                trustedServiceData.getCertAlias());
+//                    } catch (SecurityConfigException e) {
+//                        throw new IdentityApplicationManagementException(String.format("Error in adding trusted " +
+//                                "service data for %s", serviceProvider.getApplicationName()), e);
+//                    }
                 }
             }
         }
     }
 
-    @Override
-    public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
-            throws IdentityApplicationManagementException {
+//    @Override
+//    public void doExportServiceProvider(ServiceProvider serviceProvider, Boolean exportSecrets)
+//            throws IdentityApplicationManagementException {
+//
+//        InboundAuthenticationConfig inboundAuthenticationConfig = serviceProvider.getInboundAuthenticationConfig();
+//        if (inboundAuthenticationConfig != null &&
+//                inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs() != null) {
+//
+//            for (InboundAuthenticationRequestConfig authConfig
+//                    : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
+//                if (WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
+//                    String inboundAuthKey = authConfig.getInboundAuthKey();
 
-        InboundAuthenticationConfig inboundAuthenticationConfig = serviceProvider.getInboundAuthenticationConfig();
-        if (inboundAuthenticationConfig != null &&
-                inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs() != null) {
-
-            for (InboundAuthenticationRequestConfig authConfig
-                    : inboundAuthenticationConfig.getInboundAuthenticationRequestConfigs()) {
-                if (WSTrust.NAME.equals(authConfig.getInboundAuthType())) {
-                    String inboundAuthKey = authConfig.getInboundAuthKey();
-
-                    try {
-                        STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
-                        TrustedServiceData[] trustedServices = stsAdminService.getTrustedServices();
-                        if (trustedServices != null) {
-                            for (TrustedServiceData trustedServiceData : trustedServices) {
-                                if (trustedServiceData.getServiceAddress().equals(inboundAuthKey)) {
-                                    authConfig.setInboundConfiguration(marshalTrustedServiceData(trustedServiceData));
-                                }
-                            }
-                        }
-                    } catch (SecurityConfigException e) {
-                        throw new IdentityApplicationManagementException(String.format("Error in getting trusted " +
-                                "service data for %s", serviceProvider.getApplicationName()), e);
-                    }
-                }
-            }
-        }
-    }
+//                    try {
+//                        STSAdminServiceImpl stsAdminService = new STSAdminServiceImpl();
+//                        TrustedServiceData[] trustedServices = stsAdminService.getTrustedServices();
+//                        if (trustedServices != null) {
+//                            for (TrustedServiceData trustedServiceData : trustedServices) {
+//                                if (trustedServiceData.getServiceAddress().equals(inboundAuthKey)) {
+//                                    authConfig.setInboundConfiguration(marshalTrustedServiceData(trustedServiceData));
+//                                }
+//                            }
+//                        }
+//                    } catch (SecurityConfigException e) {
+//                        throw new IdentityApplicationManagementException(String.format("Error in getting trusted " +
+//                                "service data for %s", serviceProvider.getApplicationName()), e);
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Set STS parameters
@@ -282,11 +276,11 @@ public class STSApplicationMgtListener extends AbstractApplicationMgtListener {
      * @throws org.apache.axis2.AxisFault
      * @throws org.wso2.carbon.registry.api.RegistryException
      */
-    private void setSTSParameter(SAMLTokenIssuerConfig samlConfig) throws AxisFault, RegistryException {
-
-        new SecurityServiceAdmin(getAxisConfig(), getConfigSystemRegistry()).
-                setServiceParameterElement(ServerConstants.STS_NAME, samlConfig.getParameter());
-    }
+//    private void setSTSParameter(SAMLTokenIssuerConfig samlConfig) throws AxisFault, RegistryException {
+//
+//        new SecurityServiceAdmin(getAxisConfig(), getConfigSystemRegistry()).
+//                setServiceParameterElement(ServerConstants.STS_NAME, samlConfig.getParameter());
+//    }
 
     /**
      * Get axis config

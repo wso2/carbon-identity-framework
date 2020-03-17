@@ -144,7 +144,9 @@ public class WSXACMLMessageReceiver extends RPCMessageReceiver {
                 KeyInfo keyInfo = (KeyInfo) buildXMLObject(KeyInfo.DEFAULT_ELEMENT_NAME);
                 X509Data data = (X509Data) buildXMLObject(X509Data.DEFAULT_ELEMENT_NAME);
                 X509Certificate cert = (X509Certificate) buildXMLObject(X509Certificate.DEFAULT_ELEMENT_NAME);
-                String value = org.apache.xml.security.utils.Base64.encode(cred.getEntityCertificate().getEncoded());
+                String value = new String(
+                        org.apache.commons.codec.binary.Base64.encodeBase64(
+                                cred.getEntityCertificate().getEncoded()));
                 cert.setValue(value);
                 data.getX509Certificates().add(cert);
                 keyInfo.getX509Datas().add(data);

@@ -35,34 +35,34 @@ public class SignInPolicyTest {
 
     private String existingPolicy;
 
-    @BeforeClass
-    public void setup() {
-        existingPolicy = IdentityBaseUtil.policyString;
-    }
-
-    @Test
-    public void testGetSignOnlyPolicy() throws Exception {
-        Policy signOnlyPolicy = IdentityBaseUtil.getSignOnlyPolicy();
-        assertNotNull(signOnlyPolicy);
-        QName qName = new QName("http://docs.oasis-open" +
-                ".org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Id", "wsu");
-        assertEquals(signOnlyPolicy.getAttributes().get(qName), "SigOnly", "Invalid default " +
-                "policy");
-    }
-
-    @Test(expectedExceptions = IdentityException.class)
-    public void testGetSignOnlyPolicyInvalidPolicyString() throws Exception {
-        IdentityBaseUtil.policyString = "Some Invalid Text";
-        Policy signOnlyPolicy = IdentityBaseUtil.getSignOnlyPolicy();
-        assertNotNull(signOnlyPolicy);
-        QName qName = new QName("http://docs.oasis-open" +
-                ".org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Id", "wsu");
-        assertEquals(signOnlyPolicy.getAttributes().get(qName), "SigOnly", "Invalid default " +
-                "policy");
-    }
-
-    @AfterClass
-    public void tearDown() {
-        IdentityBaseUtil.policyString = existingPolicy;
-    }
+//    @BeforeClass
+//    public void setup() {
+//        existingPolicy = IdentityBaseUtil.policyString;
+//    }
+//
+//    @Test
+//    public void testGetSignOnlyPolicy() throws Exception {
+//        Policy signOnlyPolicy = IdentityBaseUtil.getSignOnlyPolicy();
+//        assertNotNull(signOnlyPolicy);
+//        QName qName = new QName("http://docs.oasis-open" +
+//                ".org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Id", "wsu");
+//        assertEquals(signOnlyPolicy.getAttributes().get(qName), "SigOnly", "Invalid default " +
+//                "policy");
+//    }
+//
+//    @Test(expectedExceptions = IdentityException.class)
+//    public void testGetSignOnlyPolicyInvalidPolicyString() throws Exception {
+//        IdentityBaseUtil.policyString = "Some Invalid Text";
+//        Policy signOnlyPolicy = IdentityBaseUtil.getSignOnlyPolicy();
+//        assertNotNull(signOnlyPolicy);
+//        QName qName = new QName("http://docs.oasis-open" +
+//                ".org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd", "Id", "wsu");
+//        assertEquals(signOnlyPolicy.getAttributes().get(qName), "SigOnly", "Invalid default " +
+//                "policy");
+//    }
+//
+//    @AfterClass
+//    public void tearDown() {
+//        IdentityBaseUtil.policyString = existingPolicy;
+//    }
 }

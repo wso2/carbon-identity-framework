@@ -37,23 +37,23 @@ import static org.testng.Assert.assertNotNull;
 @PrepareForTest({ServerConfiguration.class})
 public class IdentityBaseUtilTest {
 
-    @Mock
-    private ServerConfiguration mockServerConfig;
-
-    @Test
-    public void testGetDefaultRampartConfig() throws Exception {
-        //mock ServerConfiguration
-        mockStatic(ServerConfiguration.class);
-        when(ServerConfiguration.getInstance()).thenReturn(mockServerConfig);
-        when(mockServerConfig.getFirstProperty(anyString())).thenReturn("mockedValue");
-
-        Policy policy = IdentityBaseUtil.getDefaultRampartConfig();
-        assertNotNull(policy);
-        assertNotNull(policy.getFirstPolicyComponent());
-    }
-
-    @ObjectFactory
-    public IObjectFactory getObjectFactory() {
-        return new org.powermock.modules.testng.PowerMockObjectFactory();
-    }
+//    @Mock
+//    private ServerConfiguration mockServerConfig;
+//
+//    @Test
+//    public void testGetDefaultRampartConfig() throws Exception {
+//        //mock ServerConfiguration
+//        mockStatic(ServerConfiguration.class);
+//        when(ServerConfiguration.getInstance()).thenReturn(mockServerConfig);
+//        when(mockServerConfig.getFirstProperty(anyString())).thenReturn("mockedValue");
+//
+//        Policy policy = IdentityBaseUtil.getDefaultRampartConfig();
+//        assertNotNull(policy);
+//        assertNotNull(policy.getFirstPolicyComponent());
+//    }
+//
+//    @ObjectFactory
+//    public IObjectFactory getObjectFactory() {
+//        return new org.powermock.modules.testng.PowerMockObjectFactory();
+//    }
 }

@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
 import org.apache.xerces.util.SecurityManager;
-import org.apache.xml.security.utils.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.wso2.carbon.CarbonConstants;
@@ -224,7 +223,7 @@ public class IdentityUtil {
         if (log.isDebugEnabled()) {
             log.debug("Generating display value of PPID : " + value);
         }
-        byte[] rawPpid = Base64.decode(value);
+        byte[] rawPpid = org.apache.commons.codec.binary.Base64.decodeBase64(value);
         MessageDigest sha1 = MessageDigest.getInstance("SHA1");
         sha1.update(rawPpid);
         byte[] hashId = sha1.digest();
@@ -259,7 +258,7 @@ public class IdentityUtil {
             Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            return Base64.encode(rawHmac);
+            return org.apache.commons.codec.binary.Base64.encodeBase64String(rawHmac);
         } catch (Exception e) {
             throw new SignatureException("Failed to generate HMAC : " + e.getMessage());
         }
@@ -305,7 +304,7 @@ public class IdentityUtil {
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            String random = Base64.encode(rawHmac);
+            String random = org.apache.commons.codec.binary.Base64.encodeBase64String(rawHmac);
             // Registry doesn't have support for these character.
             random = random.replace("/", "_");
             random = random.replace("=", "a");
