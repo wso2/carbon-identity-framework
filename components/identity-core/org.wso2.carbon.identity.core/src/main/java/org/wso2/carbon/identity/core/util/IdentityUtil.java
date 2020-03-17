@@ -1174,9 +1174,6 @@ public class IdentityUtil {
             return true;
         }
 
-        URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
-        String tenantNameFromContext = (String) IdentityUtil.threadLocalProperties.get().get
-                ("TenantNameFromContext");
         try {
             convertPEMEncodedContentToCertificate(certificateContent);
             return true;
