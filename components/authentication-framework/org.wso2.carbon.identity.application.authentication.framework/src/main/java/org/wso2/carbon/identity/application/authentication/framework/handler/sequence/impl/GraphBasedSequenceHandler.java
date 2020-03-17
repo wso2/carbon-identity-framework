@@ -488,10 +488,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
             context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
+            AuthGraphNode nextNode;
             if (outcomeName != null) {
                 executeFunction(outcomeName, longWaitNode, context, data);
+                nextNode = longWaitNode.getDefaultEdge();
+                if (nextNode == null) {
+                    log.error("Authentication script does not have applicable event handler for outcome "
+                            + outcomeName + " from the long wait process : " + context.getContextIdentifier()
+                            + ". So ending the authentication flow. Add the correspoding event handler to the script");
+                    nextNode = new FailNode();
+                }
+            } else {
+                log.error("The outcome from the long wait process " + context.getContextIdentifier()
+                        + " is null. Because asyncReturn.accept() has not been used properly in the async process flow"
+                        + " of the custom function. So ending the authentication flow. Check the flow in the async"
+                        + " process flow of the custom function and add asyncReturn.accept() with the corresponding"
+                        + " outcome.");
+                nextNode = new FailNode();
             }
-            AuthGraphNode nextNode = longWaitNode.getDefaultEdge();
             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
         }
         return isWaiting;
