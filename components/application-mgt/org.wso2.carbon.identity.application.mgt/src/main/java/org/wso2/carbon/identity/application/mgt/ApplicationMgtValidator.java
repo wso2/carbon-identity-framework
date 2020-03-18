@@ -77,6 +77,8 @@ public class ApplicationMgtValidator {
             "for tenantDomain:%s.";
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server " +
             "for tenantDomain:%s.";
+    private static final String SP_CLAIM_NOT_AVAILABLE = "Application Claim URI %s is not defined " +
+            "for Service Provider:%s.";
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
@@ -95,7 +97,8 @@ public class ApplicationMgtValidator {
         validateOutBoundProvisioning(validationErrors, serviceProvider.getOutboundProvisioningConfig(), tenantDomain);
         validateClaimsConfigs(validationErrors, serviceProvider.getClaimConfig(),
                 serviceProvider.getLocalAndOutBoundAuthenticationConfig() != null ? serviceProvider
-                        .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null, tenantDomain);
+                        .getLocalAndOutBoundAuthenticationConfig().getSubjectClaimUri() : null,
+                tenantDomain, serviceProvider.getApplicationName());
         validateRoleConfigs(validationErrors, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
 
         if (!validationErrors.isEmpty()) {
@@ -349,7 +352,8 @@ public class ApplicationMgtValidator {
      * @throws IdentityApplicationManagementException Identity Application Management Exception
      */
     private void validateClaimsConfigs(List<String> validationMsg, ClaimConfig claimConfig, String subjectClaimUri,
-                                       String tenantDomain) throws IdentityApplicationManagementException {
+                                       String tenantDomain, String serviceProviderName)
+            throws IdentityApplicationManagementException {
 
         if (claimConfig == null) {
             return;
@@ -357,13 +361,13 @@ public class ApplicationMgtValidator {
 
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
         String[] allLocalClaimUris = applicationMgtService.getAllLocalClaimUris(tenantDomain);
-        ArrayList<String> allRemoteClaimUris = new ArrayList<String>();
+        ArrayList<String> remoteClaimUris = new ArrayList<>();
 
         ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
         if (claimMappings != null) {
             for (ClaimMapping claimMapping : claimMappings) {
                 String claimUri = claimMapping.getLocalClaim().getClaimUri();
-                allRemoteClaimUris.add(claimMapping.getRemoteClaim().getClaimUri());
+                remoteClaimUris.add(claimMapping.getRemoteClaim().getClaimUri());
                 if (!Arrays.asList(allLocalClaimUris).contains(claimUri)) {
                     validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, claimUri, tenantDomain));
                 }
@@ -384,15 +388,15 @@ public class ApplicationMgtValidator {
                 validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, subjectClaimUri, tenantDomain));
             }
         } else {
-            if (StringUtils.isNotBlank(roleClaimUri) && !(allRemoteClaimUris).contains(roleClaimUri)) {
-                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, roleClaimUri, tenantDomain));
+            if (StringUtils.isNotBlank(roleClaimUri) && !(remoteClaimUris).contains(roleClaimUri)) {
+                validationMsg.add(String.format(SP_CLAIM_NOT_AVAILABLE, roleClaimUri, serviceProviderName));
             }
-            if (StringUtils.isNotBlank(userClaimUri) && !(allRemoteClaimUris).contains(userClaimUri)) {
-                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, userClaimUri, tenantDomain));
+            if (StringUtils.isNotBlank(userClaimUri) && !(remoteClaimUris).contains(userClaimUri)) {
+                validationMsg.add(String.format(SP_CLAIM_NOT_AVAILABLE, userClaimUri, serviceProviderName));
             }
-            if (StringUtils.isNotBlank(subjectClaimUri) && !(allRemoteClaimUris).contains(
+            if (StringUtils.isNotBlank(subjectClaimUri) && !(remoteClaimUris).contains(
                     subjectClaimUri)) {
-                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, subjectClaimUri, tenantDomain));
+                validationMsg.add(String.format(SP_CLAIM_NOT_AVAILABLE, subjectClaimUri, serviceProviderName));
             }
         }
 
