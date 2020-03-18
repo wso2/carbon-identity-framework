@@ -360,10 +360,11 @@ public class IdentityUtil {
     /**
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
      * required) when provided with a URL context.
-     * @param addProxyContextPath add proxy context path to the URL.
-     * @param addWebContextRoot add web context path to the URL.
-     * @return complete URL for the given URL context.
-     * @throws IdentityRuntimeException if error occurred while constructing the URL
+     *
+     * @param addProxyContextPath Add proxy context path to the URL.
+     * @param addWebContextRoot   Add web context path to the URL.
+     * @return Complete URL for the given URL context.
+     * @throws IdentityRuntimeException If error occurred while constructing the URL
      */
     public static String getServerURL(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
@@ -374,10 +375,11 @@ public class IdentityUtil {
     /**
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
      * required) when provided with a URL.
-     * @param url URL.
-     * @param addProxyContextPath add proxy context path to the URL.
-     * @param addWebContextRoot add web context path to the URL.
-     * @return
+     *
+     * @param url                 URL.
+     * @param addProxyContextPath Add proxy context path to the URL.
+     * @param addWebContextRoot   Add web context path to the URL.
+     * @return Resolved URL for the given URL.
      */
     public static String resolveURL(String url, boolean addProxyContextPath, boolean addWebContextRoot) {
 
@@ -391,15 +393,16 @@ public class IdentityUtil {
 
     /**
      * This util method is used to construct a complete URL out of the given URL context.
-     * @param urlContext URL context.
-     * @param addProxyContextPath add proxy context path to the URL.
-     * @param addWebContextRoot add web context path to the URL.
-     * @param addTenantQueryParamInLegacyMode add tenant domain as a query parameter in legacy mode.
-     * @return complete URL for the given URL context.
-     * @throws IdentityRuntimeException if error occurred while constructing the URL.
+     *
+     * @param urlContext                      URL context.
+     * @param addProxyContextPath             Add proxy context path to the URL.
+     * @param addWebContextRoot               Add web context path to the URL.
+     * @param addTenantQueryParamInLegacyMode Add tenant domain as a query parameter in legacy mode.
+     * @return Complete URL for the given URL context.
+     * @throws IdentityRuntimeException If error occurred while constructing the URL.
      */
     public static String getServerURL(String urlContext, boolean addProxyContextPath,
-                                                     boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode)
+                                      boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode)
             throws IdentityRuntimeException {
 
         URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();

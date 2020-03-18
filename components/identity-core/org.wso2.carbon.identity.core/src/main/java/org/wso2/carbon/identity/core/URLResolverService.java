@@ -28,12 +28,13 @@ public interface URLResolverService {
     /**
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
      * required) when provided with a URL.
-     * @param url URL.
-     * @param addProxyContextPath add proxy context path to the URL.
-     * @param addWebContextRoot add web context path to the URL.
-     * @param properties properties.
-     * @return complete URL for the given URL context.
-     * @throws URLResolverException if error occurred while constructing the URL.
+     *
+     * @param url                 URL.
+     * @param addProxyContextPath Add proxy context path to the URL.
+     * @param addWebContextRoot   Add web context path to the URL.
+     * @param properties          Properties.
+     * @return Resolved URL for the given URL.
+     * @throws URLResolverException If error occurred while constructing the URL.
      */
     String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot,
                       Map<String, Object> properties) throws URLResolverException;
@@ -41,14 +42,15 @@ public interface URLResolverService {
     /**
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
      * required) when provided with a URL context.
-     * @param urlContext URL context.
-     * @param addProxyContextPath add proxy context path to the URL.
-     * @param addWebContextRoot add web context path to the URL.
-     * @param addTenantQueryParamInLegacyMode add tenant as a parameter to the URL instead of a path param during legacy mode
-     * operation.
-     * @param properties properties.
-     * @return complete URL for the given URL context.
-     * @throws URLResolverException if error occurred while constructing the URL.
+     *
+     * @param urlContext                      URL context.
+     * @param addProxyContextPath             Add proxy context path to the URL.
+     * @param addWebContextRoot               Add web context path to the URL.
+     * @param addTenantQueryParamInLegacyMode Add tenant as a parameter to the URL instead of a path param during
+     *                                        legacy mode operation.
+     * @param properties                      Properties.
+     * @return Complete URL for the given URL context.
+     * @throws URLResolverException If error occurred while constructing the URL.
      */
     String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
                              boolean addTenantQueryParamInLegacyMode, Map<String, Object> properties)

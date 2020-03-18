@@ -327,6 +327,7 @@ public class IdentityTenantUtil {
      * @return Tenant name from the context.
      */
     public static String getTenantDomainFromContext() {
+
         String tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get
                 (IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT);
         return tenantDomain;
@@ -337,8 +338,8 @@ public class IdentityTenantUtil {
      *
      * @return true if the config is set to true, false otherwise.
      */
-    public static boolean isTenantURLSupportEnabled() {
+    public static boolean enableTenantQualifiedUrls() {
 
-        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URL_SUPPORT));
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
     }
 }

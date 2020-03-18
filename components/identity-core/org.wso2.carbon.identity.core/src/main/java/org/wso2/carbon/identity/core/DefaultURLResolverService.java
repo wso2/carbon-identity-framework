@@ -32,7 +32,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isTenantURLSupportEnabled;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.enableTenantQualifiedUrls;
 
 /**
  * URL Resolver service implementation.
@@ -77,8 +77,8 @@ public class DefaultURLResolverService implements URLResolverService {
             serverUrl.append(":").append(mgtTransportPort);
         }
 
-        appendContextToUri(urlContext, addProxyContextPath, addWebContextRoot, serverUrl, addTenantQueryParamInLegacyMode);
-
+        appendContextToUri(urlContext, addProxyContextPath, addWebContextRoot, serverUrl,
+                addTenantQueryParamInLegacyMode);
         return serverUrl.toString();
     }
 
@@ -97,11 +97,11 @@ public class DefaultURLResolverService implements URLResolverService {
 
         String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
         try {
-            if (hostName == null) {
+            if (StringUtils.isBlank(hostName)) {
                 hostName = NetworkUtils.getLocalHostname();
             }
         } catch (SocketException e) {
-            throw new URLResolverException("Error while trying to read hostname.", e);
+            throw new URLResolverException("Error while trying to resolve the hostname from the system.", e);
         }
         return hostName;
     }
@@ -157,7 +157,6 @@ public class DefaultURLResolverService implements URLResolverService {
                 serverUrl.append("?").append(MultitenantConstants.TENANT_DOMAIN).append("=").append(tenantDomain);
             }
         }
-
     }
 
     private void appendURLContext(StringBuilder serverUrl, String urlContext) {
@@ -172,7 +171,7 @@ public class DefaultURLResolverService implements URLResolverService {
     }
 
     private void appendContextToUri(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
-                                           StringBuilder serverUrl, boolean addTenantQueryParamInLegacyMode) {
+                                    StringBuilder serverUrl, boolean addTenantQueryParamInLegacyMode) {
 
         if (addProxyContextPath) {
             appendProxyContextPath(serverUrl);
@@ -182,7 +181,7 @@ public class DefaultURLResolverService implements URLResolverService {
             appendWebContextRoot(serverUrl);
         }
 
-        if (isTenantURLSupportEnabled()) {
+        if (enableTenantQualifiedUrls()) {
             appendTenantAsPathParam(serverUrl);
         }
 
@@ -190,7 +189,7 @@ public class DefaultURLResolverService implements URLResolverService {
             appendURLContext(serverUrl, urlContext);
         }
 
-        if (!isTenantURLSupportEnabled() && addTenantQueryParamInLegacyMode) {
+        if (!enableTenantQualifiedUrls() && addTenantQueryParamInLegacyMode) {
             appendTenantAsQueryParam(serverUrl);
         }
 
