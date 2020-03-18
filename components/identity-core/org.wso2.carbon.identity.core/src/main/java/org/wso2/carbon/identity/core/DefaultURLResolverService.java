@@ -32,7 +32,7 @@ import java.net.SocketException;
 import java.net.URL;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.enableTenantQualifiedUrls;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isTenantQualifiedUrlsEnabled;
 
 /**
  * URL Resolver service implementation.
@@ -181,7 +181,7 @@ public class DefaultURLResolverService implements URLResolverService {
             appendWebContextRoot(serverUrl);
         }
 
-        if (enableTenantQualifiedUrls()) {
+        if (isTenantQualifiedUrlsEnabled()) {
             appendTenantAsPathParam(serverUrl);
         }
 
@@ -189,7 +189,7 @@ public class DefaultURLResolverService implements URLResolverService {
             appendURLContext(serverUrl, urlContext);
         }
 
-        if (!enableTenantQualifiedUrls() && addTenantQueryParamInLegacyMode) {
+        if (!isTenantQualifiedUrlsEnabled() && addTenantQueryParamInLegacyMode) {
             appendTenantAsQueryParam(serverUrl);
         }
 

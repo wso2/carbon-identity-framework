@@ -338,7 +338,7 @@ public class IdentityTenantUtil {
      *
      * @return true if the config is set to true, false otherwise.
      */
-    public static boolean enableTenantQualifiedUrls() {
+    public static boolean isTenantQualifiedUrlsEnabled() {
 
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
     }

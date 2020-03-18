@@ -487,7 +487,7 @@ public class IdentityUtilTest {
             throws Exception {
 
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
-        when(IdentityTenantUtil.enableTenantQualifiedUrls()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
         when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantFromContext);
         when(CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
         when(CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
