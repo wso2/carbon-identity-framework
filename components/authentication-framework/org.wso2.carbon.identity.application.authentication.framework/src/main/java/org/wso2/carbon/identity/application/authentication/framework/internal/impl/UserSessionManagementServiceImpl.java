@@ -85,6 +85,9 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = UserSessionStore.getInstance().getUserId(username, getTenantId(tenantDomain),
                 userStoreDomain);
+        if (userId == null) {
+            userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        }
         return UserSessionStore.getInstance().getSessionId(userId);
     }
 
