@@ -83,11 +83,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<String> getSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
             UserSessionException {
 
-        String userId = UserSessionStore.getInstance().getUserId(username, getTenantId(tenantDomain),
-                userStoreDomain);
-        if (userId == null) {
-            userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
-        }
+        String userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         return UserSessionStore.getInstance().getSessionId(userId);
     }
 
