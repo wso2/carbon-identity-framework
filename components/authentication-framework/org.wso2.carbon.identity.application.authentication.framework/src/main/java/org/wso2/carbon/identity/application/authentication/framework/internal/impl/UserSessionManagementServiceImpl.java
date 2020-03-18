@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
@@ -83,7 +84,13 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
     private List<String> getSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
             UserSessionException {
 
-        String userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        String userId;
+        if (StringUtils.isEmpty(userStoreDomain) || FrameworkConstants.FEDERATED_IDP_NAME.equals(userStoreDomain)){
+            userId = UserSessionStore.getInstance().getUserId(username, getTenantId(tenantDomain),
+                    userStoreDomain);
+        } else {
+            userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        }
         return UserSessionStore.getInstance().getSessionId(userId);
     }
 
