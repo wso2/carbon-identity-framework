@@ -1064,13 +1064,36 @@ public class IdentityProviderManager implements IdpManager {
      * @param sortBy       the column value need to sort.
      * @param tenantDomain tenant domain whose IdP names are requested.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
-     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
-     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     * @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)}
      */
     @Override
     public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                                    String tenantDomain)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+            throws IdentityProviderManagementException {
+
+        return getIdPs(limit, offset, filter, sortOrder, sortBy, tenantDomain, new ArrayList<>());
+    }
+
+    /**
+     * Get all identity provider's Basic information along with additionally requested information depending on the
+     * requiredAttributes.
+     *
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param filter             Filter value for IdP search.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       TenantDomain of the user.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     */
+    @Override
+    public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
 
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
@@ -1078,7 +1101,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
-                result.getSortOrder(), result.getSortBy()));
+                result.getSortOrder(), result.getSortBy(), requiredAttributes));
         return result;
     }
 
