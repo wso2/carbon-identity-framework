@@ -357,20 +357,22 @@ public class ApplicationMgtValidator {
 
         ApplicationManagementService applicationMgtService = ApplicationManagementService.getInstance();
         String[] allLocalClaimUris = applicationMgtService.getAllLocalClaimUris(tenantDomain);
+        ArrayList<String> allRemoteClaimUris = new ArrayList<String>();
 
         ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
         if (claimMappings != null) {
             for (ClaimMapping claimMapping : claimMappings) {
                 String claimUri = claimMapping.getLocalClaim().getClaimUri();
+                allRemoteClaimUris.add(claimMapping.getRemoteClaim().getClaimUri());
                 if (!Arrays.asList(allLocalClaimUris).contains(claimUri)) {
                     validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, claimUri, tenantDomain));
                 }
             }
         }
 
+        String roleClaimUri = claimConfig.getRoleClaimURI();
+        String userClaimUri = claimConfig.getUserClaimURI();
         if (claimConfig.isLocalClaimDialect()) {
-            String roleClaimUri = claimConfig.getRoleClaimURI();
-            String userClaimUri = claimConfig.getUserClaimURI();
             if (StringUtils.isNotBlank(roleClaimUri) && !Arrays.asList(allLocalClaimUris).contains(roleClaimUri)) {
                 validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, roleClaimUri, tenantDomain));
             }
@@ -378,6 +380,17 @@ public class ApplicationMgtValidator {
                 validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, userClaimUri, tenantDomain));
             }
             if (StringUtils.isNotBlank(subjectClaimUri) && !Arrays.asList(allLocalClaimUris).contains(
+                    subjectClaimUri)) {
+                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, subjectClaimUri, tenantDomain));
+            }
+        } else {
+            if (StringUtils.isNotBlank(roleClaimUri) && !(allRemoteClaimUris).contains(roleClaimUri)) {
+                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, roleClaimUri, tenantDomain));
+            }
+            if (StringUtils.isNotBlank(userClaimUri) && !(allRemoteClaimUris).contains(userClaimUri)) {
+                validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, userClaimUri, tenantDomain));
+            }
+            if (StringUtils.isNotBlank(subjectClaimUri) && !(allRemoteClaimUris).contains(
                     subjectClaimUri)) {
                 validationMsg.add(String.format(CLAIM_NOT_AVAILABLE, subjectClaimUri, tenantDomain));
             }
