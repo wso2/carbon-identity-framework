@@ -32,12 +32,16 @@ public interface URLResolverService {
      * @param url                 URL.
      * @param addProxyContextPath Add proxy context path to the URL.
      * @param addWebContextRoot   Add web context path to the URL.
+     * @param addTenantQueryParamInLegacyMode Add tenant as a query parameter to the URL during legacy mode operation.
+     * @param addTenantPathParamInLegacyMode Add tenant as a path parameter to the URL during legacy mode operation.
      * @param properties          Properties.
      * @return Resolved URL for the given URL.
      * @throws URLResolverException If error occurred while constructing the URL.
      */
     String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot,
-                      Map<String, Object> properties) throws URLResolverException;
+                      boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                      Map<String, Object> properties)
+            throws URLResolverException;
 
     /**
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
@@ -46,13 +50,14 @@ public interface URLResolverService {
      * @param urlContext                      URL context.
      * @param addProxyContextPath             Add proxy context path to the URL.
      * @param addWebContextRoot               Add web context path to the URL.
-     * @param addTenantQueryParamInLegacyMode Add tenant as a parameter to the URL instead of a path param during
-     *                                        legacy mode operation.
+     * @param addTenantQueryParamInLegacyMode Add tenant as a query parameter to the URL during legacy mode operation.
+     * @param addTenantPathParamInLegacyMode Add tenant as a path parameter to the URL during legacy mode operation.
      * @param properties                      Properties.
      * @return Complete URL for the given URL context.
      * @throws URLResolverException If error occurred while constructing the URL.
      */
     String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
-                             boolean addTenantQueryParamInLegacyMode, Map<String, Object> properties)
+                             boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                             Map<String, Object> properties)
             throws URLResolverException;
 }

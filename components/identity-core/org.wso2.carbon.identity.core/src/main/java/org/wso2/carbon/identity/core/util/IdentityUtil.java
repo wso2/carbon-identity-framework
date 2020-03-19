@@ -77,6 +77,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
@@ -361,6 +362,7 @@ public class IdentityUtil {
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
      * required) when provided with a URL context.
      *
+     * @param urlContext          URL context.
      * @param addProxyContextPath Add proxy context path to the URL.
      * @param addWebContextRoot   Add web context path to the URL.
      * @return Complete URL for the given URL context.
@@ -369,7 +371,7 @@ public class IdentityUtil {
     public static String getServerURL(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
 
-        return getServerURL(urlContext, addProxyContextPath, addWebContextRoot, false);
+        return getServerURL(urlContext, addProxyContextPath, addWebContextRoot, false, false);
     }
 
     /**
@@ -383,9 +385,27 @@ public class IdentityUtil {
      */
     public static String resolveURL(String url, boolean addProxyContextPath, boolean addWebContextRoot) {
 
+        return resolveURL(url, addProxyContextPath, addWebContextRoot, false, false);
+    }
+
+    /**
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL.
+     *
+     * @param url                 URL.
+     * @param addProxyContextPath Add proxy context path to the URL.
+     * @param addWebContextRoot   Add web context path to the URL.
+     * @param addTenantQueryParamInLegacyMode Add tenant domain as a query parameter in legacy mode.
+     * @param addTenantPathParamInLegacyMode Add tenant domain as a path parameter in legacy mode.
+     * @return Resolved URL for the given URL.
+     */
+    public static String resolveURL(String url, boolean addProxyContextPath, boolean addWebContextRoot,
+                                    boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode) {
+
         URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
         try {
-            return urlResolverService.resolveUrl(url, addProxyContextPath, addWebContextRoot, null);
+            return urlResolverService.resolveUrl(url, addProxyContextPath, addWebContextRoot,
+                    addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode, null);
         } catch (URLResolverException e) {
             throw IdentityRuntimeException.error("Error while resolving URL: " + url, e);
         }
@@ -398,17 +418,18 @@ public class IdentityUtil {
      * @param addProxyContextPath             Add proxy context path to the URL.
      * @param addWebContextRoot               Add web context path to the URL.
      * @param addTenantQueryParamInLegacyMode Add tenant domain as a query parameter in legacy mode.
+     * @param addTenantPathParamInLegacyMode Add tenant domain as a path parameter in legacy mode.
      * @return Complete URL for the given URL context.
      * @throws IdentityRuntimeException If error occurred while constructing the URL.
      */
-    public static String getServerURL(String urlContext, boolean addProxyContextPath,
-                                      boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode)
+    public static String getServerURL(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
+                                      boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode)
             throws IdentityRuntimeException {
 
         URLResolverService urlResolverService = IdentityCoreServiceComponent.getURLResolverService();
         try {
             return urlResolverService.resolveUrlContext(urlContext, addProxyContextPath, addWebContextRoot,
-                    addTenantQueryParamInLegacyMode, null);
+                    addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode, null);
         } catch (URLResolverException e) {
             throw IdentityRuntimeException.error("Error while resolving URL: " + urlContext, e);
         }
