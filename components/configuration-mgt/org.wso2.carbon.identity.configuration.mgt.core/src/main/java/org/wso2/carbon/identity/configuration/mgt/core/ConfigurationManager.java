@@ -252,4 +252,24 @@ public interface ConfigurationManager {
     void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException;
 
+    /**
+     * This API is used to get a resource by the resource id.
+     *
+     * @param resourceId Id representing the resource.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    default Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException{
+
+        return null;
+    }
+
+     /**
+     * This API is used to delete the given resource id.
+     *
+     * @param resourceId     Request to delete the {@link Resource}.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    default void deleteResourceById(String resourceId) throws ConfigurationManagementException{
+
+    }
 }

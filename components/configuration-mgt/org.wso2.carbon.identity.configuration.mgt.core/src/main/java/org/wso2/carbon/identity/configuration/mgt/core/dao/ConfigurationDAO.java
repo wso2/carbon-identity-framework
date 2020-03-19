@@ -72,6 +72,29 @@ public interface ConfigurationDAO {
     Resource getResourceById(String resourceId) throws ConfigurationManagementException;
 
     /**
+     * Returns {@link Resource} by id given the tenant id.
+     *
+     * @param tenantId   Tenant id of the {@link Resource}.
+     * @param resourceId Id value of the {@link Resource} to be returned.
+     * @return {@link Resource} for the given name.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default Resource getTenantResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
+
+        return null;
+    }
+
+    /**
+     * Delete {@link Resource} by the given resourceName.
+     *
+     * @param tenantId       Tenant id of the {@link Resource}.
+     * @param resourceId     Id of the {@link Resource}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default void deleteResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
+    }
+
+    /**
      * Delete {@link Resource} by the given resourceName.
      *
      * @param tenantId       Tenant id of the {@link Resource}.

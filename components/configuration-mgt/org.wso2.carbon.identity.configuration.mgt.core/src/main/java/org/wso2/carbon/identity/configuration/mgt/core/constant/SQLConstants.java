@@ -242,6 +242,61 @@ public class SQLConstants {
             "  )\n" +
             "WHERE\n" +
             "  R.ID = ?\n";
+    public static final String GET_TENANT_RESOURCE_BY_ID_MYSQL = "SELECT\n" +
+            "  R.ID,\n" +
+            "  R.TENANT_ID,\n" +
+            "  R.NAME,\n" +
+            "  R.CREATED_TIME,\n" +
+            "  R.LAST_MODIFIED,\n" +
+            "  R.HAS_FILE,\n" +
+            "  R.HAS_ATTRIBUTE,\n" +
+            "  T.NAME AS RESOURCE_TYPE,\n" +
+            "  T.DESCRIPTION AS DESCRIPTION,\n" +
+            "  F.ID AS FILE_ID,\n" +
+            "  A.ID AS ATTR_ID,\n" +
+            "  A.ATTR_KEY AS ATTR_KEY,\n" +
+            "  A.ATTR_VALUE AS ATTR_VALUE\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_RESOURCE AS R\n" +
+            "  INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
+            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
+            "    R.HAS_ATTRIBUTE = TRUE\n" +
+            "    AND A.RESOURCE_ID = R.ID\n" +
+            "  )\n" +
+            "  LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
+            "    R.HAS_FILE = TRUE\n" +
+            "    AND F.RESOURCE_ID = R.ID\n" +
+            "  )\n" +
+            "WHERE\n" +
+            "  R.ID = ?\n" +
+            "  AND TENANT_ID = ?";
+    public static final String GET_TENANT_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
+            "  R.ID,\n" +
+            "  R.TENANT_ID,\n" +
+            "  R.NAME,\n" +
+            "  R.LAST_MODIFIED,\n" +
+            "  R.HAS_FILE,\n" +
+            "  R.HAS_ATTRIBUTE,\n" +
+            "  T.NAME AS RESOURCE_TYPE,\n" +
+            "  T.DESCRIPTION AS DESCRIPTION,\n" +
+            "  F.ID AS FILE_ID,\n" +
+            "  A.ID AS ATTR_ID,\n" +
+            "  A.ATTR_KEY AS ATTR_KEY,\n" +
+            "  A.ATTR_VALUE AS ATTR_VALUE\n" +
+            "FROM\n" +
+            "  IDN_CONFIG_RESOURCE AS R\n" +
+            "  INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
+            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
+            "    R.HAS_ATTRIBUTE = TRUE\n" +
+            "    AND A.RESOURCE_ID = R.ID\n" +
+            "  )\n" +
+            "  LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
+            "    R.HAS_FILE = TRUE\n" +
+            "    AND F.RESOURCE_ID = R.ID\n" +
+            "  )\n" +
+            "WHERE\n" +
+            "  R.ID = ?\n" +
+            "  AND TENANT_ID = ?";
     public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -301,6 +356,11 @@ public class SQLConstants {
             "  NAME = ?\n" +
             "  AND TENANT_ID = ?\n" +
             "  AND TYPE_ID = ?";
+    public static final String DELETE_RESOURCE_BY_ID_SQL = "DELETE FROM\n" +
+            "  IDN_CONFIG_RESOURCE\n" +
+            " WHERE\n" +
+            "  ID = ?\n" +
+            "  AND TENANT_ID = ?";
     public static final String UPDATE_LAST_MODIFIED_SQL = "UPDATE IDN_CONFIG_RESOURCE SET LAST_MODIFIED = ? " +
             "WHERE ID = ?";
 

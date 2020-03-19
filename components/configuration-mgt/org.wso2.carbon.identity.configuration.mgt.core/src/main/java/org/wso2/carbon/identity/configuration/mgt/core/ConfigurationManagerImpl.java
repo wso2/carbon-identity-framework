@@ -47,6 +47,9 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_DAO;
+
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_INVALID_RESOURCE_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ADD_REQUEST_INVALID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_DELETE_REQUEST_REQUIRED;
@@ -416,6 +419,16 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
                 log.debug("Invalid resource identifier with resourceTypeName: " + resourceTypeName + ".");
             }
             throw handleClientException(ERROR_CODE_RESOURCE_GET_REQUEST_INVALID, null);
+        }
+    }
+
+    private void validateResourceId(String resourceId) throws ConfigurationManagementException {
+
+        if (StringUtils.isEmpty(resourceId)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid resource identifier: " + resourceId + ".");
+            }
+            throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
         }
     }
 
@@ -812,7 +825,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     @Override
     public void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException {
-        
+
         validateRequest(resourceType, resourceName, fileId);
         validateFileExistence(resourceType, resourceName ,fileId);
         getConfigurationDAO().deleteFileById(resourceType, resourceName, fileId);
@@ -858,7 +871,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     private void validateFileAddRequest(String resourceTypeName, String resourceName, String fileName,
-            InputStream fileStream) throws ConfigurationManagementClientException {
+                                        InputStream fileStream) throws ConfigurationManagementClientException {
 
         if (StringUtils.isEmpty(resourceTypeName) || StringUtils.isEmpty(resourceName) || StringUtils
                 .isEmpty(fileName)) {
@@ -889,5 +902,34 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     private boolean isFileNotExistsError(ConfigurationManagementClientException e) {
 
         return ERROR_CODE_FILE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode());
+    }
+
+    @Override
+    public Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+
+        validateResourceId(resourceId);
+        Resource resource = this.getConfigurationDAO().getTenantResourceById(getTenantId(), resourceId);
+        if (resource == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No resource found for the resource identifier: " + resourceId);
+            }
+            throw handleClientException(
+                    ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
+        }
+        return resource;
+    }
+
+    @Override
+    public void deleteResourceById(String resourceId) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+
+        validateResourceId(resourceId);
+        this.getConfigurationDAO().deleteResourceById(getTenantId(),resourceId);
+        if (log.isDebugEnabled()) {
+            log.debug("Resource id: " + resourceId + " deleted successfully.");
+        }
     }
 }
