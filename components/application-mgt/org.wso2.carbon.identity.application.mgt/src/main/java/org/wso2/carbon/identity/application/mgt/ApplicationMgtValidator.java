@@ -78,7 +78,7 @@ public class ApplicationMgtValidator {
     private static final String CLAIM_NOT_AVAILABLE = "Local claim %s is not available in the server " +
             "for tenantDomain:%s.";
     private static final String SP_CLAIM_NOT_AVAILABLE = "Application Claim URI '%s' is not defined " +
-            "for Service Provider:%s.";
+            "for application:%s.";
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
