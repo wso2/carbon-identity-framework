@@ -77,4 +77,50 @@ public interface TemplateManager {
      */
     List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException;
 
+    /**
+     * Return the template given the template id.
+     *
+     * @param templateId unique identifier of the template.
+     * @return template.
+     * @throws TemplateManagementException if an error occurs while retrieving the template.
+     */
+    default Template getTemplateById(String templateId) throws TemplateManagementException {
+
+        return null;
+    }
+
+    /**
+     * Update a template given the template id by replacing the existing template object.
+     *
+     * @param templateId unique identifier of the the template.
+     * @param template   updated template object.
+     * @throws TemplateManagementException if an error occurs while updating the template.
+     */
+    default void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
+    }
+
+    /**
+     * Delete a template given the template id.
+     *
+     * @param templateId unique identifier of the template.
+     * @throws TemplateManagementException if an error occurs while deleting the template.
+     */
+    default void deleteTemplateById(String templateId) throws TemplateManagementException {
+
+    }
+
+    /**
+     * List all the templates of a given type.
+     *
+     * @param templateType template type
+     * @param limit number of templates required for the list.
+     * @param offset offset of the list of templates.
+     * @return list templates
+     * @throws TemplateManagementException if an error occurs while retrieving the templates.
+     */
+    default List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
+            TemplateManagementException {
+
+        return null;
+    }
 }

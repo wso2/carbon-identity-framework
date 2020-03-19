@@ -41,12 +41,18 @@ public class TemplateMgtConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";
+    public static final String TEMPLATE_RESOURCE_TYPE = "template";
+
+    public enum TemplateType {
+
+        APPLICATION_TEMPLATE, IDP_TEMPLATE
+    }
 
     public enum ErrorMessages {
         ERROR_CODE_INSERT_TEMPLATE("TM_00001", "Error occurred while adding the template: %s."),
         ERROR_CODE_SELECT_TEMPLATE_BY_NAME("TM_00002", "Error occurred while retrieving template" +
                 " from DB for tenant ID: %s and template name: %s."),
-        ERROR_CODE_LIST_TEMPLATES("TM_00003", "Error occurred while listing template " +
+        ERROR_CODE_PAGINATED_LIST_TEMPLATES("TM_00003", "Error occurred while listing template " +
                 "from DB for tenantID: %s, limit: %s and offset: %s."),
         ERROR_CODE_DELETE_TEMPLATE("TM_00004", "Error occurred while deleting template " +
                 "from DB for tenant ID: %s and template name: %s."),
@@ -64,8 +70,14 @@ public class TemplateMgtConstants {
         ERROR_CODE_TENANT_ID_INVALID("TM_00012", "Invalid tenant Id: %s"),
         ERROR_CODE_TEMPLATE_NAME_INVALID("TM_00013", "Invalid template name: %s"),
         ERROR_CODE_TEMPLATE_ALREADY_EXIST("TM_00014", "Template with the name: %s already exists."),
-
-        ERROR_CODE_UNEXPECTED("TM_00015", "Unexpected Error");
+        ERROR_CODE_UNEXPECTED("TM_00015", "Unexpected Error"),
+        ERROR_CODE_INVALID_TEMPLATE_TYPE("TM_00016", "Invalid template type: %s."),
+        ERROR_CODE_LIST_TEMPLATES("TM_00017", "Error occurred while retrieving templates of type %s of the tenant: %s" +
+                " from the database."),
+        ERROR_CODE_DELETE_TEMPLATE_BY_ID("TM_00018", "Error occurred while deleting the template of id: %s in tenant:" +
+                " %s from the database."),
+        ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID("TM_00019", "Error occurred while retrieving template of id %s in tenant: " +
+                "%s from the database.");
 
         private final String code;
         private final String message;
@@ -97,6 +109,13 @@ public class TemplateMgtConstants {
 
             return code + " : " + message;
         }
+    }
+
+    public static class TemplateAttributes {
+
+        public static final String TEMPLATE_DESCRIPTION = "description";
+        public static final String TEMPLATE_IMAGE_URL = "imageUrl";
+        public static final String TEMPLATE_TYPE = "templateType";
     }
 
     /**
