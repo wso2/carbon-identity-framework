@@ -422,14 +422,15 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
-    private void validateResourceId(String resourceId) throws ConfigurationManagementException {
+    private boolean isValidResourceId(String resourceId) {
 
-        if (StringUtils.isEmpty(resourceId)) {
+        if (StringUtils.isBlank(resourceId)) {
             if (log.isDebugEnabled()) {
                 log.debug("Invalid resource identifier: " + resourceId + ".");
             }
-            throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
+            return false;
         }
+        return true;
     }
 
     private int getTenantId() {
@@ -909,14 +910,12 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         checkFeatureStatus();
 
-        validateResourceId(resourceId);
+        if (!isValidResourceId(resourceId)) {
+            throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
+        }
         Resource resource = this.getConfigurationDAO().getTenantResourceById(getTenantId(), resourceId);
         if (resource == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("No resource found for the resource identifier: " + resourceId);
-            }
-            throw handleClientException(
-                    ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
+            throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
         }
         return resource;
     }
@@ -926,8 +925,10 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         checkFeatureStatus();
 
-        validateResourceId(resourceId);
-        this.getConfigurationDAO().deleteResourceById(getTenantId(),resourceId);
+        if (!isValidResourceId(resourceId)) {
+            throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
+        }
+        this.getConfigurationDAO().deleteResourceById(getTenantId(), resourceId);
         if (log.isDebugEnabled()) {
             log.debug("Resource id: " + resourceId + " deleted successfully.");
         }

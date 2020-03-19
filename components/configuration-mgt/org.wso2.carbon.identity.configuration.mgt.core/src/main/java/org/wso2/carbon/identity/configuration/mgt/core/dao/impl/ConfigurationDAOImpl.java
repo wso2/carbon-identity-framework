@@ -161,9 +161,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
         .GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_TENANT_RESOURCE_BY_ID_MYSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
-        .GET_TENANT_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTES_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTE_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_MYSQL;
@@ -380,10 +377,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
-            configurationRawDataCollectors = jdbcTemplate.executeQuery(
-                    useCreatedTimeField() ? GET_TENANT_RESOURCE_BY_ID_MYSQL :
-                            GET_TENANT_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME,
-                    (resultSet, rowNumber) -> {
+            StringBuilder sb = new StringBuilder();
+            sb.append(useCreatedTimeField() ? GET_RESOURCE_BY_ID_MYSQL :
+                    GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME);
+            sb.append(" AND R.TENANT_ID = ?");
+            configurationRawDataCollectors = jdbcTemplate.executeQuery(sb.toString(), (resultSet, rowNumber) -> {
                         ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
                                 configurationRawDataCollectorBuilder =
                                 new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()

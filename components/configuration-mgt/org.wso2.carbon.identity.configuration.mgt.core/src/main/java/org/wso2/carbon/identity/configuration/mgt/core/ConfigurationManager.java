@@ -258,18 +258,18 @@ public interface ConfigurationManager {
      * @param resourceId Id representing the resource.
      * @throws ConfigurationManagementException Configuration management exception.
      */
-    default Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException{
+    default Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException {
 
         return null;
     }
 
-     /**
+    /**
      * This API is used to delete the given resource id.
      *
-     * @param resourceId     Request to delete the {@link Resource}.
+     * @param resourceId Request to delete the {@link Resource}.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    default void deleteResourceById(String resourceId) throws ConfigurationManagementException{
+    default void deleteResourceById(String resourceId) throws ConfigurationManagementException {
 
     }
 }

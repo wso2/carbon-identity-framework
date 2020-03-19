@@ -47,8 +47,6 @@ public class TemplateToResourceAdd implements Function<Template, ResourceAdd> {
                 .getDescription()));
         attributeList.add(new Attribute(TemplateMgtConstants.TemplateAttributes.TEMPLATE_IMAGE_URL, template
                 .getImageUrl()));
-        attributeList.add(new Attribute(TemplateMgtConstants.TemplateAttributes.TEMPLATE_TYPE, template
-                .getTemplateType().toString()));
         if (!template.getPropertiesMap().isEmpty()) {
             template.getPropertiesMap().forEach((key, value) -> {
                 Attribute attribute = new Attribute(key, value);

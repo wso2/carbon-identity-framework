@@ -71,11 +71,10 @@ public class TemplateManagerImpl implements TemplateManager {
      * @throws TemplateManagementException Template Management Exception.
      */
     @Override
-    public Template addTemplate(Template template) throws TemplateManagementException {
+    public String addTemplateResource(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
-        template.setTemplateId(addTemplateToConfigStore(template));
-        return template;
+        return addTemplateToConfigStore(template);
     }
 
     /**
@@ -251,8 +250,8 @@ public class TemplateManagerImpl implements TemplateManager {
             Resource resource = configManager.getTenantResourceById(templateId);
             Template template = new ResourceToTemplate().apply(resource);
             if (resource.getFiles().size() == 1) {
-                InputStream templateScriptInputStream = configManager.getFileById(TemplateMgtConstants
-                        .TEMPLATE_RESOURCE_TYPE, resource.getResourceName(), resource.getFiles().get(0).getId());
+                InputStream templateScriptInputStream = configManager.getFileById(resource.getResourceType(),
+                        resource.getResourceName(), resource.getFiles().get(0).getId());
                 template.setTemplateScript(IOUtils.toString(templateScriptInputStream));
             } else {
                 if (log.isDebugEnabled()) {
@@ -262,20 +261,32 @@ public class TemplateManagerImpl implements TemplateManager {
                 }
             }
             return template;
-        } catch (ConfigurationManagementException | IOException e) {
+        } catch (ConfigurationManagementException e) {
+            if(ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())){
+                throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            }
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
                     templateId, getTenantDomainFromCarbonContext());
-        }
+        } catch (IOException e) {
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
+                    templateId, getTenantDomainFromCarbonContext());        }
     }
 
     @Override
     public List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
             TemplateManagementException {
 
-        validateTemplateType(templateType);
+        if (!isValidTemplateType(templateType)) {
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
+                    templateType);
+        }
+        if (limit != null || offset != null) {
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATION_NOT_SUPPORTED, null);
+        }
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
         try {
-            Resources resourcesList = configManager.getResourcesByType(TemplateMgtConstants.TEMPLATE_RESOURCE_TYPE);
+            Resources resourcesList = configManager.getResourcesByType(templateType);
             return resourcesList.getResources().stream().map(new ResourceToTemplate()).collect(Collectors.toList());
         } catch (ConfigurationManagementException e) {
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_LIST_TEMPLATES, e, templateType,
@@ -297,7 +308,10 @@ public class TemplateManagerImpl implements TemplateManager {
 
     private String addTemplateToConfigStore(Template template) throws TemplateManagementException {
 
-        validateTemplateType(template.getTemplateType().toString());
+        if (!isValidTemplateType(template.getTemplateType().toString())) {
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
+                    template.getTemplateType().toString());
+        }
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
         try {
             Resource resource = configManager.addResource(template.getTemplateType().toString(), new
@@ -307,8 +321,8 @@ public class TemplateManagerImpl implements TemplateManager {
                     IOUtils.toInputStream(template.getTemplateScript()));
             return resource.getResourceId();
         } catch (ConfigurationManagementException e) {
-            if (e.getErrorCode().equals(ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS
-                    .getCode())) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
                 throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST, e,
                         template.getTemplateName());
             } else {
@@ -318,16 +332,13 @@ public class TemplateManagerImpl implements TemplateManager {
         }
     }
 
-    private void validateTemplateType(String templateType) throws TemplateManagementClientException {
+    private boolean isValidTemplateType(String templateType) {
 
-        if (!EnumUtils.isValidEnum(TemplateMgtConstants.TemplateType.class, templateType)) {
-            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
-                    templateType);
-        }
+        return EnumUtils.isValidEnum(TemplateMgtConstants.TemplateType.class, templateType);
     }
 
-    @Deprecated
-    public Template addTemplateUsingTemplateMgtDAO(Template template) throws TemplateManagementException{
+    @Override
+    public Template addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
         if (isTemplateExists(template.getTemplateName())) {

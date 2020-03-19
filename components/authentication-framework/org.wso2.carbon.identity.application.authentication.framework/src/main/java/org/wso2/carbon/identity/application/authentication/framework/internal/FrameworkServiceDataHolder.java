@@ -43,7 +43,6 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
-//import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -95,16 +94,6 @@ public class FrameworkServiceDataHolder {
 
         return instance;
     }
-
-//    public TemplateManager getTemplateManagerService() {
-//
-//        return templateManagerService;
-//    }
-//
-//    public void setTemplateManagerService(TemplateManager templateManagerService) {
-//
-//        this.templateManagerService = templateManagerService;
-//    }
 
     public RegistryService getRegistryService() {
 

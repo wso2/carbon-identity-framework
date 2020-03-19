@@ -87,11 +87,12 @@ public interface ConfigurationDAO {
     /**
      * Delete {@link Resource} by the given resourceName.
      *
-     * @param tenantId       Tenant id of the {@link Resource}.
-     * @param resourceId     Id of the {@link Resource}.
+     * @param tenantId   Tenant id of the {@link Resource}.
+     * @param resourceId Id of the {@link Resource}.
      * @throws ConfigurationManagementException Configuration Management Exception.
      */
     default void deleteResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
+
     }
 
     /**

@@ -41,7 +41,6 @@ public class TemplateMgtConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";
-    public static final String TEMPLATE_RESOURCE_TYPE = "template";
 
     public enum TemplateType {
 
@@ -49,35 +48,37 @@ public class TemplateMgtConstants {
     }
 
     public enum ErrorMessages {
-        ERROR_CODE_INSERT_TEMPLATE("TM_00001", "Error occurred while adding the template: %s."),
-        ERROR_CODE_SELECT_TEMPLATE_BY_NAME("TM_00002", "Error occurred while retrieving template" +
+        ERROR_CODE_INSERT_TEMPLATE("TMM_00001", "Error occurred while adding the template: %s."),
+        ERROR_CODE_SELECT_TEMPLATE_BY_NAME("TMM_00002", "Error occurred while retrieving template" +
                 " from DB for tenant ID: %s and template name: %s."),
-        ERROR_CODE_PAGINATED_LIST_TEMPLATES("TM_00003", "Error occurred while listing template " +
+        ERROR_CODE_PAGINATED_LIST_TEMPLATES("TMM_00003", "Error occurred while listing template " +
                 "from DB for tenantID: %s, limit: %s and offset: %s."),
-        ERROR_CODE_DELETE_TEMPLATE("TM_00004", "Error occurred while deleting template " +
+        ERROR_CODE_DELETE_TEMPLATE("TMM_00004", "Error occurred while deleting template " +
                 "from DB for tenant ID: %s and template name: %s."),
-        ERROR_CODE_SET_BLOB("TM_00005", "Error occurred while reading from input stream of " +
+        ERROR_CODE_SET_BLOB("TMM_00005", "Error occurred while reading from input stream of " +
                 "template: %s."),
-        ERROR_CODE_UPDATE_TEMPLATE("TM_00006", "Error occurred while updating the template: %s."),
-        ERROR_CODE_TEMPLATE_NAME_REQUIRED("TM_00007", "Template name is required."),
-        ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED("TM_00008", "Template script is required."),
-        ERROR_CODE_NO_AUTH_USER_FOUND("TM_00009", "No authenticated user found to " +
+        ERROR_CODE_UPDATE_TEMPLATE("TMM_00006", "Error occurred while updating the template: %s."),
+        ERROR_CODE_TEMPLATE_NAME_REQUIRED("TMM_00007", "Template name is required."),
+        ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED("TMM_00008", "Template script is required."),
+        ERROR_CODE_NO_AUTH_USER_FOUND("TMM_00009", "No authenticated user found to " +
                 "perform the operation"),
-        ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET("CM_00010", "Limit or offset values" +
+        ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET("TMM_00010", "Limit or offset values" +
                 " cannot be negative."),
-        ERROR_CODE_USER_NOT_AUTHORIZED("TM_00011", "User: %s is not authorized to perform " +
+        ERROR_CODE_USER_NOT_AUTHORIZED("TMM_00011", "User: %s is not authorized to perform " +
                 "this operation."),
-        ERROR_CODE_TENANT_ID_INVALID("TM_00012", "Invalid tenant Id: %s"),
-        ERROR_CODE_TEMPLATE_NAME_INVALID("TM_00013", "Invalid template name: %s"),
-        ERROR_CODE_TEMPLATE_ALREADY_EXIST("TM_00014", "Template with the name: %s already exists."),
-        ERROR_CODE_UNEXPECTED("TM_00015", "Unexpected Error"),
-        ERROR_CODE_INVALID_TEMPLATE_TYPE("TM_00016", "Invalid template type: %s."),
-        ERROR_CODE_LIST_TEMPLATES("TM_00017", "Error occurred while retrieving templates of type %s of the tenant: %s" +
-                " from the database."),
-        ERROR_CODE_DELETE_TEMPLATE_BY_ID("TM_00018", "Error occurred while deleting the template of id: %s in tenant:" +
+        ERROR_CODE_TENANT_ID_INVALID("TMM_00012", "Invalid tenant Id: %s"),
+        ERROR_CODE_TEMPLATE_NAME_INVALID("TMM_00013", "Invalid template name: %s"),
+        ERROR_CODE_TEMPLATE_ALREADY_EXIST("TMM_00014", "Template with the name: %s already exists."),
+        ERROR_CODE_UNEXPECTED("TMM_00015", "Unexpected Error"),
+        ERROR_CODE_INVALID_TEMPLATE_TYPE("TMM_00016", "Invalid template type: %s."),
+        ERROR_CODE_LIST_TEMPLATES("TMM_00017", "Error occurred while retrieving templates of type %s of the tenant: " +
+                "%s from the database."),
+        ERROR_CODE_DELETE_TEMPLATE_BY_ID("TMM_00018", "Error occurred while deleting the template of id: %s in " +
+                "tenant: %s from the database."),
+        ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID("TMM_00019", "Error occurred while retrieving template of id %s in tenant:" +
                 " %s from the database."),
-        ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID("TM_00019", "Error occurred while retrieving template of id %s in tenant: " +
-                "%s from the database.");
+        ERROR_CODE_PAGINATION_NOT_SUPPORTED("TMM_00020", "Pagination is not supported when listing the templates."),
+        ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant.");
 
         private final String code;
         private final String message;
@@ -111,11 +112,14 @@ public class TemplateMgtConstants {
         }
     }
 
+    /**
+     * This class indicates the attribute names of the template.
+     */
     public static class TemplateAttributes {
 
         public static final String TEMPLATE_DESCRIPTION = "description";
         public static final String TEMPLATE_IMAGE_URL = "imageUrl";
-        public static final String TEMPLATE_TYPE = "templateType";
+        public static final String TEMPLATE_TYPE = "type";
     }
 
     /**

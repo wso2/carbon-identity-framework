@@ -63,7 +63,11 @@ public class TemplateMgtUtils {
 
         String message = populateMessageWithData(error, data);
 
-        return new TemplateManagementServerException(message, error.getCode(), e);
+        if (e == null) {
+            return new TemplateManagementServerException(message, error.getCode());
+        } else {
+            return new TemplateManagementServerException(message, error.getCode(), e);
+        }
     }
     /**
      * This method can be used to generate a TemplateManagementClientException from TemplateMgtConstants.ErrorMessages

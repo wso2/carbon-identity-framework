@@ -37,7 +37,9 @@ public interface TemplateManager {
      * @param template Template element.
      * @return Return template element with template name, description and script.
      * @throws TemplateManagementException Template Management Exception.
+     * @deprecated use {@link #addTemplateResource(Template)} ()} instead.
      */
+    @Deprecated
     Template addTemplate(Template template) throws TemplateManagementException;
 
     /**
@@ -74,8 +76,21 @@ public interface TemplateManager {
      * @param offset Start index of the search.
      * @return Filtered list of TemplateInfo elements.
      * @throws TemplateManagementException Template Management Exception.
+     * @deprecated use {@link #listTemplates(String, Integer, Integer)} instead.
      */
     List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException;
+
+    /**
+     * This method is used to add a new template as a resource.
+     *
+     * @param template Template element.
+     * @return unique identifier for the newly created template.
+     * @throws TemplateManagementException Template Management Exception.
+     */
+    default String addTemplateResource(Template template) throws TemplateManagementException {
+
+        return null;
+    }
 
     /**
      * Return the template given the template id.
@@ -97,6 +112,7 @@ public interface TemplateManager {
      * @throws TemplateManagementException if an error occurs while updating the template.
      */
     default void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
+
     }
 
     /**
@@ -113,8 +129,8 @@ public interface TemplateManager {
      * List all the templates of a given type.
      *
      * @param templateType template type
-     * @param limit number of templates required for the list.
-     * @param offset offset of the list of templates.
+     * @param limit        number of templates required for the list.
+     * @param offset       offset of the list of templates.
      * @return list templates
      * @throws TemplateManagementException if an error occurs while retrieving the templates.
      */

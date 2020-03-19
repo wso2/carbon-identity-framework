@@ -42,6 +42,7 @@ public class ResourceToTemplate implements Function<Resource, Template> {
         template.setTemplateName(resource.getResourceName());
         template.setTemplateId(resource.getResourceId());
         template.setTenantId(IdentityTenantUtil.getTenantId(resource.getTenantDomain()));
+        template.setTemplateType(TemplateMgtConstants.TemplateType.valueOf(resource.getResourceType()));
         return template;
     }
 
@@ -52,9 +53,6 @@ public class ResourceToTemplate implements Function<Resource, Template> {
 
         attributeList.forEach(attribute -> {
             switch (attribute.getKey()) {
-                case TemplateMgtConstants.TemplateAttributes.TEMPLATE_TYPE:
-                    template.setTemplateType(TemplateMgtConstants.TemplateType.valueOf(attribute.getValue()));
-                    break;
                 case TemplateMgtConstants.TemplateAttributes.TEMPLATE_DESCRIPTION:
                     template.setDescription(attribute.getValue());
                     break;

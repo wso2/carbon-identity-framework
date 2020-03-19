@@ -219,7 +219,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             TemplateManager templateManager = new TemplateManagerImpl();
-            Template templateResult = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
+            Template templateResult = templateManager.addTemplate(((Template) template));
 
             Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
             Assert.assertEquals(templateResult.getTenantId(), ((Template) template).getTenantId());
@@ -288,13 +288,13 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
 
             TemplateManager templateManager = new TemplateManagerImpl();
 
-            Template templateResult1 = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate1);
+            Template templateResult1 = templateManager.addTemplate(testTemplate1);
             Assert.assertEquals(templateResult1.getTemplateName(), testTemplate1.getTemplateName());
 
-            Template templateResult2 = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate2);
+            Template templateResult2 = templateManager.addTemplate(testTemplate2);
             Assert.assertEquals(templateResult2.getTemplateName(), testTemplate2.getTemplateName());
 
-            Template templateResult3 = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(testTemplate3);
+            Template templateResult3 = templateManager.addTemplate(testTemplate3);
             Assert.assertEquals(templateResult3.getTemplateName(), testTemplate3.getTemplateName());
 
             List<TemplateInfo> templateList = templateManager.listTemplates(limit, offset);
@@ -315,7 +315,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             TemplateManager templateManager = new TemplateManagerImpl();
-            Template templateResult = ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
+            Template templateResult = templateManager.addTemplate(((Template) template));
             Assert.assertEquals(templateResult.getTemplateName(), ((Template) template).getTemplateName());
 
             templateManager.deleteTemplate(templateResult.getTemplateName());
@@ -334,7 +334,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
 
             TemplateManager templateManager = new TemplateManagerImpl();
-            ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(((Template) template));
+            templateManager.addTemplate(((Template) template));
             Assert.fail("Expected: " + TemplateManagementClientException.class.getName());
         }
     }
@@ -353,7 +353,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             when(dataSource.getConnection()).thenReturn(spyConnection);
             TemplateManager templateManager = new TemplateManagerImpl();
             try {
-                ((TemplateManagerImpl) templateManager).addTemplateUsingTemplateMgtDAO(template);
+                templateManager.addTemplate(template);
             } catch (TemplateManagementClientException e) {
                 String errorCode1 = e.getErrorCode();
                 Assert.assertEquals(errorCode, errorCode1);
@@ -389,7 +389,7 @@ public class TemplateManagerImplTest extends PowerMockTestCase {
             SQLException, TemplateManagementException {
 
         for (Object template : templates) {
-            ((TemplateManagerImpl)templateManager).addTemplateUsingTemplateMgtDAO((Template) template);
+            templateManager.addTemplate((Template) template);
         }
     }
 
