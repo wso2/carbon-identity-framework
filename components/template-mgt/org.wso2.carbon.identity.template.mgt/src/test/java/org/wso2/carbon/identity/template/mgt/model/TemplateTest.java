@@ -20,15 +20,18 @@ package org.wso2.carbon.identity.template.mgt.model;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 
 public class TemplateTest {
 
     private static final String templateName = "sampleTemplate";
     private static final String description = "sample Description";
     private static final String script = "sample Script";
-    private static Integer templateId = 1;
-    private static Integer tenantId = -1234;
-    Template testTemplate1 = new Template(templateId, tenantId, templateName, description, script);
+    private static final String imageUrl = "sample/image/url";
+    private static String templateId = "unique_template_id1";
+    private static int tenantId = -1234;
+    Template testTemplate1 = new Template(templateId, tenantId, templateName, description, imageUrl,
+            TemplateMgtConstants.TemplateType.APPLICATION_TEMPLATE, script, null);
     Template testTemplate2 = new Template(templateName, description, script);
 
     @Test
@@ -40,7 +43,7 @@ public class TemplateTest {
     @Test
     public void testSetTemplateId() {
 
-        Integer templateId = 101;
+        String templateId = "unique_template_id2";
         testTemplate2.setTemplateId(templateId);
         Assert.assertEquals(testTemplate2.getTemplateId(), templateId);
     }
@@ -54,7 +57,7 @@ public class TemplateTest {
     @Test
     public void testSetTenantId() {
 
-        Integer tenantId = 101;
+        int tenantId = 101;
         testTemplate2.setTenantId(tenantId);
         Assert.assertEquals(testTemplate2.getTenantId(), tenantId);
     }

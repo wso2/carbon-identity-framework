@@ -325,4 +325,19 @@ public class TemplateManagerImpl implements TemplateManager {
                     templateType);
         }
     }
+
+    @Deprecated
+    public Template addTemplateUsingTemplateMgtDAO(Template template) throws TemplateManagementException{
+
+        validateInputParameters(template);
+        if (isTemplateExists(template.getTemplateName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A template already exists with the name: " + template.getTemplateName());
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
+        }
+
+        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        return templateManagerDAO.addTemplate(template);
+    }
 }
