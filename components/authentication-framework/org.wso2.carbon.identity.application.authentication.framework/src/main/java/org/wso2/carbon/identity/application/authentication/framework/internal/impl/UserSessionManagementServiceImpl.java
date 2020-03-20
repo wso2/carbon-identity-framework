@@ -81,16 +81,11 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         }
     }
 
+    // This method invokes only for the local users to resolve the user's unique user id from username.
     private List<String> getSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
             UserSessionException {
 
-        String userId;
-        if (StringUtils.isEmpty(userStoreDomain) || FrameworkConstants.FEDERATED_IDP_NAME.equals(userStoreDomain)){
-            userId = UserSessionStore.getInstance().getUserId(username, getTenantId(tenantDomain),
-                    userStoreDomain);
-        } else {
-            userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
-        }
+        String userId = FrameworkUtils.resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         return UserSessionStore.getInstance().getSessionId(userId);
     }
 
