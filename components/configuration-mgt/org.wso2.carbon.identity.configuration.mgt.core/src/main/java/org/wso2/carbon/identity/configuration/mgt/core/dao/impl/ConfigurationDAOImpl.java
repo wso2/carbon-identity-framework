@@ -1105,7 +1105,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementServerException {
+    public List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId) throws ConfigurationManagementServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -1121,7 +1121,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 resourceFileName
                         );
                     }),
-                    preparedStatement -> preparedStatement.setString(1, resourceTypeId));
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceTypeId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceTypeId, e);
         }
@@ -1172,7 +1175,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         resource.setLastModified(resourceLastModified);
                         resource.setHasFile(Boolean.valueOf(resourceHasFile));
                         resource.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-                        resource.setFiles(getFilesByResourceType(resourceTypeId));
+                        resource.setFiles(getFilesByResourceType(resourceTypeId, tenantId));
                         resource.setAttributes(getAttributesByResourceId(resourceId));
                         return resource;
                     })),

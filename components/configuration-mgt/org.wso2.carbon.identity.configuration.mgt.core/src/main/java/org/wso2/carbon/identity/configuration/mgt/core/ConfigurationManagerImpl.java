@@ -779,6 +779,25 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     @Override
+    public List<ResourceFile> getFiles(String resourceTypeName, int tenantId) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+        validateRequest(resourceTypeName);
+        String resourceTypeId = getResourceTypeId(resourceTypeName);
+        List<ResourceFile> resourceFiles = getConfigurationDAO().getFilesByResourceType(resourceTypeId, tenantId);
+        if (CollectionUtils.isEmpty(resourceFiles)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resource type: " + resourceTypeName + " does not have any files.");
+            }
+            throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceTypeName);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Files for the resource type: " + resourceTypeName + " retrieved successfully.");
+        }
+        return resourceFiles;
+    }
+
+    @Override
     public void deleteFiles(String resourceTypeName, String resourceName) throws ConfigurationManagementException {
 
         checkFeatureStatus();
