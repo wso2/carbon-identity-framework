@@ -78,7 +78,7 @@ public class TemplateMgtConstants {
         ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID("TMM_00019", "Error occurred while retrieving template of id %s in tenant:" +
                 " %s from the database."),
         ERROR_CODE_PAGINATION_NOT_SUPPORTED("TMM_00020", "Pagination is not supported when listing the templates."),
-        ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant.");
+        ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant %s.");
 
         private final String code;
         private final String message;

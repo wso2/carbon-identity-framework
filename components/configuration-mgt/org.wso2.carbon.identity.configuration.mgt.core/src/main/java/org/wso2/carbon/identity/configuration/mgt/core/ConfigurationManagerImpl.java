@@ -509,6 +509,18 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return true;
     }
 
+    private boolean isResourceExistsById(String resourceId) throws ConfigurationManagementException {
+
+        try {
+            getTenantResourceById(resourceId);
+        } catch (ConfigurationManagementClientException e) {
+            if (isResourceNotExistsError(e)) {
+                return false;
+            }
+            throw e;
+        }
+        return true;
+    }
     private boolean isResourceNotExistsError(ConfigurationManagementClientException e) {
 
         return ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode());
@@ -928,9 +940,13 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (!isValidResourceId(resourceId)) {
             throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
         }
-        this.getConfigurationDAO().deleteResourceById(getTenantId(), resourceId);
-        if (log.isDebugEnabled()) {
-            log.debug("Resource id: " + resourceId + " deleted successfully.");
+        if (isResourceExistsById(resourceId)) {
+            this.getConfigurationDAO().deleteResourceById(getTenantId(), resourceId);
+            if (log.isDebugEnabled()) {
+                log.debug("Resource id: " + resourceId + " deleted successfully.");
+            }
+        } else {
+            throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
         }
     }
 }

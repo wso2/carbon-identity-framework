@@ -287,7 +287,10 @@ public class TemplateManagerImpl implements TemplateManager {
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
         try {
             Resources resourcesList = configManager.getResourcesByType(templateType);
-            return resourcesList.getResources().stream().map(new ResourceToTemplate()).collect(Collectors.toList());
+            return resourcesList.getResources().stream().map(resource -> {
+                resource.setResourceType(templateType);
+                return new ResourceToTemplate().apply(resource);
+            }).collect(Collectors.toList());
         } catch (ConfigurationManagementException e) {
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_LIST_TEMPLATES, e, templateType,
                     getTenantDomainFromCarbonContext());
@@ -301,6 +304,11 @@ public class TemplateManagerImpl implements TemplateManager {
         try {
             configManager.deleteResourceById(templateId);
         } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            }
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_TEMPLATE_BY_ID, e,
                     templateId, getTenantDomainFromCarbonContext());
         }

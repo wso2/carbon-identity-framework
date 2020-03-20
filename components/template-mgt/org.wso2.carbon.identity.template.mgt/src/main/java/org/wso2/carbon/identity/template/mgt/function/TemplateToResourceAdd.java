@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * Converts the Template object to ResourceAdd object to pass to Configuration Management service.
+ */
 public class TemplateToResourceAdd implements Function<Template, ResourceAdd> {
 
     @Override

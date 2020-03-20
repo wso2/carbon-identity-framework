@@ -18,35 +18,35 @@
 
 package org.wso2.carbon.identity.template.mgt.function;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
-import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.function.Function;
 
+/**
+ * Converts the Resource object coming from configuration manager service to a Template object.
+ */
 public class ResourceToTemplate implements Function<Resource, Template> {
 
     @Override
     public Template apply(Resource resource) {
 
-        Template template = convertAttributesToPropeties(resource.getAttributes());
+        Template template = convertAttributesToProperties(resource.getAttributes());
         template.setTemplateName(resource.getResourceName());
         template.setTemplateId(resource.getResourceId());
         template.setTenantId(IdentityTenantUtil.getTenantId(resource.getTenantDomain()));
-        template.setTemplateType(TemplateMgtConstants.TemplateType.valueOf(resource.getResourceType()));
+        template.setTemplateType(getTemplateTypeFromResourceType(resource.getResourceType()));
         return template;
     }
 
-    private Template convertAttributesToPropeties(List<Attribute> attributeList) {
+    private Template convertAttributesToProperties(List<Attribute> attributeList) {
 
         Template template = new Template();
         Map<String, String> propertiesMap = new HashMap<>();
@@ -65,5 +65,14 @@ public class ResourceToTemplate implements Function<Resource, Template> {
         });
         template.setPropertiesMap(propertiesMap);
         return template;
+    }
+
+    private TemplateMgtConstants.TemplateType getTemplateTypeFromResourceType(String resourceType){
+
+        if(!StringUtils.isBlank(resourceType)){
+            return TemplateMgtConstants.TemplateType.valueOf(resourceType);
+        } else {
+            return null;
+        }
     }
 }
