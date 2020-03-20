@@ -22,6 +22,7 @@ import org.apache.axiom.om.util.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.api.ServerConfigurationService;
+import org.wso2.carbon.core.util.CryptoException;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfigComponent;
 
@@ -64,27 +65,17 @@ public class SecondaryUserStoreConfigurator {
      *
      * @throws IdentityUserStoreMgtException Cipher object creation failed
      */
-    private void initializeKeyStore() throws IdentityUserStoreMgtException {
+    private void initializeKeyStore(ServerConfigurationService config) throws IdentityUserStoreMgtException {
 
         if (cipher == null) {
-            ServerConfigurationService config =
-                    UserStoreConfigComponent.getServerConfigurationService();
 
             if (config != null) {
-                String encryptionKeyStore = config.getFirstProperty(ENCRYPTION_KEYSTORE);
 
                 String filePath = config.getFirstProperty(SERVER_KEYSTORE_FILE);
                 String keyStoreType = config.getFirstProperty(SERVER_KEYSTORE_TYPE);
                 String password = config.getFirstProperty(SERVER_KEYSTORE_PASSWORD);
                 String keyAlias = config.getFirstProperty(SERVER_KEYSTORE_KEY_ALIAS);
 
-                //use internal keystore
-                if (INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
-                    filePath = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_FILE);
-                    keyStoreType = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_TYPE);
-                    password = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_PASSWORD);
-                    keyAlias = config.getFirstProperty(SERVER_INTERNAL_KEYSTORE_KEY_ALIAS);
-                }
 
                 KeyStore store;
                 InputStream inputStream = null;
@@ -144,8 +135,21 @@ public class SecondaryUserStoreConfigurator {
      */
     public String encryptPlainText(String plainText) throws IdentityUserStoreMgtException {
 
+        ServerConfigurationService config =
+                UserStoreConfigComponent.getServerConfigurationService();
+        if (config != null) {
+            String encryptionKeyStore = config.getFirstProperty(ENCRYPTION_KEYSTORE);
+            if (INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
+                try {
+                    return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(plainText.getBytes());
+                } catch (CryptoException e) {
+                    String errorMessage = "Error while encrypting the plain text using internal keystore.";
+                    throw new IdentityUserStoreMgtException(errorMessage, e);
+                }
+            }
+        }
         if (cipher == null) {
-            initializeKeyStore();
+            initializeKeyStore(config);
         }
 
         try {
