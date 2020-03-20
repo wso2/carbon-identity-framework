@@ -223,13 +223,13 @@ public interface ConfigurationDAO {
     List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException;
 
     /**
-     * Get files for the resource by resource type Id and tenant ID.
+     * Get files for the resource by resource type Id and tenant Id.
      *
      * @param resourceTypeId Id of the {@link ResourceType}
-     * @param tenantID       Id of the tenant
+     * @param tenantId       Id of the tenant
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantID) throws ConfigurationManagementException;
+    List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId) throws ConfigurationManagementException;
 
     /**
      * Delete the file.
