@@ -58,6 +58,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.net.SocketException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.Arrays;
@@ -507,6 +508,38 @@ public class IdentityUtilTest {
                                 "%b, addTenantQueryParamInLegacyMode = %b", host, tenantFromContext,
                         enableTenantURLSupport, port, proxyCtx, ctxRoot, endpoint, addProxyContextPath,
                         addWebContextRoot, addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode));
+    }
+
+    @DataProvider
+    public Object[][] resolveURLData() {
+
+        return new Object[][]{
+                {"https://wso2.org:9443", "wso2.com", false, true, false, "https://wso2.org:9443?tenantDomain=wso2" +
+                        ".com"},
+                {"https://wso2.org:9443", "wso2.com", true, true, false, "https://wso2.org:9443/t/wso2.com"},
+                {"https://wso2.org:9443", "wso2.com", false, true, false, "https://wso2.org:9443?tenantDomain=wso2" +
+                        ".com"},
+                {"https://wso2.org:9443", "wso2.com", false, false, true, "https://wso2.org:9443/t/wso2.com"},
+                {"https://wso2.org:9443", "wso2.com", true, false, true, "https://wso2.org:9443/t/wso2.com"},
+                {"https://wso2.org:9443", null, true, true, false, "https://wso2.org:9443/t/carbon.super"},
+                {"https://wso2.org:9443", null, true, false, false, "https://wso2.org:9443/t/carbon.super"},
+                {"https://wso2.org:9443", null, true, false, true, "https://wso2.org:9443/t/carbon.super"},
+                {"https://wso2.org:9443", null, false, false, false, "https://wso2.org:9443"},
+                {"https://wso2.org:9443", null, false, true, false, "https://wso2.org:9443"},
+                {"https://wso2.org:9443", null, false, false, true, "https://wso2.org:9443"}
+        };
+    }
+
+    @Test(dataProvider = "resolveURLData")
+    public void testResolveURL(String url, String tenantFromContext, Boolean enableTenantURLSupport,
+                               boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                               String expected) {
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantFromContext);
+
+        assertEquals(IdentityUtil.resolveURL(url, false, false, addTenantQueryParamInLegacyMode,
+                addTenantPathParamInLegacyMode), expected);
     }
 
     @DataProvider
