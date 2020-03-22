@@ -47,7 +47,6 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_DOES_NOT_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_FILE_IDENTIFIERS_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_DAO;
-
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_INVALID_RESOURCE_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ADD_REQUEST_INVALID;
@@ -521,6 +520,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         return true;
     }
+
     private boolean isResourceNotExistsError(ConfigurationManagementClientException e) {
 
         return ERROR_CODE_RESOURCE_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode());
@@ -943,7 +943,26 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         if (isResourceExistsById(resourceId)) {
             this.getConfigurationDAO().deleteResourceById(getTenantId(), resourceId);
             if (log.isDebugEnabled()) {
-                log.debug("Resource id: " + resourceId + " deleted successfully.");
+                log.debug("Resource id: " + resourceId + " in tenant: " + getTenantDomain() + " deleted successfully.");
+            }
+        } else {
+            throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);
+        }
+    }
+
+    @Override
+    public void replaceResourceAndFiles(Resource resource) throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+
+        String resourceId = resource.getResourceId();
+        if (!isValidResourceId(resourceId)) {
+            throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
+        }
+        if (isResourceExistsById(resource.getResourceId())) {
+            this.getConfigurationDAO().replaceResourceAndFile(resource);
+            if (log.isDebugEnabled()) {
+                log.debug("Resource id: " + resourceId + " in tenant: " + getTenantDomain() + " updated successfully.");
             }
         } else {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS, resourceId);

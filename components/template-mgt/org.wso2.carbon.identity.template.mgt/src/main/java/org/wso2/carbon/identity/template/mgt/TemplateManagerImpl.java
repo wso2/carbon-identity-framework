@@ -33,10 +33,12 @@ import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.function.ResourceToTemplate;
+import org.wso2.carbon.identity.template.mgt.function.TemplateToResource;
 import org.wso2.carbon.identity.template.mgt.function.TemplateToResourceAdd;
 import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
+import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -345,6 +347,33 @@ public class TemplateManagerImpl implements TemplateManager {
         return EnumUtils.isValidEnum(TemplateMgtConstants.TemplateType.class, templateType);
     }
 
+    private boolean isValidTemplateId(String templateId) {
+
+        return !StringUtils.isBlank(templateId);
+    }
+
+    @Override
+    public void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
+
+        if (!isValidTemplateId(templateId)) {
+            throw TemplateMgtUtils.handleClientException(TemplateMgtConstants.ErrorMessages
+                    .ERROR_CODE_INVALID_TEMPLATE_ID, templateId);
+        }
+        template.setTemplateId(templateId);
+        validateInputParameters(template);
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        try {
+            configManager.replaceResourceAndFiles(new TemplateToResource().apply(template));
+        } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            }
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_TEMPLATE, e,
+                    templateId, getTenantDomainFromCarbonContext());
+        }
+    }
     @Override
     public Template addTemplate(Template template) throws TemplateManagementException {
 
@@ -359,4 +388,5 @@ public class TemplateManagerImpl implements TemplateManager {
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
         return templateManagerDAO.addTemplate(template);
     }
+
 }

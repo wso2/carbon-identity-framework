@@ -253,7 +253,7 @@ public interface ConfigurationManager {
             throws ConfigurationManagementException;
 
     /**
-     * This API is used to get a resource by the resource id.
+     * This function is used to get a resource by the resource id.
      *
      * @param resourceId Id representing the resource.
      * @throws ConfigurationManagementException Configuration management exception.
@@ -264,12 +264,22 @@ public interface ConfigurationManager {
     }
 
     /**
-     * This API is used to delete the given resource id.
+     * This function is used to delete the given resource id.
      *
      * @param resourceId Request to delete the {@link Resource}.
-     * @throws ConfigurationManagementException Resource management exception.
+     * @throws ConfigurationManagementException Configuration management exception.
      */
     default void deleteResourceById(String resourceId) throws ConfigurationManagementException {
+
+    }
+
+    /**
+     * This function is used to replace a given resource along with all its file.
+     *
+     * @param resource resource object.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    default void replaceResourceAndFiles(Resource resource) throws ConfigurationManagementException {
 
     }
 }

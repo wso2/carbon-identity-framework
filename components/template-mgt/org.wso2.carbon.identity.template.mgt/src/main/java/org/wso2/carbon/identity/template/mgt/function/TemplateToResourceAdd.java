@@ -18,13 +18,9 @@
 
 package org.wso2.carbon.identity.template.mgt.function;
 
-import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
-import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -38,24 +34,7 @@ public class TemplateToResourceAdd implements Function<Template, ResourceAdd> {
         ResourceAdd resourceAdd = new ResourceAdd();
 
         resourceAdd.setName(template.getTemplateName());
-        resourceAdd.setAttributes(convertAttributesToList(template));
+        resourceAdd.setAttributes(new TemplatePropertiesToAttributes().apply(template));
         return resourceAdd;
-    }
-
-    private List<Attribute> convertAttributesToList(Template template) {
-
-        List<Attribute> attributeList = new ArrayList<>();
-
-        attributeList.add(new Attribute(TemplateMgtConstants.TemplateAttributes.TEMPLATE_DESCRIPTION, template
-                .getDescription()));
-        attributeList.add(new Attribute(TemplateMgtConstants.TemplateAttributes.TEMPLATE_IMAGE_URL, template
-                .getImageUrl()));
-        if (!template.getPropertiesMap().isEmpty()) {
-            template.getPropertiesMap().forEach((key, value) -> {
-                Attribute attribute = new Attribute(key, value);
-                attributeList.add(attribute);
-            });
-        }
-        return attributeList;
     }
 }

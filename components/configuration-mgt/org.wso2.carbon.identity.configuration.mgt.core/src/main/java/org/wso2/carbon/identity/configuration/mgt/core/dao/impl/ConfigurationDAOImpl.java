@@ -173,6 +173,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_FILE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_RESOURCE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_RESOURCE_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
@@ -489,19 +490,62 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     // Delete existing attributes.
                     template.executeUpdate(DELETE_RESOURCE_ATTRIBUTES_SQL, preparedStatement ->
                             preparedStatement.setString(1, resource.getResourceId()));
+                    insertResourceAttributes(template, resource);
 
-                    // Create sql query for attribute parameters.
-                    String attributesQuery = buildQueryForAttributes(resource);
-                    template.executeInsert(attributesQuery, preparedStatement -> {
-                        int attributeCount = 0;
-                        for (Attribute attribute : resource.getAttributes()) {
-                            preparedStatement.setString(++attributeCount, generateUniqueID());
-                            preparedStatement.setString(++attributeCount, resource.getResourceId());
-                            preparedStatement.setString(++attributeCount, attribute.getKey());
-                            preparedStatement.setString(++attributeCount, attribute.getValue());
-                        }
-                    }, resource, false);
                 }
+                if (useCreatedTimeField()) {
+                    return getCreatedTimeInResponse(resource, resourceTypeId);
+                } else {
+                    return null;
+                }
+            });
+            resource.setLastModified(currentTime.toInstant().toString());
+            if (createdTime != null) {
+                resource.setCreatedTime(createdTime.toInstant().toString());
+            }
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_REPLACE_RESOURCE, resource.getResourceName(), e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void replaceResourceAndFile(Resource resource) throws ConfigurationManagementException {
+
+        String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
+        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
+                boolean isAttributeExists = resource.getAttributes() != null && !resource.getAttributes().isEmpty();
+                boolean isFileExists = resource.getFiles() != null && !resource.getFiles().isEmpty();
+
+                // Update attributes.
+                if (isAttributeExists) {
+                    // Delete existing attributes.
+                    template.executeUpdate(DELETE_RESOURCE_ATTRIBUTES_SQL, preparedStatement ->
+                            preparedStatement.setString(1, resource.getResourceId()));
+                    insertResourceAttributes(template, resource);
+                }
+
+                // Update Files.
+                if (isFileExists) {
+                    template.executeUpdate(DELETE_FILES_SQL, (
+                            preparedStatement -> preparedStatement.setString(1, resource.getResourceId())
+                    ));
+                    for (ResourceFile file : resource.getFiles()) {
+                        template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                            preparedStatement.setString(1, file.getId());
+                            preparedStatement.setBlob(2, file.getInputStream());
+                            preparedStatement.setString(3, resource.getResourceId());
+                            preparedStatement.setString(4, file.getName());
+                        });
+                    }
+                }
+                updateResourceMetadata(template, resource, isAttributeExists, isFileExists, currentTime);
                 if (useCreatedTimeField()) {
                     return getCreatedTimeInResponse(resource, resourceTypeId);
                 } else {
@@ -557,17 +601,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
                 // Insert attributes.
                 if (isAttributeExists) {
-                    // Create sql query for attribute parameters.
-                    String attributesQuery = buildQueryForAttributes(resource);
-                    template.executeInsert(attributesQuery, preparedStatement -> {
-                        int attributeCount = 0;
-                        for (Attribute attribute : resource.getAttributes()) {
-                            preparedStatement.setString(++attributeCount, generateUniqueID());
-                            preparedStatement.setString(++attributeCount, resource.getResourceId());
-                            preparedStatement.setString(++attributeCount, attribute.getKey());
-                            preparedStatement.setString(++attributeCount, attribute.getValue());
-                        }
-                    }, resource, false);
+                    insertResourceAttributes(template, resource);
                 }
                 return null;
             });
@@ -843,8 +877,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     template.executeInsert(UPDATE_RESOURCE_H2,
                             preparedStatement -> {
                                 int initialParameterIndex = 1;
-                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                                preparedStatement.setInt(++initialParameterIndex,
+                                preparedStatement.setInt(initialParameterIndex,
                                         PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
                                 preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
@@ -856,6 +889,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 preparedStatement.setBoolean(++initialParameterIndex, false);
                                 preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                 preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
                             }, resource, false
                     )
             );
@@ -884,6 +918,18 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             }, resource, false)
             );
         }
+    }
+
+    private void updateResourceMetadata(Template<?> template, Resource resource, boolean isAttributeExists, boolean
+            isFileExists, Timestamp currentTime) throws DataAccessException {
+
+        template.executeUpdate(UPDATE_RESOURCE, preparedStatement -> {
+            int initialParameterIndex = 1;
+            preparedStatement.setTimestamp(initialParameterIndex, currentTime, calendar);
+            preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
+            preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+            preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
+        });
     }
 
     private boolean isResourceExists(Resource resource, String resourceTypeId) throws TransactionException {
@@ -1331,6 +1377,23 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceId, e);
         }
+    }
+
+    private void insertResourceAttributes(Template<?> template, Resource resource) throws
+            DataAccessException,
+            ConfigurationManagementClientException {
+
+        // Create sql query for attribute parameters.
+        String attributesQuery = buildQueryForAttributes(resource);
+        template.executeInsert(attributesQuery, preparedStatement -> {
+            int attributeCount = 0;
+            for (Attribute attribute : resource.getAttributes()) {
+                preparedStatement.setString(++attributeCount, generateUniqueID());
+                preparedStatement.setString(++attributeCount, resource.getResourceId());
+                preparedStatement.setString(++attributeCount, attribute.getKey());
+                preparedStatement.setString(++attributeCount, attribute.getValue());
+            }
+        }, resource, false);
     }
 
 }

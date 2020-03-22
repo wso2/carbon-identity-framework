@@ -96,6 +96,15 @@ public interface ConfigurationDAO {
     }
 
     /**
+     * Update {@link Resource} and {@link ResourceFile} associated to the given resource object.
+     *
+     * @param resource {@link Resource} object.
+     */
+    default void replaceResourceAndFile(Resource resource) throws ConfigurationManagementException {
+
+    }
+
+    /**
      * Delete {@link Resource} by the given resourceName.
      *
      * @param tenantId       Tenant id of the {@link Resource}.

@@ -86,9 +86,11 @@ public class SQLConstants {
             "(NAME), " +
             "LAST_MODIFIED = VALUES(LAST_MODIFIED), HAS_FILE = VALUES(HAS_FILE), HAS_ATTRIBUTE = VALUES" +
             "(HAS_ATTRIBUTE), TYPE_ID = VALUES(TYPE_ID)";
+    public static final String UPDATE_RESOURCE =
+            "UPDATE IDN_CONFIG_RESOURCE SET LAST_MODIFIED = ?, HAS_FILE = ?, HAS_ATTRIBUTE = ? WHERE ID = ?";
     public static final String UPDATE_RESOURCE_H2 =
-            "UPDATE IDN_CONFIG_RESOURCE SET ID = ?, TENANT_ID = ?, NAME = ?, LAST_MODIFIED = ?, HAS_FILE = ?, " +
-                    "HAS_ATTRIBUTE = ?, TYPE_ID = ?";
+            "UPDATE IDN_CONFIG_RESOURCE SET TENANT_ID = ?, NAME = ?, LAST_MODIFIED = ?, HAS_FILE = ?, " +
+                    "HAS_ATTRIBUTE = ?, TYPE_ID = ? WHERE ID = ?";
     public static final String INSERT_ATTRIBUTES_SQL = "INSERT INTO\n" +
             "  IDN_CONFIG_ATTRIBUTE(\n" +
             "    ID,\n" +
