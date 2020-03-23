@@ -156,8 +156,8 @@ public class DefaultURLResolverService implements URLResolverService {
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         }
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain) &&
-                StringUtils.isNotBlank(tenantDomain)) {
+        if (StringUtils.isNotBlank(tenantDomain) &&
+                !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             if (serverUrl.toString().endsWith("/")) {
                 serverUrl.append("t/").append(tenantDomain);
             } else {
@@ -166,7 +166,7 @@ public class DefaultURLResolverService implements URLResolverService {
         }
     }
 
-    private void appendTenantAsQueryParam(StringBuilder serverUrl) {
+    private void appendTenantQueryParamInLegacyMode(StringBuilder serverUrl) {
 
         String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
         if (StringUtils.isNotBlank(tenantDomain)) {
@@ -212,7 +212,7 @@ public class DefaultURLResolverService implements URLResolverService {
         }
 
         if (!isTenantQualifiedUrlsEnabled() && addTenantQueryParamInLegacyMode) {
-            appendTenantAsQueryParam(serverUrl);
+            appendTenantQueryParamInLegacyMode(serverUrl);
         }
 
         if (serverUrl.toString().endsWith("/")) {
