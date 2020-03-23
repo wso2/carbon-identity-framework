@@ -515,7 +515,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      * {@inheritDoc}
      */
     @Override
-    public void replaceResourceAndFile(Resource resource) throws ConfigurationManagementException {
+    public void replaceResourceWithFiles(Resource resource) throws ConfigurationManagementException {
 
         String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
         Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());

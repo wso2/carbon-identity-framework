@@ -46,11 +46,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_ALREADY_EXIST;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_INVALID;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_NAME_REQUIRED;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
 
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantIdFromCarbonContext;
@@ -349,15 +353,10 @@ public class TemplateManagerImpl implements TemplateManager {
         return EnumUtils.isValidEnum(TemplateMgtConstants.TemplateType.class, templateType);
     }
 
-    private boolean isValidTemplateId(String templateId) {
-
-        return !StringUtils.isBlank(templateId);
-    }
-
     @Override
     public void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
 
-        if (!isValidTemplateId(templateId)) {
+        if (StringUtils.isBlank(templateId)) {
             throw TemplateMgtUtils.handleClientException(TemplateMgtConstants.ErrorMessages
                     .ERROR_CODE_INVALID_TEMPLATE_ID, templateId);
         }
@@ -365,7 +364,7 @@ public class TemplateManagerImpl implements TemplateManager {
         validateInputParameters(template);
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
         try {
-            configManager.replaceResourceAndFiles(new TemplateToResource().apply(template));
+            configManager.replaceResource(new TemplateToResource().apply(template));
         } catch (ConfigurationManagementException e) {
             if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(
                     e.getErrorCode())) {

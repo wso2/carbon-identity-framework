@@ -95,7 +95,7 @@ public interface ConfigurationDAO {
      *
      * @param resource {@link Resource} object.
      */
-    void replaceResourceAndFile(Resource resource) throws ConfigurationManagementException;
+    void replaceResourceWithFiles(Resource resource) throws ConfigurationManagementException;
 
     /**
      * Delete {@link Resource} by the given resourceName.

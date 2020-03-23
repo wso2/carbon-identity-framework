@@ -275,5 +275,5 @@ public interface ConfigurationManager {
      * @param resource resource object.
      * @throws ConfigurationManagementException Configuration management exception.
      */
-    void replaceResourceAndFiles(Resource resource) throws ConfigurationManagementException;
+    void replaceResource(Resource resource) throws ConfigurationManagementException;
 }

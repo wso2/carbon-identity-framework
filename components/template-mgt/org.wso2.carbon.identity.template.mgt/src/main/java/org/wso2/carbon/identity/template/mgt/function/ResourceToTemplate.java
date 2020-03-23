@@ -52,24 +52,22 @@ public class ResourceToTemplate implements Function<Resource, Template> {
         Map<String, String> propertiesMap = new HashMap<>();
 
         attributeList.forEach(attribute -> {
-            switch (attribute.getKey()) {
-                case TemplateMgtConstants.TemplateAttributes.TEMPLATE_DESCRIPTION:
-                    template.setDescription(attribute.getValue());
-                    break;
-                case TemplateMgtConstants.TemplateAttributes.TEMPLATE_IMAGE_URL:
-                    template.setImageUrl(attribute.getValue());
-                    break;
-                default:
-                    propertiesMap.put(attribute.getKey(), attribute.getValue());
+            if (TemplateMgtConstants.TemplateAttributes.TEMPLATE_DESCRIPTION.equals(attribute.getKey())) {
+                template.setDescription(attribute.getValue());
+            } else if (TemplateMgtConstants.TemplateAttributes.TEMPLATE_IMAGE_URL.equals(attribute.getKey())) {
+
+                template.setImageUrl(attribute.getValue());
+            } else {
+                propertiesMap.put(attribute.getKey(), attribute.getValue());
             }
         });
         template.setPropertiesMap(propertiesMap);
         return template;
     }
 
-    private TemplateMgtConstants.TemplateType getTemplateTypeFromResourceType(String resourceType){
+    private TemplateMgtConstants.TemplateType getTemplateTypeFromResourceType(String resourceType) {
 
-        if(!StringUtils.isBlank(resourceType)){
+        if (!StringUtils.isBlank(resourceType)) {
             return TemplateMgtConstants.TemplateType.valueOf(resourceType);
         } else {
             return null;

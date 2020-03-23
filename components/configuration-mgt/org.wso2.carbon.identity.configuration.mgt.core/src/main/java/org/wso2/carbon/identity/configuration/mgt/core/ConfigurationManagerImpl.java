@@ -961,7 +961,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
     }
 
     @Override
-    public void replaceResourceAndFiles(Resource resource) throws ConfigurationManagementException {
+    public void replaceResource(Resource resource) throws ConfigurationManagementException {
 
         checkFeatureStatus();
 
@@ -970,7 +970,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
         }
         if (isResourceExistsById(resource.getResourceId())) {
-            this.getConfigurationDAO().replaceResourceAndFile(resource);
+            this.getConfigurationDAO().replaceResourceWithFiles(resource);
             if (log.isDebugEnabled()) {
                 log.debug("Resource id: " + resourceId + " in tenant: " + getTenantDomain() + " updated successfully.");
             }
