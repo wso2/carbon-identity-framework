@@ -58,6 +58,7 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.net.SocketException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.Arrays;
@@ -451,40 +452,43 @@ public class IdentityUtilTest {
     public Object[][] getServerURLData() {
 
         return new Object[][]{
-                {"wso2.org", "wso2.com", false, 9443, "", "", "", true, true, true,
+                {"wso2.org", "wso2.com", false, 9443, "", "", "", true, true, true, false,
                         "https://wso2.org:9443?tenantDomain=wso2.com"},
-                {"wso2.org", "wso2.com", false, 443, "", "", "", true, true, false, "https://wso2.org"},
-                {"wso2.org", "wso2.com", false, 0, "", "", "", true, true, true,
+                {"wso2.org", "wso2.com", false, 443, "", "", "", true, true, false, true, "https://wso2.org/t/wso2" +
+                        ".com"},
+                {"wso2.org", "wso2.com", false, 0, "", "", "", true, true, true, false,
                         "https://wso2.org:9443?tenantDomain=wso2.com"},
-                {"wso2.org", null, false, 0, "", "", "/", true, true, true, "https://wso2.org:9443"},
-                {"wso2.org", null, false, 0, "", "", "/", true, true, true, "https://wso2.org:9443"},
-                {"wso2.org/", null, false, 443, "", "", "/", true, true, true, "https://wso2.org"},
-                {"wso2.org/", null, true, 9443, "", "", "/", true, true, true, "https://wso2.org:9443/t/carbon.super"},
-                {"wso2.org", null, true, 9443, "/proxy", "/ctxroot", "/", true, true, true,
+                {"wso2.org", null, false, 0, "", "", "/", true, true, true, true, "https://wso2.org:9443"},
+                {"wso2.org", null, false, 0, "", "", "/", true, true, true, false, "https://wso2.org:9443"},
+                {"wso2.org/", null, false, 443, "", "", "/", true, true, true, true, "https://wso2.org"},
+                {"wso2.org/", null, true, 9443, "", "", "/", true, true, true, true, "https://wso2.org:9443/t/carbon" +
+                        ".super"},
+                {"wso2.org", null, true, 9443, "/proxy", "/ctxroot", "/", true, true, true, true,
                         "https://wso2.org:9443/proxy/ctxroot/t/carbon.super"},
-                {"wso2.org", null, true, 443, "proxy", "ctxroot", "/", true, true, true,
+                {"wso2.org", null, true, 443, "proxy", "ctxroot", "/", true, true, true, false,
                         "https://wso2.org/proxy/ctxroot/t/carbon.super"},
-                {"wso2.org", "wso2.com", false, 443, "proxy", "ctxroot", "carbon", true, true, true,
+                {"wso2.org", "wso2.com", false, 443, "proxy", "ctxroot", "carbon", true, true, true, false,
                         "https://wso2.org/proxy/ctxroot/carbon?tenantDomain=wso2.com"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "carbon", true, true, true,
+                {"wso2.org", "wso2.com", false, 443, "proxy", "ctxroot", "carbon", true, true, false, true,
                         "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "/carbon", true, true, false,
+                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "carbon", true, true, false, true,
                         "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "carbon/", true, true, false,
+                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "/carbon", true, true, false, false,
                         "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot", "carbon", false, false, true,
+                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "carbon/", true, true, false, true,
+                        "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
+                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot", "carbon", false, false, true, false,
                         "https://wso2.org/t/wso2.com/carbon"},
-                {null, null, true, 443, "proxy", "ctxroot", "carbon", true, true, true,
+                {null, null, true, 443, "proxy", "ctxroot", "carbon", true, true, true, true,
                         "https://localhost/proxy/ctxroot/t/carbon.super/carbon"},
         };
     }
 
     @Test(dataProvider = "getServerURLData")
     public void testGetServerURL(String host, String tenantFromContext, boolean enableTenantURLSupport, int port,
-                                 String proxyCtx, String ctxRoot, String endpoint, boolean
-                                         addProxyContextPath, boolean addWebContextRoot,
-                                 boolean addTenantQueryParamInLegacyMode, String expected)
-            throws Exception {
+                                 String proxyCtx, String ctxRoot, String endpoint, boolean addProxyContextPath,
+                                 boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode,
+                                 boolean addTenantPathParamInLegacyMode, String expected) throws Exception {
 
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
@@ -497,12 +501,45 @@ public class IdentityUtilTest {
         when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn(proxyCtx);
 
         assertEquals(IdentityUtil.getServerURL(endpoint, addProxyContextPath, addWebContextRoot,
-                addTenantQueryParamInLegacyMode), expected, String
+                addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode), expected, String
                 .format("Generated server url doesn't match the expected for input: host = %s, tenantFromContext = %s" +
                                 "enableTenantURLSupport = %b, port = %d, proxyCtx = %s, ctxRoot = %s, endpoint = %s, " +
                                 "addProxyContextPath = %b, addWebContextRoot = %b, addTenantQueryParamInLegacyMode = " +
-                                "%b", host, tenantFromContext, enableTenantURLSupport, port, proxyCtx, ctxRoot,
-                        endpoint, addProxyContextPath, addWebContextRoot, addTenantQueryParamInLegacyMode));
+                                "%b, addTenantQueryParamInLegacyMode = %b", host, tenantFromContext,
+                        enableTenantURLSupport, port, proxyCtx, ctxRoot, endpoint, addProxyContextPath,
+                        addWebContextRoot, addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode));
+    }
+
+    @DataProvider
+    public Object[][] resolveURLData() {
+
+        return new Object[][]{
+                {"https://wso2.org:9443", "wso2.com", false, true, false, "https://wso2.org:9443?tenantDomain=wso2" +
+                        ".com"},
+                {"https://wso2.org:9443", "wso2.com", true, true, false, "https://wso2.org:9443/t/wso2.com"},
+                {"https://wso2.org:9443", "wso2.com", false, true, false, "https://wso2.org:9443?tenantDomain=wso2" +
+                        ".com"},
+                {"https://wso2.org:9443", "wso2.com", false, false, true, "https://wso2.org:9443/t/wso2.com"},
+                {"https://wso2.org:9443", "wso2.com", true, false, true, "https://wso2.org:9443/t/wso2.com"},
+                {"https://wso2.org:9443", null, true, true, false, "https://wso2.org:9443/t/carbon.super"},
+                {"https://wso2.org:9443", null, true, false, false, "https://wso2.org:9443/t/carbon.super"},
+                {"https://wso2.org:9443", null, true, false, true, "https://wso2.org:9443/t/carbon.super"},
+                {"https://wso2.org:9443", null, false, false, false, "https://wso2.org:9443"},
+                {"https://wso2.org:9443", null, false, true, false, "https://wso2.org:9443"},
+                {"https://wso2.org:9443", null, false, false, true, "https://wso2.org:9443"}
+        };
+    }
+
+    @Test(dataProvider = "resolveURLData")
+    public void testResolveURL(String url, String tenantFromContext, Boolean enableTenantURLSupport,
+                               boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                               String expected) {
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantFromContext);
+
+        assertEquals(IdentityUtil.resolveURL(url, false, false, addTenantQueryParamInLegacyMode,
+                addTenantPathParamInLegacyMode), expected);
     }
 
     @DataProvider

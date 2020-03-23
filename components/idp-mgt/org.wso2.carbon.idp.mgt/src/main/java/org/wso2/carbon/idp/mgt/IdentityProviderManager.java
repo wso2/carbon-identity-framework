@@ -169,9 +169,9 @@ public class IdentityProviderManager implements IdpManager {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
         }
 
-        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true, true);
+        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true, true, false);
 
-        samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true, true);
+        samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true, true, false);
 
         if (StringUtils.isBlank(samlArtifactUrl)) {
             samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
@@ -182,7 +182,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         samlAuthnRequestsSigningEnabled = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.
-                SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true, true);
+                SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true, true, false);
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
             oauth1RequestTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REQUEST_TOKEN, true, true);
@@ -2533,13 +2533,13 @@ public class IdentityProviderManager implements IdpManager {
         // Not all endpoints are persisted. So we need to update only a few properties.
 
         String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true,
-                true, true);
+                true, true, false);
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
 
         String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true,
-                true, true);
+                true, true, false);
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL,
