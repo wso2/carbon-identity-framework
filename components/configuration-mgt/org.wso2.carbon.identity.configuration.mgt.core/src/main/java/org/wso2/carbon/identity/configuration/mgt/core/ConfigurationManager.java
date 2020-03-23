@@ -233,7 +233,7 @@ public interface ConfigurationManager {
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
-     * @param fileId Id representing the file.
+     * @param fileId       Id representing the file.
      * @return 200 ok. Returns {@link InputStream} of the file requested.
      * @throws ConfigurationManagementException Resource management exception.
      */
@@ -245,7 +245,7 @@ public interface ConfigurationManager {
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
-     * @param fileId Id representing the file.
+     * @param fileId       Id representing the file.
      * @return 200 ok.
      * @throws ConfigurationManagementException Resource management exception.
      */
@@ -256,12 +256,10 @@ public interface ConfigurationManager {
      * This function is used to get a resource by the resource id.
      *
      * @param resourceId Id representing the resource.
+     * @return the resource object corresponding to the resource id.
      * @throws ConfigurationManagementException Configuration management exception.
      */
-    default Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException {
-
-        return null;
-    }
+    Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException;
 
     /**
      * This function is used to delete the given resource id.
@@ -269,9 +267,7 @@ public interface ConfigurationManager {
      * @param resourceId Request to delete the {@link Resource}.
      * @throws ConfigurationManagementException Configuration management exception.
      */
-    default void deleteResourceById(String resourceId) throws ConfigurationManagementException {
-
-    }
+    void deleteResourceById(String resourceId) throws ConfigurationManagementException;
 
     /**
      * This function is used to replace a given resource along with all its file.
@@ -279,7 +275,5 @@ public interface ConfigurationManager {
      * @param resource resource object.
      * @throws ConfigurationManagementException Configuration management exception.
      */
-    default void replaceResourceAndFiles(Resource resource) throws ConfigurationManagementException {
-
-    }
+    void replaceResourceAndFiles(Resource resource) throws ConfigurationManagementException;
 }

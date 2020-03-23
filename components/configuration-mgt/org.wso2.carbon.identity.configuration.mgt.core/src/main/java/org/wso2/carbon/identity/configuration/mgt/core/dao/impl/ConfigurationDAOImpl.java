@@ -230,7 +230,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
                                                 calendar))
                                         .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
-                                        .setResourceTypeDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
                                         .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
@@ -290,7 +291,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
                                                 calendar))
                                         .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
-                                        .setResourceTypeDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
                                         .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
@@ -342,7 +344,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
                                                 calendar))
                                         .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
-                                        .setResourceTypeDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
                                         .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
@@ -833,7 +836,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             throw handleServerException(ERROR_CODE_GET_ATTRIBUTE, attributeKey, e);
         }
     }
-
 
     private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, boolean isAttributeExists,
                                         Timestamp currentTime, boolean useCreatedTime)
@@ -1354,7 +1356,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * Get Attributes for the {@link Resource}.
      *
-     * @param resourceId      Id of the {@link Resource}.
+     * @param resourceId Id of the {@link Resource}.
      * @return A list of {@link Attribute} for the given resource.
      */
     private List<Attribute> getAttributesByResourceId(String resourceId)
@@ -1379,19 +1381,18 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
-    private void insertResourceAttributes(Template<?> template, Resource resource) throws
-            DataAccessException,
+    private void insertResourceAttributes(Template<?> template, Resource resource) throws DataAccessException,
             ConfigurationManagementClientException {
 
         // Create sql query for attribute parameters.
         String attributesQuery = buildQueryForAttributes(resource);
         template.executeInsert(attributesQuery, preparedStatement -> {
-            int attributeCount = 0;
+            int attributeUpdateParameterIndex = 0;
             for (Attribute attribute : resource.getAttributes()) {
-                preparedStatement.setString(++attributeCount, generateUniqueID());
-                preparedStatement.setString(++attributeCount, resource.getResourceId());
-                preparedStatement.setString(++attributeCount, attribute.getKey());
-                preparedStatement.setString(++attributeCount, attribute.getValue());
+                preparedStatement.setString(++attributeUpdateParameterIndex, generateUniqueID());
+                preparedStatement.setString(++attributeUpdateParameterIndex, resource.getResourceId());
+                preparedStatement.setString(++attributeUpdateParameterIndex, attribute.getKey());
+                preparedStatement.setString(++attributeUpdateParameterIndex, attribute.getValue());
             }
         }, resource, false);
     }

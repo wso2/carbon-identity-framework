@@ -87,10 +87,7 @@ public interface TemplateManager {
      * @return unique identifier for the newly created template.
      * @throws TemplateManagementException Template Management Exception.
      */
-    default String addTemplateResource(Template template) throws TemplateManagementException {
-
-        return null;
-    }
+    String addTemplateResource(Template template) throws TemplateManagementException;
 
     /**
      * Return the template given the template id.
@@ -99,10 +96,7 @@ public interface TemplateManager {
      * @return template.
      * @throws TemplateManagementException if an error occurs while retrieving the template.
      */
-    default Template getTemplateById(String templateId) throws TemplateManagementException {
-
-        return null;
-    }
+    Template getTemplateById(String templateId) throws TemplateManagementException;
 
     /**
      * Update a template given the template id by replacing the existing template object.
@@ -111,9 +105,7 @@ public interface TemplateManager {
      * @param template   updated template object.
      * @throws TemplateManagementException if an error occurs while updating the template.
      */
-    default void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
-
-    }
+    void updateTemplateById(String templateId, Template template) throws TemplateManagementException;
 
     /**
      * Delete a template given the template id.
@@ -121,9 +113,7 @@ public interface TemplateManager {
      * @param templateId unique identifier of the template.
      * @throws TemplateManagementException if an error occurs while deleting the template.
      */
-    default void deleteTemplateById(String templateId) throws TemplateManagementException {
-
-    }
+    void deleteTemplateById(String templateId) throws TemplateManagementException;
 
     /**
      * List all the templates of a given type.
@@ -134,9 +124,5 @@ public interface TemplateManager {
      * @return list templates
      * @throws TemplateManagementException if an error occurs while retrieving the templates.
      */
-    default List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
-            TemplateManagementException {
-
-        return null;
-    }
+    List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws TemplateManagementException;
 }

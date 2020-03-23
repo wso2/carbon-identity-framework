@@ -31,6 +31,9 @@ import java.util.function.Function;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
 
+/**
+ * Converts the Template object to Resource object tp pass to configuration manager service.
+ */
 public class TemplateToResource implements Function<Template, Resource> {
 
     @Override
