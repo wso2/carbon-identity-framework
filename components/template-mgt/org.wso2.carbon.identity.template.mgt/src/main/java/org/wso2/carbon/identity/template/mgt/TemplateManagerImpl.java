@@ -73,7 +73,7 @@ public class TemplateManagerImpl implements TemplateManager {
      * @throws TemplateManagementException Template Management Exception.
      */
     @Override
-    public String addTemplateResource(Template template) throws TemplateManagementException {
+    public String addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
         return addTemplateToConfigStore(template);
@@ -264,7 +264,8 @@ public class TemplateManagerImpl implements TemplateManager {
             }
             return template;
         } catch (ConfigurationManagementException e) {
-            if(ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(e.getErrorCode())){
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(e
+                    .getErrorCode())) {
                 throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
                         templateId, getTenantDomainFromCarbonContext());
             }
@@ -272,7 +273,8 @@ public class TemplateManagerImpl implements TemplateManager {
                     templateId, getTenantDomainFromCarbonContext());
         } catch (IOException e) {
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
-                    templateId, getTenantDomainFromCarbonContext());        }
+                    templateId, getTenantDomainFromCarbonContext());
+        }
     }
 
     @Override
@@ -374,8 +376,9 @@ public class TemplateManagerImpl implements TemplateManager {
                     templateId, getTenantDomainFromCarbonContext());
         }
     }
+
     @Override
-    public Template addTemplate(Template template) throws TemplateManagementException {
+    public Template addTemplateUsingTemplateMgtDAO(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
         if (isTemplateExists(template.getTemplateName())) {
@@ -388,5 +391,4 @@ public class TemplateManagerImpl implements TemplateManager {
         TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
         return templateManagerDAO.addTemplate(template);
     }
-
 }

@@ -32,15 +32,15 @@ import java.util.List;
 public interface TemplateManager {
 
     /**
-     * This method is used to add a new template.
+     * This method is used to add a new template using the TemplateMgtDAO implementation.
      *
      * @param template Template element.
      * @return Return template element with template name, description and script.
      * @throws TemplateManagementException Template Management Exception.
-     * @deprecated use {@link #addTemplateResource(Template)} ()} instead.
+     * @deprecated use {@link #addTemplate(Template)} ()} instead.
      */
     @Deprecated
-    Template addTemplate(Template template) throws TemplateManagementException;
+    Template addTemplateUsingTemplateMgtDAO(Template template) throws TemplateManagementException;
 
     /**
      * This method is used to get the template by template name and tenant ID.
@@ -87,7 +87,7 @@ public interface TemplateManager {
      * @return unique identifier for the newly created template.
      * @throws TemplateManagementException Template Management Exception.
      */
-    String addTemplateResource(Template template) throws TemplateManagementException;
+    String addTemplate(Template template) throws TemplateManagementException;
 
     /**
      * Return the template given the template id.
