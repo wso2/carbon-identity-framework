@@ -56,6 +56,9 @@ public class SecondaryUserStoreConfigurator {
     private static final String SERVER_INTERNAL_KEYSTORE_KEY_ALIAS = "Security.InternalKeyStore.KeyAlias";
     private static final String ENCRYPTION_KEYSTORE = "Security.UserStorePasswordEncryption";
     private static final String INTERNAL_KEYSTORE = "InternalKeystore";
+    private static final String CRYPTO_PROVIDER = "CryptoService.InternalCryptoProviderClassName";
+    private static final String SYMMETRIC_KEY_CRYPTO_PROVIDER = "org.wso2.carbon.crypto.provider" +
+            ".SymmetricKeyInternalCryptoProvider";
     private Cipher cipher = null;
     private String cipherTransformation = null;
     private Certificate certificate = null;
@@ -135,24 +138,48 @@ public class SecondaryUserStoreConfigurator {
      */
     public String encryptPlainText(String plainText) throws IdentityUserStoreMgtException {
 
+        boolean isInternalKeyStoreEncryptionEnabled = false;
+        boolean isSymmetricKeyEncryptionEnabled = false;
         ServerConfigurationService config =
                 UserStoreConfigComponent.getServerConfigurationService();
         if (config != null) {
             String encryptionKeyStore = config.getFirstProperty(ENCRYPTION_KEYSTORE);
+
             if (INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
-                try {
-                    return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(plainText.getBytes());
-                } catch (CryptoException e) {
-                    String errorMessage = "Error while encrypting the plain text using internal keystore.";
-                    throw new IdentityUserStoreMgtException(errorMessage, e);
-                }
+                isInternalKeyStoreEncryptionEnabled = true;
+            }
+            String cryptoProvider = config.getFirstProperty(CRYPTO_PROVIDER);
+            if (SYMMETRIC_KEY_CRYPTO_PROVIDER.equalsIgnoreCase(cryptoProvider)) {
+                isSymmetricKeyEncryptionEnabled = true;
             }
         }
-        if (cipher == null) {
-            initializeKeyStore(config);
+
+        if (isInternalKeyStoreEncryptionEnabled && isSymmetricKeyEncryptionEnabled) {
+
+            throw new IdentityUserStoreMgtException(String.format("Userstore encryption cazn not be supported due to " +
+                    "conflicting configurations: '%s' and '%s'. When using internal keystore, assymetric crypto " +
+                    "provider should be used.", INTERNAL_KEYSTORE, SYMMETRIC_KEY_CRYPTO_PROVIDER));
+        } else if (isInternalKeyStoreEncryptionEnabled || isSymmetricKeyEncryptionEnabled) {
+
+            try {
+                return CryptoUtil.getDefaultCryptoUtil().encryptAndBase64Encode(plainText.getBytes());
+            } catch (CryptoException e) {
+                String errorMessage = "Error while encrypting the plain text using internal keystore.";
+                throw new IdentityUserStoreMgtException(errorMessage, e);
+            }
+        } else {
+            return encryptWithPrimaryKeyStore(config, plainText);
         }
 
+    }
+
+    private String encryptWithPrimaryKeyStore(ServerConfigurationService config, String plainText)
+            throws IdentityUserStoreMgtException {
+
         try {
+            if (config != null) {
+                initializeKeyStore(config);
+            }
             byte[] encryptedKey = cipher.doFinal((plainText.getBytes()));
             if (cipherTransformation != null) {
                 // If cipher transformation is configured via carbon.properties
