@@ -131,6 +131,8 @@ public class SQLConstants {
             " ID = ? ";
     public static final String DELETE_RESOURCE_TYPE_BY_NAME_SQL = "DELETE FROM IDN_CONFIG_TYPE WHERE NAME = ?";
     public static final String DELETE_RESOURCE_TYPE_BY_ID_SQL = "DELETE FROM IDN_CONFIG_TYPE WHERE ID = ?";
+    public static final String GET_RESOURCE_NAME_BY_ID = "SELECT NAME FROM IDN_CONFIG_RESOURCE WHERE ID = ? AND " +
+            "TENANT_ID = ?";
     public static final String GET_RESOURCE_ID_BY_NAME_SQL = "SELECT ID FROM IDN_CONFIG_RESOURCE WHERE NAME = ? AND " +
             "TENANT_ID = ? AND TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_NAME_MYSQL = "SELECT\n" +

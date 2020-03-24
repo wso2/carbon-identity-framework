@@ -517,15 +517,12 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
     private boolean isResourceExistsById(String resourceId) throws ConfigurationManagementException {
 
-        try {
-            getTenantResourceById(resourceId);
-        } catch (ConfigurationManagementClientException e) {
-            if (isResourceNotExistsError(e)) {
-                return false;
-            }
-            throw e;
+        checkFeatureStatus();
+
+        if (StringUtils.isBlank(resourceId)) {
+            throw handleClientException(ERROR_CODE_INVALID_RESOURCE_ID, resourceId);
         }
-        return true;
+        return this.getConfigurationDAO().isExistingResource(getTenantId(), resourceId);
     }
 
     private boolean isResourceNotExistsError(ConfigurationManagementClientException e) {

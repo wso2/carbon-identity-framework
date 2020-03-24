@@ -157,6 +157,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConsta
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_RESOURCE_CREATED_TIME_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_BY_NAME_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_NAME_BY_ID;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
         .GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
@@ -450,8 +451,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      * {@inheritDoc}
      */
     @Override
-    public void deleteResourceById(int tenantId, String resourceId)
-            throws ConfigurationManagementException {
+    public void deleteResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -561,6 +561,24 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             }
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_REPLACE_RESOURCE, resource.getResourceName(), e);
+        }
+    }
+
+    @Override
+    public boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        String resourceName;
+        try {
+            resourceName = jdbcTemplate.fetchSingleRecord(GET_RESOURCE_NAME_BY_ID, (resultSet, rowNumber) ->
+                            resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
+            return StringUtils.isNotEmpty(resourceName);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_RESOURCE, "id = " + resourceId, e);
         }
     }
 

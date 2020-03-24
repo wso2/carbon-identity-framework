@@ -236,7 +236,8 @@ public interface ConfigurationDAO {
      * @param fileId       Id of the file.
      * @return {@link InputStream} for the given file id.
      */
-    InputStream getFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException;
+    InputStream getFileById(String resourceType, String resourceName, String fileId) throws
+            ConfigurationManagementException;
 
     /**
      * Get files for the {@link Resource}.
@@ -246,7 +247,8 @@ public interface ConfigurationDAO {
      * @param resourceName     Name of the {@link Resource}.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException;
+    List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws
+            ConfigurationManagementException;
 
     /**
      * Get files for the {@link ResourceType}.
@@ -264,7 +266,8 @@ public interface ConfigurationDAO {
      * @param fileId       Id of the file.
      * @return {@link InputStream} for the given file id.
      */
-    void deleteFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException;
+    void deleteFileById(String resourceType, String resourceName, String fileId) throws
+            ConfigurationManagementException;
 
     /**
      * Delete files for the {@link Resource}.
@@ -283,4 +286,14 @@ public interface ConfigurationDAO {
      */
     List getResourcesByType(int tenantId, String resourceTypeId)
             throws ConfigurationManagementException;
+
+    /**
+     * Validates whether a resource exists with the given resource id in the tenant domain.
+     *
+     * @param tenantId id of the considered tenant domain.
+     * @param resourceId id of the resource.
+     * @return whether the resource exists or not.
+     * @throws ConfigurationManagementException if an error occurs while validating the resourceId.
+     */
+    boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException;
 }
