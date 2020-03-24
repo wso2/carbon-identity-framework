@@ -2448,7 +2448,8 @@ public class IdentityProviderManager implements IdpManager {
 
     private String getOIDCResidentIdPEntityId() {
 
-        String OIDCEntityId = IdentityUtil.getProperty("OAuth.OpenIDConnect.IDTokenIssuerID");
+        String OIDCEntityId = IdentityUtil.resolveURL(IdentityUtil.getProperty("OAuth.OpenIDConnect.IDTokenIssuerID")
+                , true, false);
         if (StringUtils.isBlank(OIDCEntityId)) {
             OIDCEntityId = "localhost";
         }
