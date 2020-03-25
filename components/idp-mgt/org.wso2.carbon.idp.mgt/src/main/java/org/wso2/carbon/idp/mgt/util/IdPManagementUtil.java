@@ -76,7 +76,7 @@ public class IdPManagementUtil {
             tenantId = IdpMgtServiceComponentHolder.getInstance().getRealmService()
                     .getTenantManager().getTenantId(tenantDomain);
         } catch (UserStoreException e) {
-            throw new IdentityProviderManagementException("Error when setting tenant domain. ", e);
+            throw new IdentityProviderManagementException("Error when retrieving the tenantId for tenantDomain: " + tenantDomain, e);
         }
         PrivilegedCarbonContext.startTenantFlow();
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
