@@ -156,7 +156,7 @@ public class SecondaryUserStoreConfigurator {
 
         if (isInternalKeyStoreEncryptionEnabled && isSymmetricKeyEncryptionEnabled) {
 
-            throw new IdentityUserStoreMgtException(String.format("Userstore encryption cazn not be supported due to " +
+            throw new IdentityUserStoreMgtException(String.format("Userstore encryption can not be supported due to " +
                     "conflicting configurations: '%s' and '%s'. When using internal keystore, assymetric crypto " +
                     "provider should be used.", INTERNAL_KEYSTORE, SYMMETRIC_KEY_CRYPTO_PROVIDER));
         } else if (isInternalKeyStoreEncryptionEnabled || isSymmetricKeyEncryptionEnabled) {
@@ -170,7 +170,6 @@ public class SecondaryUserStoreConfigurator {
         } else {
             return encryptWithPrimaryKeyStore(config, plainText);
         }
-
     }
 
     private String encryptWithPrimaryKeyStore(ServerConfigurationService config, String plainText)

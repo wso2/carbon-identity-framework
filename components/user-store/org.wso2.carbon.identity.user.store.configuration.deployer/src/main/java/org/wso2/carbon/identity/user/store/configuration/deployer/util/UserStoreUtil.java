@@ -139,14 +139,13 @@ public class UserStoreUtil {
 
         if (isInternalKeyStoreEncryptionEnabled && isSymmetricKeyEncryptionEnabled) {
 
-            throw new CryptoException(String.format("Userstore encryption cazn not be supported due to " +
+            throw new CryptoException(String.format("Userstore encryption can not be supported due to " +
                             "conflicting configurations: '%s' and '%s'. When using internal keystore, assymetric crypto " +
                             "provider should be used.", UserStoreConfigurationConstants.INTERNAL_KEYSTORE,
                     UserStoreConfigurationConstants.SYMMETRIC_KEY_CRYPTO_PROVIDER));
         } else if (isInternalKeyStoreEncryptionEnabled || isSymmetricKeyEncryptionEnabled) {
 
             return CryptoUtil.getDefaultCryptoUtil().encrypt(plainTextBytes);
-
         } else {
             return encryptWithPrimaryKeyStore(plainTextBytes);
         }
