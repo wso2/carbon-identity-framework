@@ -23,13 +23,13 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
 
-import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementUtil.endTenantFlow;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementUtil.startTenantFlow;
 
 public class TenantManagementListener extends AbstractIdentityTenantMgtListener {
 
@@ -46,7 +46,7 @@ public class TenantManagementListener extends AbstractIdentityTenantMgtListener 
     public void onTenantCreate(TenantInfoBean tenantInfo) throws StratosException {
         try {
             String tenantDomain = tenantInfo.getTenantDomain();
-            IdentityUtil.threadLocalProperties.get().put(TENANT_NAME_FROM_CONTEXT, tenantDomain);
+            startTenantFlow(tenantDomain); //Initiate a tenant flow for tenant-qualifying the resident IdP URLs.
             IdentityProvider identityProvider = new IdentityProvider();
             identityProvider.setIdentityProviderName(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);
             identityProvider.setHomeRealmId("localhost");
@@ -57,7 +57,7 @@ public class TenantManagementListener extends AbstractIdentityTenantMgtListener 
                     tenantInfo.getTenantDomain();
             throw new StratosException(message, e);
         } finally {
-            IdentityUtil.threadLocalProperties.get().remove(TENANT_NAME_FROM_CONTEXT);
+            endTenantFlow();
         }
     }
 
