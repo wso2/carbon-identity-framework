@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
@@ -270,7 +271,7 @@ public class TemplateManagerImpl implements TemplateManager {
         } catch (ConfigurationManagementException e) {
             if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(e
                     .getErrorCode())) {
-                throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
                         templateId, getTenantDomainFromCarbonContext());
             }
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
@@ -341,11 +342,31 @@ public class TemplateManagerImpl implements TemplateManager {
                     e.getErrorCode())) {
                 throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST, e,
                         template.getTemplateName());
+            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals
+                    (e.getErrorCode())) {
+                // If the template insert is failing due to the relevant resource-type for templates is not existing
+                // in the database, create the resource-type and retry the template creation.
+                try {
+                    createResourceType(template.getTemplateType().toString());
+                    return addTemplateToConfigStore(template);
+                } catch (ConfigurationManagementException e1) {
+                    throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE, e,
+                            template.getTemplateName());
+                }
             } else {
                 throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE, e,
                         template.getTemplateName());
             }
         }
+    }
+
+    private void createResourceType(String templateType) throws ConfigurationManagementException {
+
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        ResourceTypeAdd resourceType = new ResourceTypeAdd();
+        resourceType.setName(templateType);
+        resourceType.setDescription("This is the resource type for " + templateType);
+        configManager.addResourceType(resourceType);
     }
 
     private boolean isValidTemplateType(String templateType) {
