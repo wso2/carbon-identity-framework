@@ -144,12 +144,10 @@ public class UserStoreUtil {
                             "provider should be used.", UserStoreConfigurationConstants.INTERNAL_KEYSTORE,
                     UserStoreConfigurationConstants.SYMMETRIC_KEY_CRYPTO_PROVIDER));
         } else if (isInternalKeyStoreEncryptionEnabled || isSymmetricKeyEncryptionEnabled) {
-
             return CryptoUtil.getDefaultCryptoUtil().encrypt(plainTextBytes);
         } else {
             return encryptWithPrimaryKeyStore(plainTextBytes);
         }
-
     }
 
     private static byte[] encryptWithPrimaryKeyStore(byte[] plainTextBytes) throws CryptoException {
