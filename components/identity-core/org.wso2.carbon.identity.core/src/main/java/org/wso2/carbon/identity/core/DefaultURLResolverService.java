@@ -170,12 +170,7 @@ public class DefaultURLResolverService implements URLResolverService {
 
     private void appendTenantAsPathParam(StringBuilder serverUrl, String tenantDomain) {
 
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            if (StringUtils.isBlank(tenantDomain)) {
-                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-        }
+        tenantDomain = resolveTenantDomain(tenantDomain);
         if (StringUtils.isNotBlank(tenantDomain)) {
             if (serverUrl.toString().endsWith("/")) {
                 serverUrl.append("t/").append(tenantDomain);
@@ -187,12 +182,7 @@ public class DefaultURLResolverService implements URLResolverService {
 
     private void appendTenantPathParamInLegacyMode(StringBuilder serverUrl, String tenantDomain) {
 
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-            if (StringUtils.isBlank(tenantDomain)) {
-                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            }
-        }
+        tenantDomain = resolveTenantDomain(tenantDomain);
         if (StringUtils.isNotBlank(tenantDomain) &&
                 !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
             if (serverUrl.toString().endsWith("/")) {
@@ -215,6 +205,17 @@ public class DefaultURLResolverService implements URLResolverService {
         }
     }
 
+    private String resolveTenantDomain(String tenantDomain) {
+
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+            if (StringUtils.isBlank(tenantDomain)) {
+                tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            }
+        }
+        return tenantDomain;
+    }
+
     private void appendURLContext(StringBuilder serverUrl, String urlContext) {
 
         if (!serverUrl.toString().endsWith("/") && urlContext.trim().charAt(0) != '/') {
@@ -227,9 +228,8 @@ public class DefaultURLResolverService implements URLResolverService {
     }
 
     private void appendContextToUri(String urlContext, String tenantDomain, boolean addProxyContextPath,
-                                    boolean addWebContextRoot,
-                                    StringBuilder serverUrl, boolean addTenantQueryParamInLegacyMode,
-                                    boolean addTenantPathParamInLegacyMode) {
+                                    boolean addWebContextRoot, StringBuilder serverUrl,
+                                    boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode) {
 
         if (addProxyContextPath) {
             appendProxyContextPath(serverUrl);
