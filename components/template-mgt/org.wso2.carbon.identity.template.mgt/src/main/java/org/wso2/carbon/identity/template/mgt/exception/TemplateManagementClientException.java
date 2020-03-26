@@ -30,4 +30,9 @@ public class TemplateManagementClientException extends TemplateManagementExcepti
         super(message, errorCode);
     }
 
+    public TemplateManagementClientException(String message, String errorCode, Throwable cause) {
+
+        super(message, errorCode, cause);
+    }
+
 }

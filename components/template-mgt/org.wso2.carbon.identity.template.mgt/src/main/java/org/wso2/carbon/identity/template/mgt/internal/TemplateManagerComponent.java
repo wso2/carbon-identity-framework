@@ -26,6 +26,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.identity.template.mgt.TemplateManagerImpl;
@@ -37,7 +38,6 @@ import org.wso2.carbon.identity.template.mgt.TemplateManagerImpl;
         name = "carbon.identity.template.mgt.component",
         immediate = true
 )
-
 public class TemplateManagerComponent {
 
     private static Log log = LogFactory.getLog(TemplateManagerComponent.class);
@@ -77,5 +77,27 @@ public class TemplateManagerComponent {
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started. */
+    }
+
+    @Reference(
+            name = "carbon.configuration.mgt.component",
+            service = ConfigurationManager.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationManager")
+    protected void setConfigurationManager(ConfigurationManager configurationManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Configuration Manager service is set in the Template Manager component.");
+        }
+        TemplateManagerDataHolder.getInstance().setConfigurationManager(configurationManager);
+    }
+
+    protected void unsetConfigurationManager(ConfigurationManager configurationManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Configuration Manager service is unset in the Template Manager component.");
+        }
+        TemplateManagerDataHolder.getInstance().setConfigurationManager(null);
     }
 }

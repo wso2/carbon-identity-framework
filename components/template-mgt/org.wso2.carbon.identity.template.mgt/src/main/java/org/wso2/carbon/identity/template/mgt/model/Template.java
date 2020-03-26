@@ -17,28 +17,40 @@
  */
 package org.wso2.carbon.identity.template.mgt.model;
 
+import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * A data model class to define the Template element.
  */
 public class Template {
 
-    private Integer templateId;
-    private Integer tenantId;
+    private String templateId;
+    private int tenantId;
     private String templateName;
     private String description;
+    private String imageUrl;
+    private TemplateMgtConstants.TemplateType templateType;
     private String templateScript;
+    private Map<String, String> propertiesMap = new HashMap<>();
 
-    public Template(Integer templateId, Integer tenantId, String templateName,
-                    String description, String templateScript) {
+    public Template(String templateId, int tenantId, String templateName, String description, String
+            imageUrl, TemplateMgtConstants.TemplateType templateType, String templateScript, Map<String, String>
+                            propertiesMap) {
 
         this.templateId = templateId;
         this.tenantId = tenantId;
         this.templateName = templateName;
         this.description = description;
+        this.imageUrl = imageUrl;
+        this.templateType = templateType;
         this.templateScript = templateScript;
+        this.propertiesMap = propertiesMap;
     }
 
-    public Template(Integer tenantId, String templateName, String description, String templateScript) {
+    public Template(int tenantId, String templateName, String description, String templateScript) {
 
         this.tenantId = tenantId;
         this.templateName = templateName;
@@ -53,24 +65,8 @@ public class Template {
         this.templateScript = templateScript;
     }
 
-    /**
-     * Get template ID.
-     *
-     * @return template ID.
-     */
-    public Integer getTemplateId() {
+    public Template() {
 
-        return templateId;
-    }
-
-    /**
-     * Set template ID.
-     *
-     * @param templateId template ID.
-     */
-    public void setTemplateId(Integer templateId) {
-
-        this.templateId = templateId;
     }
 
     /**
@@ -78,7 +74,7 @@ public class Template {
      *
      * @return tenant ID.
      */
-    public Integer getTenantId() {
+    public int getTenantId() {
 
         return tenantId;
     }
@@ -88,7 +84,7 @@ public class Template {
      *
      * @param tenantId tenant ID.
      */
-    public void setTenantId(Integer tenantId) {
+    public void setTenantId(int tenantId) {
 
         this.tenantId = tenantId;
     }
@@ -151,5 +147,77 @@ public class Template {
     public void setTemplateScript(String content) {
 
         this.templateScript = content;
+    }
+
+    /**
+     * Get the unique identifier of the template.
+     *
+     * @return template resource id.
+     */
+    public String getTemplateId() {
+        return templateId;
+    }
+
+    /**
+     * Set the unique identifier of the template.
+     *
+     * @param templateId unique id for the template.
+     */
+    public void setTemplateId(String templateId) {
+        this.templateId = templateId;
+    }
+
+    /**
+     * Get the image url of the template.
+     *
+     * @return image url.
+     */
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    /**
+     * Set the image url of the template.
+     *
+     * @param imageUrl image url.
+     */
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    /**
+     * Get the list of properties defined for the template.
+     *
+     * @return list of properties.
+     */
+    public Map<String, String> getPropertiesMap() {
+        return propertiesMap;
+    }
+
+    /**
+     * Set the list of properties of the template.
+     *
+     * @param propertiesMap list of properties.
+     */
+    public void setPropertiesMap(Map<String, String> propertiesMap) {
+        this.propertiesMap = propertiesMap;
+    }
+
+    /**
+     * Get the type of the template. This can be application or identity provider.
+     *
+     * @return template type.
+     */
+    public TemplateMgtConstants.TemplateType getTemplateType() {
+        return templateType;
+    }
+
+    /**
+     * Set the type of the template.
+     *
+     * @param templateType template type.
+     */
+    public void setTemplateType(TemplateMgtConstants.TemplateType templateType) {
+        this.templateType = templateType;
     }
 }
