@@ -510,6 +510,33 @@ public class IdentityUtilTest {
                         addWebContextRoot, addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode));
     }
 
+    @Test(dataProvider = "getServerURLData")
+    public void testGetServerURLWithTenantParam(String host, String tenantDomain, boolean enableTenantURLSupport,
+                                         int port,
+                                 String proxyCtx, String ctxRoot, String endpoint, boolean addProxyContextPath,
+                                 boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode,
+                                 boolean addTenantPathParamInLegacyMode, String expected) throws Exception {
+
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(null);
+        when(CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
+        when(CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
+        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(host);
+        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn(ctxRoot);
+        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn(proxyCtx);
+
+        assertEquals(IdentityUtil.getServerURL(endpoint, tenantDomain, addProxyContextPath, addWebContextRoot,
+                addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode), expected, String
+                .format("Generated server url doesn't match the expected for input: host = %s, tenantDomain = %s" +
+                                "enableTenantURLSupport = %b, port = %d, proxyCtx = %s, ctxRoot = %s, endpoint = %s, " +
+                                "addProxyContextPath = %b, addWebContextRoot = %b, addTenantQueryParamInLegacyMode = " +
+                                "%b, addTenantQueryParamInLegacyMode = %b", host, tenantDomain,
+                        enableTenantURLSupport, port, proxyCtx, ctxRoot, endpoint, addProxyContextPath,
+                        addWebContextRoot, addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode));
+    }
+
     @DataProvider
     public Object[][] resolveURLData() {
 
@@ -539,6 +566,18 @@ public class IdentityUtilTest {
         when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantFromContext);
 
         assertEquals(IdentityUtil.resolveURL(url, false, false, addTenantQueryParamInLegacyMode,
+                addTenantPathParamInLegacyMode), expected);
+    }
+
+    @Test(dataProvider = "resolveURLData")
+    public void testResolveURLwithTenantParam(String url, String tenantDomain, Boolean enableTenantURLSupport,
+                               boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                               String expected) {
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(null);
+
+        assertEquals(IdentityUtil.resolveURL(url, tenantDomain, false, false, addTenantQueryParamInLegacyMode,
                 addTenantPathParamInLegacyMode), expected);
     }
 
