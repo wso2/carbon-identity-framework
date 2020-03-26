@@ -40,6 +40,22 @@ import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isTenantQual
 public class DefaultURLResolverService implements URLResolverService {
 
     @Override
+    public String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot,
+                             Map<String, Object> properties) throws URLResolverException {
+
+        return resolveUrl(url, null, addProxyContextPath, addWebContextRoot, false, false, properties);
+    }
+
+    @Override
+    public String resolveUrl(String url, boolean addProxyContextPath, boolean addWebContextRoot,
+                             boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                             Map<String, Object> properties) throws URLResolverException {
+
+        return resolveUrl(url, null, addProxyContextPath, addWebContextRoot, addTenantQueryParamInLegacyMode,
+                addTenantPathParamInLegacyMode, properties);
+    }
+
+    @Override
     public String resolveUrl(String url, String tenantDomain, boolean addProxyContextPath, boolean addWebContextRoot,
                              boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
                              Map<String, Object> properties) throws URLResolverException {
@@ -58,6 +74,22 @@ public class DefaultURLResolverService implements URLResolverService {
         } catch (MalformedURLException e) {
             throw new URLResolverException("Error while parsing the URL: " + url, e);
         }
+    }
+
+    @Override
+    public String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
+                                    Map<String, Object> properties) throws URLResolverException {
+
+        return resolveUrlContext(urlContext, null, addProxyContextPath, addWebContextRoot, false, false, properties);
+    }
+
+    @Override
+    public String resolveUrlContext(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot,
+                                    boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
+                                    Map<String, Object> properties) throws URLResolverException {
+
+        return resolveUrlContext(urlContext, null, addProxyContextPath, addWebContextRoot,
+                addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode, properties);
     }
 
     @Override
