@@ -391,6 +391,10 @@ public class TemplateManagerImpl implements TemplateManager {
                     e.getErrorCode())) {
                 throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
                         templateId, getTenantDomainFromCarbonContext());
+            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST, e,
+                        templateId, getTenantDomainFromCarbonContext());
             }
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_TEMPLATE, e,
                     templateId, getTenantDomainFromCarbonContext());

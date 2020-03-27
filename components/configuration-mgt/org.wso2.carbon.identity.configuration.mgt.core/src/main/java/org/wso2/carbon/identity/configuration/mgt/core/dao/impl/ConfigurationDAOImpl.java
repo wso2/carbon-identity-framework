@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.io.InputStream;
 import java.sql.Blob;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -128,6 +129,8 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
         .ERROR_CODE_REPLACE_RESOURCE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_RESOURCES_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_RESOURCE_ALREADY_EXISTS;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_RETRIEVE_RESOURCE_TYPE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
@@ -560,6 +563,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 resource.setCreatedTime(createdTime.toInstant().toString());
             }
         } catch (TransactionException e) {
+            if (e.getCause() instanceof ConfigurationManagementException) {
+                throw (ConfigurationManagementException) e.getCause();
+            }
             throw handleServerException(ERROR_CODE_REPLACE_RESOURCE, resource.getResourceName(), e);
         }
     }
@@ -941,15 +947,24 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     private void updateResourceMetadata(Template<?> template, Resource resource, boolean isAttributeExists, boolean
-            isFileExists, Timestamp currentTime) throws DataAccessException {
+            isFileExists, Timestamp currentTime) throws ConfigurationManagementClientException, DataAccessException {
 
-        template.executeUpdate(UPDATE_RESOURCE, preparedStatement -> {
-            int initialParameterIndex = 1;
-            preparedStatement.setTimestamp(initialParameterIndex, currentTime, calendar);
-            preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
-            preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-            preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
-        });
+        try {
+            template.executeUpdate(UPDATE_RESOURCE, preparedStatement -> {
+                int initialParameterIndex = 1;
+                preparedStatement.setString(initialParameterIndex, resource.getResourceName());
+                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
+                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
+            });
+        } catch (DataAccessException e) {
+            if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+                throw handleClientException(ERROR_CODE_RESOURCE_ALREADY_EXISTS, resource.getResourceName(), e);
+            } else {
+                throw e;
+            }
+        }
     }
 
     private boolean isResourceExists(Resource resource, String resourceTypeId) throws TransactionException {
