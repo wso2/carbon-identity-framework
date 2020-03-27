@@ -195,13 +195,10 @@ public class DefaultURLResolverService implements URLResolverService {
 
     private void appendTenantQueryParamInLegacyMode(StringBuilder serverUrl, String tenantDomain) {
 
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        }
-        if (StringUtils.isNotBlank(tenantDomain)) {
-            if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-                serverUrl.append("?").append(MultitenantConstants.TENANT_DOMAIN).append("=").append(tenantDomain);
-            }
+        tenantDomain = resolveTenantDomain(tenantDomain);
+        if (StringUtils.isNotBlank(tenantDomain) &&
+                !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            serverUrl.append("?").append(MultitenantConstants.TENANT_DOMAIN).append("=").append(tenantDomain);
         }
     }
 
