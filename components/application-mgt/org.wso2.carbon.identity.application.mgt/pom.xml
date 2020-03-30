@@ -168,7 +168,6 @@
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
 
-                            <!--org.apache.rahas.impl; version="${rampart.wso2.osgi.version.range}",-->
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.io; version="${commons.io.wso2.osgi.version.range}",
@@ -185,10 +184,6 @@
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.core; version="${carbon.kernel.package.import.version.range}",
 
-                            org.wso2.carbon.security; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.security.config; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.security.sts.service; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.security.sts.service.util; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.base.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.directory.server.manager; version="${carbon.identity.package.import.version.range}",
