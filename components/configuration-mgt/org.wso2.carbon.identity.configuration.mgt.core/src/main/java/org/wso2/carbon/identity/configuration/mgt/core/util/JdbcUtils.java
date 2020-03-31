@@ -27,6 +27,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.MY_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.POSTGRE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.S_MICROSOFT;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ORACLE;
 
 /**
  * A util class to support the Jdbc executions.
@@ -66,6 +67,17 @@ public class JdbcUtils {
     }
 
     /**
+     * Check if the DB is MySQL.
+     *
+     * @return true if DB is MySQL.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isMySQLDB() throws DataAccessException {
+
+        return isDBTypeOf(MY_SQL);
+    }
+
+    /**
      * Check if the DB is DB2.
      *
      * @return true if DB2, false otherwise.
@@ -74,6 +86,17 @@ public class JdbcUtils {
     public static boolean isDB2DB() throws DataAccessException {
 
         return isDBTypeOf(DB2);
+    }
+
+    /**
+     * Check if the DB is PostgreSQL.
+     *
+     * @return true if DB is PostgreSQL, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isPostgreSQLDB() throws DataAccessException {
+
+        return isDBTypeOf(POSTGRE_SQL);
     }
 
     /**
@@ -96,6 +119,17 @@ public class JdbcUtils {
     public static boolean isInformixDB() throws DataAccessException {
 
         return isDBTypeOf(INFORMIX);
+    }
+
+    /**
+     * Check if the DB is Oracle.
+     *
+     * @return true if DB is Oracle, false otherwise.
+     * @throws DataAccessException if error occurred while checking the DB metadata.
+     */
+    public static boolean isOracleDB() throws DataAccessException {
+
+        return isDBTypeOf(ORACLE);
     }
 
     /**
