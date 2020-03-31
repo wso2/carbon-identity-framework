@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt.SessionManagementException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.services.SessionManagementService;
@@ -40,6 +41,9 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Sessio
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,15 +61,69 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
             UserSessionException {
 
         validate(username, userStoreDomain, tenantDomain);
-        List<String> sessionListOfUser = getSessionsOfUser(username, userStoreDomain, tenantDomain);
 
-        if (!sessionListOfUser.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
-                        userStoreDomain + " in tenant: " + tenantDomain);
-            }
-            terminateSessionsOfUser(sessionListOfUser);
+        String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
+        try {
+            terminateSessionsByUserId(userId);
+        } catch (SessionManagementException e) {
+            throw new UserSessionException("Error while terminating sessions of user.", e);
         }
+    }
+
+    /**
+     * Retrieves the unique user id of the given username.
+     *
+     * @param tenantId          id of the tenant domain of the user
+     * @param userStoreDomain   userstore of the user
+     * @param username          username
+     * @return                  unique user id of the user
+     * @throws UserSessionException
+     */
+    private String resolveUserIdFromUsername(int tenantId, String userStoreDomain, String username) throws
+            UserSessionException {
+
+        try {
+            if (userStoreDomain == null) {
+                userStoreDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
+            }
+            UserStoreManager userStoreManager = getUserStoreManager(tenantId, userStoreDomain);
+            try {
+                if (userStoreManager instanceof AbstractUserStoreManager) {
+                    return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                            "AbstractUserStore manager");
+                }
+                throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+            } catch (org.wso2.carbon.user.core.UserStoreException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while resolving Id for the user: " + username, e);
+                }
+                throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+            }
+        } catch (UserStoreException e) {
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
+                    "the user: " + username, e);
+        }
+    }
+
+    private static UserStoreManager getUserStoreManager(int tenantId, String userStoreDomain)
+            throws UserStoreException {
+
+        UserStoreManager userStoreManager = FrameworkServiceComponent.getRealmService().getTenantUserRealm(tenantId)
+                .getUserStoreManager();
+        if (userStoreManager instanceof org.wso2.carbon.user.core.UserStoreManager) {
+            return ((org.wso2.carbon.user.core.UserStoreManager) userStoreManager).getSecondaryUserStoreManager(
+                    userStoreDomain);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Unable to resolve the corresponding user store manager for the domain: " + userStoreDomain
+                    + ", as the provided user store manager: " + userStoreManager.getClass() + ", is not an instance " +
+                    "of org.wso2.carbon.user.core.UserStoreManager. Therefore returning the user store " +
+                    "manager: " + userStoreManager.getClass() + ", from the realm.");
+        }
+        return userStoreManager;
     }
 
     private void validate(String username, String userStoreDomain, String tenantDomain) throws UserSessionException {
@@ -78,14 +136,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         if (MultitenantConstants.INVALID_TENANT_ID == tenantId) {
             throw new UserSessionException("Invalid tenant domain: " + tenantDomain + " provided.");
         }
-    }
-
-    private List<String> getSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
-            UserSessionException {
-
-        String userId = UserSessionStore.getInstance().getUserId(username, getTenantId(tenantDomain),
-                userStoreDomain);
-        return UserSessionStore.getInstance().getSessionId(userId);
     }
 
     private void terminateSessionsOfUser(List<String> sessionList) {
