@@ -36,16 +36,16 @@ public class SQLConstants {
             "INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES (?, ?, ?) " +
                     "ON CONFLICT (ID) DO UPDATE SET NAME = EXCLUDED.NAME, DESCRIPTION = EXCLUDED.DESCRIPTION";
     public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_DB2 = "MERGE INTO IDN_CONFIG_TYPE USING " +
-            "\"SYSIBM\".DUAL ON (ID= ? ) WHEN MATCHED THEN UPDATE SET NAME= ? , DESCRIPTION= ? WHEN NOT MATCHED\n" +
+            "\"SYSIBM\".DUAL ON (ID= ? ) WHEN MATCHED THEN UPDATE SET NAME= ? , DESCRIPTION= ? WHEN NOT MATCHED " +
             "THEN INSERT (ID,NAME,DESCRIPTION) VALUES (?, ?, ?)";
     public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_MSSQL = "MERGE IDN_CONFIG_TYPE T USING  (VALUES " +
-            "(?, ?, ?)) S (ID,NAME,DESCRIPTION) ON T.ID = S.ID \n" +
-            "WHEN MATCHED THEN UPDATE SET NAME = S.NAME, DESCRIPTION = S.DESCRIPTION\n" +
+            "(?, ?, ?)) S (ID,NAME,DESCRIPTION) ON T.ID = S.ID " +
+            "WHEN MATCHED THEN UPDATE SET NAME = S.NAME, DESCRIPTION = S.DESCRIPTION " +
             "WHEN NOT MATCHED THEN INSERT (ID,NAME,DESCRIPTION) VALUES (S.ID, S.NAME, S.DESCRIPTION);";
     public static final String INSERT_OR_UPDATE_RESOURCE_TYPE_ORACLE = "MERGE INTO IDN_CONFIG_TYPE USING dual ON " +
-            "(ID = ? )\n" +
-            "WHEN MATCHED THEN UPDATE SET NAME = ? , DESCRIPTION = ?\n" +
-            "WHEN NOT MATCHED THEN INSERT (ID, NAME, DESCRIPTION) \n" +
+            "(ID = ? ) " +
+            "WHEN MATCHED THEN UPDATE SET NAME = ? , DESCRIPTION = ? " +
+            "WHEN NOT MATCHED THEN INSERT (ID, NAME, DESCRIPTION) " +
             "    VALUES ( ?,?,? )";
     public static final String GET_CREATED_TIME_COLUMN_MYSQL =
             "SELECT CREATED_TIME FROM IDN_CONFIG_RESOURCE LIMIT 1";
@@ -91,20 +91,20 @@ public class SQLConstants {
             "LAST_MODIFIED = VALUES(LAST_MODIFIED), HAS_FILE = VALUES(HAS_FILE), HAS_ATTRIBUTE = VALUES" +
             "(HAS_ATTRIBUTE), TYPE_ID = VALUES(TYPE_ID)";
     public static final String INSERT_OR_UPDATE_RESOURCE_POSTGRESQL = "INSERT INTO IDN_CONFIG_RESOURCE" +
-            "(ID,TENANT_ID,NAME, CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE,TYPE_ID)\n" +
-            "VALUES(?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (ID) DO UPDATE \n" +
-            "SET TENANT_ID = EXCLUDED.TENANT_ID, NAME = EXCLUDED.NAME, LAST_MODIFIED = EXCLUDED.LAST_MODIFIED, \n" +
+            "(ID,TENANT_ID,NAME, CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE,TYPE_ID) " +
+            "VALUES(?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (ID) DO UPDATE " +
+            "SET TENANT_ID = EXCLUDED.TENANT_ID, NAME = EXCLUDED.NAME, LAST_MODIFIED = EXCLUDED.LAST_MODIFIED, " +
             "HAS_FILE =EXCLUDED.HAS_FILE, HAS_ATTRIBUTE = EXCLUDED.HAS_ATTRIBUTE, TYPE_ID = EXCLUDED.TYPE_ID";
     public static final String INSERT_OR_UPDATE_RESOURCE_DB2 = "MERGE INTO IDN_CONFIG_RESOURCE USING " +
-            "\"SYSIBM\".DUAL ON (ID= ? ) WHEN MATCHED THEN UPDATE SET TENANT_ID = ?, NAME = ?, LAST_MODIFIED = ?, \n" +
+            "\"SYSIBM\".DUAL ON (ID= ? ) WHEN MATCHED THEN UPDATE SET TENANT_ID = ?, NAME = ?, LAST_MODIFIED = ?, " +
             "HAS_FILE = ?, HAS_ATTRIBUTE = ?, TYPE_ID = ? WHEN NOT MATCHED THEN INSERT (ID,TENANT_ID,NAME, " +
-            "CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE,TYPE_ID)\n" +
+            "CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE,TYPE_ID) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     public static final String INSERT_OR_UPDATE_RESOURCE_MSSQL = "MERGE IDN_CONFIG_RESOURCE T USING " +
             "(VALUES  (?, ?, ?, ?, ?, ?, ?, ?)) S " +
-            "(ID,TENANT_ID,NAME, CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE,TYPE_ID) ON T.ID = S.ID \n" +
+            "(ID,TENANT_ID,NAME, CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE,TYPE_ID) ON T.ID = S.ID " +
             "WHEN MATCHED THEN UPDATE SET TENANT_ID = S.TENANT_ID, NAME = S.NAME, LAST_MODIFIED = S.LAST_MODIFIED, " +
-            "HAS_FILE = S.HAS_FILE, HAS_ATTRIBUTE = S.HAS_ATTRIBUTE, TYPE_ID = S.TYPE_ID\n" +
+            "HAS_FILE = S.HAS_FILE, HAS_ATTRIBUTE = S.HAS_ATTRIBUTE, TYPE_ID = S.TYPE_ID " +
             "WHEN NOT MATCHED THEN INSERT (ID,TENANT_ID,NAME, CREATED_TIME,LAST_MODIFIED,HAS_FILE, HAS_ATTRIBUTE," +
             "TYPE_ID) VALUES (S.ID, S.TENANT_ID, S.NAME, S.CREATED_TIME, S.LAST_MODIFIED, S.HAS_FILE, S" +
             ".HAS_ATTRIBUTE, S.TYPE_ID);";
@@ -141,27 +141,27 @@ public class SQLConstants {
             "VALUES(?, ?, ?, ?)";
     public static final String INSERT_ATTRIBUTES_MSSQL_OR_DB2 = "MERGE INTO IDN_CONFIG_ATTRIBUTE T USING " +
             "(VALUES (?, ?, ?, ?)";
-    public static final String INSERT_ATTRIBUTES_ORACLE = "MERGE INTO IDN_CONFIG_ATTRIBUTE T\n" +
-            "USING (SELECT  ? ID, ? RESOURCE_ID, ? ATTR_KEY, ? ATTR_VALUE from dual\n";
+    public static final String INSERT_ATTRIBUTES_ORACLE = "MERGE INTO IDN_CONFIG_ATTRIBUTE T " +
+            "USING (SELECT  ? ID, ? RESOURCE_ID, ? ATTR_KEY, ? ATTR_VALUE from dual ";
     public static final String UPDATE_ATTRIBUTES_H2 = "MERGE INTO\n" +
             "  IDN_CONFIG_ATTRIBUTE KEY(ID) VALUES(?, ?, ?, ?)";
     public static final String INSERT_OR_UPDATE_ATTRIBUTES_MYSQL = "ON DUPLICATE KEY UPDATE " +
             "RESOURCE_ID = VALUES(RESOURCE_ID), ATTR_KEY = VALUES(ATTR_KEY), ATTR_VALUE = VALUES(ATTR_VALUE)";
     public static final String INSERT_OR_UPDATE_ATTRIBUTES_POSTGRESQL = "ON CONFLICT(ID) DO UPDATE SET RESOURCE_ID = " +
-            "EXCLUDED.RESOURCE_ID, ATTR_KEY = EXCLUDED.ATTR_KEY, \n" +
+            "EXCLUDED.RESOURCE_ID, ATTR_KEY = EXCLUDED.ATTR_KEY, " +
             "ATTR_VALUE = EXCLUDED.ATTR_VALUE";
     public static final String INSERT_OR_UPDATE_ATTRIBUTES_MSSQL_OR_DB2 = ") S (ID, RESOURCE_ID, ATTR_KEY, " +
             "ATTR_VALUE) ON T.ID = S.ID WHEN MATCHED THEN UPDATE SET RESOURCE_ID = S.RESOURCE_ID, " +
             "ATTR_KEY = S.ATTR_KEY, ATTR_VALUE = S.ATTR_VALUE WHEN NOT MATCHED THEN INSERT (ID, RESOURCE_ID, " +
             "ATTR_KEY, ATTR_VALUE) VALUES (S.ID, S.RESOURCE_ID, S.ATTR_KEY, S.ATTR_VALUE);";
-    public static final String INSERT_OR_UPDATE_ATTRIBUTES_ORACLE = ") S ON (T.ID = S.ID)\n" +
-            "WHEN MATCHED THEN UPDATE SET T.RESOURCE_ID = S.RESOURCE_ID, T.ATTR_KEY = S.ATTR_KEY,\n" +
+    public static final String INSERT_OR_UPDATE_ATTRIBUTES_ORACLE = ") S ON (T.ID = S.ID) " +
+            "WHEN MATCHED THEN UPDATE SET T.RESOURCE_ID = S.RESOURCE_ID, T.ATTR_KEY = S.ATTR_KEY, " +
             "T.ATTR_VALUE = S.ATTR_VALUE\n" +
-            "WHEN NOT MATCHED THEN INSERT (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE)\n" +
+            "WHEN NOT MATCHED THEN INSERT (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) " +
             "VALUES (S.ID, S.RESOURCE_ID, S.ATTR_KEY, S.ATTR_VALUE)";
     public static final String INSERT_ATTRIBUTE_KEY_VALUE_SQL = ", (?, ?, ?, ?)";
-    public static final String INSERT_ATTRIBUTE_KEY_VALUE_ORACLE = "UNION ALL\n" +
-            "SELECT ? ID, ? RESOURCE_ID, ? ATTR_KEY, ? ATTR_VALUE from dual\n";
+    public static final String INSERT_ATTRIBUTE_KEY_VALUE_ORACLE = "UNION ALL " +
+            "SELECT ? ID, ? RESOURCE_ID, ? ATTR_KEY, ? ATTR_VALUE from dual ";
     public static final String DELETE_RESOURCE_ATTRIBUTES_SQL = "DELETE FROM IDN_CONFIG_ATTRIBUTE WHERE RESOURCE_ID =" +
             " ?";
     public static final String UPDATE_ATTRIBUTE_MYSQL = "UPDATE IDN_CONFIG_ATTRIBUTE SET ATTR_VALUE = ? WHERE ID = ?";
@@ -174,18 +174,18 @@ public class SQLConstants {
             + "?, ?)";
     public static final String INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL = "INSERT INTO IDN_CONFIG_ATTRIBUTE" +
             "(ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) VALUES(?, ?, ?, ?) ON CONFLICT(ID) " +
-            "DO UPDATE SET RESOURCE_ID = EXCLUDED.RESOURCE_ID, ATTR_KEY = EXCLUDED.ATTR_KEY,\n" +
+            "DO UPDATE SET RESOURCE_ID = EXCLUDED.RESOURCE_ID, ATTR_KEY = EXCLUDED.ATTR_KEY, " +
             "ATTR_VALUE = EXCLUDED.ATTR_VALUE";
     public static final String INSERT_OR_UPDATE_ATTRIBUTE_DB2 = "MERGE INTO IDN_CONFIG_ATTRIBUTE USING " +
-            "\"SYSIBM\".DUAL ON (ID= ?) WHEN MATCHED THEN UPDATE SET RESOURCE_ID = ?, ATTR_KEY = ?, ATTR_VALUE = ?\n" +
+            "\"SYSIBM\".DUAL ON (ID= ?) WHEN MATCHED THEN UPDATE SET RESOURCE_ID = ?, ATTR_KEY = ?, ATTR_VALUE = ? " +
             "WHEN NOT MATCHED THEN INSERT (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) VALUES(?, ?, ?, ?)";
-    public static final String INSERT_OR_UPDATE_ATTRIBUTE_MSSQL = "MERGE IDN_CONFIG_ATTRIBUTE T USING \n" +
-            "(VALUES  (?, ?, ?, ?)) S (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) ON T.ID = S.ID \n" +
+    public static final String INSERT_OR_UPDATE_ATTRIBUTE_MSSQL = "MERGE IDN_CONFIG_ATTRIBUTE T USING " +
+            "(VALUES  (?, ?, ?, ?)) S (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) ON T.ID = S.ID " +
             "WHEN MATCHED THEN UPDATE SET RESOURCE_ID = S.RESOURCE_ID, ATTR_KEY = S.ATTR_KEY," +
-            "ATTR_VALUE = S.ATTR_VALUE WHEN NOT MATCHED THEN INSERT (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) \n" +
+            "ATTR_VALUE = S.ATTR_VALUE WHEN NOT MATCHED THEN INSERT (ID, RESOURCE_ID, ATTR_KEY, ATTR_VALUE) " +
             "VALUES (S.ID, S.RESOURCE_ID, S.ATTR_KEY, S.ATTR_VALUE);";
     public static final String INSERT_OR_UPDATE_ATTRIBUTE_ORACLE = "MERGE INTO IDN_CONFIG_ATTRIBUTE USING dual " +
-            "ON (ID = ?) WHEN MATCHED THEN UPDATE SET RESOURCE_ID=?, ATTR_KEY=? , ATTR_VALUE=?\n" +
+            "ON (ID = ?) WHEN MATCHED THEN UPDATE SET RESOURCE_ID=?, ATTR_KEY=? , ATTR_VALUE=? " +
             "WHEN NOT MATCHED THEN INSERT (ID,RESOURCE_ID,ATTR_KEY,  ATTR_VALUE) VALUES (?,?, ?, ?)";
     public static final String GET_ATTRIBUTE_SQL = "SELECT\n" +
             "  ID,\n" +
@@ -238,66 +238,66 @@ public class SQLConstants {
             "  R.NAME = ?\n" +
             "  AND R.TENANT_ID = ?\n" +
             "  AND R.TYPE_ID = ?";
-    public static final String GET_RESOURCE_BY_NAME_MSSQL = "SELECT\n" +
-            "  R.ID,\n" +
-            "  R.TENANT_ID,\n" +
-            "  R.NAME,\n" +
-            "  R.CREATED_TIME,\n" +
-            "  R.LAST_MODIFIED,\n" +
-            "  R.HAS_FILE,\n" +
-            "  R.HAS_ATTRIBUTE,\n" +
-            "  T.NAME AS RESOURCE_TYPE,\n" +
-            "  T.DESCRIPTION AS DESCRIPTION,\n" +
-            "  F.ID AS FILE_ID,\n" +
-            "  F.NAME AS FILE_NAME,\n" +
-            "  A.ID AS ATTR_ID,\n" +
-            "  A.ATTR_KEY AS ATTR_KEY,\n" +
-            "  A.ATTR_VALUE AS ATTR_VALUE\n" +
-            "FROM\n" +
-            "  IDN_CONFIG_RESOURCE AS R\n" +
-            "  INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
-            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
-            "    R.HAS_ATTRIBUTE = 1\n" +
-            "    AND A.RESOURCE_ID = R.ID\n" +
-            "  )\n" +
-            "  LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
-            "    R.HAS_FILE = 1\n" +
-            "    AND F.RESOURCE_ID = R.ID\n" +
-            "  )\n" +
-            "WHERE\n" +
-            "  R.NAME = ?\n" +
-            "  AND R.TENANT_ID = ?\n" +
+    public static final String GET_RESOURCE_BY_NAME_MSSQL = "SELECT " +
+            "  R.ID," +
+            "  R.TENANT_ID," +
+            "  R.NAME," +
+            "  R.CREATED_TIME," +
+            "  R.LAST_MODIFIED," +
+            "  R.HAS_FILE," +
+            "  R.HAS_ATTRIBUTE," +
+            "  T.NAME AS RESOURCE_TYPE," +
+            "  T.DESCRIPTION AS DESCRIPTION," +
+            "  F.ID AS FILE_ID," +
+            "  F.NAME AS FILE_NAME," +
+            "  A.ID AS ATTR_ID," +
+            "  A.ATTR_KEY AS ATTR_KEY," +
+            "  A.ATTR_VALUE AS ATTR_VALUE" +
+            "FROM" +
+            "  IDN_CONFIG_RESOURCE AS R" +
+            "  INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID" +
+            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (" +
+            "    R.HAS_ATTRIBUTE = 1" +
+            "    AND A.RESOURCE_ID = R.ID" +
+            "  )" +
+            "  LEFT JOIN IDN_CONFIG_FILE AS F ON (" +
+            "    R.HAS_FILE = 1" +
+            "    AND F.RESOURCE_ID = R.ID" +
+            "  )" +
+            "WHERE" +
+            "  R.NAME = ?" +
+            "  AND R.TENANT_ID = ?" +
             "  AND R.TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_NAME_ORACLE = "SELECT " +
-            "  R.ID,\n" +
-            "  R.TENANT_ID,\n" +
-            "  R.NAME,\n" +
-            "  R.CREATED_TIME,\n" +
-            "  R.LAST_MODIFIED,\n" +
-            "  R.HAS_FILE,\n" +
-            "  R.HAS_ATTRIBUTE,\n" +
-            "  T.NAME RESOURCE_TYPE,\n" +
-            "  T.DESCRIPTION DESCRIPTION,\n" +
-            "  F.ID FILE_ID,\n" +
-            "  F.NAME FILE_NAME,\n" +
-            "  A.ID ATTR_ID,\n" +
-            "  A.ATTR_KEY ATTR_KEY,\n" +
-            "  A.ATTR_VALUE ATTR_VALUE\n" +
-            "FROM\n" +
-            "  IDN_CONFIG_RESOURCE R\n" +
-            "  INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID\n" +
-            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (\n" +
-            "    R.HAS_ATTRIBUTE = 1\n" +
-            "    AND A.RESOURCE_ID = R.ID\n" +
-            "  )\n" +
-            "  LEFT JOIN IDN_CONFIG_FILE F ON (\n" +
-            "    R.HAS_FILE = 1\n" +
-            "    AND F.RESOURCE_ID = R.ID\n" +
-            "  )\n" +
-            "WHERE\n" +
-            "  R.NAME = ?\n" +
-            "  AND R.TENANT_ID = ?\n" +
-            "  AND R.TYPE_ID = ?\n";
+            "  R.ID," +
+            "  R.TENANT_ID," +
+            "  R.NAME," +
+            "  R.CREATED_TIME," +
+            "  R.LAST_MODIFIED," +
+            "  R.HAS_FILE," +
+            "  R.HAS_ATTRIBUTE," +
+            "  T.NAME RESOURCE_TYPE," +
+            "  T.DESCRIPTION DESCRIPTION," +
+            "  F.ID FILE_ID," +
+            "  F.NAME FILE_NAME," +
+            "  A.ID ATTR_ID," +
+            "  A.ATTR_KEY ATTR_KEY," +
+            "  A.ATTR_VALUE ATTR_VALUE" +
+            "FROM" +
+            "  IDN_CONFIG_RESOURCE R" +
+            "  INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
+            "  LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (" +
+            "    R.HAS_ATTRIBUTE = 1" +
+            "    AND A.RESOURCE_ID = R.ID" +
+            "  )" +
+            "  LEFT JOIN IDN_CONFIG_FILE F ON (" +
+            "    R.HAS_FILE = 1" +
+            "    AND F.RESOURCE_ID = R.ID" +
+            "  )" +
+            "WHERE" +
+            "  R.NAME = ?" +
+            "  AND R.TENANT_ID = ?" +
+            "  AND R.TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -326,61 +326,61 @@ public class SQLConstants {
             "  R.NAME = ?\n" +
             "  AND R.TENANT_ID = ?\n" +
             "  AND R.TYPE_ID = ?";
-    public static final String GET_RESOURCE_BY_NAME_MSSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   R.HAS_FILE,\n" +
-            "   R.HAS_ATTRIBUTE,\n" +
-            "   T.NAME AS RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION AS DESCRIPTION,\n" +
-            "   F.ID AS FILE_ID,\n" +
-            "   A.ID AS ATTR_ID,\n" +
-            "   A.ATTR_KEY AS ATTR_KEY,\n" +
-            "   A.ATTR_VALUE AS ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE AS R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "    )\n" +
-            "    LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
-            "        R.HAS_FILE = 1\n" +
-            "        AND F.RESOURCE_ID = R.ID\n" +
-            "    )\n" +
-            "WHERE\n" +
-            "   R.NAME = ?\n" +
-            "   AND R.TENANT_ID = ?\n" +
+    public static final String GET_RESOURCE_BY_NAME_MSSQL_WITHOUT_CREATED_TIME = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.LAST_MODIFIED," +
+            "   R.HAS_FILE," +
+            "   R.HAS_ATTRIBUTE," +
+            "   T.NAME AS RESOURCE_TYPE," +
+            "   T.DESCRIPTION AS DESCRIPTION," +
+            "   F.ID AS FILE_ID," +
+            "   A.ID AS ATTR_ID," +
+            "   A.ATTR_KEY AS ATTR_KEY," +
+            "   A.ATTR_VALUE AS ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE AS R" +
+            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "    )" +
+            "    LEFT JOIN IDN_CONFIG_FILE AS F ON (" +
+            "        R.HAS_FILE = 1" +
+            "        AND F.RESOURCE_ID = R.ID" +
+            "    )" +
+            "WHERE" +
+            "   R.NAME = ?" +
+            "   AND R.TENANT_ID = ?" +
             "   AND R.TYPE_ID = ?";
-    public static final String GET_RESOURCE_BY_NAME_ORACLE_WITHOUT_CREATED_TIME = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   R.HAS_FILE,\n" +
-            "   R.HAS_ATTRIBUTE,\n" +
-            "   T.NAME RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION DESCRIPTION,\n" +
-            "   F.ID FILE_ID,\n" +
-            "   A.ID ATTR_ID,\n" +
-            "   A.ATTR_KEY ATTR_KEY,\n" +
-            "   A.ATTR_VALUE ATTR_VALUE\n" +
-            "FROM\n" +
-            "    IDN_CONFIG_RESOURCE R\n" +
-            "    INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID\n" +
-            "    LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "    )\n" +
-            "    LEFT JOIN IDN_CONFIG_FILE F ON (\n" +
-            "       R.HAS_FILE = 1\n" +
-            "       AND F.RESOURCE_ID = R.ID\n" +
-            "    )\n" +
-            "WHERE\n" +
-            "   R.NAME = ?\n" +
-            "   AND R.TENANT_ID = ?\n" +
+    public static final String GET_RESOURCE_BY_NAME_ORACLE_WITHOUT_CREATED_TIME = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.LAST_MODIFIED," +
+            "   R.HAS_FILE," +
+            "   R.HAS_ATTRIBUTE," +
+            "   T.NAME RESOURCE_TYPE," +
+            "   T.DESCRIPTION DESCRIPTION," +
+            "   F.ID FILE_ID," +
+            "   A.ID ATTR_ID," +
+            "   A.ATTR_KEY ATTR_KEY," +
+            "   A.ATTR_VALUE ATTR_VALUE" +
+            "FROM" +
+            "    IDN_CONFIG_RESOURCE R" +
+            "    INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
+            "    LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "    )" +
+            "    LEFT JOIN IDN_CONFIG_FILE F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "    )" +
+            "WHERE" +
+            "   R.NAME = ?" +
+            "   AND R.TENANT_ID = ?" +
             "   AND R.TYPE_ID = ?";
     public static final String GET_RESOURCE_BY_ID_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
@@ -409,60 +409,60 @@ public class SQLConstants {
             "  )\n" +
             "WHERE\n" +
             "  R.ID = ?\n";
-    public static final String GET_RESOURCE_BY_ID_MSSQL = "SELECT\\n\" +\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.CREATED_TIME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   R.HAS_FILE,\n" +
-            "   R.HAS_ATTRIBUTE,\n" +
-            "   T.NAME AS RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION AS DESCRIPTION,\n" +
-            "   F.ID AS FILE_ID,\n" +
-            "   A.ID AS ATTR_ID,\n" +
-            "   A.ATTR_KEY AS ATTR_KEY,\n" +
-            "   A.ATTR_VALUE AS ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE AS R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
-            "       R.HAS_FILE = 1\n" +
-            "       AND F.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "WHERE\n" +
-            "   R.ID = ?\n";
-    public static final String GET_RESOURCE_BY_ID_ORACLE = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.CREATED_TIME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   R.HAS_FILE,\n" +
-            "   R.HAS_ATTRIBUTE,\n" +
-            "   T.NAME RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION DESCRIPTION,\n" +
-            "   F.ID FILE_ID,\n" +
-            "   A.ID ATTR_ID,\n" +
-            "   A.ATTR_KEY ATTR_KEY,\n" +
-            "   A.ATTR_VALUE ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "   LEFT JOIN IDN_CONFIG_FILE F ON (\n" +
-            "        R.HAS_FILE = 1\n" +
-            "        AND F.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "WHERE\n" +
-            "   R.ID = ?\n";
+    public static final String GET_RESOURCE_BY_ID_MSSQL = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.CREATED_TIME," +
+            "   R.LAST_MODIFIED," +
+            "   R.HAS_FILE," +
+            "   R.HAS_ATTRIBUTE," +
+            "   T.NAME AS RESOURCE_TYPE," +
+            "   T.DESCRIPTION AS DESCRIPTION," +
+            "   F.ID AS FILE_ID," +
+            "   A.ID AS ATTR_ID," +
+            "   A.ATTR_KEY AS ATTR_KEY," +
+            "   A.ATTR_VALUE AS ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE AS R" +
+            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "   )" +
+            "WHERE" +
+            "   R.ID = ?";
+    public static final String GET_RESOURCE_BY_ID_ORACLE = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.CREATED_TIME," +
+            "   R.LAST_MODIFIED," +
+            "   R.HAS_FILE," +
+            "   R.HAS_ATTRIBUTE," +
+            "   T.NAME RESOURCE_TYPE," +
+            "   T.DESCRIPTION DESCRIPTION," +
+            "   F.ID FILE_ID," +
+            "   A.ID ATTR_ID," +
+            "   A.ATTR_KEY ATTR_KEY," +
+            "   A.ATTR_VALUE ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE R" +
+            "   INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE F ON (" +
+            "        R.HAS_FILE = 1" +
+            "        AND F.RESOURCE_ID = R.ID" +
+            "   )" +
+            "WHERE" +
+            "   R.ID = ?";
     public static final String GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -489,58 +489,58 @@ public class SQLConstants {
             "  )\n" +
             "WHERE\n" +
             "  R.ID = ?\n";
-    public static final String GET_RESOURCE_BY_ID_MSSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   R.HAS_FILE,\n" +
-            "   R.HAS_ATTRIBUTE,\n" +
-            "   T.NAME AS RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION AS DESCRIPTION,\n" +
-            "   F.ID AS FILE_ID,\n" +
-            "   A.ID AS ATTR_ID,\n" +
-            "   A.ATTR_KEY AS ATTR_KEY,\n" +
-            "   A.ATTR_VALUE AS ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE AS R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
-            "       R.HAS_FILE = 1\n" +
-            "       AND F.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "WHERE\n" +
-            "   R.ID = ?\n";
-    public static final String GET_RESOURCE_BY_ID_ORACLE_WITHOUT_CREATED_TIME = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   R.HAS_FILE,\n" +
-            "   R.HAS_ATTRIBUTE,\n" +
-            "   T.NAME  RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION  DESCRIPTION,\n" +
-            "   F.ID  FILE_ID,\n" +
-            "   A.ID  ATTR_ID,\n" +
-            "   A.ATTR_KEY  ATTR_KEY,\n" +
-            "   A.ATTR_VALUE  ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE  R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE  T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE  A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "   LEFT JOIN IDN_CONFIG_FILE  F ON (\n" +
-            "       R.HAS_FILE = 1\n" +
-            "       AND F.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "WHERE\n" +
-            "   R.ID = ?\n";
+    public static final String GET_RESOURCE_BY_ID_MSSQL_WITHOUT_CREATED_TIME = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.LAST_MODIFIED," +
+            "   R.HAS_FILE," +
+            "   R.HAS_ATTRIBUTE," +
+            "   T.NAME AS RESOURCE_TYPE," +
+            "   T.DESCRIPTION AS DESCRIPTION," +
+            "   F.ID AS FILE_ID," +
+            "   A.ID AS ATTR_ID," +
+            "   A.ATTR_KEY AS ATTR_KEY," +
+            "   A.ATTR_VALUE AS ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE AS R" +
+            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "   )" +
+            "WHERE" +
+            "   R.ID = ?";
+    public static final String GET_RESOURCE_BY_ID_ORACLE_WITHOUT_CREATED_TIME = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.LAST_MODIFIED," +
+            "   R.HAS_FILE," +
+            "   R.HAS_ATTRIBUTE," +
+            "   T.NAME  RESOURCE_TYPE," +
+            "   T.DESCRIPTION  DESCRIPTION," +
+            "   F.ID  FILE_ID," +
+            "   A.ID  ATTR_ID," +
+            "   A.ATTR_KEY  ATTR_KEY," +
+            "   A.ATTR_VALUE  ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE  R" +
+            "   INNER JOIN IDN_CONFIG_TYPE  T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE  A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE  F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "   )" +
+            "WHERE" +
+            "   R.ID = ?";
     public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -564,52 +564,51 @@ public class SQLConstants {
             "    R.HAS_FILE = TRUE\n" +
             "    AND F.RESOURCE_ID = R.ID\n" +
             "  )\n";
-    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MSSQL = "SELECT\\n\" +\n" +
-            "            \"  R.ID,\\n\" +\n" +
-            "            \"  R.TENANT_ID,\\n\" +\n" +
-            "            \"  R.NAME,\\n\" +\n" +
-            "  R.CREATED_TIME,\n" +
-            "            \"  R.LAST_MODIFIED,\\n\" +\n" +
-            "            \"  T.NAME AS RESOURCE_TYPE,\\n\" +\n" +
-            "            \"  T.DESCRIPTION AS DESCRIPTION,\\n\" +\n" +
-            "            \"  F.ID AS FILE_ID,\\n\" +\n" +
-            "            \"  A.ID AS ATTR_ID,\\n\" +\n" +
-            "            \"  A.ATTR_KEY AS ATTR_KEY,\\n\" +\n" +
-            "            \"  A.ATTR_VALUE AS ATTR_VALUE\\n\" +\n" +
-            "            \"FROM\\n\" +\n" +
-            "            \"  IDN_CONFIG_RESOURCE AS R\\n\" +\n" +
-            "            \"  INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\\n\" +\n" +
-            "            \"  LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\\n\" +\n" +
-            "            \"    R.HAS_ATTRIBUTE = 1\\n\" +\n" +
-            "            \"    AND A.RESOURCE_ID = R.ID\\n\" +\n" +
-            "            \"  )\\n\" +\n" +
-            "            \"  LEFT JOIN IDN_CONFIG_FILE AS F ON (\\n\" +\n" +
-            "            \"    R.HAS_FILE = 1\\n\" +\n" +
-            "            \"    AND F.RESOURCE_ID = R.ID\\n\" +\n" +
-            "            \"  )\\n\"";
-    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_ORACLE = "SELECT\\n\" +\n" +
-            "            \"  R.ID,\\n\" +\n" +
-            "            \"  R.TENANT_ID,\\n\" +\n" +
-            "            \"  R.NAME,\\n\" +\n" +
-            "  R.CREATED_TIME,\n" +
-            "            \"  R.LAST_MODIFIED,\\n\" +\n" +
-            "            \"  T.NAME  RESOURCE_TYPE,\\n\" +\n" +
-            "            \"  T.DESCRIPTION  DESCRIPTION,\\n\" +\n" +
-            "            \"  F.ID  FILE_ID,\\n\" +\n" +
-            "            \"  A.ID  ATTR_ID,\\n\" +\n" +
-            "            \"  A.ATTR_KEY  ATTR_KEY,\\n\" +\n" +
-            "            \"  A.ATTR_VALUE  ATTR_VALUE\\n\" +\n" +
-            "            \"FROM\\n\" +\n" +
-            "            \"  IDN_CONFIG_RESOURCE  R\\n\" +\n" +
-            "            \"  INNER JOIN IDN_CONFIG_TYPE  T ON R.TYPE_ID = T.ID\\n\" +\n" +
-            "            \"  LEFT JOIN IDN_CONFIG_ATTRIBUTE  A ON (\\n\" +\n" +
-            "            \"    R.HAS_ATTRIBUTE = 1\\n\" +\n" +
-            "            \"    AND A.RESOURCE_ID = R.ID\\n\" +\n" +
-            "            \"  )\\n\" +\n" +
-            "            \"  LEFT JOIN IDN_CONFIG_FILE  F ON (\\n\" +\n" +
-            "            \"    R.HAS_FILE = 1\\n\" +\n" +
-            "            \"    AND F.RESOURCE_ID = R.ID\\n\" +\n" +
-            "            \"  )\\n\"";
+    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MSSQL = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.CREATED_TIME," +
+            "   R.LAST_MODIFIED," +
+            "   T.NAME AS RESOURCE_TYPE," +
+            "   T.DESCRIPTION AS DESCRIPTION," +
+            "   F.ID AS FILE_ID," +
+            "   A.ATTR_KEY AS ATTR_KEY," +
+            "   A.ATTR_VALUE AS ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE AS R" +
+            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "    )";
+    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_ORACLE = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.CREATED_TIME," +
+            "   R.LAST_MODIFIED," +
+            "   T.NAME  RESOURCE_TYPE," +
+            "   T.DESCRIPTION  DESCRIPTION," +
+            "   F.ID  FILE_ID," +
+            "   A.ID  ATTR_ID," +
+            "   A.ATTR_KEY  ATTR_KEY," +
+            "   A.ATTR_VALUE  ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE  R" +
+            "   INNER JOIN IDN_CONFIG_TYPE  T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE  A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE  F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "   )";
     public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
             "  R.ID,\n" +
             "  R.TENANT_ID,\n" +
@@ -632,50 +631,50 @@ public class SQLConstants {
             "    R.HAS_FILE = TRUE\n" +
             "    AND F.RESOURCE_ID = R.ID\n" +
             "  )\n";
-    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MSSQL_WITHOUT_CREATED_TIME = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   T.NAME AS RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION AS DESCRIPTION,\n" +
-            "   F.ID AS FILE_ID,\n" +
-            "   A.ID AS ATTR_ID,\n" +
-            "   A.ATTR_KEY AS ATTR_KEY,\n" +
-            "   A.ATTR_VALUE AS ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE AS R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (\n" +
-            "       R.HAS_FILE = 1\n" +
-            "       AND F.RESOURCE_ID = R.ID\n" +
-            "   )\n";
-    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_ORACLE_WITHOUT_CREATED_TIME = "SELECT\n" +
-            "   R.ID,\n" +
-            "   R.TENANT_ID,\n" +
-            "   R.NAME,\n" +
-            "   R.LAST_MODIFIED,\n" +
-            "   T.NAME  RESOURCE_TYPE,\n" +
-            "   T.DESCRIPTION  DESCRIPTION,\n" +
-            "   F.ID  FILE_ID,\n" +
-            "   A.ID  ATTR_ID,\n" +
-            "   A.ATTR_KEY  ATTR_KEY,\n" +
-            "   A.ATTR_VALUE  ATTR_VALUE\n" +
-            "FROM\n" +
-            "   IDN_CONFIG_RESOURCE  R\n" +
-            "   INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID\n" +
-            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE  A ON (\n" +
-            "       R.HAS_ATTRIBUTE = 1\n" +
-            "       AND A.RESOURCE_ID = R.ID\n" +
-            "   )\n" +
-            "   LEFT JOIN IDN_CONFIG_FILE F ON (\n" +
-            "       R.HAS_FILE = 1\n" +
-            "       AND F.RESOURCE_ID = R.ID\n" +
-            "   )\n";
+    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_MSSQL_WITHOUT_CREATED_TIME = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.LAST_MODIFIED," +
+            "   T.NAME AS RESOURCE_TYPE," +
+            "   T.DESCRIPTION AS DESCRIPTION," +
+            "   F.ID AS FILE_ID," +
+            "   A.ID AS ATTR_ID," +
+            "   A.ATTR_KEY AS ATTR_KEY," +
+            "   A.ATTR_VALUE AS ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE AS R" +
+            "   INNER JOIN IDN_CONFIG_TYPE AS T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE AS A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE AS F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "   )";
+    public static final String GET_TENANT_RESOURCES_SELECT_COLUMNS_ORACLE_WITHOUT_CREATED_TIME = "SELECT" +
+            "   R.ID," +
+            "   R.TENANT_ID," +
+            "   R.NAME," +
+            "   R.LAST_MODIFIED," +
+            "   T.NAME  RESOURCE_TYPE," +
+            "   T.DESCRIPTION  DESCRIPTION," +
+            "   F.ID  FILE_ID," +
+            "   A.ID  ATTR_ID," +
+            "   A.ATTR_KEY  ATTR_KEY," +
+            "   A.ATTR_VALUE  ATTR_VALUE" +
+            "FROM" +
+            "   IDN_CONFIG_RESOURCE  R" +
+            "   INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
+            "   LEFT JOIN IDN_CONFIG_ATTRIBUTE  A ON (" +
+            "       R.HAS_ATTRIBUTE = 1" +
+            "       AND A.RESOURCE_ID = R.ID" +
+            "   )" +
+            "   LEFT JOIN IDN_CONFIG_FILE F ON (" +
+            "       R.HAS_FILE = 1" +
+            "       AND F.RESOURCE_ID = R.ID" +
+            "   )";
     public static final String GET_RESOURCE_CREATED_TIME_BY_NAME_SQL = "SELECT\n" +
             "  CREATED_TIME\n" +
             "FROM\n" +
