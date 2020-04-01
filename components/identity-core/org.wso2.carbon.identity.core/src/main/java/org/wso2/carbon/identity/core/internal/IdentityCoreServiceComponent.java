@@ -32,6 +32,7 @@ import org.wso2.carbon.base.api.ServerConfigurationService;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.DefaultURLResolverService;
+import org.wso2.carbon.identity.core.ServiceURLBuilderFactory;
 import org.wso2.carbon.identity.core.URLResolverService;
 import org.wso2.carbon.identity.core.migrate.MigrationClient;
 import org.wso2.carbon.identity.core.migrate.MigrationClientException;
@@ -62,6 +63,7 @@ public class IdentityCoreServiceComponent {
     private static BundleContext bundleContext = null;
     private static ConfigurationContextService configurationContextService = null;
     private static URLResolverService urlResolverService = new DefaultURLResolverService();
+    private static ServiceURLBuilderFactory serviceURLBuilderFactory = new ServiceURLBuilderFactory();
     private ServiceRegistration<KeyProviderService> defaultKeystoreManagerServiceRef;
     private DefaultKeystoreManagerExtension defaultKeystoreManagerExtension = new DefaultKeystoreManagerExtension();
     private DefaultKeyProviderService defaultKeyProviderService;
@@ -347,5 +349,35 @@ public class IdentityCoreServiceComponent {
     public static URLResolverService getURLResolverService() {
 
         return urlResolverService;
+    }
+
+    @Reference(
+            name = "url.builder.factory",
+            service = ServiceURLBuilderFactory.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetServiceURLBuilderFactory"
+    )
+    protected void setServiceURLBuilderFactory(ServiceURLBuilderFactory serviceURLBuilderFactory) {
+
+        IdentityCoreServiceComponent.serviceURLBuilderFactory = serviceURLBuilderFactory;
+        if (log.isDebugEnabled()) {
+            log.debug("ServiceURLBuilderFactory service set to: " + IdentityCoreServiceComponent.serviceURLBuilderFactory
+                    .getClass().getName());
+        }
+    }
+
+    protected void unsetServiceURLBuilderFactory(ServiceURLBuilderFactory serviceURLBuilderFactory) {
+
+        IdentityCoreServiceComponent.serviceURLBuilderFactory = new ServiceURLBuilderFactory();
+        if (log.isDebugEnabled()) {
+            log.debug("ServiceURLBuilderFactory service reverted to: " + IdentityCoreServiceComponent.serviceURLBuilderFactory
+                    .getClass().getName());
+        }
+    }
+
+    public static ServiceURLBuilderFactory getServiceURLBuilderFactory() {
+
+        return serviceURLBuilderFactory;
     }
 }

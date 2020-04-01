@@ -362,16 +362,43 @@ public class IdentityUtil {
      * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
      * required) when provided with a URL context.
      *
-     * @param urlContext          URL context.
+     * @param endpoint            Endpoint.
      * @param addProxyContextPath Add proxy context path to the URL.
      * @param addWebContextRoot   Add web context path to the URL.
      * @return Complete URL for the given URL context.
      * @throws IdentityRuntimeException If error occurred while constructing the URL
      */
-    public static String getServerURL(String urlContext, boolean addProxyContextPath, boolean addWebContextRoot)
+    public static String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
 
-        return getServerURL(urlContext, addProxyContextPath, addWebContextRoot, false, false);
+        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+
+        try {
+            if (hostName == null) {
+                hostName = NetworkUtils.getLocalHostname();
+            }
+        } catch (SocketException e) {
+            throw IdentityRuntimeException.error("Error while trying to read hostname.", e);
+        }
+
+        String mgtTransport = CarbonUtils.getManagementTransport();
+        AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
+                getServerConfigContext().getAxisConfiguration();
+        int mgtTransportPort = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
+        if (mgtTransportPort <= 0) {
+            mgtTransportPort = CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
+        }
+        if (hostName.endsWith("/")) {
+            hostName = hostName.substring(0, hostName.length() - 1);
+        }
+        StringBuilder serverUrl = new StringBuilder(mgtTransport).append("://").append(hostName.toLowerCase());
+        // If it's well known HTTPS port, skip adding port
+        if (mgtTransportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
+            serverUrl.append(":").append(mgtTransportPort);
+        }
+
+        appendContextToUri(endpoint, addProxyContextPath, addWebContextRoot, serverUrl);
+        return serverUrl.toString();
     }
 
     /**
