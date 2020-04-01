@@ -601,7 +601,7 @@
             <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
             {% endif %}
             <!-- Add userstore domain to 'realm' claim of ID Token-->
-            % if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
+            {% if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
             <AddUserstoreDomainToIdToken>{{oauth.oidc.id_token.add_userstore_domain_to_realm}}</AddUserstoreDomainToIdToken>
             {% else %}
             <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
