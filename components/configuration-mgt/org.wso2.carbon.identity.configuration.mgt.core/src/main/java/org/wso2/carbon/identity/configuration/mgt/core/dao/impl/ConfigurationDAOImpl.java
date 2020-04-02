@@ -673,7 +673,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                     preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                 }
                             } catch (DataAccessException e) {
-                                throw new RuntimeException(e);
+                                throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                             }
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
                         }, resource, false);
@@ -973,7 +973,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                     preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                 }
                             } catch (DataAccessException e) {
-                                throw new RuntimeException(e);
+                                throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                             }
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
                         }, resource, false)
@@ -1034,7 +1034,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                     }
                                 } catch (DataAccessException e) {
-                                    throw new RuntimeException(e);
+                                    throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                                 }
                                 preparedStatement.setString(++initialParameterIndex, resourceTypeId);
                             }, resource, false)
@@ -1059,7 +1059,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                     }
                 } catch (DataAccessException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                 }
                 preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
             });
@@ -1343,7 +1343,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement.setBoolean(1, true);
                         }
                     } catch (DataAccessException e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                     }
                     preparedStatement.setString(2, resourceId);
                 });
@@ -1409,7 +1409,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 preparedStatement.setBoolean(1, false);
                             }
                         } catch (DataAccessException e) {
-                            throw new RuntimeException(e);
+                            throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                         }
                         preparedStatement.setString(2, resourceId);
                     });
@@ -1494,7 +1494,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement.setBoolean(1, false);
                         }
                     } catch (DataAccessException e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException("Error occurred while checking the DB metadata.", e);
                     }
                     preparedStatement.setString(2, resourceId);
                 });
