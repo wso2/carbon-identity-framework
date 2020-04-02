@@ -32,6 +32,8 @@ import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 
@@ -171,46 +173,81 @@ public class ConfigurationFacade {
     }
 
     public String getAuthenticationEndpointURL() {
-        String authenticationEndpointURL = FileBasedConfigurationBuilder.getInstance().getAuthenticationEndpointURL();
-        if (StringUtils.isBlank(authenticationEndpointURL)) {
-            authenticationEndpointURL = "/authenticationendpoint/login.do";
+        String authenticationEndpointURL = "/authenticationendpoint/login.do";
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            authenticationEndpointURL = IdentityUtil.getServerURL(authenticationEndpointURL, false,
+                    false);
+        } else {
+            String authenticationEndpointURLInFile = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthenticationEndpointURL();
+            if (StringUtils.isNotBlank(authenticationEndpointURLInFile)) {
+                authenticationEndpointURL = authenticationEndpointURLInFile;
+            }
         }
+
         return authenticationEndpointURL;
     }
 
     public String getAuthenticationEndpointRetryURL() {
-        String authenticationEndpointRetryURL = FileBasedConfigurationBuilder.getInstance()
-                .getAuthenticationEndpointRetryURL();
-        if (StringUtils.isBlank(authenticationEndpointRetryURL)) {
-            authenticationEndpointRetryURL = "/authenticationendpoint/retry.do";
-        }
-        return authenticationEndpointRetryURL;
+            String authenticationEndpointRetryURL = "/authenticationendpoint/retry.do";
+            if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                authenticationEndpointRetryURL = IdentityUtil.getServerURL(authenticationEndpointRetryURL, false, false);
+            } else {
+                String authenticationEndpointRetryURLInFile = FileBasedConfigurationBuilder.getInstance()
+                        .getAuthenticationEndpointRetryURL();
+                if (StringUtils.isNotBlank(authenticationEndpointRetryURLInFile)) {
+                    authenticationEndpointRetryURL = authenticationEndpointRetryURLInFile;
+                }
+            }
+
+            return authenticationEndpointRetryURL;
     }
 
     public String getAuthenticationEndpointWaitURL() {
-        String authenticationEndpointWaitURL = FileBasedConfigurationBuilder.getInstance()
-                .getAuthenticationEndpointWaitURL();
-        if (StringUtils.isBlank(authenticationEndpointWaitURL)) {
-            authenticationEndpointWaitURL = "/authenticationendpoint/wait.do";
+        String authenticationEndpointWaitURL = "/authenticationendpoint/wait.do";
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            authenticationEndpointWaitURL = IdentityUtil.getServerURL(authenticationEndpointWaitURL, false,
+                    false);
+        } else {
+            String authenticationEndpointWaitURLInFile = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthenticationEndpointWaitURL();
+            if (StringUtils.isNotBlank(authenticationEndpointWaitURLInFile)) {
+                authenticationEndpointWaitURL = authenticationEndpointWaitURLInFile;
+            }
         }
+
         return authenticationEndpointWaitURL;
     }
 
     public String getIdentifierFirstConfirmationURL() {
-        String identifierFirstConfirmationURL = FileBasedConfigurationBuilder.getInstance()
-                .getIdentifierFirstConfirmationURL();
-        if (StringUtils.isBlank(identifierFirstConfirmationURL)) {
-            identifierFirstConfirmationURL = "/authenticationendpoint/idf-confirm.do";
+        String identifierFirstConfirmationURL = "/authenticationendpoint/idf-confirm.do";
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            identifierFirstConfirmationURL = IdentityUtil.getServerURL(identifierFirstConfirmationURL, false,
+                    false);
+        } else {
+            String identifierFirstConfirmationURLInFile = FileBasedConfigurationBuilder.getInstance()
+                    .getIdentifierFirstConfirmationURL();
+            if (StringUtils.isNotBlank(identifierFirstConfirmationURLInFile)) {
+                identifierFirstConfirmationURL = identifierFirstConfirmationURLInFile;
+            }
         }
+
         return identifierFirstConfirmationURL;
     }
 
     public String getAuthenticationEndpointPromptURL() {
-        String authenticationEndpointPromptURL = FileBasedConfigurationBuilder.getInstance()
-                .getAuthenticationEndpointPromptURL();
-        if (StringUtils.isBlank(authenticationEndpointPromptURL)) {
-            authenticationEndpointPromptURL = "/authenticationendpoint/dynamic_prompt.do";
+        String authenticationEndpointPromptURL = "/authenticationendpoint/dynamic_prompt.do";
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            authenticationEndpointPromptURL = IdentityUtil.getServerURL(authenticationEndpointPromptURL, false,
+                    false);
+        } else {
+            String authenticationEndpointPromptURLInFile = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthenticationEndpointPromptURL();
+            if (StringUtils.isNotBlank(authenticationEndpointPromptURLInFile)) {
+                authenticationEndpointPromptURL = authenticationEndpointPromptURLInFile;
+            }
         }
+
         return authenticationEndpointPromptURL;
     }
 
@@ -219,14 +256,21 @@ public class ConfigurationFacade {
      * @return claims request URL
      */
     public String getAuthenticationEndpointMissingClaimsURL() {
-
-        String authenticationEndpointMissingClaimsURL = FileBasedConfigurationBuilder.getInstance()
-                .getAuthenticationEndpointMissingClaimsURL();
-        if (StringUtils.isBlank(authenticationEndpointMissingClaimsURL)) {
-            authenticationEndpointMissingClaimsURL = "/authenticationendpoint/claims.do";
+        String authenticationEndpointMissingClaimsURL = "/authenticationendpoint/claims.do";
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            authenticationEndpointMissingClaimsURL = IdentityUtil.getServerURL(authenticationEndpointMissingClaimsURL, false,
+                    false);
+        } else {
+            String authenticationEndpointMissingClaimsURLInFile = FileBasedConfigurationBuilder.getInstance()
+                    .getAuthenticationEndpointMissingClaimsURL();
+            if (StringUtils.isNotBlank(authenticationEndpointMissingClaimsURLInFile)) {
+                authenticationEndpointMissingClaimsURL = authenticationEndpointMissingClaimsURLInFile;
+            }
         }
+
         return authenticationEndpointMissingClaimsURL;
     }
+
     /**
      * Get the tenant list receiving urls
      *
