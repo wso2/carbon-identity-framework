@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -301,6 +302,13 @@ public class TemplateManagerImpl implements TemplateManager {
                 return new ResourceToTemplate().apply(resource);
             }).collect(Collectors.toList());
         } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e
+                    .getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Template type : '" + templateType + "' has not been created in the database.", e);
+                }
+                return Collections.emptyList();
+            }
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_LIST_TEMPLATES, e, templateType,
                     getTenantDomainFromCarbonContext());
         }
