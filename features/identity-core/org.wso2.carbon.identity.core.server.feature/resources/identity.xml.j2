@@ -601,7 +601,7 @@
             <AddTenantDomainToIdToken>false</AddTenantDomainToIdToken>
             {% endif %}
             <!-- Add userstore domain to 'realm' claim of ID Token-->
-            % if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
+            {% if oauth.oidc.id_token.add_userstore_domain_to_realm is defined %}
             <AddUserstoreDomainToIdToken>{{oauth.oidc.id_token.add_userstore_domain_to_realm}}</AddUserstoreDomainToIdToken>
             {% else %}
             <AddUserstoreDomainToIdToken>false</AddUserstoreDomainToIdToken>
@@ -1901,6 +1901,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -1912,6 +1913,8 @@
     Would not affect associations done through provisioning
     -->
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
+
+    <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
 
     <TenantContextsToRewrite>
         <WebApp>

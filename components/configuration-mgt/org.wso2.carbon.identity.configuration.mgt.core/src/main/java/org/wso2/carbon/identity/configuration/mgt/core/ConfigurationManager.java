@@ -218,6 +218,16 @@ public interface ConfigurationManager {
             throws ConfigurationManagementException;
 
     /**
+     * This API is used to get all files for the given {@link ResourceType}
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @return 200 ok. Returns a list of {@link ResourceFile} for the {@link ResourceType}.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    List<ResourceFile> getFiles(String resourceTypeName, int tenantId)
+            throws ConfigurationManagementException;
+
+    /**
      * This API is used to delete all files for the given {@link Resource}
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
@@ -233,7 +243,7 @@ public interface ConfigurationManager {
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
-     * @param fileId Id representing the file.
+     * @param fileId       Id representing the file.
      * @return 200 ok. Returns {@link InputStream} of the file requested.
      * @throws ConfigurationManagementException Resource management exception.
      */
@@ -245,11 +255,35 @@ public interface ConfigurationManager {
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
-     * @param fileId Id representing the file.
+     * @param fileId       Id representing the file.
      * @return 200 ok.
      * @throws ConfigurationManagementException Resource management exception.
      */
     void deleteFileById(String resourceType, String resourceName, String fileId)
             throws ConfigurationManagementException;
 
+    /**
+     * This function is used to get a resource by the resource id.
+     *
+     * @param resourceId Id representing the resource.
+     * @return the resource object corresponding to the resource id.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    Resource getTenantResourceById(String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * This function is used to delete the given resource id.
+     *
+     * @param resourceId Request to delete the {@link Resource}.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    void deleteResourceById(String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * This function is used to replace a given resource along with all its file.
+     *
+     * @param resource resource object.
+     * @throws ConfigurationManagementException Configuration management exception.
+     */
+    void replaceResource(Resource resource) throws ConfigurationManagementException;
 }

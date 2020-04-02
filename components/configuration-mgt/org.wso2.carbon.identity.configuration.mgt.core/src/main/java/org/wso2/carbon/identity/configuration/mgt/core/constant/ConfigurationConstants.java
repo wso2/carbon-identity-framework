@@ -122,7 +122,10 @@ public class ConfigurationConstants {
         ERROR_CODE_FILE_DOES_NOT_EXISTS("CONFIGM_00043", "File with the id: %s does not exists."),
         ERROR_CODE_FILES_DOES_NOT_EXISTS("CONFIGM_00044", "Resource: %s does not contain any files."),
         ERROR_CODE_FILE_IDENTIFIERS_REQUIRED("CONFIGM_00045", "File identifier validation failed for " +
-                "one or more file identifiers in: %s.");
+                "one or more file identifiers in: %s."),
+        ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS("CONFIGM_00046", "Resource with the id: %s does not exists."),
+        ERROR_CODE_INVALID_RESOURCE_ID("CONFIGM_00047", "Invalid resource id: %s."),
+        ERROR_CODE_DELETE_RESOURCE("CONFIGM_00048", "Error while deleting the resource: %s.");
 
         private final String code;
         private final String message;

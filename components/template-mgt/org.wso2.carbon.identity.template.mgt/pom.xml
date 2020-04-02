@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>template-mgt</artifactId>
-        <version>5.17.5</version>
+        <version>5.17.22</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -42,7 +42,8 @@
                         <private-package>org.wso2.carbon.identity.template.mgt.internal</private-package>
                         <Export-Package>
                             !org.wso2.carbon.identity.template.mgt.internal,
-                            org.wso2.carbon.identity.template.mgt.*; version="${carbon.identity.package.export.version}",
+                            org.wso2.carbon.identity.template.mgt.*;
+                            version="${carbon.identity.package.export.version}",
                         </Export-Package>
                         <Import-Package>
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
@@ -156,7 +157,10 @@
             <groupId>org.wso2.carbon.utils</groupId>
             <artifactId>org.wso2.carbon.database.utils</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.configuration.mgt.core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.ops4j.pax.logging</groupId>
             <artifactId>pax-logging-api</artifactId>
