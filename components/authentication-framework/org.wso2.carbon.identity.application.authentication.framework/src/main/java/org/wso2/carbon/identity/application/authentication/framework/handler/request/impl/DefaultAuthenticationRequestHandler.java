@@ -777,7 +777,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (StringUtils.isNotEmpty(rememberMeParam)) {
                 queryParamsString += "&" + rememberMeParam;
             }
-            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
+            String absoluteCallerPath = IdentityUtil.getServerURL(commonauthCallerPath, true, true);
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(absoluteCallerPath, queryParamsString);
 
             response.sendRedirect(redirectURL);
         } catch (IOException e) {
