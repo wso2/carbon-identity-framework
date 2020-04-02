@@ -642,6 +642,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
 
@@ -664,16 +665,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             not create files. It is allowed to create a resource without files or attributes in order
                             to allow file upload after resource creation.
                             */
-                            try {
-                                if (isOracleDB() || isMSSqlDB()) {
-                                    preparedStatement.setInt(++initialParameterIndex, 0);
-                                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
-                                } else {
-                                    preparedStatement.setBoolean(++initialParameterIndex, false);
-                                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                                }
-                            } catch (DataAccessException e) {
-                                throw new RuntimeException("Error occurred while checking the DB metadata.", e);
+                            if (isOracleOrMssql) {
+                                preparedStatement.setInt(++initialParameterIndex, 0);
+                                preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                            } else {
+                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                             }
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
                         }, resource, false);
@@ -690,6 +687,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             }
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_ADD_RESOURCE, resource.getResourceName(), e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -938,51 +937,49 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             } else if (isOracleDB()) {
                 query = INSERT_OR_UPDATE_RESOURCE_ORACLE;
             }
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
-        }
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        final String finalQuery = query;
-        jdbcTemplate.withTransaction(template ->
-                template.executeInsert(
-                        useCreatedTime ? finalQuery :
-                                INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
-                        preparedStatement -> {
-                            int initialParameterIndex = 1;
-                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                            preparedStatement.setInt(++initialParameterIndex,
-                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                            .getTenantId());
-                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                            if (useCreatedTime) {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            final String finalQuery = query;
+            jdbcTemplate.withTransaction(template ->
+                    template.executeInsert(
+                            useCreatedTime ? finalQuery :
+                                    INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
+                            preparedStatement -> {
+                                int initialParameterIndex = 1;
+                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                preparedStatement.setInt(++initialParameterIndex,
+                                        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                                .getTenantId());
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                if (useCreatedTime) {
+                                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                }
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            }
-                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             /*
                             Resource files are uploaded using a separate endpoint. Therefore resource creation does
                             not create files. It is allowed to create a resource without files or attributes in order
                             to allow  file upload after resource creation.
                             */
-                            try {
-                                if (isOracleDB() || isMSSqlDB()) {
+
+                                if (isOracleOrMssql) {
                                     preparedStatement.setInt(++initialParameterIndex, 0);
                                     preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
                                 } else {
                                     preparedStatement.setBoolean(++initialParameterIndex, false);
                                     preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                 }
-                            } catch (DataAccessException e) {
-                                throw new RuntimeException("Error occurred while checking the DB metadata.", e);
-                            }
-                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                        }, resource, false)
-        );
+                                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                            }, resource, false)
+            );
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
     }
 
     private void updateMetadataForH2(Resource resource, String resourceTypeId, boolean isAttributeExists,
                                      Timestamp currentTime, boolean useCreatedTime)
-            throws TransactionException {
+            throws TransactionException, ConfigurationManagementServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         if (isResourceExists(resource, resourceTypeId)) {
@@ -1007,38 +1004,40 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     )
             );
         } else {
-            jdbcTemplate.withTransaction(template ->
-                    template.executeInsert(
-                            useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
-                            preparedStatement -> {
-                                int initialParameterIndex = 1;
-                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                                preparedStatement.setInt(++initialParameterIndex,
-                                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-                                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                                if (useCreatedTime) {
+            try {
+                boolean isOracleOrMsssql = isOracleDB() || isMSSqlDB();
+                jdbcTemplate.withTransaction(template ->
+                        template.executeInsert(
+                                useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
+                                preparedStatement -> {
+                                    int initialParameterIndex = 1;
+                                    preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                    preparedStatement.setInt(++initialParameterIndex,
+                                            PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                                    preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                    if (useCreatedTime) {
+                                        preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                    }
                                     preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                                }
-                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                                 /*
                                 Resource files are uploaded using a separate endpoint. Therefore resource creation
                                 does not create files. It is allowed to create a resource without files or attributes
                                 in order to allow file upload after resource creation.
                                 */
-                                try {
-                                    if (isOracleDB() || isMSSqlDB()) {
+
+                                    if (isOracleOrMsssql) {
                                         preparedStatement.setInt(++initialParameterIndex, 0);
                                         preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
                                     } else {
                                         preparedStatement.setBoolean(++initialParameterIndex, false);
                                         preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                     }
-                                } catch (DataAccessException e) {
-                                    throw new RuntimeException("Error occurred while checking the DB metadata.", e);
-                                }
-                                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                            }, resource, false)
-            );
+                                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                                }, resource, false)
+                );
+            } catch (DataAccessException e) {
+                throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+            }
         }
     }
 
@@ -1046,20 +1045,17 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             isFileExists, Timestamp currentTime) throws ConfigurationManagementClientException, DataAccessException {
 
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             template.executeUpdate(UPDATE_RESOURCE, preparedStatement -> {
                 int initialParameterIndex = 1;
                 preparedStatement.setString(initialParameterIndex, resource.getResourceName());
                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                try {
-                    if (isOracleDB() || isMSSqlDB()) {
-                        preparedStatement.setInt(++initialParameterIndex, isFileExists ? 1 : 0);
-                        preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
-                    } else {
-                        preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
-                        preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                    }
-                } catch (DataAccessException e) {
-                    throw new RuntimeException("Error occurred while checking the DB metadata.", e);
+                if (isOracleOrMssql) {
+                    preparedStatement.setInt(++initialParameterIndex, isFileExists ? 1 : 0);
+                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                } else {
+                    preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
+                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                 }
                 preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
             });
@@ -1328,6 +1324,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
@@ -1336,14 +1333,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     preparedStatement.setString(4, fileName);
                 });
                 template.executeUpdate(SQLConstants.UPDATE_HAS_FILE_SQL, preparedStatement -> {
-                    try {
-                        if (isOracleDB() || isMSSqlDB()) {
-                            preparedStatement.setInt(1, 1);
-                        } else {
-                            preparedStatement.setBoolean(1, true);
-                        }
-                    } catch (DataAccessException e) {
-                        throw new RuntimeException("Error occurred while checking the DB metadata.", e);
+                    if (isOracleOrMssql) {
+                        preparedStatement.setInt(1, 1);
+                    } else {
+                        preparedStatement.setBoolean(1, true);
                     }
                     preparedStatement.setString(2, resourceId);
                 });
@@ -1352,6 +1345,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_INSERT_FILE, fileId, e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -1383,6 +1378,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
 
                 // Get resource id for the deleting file.
@@ -1402,14 +1398,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         preparedStatement -> preparedStatement.setString(1, resourceId));
                 if (availableFilesForTheResource.isEmpty()) {
                     template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
-                        try {
-                            if (isOracleDB() || isMSSqlDB()) {
-                                preparedStatement.setInt(1, 0);
-                            } else {
-                                preparedStatement.setBoolean(1, false);
-                            }
-                        } catch (DataAccessException e) {
-                            throw new RuntimeException("Error occurred while checking the DB metadata.", e);
+                        if (isOracleOrMssql) {
+                            preparedStatement.setInt(1, 0);
+                        } else {
+                            preparedStatement.setBoolean(1, false);
                         }
                         preparedStatement.setString(2, resourceId);
                     });
@@ -1419,6 +1411,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_FILE, fileId, e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -1480,6 +1474,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
 
                 template.executeUpdate(DELETE_FILES_SQL, (
@@ -1487,14 +1482,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 ));
 
                 template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
-                    try {
-                        if (isOracleDB() || isMSSqlDB()) {
-                            preparedStatement.setInt(1, 0);
-                        } else {
-                            preparedStatement.setBoolean(1, false);
-                        }
-                    } catch (DataAccessException e) {
-                        throw new RuntimeException("Error occurred while checking the DB metadata.", e);
+                    if (isOracleOrMssql) {
+                        preparedStatement.setInt(1, 0);
+                    } else {
+                        preparedStatement.setBoolean(1, false);
                     }
                     preparedStatement.setString(2, resourceId);
                 });
@@ -1503,6 +1494,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_FILES, resourceId, e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
