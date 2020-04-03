@@ -429,7 +429,7 @@ function savePolicyXML() {
             var callURL = serviceBaseURL + "PolicyEditorService";
 
             new wso2.wsf.WSRequest(callURL, "savePolicyXML", body_xml, savePolicyXMLCallback);
-        } else if (callbackURL != "") {
+        } else {
             postbackUpdatedPolicy();
         }
     }
@@ -445,31 +445,11 @@ function savePolicyXMLCallback() {
  */
 function postbackUpdatedPolicy() {
     var formEl = document.getElementById("post-back-form");
-    
-    // Break down the call back URL into operation and parameters
-    var parts = callbackURL.split("?");
-    var endpoint = parts[0];
-    formEl.setAttribute("action", endpoint);
-
     var formContentHTML = formEl.innerHTML;
 
-    if (parts.length > 1) {
-        var params = parts[1].split("&");
-        if (params.length > 0) {
-            for (var x = 0; x < params.length; x++) {
-                // Break into key and value
-                var pair = params[x].split("=");
-                var key = pair[0];
-                var value = pair[1];
-
-                formContentHTML =
-                formContentHTML + '<input type="hidden" name="' + key + '" value="' + value + '"/>'
-            }
-        }
-    }
-
     formEl.innerHTML =
-    formContentHTML + '<input type="hidden" name="policy" id="policy-content"/>';
+        formContentHTML + '<input type="hidden" name="policy" id="policy-content"/>'
+        + '<input type="hidden" name="policyid" value="' + policyId + '"/>';
 
     YAHOO.util.Event.onDOMReady(function() {
         document.getElementById("policy-content").value = currentPolicyDoc.toString();
@@ -483,45 +463,12 @@ function postbackUpdatedPolicy() {
  *  
  */
 function goBack() {
-    var parts = callbackURL.split("?");
-    var backURL = parts[0] + "?";
-    var backUrlParams = "";
-
-    if (parts.length > 1) {
-        var params = parts[1].split("&");
-        if (params.length > 0) {
-            for (var x = 0; x < params.length; x++) {
-                // Break into key and value
-                var pair = params[x].split("=");
-                var key = pair[0];
-                var value = pair[1];
-
-                if ((key == "serviceName") && (value != "null")) {
-                    backUrlParams = key + "=" + value;
-                    break;
-                } else if ((key == "moduleName") && (value != "null")) {
-                    backURL = "../modulemgt/module_info.jsp?"
-                    if (backUrlParams != "") {
-                        backUrlParams = backUrlParams + "&" + key + "=" + value;
-                    } else {
-                        backUrlParams = key + "=" + value;
-                    }
-                } else if ((key == "moduleVersion") && (value != "null")) {
-                    backURL = "../modulemgt/module_info.jsp?"
-                    if (backUrlParams != "") {
-                        backUrlParams = backUrlParams + "&" + key + "=" + value;
-                    } else {
-                        backUrlParams = key + "=" + value;
-                    }
-                }
-            }
-        }
-    }
+    var redirectURL = document.getElementById("post-back-form").getAttribute("action");
 
     cleanBreadCrumb();
     
     // Redirecting to the url
-    location.href = backURL + backUrlParams;
+    location.href = redirectURL;
 }
 
 /**

@@ -82,9 +82,7 @@
         <input type="hidden" name="visited" id="visited">
         <textarea id="txtPolicy" rows="50" cols="50"><%=Encode.forHtmlContent(policy)%>
         </textarea>
-
-        <input type="hidden" name="callbackURL"
-               value="../entitlement/update-policy-submit.jsp?policyid=<%=Encode.forUriComponent(policyId)%>"/>
+        <input type="hidden" name="policyid" value="<%=Encode.forUriComponent(policyId)%>"/>
         <input type="hidden" name="<csrf:tokenname/>" value="<csrf:tokenvalue/>"/>
     </form>
 </div>
