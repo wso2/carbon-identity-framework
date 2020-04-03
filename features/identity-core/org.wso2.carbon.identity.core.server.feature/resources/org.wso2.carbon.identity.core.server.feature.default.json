@@ -441,7 +441,6 @@
     "/api/users/v2/me/webauthn",
     "/api/",
     "/user-portal/",
-    "/oauth2/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/"
   ],
@@ -449,7 +448,8 @@
     "/identity/(.*)",
     "(.*)/identity/metadata/saml2",
     "/commonauth(.*)",
-    "/logincontext(.*)"
+    "/logincontext(.*)",
+    "/oidc/"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/"
