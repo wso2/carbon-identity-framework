@@ -45,7 +45,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MSSQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_CREATED_TIME_COLUMN_ORACLE;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMSSqlDB;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isOracleDB;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of configuration management
@@ -157,6 +161,11 @@ public class ConfigurationManagerComponent {
              */
             String sql = GET_CREATED_TIME_COLUMN_MYSQL;
 
+            if (isMSSqlDB()) {
+                sql = GET_CREATED_TIME_COLUMN_MSSQL;
+            } else if (isOracleDB()) {
+                sql = GET_CREATED_TIME_COLUMN_ORACLE;
+            }
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
                  ResultSet resultSet = preparedStatement.executeQuery()) {
                 // Following statement will throw SQLException if the column is not found
@@ -166,7 +175,7 @@ public class ConfigurationManagerComponent {
             } catch (SQLException e) {
                 return false;
             }
-        } catch (IdentityRuntimeException | SQLException e) {
+        } catch (IdentityRuntimeException | SQLException | DataAccessException e) {
             return false;
         }
     }
