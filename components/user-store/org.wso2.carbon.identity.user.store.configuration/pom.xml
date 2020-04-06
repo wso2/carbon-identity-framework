@@ -123,7 +123,7 @@
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
                             org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
-                            org.apache.axiom.om
+                            org.apache.axiom.om; version="${axiom.osgi.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.store.configuration.internal,
