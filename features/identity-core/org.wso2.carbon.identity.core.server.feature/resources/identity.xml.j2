@@ -2044,4 +2044,10 @@
         <ShowDisplayName>{{user_filtering.show_display_name_of_user}}</ShowDisplayName>
     </UserFiltering>
 
+    <!-- Allowed Userstores -->
+        <AllowedUserstores>
+            {% for userstore in allowed_userstore %}
+            <AllowedUserstore>{{userstore.class}}</AllowedUserstore>
+            {% endfor %}
+        </AllowedUserstores>
 </Server>
