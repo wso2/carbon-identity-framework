@@ -17,6 +17,10 @@
  */
 package org.wso2.carbon.identity.template.mgt;
 
+import org.wso2.carbon.utils.CarbonUtils;
+
+import java.io.File;
+
 /**
  * This class holds the constants used in the module, template-mgt.
  */
@@ -41,6 +45,23 @@ public class TemplateMgtConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";
+    public static final String SP_TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
+            + File.separator + "resources" + File.separator + "identity" + File.separator + "application-templates" + File
+            .separator;
+    public static final String IDP_TEMPLATES_DIR_PATH = CarbonUtils.getCarbonHome() + File.separator + "repository"
+            + File.separator + "resources" + File.separator + "identity" + File.separator + "identity-provider-templates" + File
+            .separator;
+    public static final String FILE_EXT_JSON = ".json";
+
+    // IdP template property keys
+    public static final String PROP_CATEGORY = "category";
+    public static final String PROP_DISPLAY_ORDER = "displayOrder";
+
+    // Application template property keys
+    public static final String AUTHENTICATION_PROTOCOL = "authenticationProtocol";
+    public static final String TYPES = "types";
+    public static final String CATEGORY = "category";
+    public static final String DISPLAY_ORDER = "displayOrder";
 
     public enum TemplateType {
 
@@ -79,7 +100,9 @@ public class TemplateMgtConstants {
                 " %s from the database."),
         ERROR_CODE_PAGINATION_NOT_SUPPORTED("TMM_00020", "Pagination is not supported when listing the templates."),
         ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant %s."),
-        ERROR_CODE_INVALID_TEMPLATE_ID("TMM_00022", "Invalid template id: %s.");
+        ERROR_CODE_INVALID_TEMPLATE_ID("TMM_00022", "Invalid template id: %s."),
+        ERROR_CODE_FILE_BASED_NOT_SUPPORTED("TMM_00023", "File based template create, update, and delete operations " +
+                "are not supported.");
 
 
         private final String code;
