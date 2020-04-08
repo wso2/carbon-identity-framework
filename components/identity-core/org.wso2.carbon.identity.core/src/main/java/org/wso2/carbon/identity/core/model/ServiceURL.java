@@ -76,9 +76,6 @@ public class ServiceURL {
      */
     public String getHostName() {
 
-        if (hostName.endsWith("/")) {
-            hostName = hostName.substring(0, hostName.length() - 1);
-        }
         return hostName;
     }
 
@@ -185,7 +182,8 @@ public class ServiceURL {
                 serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
                         StandardCharsets.UTF_8.name()));
             } catch (UnsupportedEncodingException e) {
-                throw new URLBuilderException("Error while trying to build the url", e);
+                throw new URLBuilderException(String.format("Error while trying to build the url. %s is not supported" +
+                        ".", StandardCharsets.UTF_8.name()), e);
             }
         }
     }

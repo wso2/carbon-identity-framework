@@ -171,7 +171,14 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         StringBuilder urlPathBuilder = new StringBuilder();
         if (ArrayUtils.isNotEmpty(urlPaths)) {
             for (String path : urlPaths) {
+                if (path.endsWith("/")) {
+                    path = path.substring(0, path.length() - 1);
+                }
+                if (path.startsWith("/")) {
+                    path = path.substring(1);
+                }
                 urlPathBuilder.append(path).append("/");
+
             }
             if (urlPathBuilder.length() > 0 && urlPathBuilder.charAt(urlPathBuilder.length() - 1) == '/') {
                 urlPathBuilder.setLength(urlPathBuilder.length() - 1);
@@ -195,6 +202,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         } catch (SocketException e) {
             throw new URLBuilderException(String.format("Error while trying to resolve the hostname %s from the " +
                     "system", hostName), e);
+        }
+
+        if (StringUtils.isNotBlank(hostName) && hostName.endsWith("/")) {
+            hostName = hostName.substring(0, hostName.length() - 1);
         }
         return hostName;
     }

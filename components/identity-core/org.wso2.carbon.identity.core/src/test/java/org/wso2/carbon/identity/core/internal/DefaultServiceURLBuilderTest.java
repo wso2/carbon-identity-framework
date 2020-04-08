@@ -46,7 +46,6 @@ import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 
 @PrepareForTest({ServerConfiguration.class, CarbonUtils.class, IdentityCoreServiceComponent.class, NetworkUtils.class,
         IdentityTenantUtil.class, URLResolverService.class, PrivilegedCarbonContext.class})
@@ -107,7 +106,23 @@ public class DefaultServiceURLBuilderTest {
             // Mock behaviour, hence ignored
         }
 
-        assertNotNull(serviceURL.getUrlPath());
+        assertEquals(serviceURL.getUrlPath(), testPath);
+    }
+
+    @Test
+    public void testAddPaths() {
+
+        String testPath1 = "/testPath1";
+        String testPath2 = "testPath2/";
+        String testPath3 = "/testPath3/";
+        ServiceURL serviceURL = null;
+        try {
+            serviceURL = ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).build();
+        } catch (URLBuilderException e) {
+            // Mock behaviour, hence ignored
+        }
+
+        assertEquals(serviceURL.getUrlPath(), "/testPath1/testPath2/testPath3");
     }
 
     @Test
@@ -120,7 +135,7 @@ public class DefaultServiceURLBuilderTest {
             // Mock behaviour, hence ignored
         }
 
-        assertNotNull(serviceURL.getParameter("key"));
+        assertEquals(serviceURL.getParameter("key"), "value");
     }
 
     @Test
@@ -149,7 +164,7 @@ public class DefaultServiceURLBuilderTest {
             // Mock behaviour, hence ignored
         }
 
-        assertNotNull(serviceURL.getFragment());
+        assertEquals(serviceURL.getFragment(), "fragment");
     }
 
     @Test
@@ -159,12 +174,13 @@ public class DefaultServiceURLBuilderTest {
 
         try {
             serviceURL =
-                    ServiceURLBuilder.create().addFragmentParameter("key1", "value1").build();
+                    ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
+                            "value2").build();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertNotNull(serviceURL.getFragment());
+        assertEquals(serviceURL.getFragment(), "key1=value1&key2=value2");
     }
 
     @Test
@@ -187,13 +203,25 @@ public class DefaultServiceURLBuilderTest {
     public void testBuild() {
 
         ServiceURL serviceURL = null;
+        String testPath1 = "/testPath1";
+        String testPath2 = "testPath2/";
+        String testPath3 = "/testPath3/";
+        String[] keysList = {"key1", "key2", "key3"};
+        String[] valuesList = {"value1", "value2", "value3"};
+
         try {
-            serviceURL = ServiceURLBuilder.create().build();
+            serviceURL =
+                    ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).addParameter(keysList[0],
+                            valuesList[0]).addParameter(keysList[1], valuesList[1]).addParameter(keysList[2],
+                            valuesList[2]).addFragmentParameter(keysList[0], valuesList[0])
+                            .addFragmentParameter(keysList[1], valuesList[1])
+                            .addFragmentParameter(keysList[2], valuesList[2]).build();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertNotNull(serviceURL);
+        assertEquals(serviceURL.getAbsoluteURL(),
+                "null://localhost:0/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3#key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3");
 
     }
 
