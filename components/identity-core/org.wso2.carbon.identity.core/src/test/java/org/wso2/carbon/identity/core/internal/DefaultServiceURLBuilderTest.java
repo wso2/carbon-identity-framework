@@ -20,12 +20,14 @@ package org.wso2.carbon.identity.core.internal;
 
 import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.engine.AxisConfiguration;
+import org.apache.commons.collections.MapUtils;
 import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.base.ServerConfiguration;
@@ -34,13 +36,17 @@ import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.URLResolverService;
-import org.wso2.carbon.identity.core.model.ServiceURL;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -99,14 +105,14 @@ public class DefaultServiceURLBuilderTest {
     public void testAddPath() {
 
         String testPath = "/testPath";
-        ServiceURL serviceURL = null;
+        String urlPath = null;
         try {
-            serviceURL = ServiceURLBuilder.create().addPath(testPath).build();
+            urlPath = ServiceURLBuilder.create().addPath(testPath).build().getPath();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getUrlPath(), testPath);
+        assertEquals(urlPath, testPath);
     }
 
     @Test
@@ -115,94 +121,101 @@ public class DefaultServiceURLBuilderTest {
         String testPath1 = "/testPath1";
         String testPath2 = "testPath2/";
         String testPath3 = "/testPath3/";
-        ServiceURL serviceURL = null;
+        String urlPath = null;
         try {
-            serviceURL = ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).build();
+            urlPath = ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).build().getPath();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getUrlPath(), "/testPath1/testPath2/testPath3");
+        assertEquals(urlPath, "/testPath1/testPath2/testPath3");
     }
 
     @Test
     public void testAddParameter() {
 
-        ServiceURL serviceURL = null;
+        String parameterValue = null;
         try {
-            serviceURL = ServiceURLBuilder.create().addParameter("key", "value").build();
+            parameterValue = ServiceURLBuilder.create().addParameter("key", "value").build().getParameter("key");
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getParameter("key"), "value");
+        assertEquals(parameterValue, "value");
     }
 
     @Test
     public void testAddParameters() {
 
-        ServiceURL serviceURL = null;
+        Map<String, String> parameters = new HashMap<>();
+
+        Map<String, String> expected = new HashMap<String, String>() {
+            {
+                put("key1", "value1");
+                put("key2", "value2");
+            }
+        };
         try {
-            serviceURL =
-                    ServiceURLBuilder.create().addParameter("key1", "value1").addParameter("key2", "value2").build();
+            parameters =
+                    ServiceURLBuilder.create().addParameter("key1", "value1").addParameter("key2", "value2").build()
+                            .getParameters();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getParameter("key1"), "value1");
-        assertEquals(serviceURL.getParameter("key2"), "value2");
+        assertEquals(parameters, expected);
     }
 
     @Test
     public void testSetFragment() {
 
         when(CarbonUtils.getManagementTransport()).thenReturn("https");
-        ServiceURL serviceURL = null;
+        String fragment = null;
         try {
-            serviceURL = ServiceURLBuilder.create().setFragment("fragment").build();
+            fragment = ServiceURLBuilder.create().setFragment("fragment").build().getFragment();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getFragment(), "fragment");
+        assertEquals(fragment, "fragment");
     }
 
     @Test
     public void testAddFragmentParameter() {
 
-        ServiceURL serviceURL = null;
+        String fragment = null;
 
         try {
-            serviceURL =
+            fragment =
                     ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
-                            "value2").build();
+                            "value2").build().getFragment();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getFragment(), "key1=value1&key2=value2");
+        assertEquals(fragment, "key1=value1&key2=value2");
     }
 
     @Test
     public void testAddFragmentParameters() {
 
-        ServiceURL serviceURL = null;
+        String fragment = null;
 
         try {
-            serviceURL =
+            fragment =
                     ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
-                            "value2").build();
+                            "value2").build().getFragment();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getFragment(), "key1=value1&key2=value2");
+        assertEquals(fragment, "key1=value1&key2=value2");
     }
 
     @Test
     public void testBuild() {
 
-        ServiceURL serviceURL = null;
+        String absoluteUrl = null;
         String testPath1 = "/testPath1";
         String testPath2 = "testPath2/";
         String testPath3 = "/testPath3/";
@@ -210,19 +223,104 @@ public class DefaultServiceURLBuilderTest {
         String[] valuesList = {"value1", "value2", "value3"};
 
         try {
-            serviceURL =
+            absoluteUrl =
                     ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).addParameter(keysList[0],
                             valuesList[0]).addParameter(keysList[1], valuesList[1]).addParameter(keysList[2],
                             valuesList[2]).addFragmentParameter(keysList[0], valuesList[0])
                             .addFragmentParameter(keysList[1], valuesList[1])
-                            .addFragmentParameter(keysList[2], valuesList[2]).build();
+                            .addFragmentParameter(keysList[2], valuesList[2]).build().getAbsoluteURL();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
 
-        assertEquals(serviceURL.getAbsoluteURL(),
+        assertEquals(absoluteUrl,
                 "null://localhost:0/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3#key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3");
+    }
 
+    @DataProvider
+    public Object[][] getAbsoluteURLData() {
+
+        int port = 9443;
+        Map<String, String> parameters = new HashMap<>();
+        String fragment = "fragment";
+        Map<String, String> fragmentParams = new HashMap<>();
+
+        ArrayList<String> keys = new ArrayList<String>(Arrays.asList("key1", "key2", "key3", "key4"));
+        for (String key : keys) {
+            parameters.put(key, "v");
+            fragmentParams.put(key, "fragment");
+        }
+
+        return new Object[][]{
+                {"https", "www.wso2.com", 9443, null, "", fragmentParams,
+                        "https://www.wso2.com:9443#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
+                        ""},
+                {"https", "www.wso2.com", 9443, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#fragment", "/samlsso"},
+                {"https", "www.wso2.com", 9443, null, "", fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
+                        "/samlsso/"},
+                {"https", "www.wso2.com", 9443, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#fragment", "samlsso"},
+                {"https", "www.wso2.com", 9443, parameters, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#fragment",
+                        "/samlsso"},
+                {"https", "www.wso2.com", 9443, parameters, "", null,
+                        "https://www.wso2.com:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv", "/samlsso/"},
+                {"https", "www.wso2.com", 9443, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#fragment", "/samlsso"},
+                {"https", "www.wso2.com", 9443, null, "", null, "https://www.wso2.com:9443/samlsso",
+                        "/samlsso/"},
+                {"https", "www.wso2.com", 9443, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#fragment", "samlsso/"},
+                {"https", "www.wso2.com", 9443, parameters, "", fragmentParams,
+                        "https://www.wso2.com:9443?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
+                        null},
+                {"https", "www.wso2.com", 9443, null, "", fragmentParams,
+                        "https://www.wso2.com:9443#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
+                        null}
+        };
+    }
+
+    @Test(dataProvider = "getAbsoluteURLData")
+    public void testGetAbsoluteURL(String protocol, String hostName, int port, Map<String, String> parameters,
+                                   String fragment, Map<String, String> fragmentParams, String expected,
+                                   String urlPath) {
+
+        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
+        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+
+        String absoluteUrl = null;
+
+        try {
+            if (MapUtils.isNotEmpty(parameters) && MapUtils.isNotEmpty(fragmentParams)) {
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
+                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
+                                "fragment").addFragmentParameter("key4", "fragment").addParameter("key1", "v")
+                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
+                                .getAbsoluteURL();
+            } else if (MapUtils.isNotEmpty(fragmentParams)){
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
+                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
+                                "fragment").addFragmentParameter("key4", "fragment").build().getAbsoluteURL();
+            } else if (MapUtils.isNotEmpty(parameters)){
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addParameter("key1", "v")
+                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
+                                .getAbsoluteURL();
+            } else {
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build().getAbsoluteURL();
+            }
+
+        } catch (URLBuilderException e) {
+            //Mock behaviour, hence ignored
+        }
+
+        assertEquals(absoluteUrl, expected);
     }
 
     @ObjectFactory

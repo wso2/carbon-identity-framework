@@ -20,7 +20,6 @@ package org.wso2.carbon.identity.core;
 
 import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
-import org.wso2.carbon.identity.core.model.ServiceURL;
 
 /**
  * URL Builder service interface.
@@ -37,7 +36,7 @@ public interface ServiceURLBuilder {
     }
 
     /**
-     * This method is called to add the URL path to the builder.
+     * Returns {@link ServiceURLBuilder} appended the URL path.
      *
      * @param paths Context paths. Can provide multiple context paths with a comma separated string.
      * @return {@link ServiceURLBuilder}.
@@ -45,7 +44,7 @@ public interface ServiceURLBuilder {
     ServiceURLBuilder addPath(String ... paths);
 
     /**
-     * This method is called when the URL needs to be appended with other parameters. Such parameters should be
+     * Returns {@link ServiceURLBuilder} appended with other parameters. Such parameters should be
      * entered as <k,v> pairs.
      *
      * @param key   Key.
@@ -55,7 +54,7 @@ public interface ServiceURLBuilder {
     ServiceURLBuilder addParameter(String key, String value);
 
     /**
-     * This method is called when the URL needs to be appended with a fragment.
+     * Returns {@link ServiceURLBuilder} appended with a fragment.
      *
      * @param fragment Fragment.
      * @return {@link ServiceURLBuilder}.
@@ -63,7 +62,7 @@ public interface ServiceURLBuilder {
     ServiceURLBuilder setFragment(String fragment);
 
     /**
-     * This method is called when the URL fragment needs to be appended with parameters. Such parameters should be
+     * Returns {@link ServiceURLBuilder} appended with parameters. Such parameters should be
      * entered as <k,v> pairs. These parameters will get appended with an "&".
      *
      * @param key   Key.
@@ -73,7 +72,7 @@ public interface ServiceURLBuilder {
     ServiceURLBuilder addFragmentParameter(String key, String value);
 
     /**
-     * This method is used to return a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
      * root and the tenant domain (appended if required).
      *
      * @return {@link ServiceURL}.
