@@ -19,15 +19,37 @@
 package org.wso2.carbon.identity.template.mgt.internal;
 
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class TemplateManagerDataHolder {
 
     private static TemplateManagerDataHolder instance = new TemplateManagerDataHolder();
+
     private ConfigurationManager configurationManager;
+
+    private TemplateHandler readWriteTemplateHandler = new ConfigStoreBasedTemplateHandler();
+
+    private List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers = new ArrayList<>();
 
     public static TemplateManagerDataHolder getInstance() {
 
         return instance;
+    }
+
+    /**
+     * Get the ConfigurationManager object held at the data holder.
+     *
+     * @return configuration manger object.
+     */
+    public ConfigurationManager getConfigurationManager() {
+
+        return this.configurationManager;
     }
 
     /**
@@ -41,12 +63,52 @@ public class TemplateManagerDataHolder {
     }
 
     /**
-     * Get the ConfigurationManager object held at the data holder.
+     * Get read write template handler.
      *
-     * @return configuration manger object.
+     * @return template handler.
      */
-    public ConfigurationManager getConfigurationManager() {
+    public TemplateHandler getReadWriteTemplateHandler() {
 
-        return this.configurationManager;
+        return readWriteTemplateHandler;
+    }
+
+    /**
+     * Set read write template handler.
+     *
+     * @param readWriteTemplateHandler template handler.
+     */
+    public void setReadWriteTemplateHandler(TemplateHandler readWriteTemplateHandler) {
+
+        this.readWriteTemplateHandler = readWriteTemplateHandler;
+    }
+
+    /**
+     * Get template handlers.
+     *
+     * @return list of template handlers.
+     */
+    public List<ReadOnlyTemplateHandler> getReadOnlyTemplateHandlers() {
+
+        return Collections.unmodifiableList(readOnlyTemplateHandlers);
+    }
+
+    /**
+     * Add template handler.
+     *
+     * @param templateHandler template handler.
+     */
+    public void addReadOnlyTemplateHandler(ReadOnlyTemplateHandler templateHandler) {
+
+        this.readOnlyTemplateHandlers.add(templateHandler);
+    }
+
+    /**
+     * Remove template handler.
+     *
+     * @param templateHandler template handler.
+     */
+    public void removeReadOnlyTemplateHandler(ReadOnlyTemplateHandler templateHandler) {
+
+        this.readOnlyTemplateHandlers.remove(templateHandler);
     }
 }

@@ -30,6 +30,10 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.identity.template.mgt.TemplateManagerImpl;
+import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.FileBasedTemplateHandler;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of template management service.
@@ -54,6 +58,12 @@ public class TemplateManagerComponent {
             BundleContext bundleContext = componentContext.getBundleContext();
 
             bundleContext.registerService(TemplateManager.class, new TemplateManagerImpl(), null);
+
+            //Add default template handlers
+            ReadOnlyTemplateHandler fileBasedTemplateHandler =  new FileBasedTemplateHandler();
+            TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(fileBasedTemplateHandler);
+            TemplateHandler configStoreBasedTemplateHandler =  new ConfigStoreBasedTemplateHandler();
+            TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(configStoreBasedTemplateHandler);
             if (log.isDebugEnabled()) {
                 log.debug("Template Manager bundle is activated.");
             }
@@ -99,5 +109,27 @@ public class TemplateManagerComponent {
             log.debug("Configuration Manager service is unset in the Template Manager component.");
         }
         TemplateManagerDataHolder.getInstance().setConfigurationManager(null);
+    }
+
+    @Reference(
+            name = "identity.template.handler",
+            service = ReadOnlyTemplateHandler.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetReadOnlyTemplateHandler")
+    protected void setReadOnlyTemplateHandler(ReadOnlyTemplateHandler readOnlyTemplateHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Template handler " + readOnlyTemplateHandler.getClass().getName() + " is added.");
+        }
+        TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(readOnlyTemplateHandler);
+    }
+
+    protected void unsetReadOnlyTemplateHandler(ReadOnlyTemplateHandler readOnlyTemplateHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Template handler " + readOnlyTemplateHandler.getClass().getName() + " is removed.");
+        }
+        TemplateManagerDataHolder.getInstance().removeReadOnlyTemplateHandler(readOnlyTemplateHandler);
     }
 }
