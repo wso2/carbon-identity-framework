@@ -49,4 +49,8 @@ public class TemplateManagerDataHolder {
 
         return this.configurationManager;
     }
+
+    public static Map<String, Template> getFileBasedTemplates() {
+        return fileBasedTemplates;
+    }
 }

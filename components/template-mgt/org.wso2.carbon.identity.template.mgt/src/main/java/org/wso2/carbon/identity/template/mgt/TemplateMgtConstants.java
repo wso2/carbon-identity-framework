@@ -17,6 +17,11 @@
  */
 package org.wso2.carbon.identity.template.mgt;
 
+import org.wso2.carbon.utils.CarbonUtils;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * This class holds the constants used in the module, template-mgt.
  */
@@ -41,6 +46,29 @@ public class TemplateMgtConstants {
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";
+    public static final Path SP_TEMPLATES_DIR_PATH = Paths.get(CarbonUtils.getCarbonHome(), "repository",
+            "resources", "identity", "application-templates");
+    public static final Path IDP_TEMPLATES_DIR_PATH = Paths.get(CarbonUtils.getCarbonHome(), "repository",
+            "resources", "identity", "identity-provider-templates");
+    public static final String FILE_EXT_JSON = ".json";
+
+    // Common attributes to all templates
+    public static final String ID = "id";
+    public static final String NAME = "name";
+    public static final String DESCRIPTION = "description";
+    public static final String IMAGE = "image";
+
+    // IdP template specific property keys
+    public static final String PROP_CATEGORY = "category";
+    public static final String PROP_DISPLAY_ORDER = "displayOrder";
+    public static final String IDP = "idp";
+
+    // Application template specific property keys
+    public static final String AUTHENTICATION_PROTOCOL = "authenticationProtocol";
+    public static final String TYPES = "types";
+    public static final String CATEGORY = "category";
+    public static final String DISPLAY_ORDER = "displayOrder";
+    public static final String APPLICATION = "application";
 
     public enum TemplateType {
 
