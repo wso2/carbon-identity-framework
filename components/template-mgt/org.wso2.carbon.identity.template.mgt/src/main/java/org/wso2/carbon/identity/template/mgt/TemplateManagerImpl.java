@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.template.mgt;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
@@ -26,7 +25,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
-import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
@@ -36,14 +34,13 @@ import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientE
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.function.ResourceToTemplate;
 import org.wso2.carbon.identity.template.mgt.function.TemplateToResource;
-import org.wso2.carbon.identity.template.mgt.function.TemplateToResourceAdd;
+import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
 import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
 import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,7 +55,6 @@ import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMe
         .ERROR_CODE_TEMPLATE_NAME_REQUIRED;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
         .ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
-
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantIdFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleClientException;
@@ -83,7 +79,8 @@ public class TemplateManagerImpl implements TemplateManager {
     public String addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
-        return addTemplateToConfigStore(template);
+        TemplateHandler templateHandler = TemplateManagerDataHolder.getInstance().getReadWriteTemplateHandler();
+        return templateHandler.addTemplate(template);
     }
 
     /**
@@ -254,34 +251,17 @@ public class TemplateManagerImpl implements TemplateManager {
     @Override
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
-        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
-        try {
-            Resource resource = configManager.getTenantResourceById(templateId);
-            Template template = new ResourceToTemplate().apply(resource);
-            if (resource.getFiles().size() == 1) {
-                InputStream templateScriptInputStream = configManager.getFileById(resource.getResourceType(),
-                        resource.getResourceName(), resource.getFiles().get(0).getId());
-                template.setTemplateScript(IOUtils.toString(templateScriptInputStream));
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug(template.getTemplateType().toString() + " can have only one templated object. But the " +
-                            "template with id: " + templateId + " has " + resource.getFiles().size() + " templated " +
-                            "object/s. Therefore templated object is not retrieved.");
-                }
+        List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers =
+                TemplateManagerDataHolder.getInstance().getReadOnlyTemplateHandlers();
+        for (ReadOnlyTemplateHandler readOnlyTemplateHandler: readOnlyTemplateHandlers) {
+            Template template = readOnlyTemplateHandler.getTemplateById(templateId);
+            if (template != null) {
+                return template;
             }
-            return template;
-        } catch (ConfigurationManagementException e) {
-            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(e
-                    .getErrorCode())) {
-                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
-                        templateId, getTenantDomainFromCarbonContext());
-            }
-            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
-                    templateId, getTenantDomainFromCarbonContext());
-        } catch (IOException e) {
-            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
-                    templateId, getTenantDomainFromCarbonContext());
         }
+
+        TemplateHandler readWriteTemplateHandler = TemplateManagerDataHolder.getInstance().getReadWriteTemplateHandler();
+        return readWriteTemplateHandler.getTemplateById(templateId);
     }
 
     @Override
@@ -351,43 +331,6 @@ public class TemplateManagerImpl implements TemplateManager {
             }
             throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_TEMPLATE_BY_ID, e,
                     templateId, getTenantDomainFromCarbonContext());
-        }
-    }
-
-    private String addTemplateToConfigStore(Template template) throws TemplateManagementException {
-
-        if (!isValidTemplateType(template.getTemplateType().toString())) {
-            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
-                    template.getTemplateType().toString());
-        }
-        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
-        try {
-            Resource resource = configManager.addResource(template.getTemplateType().toString(), new
-                    TemplateToResourceAdd().apply(template));
-            configManager.addFile(template.getTemplateType().toString(), template.getTemplateName(),
-                    template.getTemplateName() + "_template_object",
-                    IOUtils.toInputStream(template.getTemplateScript()));
-            return resource.getResourceId();
-        } catch (ConfigurationManagementException e) {
-            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS.getCode().equals(
-                    e.getErrorCode())) {
-                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST, e,
-                        template.getTemplateName());
-            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals
-                    (e.getErrorCode())) {
-                // If the template insert is failing due to the relevant resource-type for templates is not existing
-                // in the database, create the resource-type and retry the template creation.
-                try {
-                    createResourceType(template.getTemplateType().toString());
-                    return addTemplateToConfigStore(template);
-                } catch (ConfigurationManagementException e1) {
-                    throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE, e,
-                            template.getTemplateName());
-                }
-            } else {
-                throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE, e,
-                        template.getTemplateName());
-            }
         }
     }
 

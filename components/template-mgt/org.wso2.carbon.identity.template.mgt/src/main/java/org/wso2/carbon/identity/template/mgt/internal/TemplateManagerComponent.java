@@ -34,6 +34,24 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.template.mgt.TemplateManager;
 import org.wso2.carbon.identity.template.mgt.TemplateManagerImpl;
+import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
+import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.FileBasedTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.model.Template;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder.getFileBasedTemplates;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of template management service.
@@ -58,6 +76,13 @@ public class TemplateManagerComponent {
             BundleContext bundleContext = componentContext.getBundleContext();
 
             bundleContext.registerService(TemplateManager.class, new TemplateManagerImpl(), null);
+
+            //Add default template handlers
+            ReadOnlyTemplateHandler fileBasedTemplateHandler = new FileBasedTemplateHandler();
+            TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(fileBasedTemplateHandler);
+            TemplateHandler configStoreBasedTemplateHandler = new ConfigStoreBasedTemplateHandler();
+            TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(configStoreBasedTemplateHandler);
+            loadDefaultTemplates();
             if (log.isDebugEnabled()) {
                 log.debug("Template Manager bundle is activated.");
             }
@@ -103,5 +128,120 @@ public class TemplateManagerComponent {
             log.debug("Configuration Manager service is unset in the Template Manager component.");
         }
         TemplateManagerDataHolder.getInstance().setConfigurationManager(null);
+    }
+
+    @Reference(
+            name = "identity.template.handler",
+            service = ReadOnlyTemplateHandler.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetReadOnlyTemplateHandler")
+    protected void setReadOnlyTemplateHandler(ReadOnlyTemplateHandler readOnlyTemplateHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Template handler " + readOnlyTemplateHandler.getClass().getName() + " is added.");
+        }
+        TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(readOnlyTemplateHandler);
+    }
+
+    protected void unsetReadOnlyTemplateHandler(ReadOnlyTemplateHandler readOnlyTemplateHandler) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Template handler " + readOnlyTemplateHandler.getClass().getName() + " is removed.");
+        }
+        TemplateManagerDataHolder.getInstance().removeReadOnlyTemplateHandler(readOnlyTemplateHandler);
+    }
+
+    private void loadDefaultTemplates() throws FileNotFoundException {
+
+        List<Path> paths = Arrays.asList(TemplateMgtConstants.SP_TEMPLATES_DIR_PATH, TemplateMgtConstants
+                .IDP_TEMPLATES_DIR_PATH);
+        for (Path path : paths) {
+            if (!Files.exists(path) || !Files.isDirectory(path)) {
+                log.warn("Templates directory not found at " + path);
+                throw new FileNotFoundException("Templates directory not found at " + path);
+            } else {
+                try {
+                    Files.walk(path)
+                            .filter(filePath -> Files.isRegularFile(filePath) && filePath.toString().endsWith
+                                    (TemplateMgtConstants
+                                            .FILE_EXT_JSON))
+                            .forEach(filePath -> {
+                                try {
+                                    String templateJsonString = FileUtils.readFileToString(filePath.toFile());
+                                    JSONObject templateObj = new JSONObject(templateJsonString);
+                                    Template template = new Template();
+
+                                    template.setTemplateId(templateObj.getString(TemplateMgtConstants.ID));
+                                    template.setTemplateName(templateObj.getString(TemplateMgtConstants.NAME));
+                                    template.setDescription(templateObj.getString(TemplateMgtConstants.DESCRIPTION));
+                                    template.setImageUrl(templateObj.getString(TemplateMgtConstants.IMAGE));
+
+                                    if (StringUtils.equals(path.toString(), TemplateMgtConstants
+                                            .SP_TEMPLATES_DIR_PATH.toString())) {
+                                        template.setTemplateType(TemplateMgtConstants.TemplateType
+                                                .APPLICATION_TEMPLATE);
+                                        template.setPropertiesMap(extractApplicationSpecificProperties(templateObj));
+                                        template.setTemplateScript(templateObj.getJSONObject(TemplateMgtConstants
+                                                .APPLICATION).toString());
+                                    } else if (StringUtils.equals(path.toString(), TemplateMgtConstants
+                                            .IDP_TEMPLATES_DIR_PATH.toString())) {
+                                        template.setTemplateType(TemplateMgtConstants.TemplateType.IDP_TEMPLATE);
+                                        template.setPropertiesMap(extractIDPSpecificProperties(templateObj));
+                                        template.setTemplateScript(templateObj.getJSONObject(TemplateMgtConstants
+                                                .IDP).toString());
+                                    }
+                                    //add file based templates to FileBasedTemplates map.
+                                    getFileBasedTemplates().put(templateObj.getString(TemplateMgtConstants.ID),
+                                            template);
+                                } catch (IOException e) {
+                                    log.error("Error while reading  templates.", e);
+                                }
+                            });
+                } catch (IOException e) {
+                    log.error("Error while reading templates.", e);
+                }
+            }
+        }
+    }
+
+    private Map<String, String> extractApplicationSpecificProperties(JSONObject templateObj) {
+
+        Map<String, String> properties = new HashMap<>();
+        if (StringUtils.isNotEmpty(templateObj.getString(TemplateMgtConstants.AUTHENTICATION_PROTOCOL))) {
+            properties.put(TemplateMgtConstants.AUTHENTICATION_PROTOCOL, templateObj.getString(TemplateMgtConstants
+                    .AUTHENTICATION_PROTOCOL));
+        }
+        if (templateObj.getJSONArray(TemplateMgtConstants.TYPES) != null) {
+            JSONArray typesJSONArray = templateObj.getJSONArray(TemplateMgtConstants.TYPES);
+            List<String> types = new ArrayList<>();
+            for (int i = 0; i < typesJSONArray.length(); i++) {
+                types.add(typesJSONArray.getString(i));
+            }
+            properties.put(TemplateMgtConstants.TYPES, String.join(",", types));
+        }
+        if (StringUtils.isNotEmpty(templateObj.getString(TemplateMgtConstants.CATEGORY))) {
+            properties.put(TemplateMgtConstants.CATEGORY, templateObj.getString(TemplateMgtConstants.CATEGORY));
+        }
+        if (StringUtils.isNotEmpty(String.valueOf(templateObj.getInt(TemplateMgtConstants.DISPLAY_ORDER)))) {
+            properties.put(TemplateMgtConstants.DISPLAY_ORDER, Integer.toString(templateObj.getInt
+                    (TemplateMgtConstants.DISPLAY_ORDER)));
+        }
+        return properties;
+    }
+
+    private Map<String, String> extractIDPSpecificProperties(JSONObject templateObj) {
+
+        Map<String, String> properties = new HashMap<>();
+        if (StringUtils.isNotEmpty(templateObj.getString(TemplateMgtConstants.PROP_CATEGORY))) {
+            properties.put(TemplateMgtConstants.PROP_CATEGORY, templateObj.getString(TemplateMgtConstants
+                    .PROP_CATEGORY));
+        }
+        if (StringUtils.isNotEmpty(String.valueOf(templateObj.getInt(TemplateMgtConstants.PROP_DISPLAY_ORDER))
+        )) {
+            properties.put(TemplateMgtConstants.PROP_DISPLAY_ORDER, Integer.toString(templateObj.getInt
+                    (TemplateMgtConstants.PROP_DISPLAY_ORDER)));
+        }
+        return properties;
     }
 }
