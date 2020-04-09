@@ -42,6 +42,9 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
@@ -140,10 +143,26 @@ public class IdentityProviderManager implements IdpManager {
         String samlAuthnRequestsSigningEnabled;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
-        samlECPUrl = IdentityUtil.resolveURL(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL),
-                true, true);
-        samlArtifactUrl = IdentityUtil.resolveURL(IdentityUtil.getProperty(IdentityConstants.ServerConfig
-                .SSO_ARTIFACT_URL), true, true);
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            try {
+                samlECPUrl = ServiceURLBuilder.create().addPath(IdPManagementConstants.SAML_ECP_URL).build()
+                        .getAbsoluteURL();
+            } catch (URLBuilderException e) {
+                throw IdentityRuntimeException
+                        .error("Error while building URL: " + IdPManagementConstants.SAML_ECP_URL, e);
+            }
+            try {
+                samlArtifactUrl = ServiceURLBuilder.create().addPath(IdPManagementConstants.SSO_ARTIFACT_URL).build()
+                        .getAbsoluteURL();
+            } catch (URLBuilderException e) {
+                throw IdentityRuntimeException
+                        .error("Error while building URL: " + IdPManagementConstants.SSO_ARTIFACT_URL, e);
+            }
+        } else {
+            samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
+            samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
+        }
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
@@ -169,9 +188,24 @@ public class IdentityProviderManager implements IdpManager {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
         }
 
-        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true, true, false);
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
 
-        samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true, true, false);
+            try {
+                samlSSOUrl = ServiceURLBuilder.create().addPath(IdentityConstants.ServerConfig.SAMLSSO).build()
+                        .getAbsoluteURL();
+                samlLogoutUrl = ServiceURLBuilder.create().addPath(IdentityConstants.ServerConfig.SAMLSSO).build()
+                        .getAbsoluteURL();
+            } catch (URLBuilderException e) {
+                throw IdentityRuntimeException
+                        .error("Error while building URL: " + IdentityConstants.ServerConfig.SAMLSSO, e);
+            }
+        } else {
+            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
+                    + IdPManagementUtil.getTenantParameter();
+
+            samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
+                    + IdPManagementUtil.getTenantParameter();
+        }
 
         if (StringUtils.isBlank(samlArtifactUrl)) {
             samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
@@ -181,8 +215,9 @@ public class IdentityProviderManager implements IdpManager {
             samlECPUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
 
-        samlAuthnRequestsSigningEnabled = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.
-                SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true, true, false);
+        samlAuthnRequestsSigningEnabled = IdentityUtil
+                .getServerURL(IdentityConstants.ServerConfig.SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true) +
+                IdPManagementUtil.getTenantParameter();
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
             oauth1RequestTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REQUEST_TOKEN, true, true);
@@ -2531,15 +2566,34 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
-
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true,
-                true, true, false);
+        String samlSSOUrl;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            try {
+                samlSSOUrl = ServiceURLBuilder.create().addPath(IdentityConstants.ServerConfig.SAMLSSO).build()
+                        .getAbsoluteURL();
+            } catch (URLBuilderException e) {
+                throw IdentityRuntimeException
+                        .error("Error while building URL: " + IdentityConstants.ServerConfig.SAMLSSO, e);
+            }
+        } else {
+            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
 
-        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true,
-                true, true, false);
+        String samlLogoutUrl;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            try {
+                samlLogoutUrl = ServiceURLBuilder.create().addPath(IdentityConstants.ServerConfig.SAMLSSO).build()
+                        .getAbsoluteURL();
+            } catch (URLBuilderException e) {
+                throw IdentityRuntimeException
+                        .error("Error while building URL: " + IdentityConstants.ServerConfig.SAMLSSO, e);
+            }
+        } else {
+            samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL,
