@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationMa
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
@@ -287,6 +288,13 @@ public class TemplateManagerImpl implements TemplateManager {
     public List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
             TemplateManagementException {
 
+        return listTemplates(templateType, limit, offset, null);
+    }
+
+    @Override
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition searchCondition)
+            throws TemplateManagementException {
+
         if (!isValidTemplateType(templateType)) {
             throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
                     templateType);
@@ -296,7 +304,12 @@ public class TemplateManagerImpl implements TemplateManager {
         }
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
         try {
-            Resources resourcesList = configManager.getResourcesByType(templateType);
+            Resources resourcesList;
+            if (searchCondition == null) {
+                resourcesList = configManager.getResourcesByType(templateType);
+            } else {
+                resourcesList = configManager.getTenantResources(searchCondition);
+            }
             return resourcesList.getResources().stream().map(resource -> {
                 resource.setResourceType(templateType);
                 return new ResourceToTemplate().apply(resource);
@@ -306,6 +319,16 @@ public class TemplateManagerImpl implements TemplateManager {
                     .getErrorCode())) {
                 if (log.isDebugEnabled()) {
                     log.debug("Template type : '" + templateType + "' has not been created in the database.", e);
+                }
+                return Collections.emptyList();
+            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS.getCode().equals(e
+                    .getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    String message = "Templates do not exist for template type: " + templateType;
+                    if (searchCondition != null) {
+                        message = message + ", and search  criteria:" + searchCondition.toString();
+                    }
+                    log.debug(message, e);
                 }
                 return Collections.emptyList();
             }
