@@ -446,7 +446,7 @@
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
-    "(.*)/identity/metadata/saml2",
+    "/identity/metadata/saml2",
     "/commonauth(.*)",
     "/logincontext(.*)",
     "/oidc/"
