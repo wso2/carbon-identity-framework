@@ -102,12 +102,6 @@ public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
     }
 
     @Override
-    public List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException {
-
-        return null;
-    }
-
-    @Override
     public List<Template> listTemplates(String templateType, Integer limit, Integer offset)
             throws TemplateManagementException {
 

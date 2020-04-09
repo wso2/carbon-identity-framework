@@ -158,14 +158,12 @@ public class TemplateManagerComponent {
                 .IDP_TEMPLATES_DIR_PATH);
         for (Path path : paths) {
             if (!Files.exists(path) || !Files.isDirectory(path)) {
-                log.warn("Templates directory not found at " + path);
-                throw new FileNotFoundException("Templates directory not found at " + path);
+                log.info("No file-based templates");
             } else {
                 try {
                     Files.walk(path)
                             .filter(filePath -> Files.isRegularFile(filePath) && filePath.toString().endsWith
-                                    (TemplateMgtConstants
-                                            .FILE_EXT_JSON))
+                                    (TemplateMgtConstants.FILE_EXT_JSON))
                             .forEach(filePath -> {
                                 try {
                                     String templateJsonString = FileUtils.readFileToString(filePath.toFile());
@@ -177,15 +175,15 @@ public class TemplateManagerComponent {
                                     template.setDescription(templateObj.getString(TemplateMgtConstants.DESCRIPTION));
                                     template.setImageUrl(templateObj.getString(TemplateMgtConstants.IMAGE));
 
-                                    if (StringUtils.equals(path.toString(), TemplateMgtConstants
-                                            .SP_TEMPLATES_DIR_PATH.toString())) {
+                                    if (StringUtils.equals(TemplateMgtConstants.SP_TEMPLATES_DIR_PATH.toString(),
+                                            path.toString())) {
                                         template.setTemplateType(TemplateMgtConstants.TemplateType
                                                 .APPLICATION_TEMPLATE);
                                         template.setPropertiesMap(extractApplicationSpecificProperties(templateObj));
                                         template.setTemplateScript(templateObj.getJSONObject(TemplateMgtConstants
                                                 .APPLICATION).toString());
-                                    } else if (StringUtils.equals(path.toString(), TemplateMgtConstants
-                                            .IDP_TEMPLATES_DIR_PATH.toString())) {
+                                    } else if (StringUtils.equals(TemplateMgtConstants.IDP_TEMPLATES_DIR_PATH
+                                            .toString(), path.toString())) {
                                         template.setTemplateType(TemplateMgtConstants.TemplateType.IDP_TEMPLATE);
                                         template.setPropertiesMap(extractIDPSpecificProperties(templateObj));
                                         template.setTemplateScript(templateObj.getJSONObject(TemplateMgtConstants
@@ -237,8 +235,7 @@ public class TemplateManagerComponent {
             properties.put(TemplateMgtConstants.PROP_CATEGORY, templateObj.getString(TemplateMgtConstants
                     .PROP_CATEGORY));
         }
-        if (StringUtils.isNotEmpty(String.valueOf(templateObj.getInt(TemplateMgtConstants.PROP_DISPLAY_ORDER))
-        )) {
+        if (StringUtils.isNotEmpty(String.valueOf(templateObj.getInt(TemplateMgtConstants.PROP_DISPLAY_ORDER)))) {
             properties.put(TemplateMgtConstants.PROP_DISPLAY_ORDER, Integer.toString(templateObj.getInt
                     (TemplateMgtConstants.PROP_DISPLAY_ORDER)));
         }

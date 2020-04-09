@@ -52,33 +52,6 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
     }
 
     @Override
-    public List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException {
-
-        validatePaginationParameters(limit, offset);
-
-        if (limit == 0) {
-            limit = DEFAULT_SEARCH_LIMIT;
-            if (log.isDebugEnabled()) {
-                log.debug("Limit is not defined in the request, default to: " + limit);
-            }
-        }
-
-        List<TemplateInfo> templateInfo = new ArrayList<>();
-        getFileBasedTemplates().entrySet().stream()
-                .skip(offset)
-                .limit(limit)
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList()).
-                forEach(entry -> {
-                    TemplateInfo templateInfoObj = new TemplateInfo(Integer.parseInt(entry.getTemplateId()),
-                            CarbonContext.getThreadLocalCarbonContext().getTenantId(), entry.getTemplateName());
-                    templateInfo.add(templateInfoObj);
-                });
-
-        return templateInfo;
-    }
-
-    @Override
     public List<Template> listTemplates(String templateType, Integer limit, Integer offset)
             throws TemplateManagementException {
 

@@ -36,17 +36,6 @@ public interface ReadOnlyTemplateHandler {
     Template getTemplateById(String templateId) throws TemplateManagementException;
 
     /**
-     * This method is used to get the names and descriptions of all or filtered existing templates.
-     *
-     * @param limit  Number of search results.
-     * @param offset Start index of the search.
-     * @return Filtered list of TemplateInfo elements.
-     * @throws TemplateManagementException Template Management Exception.
-     * @deprecated use {@link #listTemplates(String, Integer, Integer)} instead.
-     */
-    List<TemplateInfo> listTemplates(Integer limit, Integer offset) throws TemplateManagementException;
-
-    /**
      * List all the templates of a given type.
      *
      * @param templateType template type
