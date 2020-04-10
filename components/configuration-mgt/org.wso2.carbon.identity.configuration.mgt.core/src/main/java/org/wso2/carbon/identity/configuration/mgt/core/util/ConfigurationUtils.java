@@ -149,7 +149,7 @@ public class ConfigurationUtils {
     private static String populateMessageWithData(ConfigurationConstants.ErrorMessages error, String... data) {
 
         String message;
-        if (data.length != 0) {
+        if (data != null && data.length != 0) {
             message = String.format(error.getMessage(), data);
         } else {
             message = error.getMessage();
