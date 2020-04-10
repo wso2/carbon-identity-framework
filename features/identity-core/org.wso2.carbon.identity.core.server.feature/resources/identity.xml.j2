@@ -139,6 +139,12 @@
 	-->
     </OpenID>
 
+<!--Remote Fetch Core Configuration-->
+    <RemoteFetch>
+        <FetchEnabled>{{remotefetch.enable}}</FetchEnabled>
+        <WorkingDirectory>{{remotefetch.workingdirectory}}</WorkingDirectory>
+    </RemoteFetch>
+
     <OAuth>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
@@ -1834,7 +1840,7 @@
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/services(.*)" secured="false" http-method="all"/>
@@ -1860,8 +1866,8 @@
         <Resource context="(.*)/wso2/scim/Users(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
-        <Resource context="/authenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>

@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.template.mgt;
 
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
@@ -129,6 +130,20 @@ public interface TemplateManager {
      * @param offset       offset of the list of templates.
      * @return list templates
      * @throws TemplateManagementException if an error occurs while retrieving the templates.
+     * @deprecated use {@link #listTemplates(String, Integer, Integer, Condition)} instead.
      */
     List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws TemplateManagementException;
+
+    /**
+     * List all the templates of a given type and search criteria.
+     *
+     * @param templateType template type
+     * @param limit        number of templates required for the list.
+     * @param offset       offset of the list of templates.
+     * @param searchCondition   Search condition when listing templates.
+     * @return list templates
+     * @throws TemplateManagementException if an error occurs while retrieving the templates.
+     */
+    List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition
+            searchCondition) throws TemplateManagementException;
 }

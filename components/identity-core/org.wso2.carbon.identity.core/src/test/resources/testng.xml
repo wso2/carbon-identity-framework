@@ -25,6 +25,7 @@
             <class name="org.wso2.carbon.identity.core.util.IdentityUtilTest"/>
             <class name="org.wso2.carbon.identity.core.util.IdentityConfigParserTest"/>
             <class name="org.wso2.carbon.identity.core.dao.SAMLSSOServiceProviderDAOTest"/>
+            <class name="org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilderTest"/>
         </classes>
     </test>
 </suite>

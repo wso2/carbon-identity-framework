@@ -27,6 +27,9 @@
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
+  "remotefetch.enable":false,
+  "remotefetch.workingdirectory":"/tmp/",
+
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
 
@@ -440,11 +443,16 @@
     "/api/identity/config-mgt/v1.0/",
     "/api/users/v2/me/webauthn",
     "/api/",
-    "/user-portal/"
+    "/user-portal/",
+    "/authenticationendpoint/",
+    "/accountrecoveryendpoint/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
-    "(.*)/identity/metadata/saml2"
+    "/identity/metadata/saml2",
+    "/commonauth(.*)",
+    "/logincontext(.*)",
+    "/oidc/"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/"
