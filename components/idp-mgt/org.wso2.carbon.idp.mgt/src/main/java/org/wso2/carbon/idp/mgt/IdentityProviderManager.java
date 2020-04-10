@@ -141,10 +141,9 @@ public class IdentityProviderManager implements IdpManager {
         String scim2GroupsEndpoint;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
+        samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
         samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
-        samlECPUrl = resolveAbsoluteURL(IdPManagementConstants.SAML_ECP_URL, samlECPUrl);
         samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
-        samlArtifactUrl = resolveAbsoluteURL(IdPManagementConstants.SSO_ARTIFACT_URL, samlArtifactUrl);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
         oauth1AuthorizeUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL);
         oauth1AccessTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL);
@@ -170,8 +169,10 @@ public class IdentityProviderManager implements IdpManager {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
         }
 
-        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
-                + IdPManagementUtil.getTenantParameter();
+        if (StringUtils.isBlank(samlSSOUrl)) {
+            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+        samlSSOUrl += IdPManagementUtil.getTenantParameter();
         samlSSOUrl = resolveAbsoluteURL(IdPManagementConstants.SAMLSSO, samlSSOUrl);
 
         samlLogoutUrl = samlSSOUrl;
@@ -179,10 +180,12 @@ public class IdentityProviderManager implements IdpManager {
         if (StringUtils.isBlank(samlArtifactUrl)) {
             samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
+        samlArtifactUrl = resolveAbsoluteURL(IdPManagementConstants.SSO_ARTIFACT_URL, samlArtifactUrl);
 
         if (StringUtils.isBlank(samlECPUrl)) {
             samlECPUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
+        samlECPUrl = resolveAbsoluteURL(IdPManagementConstants.SAML_ECP_URL, samlECPUrl);
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
             oauth1RequestTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REQUEST_TOKEN, true, true);
@@ -2531,7 +2534,12 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        String samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL) +
+                IdPManagementUtil.getTenantParameter();
+        if (StringUtils.isBlank(samlSSOUrl)) {
+            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+        samlSSOUrl += IdPManagementUtil.getTenantParameter();
         samlSSOUrl = resolveAbsoluteURL(IdPManagementConstants.SAMLSSO, samlSSOUrl);
 
         updateFederationAuthenticationConfigProperty(residentIDP,
