@@ -2060,9 +2060,11 @@
     </UserFiltering>
 
     <!-- Allowed Userstores -->
-        <AllowedUserstores>
-            {% for userstore in allowed_userstore %}
-            <AllowedUserstore>{{userstore.class}}</AllowedUserstore>
-            {% endfor %}
-        </AllowedUserstores>
+    {% if allowed_userstore is defined %}
+    <AllowedUserstores>
+        {% for userstore in allowed_userstore %}
+        <AllowedUserstore>{{userstore.class}}</AllowedUserstore>
+        {% endfor %}
+    </AllowedUserstores>
+    {% endif %}
 </Server>
