@@ -22,17 +22,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
-import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
-import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
-import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
-import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
-import org.wso2.carbon.identity.template.mgt.function.ResourceToTemplate;
-import org.wso2.carbon.identity.template.mgt.function.TemplateToResource;
 import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
 import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
@@ -266,6 +260,13 @@ public class TemplateManagerImpl implements TemplateManager {
     public List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
             TemplateManagementException {
 
+        return listTemplates(templateType, limit, offset, null);
+    }
+
+    @Override
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition searchCondition)
+            throws TemplateManagementException {
+
         if (!isValidTemplateType(templateType)) {
             throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
                     templateType);
@@ -278,12 +279,12 @@ public class TemplateManagerImpl implements TemplateManager {
         List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers =
                 TemplateManagerDataHolder.getInstance().getReadOnlyTemplateHandlers();
         for (ReadOnlyTemplateHandler readOnlyTemplateHandler : readOnlyTemplateHandlers) {
-            templates.addAll(readOnlyTemplateHandler.listTemplates(templateType, limit, offset));
+            templates.addAll(readOnlyTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
         }
 
         TemplateHandler readWriteTemplateHandler = TemplateManagerDataHolder.getInstance()
                 .getReadWriteTemplateHandler();
-        templates.addAll(readWriteTemplateHandler.listTemplates(templateType, limit, offset));
+        templates.addAll(readWriteTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
         return templates;
     }
 

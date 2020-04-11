@@ -18,9 +18,9 @@
 
 package org.wso2.carbon.identity.template.mgt.handler;
 
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.model.Template;
-import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
 
 import java.util.List;
 
@@ -44,5 +44,6 @@ public interface ReadOnlyTemplateHandler {
      * @return list templates
      * @throws TemplateManagementException if an error occurs while retrieving the templates.
      */
-    List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws TemplateManagementException;
+    List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition
+            searchCondition) throws TemplateManagementException;
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.template.mgt.handler.impl;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
@@ -49,8 +50,8 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
     }
 
     @Override
-    public List<Template> listTemplates(String templateType, Integer limit, Integer offset)
-            throws TemplateManagementException {
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition
+            searchCondition) throws TemplateManagementException {
 
         validatePaginationParameters(limit, offset);
 
