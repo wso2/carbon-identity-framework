@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Service holder for required OSGi services.
@@ -35,6 +36,7 @@ public class UserStoreConfigListenersHolder {
     private List<UserStoreConfigListener> listeners = new ArrayList<>();
     private Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactory = new HashMap<>();
     private UserStoreConfigService userStoreConfigService;
+    private Set<String> allowedUserstores = null;
 
 
     private UserStoreConfigListenersHolder() {
@@ -67,6 +69,16 @@ public class UserStoreConfigListenersHolder {
 
     public UserStoreConfigService getUserStoreConfigService() {
         return userStoreConfigService;
+    }
+
+    public Set<String> getAllowedUserstores() {
+
+        return allowedUserstores;
+    }
+
+    public void setAllowedUserstores(Set<String> allowedUserstores) {
+
+        this.allowedUserstores = allowedUserstores;
     }
 
 }

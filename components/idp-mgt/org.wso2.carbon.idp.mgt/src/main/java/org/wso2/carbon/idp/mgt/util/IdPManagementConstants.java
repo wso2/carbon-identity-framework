@@ -74,6 +74,11 @@ public class IdPManagementConstants {
     public static final String PROVISIONING =
             "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, DEFAULT_PRO_CONNECTOR_NAME";
 
+    //Default SAML endpoints.
+    public static final String SSO_ARTIFACT_URL = "samlartresolve";
+    public static final String SAML_ECP_URL = "samlecp";
+    public static final String SAMLSSO = "samlsso";
+
     // JIT provisioning properties for password provisioning and username provisioning.
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
