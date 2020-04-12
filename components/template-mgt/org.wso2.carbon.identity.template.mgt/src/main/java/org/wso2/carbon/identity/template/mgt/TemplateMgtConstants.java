@@ -61,6 +61,7 @@ public class TemplateMgtConstants {
     // IdP template specific property keys
     public static final String PROP_CATEGORY = "category";
     public static final String PROP_DISPLAY_ORDER = "displayOrder";
+    public static final String PROP_SERVICES = "services";
     public static final String IDP = "idp";
 
     // Application template specific property keys

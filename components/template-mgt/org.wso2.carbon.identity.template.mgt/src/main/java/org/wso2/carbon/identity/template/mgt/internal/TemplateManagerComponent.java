@@ -239,6 +239,14 @@ public class TemplateManagerComponent {
             properties.put(TemplateMgtConstants.PROP_DISPLAY_ORDER, Integer.toString(templateObj.getInt
                     (TemplateMgtConstants.PROP_DISPLAY_ORDER)));
         }
+        if (templateObj.getJSONArray(TemplateMgtConstants.PROP_SERVICES) != null) {
+            JSONArray typesJSONArray = templateObj.getJSONArray(TemplateMgtConstants.PROP_SERVICES);
+            List<String> services = new ArrayList<>();
+            for (int i = 0; i < typesJSONArray.length(); i++) {
+                services.add(typesJSONArray.getString(i));
+            }
+            properties.put(TemplateMgtConstants.PROP_SERVICES, String.join(",", services));
+        }
         return properties;
     }
 }
