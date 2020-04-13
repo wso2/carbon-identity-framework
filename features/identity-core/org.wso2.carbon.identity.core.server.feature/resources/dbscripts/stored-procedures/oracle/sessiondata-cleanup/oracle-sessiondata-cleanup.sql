@@ -6,6 +6,7 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
 -- ------------------------------------------
 
     deletedsessions                  INT := 0;
+    deletedmappingsessions           INT := 0;
     deletedstoreoperations           INT := 0;
     unixtime                         INT := 0;
     rowcount                         INT := 0;
@@ -13,6 +14,7 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     operationcleanuptime             INT := 0;
     current_schema                   VARCHAR(20);
     sessioncleanupcount              INT := 0;
+    sessionmappingcleanupcount       INT := 0;
     operationcleanupcount            INT := 0;
 
 -- ------------------------------------------
@@ -74,9 +76,9 @@ BEGIN
         
 --        EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_SESSION_STORE_TMP AS SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE 1=2';
         
-         EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_SESSION_STORE_TMP (ROW_ID rowid,CONSTRAINT CHNK_IDN_OATH_ACCS_TOK_PRI PRIMARY KEY (ROW_ID)) NOLOGGING';
+        EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_SESSION_STORE_TMP (ROW_ID rowid,SESSION_ID varchar(100),CONSTRAINT CHNK_IDN_OATH_ACCS_TOK_PRI PRIMARY KEY (ROW_ID)) NOLOGGING';
 
-        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid FROM IDN_AUTH_SESSION_STORE WHERE  rownum <= :chunkLimit AND TIME_CREATED < :sessionCleanupTime'
+        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_SESSION_STORE_TMP SELECT rowid,SESSION_ID FROM IDN_AUTH_SESSION_STORE WHERE  rownum <= :chunkLimit AND TIME_CREATED < :sessionCleanupTime'
         USING chunklimit, sessioncleanuptime;
         rowcount := SQL%rowcount;
 
@@ -99,11 +101,11 @@ BEGIN
                 COMMIT;
             END IF;
             
-          EXECUTE IMMEDIATE 'CREATE TABLE TEMP_SESSION_BATCH (ROW_ID rowid,CONSTRAINT BATCH_IDN_OATH_ACCS_TOK_PRI PRIMARY KEY (ROW_ID)) NOLOGGING';
+          EXECUTE IMMEDIATE 'CREATE TABLE TEMP_SESSION_BATCH (ROW_ID rowid,SESSION_ID varchar(100),CONSTRAINT BATCH_IDN_OATH_ACCS_TOK_PRI PRIMARY KEY (ROW_ID)) NOLOGGING';
           COMMIT;
 --            EXECUTE IMMEDIATE 'CREATE TABLE  TEMP_SESSION_BATCH AS SELECT SESSION_ID FROM IDN_AUTH_SESSION_STORE_TMP WHERE 1=2';
 
-            EXECUTE IMMEDIATE 'INSERT INTO TEMP_SESSION_BATCH SELECT ROW_ID FROM IDN_AUTH_SESSION_STORE_TMP WHERE rownum <= :batchSize'
+            EXECUTE IMMEDIATE 'INSERT INTO TEMP_SESSION_BATCH SELECT ROW_ID,SESSION_ID FROM IDN_AUTH_SESSION_STORE_TMP WHERE rownum <= :batchSize'
             USING batchsize;
             rowcount := SQL%rowcount;
             COMMIT;
@@ -124,6 +126,16 @@ BEGIN
             COMMIT;
             END IF;
 
+            -- Deleting user-session mappings from 'IDN_AUTH_USER_SESSION_MAPPING' table
+            EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+            sessionmappingcleanupcount := SQL%rowcount;
+            COMMIT;
+
+            IF ( tracingenabled ) THEN
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED USER-SESSION MAPPINGS COMPLETED WITH '|| sessionmappingcleanupcount||''')';
+            COMMIT;
+            END IF;
+
             EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE ROW_ID IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
 --            EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM JOIN TEMP_SESSION_BATCH)';
             COMMIT;
@@ -136,6 +148,12 @@ BEGIN
             IF ( tracingenabled ) THEN
             deletedsessions := deletedsessions + sessioncleanupcount;
             EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''TOTAL REMOVED SESSIONS COMPLETED WITH '|| deletedsessions||''')';
+            COMMIT;
+            END IF;
+
+            IF ( tracingenabled ) THEN
+            deletedmappingsessions := deletedmappingsessions + sessionmappingcleanupcount;
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''TOTAL REMOVED USER-SESSION MAPPINGS COMPLETED WITH '|| deletedmappingsessions||''')';
             COMMIT;
             END IF;
 

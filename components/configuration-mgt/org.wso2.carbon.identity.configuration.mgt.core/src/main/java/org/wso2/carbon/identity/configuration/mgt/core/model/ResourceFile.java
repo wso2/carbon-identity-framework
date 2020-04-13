@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.model;
 
+import java.io.InputStream;
+
 /**
  * A model class representing resource file.
  */
@@ -26,6 +28,7 @@ public class ResourceFile {
     private String value;
     private String id;
     private String name;
+    private InputStream inputStream;
 
     public ResourceFile() {
 
@@ -89,5 +92,13 @@ public class ResourceFile {
     public void setValue(String value) {
 
         this.value = value;
+    }
+
+    public InputStream getInputStream() {
+        return inputStream;
+    }
+
+    public void setInputStream(InputStream inputStream) {
+        this.inputStream = inputStream;
     }
 }

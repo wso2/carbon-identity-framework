@@ -306,6 +306,17 @@ public abstract class FrameworkConstants {
         }
     }
 
+    public static class DefaultUrlContexts {
+
+        public static final String AUTHENTICATION_ENDPOINT = "/authenticationendpoint/login.do";
+        public static final String AUTHENTICATION_ENDPOINT_RETRY = "/authenticationendpoint/retry.do";
+        public static final String AUTHENTICATION_ENDPOINT_WAIT = "/authenticationendpoint/wait.do";
+        public static final String IDENTIFIER_FIRST_CONFIRMATION = "/authenticationendpoint/idf-confirm.do";
+        public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
+        public static final String AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT = "/authenticationendpoint/claims.do";
+
+    }
+
     public static class AnalyticsAttributes {
 
         public static final String USER = "user";

@@ -69,6 +69,7 @@ public class AuthenticationEndpointFilter implements Filter {
     private static final String URI_OPENID_LOGIN = "openid_login.do";
     private static final String URI_PASSIVESTS_LOGIN = "passivests_login.do";
     private static final String URI_OAUTH2_LOGIN = "oauth2_login.do";
+    public static final String ATTRIBUTE_SKIP_PROPERTY = "skip";
 
     private ServletContext context = null;
 
@@ -80,6 +81,12 @@ public class AuthenticationEndpointFilter implements Filter {
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws IOException, ServletException {
+
+        Object skipFilterAttribute = servletRequest.getAttribute(ATTRIBUTE_SKIP_PROPERTY);
+        if (skipFilterAttribute != null) {
+            filterChain.doFilter(servletRequest, servletResponse);
+            return;
+        }
 
         String redirectUrl = null;
         String appSpecificCustomPageConfigKey = null;
@@ -176,6 +183,8 @@ public class AuthenticationEndpointFilter implements Filter {
             } else {
                 loadPage = "login.jsp";
             }
+            // This is done to prevent the recursive dispatching of the filter
+            servletRequest.setAttribute(ATTRIBUTE_SKIP_PROPERTY, true);
             servletRequest.getRequestDispatcher(loadPage).forward(servletRequest, servletResponse);
         } else {
             filterChain.doFilter(servletRequest, servletResponse);

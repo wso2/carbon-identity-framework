@@ -16,14 +16,11 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.dao.impl;
 
-import java.io.InputStream;
-import java.sql.Blob;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
-import org.wso2.carbon.database.utils.jdbc.RowMapper;
 import org.wso2.carbon.database.utils.jdbc.Template;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
@@ -46,29 +43,9 @@ import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_FILE_NAME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_ID;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_VALUE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_FILES;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES_BY_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_INSERT_FILE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILES_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILE_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_FILE_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
-
+import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -81,60 +58,169 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import static java.time.ZoneOffset.UTC;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_DESCRIPTTION;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_FILE_ID;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_HAS_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_DESCRIPTTION;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_FILE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_FILE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_HAS_FILE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_ID;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_NAME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_TENANT_ID;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ADD_RESOURCE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_ADD_RESOURCE_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_ATTRIBUTE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_DELETE_RESOURCE_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_ATTRIBUTE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_RESOURCE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_INSERT_ATTRIBUTE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_QUERY_LENGTH_EXCEEDED;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_REPLACE_ATTRIBUTE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_REPLACE_RESOURCE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_RETRIEVE_RESOURCE_TYPE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_SEARCH_TENANT_RESOURCES;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UPDATE_ATTRIBUTE;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_UPDATE_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_RESOURCE_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_TENANT_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants
+        .DB_SCHEMA_COLUMN_NAME_VALUE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_ADD_RESOURCE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_ADD_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_DELETE_ATTRIBUTE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_DELETE_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_DELETE_FILES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_DELETE_RESOURCE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_DELETE_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_GET_ATTRIBUTE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_GET_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_GET_FILES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_GET_FILES_BY_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_GET_RESOURCE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_INSERT_ATTRIBUTE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_INSERT_FILE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_QUERY_LENGTH_EXCEEDED;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_REPLACE_ATTRIBUTE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_REPLACE_RESOURCE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_RESOURCES_DOES_NOT_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_RESOURCE_ALREADY_EXISTS;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_RETRIEVE_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_SEARCH_QUERY_SQL_PROPERTY_PARSE_ERROR;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_SEARCH_TENANT_RESOURCES;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_UPDATE_ATTRIBUTE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_UPDATE_RESOURCE_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
+        .ERROR_CODE_CHECK_DB_METADATA;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_ATTRIBUTE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILES_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_FILE_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.DELETE_RESOURCE_ATTRIBUTES_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_ATTRIBUTES_BY_RESOURCE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILE_BY_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_ID_MSSQL_OR_ORACLE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_CREATED_TIME_BY_NAME_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_RESOURCE_CREATED_TIME_BY_NAME_SQL;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_ID_BY_NAME_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_RESOURCE_NAME_BY_ID;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_TENANT_RESOURCES_SELECT_COLUMNS_MSSQL_OR_ORACLE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTES_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.
+        INSERT_OR_UPDATE_ATTRIBUTES_POSTGRESQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .INSERT_OR_UPDATE_ATTRIBUTES_MSSQL_OR_DB2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .INSERT_OR_UPDATE_ATTRIBUTES_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTE_H2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.
+        INSERT_OR_UPDATE_ATTRIBUTE_MSSQL_OR_DB2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.
+        INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_ATTRIBUTE_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_MYSQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .INSERT_OR_UPDATE_RESOURCE_MSSQL_OR_DB2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_ORACLE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.
+        INSERT_OR_UPDATE_RESOURCE_POSTGRESQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_OR_UPDATE_RESOURCE_TYPE_H2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.
+        INSERT_OR_UPDATE_RESOURCE_TYPE_POSTGRESQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.
+        INSERT_OR_UPDATE_RESOURCE_TYPE_MSSQL_OR_DB2;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .INSERT_OR_UPDATE_RESOURCE_TYPE_ORACLE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_RESOURCE_SQL;
-import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants
+        .INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.MAX_QUERY_LENGTH_IN_BYTES_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_HAS_FILE_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_LAST_MODIFIED_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_RESOURCE;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.UPDATE_RESOURCE_H2;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getMaximumQueryLengthInBytes;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.useCreatedTimeField;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
-import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2MySqlOrPostgresDB;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMySQLDB;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMSSqlDB;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isPostgreSQLDB;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isDB2DB;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isOracleDB;
 
 /**
  * {@link ConfigurationDAO} implementation.
@@ -182,7 +268,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
                                                 calendar))
                                         .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
-                                        .setResourceTypeDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
                                         .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
@@ -229,9 +316,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         List<ConfigurationRawDataCollector> configurationRawDataCollectors;
         try {
+            String queryWithCreatedTime = GET_RESOURCE_BY_NAME_MYSQL;
+            String queryWithOutCreatedTime = GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME;
+            if (isOracleDB() || isMSSqlDB()) {
+                queryWithCreatedTime = GET_RESOURCE_BY_NAME_MSSQL_OR_ORACLE;
+            }
             configurationRawDataCollectors = jdbcTemplate.executeQuery(
-                    useCreatedTimeField() ? GET_RESOURCE_BY_NAME_MYSQL :
-                            GET_RESOURCE_BY_NAME_MYSQL_WITHOUT_CREATED_TIME,
+                    useCreatedTimeField() ? queryWithCreatedTime : queryWithOutCreatedTime,
                     (resultSet, rowNumber) -> {
                         ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
                                 configurationRawDataCollectorBuilder =
@@ -242,7 +333,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
                                                 calendar))
                                         .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
-                                        .setResourceTypeDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
                                         .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
@@ -294,7 +386,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                         .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
                                                 calendar))
                                         .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
-                                        .setResourceTypeDescription(resultSet.getString(DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
                                         .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
                                         .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
                                         .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
@@ -310,6 +403,65 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         return configurationRawDataCollectorBuilder.build();
                     },
                     preparedStatement -> preparedStatement.setString(1, resourceId));
+            /*
+            Database call can contain duplicate data for some columns. Need to filter them in order to build the
+            resource.
+            */
+            return configurationRawDataCollectors == null || configurationRawDataCollectors.size() == 0 ?
+                    null : buildResourceFromRawData(configurationRawDataCollectors);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_RESOURCE, "id = " + resourceId, e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Resource getTenantResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        List<ConfigurationRawDataCollector> configurationRawDataCollectors;
+        try {
+            String queryWithCreatedTime = GET_RESOURCE_BY_ID_MYSQL;
+            String queryWithOutCreatedTime = GET_RESOURCE_BY_ID_MYSQL_WITHOUT_CREATED_TIME;
+
+            if (isOracleDB() || isMSSqlDB()) {
+                queryWithCreatedTime = GET_RESOURCE_BY_ID_MSSQL_OR_ORACLE;
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append(useCreatedTimeField() ? queryWithCreatedTime : queryWithOutCreatedTime);
+            sb.append(" AND R.TENANT_ID = ?");
+            configurationRawDataCollectors = jdbcTemplate.executeQuery(sb.toString(), (resultSet, rowNumber) -> {
+                        ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder
+                                configurationRawDataCollectorBuilder =
+                                new ConfigurationRawDataCollector.ConfigurationRawDataCollectorBuilder()
+                                        .setResourceId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID))
+                                        .setTenantId(resultSet.getInt(DB_SCHEMA_COLUMN_NAME_TENANT_ID))
+                                        .setResourceName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME))
+                                        .setLastModified(resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED,
+                                                calendar))
+                                        .setResourceTypeName(resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE))
+                                        .setResourceTypeDescription(resultSet.getString
+                                                (DB_SCHEMA_COLUMN_NAME_DESCRIPTTION))
+                                        .setAttributeKey(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_KEY))
+                                        .setAttributeValue(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_VALUE))
+                                        .setAttributeId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_ATTRIBUTE_ID))
+                                        .setFileId(resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_ID))
+                                        .setHasFile(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_HAS_FILE))
+                                        .setHasAttribute(resultSet.getBoolean(DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE));
+                        if (useCreatedTimeField()) {
+                            configurationRawDataCollectorBuilder.setCreatedTime(
+                                    resultSet.getTimestamp(DB_SCHEMA_COLUMN_NAME_CREATED_TIME,
+                                            calendar)
+                            );
+                        }
+                        return configurationRawDataCollectorBuilder.build();
+                    },
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
             /*
             Database call can contain duplicate data for some columns. Need to filter them in order to build the
             resource.
@@ -345,6 +497,24 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      * {@inheritDoc}
      */
     @Override
+    public void deleteResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.executeUpdate(SQLConstants.DELETE_RESOURCE_BY_ID_SQL, preparedStatement -> {
+                int initialParameterIndex = 1;
+                preparedStatement.setString(initialParameterIndex, resourceId);
+                preparedStatement.setInt(++initialParameterIndex, tenantId);
+            });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_DELETE_RESOURCE, resourceId, e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void replaceResource(Resource resource) throws ConfigurationManagementException {
 
         String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
@@ -369,18 +539,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     // Delete existing attributes.
                     template.executeUpdate(DELETE_RESOURCE_ATTRIBUTES_SQL, preparedStatement ->
                             preparedStatement.setString(1, resource.getResourceId()));
+                    insertResourceAttributes(template, resource);
 
-                    // Create sql query for attribute parameters.
-                    String attributesQuery = buildQueryForAttributes(resource);
-                    template.executeInsert(attributesQuery, preparedStatement -> {
-                        int attributeCount = 0;
-                        for (Attribute attribute : resource.getAttributes()) {
-                            preparedStatement.setString(++attributeCount, generateUniqueID());
-                            preparedStatement.setString(++attributeCount, resource.getResourceId());
-                            preparedStatement.setString(++attributeCount, attribute.getKey());
-                            preparedStatement.setString(++attributeCount, attribute.getValue());
-                        }
-                    }, resource, false);
                 }
                 if (useCreatedTimeField()) {
                     return getCreatedTimeInResponse(resource, resourceTypeId);
@@ -401,6 +561,80 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
      * {@inheritDoc}
      */
     @Override
+    public void replaceResourceWithFiles(Resource resource) throws ConfigurationManagementException {
+
+        String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
+        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            Timestamp createdTime = jdbcTemplate.withTransaction(template -> {
+                boolean isAttributeExists = resource.getAttributes() != null && !resource.getAttributes().isEmpty();
+                boolean isFileExists = resource.getFiles() != null && !resource.getFiles().isEmpty();
+
+                // Update attributes.
+                if (isAttributeExists) {
+                    // Delete existing attributes.
+                    template.executeUpdate(DELETE_RESOURCE_ATTRIBUTES_SQL, preparedStatement ->
+                            preparedStatement.setString(1, resource.getResourceId()));
+                    insertResourceAttributes(template, resource);
+                }
+
+                // Update Files.
+                if (isFileExists) {
+                    template.executeUpdate(DELETE_FILES_SQL, (
+                            preparedStatement -> preparedStatement.setString(1, resource.getResourceId())
+                    ));
+                    for (ResourceFile file : resource.getFiles()) {
+                        template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                            preparedStatement.setString(1, file.getId());
+                            preparedStatement.setBlob(2, file.getInputStream());
+                            preparedStatement.setString(3, resource.getResourceId());
+                            preparedStatement.setString(4, file.getName());
+                        });
+                    }
+                }
+                updateResourceMetadata(template, resource, isAttributeExists, isFileExists, currentTime);
+                if (useCreatedTimeField()) {
+                    return getCreatedTimeInResponse(resource, resourceTypeId);
+                } else {
+                    return null;
+                }
+            });
+            resource.setLastModified(currentTime.toInstant().toString());
+            if (createdTime != null) {
+                resource.setCreatedTime(createdTime.toInstant().toString());
+            }
+        } catch (TransactionException e) {
+            if (e.getCause() instanceof ConfigurationManagementException) {
+                throw (ConfigurationManagementException) e.getCause();
+            }
+            throw handleServerException(ERROR_CODE_REPLACE_RESOURCE, resource.getResourceName(), e);
+        }
+    }
+
+    @Override
+    public boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        String resourceName;
+        try {
+            resourceName = jdbcTemplate.fetchSingleRecord(GET_RESOURCE_NAME_BY_ID, (resultSet, rowNumber) ->
+                            resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
+            return StringUtils.isNotEmpty(resourceName);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_RESOURCE, "id = " + resourceId, e);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void addResource(Resource resource) throws ConfigurationManagementException {
 
         String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
@@ -408,6 +642,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
 
@@ -430,24 +665,19 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             not create files. It is allowed to create a resource without files or attributes in order
                             to allow file upload after resource creation.
                             */
-                            preparedStatement.setBoolean(++initialParameterIndex, false);
-                            preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                            if (isOracleOrMssql) {
+                                preparedStatement.setInt(++initialParameterIndex, 0);
+                                preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                            } else {
+                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                            }
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
                         }, resource, false);
 
                 // Insert attributes.
                 if (isAttributeExists) {
-                    // Create sql query for attribute parameters.
-                    String attributesQuery = buildQueryForAttributes(resource);
-                    template.executeInsert(attributesQuery, preparedStatement -> {
-                        int attributeCount = 0;
-                        for (Attribute attribute : resource.getAttributes()) {
-                            preparedStatement.setString(++attributeCount, generateUniqueID());
-                            preparedStatement.setString(++attributeCount, resource.getResourceId());
-                            preparedStatement.setString(++attributeCount, attribute.getKey());
-                            preparedStatement.setString(++attributeCount, attribute.getValue());
-                        }
-                    }, resource, false);
+                    insertResourceAttributes(template, resource);
                 }
                 return null;
             });
@@ -457,6 +687,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             }
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_ADD_RESOURCE, resource.getResourceName(), e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -490,6 +722,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             String query = SQLConstants.INSERT_OR_UPDATE_RESOURCE_TYPE_MYSQL;
             if (isH2()) {
                 query = INSERT_OR_UPDATE_RESOURCE_TYPE_H2;
+            } else if (isPostgreSQLDB()) {
+                query = INSERT_OR_UPDATE_RESOURCE_TYPE_POSTGRESQL;
+            } else if (isMSSqlDB() || isDB2DB()) {
+                query = INSERT_OR_UPDATE_RESOURCE_TYPE_MSSQL_OR_DB2;
+            } else if (isOracleDB()) {
+                query = INSERT_OR_UPDATE_RESOURCE_TYPE_ORACLE;
             }
 
             jdbcTemplate.executeInsert(query, preparedStatement -> {
@@ -632,9 +870,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                String query = SQLConstants.INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
+                String query = INSERT_OR_UPDATE_ATTRIBUTE_MYSQL;
                 if (isH2()) {
                     query = INSERT_OR_UPDATE_ATTRIBUTE_H2;
+                } else if (isPostgreSQLDB()) {
+                    query = INSERT_OR_UPDATE_ATTRIBUTE_POSTGRESQL;
+                } else if (isMSSqlDB() || isDB2DB()) {
+                    query = INSERT_OR_UPDATE_ATTRIBUTE_MSSQL_OR_DB2;
+                } else if (isOracleDB()) {
+                    query = INSERT_OR_UPDATE_ATTRIBUTE_ORACLE;
                 }
                 template.executeUpdate(query, preparedStatement -> {
                     int initialParameterIndex = 1;
@@ -680,42 +924,62 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }
     }
 
-
     private void updateMetadataForMYSQL(Resource resource, String resourceTypeId, boolean isAttributeExists,
                                         Timestamp currentTime, boolean useCreatedTime)
-            throws TransactionException {
+            throws TransactionException, ConfigurationManagementServerException {
 
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        jdbcTemplate.withTransaction(template ->
-                template.executeInsert(
-                        useCreatedTime ? INSERT_OR_UPDATE_RESOURCE_MYSQL :
-                                INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
-                        preparedStatement -> {
-                            int initialParameterIndex = 1;
-                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                            preparedStatement.setInt(++initialParameterIndex,
-                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                            .getTenantId());
-                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                            if (useCreatedTime) {
+        String query = INSERT_OR_UPDATE_RESOURCE_MYSQL;
+        try {
+            if (isPostgreSQLDB()) {
+                query = INSERT_OR_UPDATE_RESOURCE_POSTGRESQL;
+            } else if (isMSSqlDB() || isDB2DB()) {
+                query = INSERT_OR_UPDATE_RESOURCE_MSSQL_OR_DB2;
+            } else if (isOracleDB()) {
+                query = INSERT_OR_UPDATE_RESOURCE_ORACLE;
+            }
+
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            final String finalQuery = query;
+            jdbcTemplate.withTransaction(template ->
+                    template.executeInsert(
+                            useCreatedTime ? finalQuery :
+                                    INSERT_OR_UPDATE_RESOURCE_MYSQL_WITHOUT_CREATED_TIME,
+                            preparedStatement -> {
+                                int initialParameterIndex = 1;
+                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                preparedStatement.setInt(++initialParameterIndex,
+                                        PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                                .getTenantId());
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                if (useCreatedTime) {
+                                    preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                }
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            }
-                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             /*
                             Resource files are uploaded using a separate endpoint. Therefore resource creation does
                             not create files. It is allowed to create a resource without files or attributes in order
                             to allow  file upload after resource creation.
                             */
-                            preparedStatement.setBoolean(++initialParameterIndex, false);
-                            preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                        }, resource, false)
-        );
+
+                                if (isOracleOrMssql) {
+                                    preparedStatement.setInt(++initialParameterIndex, 0);
+                                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                                } else {
+                                    preparedStatement.setBoolean(++initialParameterIndex, false);
+                                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                                }
+                                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                            }, resource, false)
+            );
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
     }
 
     private void updateMetadataForH2(Resource resource, String resourceTypeId, boolean isAttributeExists,
                                      Timestamp currentTime, boolean useCreatedTime)
-            throws TransactionException {
+            throws TransactionException, ConfigurationManagementServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         if (isResourceExists(resource, resourceTypeId)) {
@@ -723,8 +987,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     template.executeInsert(UPDATE_RESOURCE_H2,
                             preparedStatement -> {
                                 int initialParameterIndex = 1;
-                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                                preparedStatement.setInt(++initialParameterIndex,
+                                preparedStatement.setInt(initialParameterIndex,
                                         PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
                                 preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
@@ -736,33 +999,72 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 preparedStatement.setBoolean(++initialParameterIndex, false);
                                 preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                                 preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                                preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
                             }, resource, false
                     )
             );
         } else {
-            jdbcTemplate.withTransaction(template ->
-                    template.executeInsert(
-                            useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
-                            preparedStatement -> {
-                                int initialParameterIndex = 1;
-                                preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                                preparedStatement.setInt(++initialParameterIndex,
-                                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-                                preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                                if (useCreatedTime) {
+            try {
+                boolean isOracleOrMsssql = isOracleDB() || isMSSqlDB();
+                jdbcTemplate.withTransaction(template ->
+                        template.executeInsert(
+                                useCreatedTime ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
+                                preparedStatement -> {
+                                    int initialParameterIndex = 1;
+                                    preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                                    preparedStatement.setInt(++initialParameterIndex,
+                                            PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+                                    preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                                    if (useCreatedTime) {
+                                        preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                                    }
                                     preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                                }
-                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                                 /*
                                 Resource files are uploaded using a separate endpoint. Therefore resource creation
                                 does not create files. It is allowed to create a resource without files or attributes
                                 in order to allow file upload after resource creation.
                                 */
-                                preparedStatement.setBoolean(++initialParameterIndex, false);
-                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                                preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                            }, resource, false)
-            );
+
+                                    if (isOracleOrMsssql) {
+                                        preparedStatement.setInt(++initialParameterIndex, 0);
+                                        preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                                    } else {
+                                        preparedStatement.setBoolean(++initialParameterIndex, false);
+                                        preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                                    }
+                                    preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                                }, resource, false)
+                );
+            } catch (DataAccessException e) {
+                throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+            }
+        }
+    }
+
+    private void updateResourceMetadata(Template<?> template, Resource resource, boolean isAttributeExists, boolean
+            isFileExists, Timestamp currentTime) throws ConfigurationManagementClientException, DataAccessException {
+
+        try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            template.executeUpdate(UPDATE_RESOURCE, preparedStatement -> {
+                int initialParameterIndex = 1;
+                preparedStatement.setString(initialParameterIndex, resource.getResourceName());
+                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                if (isOracleOrMssql) {
+                    preparedStatement.setInt(++initialParameterIndex, isFileExists ? 1 : 0);
+                    preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                } else {
+                    preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
+                    preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                }
+                preparedStatement.setString(++initialParameterIndex, resource.getResourceId());
+            });
+        } catch (DataAccessException e) {
+            if (e.getCause() instanceof SQLIntegrityConstraintViolationException) {
+                throw handleClientException(ERROR_CODE_RESOURCE_ALREADY_EXISTS, resource.getResourceName(), e);
+            } else {
+                throw e;
+            }
         }
     }
 
@@ -788,12 +1090,21 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     private PlaceholderSQL buildPlaceholderSQL(Condition condition, boolean useCreatedTime)
             throws ConfigurationManagementException {
 
+        String queryWithCreatedTime = GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL;
+        String queryWithOutCreatedTime = GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME;
+
+        try {
+            if (isOracleDB() || isMSSqlDB()) {
+                queryWithCreatedTime = GET_TENANT_RESOURCES_SELECT_COLUMNS_MSSQL_OR_ORACLE;
+            }
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
+
         StringBuilder sb = new StringBuilder();
+
         sb.append(
-                useCreatedTime ?
-                        GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL :
-                        GET_TENANT_RESOURCES_SELECT_COLUMNS_MYSQL_WITHOUT_CREATED_TIME
-        );
+                useCreatedTime ? queryWithCreatedTime : queryWithOutCreatedTime);
         sb.append("WHERE\n");
         try {
             PlaceholderSQL placeholderSQL = condition.buildQuery(
@@ -919,13 +1230,21 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         StringBuilder sb = new StringBuilder();
         if (isH2()) {
             sb.append(SQLConstants.UPDATE_ATTRIBUTES_H2);
-        } else {
+        } else if (isMySQLDB() || isPostgreSQLDB()) {
             sb.append(SQLConstants.INSERT_ATTRIBUTES_SQL);
+        } else if (isMSSqlDB() || isDB2DB()) {
+            sb.append(SQLConstants.INSERT_ATTRIBUTES_MSSQL_OR_DB2);
+        } else if (isOracleDB()) {
+            sb.append(SQLConstants.INSERT_ATTRIBUTES_ORACLE);
         }
 
         // Since attributes exist, query is already built for the first attribute.
         for (int i = 1; i < resource.getAttributes().size(); i++) {
-            sb.append(SQLConstants.INSERT_ATTRIBUTE_KEY_VALUE_SQL);
+            if (isOracleDB()) {
+                sb.append(SQLConstants.INSERT_ATTRIBUTE_KEY_VALUE_ORACLE);
+            } else {
+                sb.append(SQLConstants.INSERT_ATTRIBUTE_KEY_VALUE_SQL);
+            }
             if (sb.toString().getBytes().length > getMaximumQueryLengthInBytes()) {
                 if (log.isDebugEnabled()) {
                     log.debug("Error building SQL query for the attribute insert. Number of attributes: " +
@@ -935,8 +1254,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 throw handleClientException(ERROR_CODE_QUERY_LENGTH_EXCEEDED, null);
             }
         }
-        if (!isH2() && isH2MySqlOrPostgresDB()) {
+        if (isMySQLDB()) {
             sb.append(INSERT_OR_UPDATE_ATTRIBUTES_MYSQL);
+        } else if (isPostgreSQLDB()) {
+            sb.append(INSERT_OR_UPDATE_ATTRIBUTES_POSTGRESQL);
+        } else if (isMSSqlDB() || isDB2DB()) {
+            sb.append(INSERT_OR_UPDATE_ATTRIBUTES_MSSQL_OR_DB2);
+        } else if (isOracleDB()) {
+            sb.append(INSERT_OR_UPDATE_ATTRIBUTES_ORACLE);
         }
         return sb.toString();
     }
@@ -999,6 +1324,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
@@ -1007,7 +1333,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     preparedStatement.setString(4, fileName);
                 });
                 template.executeUpdate(SQLConstants.UPDATE_HAS_FILE_SQL, preparedStatement -> {
-                    preparedStatement.setBoolean(1, true);
+                    if (isOracleOrMssql) {
+                        preparedStatement.setInt(1, 1);
+                    } else {
+                        preparedStatement.setBoolean(1, true);
+                    }
                     preparedStatement.setString(2, resourceId);
                 });
                 updateResourceLastModified(template, resourceId);
@@ -1015,6 +1345,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_INSERT_FILE, fileId, e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -1046,6 +1378,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
 
                 // Get resource id for the deleting file.
@@ -1065,7 +1398,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         preparedStatement -> preparedStatement.setString(1, resourceId));
                 if (availableFilesForTheResource.isEmpty()) {
                     template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
-                        preparedStatement.setBoolean(1, false);
+                        if (isOracleOrMssql) {
+                            preparedStatement.setInt(1, 0);
+                        } else {
+                            preparedStatement.setBoolean(1, false);
+                        }
                         preparedStatement.setString(2, resourceId);
                     });
                 }
@@ -1074,6 +1411,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_FILE, fileId, e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -1105,7 +1444,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementServerException {
+    public List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId) throws ConfigurationManagementServerException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -1121,7 +1460,10 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 resourceFileName
                         );
                     }),
-                    preparedStatement -> preparedStatement.setString(1, resourceTypeId));
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceTypeId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceTypeId, e);
         }
@@ -1132,6 +1474,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
 
                 template.executeUpdate(DELETE_FILES_SQL, (
@@ -1139,7 +1482,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 ));
 
                 template.executeUpdate(UPDATE_HAS_FILE_SQL, preparedStatement -> {
-                    preparedStatement.setBoolean(1, false);
+                    if (isOracleOrMssql) {
+                        preparedStatement.setInt(1, 0);
+                    } else {
+                        preparedStatement.setBoolean(1, false);
+                    }
                     preparedStatement.setString(2, resourceId);
                 });
                 updateResourceLastModified(template, resourceId);
@@ -1147,6 +1494,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             });
         } catch (TransactionException e) {
             throw handleServerException(ERROR_CODE_DELETE_FILES, resourceId, e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
         }
     }
 
@@ -1163,6 +1512,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         String resourceLastModified = resultSet.getString(DB_SCHEMA_COLUMN_NAME_LAST_MODIFIED);
                         String resourceCreatedTime = resultSet.getString(DB_SCHEMA_COLUMN_NAME_CREATED_TIME);
                         String resourceHasFile = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_FILE);
+                        if (StringUtils.equals(resourceHasFile, "1") && (isOracleDB() || isMSSqlDB() || isDB2DB())) {
+                            resourceHasFile = "true";
+                        }
                         String resourceHasAttribute = resultSet.getString(DB_SCHEMA_COLUMN_NAME_HAS_ATTRIBUTE);
                         Resource resource = new Resource();
                         resource.setCreatedTime(resourceCreatedTime);
@@ -1172,7 +1524,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         resource.setLastModified(resourceLastModified);
                         resource.setHasFile(Boolean.valueOf(resourceHasFile));
                         resource.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-                        resource.setFiles(getFilesByResourceType(resourceTypeId));
+                        resource.setFiles(getFilesByResourceType(resourceTypeId, tenantId));
                         resource.setAttributes(getAttributesByResourceId(resourceId));
                         return resource;
                     })),
@@ -1188,7 +1540,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     /**
      * Get Attributes for the {@link Resource}.
      *
-     * @param resourceId      Id of the {@link Resource}.
+     * @param resourceId Id of the {@link Resource}.
      * @return A list of {@link Attribute} for the given resource.
      */
     private List<Attribute> getAttributesByResourceId(String resourceId)
@@ -1211,6 +1563,22 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceId, e);
         }
+    }
+
+    private void insertResourceAttributes(Template<?> template, Resource resource) throws DataAccessException,
+            ConfigurationManagementClientException {
+
+        // Create sql query for attribute parameters.
+        String attributesQuery = buildQueryForAttributes(resource);
+        template.executeInsert(attributesQuery, preparedStatement -> {
+            int attributeUpdateParameterIndex = 0;
+            for (Attribute attribute : resource.getAttributes()) {
+                preparedStatement.setString(++attributeUpdateParameterIndex, generateUniqueID());
+                preparedStatement.setString(++attributeUpdateParameterIndex, resource.getResourceId());
+                preparedStatement.setString(++attributeUpdateParameterIndex, attribute.getKey());
+                preparedStatement.setString(++attributeUpdateParameterIndex, attribute.getValue());
+            }
+        }, resource, false);
     }
 
 }

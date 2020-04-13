@@ -158,7 +158,8 @@ TemplatesApiServiceImpl extends TemplatesApiService {
     private TemplateResponseDTO postTemplate(TemplateDTO templateDTO) throws TemplateManagementException {
 
         Template templateRequest = TemplateEndpointUtils.getTemplateRequest(templateDTO);
-        Template addTemplateResponse = TemplateEndpointUtils.getTemplateManager().addTemplate(templateRequest);
+        Template addTemplateResponse = TemplateEndpointUtils.getTemplateManager().addTemplateUsingTemplateMgtDAO
+                (templateRequest);
 
         return getResponseTemplateDTO(addTemplateResponse);
     }

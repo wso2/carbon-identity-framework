@@ -27,6 +27,9 @@
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
+  "remotefetch.enable":false,
+  "remotefetch.workingdirectory":"/tmp/",
+
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
 
@@ -424,6 +427,7 @@
   "resource_access_control.scim2_me_post_method.keep_resource": true,
 
   "user.association.enable_for_federated_users": false,
+  "tenant_context.enable_tenant_qualified_urls": false,
   "tenant_context.rewrite.webapps": [
     "/api/identity/user/v1.0/",
     "/api/identity/consent-mgt/v1.0/",
@@ -439,13 +443,21 @@
     "/api/identity/config-mgt/v1.0/",
     "/api/users/v2/me/webauthn",
     "/api/",
-    "/user-portal/"
+    "/user-portal/",
+    "/admin-portal/",
+    "/authenticationendpoint/",
+    "/accountrecoveryendpoint/"
   ],
   "tenant_context.rewrite.servlets": [
-    "/identity/(.*)"
+    "/identity/(.*)",
+    "/identity/metadata/saml2",
+    "/commonauth(.*)",
+    "/logincontext(.*)",
+    "/oidc/"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
-    "/user-portal/"
+    "/user-portal/",
+    "/admin-portal/"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [

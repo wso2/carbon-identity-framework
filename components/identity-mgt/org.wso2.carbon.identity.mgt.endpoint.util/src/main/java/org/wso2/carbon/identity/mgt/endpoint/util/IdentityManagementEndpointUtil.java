@@ -546,11 +546,19 @@ public class IdentityManagementEndpointUtil {
     private static String replaceLastOccurrence(String base, String toReplace, String replaceWith) {
         int lastIndex = base.lastIndexOf(toReplace);
 
+        // TODO: Implement a better way to remove the tenant path param in the tenant qualified urls
+        int tenantIndex = base.lastIndexOf("/t/");
+
         if (lastIndex == -1) {
             return base;
         }
 
-        String begin = base.substring(0, lastIndex);
+        String begin;
+        if (tenantIndex == -1) {
+            begin = base.substring(0, lastIndex);
+        } else {
+            begin = base.substring(0, tenantIndex);
+        }
         String end = base.substring(lastIndex + toReplace.length());
         return begin + replaceWith + end;
     }

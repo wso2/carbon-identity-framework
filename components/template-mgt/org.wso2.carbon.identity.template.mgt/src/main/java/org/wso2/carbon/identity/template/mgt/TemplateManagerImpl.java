@@ -18,26 +18,51 @@
 
 package org.wso2.carbon.identity.template.mgt;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
+import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
+import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
+import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.dao.TemplateManagerDAO;
 import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
+import org.wso2.carbon.identity.template.mgt.function.ResourceToTemplate;
+import org.wso2.carbon.identity.template.mgt.function.TemplateToResource;
+import org.wso2.carbon.identity.template.mgt.function.TemplateToResourceAdd;
+import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
+import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT_OFFSET;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_ALREADY_EXIST;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_INVALID;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NAME_REQUIRED;
-import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_NAME_REQUIRED;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages
+        .ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED;
+
+import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantIdFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleClientException;
+import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleServerException;
 
 /**
  * Template manager service implementation.
@@ -55,18 +80,10 @@ public class TemplateManagerImpl implements TemplateManager {
      * @throws TemplateManagementException Template Management Exception.
      */
     @Override
-    public Template addTemplate(Template template) throws TemplateManagementException {
+    public String addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
-        if (isTemplateExists(template.getTemplateName())) {
-            if (log.isDebugEnabled()) {
-                log.debug("A template already exists with the name: " + template.getTemplateName());
-            }
-            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
-        }
-
-        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
-        return templateManagerDAO.addTemplate(template);
+        return addTemplateToConfigStore(template);
     }
 
     /**
@@ -218,10 +235,6 @@ public class TemplateManagerImpl implements TemplateManager {
             }
             throw handleClientException(ERROR_CODE_TEMPLATE_SCRIPT_REQUIRED, null);
         }
-
-        if (template.getTenantId() == null) {
-            template.setTenantId(getTenantIdFromCarbonContext());
-        }
     }
 
     /**
@@ -238,4 +251,199 @@ public class TemplateManagerImpl implements TemplateManager {
         }
     }
 
+    @Override
+    public Template getTemplateById(String templateId) throws TemplateManagementException {
+
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        try {
+            Resource resource = configManager.getTenantResourceById(templateId);
+            Template template = new ResourceToTemplate().apply(resource);
+            if (resource.getFiles().size() == 1) {
+                InputStream templateScriptInputStream = configManager.getFileById(resource.getResourceType(),
+                        resource.getResourceName(), resource.getFiles().get(0).getId());
+                template.setTemplateScript(IOUtils.toString(templateScriptInputStream));
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug(template.getTemplateType().toString() + " can have only one templated object. But the " +
+                            "template with id: " + templateId + " has " + resource.getFiles().size() + " templated " +
+                            "object/s. Therefore templated object is not retrieved.");
+                }
+            }
+            return template;
+        } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(e
+                    .getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            }
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
+                    templateId, getTenantDomainFromCarbonContext());
+        } catch (IOException e) {
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_RETRIEVE_TEMPLATE_BY_ID, e,
+                    templateId, getTenantDomainFromCarbonContext());
+        }
+    }
+
+    @Override
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset) throws
+            TemplateManagementException {
+
+        return listTemplates(templateType, limit, offset, null);
+    }
+
+    @Override
+    public List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition searchCondition)
+            throws TemplateManagementException {
+
+        if (!isValidTemplateType(templateType)) {
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
+                    templateType);
+        }
+        if (limit != null || offset != null) {
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATION_NOT_SUPPORTED, null);
+        }
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        try {
+            Resources resourcesList;
+            if (searchCondition == null) {
+                resourcesList = configManager.getResourcesByType(templateType);
+            } else {
+                resourcesList = configManager.getTenantResources(searchCondition);
+            }
+            return resourcesList.getResources().stream().map(resource -> {
+                resource.setResourceType(templateType);
+                return new ResourceToTemplate().apply(resource);
+            }).collect(Collectors.toList());
+        } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals(e
+                    .getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Template type : '" + templateType + "' has not been created in the database.", e);
+                }
+                return Collections.emptyList();
+            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS.getCode().equals(e
+                    .getErrorCode())) {
+                if (log.isDebugEnabled()) {
+                    String message = "Templates do not exist for template type: " + templateType;
+                    if (searchCondition != null) {
+                        message = message + ", and search  criteria:" + searchCondition.toString();
+                    }
+                    log.debug(message, e);
+                }
+                return Collections.emptyList();
+            }
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_LIST_TEMPLATES, e, templateType,
+                    getTenantDomainFromCarbonContext());
+        }
+    }
+
+    @Override
+    public void deleteTemplateById(String templateId) throws TemplateManagementException {
+
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        try {
+            configManager.deleteResourceById(templateId);
+        } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            }
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_DELETE_TEMPLATE_BY_ID, e,
+                    templateId, getTenantDomainFromCarbonContext());
+        }
+    }
+
+    private String addTemplateToConfigStore(Template template) throws TemplateManagementException {
+
+        if (!isValidTemplateType(template.getTemplateType().toString())) {
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_TEMPLATE_TYPE,
+                    template.getTemplateType().toString());
+        }
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        try {
+            Resource resource = configManager.addResource(template.getTemplateType().toString(), new
+                    TemplateToResourceAdd().apply(template));
+            configManager.addFile(template.getTemplateType().toString(), template.getTemplateName(),
+                    template.getTemplateName() + "_template_object",
+                    IOUtils.toInputStream(template.getTemplateScript()));
+            return resource.getResourceId();
+        } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST, e,
+                        template.getTemplateName());
+            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_TYPE_DOES_NOT_EXISTS.getCode().equals
+                    (e.getErrorCode())) {
+                // If the template insert is failing due to the relevant resource-type for templates is not existing
+                // in the database, create the resource-type and retry the template creation.
+                try {
+                    createResourceType(template.getTemplateType().toString());
+                    return addTemplateToConfigStore(template);
+                } catch (ConfigurationManagementException e1) {
+                    throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE, e,
+                            template.getTemplateName());
+                }
+            } else {
+                throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_INSERT_TEMPLATE, e,
+                        template.getTemplateName());
+            }
+        }
+    }
+
+    private void createResourceType(String templateType) throws ConfigurationManagementException {
+
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        ResourceTypeAdd resourceType = new ResourceTypeAdd();
+        resourceType.setName(templateType);
+        resourceType.setDescription("This is the resource type for " + templateType);
+        configManager.addResourceType(resourceType);
+    }
+
+    private boolean isValidTemplateType(String templateType) {
+
+        return EnumUtils.isValidEnum(TemplateMgtConstants.TemplateType.class, templateType);
+    }
+
+    @Override
+    public void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
+
+        if (StringUtils.isBlank(templateId)) {
+            throw TemplateMgtUtils.handleClientException(TemplateMgtConstants.ErrorMessages
+                    .ERROR_CODE_INVALID_TEMPLATE_ID, templateId);
+        }
+        template.setTemplateId(templateId);
+        validateInputParameters(template);
+        ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        try {
+            configManager.replaceResource(new TemplateToResource().apply(template));
+        } catch (ConfigurationManagementException e) {
+            if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ID_DOES_NOT_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_NOT_FOUND, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            } else if (ConfigurationConstants.ErrorMessages.ERROR_CODE_RESOURCE_ALREADY_EXISTS.getCode().equals(
+                    e.getErrorCode())) {
+                throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_TEMPLATE_ALREADY_EXIST, e,
+                        templateId, getTenantDomainFromCarbonContext());
+            }
+            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_UPDATE_TEMPLATE, e,
+                    templateId, getTenantDomainFromCarbonContext());
+        }
+    }
+
+    @Override
+    public Template addTemplateUsingTemplateMgtDAO(Template template) throws TemplateManagementException {
+
+        validateInputParameters(template);
+        if (isTemplateExists(template.getTemplateName())) {
+            if (log.isDebugEnabled()) {
+                log.debug("A template already exists with the name: " + template.getTemplateName());
+            }
+            throw handleClientException(ERROR_CODE_TEMPLATE_ALREADY_EXIST, template.getTemplateName());
+        }
+
+        TemplateManagerDAO templateManagerDAO = new TemplateManagerDAOImpl();
+        return templateManagerDAO.addTemplate(template);
+    }
 }

@@ -42,6 +42,8 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.model.FilterTreeBuilder;
 import org.wso2.carbon.identity.core.model.Node;
@@ -137,9 +139,9 @@ public class IdentityProviderManager implements IdpManager {
         String scimGroupsEndpoint;
         String scim2UsersEndpoint;
         String scim2GroupsEndpoint;
-        String samlAuthnRequestsSigningEnabled;
 
         openIdUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL);
+        samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL);
         samlECPUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL);
         samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
         oauth1RequestTokenUrl = IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL);
@@ -167,23 +169,23 @@ public class IdentityProviderManager implements IdpManager {
             openIdUrl = IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true);
         }
 
-        samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
-                + IdPManagementUtil.getTenantParameter();
+        if (StringUtils.isBlank(samlSSOUrl)) {
+            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+        samlSSOUrl += IdPManagementUtil.getTenantParameter();
+        samlSSOUrl = resolveAbsoluteURL(IdPManagementConstants.SAMLSSO, samlSSOUrl);
 
-        samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)
-                + IdPManagementUtil.getTenantParameter();
+        samlLogoutUrl = samlSSOUrl;
 
         if (StringUtils.isBlank(samlArtifactUrl)) {
             samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
+        samlArtifactUrl = resolveAbsoluteURL(IdPManagementConstants.SSO_ARTIFACT_URL, samlArtifactUrl);
 
         if (StringUtils.isBlank(samlECPUrl)) {
             samlECPUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
-
-        samlAuthnRequestsSigningEnabled = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.
-                SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true)
-                + IdPManagementUtil.getTenantParameter();
+        samlECPUrl = resolveAbsoluteURL(IdPManagementConstants.SAML_ECP_URL, samlECPUrl);
 
         if (StringUtils.isBlank(oauth1RequestTokenUrl)) {
             oauth1RequestTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REQUEST_TOKEN, true, true);
@@ -1064,13 +1066,36 @@ public class IdentityProviderManager implements IdpManager {
      * @param sortBy       the column value need to sort.
      * @param tenantDomain tenant domain whose IdP names are requested.
      * @return Identity Provider's Basic Information array {@link IdpSearchResult}.
-     * @throws IdentityProviderManagementServerException server related error while getting Identity  Providers object.
-     * @throws IdentityProviderManagementClientException client related error while getting Identity  Providers object.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     * @deprecated use {@link #getIdPs(Integer, Integer, String, String, String, String, List)}
      */
     @Override
     public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
                                    String tenantDomain)
-            throws IdentityProviderManagementServerException, IdentityProviderManagementClientException {
+            throws IdentityProviderManagementException {
+
+        return getIdPs(limit, offset, filter, sortOrder, sortBy, tenantDomain, new ArrayList<>());
+    }
+
+    /**
+     * Get all identity provider's Basic information along with additionally requested information depending on the
+     * requiredAttributes.
+     *
+     * @param limit              Limit per page.
+     * @param offset             Offset value.
+     * @param filter             Filter value for IdP search.
+     * @param sortOrder          Order of IdP ASC/DESC.
+     * @param sortBy             The column value need to sort.
+     * @param tenantDomain       TenantDomain of the user.
+     * @param requiredAttributes Required attributes which needs to be return.
+     * @return Identity Provider's Basic Information array along with requested attribute
+     * information{@link IdpSearchResult}.
+     * @throws IdentityProviderManagementException Server/client related error when getting list of Identity Providers.
+     */
+    @Override
+    public IdpSearchResult getIdPs(Integer limit, Integer offset, String filter, String sortOrder, String sortBy,
+                                   String tenantDomain, List<String> requiredAttributes)
+            throws IdentityProviderManagementException {
 
         IdpSearchResult result = new IdpSearchResult();
         List<ExpressionNode> expressionNodes = getExpressionNodes(filter);
@@ -1078,7 +1103,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         result.setTotalIDPCount(dao.getTotalIdPCount(tenantId, expressionNodes));
         result.setIdpList(dao.getPaginatedIdPsSearch(tenantId, expressionNodes, result.getLimit(), result.getOffSet(),
-                result.getSortOrder(), result.getSortBy()));
+                result.getSortOrder(), result.getSortBy(), requiredAttributes));
         return result;
     }
 
@@ -2509,13 +2534,19 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         // Not all endpoints are persisted. So we need to update only a few properties.
+        String samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL) +
+                IdPManagementUtil.getTenantParameter();
+        if (StringUtils.isBlank(samlSSOUrl)) {
+            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        }
+        samlSSOUrl += IdPManagementUtil.getTenantParameter();
+        samlSSOUrl = resolveAbsoluteURL(IdPManagementConstants.SAMLSSO, samlSSOUrl);
 
-        String samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
 
-        String samlLogoutUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
+        String samlLogoutUrl = samlSSOUrl;
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator
                         .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL,
@@ -2525,6 +2556,20 @@ public class IdentityProviderManager implements IdpManager {
         updateFederationAuthenticationConfigProperty(residentIDP,
                 IdentityApplicationConstants.Authenticator.PassiveSTS.NAME, IdentityApplicationConstants
                         .Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL, passiveStsUrl);
+    }
+
+    private String resolveAbsoluteURL(String urlContext, String resolvedUrl) throws IdentityProviderManagementServerException {
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            try {
+                return ServiceURLBuilder.create().addPath(urlContext).build().getAbsoluteURL();
+            } catch (URLBuilderException e) {
+                throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
+                        "Error while building URL: " + urlContext, e);
+            }
+        } else {
+            return resolvedUrl;
+        }
     }
 
     /**
