@@ -28,7 +28,8 @@ import org.wso2.carbon.identity.template.mgt.dao.impl.TemplateManagerDAOImpl;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
-import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.CacheBackedConfigStoreBasedTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.handler.impl.ConfigStoreBasedTemplateHandler;
 import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 import org.wso2.carbon.identity.template.mgt.model.TemplateInfo;
@@ -58,6 +59,10 @@ public class TemplateManagerImpl implements TemplateManager {
 
     private static final Log log = LogFactory.getLog(TemplateManagerImpl.class);
     private static final Integer DEFAULT_SEARCH_LIMIT = 100;
+    private static CacheBackedConfigStoreBasedTemplateHandler configStoreBasedTemplateHandler =
+            new CacheBackedConfigStoreBasedTemplateHandler(
+                    (ConfigStoreBasedTemplateHandler) TemplateManagerDataHolder.getInstance()
+                            .getReadWriteTemplateHandler());
 
     /**
      * This method is used to add a new template.
@@ -70,8 +75,7 @@ public class TemplateManagerImpl implements TemplateManager {
     public String addTemplate(Template template) throws TemplateManagementException {
 
         validateInputParameters(template);
-        TemplateHandler templateHandler = TemplateManagerDataHolder.getInstance().getReadWriteTemplateHandler();
-        return templateHandler.addTemplate(template);
+        return configStoreBasedTemplateHandler.addTemplate(template);
     }
 
     /**
@@ -251,9 +255,7 @@ public class TemplateManagerImpl implements TemplateManager {
             }
         }
 
-        TemplateHandler readWriteTemplateHandler = TemplateManagerDataHolder.getInstance()
-                .getReadWriteTemplateHandler();
-        return readWriteTemplateHandler.getTemplateById(templateId);
+        return configStoreBasedTemplateHandler.getTemplateById(templateId);
     }
 
     @Override
@@ -282,18 +284,14 @@ public class TemplateManagerImpl implements TemplateManager {
             templates.addAll(readOnlyTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
         }
 
-        TemplateHandler readWriteTemplateHandler = TemplateManagerDataHolder.getInstance()
-                .getReadWriteTemplateHandler();
-        templates.addAll(readWriteTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
+        templates.addAll(configStoreBasedTemplateHandler.listTemplates(templateType, limit, offset, searchCondition));
         return templates;
     }
 
     @Override
     public void deleteTemplateById(String templateId) throws TemplateManagementException {
 
-        TemplateHandler readWriteTemplateHandler = TemplateManagerDataHolder.getInstance()
-                .getReadWriteTemplateHandler();
-        readWriteTemplateHandler.deleteTemplateById(templateId);
+        configStoreBasedTemplateHandler.deleteTemplateById(templateId);
     }
 
     private boolean isValidTemplateType(String templateType) {
@@ -310,9 +308,7 @@ public class TemplateManagerImpl implements TemplateManager {
         }
         template.setTemplateId(templateId);
         validateInputParameters(template);
-        TemplateHandler readWriteTemplateHandler = TemplateManagerDataHolder.getInstance()
-                .getReadWriteTemplateHandler();
-        readWriteTemplateHandler.updateTemplateById(templateId, template);
+        configStoreBasedTemplateHandler.updateTemplateById(templateId, template);
     }
 
     @Override
