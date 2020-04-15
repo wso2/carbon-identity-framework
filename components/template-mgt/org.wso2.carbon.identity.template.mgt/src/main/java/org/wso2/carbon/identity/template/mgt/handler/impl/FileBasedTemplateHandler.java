@@ -43,6 +43,7 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
 
     private static final Log log = LogFactory.getLog(FileBasedTemplateHandler.class);
     private static final Integer DEFAULT_SEARCH_LIMIT = 100;
+    private static final Integer DEFAULT_SEARCH_OFFSET = 0;
 
     @Override
     public Template getTemplateById(String templateId) throws TemplateManagementException {
@@ -61,6 +62,10 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
             if (log.isDebugEnabled()) {
                 log.debug("Limit is not defined in the request, default to: " + limit);
             }
+        }
+
+        if (offset == null) {
+            offset = DEFAULT_SEARCH_OFFSET;
         }
 
         return TemplateManagerDataHolder.getInstance().getFileBasedTemplates().entrySet().stream()
