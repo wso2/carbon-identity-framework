@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
@@ -42,7 +43,6 @@ import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handle
 public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
 
     private static final Log log = LogFactory.getLog(FileBasedTemplateHandler.class);
-    private static final Integer DEFAULT_SEARCH_LIMIT = 100;
     private static final Integer DEFAULT_SEARCH_OFFSET = 0;
 
     @Override
@@ -58,7 +58,7 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
         validatePaginationParameters(limit, offset);
 
         if (limit == null || limit == 0) {
-            limit = DEFAULT_SEARCH_LIMIT;
+            limit = IdentityUtil.getDefaultItemsPerPage();
             if (log.isDebugEnabled()) {
                 log.debug("Limit is not defined in the request, default to: " + limit);
             }
