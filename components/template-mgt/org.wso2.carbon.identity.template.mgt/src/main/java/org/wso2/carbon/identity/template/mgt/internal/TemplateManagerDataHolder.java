@@ -30,6 +30,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * A class to keep the data of the template manager component.
+ */
 public class TemplateManagerDataHolder {
 
     private static TemplateManagerDataHolder instance = new TemplateManagerDataHolder();
@@ -50,7 +53,7 @@ public class TemplateManagerDataHolder {
     /**
      * Get the ConfigurationManager object held at the data holder.
      *
-     * @return configuration manger object.
+     * @return Configuration manger object.
      */
     public ConfigurationManager getConfigurationManager() {
 
@@ -70,7 +73,7 @@ public class TemplateManagerDataHolder {
     /**
      * Get read write template handler.
      *
-     * @return template handler.
+     * @return Template handler.
      */
     public TemplateHandler getReadWriteTemplateHandler() {
 
@@ -80,7 +83,7 @@ public class TemplateManagerDataHolder {
     /**
      * Set read write template handler.
      *
-     * @param readWriteTemplateHandler template handler.
+     * @param readWriteTemplateHandler Template handler.
      */
     public void setReadWriteTemplateHandler(TemplateHandler readWriteTemplateHandler) {
 
@@ -90,7 +93,7 @@ public class TemplateManagerDataHolder {
     /**
      * Get template handlers.
      *
-     * @return list of template handlers.
+     * @return List of template handlers.
      */
     public List<ReadOnlyTemplateHandler> getReadOnlyTemplateHandlers() {
 
@@ -100,7 +103,7 @@ public class TemplateManagerDataHolder {
     /**
      * Add template handler.
      *
-     * @param templateHandler template handler.
+     * @param templateHandler Template handler.
      */
     public void addReadOnlyTemplateHandler(ReadOnlyTemplateHandler templateHandler) {
 
@@ -110,14 +113,20 @@ public class TemplateManagerDataHolder {
     /**
      * Remove template handler.
      *
-     * @param templateHandler template handler.
+     * @param templateHandler Template handler.
      */
     public void removeReadOnlyTemplateHandler(ReadOnlyTemplateHandler templateHandler) {
 
         this.readOnlyTemplateHandlers.remove(templateHandler);
     }
 
+    /**
+     * Get default templates from file artifacts.
+     *
+     * @return Default templates in files.
+     */
     public static Map<String, Template> getFileBasedTemplates() {
+
         return fileBasedTemplates;
     }
 }

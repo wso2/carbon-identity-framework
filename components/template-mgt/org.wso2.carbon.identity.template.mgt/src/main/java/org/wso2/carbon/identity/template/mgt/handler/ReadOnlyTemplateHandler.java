@@ -24,25 +24,29 @@ import org.wso2.carbon.identity.template.mgt.model.Template;
 
 import java.util.List;
 
+/**
+ * Read only template handler interface.
+ */
 public interface ReadOnlyTemplateHandler {
 
     /**
      * Return the template given the template id.
      *
-     * @param templateId unique identifier of the template.
-     * @return template.
-     * @throws TemplateManagementException if an error occurs while retrieving the template.
+     * @param templateId Unique identifier of the template.
+     * @return Template.
+     * @throws TemplateManagementException If an error occurs while retrieving the template.
      */
     Template getTemplateById(String templateId) throws TemplateManagementException;
 
     /**
      * List all the templates of a given type.
      *
-     * @param templateType template type
-     * @param limit        number of templates required for the list.
-     * @param offset       offset of the list of templates.
-     * @return list templates
-     * @throws TemplateManagementException if an error occurs while retrieving the templates.
+     * @param templateType Template type.
+     * @param limit  Number of templates required for the list.
+     * @param offset Offset of the list of templates.
+     * @param searchCondition Filtering conditions.
+     * @return List templates.
+     * @throws TemplateManagementException If an error occurs while retrieving the templates.
      */
     List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition
             searchCondition) throws TemplateManagementException;

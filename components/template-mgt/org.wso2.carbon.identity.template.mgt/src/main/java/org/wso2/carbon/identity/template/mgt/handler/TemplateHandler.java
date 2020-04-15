@@ -21,13 +21,16 @@ package org.wso2.carbon.identity.template.mgt.handler;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
+/**
+ * Template handler interface.
+ */
 public interface TemplateHandler extends ReadOnlyTemplateHandler {
 
     /**
      * This method is used to add a new template as a resource.
      *
      * @param template Template element.
-     * @return unique identifier for the newly created template.
+     * @return Unique identifier for the newly created template.
      * @throws TemplateManagementException Template Management Exception.
      */
     String addTemplate(Template template) throws TemplateManagementException;
@@ -35,17 +38,17 @@ public interface TemplateHandler extends ReadOnlyTemplateHandler {
     /**
      * Update a template given the template id by replacing the existing template object.
      *
-     * @param templateId unique identifier of the the template.
-     * @param template   updated template object.
-     * @throws TemplateManagementException if an error occurs while updating the template.
+     * @param templateId Unique identifier of the the template.
+     * @param template   Updated template object.
+     * @throws TemplateManagementException If an error occurs while updating the template.
      */
     void updateTemplateById(String templateId, Template template) throws TemplateManagementException;
 
     /**
      * Delete a template given the template id.
      *
-     * @param templateId unique identifier of the template.
-     * @throws TemplateManagementException if an error occurs while deleting the template.
+     * @param templateId Unique identifier of the template.
+     * @throws TemplateManagementException If an error occurs while deleting the template.
      */
     void deleteTemplateById(String templateId) throws TemplateManagementException;
 }

@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.template.mgt.cache;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.utils.CarbonUtils;
 
+/**
+ * Cache implementation for config store based template cache.
+ */
 public class ConfigStoreBasedTemplateCache extends BaseCache<ConfigStoreBasedTemplateCacheKey,
         ConfigStoreBasedTemplateCacheEntry> {
 

@@ -77,7 +77,7 @@ public class TemplateManagerComponent {
 
             bundleContext.registerService(TemplateManager.class, new TemplateManagerImpl(), null);
 
-            //Add default template handlers
+            // Add default template handlers.
             ReadOnlyTemplateHandler fileBasedTemplateHandler = new FileBasedTemplateHandler();
             TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(fileBasedTemplateHandler);
             TemplateHandler configStoreBasedTemplateHandler = new ConfigStoreBasedTemplateHandler();

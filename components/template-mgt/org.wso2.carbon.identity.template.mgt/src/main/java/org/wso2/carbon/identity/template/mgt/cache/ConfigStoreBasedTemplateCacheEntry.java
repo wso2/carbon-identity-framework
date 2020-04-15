@@ -21,7 +21,12 @@ package org.wso2.carbon.identity.template.mgt.cache;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
+/**
+ * Cache entry which is kept in the config store based template cache.
+ */
 public class ConfigStoreBasedTemplateCacheEntry extends CacheEntry {
+
+    private static final long serialVersionUID = 3112605038259278777L;
 
     private Template template;
 

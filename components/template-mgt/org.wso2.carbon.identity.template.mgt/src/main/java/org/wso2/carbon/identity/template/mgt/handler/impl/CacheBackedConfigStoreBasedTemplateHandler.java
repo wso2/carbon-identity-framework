@@ -29,6 +29,10 @@ import org.wso2.carbon.identity.template.mgt.model.Template;
 
 import java.util.List;
 
+/**
+ * Cached config store based template handler for the template management. All config store based template handling
+ * happen through this layer to ensure single point of caching.
+ */
 public class CacheBackedConfigStoreBasedTemplateHandler {
 
     private static final Log log = LogFactory.getLog(CacheBackedConfigStoreBasedTemplateHandler.class);
@@ -45,9 +49,9 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
     /**
      * Add new template into the config store.
      *
-     * @param template Template
-     * @return Resource id
-     * @throws TemplateManagementException
+     * @param template Template.
+     * @return Resource id.
+     * @throws TemplateManagementException Template Management Exception.
      */
     public String addTemplate(Template template) throws TemplateManagementException {
 
@@ -57,9 +61,9 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
     /**
      * Get the template for the given id from config store.
      *
-     * @param templateId Template id
-     * @return Template for the given id
-     * @throws TemplateManagementException
+     * @param templateId Template id.
+     * @return Template for the given id.
+     * @throws TemplateManagementException Template Management Exception.
      */
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
@@ -89,9 +93,9 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
     /**
      * Update the template for the given templateId.
      *
-     * @param templateId Template id
-     * @param template   Updated template
-     * @throws TemplateManagementException
+     * @param templateId Template id.
+     * @param template   Updated template.
+     * @throws TemplateManagementException Template Management Exception.
      */
     public void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
 
@@ -105,8 +109,8 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
     /**
      * Delete the template for the given templateId.
      *
-     * @param templateId Template id
-     * @throws TemplateManagementException
+     * @param templateId Template id.
+     * @throws TemplateManagementException Template Management Exception.
      */
     public void deleteTemplateById(String templateId) throws TemplateManagementException {
 
@@ -120,12 +124,12 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
     /**
      * List the templates according to the filters.
      *
-     * @param templateType    Template type
-     * @param limit           Result limit per page
-     * @param offset          Offset value
-     * @param searchCondition Filters
-     * @return List of templates
-     * @throws TemplateManagementException
+     * @param templateType    Template type.
+     * @param limit           Result limit per page.
+     * @param offset          Offset value.
+     * @param searchCondition Filters.
+     * @return List of templates.
+     * @throws TemplateManagementException Template Management Exception.
      */
     public List<Template> listTemplates(String templateType, Integer limit, Integer offset, Condition searchCondition)
             throws TemplateManagementException {
@@ -136,7 +140,7 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
     /**
      * Clearing cache entries related to the template.
      *
-     * @param templateId Template id
+     * @param templateId Template id.
      */
     private void clearTemplateCache(String templateId) throws TemplateManagementException {
 
