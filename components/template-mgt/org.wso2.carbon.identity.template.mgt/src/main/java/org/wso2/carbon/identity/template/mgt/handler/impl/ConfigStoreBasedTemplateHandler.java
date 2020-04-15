@@ -69,10 +69,11 @@ public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
             Resource resource = configManager.getTenantResourceById(templateId);
             Template template = new ResourceToTemplate().apply(resource);
             if (resource.getFiles().size() == 1) {
-                InputStream templateScriptInputStream = configManager
+                try (InputStream templateScriptInputStream = configManager
                         .getFileById(resource.getResourceType(), resource.getResourceName(),
-                                resource.getFiles().get(0).getId());
-                template.setTemplateScript(IOUtils.toString(templateScriptInputStream));
+                                resource.getFiles().get(0).getId())) {
+                    template.setTemplateScript(IOUtils.toString(templateScriptInputStream));
+                }
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug(template.getTemplateType().toString() + " can have only one templated object. But the "

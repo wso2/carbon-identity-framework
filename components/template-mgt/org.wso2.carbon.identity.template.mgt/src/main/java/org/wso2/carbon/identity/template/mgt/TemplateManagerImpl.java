@@ -248,15 +248,13 @@ public class TemplateManagerImpl implements TemplateManager {
 
         List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers =
                 TemplateManagerDataHolder.getInstance().getReadOnlyTemplateHandlers();
-        if (readOnlyTemplateHandlers != null) {
-            for (ReadOnlyTemplateHandler readOnlyTemplateHandler : readOnlyTemplateHandlers) {
-                Template template = readOnlyTemplateHandler.getTemplateById(templateId);
-                if (template != null) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("A template exists with the id: " + templateId);
-                    }
-                    return template;
+        for (ReadOnlyTemplateHandler readOnlyTemplateHandler : readOnlyTemplateHandlers) {
+            Template template = readOnlyTemplateHandler.getTemplateById(templateId);
+            if (template != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("A template exists with the id: " + templateId);
                 }
+                return template;
             }
         }
         return configStoreBasedTemplateHandler.getTemplateById(templateId);

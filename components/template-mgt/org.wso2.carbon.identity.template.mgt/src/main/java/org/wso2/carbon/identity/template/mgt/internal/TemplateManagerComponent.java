@@ -51,8 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder.getFileBasedTemplates;
-
 /**
  * OSGi declarative services component which handles registration and un-registration of template management service.
  */
@@ -158,7 +156,9 @@ public class TemplateManagerComponent {
                 .IDP_TEMPLATES_DIR_PATH);
         for (Path path : paths) {
             if (!Files.exists(path) || !Files.isDirectory(path)) {
-                log.info("No file-based templates");
+                if (log.isDebugEnabled()) {
+                    log.debug("No file-based idp/application templates");
+                }
             } else {
                 try {
                     Files.walk(path)
@@ -189,9 +189,10 @@ public class TemplateManagerComponent {
                                         template.setTemplateScript(templateObj.getJSONObject(TemplateMgtConstants
                                                 .IDP).toString());
                                     }
-                                    //add file based templates to FileBasedTemplates map.
-                                    getFileBasedTemplates().put(templateObj.getString(TemplateMgtConstants.ID),
-                                            template);
+                                    // Add file based templates to FileBasedTemplates map.
+                                    TemplateManagerDataHolder.getInstance()
+                                            .addFileBasedTemplate(templateObj.getString(TemplateMgtConstants.ID),
+                                                    template);
                                 } catch (IOException e) {
                                     log.error("Error while reading  templates.", e);
                                 }
@@ -213,8 +214,10 @@ public class TemplateManagerComponent {
         if (templateObj.getJSONArray(TemplateMgtConstants.TYPES) != null) {
             JSONArray typesJSONArray = templateObj.getJSONArray(TemplateMgtConstants.TYPES);
             List<String> types = new ArrayList<>();
-            for (int i = 0; i < typesJSONArray.length(); i++) {
-                types.add(typesJSONArray.getString(i));
+            if (typesJSONArray != null) {
+                for (int i = 0; i < typesJSONArray.length(); i++) {
+                    types.add(typesJSONArray.getString(i));
+                }
             }
             properties.put(TemplateMgtConstants.TYPES, String.join(",", types));
         }
@@ -240,10 +243,12 @@ public class TemplateManagerComponent {
                     (TemplateMgtConstants.PROP_DISPLAY_ORDER)));
         }
         if (templateObj.getJSONArray(TemplateMgtConstants.PROP_SERVICES) != null) {
-            JSONArray typesJSONArray = templateObj.getJSONArray(TemplateMgtConstants.PROP_SERVICES);
+            JSONArray servicesJSONArray = templateObj.getJSONArray(TemplateMgtConstants.PROP_SERVICES);
             List<String> services = new ArrayList<>();
-            for (int i = 0; i < typesJSONArray.length(); i++) {
-                services.add(typesJSONArray.getString(i));
+            if (servicesJSONArray != null) {
+                for (int i = 0; i < servicesJSONArray.length(); i++) {
+                    services.add(servicesJSONArray.getString(i));
+                }
             }
             properties.put(TemplateMgtConstants.PROP_SERVICES, String.join(",", services));
         }

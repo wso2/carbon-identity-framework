@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementClientException;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
 import org.wso2.carbon.identity.template.mgt.handler.ReadOnlyTemplateHandler;
+import org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
 import java.util.List;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET;
-import static org.wso2.carbon.identity.template.mgt.internal.TemplateManagerDataHolder.getFileBasedTemplates;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleClientException;
 
 /**
@@ -47,7 +47,7 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
     @Override
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
-        return getFileBasedTemplates().get(templateId);
+        return TemplateManagerDataHolder.getInstance().getFileBasedTemplates().get(templateId);
     }
 
     @Override
@@ -56,14 +56,14 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
 
         validatePaginationParameters(limit, offset);
 
-        if (limit == 0) {
+        if (limit == null || limit == 0) {
             limit = DEFAULT_SEARCH_LIMIT;
             if (log.isDebugEnabled()) {
                 log.debug("Limit is not defined in the request, default to: " + limit);
             }
         }
 
-        return getFileBasedTemplates().entrySet().stream()
+        return TemplateManagerDataHolder.getInstance().getFileBasedTemplates().entrySet().stream()
                 .filter(entry -> StringUtils.equals(entry.getValue().getTemplateType().toString(), (templateType)))
                 .skip(offset)
                 .limit(limit)
@@ -80,10 +80,10 @@ public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
      */
     private void validatePaginationParameters(Integer limit, Integer offset) throws TemplateManagementClientException {
 
-        if (limit < 0) {
+        if (limit != null && limit < 0) {
             throw handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT, null);
         }
-        if (offset < 0) {
+        if (offset != null && offset < 0) {
             throw handleClientException(ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET, null);
         }
     }

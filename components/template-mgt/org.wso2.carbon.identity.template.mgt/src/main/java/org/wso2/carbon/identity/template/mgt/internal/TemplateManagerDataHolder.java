@@ -43,7 +43,7 @@ public class TemplateManagerDataHolder {
 
     private List<ReadOnlyTemplateHandler> readOnlyTemplateHandlers = new ArrayList<>();
 
-    private static Map<String, Template> fileBasedTemplates = new HashMap<>();
+    private Map<String, Template> fileBasedTemplates = new HashMap<>();
 
     public static TemplateManagerDataHolder getInstance() {
 
@@ -125,8 +125,13 @@ public class TemplateManagerDataHolder {
      *
      * @return Default templates in files.
      */
-    public static Map<String, Template> getFileBasedTemplates() {
+    public Map<String, Template> getFileBasedTemplates() {
 
-        return fileBasedTemplates;
+        return Collections.unmodifiableMap(fileBasedTemplates);
+    }
+
+    public void addFileBasedTemplate(String templateId, Template template) {
+
+        this.fileBasedTemplates.put(templateId, template);
     }
 }

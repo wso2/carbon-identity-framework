@@ -25,6 +25,7 @@ import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCache
 import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCacheEntry;
 import org.wso2.carbon.identity.template.mgt.cache.ConfigStoreBasedTemplateCacheKey;
 import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementException;
+import org.wso2.carbon.identity.template.mgt.handler.TemplateHandler;
 import org.wso2.carbon.identity.template.mgt.model.Template;
 
 import java.util.List;
@@ -33,7 +34,7 @@ import java.util.List;
  * Cached config store based template handler for the template management. All config store based template handling
  * happen through this layer to ensure single point of caching.
  */
-public class CacheBackedConfigStoreBasedTemplateHandler {
+public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandler {
 
     private static final Log log = LogFactory.getLog(CacheBackedConfigStoreBasedTemplateHandler.class);
 
@@ -71,20 +72,28 @@ public class CacheBackedConfigStoreBasedTemplateHandler {
         ConfigStoreBasedTemplateCacheEntry entry = configStoreBasedTemplateCache.getValueFromCache(cacheKey);
 
         if (entry != null) {
-            log.debug("Cache entry found for Template with id " + templateId);
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry found for Template with id " + templateId);
+            }
             Template template = entry.getTemplate();
             return template;
         } else {
-            log.debug("Cache entry not found for Template with id " + templateId + ". Fetching entry from DB");
+            if (log.isDebugEnabled()) {
+                log.debug("Cache entry not found for Template with id " + templateId + ". Fetching entry from DB");
+            }
         }
 
         Template template = configStoreBasedTemplateHandler.getTemplateById(templateId);
 
         if (template != null) {
-            log.debug("Entry fetched from Config store for Template " + templateId + ". Updating cache");
+            if (log.isDebugEnabled()) {
+                log.debug("Entry fetched from Config store for Template " + templateId + ". Updating cache");
+            }
             configStoreBasedTemplateCache.addToCache(cacheKey, new ConfigStoreBasedTemplateCacheEntry(template));
         } else {
-            log.debug("Entry for Template with id " + templateId + " not found in cache or config store");
+            if (log.isDebugEnabled()) {
+                log.debug("Entry for Template with id " + templateId + " not found in cache or config store");
+            }
         }
 
         return template;
