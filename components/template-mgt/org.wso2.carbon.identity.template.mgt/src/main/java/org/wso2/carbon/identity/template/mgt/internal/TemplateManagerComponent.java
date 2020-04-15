@@ -79,7 +79,7 @@ public class TemplateManagerComponent {
             ReadOnlyTemplateHandler fileBasedTemplateHandler = new FileBasedTemplateHandler();
             TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(fileBasedTemplateHandler);
             TemplateHandler configStoreBasedTemplateHandler = new ConfigStoreBasedTemplateHandler();
-            TemplateManagerDataHolder.getInstance().addReadOnlyTemplateHandler(configStoreBasedTemplateHandler);
+            TemplateManagerDataHolder.getInstance().setReadWriteTemplateHandler(configStoreBasedTemplateHandler);
             loadDefaultTemplates();
             if (log.isDebugEnabled()) {
                 log.debug("Template Manager bundle is activated.");
