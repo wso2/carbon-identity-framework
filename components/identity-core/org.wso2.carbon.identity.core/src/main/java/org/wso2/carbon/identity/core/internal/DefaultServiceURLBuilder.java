@@ -252,8 +252,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         tenantDomain = resolveTenantDomain();
 
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
-        if (StringUtils.isNotBlank(tenantDomain)) {
-            resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (StringUtils.isNotBlank(tenantDomain)) {
+                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+            }
         }
 
         if (StringUtils.isNotBlank(resolvedUrlContext)) {
