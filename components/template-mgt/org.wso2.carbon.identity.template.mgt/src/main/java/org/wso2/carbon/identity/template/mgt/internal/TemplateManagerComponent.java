@@ -208,8 +208,8 @@ public class TemplateManagerComponent {
 
         Map<String, String> properties = new HashMap<>();
         if (StringUtils.isNotEmpty(templateObj.getString(TemplateMgtConstants.AUTHENTICATION_PROTOCOL))) {
-            properties.put(TemplateMgtConstants.AUTHENTICATION_PROTOCOL, templateObj.getString(TemplateMgtConstants
-                    .AUTHENTICATION_PROTOCOL));
+            properties.put(TemplateMgtConstants.PROPERTY_AUTHENTICATION_PROTOCOL,
+                    templateObj.getString(TemplateMgtConstants.AUTHENTICATION_PROTOCOL));
         }
         if (templateObj.getJSONArray(TemplateMgtConstants.TYPES) != null) {
             JSONArray typesJSONArray = templateObj.getJSONArray(TemplateMgtConstants.TYPES);
@@ -225,7 +225,7 @@ public class TemplateManagerComponent {
             properties.put(TemplateMgtConstants.CATEGORY, templateObj.getString(TemplateMgtConstants.CATEGORY));
         }
         if (StringUtils.isNotEmpty(String.valueOf(templateObj.getInt(TemplateMgtConstants.DISPLAY_ORDER)))) {
-            properties.put(TemplateMgtConstants.DISPLAY_ORDER, Integer.toString(templateObj.getInt
+            properties.put(TemplateMgtConstants.PROPERTY_DISPLAY_ORDER, Integer.toString(templateObj.getInt
                     (TemplateMgtConstants.DISPLAY_ORDER)));
         }
         return properties;
