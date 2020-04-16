@@ -282,7 +282,7 @@ public class ConfigurationFacade {
     private String buildTenantQualifiedUrl(String context) {
 
         try {
-            return ServiceURLBuilder.create().addPath(context).build().getInternalAbsoluteURL();
+            return ServiceURLBuilder.create().addPath(context).build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw new IdentityRuntimeException("Error while building url for context: " + context);
         }

@@ -2519,7 +2519,7 @@ public class IdentityProviderManager implements IdpManager {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
-                return ServiceURLBuilder.create().addPath(urlContext).build().getInternalAbsoluteURL();
+                return ServiceURLBuilder.create().addPath(urlContext).build().getAbsoluteInternalURL();
             } catch (URLBuilderException e) {
                 throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
                         "Error while building URL: " + urlContext, e);

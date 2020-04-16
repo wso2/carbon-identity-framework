@@ -89,7 +89,7 @@ public interface ServiceURL {
      *
      * @return The internal absolute URL from the Service URL instance.
      */
-    String getInternalAbsoluteURL();
+    String getAbsoluteInternalURL();
 
     /**
      * Returns the proxy server url when the Identity Server is fronted with a proxy.
@@ -98,7 +98,7 @@ public interface ServiceURL {
      *
      * @return The public absolute URL from the Service URL instance.
      */
-    String getPublicAbsoluteURL();
+    String getAbsolutePublicURL();
 
     /**
      * Concatenate the url context, query params and the fragment to return the relative URL.

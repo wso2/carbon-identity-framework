@@ -178,7 +178,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
          * @return The internal absolute URL from the Service URL instance.
          */
         @Override
-        public String getInternalAbsoluteURL() {
+        public String getAbsoluteInternalURL() {
 
             return absoluteUrl;
         }
@@ -191,7 +191,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
          * @return The public absolute URL from the Service URL instance.
          */
         @Override
-        public String getPublicAbsoluteURL() {
+        public String getAbsolutePublicURL() {
 
             return absoluteUrl;
         }
