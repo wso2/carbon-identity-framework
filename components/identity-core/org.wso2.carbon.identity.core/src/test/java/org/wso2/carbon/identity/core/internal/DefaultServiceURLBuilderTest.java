@@ -223,6 +223,8 @@ public class DefaultServiceURLBuilderTest {
         String[] valuesList = {"value1", "value2", "value3"};
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn("proxyContextPath");
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(true);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         try {
             absoluteUrl =
@@ -236,7 +238,8 @@ public class DefaultServiceURLBuilderTest {
         }
 
         assertEquals(absoluteUrl,
-                "null://localhost:0/proxyContextPath/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2" +
+                "null://localhost:0/proxyContextPath/t/carbon" +
+                        ".super/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2" +
                         "%26key3%3Dvalue3#key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3");
     }
 
@@ -255,47 +258,51 @@ public class DefaultServiceURLBuilderTest {
         }
 
         return new Object[][]{
-                {"https", "www.wso2.com", 9443, "/proxyContext", null, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", false, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
                                 "%26key4%3Dfragment", ""},
-                {"https", "www.wso2.com", 9443, "/proxyContext/", null, "fragment", fragmentParams,
+                {"https", "www.wso2.com", 9443, "/proxyContext/", "", false, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext/samlsso#fragment", "/samlsso"},
-                {"https", "www.wso2.com", 9443, "proxyContext", null, "", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext/samlsso#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
-                        "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "", null, "fragment", fragmentParams,
+                {"https", "www.wso2.com", 9443, "proxyContext", "", true, null, "", fragmentParams,
+                        "https://www.wso2.com:9443/proxyContext/t/carbon.super/samlsso#key1%3Dfragment%26key2%3D" +
+                                "fragment%26key3%3Dfragment%26key4%3Dfragment", "/samlsso/"},
+                {"https", "www.wso2.com", 9443, "", "abc", false, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/samlsso#fragment", "samlsso"},
-                {"https", "www.wso2.com", 9443, null, parameters, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#fragment",
+                {"https", "www.wso2.com", 9443, null, "abc", true, parameters, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/t/abc/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#fragment",
                         "/samlsso"},
-                {"https", "www.wso2.com", 9443, null, parameters, "", null,
+                {"https", "www.wso2.com", 9443, null, "abc", false, parameters, "", null,
                         "https://www.wso2.com:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv", "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "proxyContext/", null, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext/samlsso#fragment", "/samlsso"},
-                {"https", "www.wso2.com", 9443, "/proxyContext", null, "", null,
-                        "https://www.wso2.com:9443/proxyContext/samlsso", "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "", null, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/samlsso#fragment", "samlsso/"},
-                {"https", "www.wso2.com", 9443, "", parameters, "", fragmentParams,
-                        "https://www.wso2.com:9443?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
+                {"https", "www.wso2.com", 9443, "proxyContext/", "abc", true, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/proxyContext/t/abc/samlsso#fragment", "/samlsso"},
+                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", true, null, "", null,
+                        "https://www.wso2.com:9443/proxyContext/t/abc/samlsso", "/samlsso/"},
+                {"https", "www.wso2.com", 9443, "", "", true, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/t/carbon.super/samlsso#fragment", "samlsso/"},
+                {"https", "www.wso2.com", 9443, "", "", true, parameters, "", fragmentParams,
+                        "https://www.wso2.com:9443/t/carbon.super?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1" +
+                                "%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
                         null},
-                {"https", "www.wso2.com", 9443, "/proxyContext", null, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "/proxyContext", "", false, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
                                 "%26key4%3Dfragment", null}
         };
     }
 
     @Test(dataProvider = "getAbsoluteURLData")
-    public void testGetAbsoluteURL(String protocol, String hostName, int port,
-                                   String proxyContextPath, Map<String, String> parameters,
-                                   String fragment, Map<String, String> fragmentParams, String expected,
-                                   String urlPath) {
+    public void testGetAbsoluteURL(String protocol, String hostName, int port, String proxyContextPath,
+                                   String tenantNameFromContext, boolean enableTenantURLSupport,
+                                   Map<String, String> parameters, String fragment, Map<String, String> fragmentParams,
+                                   String expected, String urlPath) {
 
         when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
         when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
         String absoluteUrl = null;
 
