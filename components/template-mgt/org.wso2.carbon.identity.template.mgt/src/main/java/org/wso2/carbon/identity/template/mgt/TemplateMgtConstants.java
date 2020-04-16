@@ -66,9 +66,11 @@ public class TemplateMgtConstants {
 
     // Application template specific property keys.
     public static final String AUTHENTICATION_PROTOCOL = "authenticationProtocol";
+    public static final String PROPERTY_AUTHENTICATION_PROTOCOL = "protocol";
     public static final String TYPES = "types";
     public static final String CATEGORY = "category";
     public static final String DISPLAY_ORDER = "displayOrder";
+    public static final String PROPERTY_DISPLAY_ORDER = "display-order";
     public static final String APPLICATION = "application";
 
     public enum TemplateType {
