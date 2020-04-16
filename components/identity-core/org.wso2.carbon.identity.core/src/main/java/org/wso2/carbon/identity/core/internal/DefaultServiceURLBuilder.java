@@ -171,13 +171,27 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
 
         /**
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
-         * and the fragment to return the absolute URL.
+         * Returns the absolute URL used for Identity Server internal calls.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+         * the fragment to return the internal absolute URL.
          *
-         * @return The absolute URL from the Service URL instance.
+         * @return The internal absolute URL from the Service URL instance.
          */
         @Override
-        public String getAbsoluteURL() {
+        public String getInternalAbsoluteURL() {
+
+            return absoluteUrl;
+        }
+
+        /**
+         * Returns the proxy server url when the Identity Server is fronted with a proxy.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+         * the fragment to return the public absolute URL.
+         *
+         * @return The public absolute URL from the Service URL instance.
+         */
+        @Override
+        public String getPublicAbsoluteURL() {
 
             return absoluteUrl;
         }
