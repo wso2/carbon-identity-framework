@@ -28,7 +28,6 @@
     <url>http://wso2.org</url>
     <packaging>bundle</packaging>
     <artifactId>org.wso2.carbon.identity.application.mgt.ui</artifactId>
-    <version>5.16.25</version>
 
     <dependencies>
         <dependency>
