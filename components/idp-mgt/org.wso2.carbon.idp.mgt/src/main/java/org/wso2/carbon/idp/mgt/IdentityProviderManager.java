@@ -112,49 +112,75 @@ public class IdentityProviderManager implements IdpManager {
 
         IdPManagementUtil.setTenantSpecifiers(tenantDomain);
 
-        StringBuilder openIdUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL));
-        StringBuilder samlECPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL));
-        StringBuilder samlArtifactUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL));
-        StringBuilder oauth1RequestTokenUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL));
-        StringBuilder oauth1AuthorizeUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL));
-        StringBuilder oauth1AccessTokenUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL));
-        StringBuilder oauth2AuthzEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL));
-        StringBuilder oauth2TokenEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL));
-        StringBuilder oauth2UserInfoEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL));
-        StringBuilder oidcCheckSessionEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL));
-        StringBuilder oidcLogoutEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL));
-        StringBuilder passiveStsUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL));
+        StringBuilder openIdUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.OPENID_SERVER_URL));
+        StringBuilder samlECPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL));
+        String samlArtifactUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL);
+        StringBuilder oauth1RequestTokenUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_REQUEST_TOKEN_URL));
+        StringBuilder oauth1AuthorizeUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_AUTHORIZE_URL));
+        StringBuilder oauth1AccessTokenUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH1_ACCESSTOKEN_URL));
+        StringBuilder oauth2AuthzEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_AUTHZ_EP_URL));
+        StringBuilder oauth2TokenEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_TOKEN_EP_URL));
+        StringBuilder oauth2UserInfoEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_USERINFO_EP_URL));
+        StringBuilder oidcCheckSessionEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_CHECK_SESSION_EP_URL));
+        StringBuilder oidcLogoutEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_LOGOUT_EP_URL));
+        StringBuilder passiveStsUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.STS.PSTS_IDENTITY_PROVIDER_URL));
         String stsUrl = IdentityUtil.getProperty(IdentityConstants.STS.STS_IDENTITY_PROVIDER_URL);
-        StringBuilder scimUsersEndpoint = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL));
-        StringBuilder scimGroupsEndpoint = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL));
-        StringBuilder scim2UsersEndpoint = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM2.USER_EP_URL));
-        StringBuilder scim2GroupsEndpoint = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM2.GROUP_EP_URL));
-        StringBuilder oauth2RevokeEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL));
-        StringBuilder oauth2IntrospectEpUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL));
-        StringBuilder oIDCWebFingerEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_WEB_FINGER_EP_URL));
-        StringBuilder oAuth2DCREPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_DCR_EP_URL));
-        StringBuilder oAuth2JWKSPage = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_JWKS_EP_URL));
-        StringBuilder oIDCDiscoveryEPUrl = new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_DISCOVERY_EP_URL));
+        StringBuilder scimUsersEndpoint =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM.USER_EP_URL));
+        StringBuilder scimGroupsEndpoint =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM.GROUP_EP_URL));
+        StringBuilder scim2UsersEndpoint =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM2.USER_EP_URL));
+        StringBuilder scim2GroupsEndpoint =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.SCIM2.GROUP_EP_URL));
+        StringBuilder oauth2RevokeEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_REVOKE_EP_URL));
+        StringBuilder oauth2IntrospectEpUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_INTROSPECT_EP_URL));
+        StringBuilder oIDCWebFingerEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_WEB_FINGER_EP_URL));
+        StringBuilder oAuth2DCREPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_DCR_EP_URL));
+        StringBuilder oAuth2JWKSPage =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OAUTH2_JWKS_EP_URL));
+        StringBuilder oIDCDiscoveryEPUrl =
+                new StringBuilder(IdentityUtil.getProperty(IdentityConstants.OAuth.OIDC_DISCOVERY_EP_URL));
 
         if (StringUtils.isBlank(String.valueOf(openIdUrl))) {
             openIdUrl.append(IdentityUtil.getServerURL(IdentityConstants.OpenId.OPENID, true, true));
         }
 
-        StringBuilder samlSSOUrl = new StringBuilder(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true))
-                .append(IdPManagementUtil.getTenantParameter());
+        StringBuilder samlSSOUrl =
+                new StringBuilder(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true))
+                        .append(IdPManagementUtil.getTenantParameter());
 
-        StringBuilder samlLogoutUrl = new StringBuilder(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true)).append(IdPManagementUtil.getTenantParameter());
+        StringBuilder samlLogoutUrl =
+                new StringBuilder(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true))
+                        .append(IdPManagementUtil.getTenantParameter());
 
-        if (StringUtils.isBlank(String.valueOf(samlArtifactUrl))) {
-            samlArtifactUrl.append(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true));
+        if (StringUtils.isBlank(samlArtifactUrl)) {
+            samlArtifactUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
         }
 
         if (StringUtils.isBlank(String.valueOf(samlECPUrl))) {
             samlECPUrl.append(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true));
         }
 
-        StringBuilder samlAuthnRequestsSigningEnabled = new StringBuilder(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.
-                SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true)).append(IdPManagementUtil.getTenantParameter());
+        StringBuilder samlAuthnRequestsSigningEnabled =
+                new StringBuilder(IdentityUtil.getServerURL(IdentityConstants.ServerConfig.
+                        SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED, true, true))
+                        .append(IdPManagementUtil.getTenantParameter());
 
         if (StringUtils.isBlank(String.valueOf(oauth1RequestTokenUrl))) {
             oauth1RequestTokenUrl.append(IdentityUtil.getServerURL(IdentityConstants.OAuth.REQUEST_TOKEN, true, true));
@@ -187,7 +213,8 @@ public class IdentityProviderManager implements IdpManager {
         try {
             if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
                     (tenantDomain)) {
-                oauth2IntrospectEpUrl.replace(0, oauth2IntrospectEpUrl.length(), getTenantUrl(String.valueOf(oauth2IntrospectEpUrl), tenantDomain));
+                oauth2IntrospectEpUrl.replace(0, oauth2IntrospectEpUrl.length(),
+                        getTenantUrl(String.valueOf(oauth2IntrospectEpUrl), tenantDomain));
             }
         } catch (URISyntaxException e) {
             log.error("OAuth 2 Introspect endpoint is malformed.", e);
@@ -245,7 +272,8 @@ public class IdentityProviderManager implements IdpManager {
         try {
             if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
                     (tenantDomain)) {
-                oIDCDiscoveryEPUrl.replace(0, oAuth2JWKSPage.length(), getTenantUrl(String.valueOf(oIDCDiscoveryEPUrl), tenantDomain));
+                oIDCDiscoveryEPUrl.replace(0, oAuth2JWKSPage.length(),
+                        getTenantUrl(String.valueOf(oIDCDiscoveryEPUrl), tenantDomain));
             }
         } catch (URISyntaxException e) {
             log.error("OIDC Discovery endpoint is malformed");
@@ -274,7 +302,8 @@ public class IdentityProviderManager implements IdpManager {
         try {
             if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
                     (tenantDomain)) {
-                scim2UsersEndpoint.replace(0, scim2UsersEndpoint.length(), getTenantUrl(String.valueOf(scim2UsersEndpoint), tenantDomain));
+                scim2UsersEndpoint.replace(0, scim2UsersEndpoint.length(),
+                        getTenantUrl(String.valueOf(scim2UsersEndpoint), tenantDomain));
             }
         } catch (URISyntaxException e) {
             log.error("SCIM 2.0 Users endpoint is malformed");
@@ -286,7 +315,8 @@ public class IdentityProviderManager implements IdpManager {
         try {
             if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
                     (tenantDomain)) {
-                scim2GroupsEndpoint.replace(0, scim2GroupsEndpoint.length(), getTenantUrl(String.valueOf(scim2GroupsEndpoint), tenantDomain));
+                scim2GroupsEndpoint.replace(0, scim2GroupsEndpoint.length(),
+                        getTenantUrl(String.valueOf(scim2GroupsEndpoint), tenantDomain));
             }
         } catch (URISyntaxException e) {
             log.error("SCIM 2.0 Groups endpoint is malformed");
