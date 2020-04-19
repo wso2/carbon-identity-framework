@@ -2468,6 +2468,29 @@ public class FrameworkUtils {
         }
     }
 
+    /**
+     * Preprocess user's username considering authentication context.
+     *
+     * @param username username of the user.
+     * @param context  authentication context.
+     * @return preprocessed username
+     */
+    public static String preprocessUsername(String username, AuthenticationContext context) {
+
+        if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+            if (IdentityUtil.isEmailUsernameEnabled()) {
+                if (StringUtils.countMatches(username, "@") == 1) {
+                    return username + "@" + context.getTenantDomain();
+                }
+            } else {
+                if (!username.contains("@")) {
+                    return username + "@" + context.getTenantDomain();
+                }
+            }
+        }
+        return username;
+    }
+
     private static String addUserId(String username, UserStoreManager userStoreManager) {
 
         String userId;
