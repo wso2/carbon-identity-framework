@@ -453,7 +453,8 @@
     "/identity/metadata/saml2",
     "/commonauth(.*)",
     "/logincontext(.*)",
-    "/oidc/"
+    "/oidc/",
+    "/samlsso(.*)"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/",
