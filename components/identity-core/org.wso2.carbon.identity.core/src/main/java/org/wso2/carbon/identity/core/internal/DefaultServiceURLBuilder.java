@@ -23,7 +23,6 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.ServiceURL;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
@@ -331,11 +330,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
     private String resolveTenantDomain() {
 
-        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        }
-        return tenantDomain;
+        return IdentityTenantUtil.getTenantDomainFromContext();
     }
 
     private String buildFragment(String fragment, Map<String, String> fragmentParams) {
