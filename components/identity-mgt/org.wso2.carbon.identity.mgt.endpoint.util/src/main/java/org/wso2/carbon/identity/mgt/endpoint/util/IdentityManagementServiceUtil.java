@@ -56,6 +56,7 @@ public class IdentityManagementServiceUtil {
     private String accessUsername;
     private String accessPassword;
     private String serviceContextURL;
+    private String contextURL;
     private String appName;
     private char[] appPassword;
 
@@ -123,6 +124,7 @@ public class IdentityManagementServiceUtil {
                     .APP_PASSWORD).toCharArray();
             String serviceContextURL = properties
                     .getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants.SERVICE_CONTEXT_URL);
+            contextURL = serviceContextURL;
             this.serviceContextURL = StringUtils.isBlank(serviceContextURL) ? IdentityUtil.getServerURL(
                     IdentityUtil.getServicePath(), true, true) : serviceContextURL;
 
@@ -147,6 +149,17 @@ public class IdentityManagementServiceUtil {
      */
     public String getServiceContextURL() {
         return serviceContextURL;
+    }
+
+    /**
+     * Returns the context URL configured as identity.server.service.contextURL of RecoveryEndpointConfig.properties
+     * file.
+     *
+     * @return context URL.
+     */
+    public String getContextURLFromFile() {
+
+        return contextURL;
     }
 
     /**

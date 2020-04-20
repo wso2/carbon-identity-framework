@@ -90,11 +90,9 @@ public class UsernameRecoveryApi {
       tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
-    if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-      basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-              IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-    }
-
+    basePath = IdentityManagementEndpointUtil
+            .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                    isEndpointTenantAware);
     apiClient.setBasePath(basePath);
 
     // create path and map variables
@@ -155,11 +153,8 @@ public class UsernameRecoveryApi {
       tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
-    if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-      basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-              IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-    }
-
+    basePath = IdentityManagementEndpointUtil
+            .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
     apiClient.setBasePath(basePath);
 
     // create path and map variables
@@ -205,11 +200,9 @@ public class UsernameRecoveryApi {
       tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
     }
 
-    if (isEndpointTenantAware && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-      basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-              IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-    }
-
+    basePath = IdentityManagementEndpointUtil
+            .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                    isEndpointTenantAware);
     apiClient.setBasePath(basePath);
 
     // Create path and map variables
