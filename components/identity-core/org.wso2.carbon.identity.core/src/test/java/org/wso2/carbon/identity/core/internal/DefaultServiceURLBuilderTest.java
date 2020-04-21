@@ -224,7 +224,7 @@ public class DefaultServiceURLBuilderTest {
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn("proxyContextPath");
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(true);
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn("carbon.super");
 
         try {
             absoluteUrl =
@@ -263,7 +263,7 @@ public class DefaultServiceURLBuilderTest {
                                 "%26key4%3Dfragment", ""},
                 {"https", "www.wso2.com", 9443, "/proxyContext/", "", false, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext/samlsso#fragment", "/samlsso"},
-                {"https", "www.wso2.com", 9443, "proxyContext", "", true, null, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "proxyContext", "carbon.super", true, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext/t/carbon.super/samlsso#key1%3Dfragment%26key2%3D" +
                                 "fragment%26key3%3Dfragment%26key4%3Dfragment", "/samlsso/"},
                 {"https", "www.wso2.com", 9443, "", "abc", false, null, "fragment", fragmentParams,
@@ -277,9 +277,9 @@ public class DefaultServiceURLBuilderTest {
                         "https://www.wso2.com:9443/proxyContext/t/abc/samlsso#fragment", "/samlsso"},
                 {"https", "www.wso2.com", 9443, "/proxyContext", "abc", true, null, "", null,
                         "https://www.wso2.com:9443/proxyContext/t/abc/samlsso", "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "", "", true, null, "fragment", fragmentParams,
+                {"https", "www.wso2.com", 9443, "", "carbon.super", true, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/t/carbon.super/samlsso#fragment", "samlsso/"},
-                {"https", "www.wso2.com", 9443, "", "", true, parameters, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "", "carbon.super", true, parameters, "", fragmentParams,
                         "https://www.wso2.com:9443/t/carbon.super?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1" +
                                 "%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
                         null},
