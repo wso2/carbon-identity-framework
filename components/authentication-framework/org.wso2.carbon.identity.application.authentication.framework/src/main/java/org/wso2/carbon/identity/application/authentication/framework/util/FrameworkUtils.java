@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
@@ -114,6 +115,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -2489,6 +2491,26 @@ public class FrameworkUtils {
             }
         }
         return username;
+    }
+
+    /**
+     * Validate the username when email username is enabled.
+     *
+     * @param username : username
+     * @param context : Authentication context
+     * @throws InvalidCredentialsException
+     */
+    public static void validateUsername(String username, AuthenticationContext context)
+            throws InvalidCredentialsException {
+
+        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+        if (IdentityUtil.isEmailUsernameEnabled() && StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid username : " + tenantAwareUsername + ". Username has to be an email.");
+            }
+            context.setProperty("InvalidEmailUsername", true);
+            throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
+        }
     }
 
     private static String addUserId(String username, UserStoreManager userStoreManager) {
