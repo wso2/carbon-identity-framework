@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
@@ -268,7 +269,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            if (StringUtils.isNotBlank(tenantDomain)) {
+            if (StringUtils.isNotBlank(tenantDomain) &&
+                    !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
             }
         }
