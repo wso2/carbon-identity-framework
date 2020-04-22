@@ -53,7 +53,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({ServerConfiguration.class, CarbonUtils.class, IdentityCoreServiceComponent.class, NetworkUtils.class,
-        IdentityTenantUtil.class, URLResolverService.class, PrivilegedCarbonContext.class})
+        IdentityTenantUtil.class, PrivilegedCarbonContext.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
         ".*", "org.apache.xerces.*"})
 public class DefaultServiceURLBuilderTest {
