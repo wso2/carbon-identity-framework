@@ -383,6 +383,16 @@ public interface IdpManager {
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Delete all Identity Providers from a given tenant.
+     *
+     * @param tenantDomain Domain of the tenant
+     * @throws IdentityProviderManagementException
+     */
+    default void deleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+
+    };
+
+    /**
      * Deletes an Identity Provider from a given tenant using its resource ID.
      *
      * @param resourceId    Resource ID of the IdP to be deleted

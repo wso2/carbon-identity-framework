@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
@@ -66,4 +67,20 @@ public class TenantManagementListener extends AbstractIdentityTenantMgtListener 
         return EXEC_ORDER;
     }
 
+    /**
+     * Cleanup the Identity Provider related data on tenant deletion.
+     *
+     * @param tenantId Id of the deleting tenant
+     * @throws StratosException
+     */
+    @Override
+    public void onPreDelete(int tenantId) throws StratosException {
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        try {
+            IdentityProviderManager.getInstance().deleteIdPsByTenantDomain(tenantDomain);
+        } catch (IdentityProviderManagementException e) {
+            String message = "Error when deleting Identity Providers for tenant " + tenantDomain;
+            throw new StratosException(message, e);
+        }
+    }
 }

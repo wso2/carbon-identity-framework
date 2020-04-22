@@ -69,12 +69,17 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
-        if(StringUtils.isEmpty(idPName)){
+        if (StringUtils.isEmpty(idPName)) {
             idPName = "Undefined";
         }
         audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete", UserCoreUtil.addTenantDomainToEntry
                 (idPName, tenantDomain), null, SUCCESS));
         return true;
+    }
+
+    @Override
+    public boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+        return super.doPostDeleteIdPsByTenantDomain(tenantDomain);
     }
 
     private String getUser() {

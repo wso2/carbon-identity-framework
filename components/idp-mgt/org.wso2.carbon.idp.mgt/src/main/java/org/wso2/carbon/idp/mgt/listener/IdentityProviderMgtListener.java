@@ -21,6 +21,9 @@ package org.wso2.carbon.idp.mgt.listener;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
+/**
+ * Listener interface for Identity Provider Managements tasks.
+ */
 public interface IdentityProviderMgtListener {
 
     /**
@@ -114,6 +117,17 @@ public interface IdentityProviderMgtListener {
     public boolean doPreDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Define any additional actions before deleting all IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs.
+     * @return Whether execution of this method of the underlying UserStoreManager must happen.
+     * @throws IdentityProviderManagementException
+     */
+    default boolean doPreDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
+
+    /**
      * Define any additional actions before deleting idp.
      *
      * @param resourceId    Resource ID of the idp.
@@ -133,6 +147,17 @@ public interface IdentityProviderMgtListener {
      * @throws IdentityProviderManagementException
      */
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Define any additional actions after deleting IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs.
+     * @return Whether execution of the deletion must happen.
+     * @throws IdentityProviderManagementException
+     */
+    default boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+        return true;
+    }
 
     /**
      * Define any additional actions after deleting idp

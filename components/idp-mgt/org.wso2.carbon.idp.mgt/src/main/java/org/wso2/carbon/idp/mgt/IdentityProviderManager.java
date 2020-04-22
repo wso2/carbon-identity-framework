@@ -2097,6 +2097,40 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
+     * Delete all Identity Providers from a given tenant
+     *
+     * @param tenantDomain Domain of the tenant
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public void deleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+
+        // Invoking the pre listeners.
+        Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPreDeleteIdPsByTenantDomain(tenantDomain)) {
+                return;
+            }
+        }
+
+        // Delete metadata strings of each IDP
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        List<IdentityProvider> identityProviders = getIdPs(tenantDomain);
+        for (IdentityProvider identityProvider : identityProviders) {
+            deleteMetadataStrings(identityProvider.getIdentityProviderName(), tenantId);
+        }
+
+        dao.deleteIdPsByTenantID(tenantId);
+
+        // Invoking the post listeners.
+        for (IdentityProviderMgtListener listener : listeners) {
+            if (listener.isEnable() && !listener.doPostDeleteIdPsByTenantDomain(tenantDomain)) {
+                return;
+            }
+        }
+    }
+
+    /**
      * Deletes an Identity Provider from a given tenant.
      *
      * @param resourceId Resource ID of the IdP to be deleted
@@ -2129,15 +2163,29 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    private void deleteIDP(String resourceId, String idpName, String tenantDomain) throws
-            IdentityProviderManagementException {
+    /**
+     * Delete metadata strings of a given IDP.
+     *
+     * @param idpName Identity Provider name
+     * @param tenantId Id of the tenant
+     * @throws IdentityProviderManagementException
+     */
+    private void deleteMetadataStrings(String idpName, int tenantId) throws IdentityProviderManagementException {
 
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         for (MetadataConverter metadataConverter : IdpMgtServiceComponentHolder.getInstance().getMetadataConverters()) {
             if (metadataConverter.canDelete(tenantId, idpName)) {
                 metadataConverter.deleteMetadataString(tenantId, idpName);
             }
         }
+    }
+
+    private void deleteIDP(String resourceId, String idpName, String tenantDomain) throws
+            IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        // Delete metadata strings of the IDP
+        deleteMetadataStrings(idpName, tenantId);
 
         dao.deleteIdPByResourceId(resourceId, tenantId, tenantDomain);
     }

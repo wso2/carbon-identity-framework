@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -42,8 +41,6 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheBackedIdPMgtDAO {
 
@@ -467,10 +464,30 @@ public class CacheBackedIdPMgtDAO {
                 log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB", idPName, tenantDomain));
             }
         }
-
-
-
     }
+
+    /**
+     * Delete all IDPs of given tenant Id.
+     *
+     * @param tenantId
+     * @throws IdentityProviderManagementException
+     */
+    public void deleteIdPsByTenantID(int tenantId)  throws IdentityProviderManagementException {
+
+        idPMgtDAO.deleteIdPs(tenantId);
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("All Identity Providers of tenant:%d are deleted", tenantId));
+        }
+
+        // Clear IDP Caches
+        idPCacheByName.clear();
+        idPCacheByHRI.clear();
+        idPCacheByResourceId.clear();
+        if (log.isDebugEnabled()) {
+            log.debug("Identity Provider Cache is cleared on the deletion of Identity Providers");
+        }
+    }
+
 
     /**
      * @param resourceId
