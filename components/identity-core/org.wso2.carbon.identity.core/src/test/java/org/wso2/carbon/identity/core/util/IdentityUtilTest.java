@@ -37,8 +37,6 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.DefaultURLResolverService;
-import org.wso2.carbon.identity.core.URLResolverService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -58,7 +56,6 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.net.SocketException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.Arrays;
