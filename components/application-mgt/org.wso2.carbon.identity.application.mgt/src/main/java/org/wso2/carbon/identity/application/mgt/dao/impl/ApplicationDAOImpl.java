@@ -4869,47 +4869,43 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String getDBVendorSpecificDiscoverableAppRetrievalQueryByAppName(String dbVendorType) throws
             IdentityApplicationManagementException {
 
-        switch (dbVendorType) {
-            case "MySQL":
-            case "H2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL;
-            case "Oracle":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE;
-            case "Microsoft SQL Server":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MSSQL;
-            case "PostgreSQL":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_POSTGRESQL;
-            case "DB2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_DB2;
-            case "INFORMIX":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_INFORMIX;
-            default:
-                throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
-                        "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+        if ("MySQL".equals(dbVendorType) || "H2".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL;
+        } else if ("Oracle".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE;
+        } else if ("Microsoft SQL Server".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MSSQL;
+        } else if ("PostgreSQL".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_POSTGRESQL;
+        } else if (dbVendorType != null && dbVendorType.contains("DB2")) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_DB2;
+        } else if ("INFORMIX".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_INFORMIX;
         }
+
+        throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
+                "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
     }
 
     private String getDBVendorSpecificDiscoverableAppRetrievalQuery(String dbVendorType) throws
             IdentityApplicationManagementException {
 
-        switch (dbVendorType) {
-            case "MySQL":
-            case "H2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL;
-            case "Oracle":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE;
-            case "Microsoft SQL Server":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_MSSQL;
-            case "PostgreSQL":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_POSTGRESQL;
-            case "DB2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_DB2SQL;
-            case "INFORMIX":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_INFORMIX;
-            default:
-                throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
-                        "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+        if ("MySQL".equals(dbVendorType) || "H2".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL;
+        } else if ("Oracle".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE;
+        } else if ("Microsoft SQL Server".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_MSSQL;
+        } else if ("PostgreSQL".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_POSTGRESQL;
+        } else if (dbVendorType != null && dbVendorType.contains("DB2")) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_DB2SQL;
+        } else if ("INFORMIX".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_INFORMIX;
         }
+
+        throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
+                "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
     }
 
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)
