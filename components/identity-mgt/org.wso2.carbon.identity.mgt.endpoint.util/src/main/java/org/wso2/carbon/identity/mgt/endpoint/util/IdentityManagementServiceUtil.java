@@ -222,6 +222,30 @@ public class IdentityManagementServiceUtil {
         return user;
     }
 
+    /**
+     * Build a user object from tenant domain and username.
+     * @param username
+     * @param tenantDomain
+     * @return User
+     */
+    public User resolveUser(String username, String tenantDomain, boolean isSaaSEnabled) {
+
+        if (username == null) {
+            return null;
+        }
+        String userStoreDomain = extractDomainFromName(username);
+        User user = new User();
+        user.setUsername(MultitenantUtils
+                .getTenantAwareUsername(UserCoreUtil.removeDomainFromName(username)));
+        if (isSaaSEnabled) {
+            user.setTenantDomain(MultitenantUtils.getTenantDomain(username));
+        } else {
+            user.setTenantDomain(tenantDomain);
+        }
+        user.setRealm(userStoreDomain);
+        return user;
+    }
+
     public String getAppName() {
         return appName;
     }
