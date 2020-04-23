@@ -224,8 +224,9 @@ public class IdentityManagementServiceUtil {
 
     /**
      * Build a user object from tenant domain and username.
-     * @param username
-     * @param tenantDomain
+     *
+     * @param username username provided by user
+     * @param tenantDomain tenant domain of the application
      * @return User
      */
     public User resolveUser(String username, String tenantDomain, boolean isSaaSEnabled) {

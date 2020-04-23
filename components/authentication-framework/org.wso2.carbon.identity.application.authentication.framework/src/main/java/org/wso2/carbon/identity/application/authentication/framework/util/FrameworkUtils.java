@@ -2473,22 +2473,21 @@ public class FrameworkUtils {
     /**
      * Preprocess user's username considering authentication context.
      *
-     * @param username username of the user.
-     * @param context  authentication context.
+     * @param username Username of the user.
+     * @param context  Authentication context.
      * @return preprocessed username
      */
     public static String preprocessUsername(String username, AuthenticationContext context) {
 
-        if (!context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
-            if (IdentityUtil.isEmailUsernameEnabled()) {
-                if (StringUtils.countMatches(username, "@") == 1) {
-                    return username + "@" + context.getTenantDomain();
-                }
-            } else {
-                if (!username.contains("@")) {
-                    return username + "@" + context.getTenantDomain();
-                }
+        if (context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+            return username;
+        }
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + context.getTenantDomain();
             }
+        } else if (!username.contains("@")) {
+            return username + "@" + context.getTenantDomain();
         }
         return username;
     }
@@ -2496,20 +2495,19 @@ public class FrameworkUtils {
     /**
      * Validate the username when email username is enabled.
      *
-     * @param username : username
-     * @param context : Authentication context
-     * @throws InvalidCredentialsException
+     * @param username Username.
+     * @param context Authentication context.
+     * @throws InvalidCredentialsException when username is not an email when email username is enabled.
      */
     public static void validateUsername(String username, AuthenticationContext context)
             throws InvalidCredentialsException {
 
-        String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
-        if (IdentityUtil.isEmailUsernameEnabled() && StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
-            if (log.isDebugEnabled()) {
-                log.debug("Invalid username : " + tenantAwareUsername + ". Username has to be an email.");
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+            if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
+                context.setProperty("InvalidEmailUsername", true);
+                throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
             }
-            context.setProperty("InvalidEmailUsername", true);
-            throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
         }
     }
 
