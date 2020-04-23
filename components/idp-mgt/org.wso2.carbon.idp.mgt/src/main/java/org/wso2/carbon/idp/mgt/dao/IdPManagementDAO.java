@@ -3760,6 +3760,7 @@ public class IdPManagementDAO {
             String sqlQuery = IdPManagementConstants.SQLQueries.CONNECTED_APPS_TOTAL_COUNT_SQL;
             try (PreparedStatement prepStmt = connection.prepareStatement(sqlQuery)) {
                 prepStmt.setString(1, resourceId);
+                prepStmt.setString(2, resourceId);
                 try (ResultSet resultSet = prepStmt.executeQuery()) {
                     if (resultSet.next()) {
                         connectedAppsResult.setTotalAppCount(resultSet.getInt(1));
@@ -3787,32 +3788,37 @@ public class IdPManagementDAO {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
-            prepStmt.setInt(2, offset);
-            prepStmt.setInt(3, limit);
+            prepStmt.setString(2, id);
+            prepStmt.setInt(3, offset);
+            prepStmt.setInt(4, limit);
         } else if (databaseProductName.contains("Oracle")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_ORACLE;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
-            prepStmt.setInt(2, offset + limit);
-            prepStmt.setInt(3, offset);
+            prepStmt.setString(2, id);
+            prepStmt.setInt(3, offset + limit);
+            prepStmt.setInt(4, offset);
         } else if (databaseProductName.contains("Microsoft")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MSSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
-            prepStmt.setInt(2, offset);
-            prepStmt.setInt(3, limit);
+            prepStmt.setString(2, id);
+            prepStmt.setInt(3, offset);
+            prepStmt.setInt(4, limit);
         } else if (databaseProductName.contains("PostgreSQL")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_POSTGRESSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
-            prepStmt.setInt(2, limit);
-            prepStmt.setInt(3, offset);
+            prepStmt.setString(2, id);
+            prepStmt.setInt(3, limit);
+            prepStmt.setInt(4, offset);
         } else if (databaseProductName.contains("DB2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_DB2SQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);
-            prepStmt.setInt(2, limit);
-            prepStmt.setInt(3, offset);
+            prepStmt.setString(2, id);
+            prepStmt.setInt(3, limit);
+            prepStmt.setInt(4, offset);
         } else if (databaseProductName.contains("INFORMIX")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_INFORMIX;
             prepStmt = connection.prepareStatement(sqlQuery);

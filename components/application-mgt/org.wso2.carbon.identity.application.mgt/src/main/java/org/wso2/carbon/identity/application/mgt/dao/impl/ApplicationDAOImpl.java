@@ -3435,7 +3435,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
+                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(2))) {
                     continue;
                 }
                 appInfo.add(buildApplicationBasicInfo(appNameResultSet));
