@@ -86,7 +86,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
                     validateIdpDisable(identityProvider, authSteps, provisioningIdps);
 
                     // Validating Applications with Federated Authenticators configured.
-                    updateApplicationWithFedaratedAuthenticators(identityProvider, tenantDomain, serviceProvider,
+                    updateApplicationWithFederatedAuthenticators(identityProvider, tenantDomain, serviceProvider,
                             localAndOutboundAuthConfig, authSteps);
 
                     // Validating Applications with Outbound Provisioning Connectors configured.
@@ -113,9 +113,10 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         }
     }
 
-    private void updateApplicationWithFedaratedAuthenticators(IdentityProvider identityProvider, String tenantDomain,
+    private void updateApplicationWithFederatedAuthenticators(IdentityProvider identityProvider, String tenantDomain,
                                                               ServiceProvider serviceProvider,
-                                                              LocalAndOutboundAuthenticationConfig localAndOutboundAuthConfig,
+                                                              LocalAndOutboundAuthenticationConfig
+                                                                      localAndOutboundAuthConfig,
                                                               AuthenticationStep[] authSteps)
             throws IdentityApplicationManagementException, IdentityProviderManagementException {
 
