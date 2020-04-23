@@ -535,6 +535,8 @@
             <EnableDataProviders>false</EnableDataProviders>
         </Introspection-->
 
+        <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
+
     </OAuth>
 
     <MultifactorAuthentication>

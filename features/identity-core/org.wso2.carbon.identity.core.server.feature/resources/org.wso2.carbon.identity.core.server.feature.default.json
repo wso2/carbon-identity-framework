@@ -496,5 +496,7 @@
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
 
-  "user_filtering.show_display_name_of_user": false
+  "user_filtering.show_display_name_of_user": false,
+
+  "analytics.publish_password_grant_logins": false
 }
