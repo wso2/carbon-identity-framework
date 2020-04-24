@@ -86,10 +86,8 @@ public class SelfRegisterApi {
             tenantDomain = user.getUser().getTenantDomain();
         }
 
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
-        }
+        basePath = IdentityManagementEndpointUtil
+                .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
 
         // create path and map variables
@@ -146,13 +144,9 @@ public class SelfRegisterApi {
             tenantDomain = user.getUser().getTenantDomain();
         }
 
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
-        }
-
+        basePath = IdentityManagementEndpointUtil
+                .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-
 
         // create path and map variables
         String localVarPath = "/resend-code".replaceAll("\\{format\\}", "json");
@@ -206,11 +200,8 @@ public class SelfRegisterApi {
             }
         }
 
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
-        }
-
+        basePath = IdentityManagementEndpointUtil
+                .getBasePath(tenantDomain, IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
 
         // create path and map variables
