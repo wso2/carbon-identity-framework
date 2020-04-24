@@ -203,9 +203,7 @@ public class IdentityProviderManager implements IdpManager {
             oauth2AuthzEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.AUTHORIZE, true, false);
         }
 
-        if (StringUtils.isBlank(oauth2TokenEPUrl)) {
-            oauth2TokenEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.TOKEN, true, false);
-        }
+        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl);
 
         if (StringUtils.isBlank(oauth2RevokeEPUrl)) {
             oauth2RevokeEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REVOKE, true, false);
@@ -2515,17 +2513,31 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    private String resolveAbsoluteURL(String urlContext, String resolvedUrl) throws IdentityProviderManagementServerException {
+    /**
+     * Resolves the public service url given the default context and the url picked from the configuration based on
+     * the 'tenant_context.enable_tenant_qualified_urls' mode set in deployment.toml.
+     *
+     * @param defaultUrlContext default url context path
+     * @param urlFromConfig     url picked from the file configuration
+     * @return absolute public url of the service if 'enable_tenant_qualified_urls' is 'true', else returns the url
+     * from the file config
+     * @throws IdentityProviderManagementServerException when fail to build the absolute public url
+     */
+    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig) throws IdentityProviderManagementServerException {
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            try {
-                return ServiceURLBuilder.create().addPath(urlContext).build().getAbsoluteInternalURL();
-            } catch (URLBuilderException e) {
-                throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
-                        "Error while building URL: " + urlContext, e);
+        if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved URL:" + urlFromConfig + " from file configuration for default url context: " +
+                        defaultUrlContext);
             }
-        } else {
-            return resolvedUrl;
+            return urlFromConfig;
+        }
+
+        try {
+            return ServiceURLBuilder.create().addPath(defaultUrlContext).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
+                    "Error while building URL: " + defaultUrlContext, e);
         }
     }
 
