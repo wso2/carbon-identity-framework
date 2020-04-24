@@ -58,8 +58,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             IdentityProviderManager identityProviderManager = IdentityProviderManager.getInstance();
 
             ConnectedAppsResult connectedApplications;
-            String idpId = identityProviderManager.getIdPByName(identityProvider.getIdentityProviderName(),
-                    tenantDomain).getResourceId();
+            String idpId = identityProviderManager.getIdPByName(oldIdPName, tenantDomain).getResourceId();
             int offset = 0;
             do {
                 connectedApplications =
