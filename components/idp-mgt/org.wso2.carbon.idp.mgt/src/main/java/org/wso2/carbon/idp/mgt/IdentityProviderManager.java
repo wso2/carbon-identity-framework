@@ -206,6 +206,7 @@ public class IdentityProviderManager implements IdpManager {
         if (StringUtils.isBlank(oauth2TokenEPUrl)) {
             oauth2TokenEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.TOKEN, true, false);
         }
+        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl);
 
         if (StringUtils.isBlank(oauth2RevokeEPUrl)) {
             oauth2RevokeEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REVOKE, true, false);
