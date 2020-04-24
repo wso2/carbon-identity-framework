@@ -146,6 +146,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
@@ -2505,7 +2506,7 @@ public class FrameworkUtils {
         if (IdentityUtil.isEmailUsernameEnabled()) {
             String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
             if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
-                context.setProperty("InvalidEmailUsername", true);
+                context.setProperty(CONTEXT_PROP_INVALID_EMAIL_USERNAME, true);
                 throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
             }
         }
