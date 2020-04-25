@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
@@ -58,19 +59,21 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String protocol;
         private String hostName;
         private int port;
+        private String proxyContextPath;
         private String urlPath;
         private Map<String, String> parameters;
         private String fragment;
         private String absoluteUrl;
         private String relativeUrl;
 
-        private ServiceURLImpl(String protocol, String hostName, int port, String urlPath,
+        private ServiceURLImpl(String protocol, String hostName, int port, String proxyContextPath, String urlPath,
                                Map<String, String> parameters, String fragment)
                 throws URLBuilderException {
 
             this.protocol = protocol;
             this.hostName = hostName;
             this.port = port;
+            this.proxyContextPath = proxyContextPath;
             this.urlPath = urlPath;
             this.parameters = parameters;
             this.fragment = fragment;
@@ -169,13 +172,27 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
 
         /**
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
-         * and the fragment to return the absolute URL.
+         * Returns the absolute URL used for Identity Server internal calls.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+         * the fragment to return the internal absolute URL.
          *
-         * @return The absolute URL from the Service URL instance.
+         * @return The internal absolute URL from the Service URL instance.
          */
         @Override
-        public String getAbsoluteURL() {
+        public String getAbsoluteInternalURL() {
+
+            return absoluteUrl;
+        }
+
+        /**
+         * Returns the proxy server url when the Identity Server is fronted with a proxy.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+         * the fragment to return the public absolute URL.
+         *
+         * @return The public absolute URL from the Service URL instance.
+         */
+        @Override
+        public String getAbsolutePublicURL() {
 
             return absoluteUrl;
         }
@@ -195,26 +212,13 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
             StringBuilder absoluteUrl = new StringBuilder();
             absoluteUrl.append(protocol).append("://");
-
             absoluteUrl.append(hostName.toLowerCase());
-
             // If it's well known HTTPS port, skip adding port.
             if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
                 absoluteUrl.append(":").append(port);
             }
-
-            if (StringUtils.isNotBlank(urlPath)) {
-                if (urlPath.trim().charAt(0) != '/' && urlPath.trim().charAt(0) != '?') {
-                    absoluteUrl.append("/").append(urlPath.trim());
-                } else {
-                    absoluteUrl.append(urlPath.trim());
-                }
-            }
-            String resolvedParamsString = getResolvedParamString(parameters);
-
-            appendParamsToUri(absoluteUrl, resolvedParamsString, "?");
-            appendParamsToUri(absoluteUrl, fragment, "#");
-
+            appendContextToUri(absoluteUrl, proxyContextPath);
+            absoluteUrl.append(fetchRelativeUrl());
             return absoluteUrl.toString();
         }
 
@@ -222,12 +226,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
             StringBuilder relativeUrl = new StringBuilder();
             appendContextToUri(relativeUrl, urlPath);
-
             String resolvedParamsString = getResolvedParamString(parameters);
-
             appendParamsToUri(relativeUrl, resolvedParamsString, "?");
             appendParamsToUri(relativeUrl, fragment, "#");
-
             return relativeUrl.toString();
         }
     }
@@ -259,13 +260,19 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String hostName = null;
         hostName = fetchHostName();
         int port = fetchPort();
+        String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
+                .PROXY_CONTEXT_PATH);
         String resolvedUrlContext = buildUrlPath(urlPaths);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         tenantDomain = resolveTenantDomain();
 
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
-        if (StringUtils.isNotBlank(tenantDomain)) {
-            resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (StringUtils.isNotBlank(tenantDomain) &&
+                    !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+            }
         }
 
         if (StringUtils.isNotBlank(resolvedUrlContext)) {
@@ -276,7 +283,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             }
         }
 
-        return new ServiceURLImpl(protocol, hostName, port, resolvedUrlStringBuilder.toString(), parameters,
+        return new ServiceURLImpl(protocol, hostName, port, proxyContextPath, resolvedUrlStringBuilder.toString(),
+                parameters,
                 resolvedFragment);
     }
 

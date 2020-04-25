@@ -203,9 +203,7 @@ public class IdentityProviderManager implements IdpManager {
             oauth2AuthzEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.AUTHORIZE, true, false);
         }
 
-        if (StringUtils.isBlank(oauth2TokenEPUrl)) {
-            oauth2TokenEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.TOKEN, true, false);
-        }
+        oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl);
 
         if (StringUtils.isBlank(oauth2RevokeEPUrl)) {
             oauth2RevokeEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REVOKE, true, false);
@@ -762,10 +760,6 @@ public class IdentityProviderManager implements IdpManager {
         }
         scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         identityProvider.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
-
-        // Override few endpoint URLs which are initially persisted in the database and can be out dated with hostname
-        // changes.
-        overrideResidentIdpEPUrls(identityProvider);
 
         return identityProvider;
     }
@@ -2520,90 +2514,31 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * <<<<<<< Updated upstream
-     * Overrides the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
-     * =======
-     * Updates the persisted endpoint URLs (e.g. SAML endpoint) if the hostname/port has been changed.
-     * <p>
-     * >>>>>>> Stashed changes
+     * Resolves the public service url given the default context and the url picked from the configuration based on
+     * the 'tenant_context.enable_tenant_qualified_urls' mode set in deployment.toml.
      *
-     * @param residentIDP
-     * @throws IdentityProviderManagementException
+     * @param defaultUrlContext default url context path
+     * @param urlFromConfig     url picked from the file configuration
+     * @return absolute public url of the service if 'enable_tenant_qualified_urls' is 'true', else returns the url
+     * from the file config
+     * @throws IdentityProviderManagementServerException when fail to build the absolute public url
      */
-    private void overrideResidentIdpEPUrls(IdentityProvider residentIDP)
-            throws IdentityProviderManagementException {
+    private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig) throws IdentityProviderManagementServerException {
 
-        // Not all endpoints are persisted. So we need to update only a few properties.
-        String samlSSOUrl = IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL) +
-                IdPManagementUtil.getTenantParameter();
-        if (StringUtils.isBlank(samlSSOUrl)) {
-            samlSSOUrl = IdentityUtil.getServerURL(IdentityConstants.ServerConfig.SAMLSSO, true, true);
-        }
-        samlSSOUrl += IdPManagementUtil.getTenantParameter();
-        samlSSOUrl = resolveAbsoluteURL(IdPManagementConstants.SAMLSSO, samlSSOUrl);
-
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator
-                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL, samlSSOUrl);
-
-        String samlLogoutUrl = samlSSOUrl;
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator
-                        .SAML2SSO.NAME, IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL,
-                samlLogoutUrl);
-
-        String passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
-        updateFederationAuthenticationConfigProperty(residentIDP,
-                IdentityApplicationConstants.Authenticator.PassiveSTS.NAME, IdentityApplicationConstants
-                        .Authenticator.PassiveSTS.IDENTITY_PROVIDER_URL, passiveStsUrl);
-    }
-
-    private String resolveAbsoluteURL(String urlContext, String resolvedUrl) throws IdentityProviderManagementServerException {
-
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            try {
-                return ServiceURLBuilder.create().addPath(urlContext).build().getAbsoluteURL();
-            } catch (URLBuilderException e) {
-                throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
-                        "Error while building URL: " + urlContext, e);
+        if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(urlFromConfig)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Resolved URL:" + urlFromConfig + " from file configuration for default url context: " +
+                        defaultUrlContext);
             }
-        } else {
-            return resolvedUrl;
-        }
-    }
-
-    /**
-     * Updates the property values of the given property name of the given authenticator.
-     *
-     * @param residentIdentityProvider
-     * @param authenticatorName
-     * @param propertyName
-     * @param newValue
-     * @return true if the value was updated, false if the value is up to date.
-     */
-    private boolean updateFederationAuthenticationConfigProperty(IdentityProvider residentIdentityProvider, String
-            authenticatorName, String propertyName, String newValue) {
-
-        FederatedAuthenticatorConfig federatedAuthenticatorConfig = IdentityApplicationManagementUtil
-                .getFederatedAuthenticator(residentIdentityProvider.getFederatedAuthenticatorConfigs(),
-                        authenticatorName);
-
-        if (federatedAuthenticatorConfig != null) {
-
-            Property existingProperty = IdentityApplicationManagementUtil.getProperty(federatedAuthenticatorConfig
-                    .getProperties(), propertyName);
-
-            if (existingProperty != null) {
-                String existingPropertyValue = existingProperty.getValue();
-
-                if (!StringUtils.equalsIgnoreCase(existingPropertyValue, newValue)) {
-                    existingProperty.setValue(newValue);
-                    return true;
-                }
-            }
+            return urlFromConfig;
         }
 
-        return false;
+        try {
+            return ServiceURLBuilder.create().addPath(defaultUrlContext).build().getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
+                    "Error while building URL: " + defaultUrlContext, e);
+        }
     }
 
     private String getTenantUrl(String url, String tenantDomain) throws URISyntaxException {

@@ -22,6 +22,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client;
 
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
@@ -37,6 +38,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -126,36 +130,28 @@ public class SelfRegistrationMgtClient {
         throw new SelfRegistrationMgtClientException("Couldn't find default purpose for tenant: " + tenantDomain);
     }
 
-    private String getPurposesEndpoint(String tenantDomain) {
+    private String getPurposesEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        String purposesEndpoint;
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
-        } else {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(CONSENT_API_RELATIVE_PATH +
-                    PURPOSES_ENDPOINT_RELATIVE_PATH);
-        }
-        return purposesEndpoint;
+        return getEndpoint(tenantDomain, CONSENT_API_RELATIVE_PATH + PURPOSES_ENDPOINT_RELATIVE_PATH);
     }
 
-    private String getPurposeCategoriesEndpoint(String tenantDomain) {
+    private String getPurposeCategoriesEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        String purposesEndpoint;
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
-        } else {
-            purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(CONSENT_API_RELATIVE_PATH +
-                    PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
-        }
-        return purposesEndpoint;
+        return getEndpoint(tenantDomain, CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
     }
 
-    private String getUserAPIEndpoint() {
+    private String getUserAPIEndpoint() throws SelfRegistrationMgtClientException {
 
-        String purposesEndpoint = IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
-        return purposesEndpoint;
+        return getEndpoint(null, USERNAME_VALIDATE_API_RELATIVE_PATH);
+    }
+
+    private String getEndpoint(String tenantDomain, String context) throws SelfRegistrationMgtClientException {
+
+        try {
+            return IdentityManagementEndpointUtil.getBasePath(tenantDomain, context);
+        } catch (ApiException e) {
+            throw new SelfRegistrationMgtClientException("Error while building url for context: " + context);
+        }
     }
 
     private String executeGet(String url) throws SelfRegistrationMgtClientException, IOException {
