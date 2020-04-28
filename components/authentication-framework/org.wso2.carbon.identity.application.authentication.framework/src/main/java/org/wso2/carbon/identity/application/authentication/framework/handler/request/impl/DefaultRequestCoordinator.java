@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -68,6 +69,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -562,7 +564,12 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
 
-        String tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+        // We give precedence to the tenant domain set in the thread local.
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (IdentityUtil.isBlank(tenantDomain)) {
+            // Fall back to the tenant domain in the request param.
+            tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+        }
 
         if (tenantDomain == null || tenantDomain.isEmpty() || "null".equals(tenantDomain)) {
 
