@@ -199,87 +199,25 @@ public class IdentityProviderManager implements IdpManager {
             oauth1AccessTokenUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.ACCESS_TOKEN, true, true);
         }
 
-        if (StringUtils.isBlank(oauth2AuthzEPUrl)) {
-            oauth2AuthzEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.AUTHORIZE, true, false);
-        }
-
+        oauth2AuthzEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.AUTHORIZE, oauth2AuthzEPUrl);
         oauth2TokenEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.TOKEN, oauth2TokenEPUrl);
-
-        if (StringUtils.isBlank(oauth2RevokeEPUrl)) {
-            oauth2RevokeEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.REVOKE, true, false);
-        }
-
-        if (StringUtils.isBlank(oauth2IntrospectEpUrl)) {
-            oauth2IntrospectEpUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.INTROSPECT, true, false);
-        }
-
-        try {
-            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
-                    (tenantDomain)) {
-                oauth2IntrospectEpUrl = getTenantUrl(oauth2IntrospectEpUrl, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error("OAuth 2 Introspect endpoint is malformed.", e);
-        }
-
-        if (StringUtils.isBlank(oauth2UserInfoEPUrl)) {
-            oauth2UserInfoEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.USERINFO, true, false);
-        }
-
-        if (StringUtils.isBlank(oidcCheckSessionEPUrl)) {
-            oidcCheckSessionEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.CHECK_SESSION, true, false);
-        }
-
-        if (StringUtils.isBlank(oidcLogoutEPUrl)) {
-            oidcLogoutEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.LOGOUT, true, false);
-        }
+        oauth2RevokeEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.REVOKE, oauth2RevokeEPUrl);
+        oauth2IntrospectEpUrl = resolveAbsoluteURL(IdentityConstants.OAuth.INTROSPECT, oauth2IntrospectEpUrl);
+        oauth2IntrospectEpUrl = addTenantPathParamInLegacyMode(oauth2IntrospectEpUrl, tenantDomain);
+        oauth2UserInfoEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl);
+        oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl);
+        oidcLogoutEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl);
+        oIDCWebFingerEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.WEBFINGER, oIDCWebFingerEPUrl);
+        oAuth2DCREPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl);
+        oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
+        oAuth2JWKSPage = resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage);
+        oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
+        oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl);
+        oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
 
         if (StringUtils.isBlank(passiveStsUrl)) {
             passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
         }
-
-        if (StringUtils.isBlank(oIDCWebFingerEPUrl)) {
-            oIDCWebFingerEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.WEBFINGER, true, true);
-        }
-
-        if (StringUtils.isBlank(oAuth2DCREPUrl)) {
-            oAuth2DCREPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.DCR, true, true);
-        }
-        try {
-            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
-                    (tenantDomain)) {
-                oAuth2DCREPUrl = getTenantUrl(oAuth2DCREPUrl, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error("OAuth 2 DCR endpoint is malformed");
-        }
-
-        if (StringUtils.isBlank(oAuth2JWKSPage)) {
-            oAuth2JWKSPage = IdentityUtil.getServerURL(IdentityConstants.OAuth.JWKS, true, true);
-        }
-
-        try {
-            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
-                    (tenantDomain)) {
-                oAuth2JWKSPage = getTenantUrl(oAuth2JWKSPage, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error("OAuth 2 JWKS endpoint is malformed");
-        }
-
-        if (StringUtils.isBlank(oIDCDiscoveryEPUrl)) {
-            oIDCDiscoveryEPUrl = IdentityUtil.getServerURL(IdentityConstants.OAuth.DISCOVERY, true, true);
-        }
-
-        try {
-            if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals
-                    (tenantDomain)) {
-                oIDCDiscoveryEPUrl = getTenantUrl(oIDCDiscoveryEPUrl, tenantDomain);
-            }
-        } catch (URISyntaxException e) {
-            log.error("OIDC Discovery endpoint is malformed");
-        }
-
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
             stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
@@ -2539,6 +2477,19 @@ public class IdentityProviderManager implements IdpManager {
             throw IdentityProviderManagementException.error(IdentityProviderManagementServerException.class,
                     "Error while building URL: " + defaultUrlContext, e);
         }
+    }
+
+    private String addTenantPathParamInLegacyMode(String resolvedUrl, String tenantDomain) {
+
+        try {
+            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain) &&
+                    !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                resolvedUrl = getTenantUrl(resolvedUrl, tenantDomain);
+            }
+        } catch (URISyntaxException e) {
+            log.error(String.format("%s endpoint is malformed.", resolvedUrl), e);
+        }
+        return resolvedUrl;
     }
 
     private String getTenantUrl(String url, String tenantDomain) throws URISyntaxException {
