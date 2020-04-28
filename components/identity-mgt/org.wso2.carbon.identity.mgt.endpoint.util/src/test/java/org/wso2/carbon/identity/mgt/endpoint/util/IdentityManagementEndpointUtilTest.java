@@ -162,16 +162,16 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
                 // context
                 // expected value
                 { true,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   "test.com",
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   "test.com",
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   null,
@@ -180,10 +180,10 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
                   "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   null,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   null,
@@ -219,41 +219,41 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
                 // context
                 // expected value
                 { true,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   "test.com",
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { true,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   "test.com",
                   false,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
+                  "test.com",
+                  true,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  "https://foo.com",
+                  "test.com",
+                  false,
+                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
+                  "https://foo.com/api/identity/recovery/v0.9"
+                },
+                { false,
+                  null,
                   "test.com",
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
                   "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
                 },
                 { false,
-                  "https://wso2.org:9443",
-                  "test.com",
-                  false,
-                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/api/identity/recovery/v0.9"
-                },
-                { false,
-                  null,
-                  "test.com",
-                  true,
-                  IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/t/test.com/api/identity/recovery/v0.9"
-                },
-                { false,
                   null,
                   "test.com",
                   false,
@@ -261,18 +261,18 @@ public class IdentityManagementEndpointUtilTest extends PowerMockTestCase {
                   "https://wso2.org:9443/api/identity/recovery/v0.9"
                 },
                 { false,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   null,
                   true,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
-                  "https://wso2.org:9443",
+                  "https://foo.com",
                   null,
                   false,
                   IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH,
-                  "https://wso2.org:9443/api/identity/recovery/v0.9"
+                  "https://foo.com/api/identity/recovery/v0.9"
                 },
                 { false,
                   null,
