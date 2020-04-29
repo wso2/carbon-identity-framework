@@ -334,6 +334,77 @@ public class DefaultServiceURLBuilderTest {
         assertEquals(absoluteUrl, expected);
     }
 
+    @DataProvider
+    public Object[][] getRelativePublicURLData() {
+
+        return new Object[][]{
+                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", false, "/proxyContext/samlsso", "/samlsso"},
+                {"https", "www.wso2.com", 9443, "/proxyContext/", "", false, "/proxyContext/samlsso", "samlsso"},
+                {"https", "www.wso2.com", 9443, "proxyContext", "", true, "/proxyContext/samlsso", "/samlsso/"},
+                {"https", "www.wso2.com", 9443, "", "abc", true, "/t/abc/samlsso", "samlsso"},
+                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", true, "/proxyContext/t/abc/samlsso", "samlsso"},
+                {"https", "www.wso2.com", 9443, null, "carbon.super", true, "/samlsso", "/samlsso"}
+        };
+    }
+
+    @Test(dataProvider = "getRelativePublicURLData")
+    public void testGetRelativePublicURL(String protocol, String hostName, int port, String proxyContextPath,
+                                         String tenantNameFromContext, boolean enableTenantURLSupport,
+                                         String expected, String urlPath) {
+
+        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
+        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
+                .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+
+        String relativePublicUrl = null;
+        try {
+            relativePublicUrl = ServiceURLBuilder.create().addPath(urlPath).build().getRelativePublicURL();
+        } catch (URLBuilderException e) {
+            //Mock behaviour, hence ignored
+        }
+        assertEquals(relativePublicUrl, expected);
+    }
+
+    @DataProvider
+    public Object[][] getRelativeInternalURLData() {
+
+        return new Object[][]{
+                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", false, "/samlsso", "/samlsso"},
+                {"https", "www.wso2.com", 9443, "/proxyContext/", "", false, "/samlsso", "samlsso"},
+                {"https", "www.wso2.com", 9443, "proxyContext", "", true, "/samlsso", "/samlsso/"},
+                {"https", "www.wso2.com", 9443, "", "abc", true, "/t/abc/samlsso", "samlsso"},
+                {"https", "www.wso2.com", 9443, null, "carbon.super", true, "/samlsso", "/samlsso"}
+        };
+    }
+
+    @Test(dataProvider = "getRelativeInternalURLData")
+    public void testGetRelativeInternalURL(String protocol, String hostName, int port, String proxyContextPath,
+                                           String tenantNameFromContext, boolean enableTenantURLSupport,
+                                           String expected, String urlPath) {
+
+        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
+        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
+                .PROXY_CONTEXT_PATH)).thenReturn(proxyContextPath);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+
+        String relativeInternalUrl = null;
+        try {
+            relativeInternalUrl = ServiceURLBuilder.create().addPath(urlPath).build().getRelativeInternalURL();
+        } catch (URLBuilderException e) {
+            //Mock behaviour, hence ignored
+        }
+        assertEquals(relativeInternalUrl, expected);
+    }
+
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
 

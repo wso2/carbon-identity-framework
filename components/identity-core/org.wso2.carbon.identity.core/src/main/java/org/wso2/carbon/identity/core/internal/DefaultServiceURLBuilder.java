@@ -64,7 +64,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private Map<String, String> parameters;
         private String fragment;
         private String absoluteUrl;
-        private String relativeUrl;
+        private String relativePublicUrl;
+        private String relativeInternalUrl;
 
         private ServiceURLImpl(String protocol, String hostName, int port, String proxyContextPath, String urlPath,
                                Map<String, String> parameters, String fragment)
@@ -78,8 +79,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             this.parameters = parameters;
             this.fragment = fragment;
             this.absoluteUrl = fetchAbsoluteUrl();
-            this.relativeUrl = fetchRelativeUrl();
-
+            this.relativePublicUrl = fetchRelativePublicUrl();
+            this.relativeInternalUrl = fetchRelativeInternalUrl();
         }
 
         /**
@@ -198,14 +199,27 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
 
         /**
-         * Concatenate the url context, query params and the fragment to return the relative URL.
+         * Returns the relative url, relative to the proxy the server is fronted with.
+         * Concatenate the url context, query params and the fragment to the url path to return the public relative URL.
          *
-         * @return The relative URL from the Service URL instance.
+         * @return The public relative URL from the Service URL instance.
          */
         @Override
-        public String getRelativeURL() {
+        public String getRelativePublicURL() {
 
-            return relativeUrl;
+            return relativePublicUrl;
+        }
+
+        /**
+         * Returns the relative url, relative to the internal server host.
+         * Concatenate the query params and the fragment to the url path to return the internal relative URL.
+         *
+         * @return The internal relative URL from the Service URL instance.
+         */
+        @Override
+        public String getRelativeInternalURL() {
+
+            return relativeInternalUrl;
         }
 
         private String fetchAbsoluteUrl() throws URLBuilderException {
@@ -217,12 +231,22 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
                 absoluteUrl.append(":").append(port);
             }
-            appendContextToUri(absoluteUrl, proxyContextPath);
-            absoluteUrl.append(fetchRelativeUrl());
+            absoluteUrl.append(fetchRelativePublicUrl());
             return absoluteUrl.toString();
         }
 
-        private String fetchRelativeUrl() throws URLBuilderException {
+        private String fetchRelativePublicUrl() throws URLBuilderException {
+
+            StringBuilder relativeUrl = new StringBuilder();
+            appendContextToUri(relativeUrl, proxyContextPath);
+            appendContextToUri(relativeUrl, urlPath);
+            String resolvedParamsString = getResolvedParamString(parameters);
+            appendParamsToUri(relativeUrl, resolvedParamsString, "?");
+            appendParamsToUri(relativeUrl, fragment, "#");
+            return relativeUrl.toString();
+        }
+
+        private String fetchRelativeInternalUrl() throws URLBuilderException {
 
             StringBuilder relativeUrl = new StringBuilder();
             appendContextToUri(relativeUrl, urlPath);
