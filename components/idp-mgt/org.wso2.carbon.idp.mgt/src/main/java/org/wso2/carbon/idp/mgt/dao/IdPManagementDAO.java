@@ -962,19 +962,20 @@ public class IdPManagementDAO {
     private void updateFederatedAuthenticatorConfigs(
             FederatedAuthenticatorConfig[] newFederatedAuthenticatorConfigs,
             FederatedAuthenticatorConfig[] oldFederatedAuthenticatorConfigs,
-            Connection dbConnection, int idpId, int tenantId)
+            Connection dbConnection, int idpId, int tenantId, boolean isResidentIdP)
             throws IdentityProviderManagementException, SQLException {
 
-        Map<String, FederatedAuthenticatorConfig> oldFedAuthnConfigMap = new HashMap<String,
-                FederatedAuthenticatorConfig>();
+        Map<String, FederatedAuthenticatorConfig> oldFedAuthnConfigMap = new HashMap<>();
         if (oldFederatedAuthenticatorConfigs != null && oldFederatedAuthenticatorConfigs.length > 0) {
             for (FederatedAuthenticatorConfig fedAuthnConfig : oldFederatedAuthenticatorConfigs) {
                 oldFedAuthnConfigMap.put(fedAuthnConfig.getName(), fedAuthnConfig);
             }
         }
 
+        Map<String, FederatedAuthenticatorConfig> newFedAuthnConfigMap = new HashMap<>();
         if (newFederatedAuthenticatorConfigs != null && newFederatedAuthenticatorConfigs.length > 0) {
             for (FederatedAuthenticatorConfig fedAuthenticator : newFederatedAuthenticatorConfigs) {
+                newFedAuthnConfigMap.put(fedAuthenticator.getName(), fedAuthenticator);
                 if (fedAuthenticator.isValid()) {
                     if (oldFedAuthnConfigMap.containsKey(fedAuthenticator.getName())) {
                         updateFederatedAuthenticatorConfig(fedAuthenticator,
@@ -983,6 +984,16 @@ public class IdPManagementDAO {
                     } else {
                         addFederatedAuthenticatorConfig(fedAuthenticator, dbConnection, idpId, tenantId);
                     }
+                }
+            }
+        }
+
+        if (!isResidentIdP) {
+            // Remove deleted federated authenticator configs.
+            for (String oldFedAuthenticator : oldFedAuthnConfigMap.keySet()) {
+                if (!newFedAuthnConfigMap.containsKey(oldFedAuthenticator)) {
+                    deleteFederatedAuthenticatorConfig(oldFedAuthnConfigMap.get(oldFedAuthenticator), dbConnection,
+                            idpId, tenantId);
                 }
             }
         }
@@ -1104,6 +1115,18 @@ public class IdPManagementDAO {
 
             IdentityDatabaseUtil.closeStatement(prepStmt2);
             IdentityDatabaseUtil.closeStatement(prepStmt1);
+        }
+    }
+
+    private void deleteFederatedAuthenticatorConfig(FederatedAuthenticatorConfig authnConfig,
+                                                    Connection dbConnection, int idpId, int tenantId)
+            throws IdentityProviderManagementException, SQLException {
+
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(IdPManagementConstants.SQLQueries
+                .DELETE_IDP_AUTH_SQL)) {
+            prepStmt.setInt(1, idpId);
+            prepStmt.setString(2, authnConfig.getName());
+            prepStmt.execute();
         }
     }
 
@@ -2720,11 +2743,13 @@ public class IdPManagementDAO {
                 // id of the updated identity provider.
                 int idpId = rs.getInt("ID");
 
+                boolean isResidentIdP = IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
+                        .equals(newIdentityProvider.getIdentityProviderName());
                 // update federated authenticators.
                 updateFederatedAuthenticatorConfigs(
                         newIdentityProvider.getFederatedAuthenticatorConfigs(),
                         currentIdentityProvider.getFederatedAuthenticatorConfigs(), dbConnection,
-                        idpId, tenantId);
+                        idpId, tenantId, isResidentIdP);
 
                 // update claim configuration.
                 updateClaimConfiguration(dbConnection, idpId, tenantId,
@@ -2740,8 +2765,7 @@ public class IdPManagementDAO {
                         tenantId);
 
                 IdentityProviderProperty[] idpProperties = newIdentityProvider.getIdpProperties();
-                if (IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME
-                        .equals(newIdentityProvider.getIdentityProviderName())) {
+                if (isResidentIdP) {
                     idpProperties =
                             filterConnectorProperties(idpProperties,
                                     IdentityTenantUtil.getTenantDomain(tenantId))
