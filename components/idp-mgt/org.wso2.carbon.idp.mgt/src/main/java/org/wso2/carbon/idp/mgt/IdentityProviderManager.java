@@ -66,6 +66,7 @@ import org.wso2.carbon.user.api.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyStore;
@@ -308,7 +309,7 @@ public class IdentityProviderManager implements IdpManager {
         fedAuthnCofigs.add(openIdFedAuthn);
 
         // SAML2 related endpoints.
-        FederatedAuthenticatorConfig saml2SSOFedAuthn = buildSAMLProperties(identityProvider);
+        FederatedAuthenticatorConfig saml2SSOFedAuthn = buildSAMLProperties(identityProvider, tenantDomain);
         fedAuthnCofigs.add(saml2SSOFedAuthn);
 
         FederatedAuthenticatorConfig oauth1FedAuthn = IdentityApplicationManagementUtil
@@ -578,34 +579,49 @@ public class IdentityProviderManager implements IdpManager {
         return identityProvider;
     }
 
-    private String buildSAMLUrl(String urlFromConfigFile, String defaultContext, boolean appendTenantDomainInLegacyMode)
-            throws IdentityProviderManagementServerException {
+    private String buildSAMLUrl(String urlFromConfigFile, String tenantDomain, String defaultContext,
+                                boolean appendTenantDomainInLegacyMode) throws IdentityProviderManagementException {
 
         String url = urlFromConfigFile;
         if (StringUtils.isBlank(url)) {
-            url = IdentityUtil.getServerURL(defaultContext, true, true);
+            // Now we need to build the URL based on the default context.
+            try {
+                url = ServiceURLBuilder.create().addPath(defaultContext).build().getAbsolutePublicURL();
+            } catch (URLBuilderException ex) {
+                throw new IdentityProviderManagementException("Error while building URL for context: "
+                        + defaultContext + " for tenantDomain: " + tenantDomain, ex);
+            }
         }
 
-        if (StringUtils.isNotBlank(url) && appendTenantDomainInLegacyMode) {
-            url += IdPManagementUtil.getTenantParameter();
+        if (appendTenantDomainInLegacyMode) {
+            Map<String, String[]> queryParams = new HashMap<>();
+            queryParams.put(MultitenantConstants.TENANT_DOMAIN, new String[] {tenantDomain});
+
+            try {
+                url = IdentityUtil.buildQueryUrl(url, queryParams);
+            } catch (UnsupportedEncodingException e) {
+                throw new IdentityProviderManagementException("Error while building URL for context: "
+                        + defaultContext + " for tenantDomain: " + tenantDomain, e);
+            }
         }
+
         return resolveAbsoluteURL(defaultContext, url);
     }
 
-    private FederatedAuthenticatorConfig buildSAMLProperties(IdentityProvider identityProvider)
-            throws IdentityProviderManagementServerException {
+    private FederatedAuthenticatorConfig buildSAMLProperties(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
 
         String samlSSOUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL),
-                IdPManagementConstants.SAMLSSO, true);
+                tenantDomain, IdPManagementConstants.SAMLSSO, true);
 
         String samlLogoutUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_IDP_URL),
-                IdPManagementConstants.SAMLSSO, true);
+                tenantDomain, IdPManagementConstants.SAMLSSO, true);
 
         String samlECPUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SAML_ECP_URL),
-                IdPManagementConstants.SAML_ECP_URL, true);
+                tenantDomain, IdPManagementConstants.SAML_ECP_URL, true);
 
         String samlArtifactUrl = buildSAMLUrl(IdentityUtil.getProperty(IdentityConstants.ServerConfig.SSO_ARTIFACT_URL),
-                IdPManagementConstants.SSO_ARTIFACT_URL, false);
+                tenantDomain, IdPManagementConstants.SSO_ARTIFACT_URL, false);
 
         FederatedAuthenticatorConfig samlFederatedAuthConfig = IdentityApplicationManagementUtil
                 .getFederatedAuthenticator(identityProvider.getFederatedAuthenticatorConfigs(),
