@@ -785,6 +785,12 @@
 	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
 
+    <TenantRegistrationVerification>
+        <AskPassword>
+            <ExpiryTime>1440</ExpiryTime>
+        </AskPassword>
+    </TenantRegistrationVerification>
+
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
     </AccountSuspension>
