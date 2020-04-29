@@ -231,7 +231,6 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
                 absoluteUrl.append(":").append(port);
             }
-            appendContextToUri(absoluteUrl, proxyContextPath);
             absoluteUrl.append(fetchRelativePublicUrl());
             return absoluteUrl.toString();
         }
@@ -239,6 +238,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String fetchRelativePublicUrl() throws URLBuilderException {
 
             StringBuilder relativeUrl = new StringBuilder();
+            appendContextToUri(relativeUrl, proxyContextPath);
             appendContextToUri(relativeUrl, urlPath);
             String resolvedParamsString = getResolvedParamString(parameters);
             appendParamsToUri(relativeUrl, resolvedParamsString, "?");
@@ -249,6 +249,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String fetchRelativeInternalUrl() throws URLBuilderException {
 
             StringBuilder relativeUrl = new StringBuilder();
+            appendContextToUri(relativeUrl, urlPath);
             String resolvedParamsString = getResolvedParamString(parameters);
             appendParamsToUri(relativeUrl, resolvedParamsString, "?");
             appendParamsToUri(relativeUrl, fragment, "#");
