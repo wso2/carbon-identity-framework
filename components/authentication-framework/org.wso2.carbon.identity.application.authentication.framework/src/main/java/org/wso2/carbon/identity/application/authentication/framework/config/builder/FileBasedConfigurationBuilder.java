@@ -822,13 +822,12 @@ public class FileBasedConfigurationBuilder {
 
         String authenticatorName = nameAttr.getAttributeValue();
 
-        // check whether the disabled attribute is set
-        boolean enabled = false;
-
-        if (authenticatorConfigElem.getAttribute(IdentityApplicationManagementUtil.
-                getQNameWithIdentityApplicationNS(FrameworkConstants.Config.ATTR_AUTHENTICATOR_ENABLED)) != null) {
-            enabled = Boolean.parseBoolean(authenticatorConfigElem.getAttribute(IdentityApplicationManagementUtil.
-                    getQNameWithIdentityApplicationNS(FrameworkConstants.Config.ATTR_AUTHENTICATOR_ENABLED)).getAttributeValue());
+        // Check whether the enabled attribute is set. By default it will be true if not configured.
+        boolean enabled = true;
+        OMAttribute enabledAttr = authenticatorConfigElem.getAttribute(new QName(FrameworkConstants.Config
+                .ATTR_AUTHENTICATOR_ENABLED));
+        if (enabledAttr != null) {
+            enabled = Boolean.parseBoolean(enabledAttr.getAttributeValue());
         }
 
         // read the config parameters
