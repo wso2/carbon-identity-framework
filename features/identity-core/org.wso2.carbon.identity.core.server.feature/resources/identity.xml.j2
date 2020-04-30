@@ -948,6 +948,12 @@
         </AskPassword>
     </EmailVerification>
 
+    <TenantRegistrationVerification>
+        <AskPassword>
+        <ExpiryTime>{{identity_mgt.tenant_registration.ask_password_email_validity}}</ExpiryTime>
+        </AskPassword>
+    </TenantRegistrationVerification>
+
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
         <EnableAccountLockForVerifiedPreferredChannel>{{identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel}}</EnableAccountLockForVerifiedPreferredChannel>
