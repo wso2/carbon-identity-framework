@@ -51,7 +51,6 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -564,8 +563,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
 
-        // We give precedence to the tenant domain set in the thread local.
-        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        String tenantDomain = getTenantDomainFromContext();
         if (StringUtils.isNotBlank(tenantDomain)) {
             if (log.isDebugEnabled()) {
                 log.debug("Tenant domain resolved from the thread local context: " + tenantDomain);
@@ -597,6 +595,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         return tenantDomain;
+    }
+
+    private String getTenantDomainFromContext() {
+
+        // We use the tenant domain set in context only in tenant qualified URL mode.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return IdentityTenantUtil.getTenantDomainFromContext();
+        }
+
+        return null;
     }
 
     protected void findPreviousAuthenticatedSession(HttpServletRequest request, AuthenticationContext context)
