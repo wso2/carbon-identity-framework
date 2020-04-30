@@ -18,20 +18,23 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.testutil.IdentityBaseTest;
+import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.LOGOUT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
@@ -43,7 +46,8 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * Unit tests for {@link DefaultRequestCoordinator}.
  */
 @WithCarbonHome
-public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
+@PrepareForTest(IdentityTenantUtil.class)
+public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
 
@@ -62,18 +66,26 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
     public Object[][] provideTenantDomain() {
 
         return new Object[][]{
-                {null, null, SUPER_TENANT_DOMAIN_NAME},
-                {"foo.com", "xyz.com", "foo.com"},
-                {null, "xyz.com", "xyz.com"},
+                {true, null, null, SUPER_TENANT_DOMAIN_NAME},
+                {false, null, null, SUPER_TENANT_DOMAIN_NAME},
+
+                {true, "foo.com", "xyz.com", "foo.com"},
+                {false, "foo.com", "xyz.com", "xyz.com"},
+
+                {true, null, "xyz.com", "xyz.com"},
+                {false, null, "xyz.com", "xyz.com"},
         };
     }
 
     @Test(dataProvider = "tenantDomainProvider")
-    public void testTenantDomainInAuthenticationContext(String tenantDomainInThreadLocal,
+    public void testTenantDomainInAuthenticationContext(boolean isTenantQualifiedUrlModeEnabled,
+                                                        String tenantDomainInThreadLocal,
                                                         String tenantDomainInRequestParam,
                                                         String expected) throws Exception {
 
-        setTenantDomainInThreadLocalContext(tenantDomainInThreadLocal);
+        mockStatic(IdentityTenantUtil.class);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(isTenantQualifiedUrlModeEnabled);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantDomainInThreadLocal);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter(TYPE)).thenReturn("oauth");
@@ -85,10 +97,5 @@ public class DefaultRequestCoordinatorTest extends IdentityBaseTest {
         AuthenticationContext context = requestCoordinator.initializeFlow(request, response);
 
         assertEquals(context.getTenantDomain(), expected);
-    }
-
-    private void setTenantDomainInThreadLocalContext(String tenantDomainInThreadLocalContext) {
-
-        IdentityUtil.threadLocalProperties.get().put(TENANT_NAME_FROM_CONTEXT, tenantDomainInThreadLocalContext);
     }
 }
