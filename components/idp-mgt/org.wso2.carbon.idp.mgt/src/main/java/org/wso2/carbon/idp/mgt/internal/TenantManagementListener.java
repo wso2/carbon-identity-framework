@@ -28,7 +28,6 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 
 public class TenantManagementListener extends AbstractIdentityTenantMgtListener {
 
@@ -75,6 +74,7 @@ public class TenantManagementListener extends AbstractIdentityTenantMgtListener 
      */
     @Override
     public void onPreDelete(int tenantId) throws StratosException {
+
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
             IdentityProviderManager.getInstance().deleteIdPsByTenantDomain(tenantDomain);

@@ -44,7 +44,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         String displayName = "Undefined";
         String idpName = "Undefined";
         if (identityProvider != null) {
-            if(StringUtils.isNotEmpty(identityProvider.getDisplayName())){
+            if (StringUtils.isNotEmpty(identityProvider.getDisplayName())) {
                 displayName = identityProvider.getDisplayName();
             }
             idpName = identityProvider.getIdentityProviderName();
@@ -79,6 +79,7 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
 
     @Override
     public boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+
         return super.doPostDeleteIdPsByTenantDomain(tenantDomain);
     }
 

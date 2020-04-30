@@ -102,7 +102,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Retrieves resident Identity provider for a given tenant
+     * Retrieves resident Identity provider for a given tenant.
      *
      * @param tenantDomain Tenant domain whose resident IdP is requested
      * @return <code>LocalIdentityProvider</code>
@@ -767,7 +767,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Add Resident Identity provider for a given tenant
+     * Add Resident Identity provider for a given tenant.
      *
      * @param identityProvider <code>IdentityProvider</code>
      * @param tenantDomain     Tenant domain whose resident IdP is requested
@@ -923,7 +923,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Update Resident Identity provider for a given tenant
+     * Update Resident Identity provider for a given tenant.
      *
      * @param identityProvider <code>IdentityProvider</code>
      * @param tenantDomain     Tenant domain whose resident IdP is requested
@@ -994,7 +994,7 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isBlank(idpProp.getValue())) {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.
                             SAML_METADATA_SIGNING_ENABLED + " of ResidentIdP should be a boolean value ");
-                }else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
+                } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                         SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED)) {
                     if (StringUtils.isBlank(idpProp.getValue())) {
                         throw new IdentityProviderManagementException(IdentityApplicationConstants.Authenticator.SAML2SSO.

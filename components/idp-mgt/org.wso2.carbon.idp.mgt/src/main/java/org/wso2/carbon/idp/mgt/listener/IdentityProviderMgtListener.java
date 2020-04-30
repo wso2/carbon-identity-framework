@@ -124,6 +124,7 @@ public interface IdentityProviderMgtListener {
      * @throws IdentityProviderManagementException
      */
     default boolean doPreDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+
         return true;
     }
 
@@ -136,6 +137,7 @@ public interface IdentityProviderMgtListener {
      */
     default boolean doPreDeleteIdPByResourceId(String resourceId, String tenantDomain) throws
             IdentityProviderManagementException {
+
         return true;
     }
 
@@ -156,6 +158,7 @@ public interface IdentityProviderMgtListener {
      * @throws IdentityProviderManagementException
      */
     default boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+
         return true;
     }
 

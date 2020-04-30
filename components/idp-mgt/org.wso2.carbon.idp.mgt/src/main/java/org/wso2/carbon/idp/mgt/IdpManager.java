@@ -131,12 +131,13 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     default List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
-			throws IdentityProviderManagementException {
-	return null;     
+            throws IdentityProviderManagementException {
+
+	    return null;
     }
-    
+
     /**
-     * Retrieves registered Enabled Identity providers for a given tenant
+     * Retrieves registered Enabled Identity providers for a given tenant.
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm

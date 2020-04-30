@@ -65,6 +65,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
 
     @Override
     public boolean doPreDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+        
         return super.doPreDeleteIdPsByTenantDomain(tenantDomain);
     }
 

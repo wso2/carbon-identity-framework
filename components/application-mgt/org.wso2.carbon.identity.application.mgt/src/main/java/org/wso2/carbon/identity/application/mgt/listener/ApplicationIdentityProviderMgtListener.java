@@ -181,6 +181,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
      */
     @Override
     public boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+
         // Clear the SP cache since deleted IDP might have contained association with SPs.
         IdentityServiceProviderCache.getInstance().clear();
         if (log.isDebugEnabled()) {
@@ -274,7 +275,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
     }
 
     /**
-     * Updates Outbound Provisioning Connectors
+     * Updates Outbound Provisioning Connectors.
      *
      * @param identityProvider
      * @param provisioningIdps

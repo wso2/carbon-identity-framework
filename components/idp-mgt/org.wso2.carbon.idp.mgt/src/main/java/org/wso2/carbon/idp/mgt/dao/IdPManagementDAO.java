@@ -41,13 +41,13 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.ConnectorException;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
@@ -782,7 +782,7 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get Identity properties map
+     * Get Identity properties map.
      *
      * @param dbConnection database connection
      * @param idpId        IDP Id
@@ -1616,7 +1616,7 @@ public class IdPManagementDAO {
 
                         List<Property> provisioningProperties = new ArrayList<Property>();
                         while (rs2.next()) {
-                            Property Property = new Property();
+                            Property property = new Property();
                             String name = rs2.getString("PROPERTY_KEY");
                             String value = rs2.getString("PROPERTY_VALUE");
                             String blobValue = getBlobValue(rs2.getBinaryStream("PROPERTY_BLOB_VALUE"));
@@ -1624,23 +1624,23 @@ public class IdPManagementDAO {
                             String propertyType = rs2.getString("PROPERTY_TYPE");
                             String isSecret = rs2.getString("IS_SECRET");
 
-                            Property.setName(name);
+                            property.setName(name);
                             if (propertyType != null && IdentityApplicationConstants.ConfigElements.
                                     PROPERTY_TYPE_BLOB.equals(propertyType.trim())) {
-                                Property.setValue(blobValue);
+                                property.setValue(blobValue);
                             } else {
-                                Property.setValue(value);
+                                property.setValue(value);
                             }
 
-                            Property.setType(propertyType);
+                            property.setType(propertyType);
 
                             if ((IdPManagementConstants.IS_TRUE_VALUE).equals(isSecret)) {
-                                Property.setConfidential(true);
+                                property.setConfidential(true);
                             } else {
-                                Property.setConfidential(false);
+                                property.setConfidential(false);
                             }
 
-                            provisioningProperties.add(Property);
+                            provisioningProperties.add(property);
                         }
                         provisioningConnector.setProvisioningProperties(provisioningProperties
                                 .toArray(new Property[provisioningProperties.size()]));
@@ -2841,6 +2841,7 @@ public class IdPManagementDAO {
      * @throws IdentityProviderManagementException
      */
     public void deleteIdPs(int tenantId) throws IdentityProviderManagementException {
+
         PreparedStatement prepStmt = null;
         String query = IdPManagementConstants.SQLQueries.DELETE_ALL_IDP_BY_TENANT_ID_SQL;
         Connection conn = IdentityDatabaseUtil.getDBConnection(true);
@@ -3620,7 +3621,7 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Delete Provisioning associations of the deleted IDP with any SPs in a given tenant
+     * Delete Provisioning associations of the deleted IDP with any SPs in a given tenant.
      *
      * @param conn
      * @param tenantId

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -34,7 +35,6 @@ import org.wso2.carbon.idp.mgt.cache.IdPCacheEntry;
 import org.wso2.carbon.idp.mgt.cache.IdPHomeRealmIdCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPNameCacheKey;
 import org.wso2.carbon.idp.mgt.cache.IdPResourceIdCacheKey;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -86,7 +86,7 @@ public class CacheBackedIdPMgtDAO {
      * @throws IdentityProviderManagementException
      */
     public List<IdentityProvider> getIdPsSearch(Connection dbConnection,
-			int tenantId, String tenantDomain, String filter)
+            int tenantId, String tenantDomain, String filter)
 			throws IdentityProviderManagementException {
 		return idPMgtDAO.getIdPsSearch(dbConnection, tenantId, tenantDomain,
 				filter);
@@ -221,7 +221,7 @@ public class CacheBackedIdPMgtDAO {
                 idPCacheByHRI.addToCache(homeRealmIdCacheKey, new IdPCacheEntry(identityProvider));
             }
         } else {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug(String.format("No IDP found with ID: %d either in cache or DB", id));
             }
         }
@@ -347,7 +347,7 @@ public class CacheBackedIdPMgtDAO {
         }
 
         IdentityProvider identityProvider = idPMgtDAO.getIdPByAuthenticatorPropertyValue(dbConnection, property,
-                value, authenticator,tenantId, tenantDomain);
+                value, authenticator, tenantId, tenantDomain);
 
         if (identityProvider != null) {
             log.debug("Entry fetched from DB for Identity Provider with authenticator property " + property
@@ -461,7 +461,8 @@ public class CacheBackedIdPMgtDAO {
             clearIdpCache(idPName, tenantId, tenantDomain);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB", idPName, tenantDomain));
+                log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB",
+                        idPName, tenantDomain));
             }
         }
     }
@@ -532,7 +533,8 @@ public class CacheBackedIdPMgtDAO {
             clearIdpCache(idPName, tenantId, tenantDomain);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB", idPName, tenantDomain));
+                log.debug(String.format("IDP:%s of tenantDomain:%s is not found is cache or DB",
+                        idPName, tenantDomain));
             }
         }
 
@@ -595,7 +597,8 @@ public class CacheBackedIdPMgtDAO {
         }
     }
 
-    public void clearIdpCache(String idPName, int tenantId, String tenantDomain) throws IdentityProviderManagementException {
+    public void clearIdpCache(String idPName, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
 
         clearIdpCache(idPName, null, tenantId, tenantDomain);
     }
@@ -756,7 +759,8 @@ public class CacheBackedIdPMgtDAO {
      * @return
      * @throws IdentityProviderManagementException
      */
-    public boolean isIdPAvailableForAuthenticatorProperty(String authenticatorName, String propertyName, String idPEntityId, int tenantId)
+    public boolean isIdPAvailableForAuthenticatorProperty(String authenticatorName, String propertyName,
+                                                          String idPEntityId, int tenantId)
             throws IdentityProviderManagementException {
 
         return idPMgtDAO.isIdPAvailableForAuthenticatorProperty(authenticatorName, propertyName, idPEntityId, tenantId);
