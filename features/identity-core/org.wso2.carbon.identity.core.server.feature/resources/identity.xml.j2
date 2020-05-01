@@ -1856,7 +1856,7 @@
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/admin-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/developer-portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -2068,11 +2068,12 @@
     </UserFiltering>
 
     <!-- Allowed Userstores -->
-    {% if allowed_userstore is defined %}
+    {% if allowed_user_stores is defined %}
     <AllowedUserstores>
-        {% for userstore in allowed_userstore %}
-        <AllowedUserstore>{{userstore.class}}</AllowedUserstore>
+        {% for user_store in allowed_user_stores %}
+        <AllowedUserstore>{{user_store.class}}</AllowedUserstore>
         {% endfor %}
     </AllowedUserstores>
     {% endif %}
+
 </Server>

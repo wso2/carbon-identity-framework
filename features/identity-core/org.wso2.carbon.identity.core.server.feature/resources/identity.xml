@@ -1466,7 +1466,7 @@
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/admin-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/developer-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -1553,14 +1553,14 @@
             <Context>/api/users/v2/me/webauthn</Context>
             <Context>/api/</Context>
             <Context>/user-portal/</Context>
-            <Context>/admin-portal/</Context>
+            <Context>/developer-portal/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
         </Servlet>
         <OverwriteDispatch>
             <Context>/user-portal/</Context>
-            <Context>/admin-portal/</Context>
+            <Context>/developer-portal/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
@@ -1662,5 +1662,13 @@
     <UserFiltering>
         <ShowDisplayName>false</ShowDisplayName>
     </UserFiltering>
+
+    <!-- Allowed User Stores -->
+    <AllowedUserstores>
+        <AllowedUserstore>org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager</AllowedUserstore>
+        <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager</AllowedUserstore>
+        <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager</AllowedUserstore>
+        <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager</AllowedUserstore>
+    </AllowedUserstores>
 
 </Server>
