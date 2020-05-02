@@ -446,7 +446,7 @@
     "/api/users/v2/me/webauthn",
     "/api/",
     "/user-portal/",
-    "/admin-portal/",
+    "/developer-portal/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/"
   ],
@@ -461,7 +461,7 @@
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/",
-    "/admin-portal/"
+    "/developer-portal/"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
@@ -500,6 +500,20 @@
   "pagination.default_items_per_page": "15",
 
   "user_filtering.show_display_name_of_user": false,
+  "analytics.publish_password_grant_logins": false,
 
-  "analytics.publish_password_grant_logins": false
+  "allowed_user_stores": [
+    {
+      "class": "org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager"
+    },
+    {
+      "class": "org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager"
+    },
+    {
+      "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager"
+    },
+    {
+      "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
+    }
+  ]
 }
