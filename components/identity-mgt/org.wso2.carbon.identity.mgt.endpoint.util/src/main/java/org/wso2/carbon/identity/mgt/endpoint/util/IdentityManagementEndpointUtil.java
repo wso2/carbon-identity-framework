@@ -660,30 +660,32 @@ public class IdentityManagementEndpointUtil {
     /**
      * Get base path URL for API clients.
      *
-     * @param tenantDomain          tenant Domain.
+     * @param tenantDomain          Tenant Domain.
      * @param context               URL context.
-     * @param isEndpointTenantAware whether the endpoint is tenant aware.
-     * @return base path.
+     * @param isEndpointTenantAware Whether the endpoint is tenant aware.
+     * @return Base path.
      * @throws ApiException ApiException.
      */
     public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware)
             throws ApiException {
 
         String basePath;
+        String serverUrl = IdentityManagementServiceUtil.getInstance().getContextURLFromFile();
         try {
-            if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                basePath = ServiceURLBuilder.create().addPath(context).build().getAbsoluteInternalURL();
-            } else {
-                String serverUrl = IdentityManagementServiceUtil.getInstance().getContextURLFromFile();
-                if (StringUtils.isBlank(serverUrl)) {
-                    serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
-                }
-                if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
-                        .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
-                    basePath = serverUrl + "/t/" + tenantDomain + context;
+            if (StringUtils.isBlank(serverUrl)) {
+                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    basePath = ServiceURLBuilder.create().addPath(context).build().getAbsoluteInternalURL();
                 } else {
-                    basePath = serverUrl + context;
+                    serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
+                    if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
+                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
+                        basePath = serverUrl + "/t/" + tenantDomain + context;
+                    } else {
+                        basePath = serverUrl + context;
+                    }
                 }
+            } else {
+                basePath = serverUrl + context;
             }
         } catch (URLBuilderException e) {
             throw new ApiException("Error while building url for context: " + context);
