@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.xsd.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.xsd.ImportResponse;
+import org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
@@ -571,6 +572,23 @@ public class ApplicationManagementServiceClient {
         }
 
         return paginationSupported;
+    }
+
+    /**
+     * Returns an array of custom inbound authenticator configs.
+     *
+     * @return InboundAuthenticationRequestConfig[]
+     * @throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException
+     */
+    public InboundAuthenticationRequestConfig[] getCustomInboundAuthenticatorConfigs()
+            throws IdentityApplicationManagementServiceIdentityApplicationManagementClientException {
+
+        try {
+            return stub.getCustomInboundAuthenticatorConfigs();
+        } catch (RemoteException e) {
+            handleException(e, "Error occurrred while retrieving inbound custom authenticator configs.");
+        }
+        return new InboundAuthenticationRequestConfig[0];
     }
 }
 

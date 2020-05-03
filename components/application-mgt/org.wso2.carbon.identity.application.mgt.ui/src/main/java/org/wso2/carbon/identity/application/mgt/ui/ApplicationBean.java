@@ -98,6 +98,7 @@ public class ApplicationBean {
     private List<String> standardInboundAuthTypes;
     private ApplicationPurposes applicationPurposes;
     private Purpose[] sharedPurposes;
+    private Map<String, InboundAuthenticationRequestConfig> customInboundAuthenticatorConfigs;
 
     private static final Log log = LogFactory.getLog(ApplicationBean.class);
 
@@ -944,28 +945,32 @@ public class ApplicationBean {
     }
 
     /**
-     * Get all custom authenticators
+     * Get all custom authenticators.
      *
      * @return Custom authenticators
      */
     public List<InboundAuthenticationRequestConfig> getInboundAuthenticators() {
 
-        if (!CollectionUtils.isEmpty(inboundAuthenticationRequestConfigs)) {
-            return inboundAuthenticationRequestConfigs;
-        }
+        if (customInboundAuthenticatorConfigs != null && customInboundAuthenticatorConfigs.size() > 0) {
+            if (!CollectionUtils.isEmpty(inboundAuthenticationRequestConfigs)) {
+                return inboundAuthenticationRequestConfigs;
+            }
+            InboundAuthenticationRequestConfig[] authRequests = serviceProvider
+                    .getInboundAuthenticationConfig()
+                    .getInboundAuthenticationRequestConfigs();
 
-        inboundAuthenticationRequestConfigs = new ArrayList<InboundAuthenticationRequestConfig>();
-
-        InboundAuthenticationRequestConfig[] authRequests = serviceProvider
-                .getInboundAuthenticationConfig()
-                .getInboundAuthenticationRequestConfigs();
-
-        if (authRequests != null) {
-            for (InboundAuthenticationRequestConfig request : authRequests) {
-                if (isCustomInboundAuthType(request.getInboundAuthType())) {
-                    inboundAuthenticationRequestConfigs.add(request);
+            inboundAuthenticationRequestConfigs = new ArrayList<>();
+            if (authRequests != null && customInboundAuthenticatorConfigs != null) {
+                for (InboundAuthenticationRequestConfig request : authRequests) {
+                    if (isCustomInboundAuthType(request.getInboundAuthType()) && customInboundAuthenticatorConfigs
+                            .containsKey(request.getInboundAuthType() + ":" + request.getInboundConfigType())) {
+                        customInboundAuthenticatorConfigs.remove(
+                                request.getInboundAuthType() + ":" + request.getInboundConfigType());
+                        inboundAuthenticationRequestConfigs.add(request);
+                    }
                 }
             }
+            inboundAuthenticationRequestConfigs.addAll(customInboundAuthenticatorConfigs.values());
         }
         return inboundAuthenticationRequestConfigs;
     }
@@ -1511,6 +1516,24 @@ public class ApplicationBean {
                 alwaysSendMappedLocalSubjectId != null
                         && "on".equals(alwaysSendMappedLocalSubjectId) ? true : false);
 
+    }
+
+    /**
+     * Set the server configured custom inbound authenticator configs as map.
+     *
+     * @param customInboundAuthenticatorConfigs Custom inbound authenticators enabled for the server.
+     */
+    public void setCustomInboundAuthenticatorConfigs(
+            InboundAuthenticationRequestConfig[] customInboundAuthenticatorConfigs) {
+
+        Map<String, InboundAuthenticationRequestConfig> customInboundAuthConfigs = new HashMap<>();
+        if (customInboundAuthenticatorConfigs != null && customInboundAuthenticatorConfigs.length > 0) {
+            for (InboundAuthenticationRequestConfig config : customInboundAuthenticatorConfigs) {
+                customInboundAuthConfigs.put(
+                        config.getInboundAuthType() + ":" + config.getInboundConfigType(), config);
+            }
+        }
+        this.customInboundAuthenticatorConfigs = customInboundAuthConfigs;
     }
 
     /**
