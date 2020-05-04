@@ -951,8 +951,8 @@ public class ApplicationBean {
      */
     public List<InboundAuthenticationRequestConfig> getInboundAuthenticators() {
 
-        if (customInboundAuthenticatorConfigs != null && customInboundAuthenticatorConfigs.size() > 0) {
-            if (!CollectionUtils.isEmpty(inboundAuthenticationRequestConfigs)) {
+        if (CollectionUtils.isNotEmpty(Collections.singleton(customInboundAuthenticatorConfigs))) {
+            if (CollectionUtils.isNotEmpty(inboundAuthenticationRequestConfigs)) {
                 return inboundAuthenticationRequestConfigs;
             }
             InboundAuthenticationRequestConfig[] authRequests = serviceProvider
@@ -960,7 +960,7 @@ public class ApplicationBean {
                     .getInboundAuthenticationRequestConfigs();
 
             inboundAuthenticationRequestConfigs = new ArrayList<>();
-            if (authRequests != null && customInboundAuthenticatorConfigs != null) {
+            if (authRequests != null) {
                 for (InboundAuthenticationRequestConfig request : authRequests) {
                     if (isCustomInboundAuthType(request.getInboundAuthType()) && customInboundAuthenticatorConfigs
                             .containsKey(request.getInboundAuthType() + ":" + request.getInboundConfigType())) {
