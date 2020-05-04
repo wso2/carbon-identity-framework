@@ -757,6 +757,10 @@
             <RecoveryLink>false</RecoveryLink>
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
+        <ChallengeQuestion>
+            <AnswerRegex>.*</AnswerRegex>
+            <EnforceAnswerUniqueness>false</EnforceAnswerUniqueness>
+        </ChallengeQuestion>
     </Recovery>
 
     <EmailVerification>

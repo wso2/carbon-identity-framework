@@ -137,6 +137,8 @@ public class IdentityEventConstants {
         public static final String PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "PRE_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
         public static final String POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID = "POST_UPDATE_ROLE_LIST_OF_USER_WITH_ID";
         public static final String POST_GET_ROLE_LIST_OF_USERS_WITH_ID = "POST_GET_ROLE_LIST_OF_USERS_WITH_ID";
+        public static final String PRE_SET_CHALLENGE_QUESTION_ANSWERS = "PRE_SET_CHALLENGE_QUESTION_ANSWERS";
+        public static final String POST_SET_CHALLENGE_QUESTION_ANSWERS = "POST_SET_CHALLENGE_QUESTION_ANSWERS";
     }
 
     /**
@@ -202,7 +204,8 @@ public class IdentityEventConstants {
         public static final String SESSION_CONTEXT = "sessionContext";
         public static final String PARAMS = "params";
         public static final String AUTHENTICATION_STATUS = "authenticationStatus";
-
+        public static final String USER_CHALLENGE_ANSWERS = "userChallengeAnswers";
+        public static final String USER_OLD_CHALLENGE_ANSWERS = "userNewChallengeAnswers";
     }
 
     public class ErrorMessage {

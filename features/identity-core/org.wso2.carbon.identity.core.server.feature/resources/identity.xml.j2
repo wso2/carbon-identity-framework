@@ -926,6 +926,10 @@
             <RecoveryLink>{{identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset}}</RecoveryLink>
         </AdminPasswordReset>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
+        <ChallengeQuestion>
+            <AnswerRegex>{{identity_mgt.recovery.challenge_question.answer_regex}}</AnswerRegex>
+            <EnforceAnswerUniqueness>{{identity_mgt.recovery.challenge_question.enforce_answer_uniqueness}}</EnforceAnswerUniqueness>
+        </ChallengeQuestion>
     </Recovery>
 
     <Notification>
