@@ -245,6 +245,18 @@
                 <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             <SupportedResponseType>
+                <ResponseTypeName>code token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            <SupportedResponseType>
                 <ResponseTypeName>device</ResponseTypeName>
                 <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler</ResponseTypeHandlerImplClass>
                 <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator</ResponseTypeValidatorImplClass>
