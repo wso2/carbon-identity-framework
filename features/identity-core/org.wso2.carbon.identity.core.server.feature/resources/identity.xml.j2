@@ -274,6 +274,24 @@
                 <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_token.class}}</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.code_token.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>code token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.code_token.class}}</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            {% endif %}
+            {% if oauth.response_type.code_id_token.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.code_id_token.class}}</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            {% endif %}
+            {% if oauth.response_type.code_id_token_token.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.code_id_token_token.class}}</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% if oauth.response_type.device.enable is sameas true %}
                 <SupportedResponseType>
                 <ResponseTypeName>device</ResponseTypeName>
