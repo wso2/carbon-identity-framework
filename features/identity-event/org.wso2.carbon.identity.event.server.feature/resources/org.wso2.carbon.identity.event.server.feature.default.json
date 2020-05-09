@@ -18,7 +18,7 @@
   ],
   "identity_mgt.events.schemes.accountConfirmationValidation.module_index": "3",
   "identity_mgt.events.schemes.accountConfirmationValidation.subscriptions": [
-    "PRE_AUTHENTICATION"
+    "POST_AUTHENTICATION"
   ],
   "identity_mgt.events.schemes.passwordHistory.module_index": "4",
   "identity_mgt.events.schemes.passwordHistory.subscriptions": [

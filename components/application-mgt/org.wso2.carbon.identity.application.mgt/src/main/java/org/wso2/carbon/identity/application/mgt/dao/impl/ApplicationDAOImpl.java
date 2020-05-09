@@ -2575,19 +2575,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
         List<InboundAuthenticationRequestConfig> returnList = new ArrayList<>(inboundAuthenticationRequestConfigMap
                 .values());
-
-        for (Map.Entry<String, AbstractInboundAuthenticatorConfig> entry : allCustomAuthenticators.entrySet()) {
-            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = entry.getValue();
-            InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig =
-                    new InboundAuthenticationRequestConfig();
-            inboundAuthenticationRequestConfig.setInboundAuthType(inboundAuthenticatorConfig.getName());
-            inboundAuthenticationRequestConfig.setInboundConfigType(inboundAuthenticatorConfig.getConfigName());
-            inboundAuthenticationRequestConfig.setFriendlyName(inboundAuthenticatorConfig.getFriendlyName());
-            inboundAuthenticationRequestConfig.setProperties(inboundAuthenticatorConfig
-                    .getConfigurationProperties());
-
-            returnList.add(inboundAuthenticationRequestConfig);
-        }
         InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
         inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList.toArray(new
                 InboundAuthenticationRequestConfig[returnList.size()]));
