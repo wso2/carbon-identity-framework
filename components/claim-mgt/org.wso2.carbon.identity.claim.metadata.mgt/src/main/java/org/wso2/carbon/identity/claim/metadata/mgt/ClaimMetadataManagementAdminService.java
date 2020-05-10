@@ -164,7 +164,7 @@ public class ClaimMetadataManagementAdminService {
                     .addLocalClaim(claim, tenantDomain);
         } catch (ClaimMetadataClientException e) {
             if (log.isDebugEnabled()) {
-                 log.debug(e.getMessage());
+                 log.debug(e.getMessage(), e);
             }
             throw new ClaimMetadataException(e.getMessage(), e);
         } catch (Throwable e) {
@@ -246,7 +246,7 @@ public class ClaimMetadataManagementAdminService {
                     .addExternalClaim(claim, tenantDomain);
         } catch (ClaimMetadataClientException e) {
             if (log.isDebugEnabled()) {
-                log.debug(e.getMessage());
+                log.debug(e.getMessage(), e);
             }
             throw new ClaimMetadataException(e.getMessage(), e);
         } catch (Throwable e) {
