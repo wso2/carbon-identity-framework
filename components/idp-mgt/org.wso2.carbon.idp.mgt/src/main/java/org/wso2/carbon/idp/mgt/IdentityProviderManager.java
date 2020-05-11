@@ -592,8 +592,8 @@ public class IdentityProviderManager implements IdpManager {
                         + defaultContext + " for tenantDomain: " + tenantDomain, ex);
             }
         }
-
-        if (appendTenantDomainInLegacyMode) {
+        //Should not append the tenant domain as a query parameter if it is super tenant.
+        if (appendTenantDomainInLegacyMode && isNotSuperTenant(tenantDomain)) {
             Map<String, String[]> queryParams = new HashMap<>();
             queryParams.put(MultitenantConstants.TENANT_DOMAIN, new String[] {tenantDomain});
 
@@ -606,6 +606,11 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return resolveAbsoluteURL(defaultContext, url);
+    }
+
+    private boolean isNotSuperTenant(String tenantDomain) {
+
+        return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     private FederatedAuthenticatorConfig buildSAMLProperties(IdentityProvider identityProvider, String tenantDomain)
