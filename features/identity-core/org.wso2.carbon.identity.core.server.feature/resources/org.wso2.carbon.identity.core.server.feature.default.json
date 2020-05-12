@@ -457,7 +457,8 @@
     "/logincontext(.*)",
     "/oidc/",
     "/samlsso(.*)",
-    "/samlartresolve"
+    "/samlartresolve",
+    "/passivests"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/",
