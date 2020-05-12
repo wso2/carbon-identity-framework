@@ -42,6 +42,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.PROXY_CONTEXT_PATH;
+
 /**
  * Implementation for {@link ServiceURLBuilder}.
  * Builder for Service URL instances.
@@ -49,16 +51,209 @@ import java.util.StringJoiner;
 public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
     private String fragment;
-    private String tenantDomain;
     private String[] urlPaths;
     private Map<String, String> parameters = new HashMap<>();
     private Map<String, String> fragmentParams = new HashMap<>();
+
+    /**
+     * Returns {@link ServiceURLBuilder} appended the URL path.
+     *
+     * @param paths Context paths. Can provide multiple context paths with a comma separated string.
+     * @return {@link ServiceURLBuilder}.
+     */
+    @Override
+    public ServiceURLBuilder addPath(String... paths) {
+
+        this.urlPaths = paths;
+        return this;
+    }
+
+    /**
+     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
+     * root and the tenant domain (appended if required).
+     *
+     * @return {@link ServiceURL}.
+     * @throws URLBuilderException If error occurred while constructing the URL.
+     */
+    @Override
+    public ServiceURL build() throws URLBuilderException {
+
+        String protocol = fetchProtocol();
+        String hostName = fetchHostName();
+        int port = fetchPort();
+        String tenantDomain = resolveTenantDomain();
+        String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
+        String resolvedFragment = buildFragment(fragment, fragmentParams);
+        String urlPath = getResolvedUrlPath(tenantDomain);
+
+        return new ServiceURLImpl(protocol, hostName, port, tenantDomain, proxyContextPath, urlPath, parameters,
+                resolvedFragment);
+    }
+
+    private String getResolvedUrlPath(String tenantDomain) {
+
+        String resolvedUrlContext = buildUrlPath(urlPaths);
+        StringBuilder resolvedUrlStringBuilder = new StringBuilder();
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (isNotSuperTenant(tenantDomain)) {
+                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+            }
+        }
+
+        if (StringUtils.isNotBlank(resolvedUrlContext)) {
+            if (resolvedUrlContext.trim().charAt(0) != '/') {
+                resolvedUrlStringBuilder.append("/").append(resolvedUrlContext.trim());
+            } else {
+                resolvedUrlStringBuilder.append(resolvedUrlContext.trim());
+            }
+        }
+
+        return resolvedUrlStringBuilder.toString();
+    }
+
+    private boolean isNotSuperTenant(String tenantDomain) {
+
+        return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+    }
+
+    /**
+     * Returns {@link ServiceURLBuilder} appended with other parameters. Such parameters should be
+     * entered as <k,v> pairs.
+     *
+     * @param key   Key.
+     * @param value Value.
+     * @return {@link ServiceURLBuilder}.
+     */
+    @Override
+    public ServiceURLBuilder addParameter(String key, String value) {
+
+        parameters.put(key, value);
+        return this;
+    }
+
+    /**
+     * Returns {@link ServiceURLBuilder} appended with a fragment.
+     *
+     * @param fragment Fragment.
+     * @return {@link ServiceURLBuilder}.
+     */
+    @Override
+    public ServiceURLBuilder setFragment(String fragment) {
+
+        this.fragment = fragment;
+        return this;
+    }
+
+    /**
+     * Returns {@link ServiceURLBuilder} appended with parameters. Such parameters should be
+     * entered as <k,v> pairs. These parameters will get appended with an "&".
+     *
+     * @param key   Key.
+     * @param value Value.
+     * @return {@link ServiceURLBuilder}.
+     */
+    @Override
+    public ServiceURLBuilder addFragmentParameter(String key, String value) {
+
+        fragmentParams.put(key, value);
+        return this;
+    }
+
+    private String resolveTenantDomain() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+        return tenantDomain;
+    }
+
+    private String buildFragment(String fragment, Map<String, String> fragmentParams) {
+
+        if (StringUtils.isNotBlank(fragment)) {
+            return fragment;
+        } else {
+            return getResolvedParamString(fragmentParams);
+        }
+    }
+
+    private String getResolvedParamString(Map<String, String> parameters) {
+
+        StringJoiner joiner = new StringJoiner("&");
+        if (MapUtils.isNotEmpty(parameters)) {
+            for (Map.Entry<String, String> entry : parameters.entrySet()) {
+                StringBuilder paramBuilder = new StringBuilder();
+                paramBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+                joiner.add(paramBuilder.toString());
+            }
+        }
+        return joiner.toString();
+    }
+
+    private String buildUrlPath(String[] urlPaths) {
+
+        StringBuilder urlPathBuilder = new StringBuilder();
+        if (ArrayUtils.isNotEmpty(urlPaths)) {
+            for (String path : urlPaths) {
+                if (StringUtils.isNotBlank(path)) {
+                    if (path.endsWith("/")) {
+                        path = path.substring(0, path.length() - 1);
+                    }
+                    if (path.startsWith("/")) {
+                        path = path.substring(1);
+                    }
+                    urlPathBuilder.append(path).append("/");
+                }
+            }
+            if (urlPathBuilder.length() > 0 && urlPathBuilder.charAt(urlPathBuilder.length() - 1) == '/') {
+                urlPathBuilder.setLength(urlPathBuilder.length() - 1);
+            }
+        }
+        return urlPathBuilder.toString();
+    }
+
+    private String fetchProtocol() {
+
+        return CarbonUtils.getManagementTransport();
+    }
+
+    private String fetchHostName() throws URLBuilderException {
+
+        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        try {
+            if (StringUtils.isBlank(hostName)) {
+                hostName = NetworkUtils.getLocalHostname();
+            }
+        } catch (SocketException e) {
+            throw new URLBuilderException(String.format("Error while trying to resolve the hostname %s from the " +
+                    "system", hostName), e);
+        }
+
+        if (StringUtils.isNotBlank(hostName) && hostName.endsWith("/")) {
+            hostName = hostName.substring(0, hostName.length() - 1);
+        }
+        return hostName;
+    }
+
+    private Integer fetchPort() {
+
+        String mgtTransport = CarbonUtils.getManagementTransport();
+        AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
+                getServerConfigContext().getAxisConfiguration();
+        int port = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
+        if (port <= 0) {
+            port = CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
+        }
+        return port;
+    }
 
     private class ServiceURLImpl implements ServiceURL {
 
         private String protocol;
         private String hostName;
         private int port;
+        private String tenantDomain;
         private String proxyContextPath;
         private String urlPath;
         private Map<String, String> parameters;
@@ -67,13 +262,14 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String relativePublicUrl;
         private String relativeInternalUrl;
 
-        private ServiceURLImpl(String protocol, String hostName, int port, String proxyContextPath, String urlPath,
-                               Map<String, String> parameters, String fragment)
+        private ServiceURLImpl(String protocol, String hostName, int port, String tenantDomain, String proxyContextPath,
+                               String urlPath, Map<String, String> parameters, String fragment)
                 throws URLBuilderException {
 
             this.protocol = protocol;
             this.hostName = hostName;
             this.port = port;
+            this.tenantDomain = tenantDomain;
             this.proxyContextPath = proxyContextPath;
             this.urlPath = urlPath;
             this.parameters = parameters;
@@ -255,222 +451,37 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             appendParamsToUri(relativeUrl, fragment, "#");
             return relativeUrl.toString();
         }
-    }
 
-    /**
-     * Returns {@link ServiceURLBuilder} appended the URL path.
-     *
-     * @param paths Context paths. Can provide multiple context paths with a comma separated string.
-     * @return {@link ServiceURLBuilder}.
-     */
-    @Override
-    public ServiceURLBuilder addPath(String... paths) {
+        private void appendParamsToUri(StringBuilder serverUrl, String resolvedParamsString, String delimiter)
+                throws URLBuilderException {
 
-        this.urlPaths = paths;
-        return this;
-    }
-
-    /**
-     * Returns a ServiceURL with the protocol, hostname, port, proxy context path, a web context
-     * root and the tenant domain (appended if required).
-     *
-     * @return {@link ServiceURL}.
-     * @throws URLBuilderException If error occurred while constructing the URL.
-     */
-    @Override
-    public ServiceURL build() throws URLBuilderException {
-
-        String protocol = fetchProtocol();
-        String hostName = null;
-        hostName = fetchHostName();
-        int port = fetchPort();
-        String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
-                .PROXY_CONTEXT_PATH);
-        String resolvedUrlContext = buildUrlPath(urlPaths);
-        String resolvedFragment = buildFragment(fragment, fragmentParams);
-        tenantDomain = resolveTenantDomain();
-
-        StringBuilder resolvedUrlStringBuilder = new StringBuilder();
-
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            if (StringUtils.isNotBlank(tenantDomain) &&
-                    !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
-                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+            if (serverUrl.length() > 0 && serverUrl.charAt(serverUrl.length() - 1) == '/') {
+                serverUrl.setLength(serverUrl.length() - 1);
             }
-        }
-
-        if (StringUtils.isNotBlank(resolvedUrlContext)) {
-            if (resolvedUrlContext.trim().charAt(0) != '/') {
-                resolvedUrlStringBuilder.append("/").append(resolvedUrlContext.trim());
-            } else {
-                resolvedUrlStringBuilder.append(resolvedUrlContext.trim());
-            }
-        }
-
-        return new ServiceURLImpl(protocol, hostName, port, proxyContextPath, resolvedUrlStringBuilder.toString(),
-                parameters,
-                resolvedFragment);
-    }
-
-    /**
-     * Returns {@link ServiceURLBuilder} appended with other parameters. Such parameters should be
-     * entered as <k,v> pairs.
-     *
-     * @param key   Key.
-     * @param value Value.
-     * @return {@link ServiceURLBuilder}.
-     */
-    @Override
-    public ServiceURLBuilder addParameter(String key, String value) {
-
-        parameters.put(key, value);
-        return this;
-    }
-
-    /**
-     * Returns {@link ServiceURLBuilder} appended with a fragment.
-     *
-     * @param fragment Fragment.
-     * @return {@link ServiceURLBuilder}.
-     */
-    @Override
-    public ServiceURLBuilder setFragment(String fragment) {
-
-        this.fragment = fragment;
-        return this;
-    }
-
-    /**
-     * Returns {@link ServiceURLBuilder} appended with parameters. Such parameters should be
-     * entered as <k,v> pairs. These parameters will get appended with an "&".
-     *
-     * @param key   Key.
-     * @param value Value.
-     * @return {@link ServiceURLBuilder}.
-     */
-    @Override
-    public ServiceURLBuilder addFragmentParameter(String key, String value) {
-
-        fragmentParams.put(key, value);
-        return this;
-    }
-
-    private String resolveTenantDomain() {
-
-        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-        }
-        return tenantDomain;
-    }
-
-    private String buildFragment(String fragment, Map<String, String> fragmentParams) {
-
-        if (StringUtils.isNotBlank(fragment)) {
-            return fragment;
-        } else {
-            return getResolvedParamString(fragmentParams);
-        }
-    }
-
-    private String getResolvedParamString(Map<String, String> parameters) {
-
-        StringJoiner joiner = new StringJoiner("&");
-        if (MapUtils.isNotEmpty(parameters)) {
-            for (Map.Entry<String, String> entry : parameters.entrySet()) {
-                StringBuilder paramBuilder = new StringBuilder();
-                paramBuilder.append(entry.getKey()).append("=").append(entry.getValue());
-                joiner.add(paramBuilder.toString());
-            }
-        }
-        return joiner.toString();
-    }
-
-    private String buildUrlPath(String[] urlPaths) {
-
-        StringBuilder urlPathBuilder = new StringBuilder();
-        if (ArrayUtils.isNotEmpty(urlPaths)) {
-            for (String path : urlPaths) {
-                if (StringUtils.isNotBlank(path)) {
-                    if (path.endsWith("/")) {
-                        path = path.substring(0, path.length() - 1);
-                    }
-                    if (path.startsWith("/")) {
-                        path = path.substring(1);
-                    }
-                    urlPathBuilder.append(path).append("/");
+            if (StringUtils.isNotBlank(resolvedParamsString)) {
+                try {
+                    serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
+                            StandardCharsets.UTF_8.name()));
+                } catch (UnsupportedEncodingException e) {
+                    throw new URLBuilderException(String.format("Error while trying to build url. %s is not supported" +
+                            ".", StandardCharsets.UTF_8.name()), e);
                 }
             }
-            if (urlPathBuilder.length() > 0 && urlPathBuilder.charAt(urlPathBuilder.length() - 1) == '/') {
-                urlPathBuilder.setLength(urlPathBuilder.length() - 1);
-            }
-        }
-        return urlPathBuilder.toString();
-    }
-
-    private String fetchProtocol() {
-
-        return CarbonUtils.getManagementTransport();
-    }
-
-    private String fetchHostName() throws URLBuilderException {
-
-        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
-        try {
-            if (StringUtils.isBlank(hostName)) {
-                hostName = NetworkUtils.getLocalHostname();
-            }
-        } catch (SocketException e) {
-            throw new URLBuilderException(String.format("Error while trying to resolve the hostname %s from the " +
-                    "system", hostName), e);
         }
 
-        if (StringUtils.isNotBlank(hostName) && hostName.endsWith("/")) {
-            hostName = hostName.substring(0, hostName.length() - 1);
-        }
-        return hostName;
-    }
+        private void appendContextToUri(StringBuilder serverUrl, String contextPath) {
 
-    private Integer fetchPort() {
-
-        String mgtTransport = CarbonUtils.getManagementTransport();
-        AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
-                getServerConfigContext().getAxisConfiguration();
-        int port = CarbonUtils.getTransportProxyPort(axisConfiguration, mgtTransport);
-        if (port <= 0) {
-            port = CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
-        }
-        return port;
-    }
-
-    private void appendParamsToUri(StringBuilder serverUrl, String resolvedParamsString, String delimiter)
-            throws URLBuilderException {
-
-        if (serverUrl.length() > 0 && serverUrl.charAt(serverUrl.length() - 1) == '/') {
-            serverUrl.setLength(serverUrl.length() - 1);
-        }
-        if (StringUtils.isNotBlank(resolvedParamsString)) {
-            try {
-                serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
-                        StandardCharsets.UTF_8.name()));
-            } catch (UnsupportedEncodingException e) {
-                throw new URLBuilderException(String.format("Error while trying to build the url. %s is not supported" +
-                        ".", StandardCharsets.UTF_8.name()), e);
+            if (StringUtils.isNotBlank(contextPath)) {
+                if (contextPath.endsWith("/")) {
+                    contextPath = contextPath.substring(0, contextPath.length() - 1);
+                }
+                if (StringUtils.isNotBlank(contextPath) && contextPath.trim().charAt(0) != '/') {
+                    serverUrl.append("/").append(contextPath.trim());
+                } else {
+                    serverUrl.append(contextPath.trim());
+                }
             }
         }
     }
 
-    private void appendContextToUri(StringBuilder serverUrl, String contextPath) {
-
-        if (StringUtils.isNotBlank(contextPath)) {
-            if (contextPath.endsWith("/")) {
-                contextPath = contextPath.substring(0, contextPath.length() - 1);
-            }
-            if (StringUtils.isNotBlank(contextPath) && contextPath.trim().charAt(0) != '/') {
-                serverUrl.append("/").append(contextPath.trim());
-            } else {
-                serverUrl.append(contextPath.trim());
-            }
-        }
-    }
 }
