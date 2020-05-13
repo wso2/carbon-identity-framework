@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -224,7 +225,7 @@ public class IdentityUtil {
         if (log.isDebugEnabled()) {
             log.debug("Generating display value of PPID : " + value);
         }
-        byte[] rawPpid = org.apache.commons.codec.binary.Base64.decodeBase64(value);
+        byte[] rawPpid = Base64.getDecoder().decode(value);
         MessageDigest sha1 = MessageDigest.getInstance("SHA1");
         sha1.update(rawPpid);
         byte[] hashId = sha1.digest();
@@ -259,7 +260,7 @@ public class IdentityUtil {
             Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            return org.apache.commons.codec.binary.Base64.encodeBase64String(rawHmac);
+            return Base64.getEncoder().encodeToString(rawHmac);
         } catch (Exception e) {
             throw new SignatureException("Failed to generate HMAC : " + e.getMessage());
         }
@@ -305,7 +306,7 @@ public class IdentityUtil {
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            String random = org.apache.commons.codec.binary.Base64.encodeBase64String(rawHmac);
+            String random = Base64.getEncoder().encodeToString(rawHmac);
             // Registry doesn't have support for these character.
             random = random.replace("/", "_");
             random = random.replace("=", "a");
