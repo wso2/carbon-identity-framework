@@ -11,42 +11,42 @@ public class ClaimMetadataTenantMgtListener implements TenantMgtListener {
 
     @Override
     public void onTenantCreate(TenantInfoBean tenantInfoBean) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onTenantUpdate(TenantInfoBean tenantInfoBean) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onTenantDelete(int i) {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onTenantRename(int i, String s, String s2) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onTenantInitialActivation(int i) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onTenantActivation(int i) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onTenantDeactivation(int i) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
     public void onSubscriptionPlanChange(int i, String s, String s2) throws StratosException {
-        /* Method not implemented */
+
     }
 
     @Override
