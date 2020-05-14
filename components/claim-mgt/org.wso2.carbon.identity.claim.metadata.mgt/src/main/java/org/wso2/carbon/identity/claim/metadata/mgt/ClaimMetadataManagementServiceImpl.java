@@ -366,6 +366,19 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
     }
 
+    /**
+     * Remove all claims of a given tenant.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ClaimMetadataException
+     */
+    @Override
+    public void removeAllClaims(int tenantId) throws ClaimMetadataException {
+
+        // The relevant external claim deletions are handled by the DB through ON DELETE CASCADE
+        this.claimDialectDAO.removeAllClaimDialects(tenantId);
+    }
+
     private boolean isExistingExternalClaimURI(String externalClaimDialectURI, String externalClaimURI, int tenantId)
             throws ClaimMetadataException {
 
