@@ -479,14 +479,6 @@ public class CacheBackedIdPMgtDAO {
         if (log.isDebugEnabled()) {
             log.debug(String.format("All Identity Providers of tenant:%d are deleted", tenantId));
         }
-
-        // Clear IDP Caches
-        idPCacheByName.clear();
-        idPCacheByHRI.clear();
-        idPCacheByResourceId.clear();
-        if (log.isDebugEnabled()) {
-            log.debug("Identity Provider Cache is cleared on the deletion of Identity Providers");
-        }
     }
 
 
