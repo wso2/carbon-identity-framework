@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
@@ -41,6 +42,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
+import static org.wso2.carbon.identity.core.util.IdentityCoreConstants.PROXY_CONTEXT_PATH;
+
 /**
  * Implementation for {@link ServiceURLBuilder}.
  * Builder for Service URL instances.
@@ -48,189 +51,9 @@ import java.util.StringJoiner;
 public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
     private String fragment;
-    private String tenantDomain;
     private String[] urlPaths;
     private Map<String, String> parameters = new HashMap<>();
     private Map<String, String> fragmentParams = new HashMap<>();
-
-    private class ServiceURLImpl implements ServiceURL {
-
-        private String protocol;
-        private String hostName;
-        private int port;
-        private String urlPath;
-        private Map<String, String> parameters;
-        private String fragment;
-        private String absoluteUrl;
-        private String relativeUrl;
-
-        private ServiceURLImpl(String protocol, String hostName, int port, String urlPath,
-                               Map<String, String> parameters, String fragment)
-                throws URLBuilderException {
-
-            this.protocol = protocol;
-            this.hostName = hostName;
-            this.port = port;
-            this.urlPath = urlPath;
-            this.parameters = parameters;
-            this.fragment = fragment;
-            this.absoluteUrl = fetchAbsoluteUrl();
-            this.relativeUrl = fetchRelativeUrl();
-
-        }
-
-        /**
-         * Returns the protocol of Service URL.
-         *
-         * @return String of the protocol.
-         */
-        @Override
-        public String getProtocol() {
-
-            return protocol;
-        }
-
-        /**
-         * Returns the host name of Service URL.
-         *
-         * @return String of the host name.
-         */
-        @Override
-        public String getHostName() {
-
-            return hostName;
-        }
-
-        /**
-         * Returns the port of Service URL.
-         *
-         * @return value of the port.
-         */
-        @Override
-        public int getPort() {
-
-            return port;
-        }
-
-        /**
-         * Returns the Url path of Service URL.
-         *
-         * @return String of the url path.
-         */
-        @Override
-        public String getPath() {
-
-            return urlPath;
-        }
-
-        /**
-         * Returns the parameter value when the key is provided.
-         *
-         * @param key Key of the parameter.
-         * @return The value of the parameter.
-         */
-        @Override
-        public String getParameter(String key) {
-
-            return parameters.get(key);
-        }
-
-        /**
-         * Returns a map of the parameters.
-         *
-         * @return The parameters.
-         */
-        @Override
-        public Map<String, String> getParameters() {
-
-            return Collections.unmodifiableMap(parameters);
-        }
-
-        /**
-         * Returns decoded fragment from the url.
-         *
-         * @return The decoded fragment.
-         */
-        @Override
-        public String getFragment() {
-
-            return fragment;
-        }
-
-        /**
-         * Returns the tenant domain of the service URL.
-         *
-         * @return The tenant domain.
-         */
-        @Override
-        public String getTenantDomain() {
-
-            return tenantDomain;
-        }
-
-        /**
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
-         * and the fragment to return the absolute URL.
-         *
-         * @return The absolute URL from the Service URL instance.
-         */
-        @Override
-        public String getAbsoluteURL() {
-
-            return absoluteUrl;
-        }
-
-        /**
-         * Concatenate the url context, query params and the fragment to return the relative URL.
-         *
-         * @return The relative URL from the Service URL instance.
-         */
-        @Override
-        public String getRelativeURL() {
-
-            return relativeUrl;
-        }
-
-        private String fetchAbsoluteUrl() throws URLBuilderException {
-
-            StringBuilder absoluteUrl = new StringBuilder();
-            absoluteUrl.append(protocol).append("://");
-
-            absoluteUrl.append(hostName.toLowerCase());
-
-            // If it's well known HTTPS port, skip adding port.
-            if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-                absoluteUrl.append(":").append(port);
-            }
-
-            if (StringUtils.isNotBlank(urlPath)) {
-                if (urlPath.trim().charAt(0) != '/' && urlPath.trim().charAt(0) != '?') {
-                    absoluteUrl.append("/").append(urlPath.trim());
-                } else {
-                    absoluteUrl.append(urlPath.trim());
-                }
-            }
-            String resolvedParamsString = getResolvedParamString(parameters);
-
-            appendParamsToUri(absoluteUrl, resolvedParamsString, "?");
-            appendParamsToUri(absoluteUrl, fragment, "#");
-
-            return absoluteUrl.toString();
-        }
-
-        private String fetchRelativeUrl() throws URLBuilderException {
-
-            StringBuilder relativeUrl = new StringBuilder();
-            appendContextToUri(relativeUrl, urlPath);
-
-            String resolvedParamsString = getResolvedParamString(parameters);
-
-            appendParamsToUri(relativeUrl, resolvedParamsString, "?");
-            appendParamsToUri(relativeUrl, fragment, "#");
-
-            return relativeUrl.toString();
-        }
-    }
 
     /**
      * Returns {@link ServiceURLBuilder} appended the URL path.
@@ -256,16 +79,26 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURL build() throws URLBuilderException {
 
         String protocol = fetchProtocol();
-        String hostName = null;
-        hostName = fetchHostName();
+        String hostName = fetchHostName();
         int port = fetchPort();
-        String resolvedUrlContext = buildUrlPath(urlPaths);
+        String tenantDomain = resolveTenantDomain();
+        String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
-        tenantDomain = resolveTenantDomain();
+        String urlPath = getResolvedUrlPath(tenantDomain);
 
+        return new ServiceURLImpl(protocol, hostName, port, tenantDomain, proxyContextPath, urlPath, parameters,
+                resolvedFragment);
+    }
+
+    private String getResolvedUrlPath(String tenantDomain) {
+
+        String resolvedUrlContext = buildUrlPath(urlPaths);
         StringBuilder resolvedUrlStringBuilder = new StringBuilder();
-        if (StringUtils.isNotBlank(tenantDomain)) {
-            resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (isNotSuperTenant(tenantDomain)) {
+                resolvedUrlStringBuilder.append("/t/").append(tenantDomain);
+            }
         }
 
         if (StringUtils.isNotBlank(resolvedUrlContext)) {
@@ -276,8 +109,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             }
         }
 
-        return new ServiceURLImpl(protocol, hostName, port, resolvedUrlStringBuilder.toString(), parameters,
-                resolvedFragment);
+        return resolvedUrlStringBuilder.toString();
+    }
+
+    private boolean isNotSuperTenant(String tenantDomain) {
+
+        return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     /**
@@ -411,34 +248,240 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return port;
     }
 
-    private void appendParamsToUri(StringBuilder serverUrl, String resolvedParamsString, String delimiter)
-            throws URLBuilderException {
+    private class ServiceURLImpl implements ServiceURL {
 
-        if (serverUrl.length() > 0 && serverUrl.charAt(serverUrl.length() - 1) == '/') {
-            serverUrl.setLength(serverUrl.length() - 1);
+        private String protocol;
+        private String hostName;
+        private int port;
+        private String tenantDomain;
+        private String proxyContextPath;
+        private String urlPath;
+        private Map<String, String> parameters;
+        private String fragment;
+        private String absoluteUrl;
+        private String relativePublicUrl;
+        private String relativeInternalUrl;
+
+        private ServiceURLImpl(String protocol, String hostName, int port, String tenantDomain, String proxyContextPath,
+                               String urlPath, Map<String, String> parameters, String fragment)
+                throws URLBuilderException {
+
+            this.protocol = protocol;
+            this.hostName = hostName;
+            this.port = port;
+            this.tenantDomain = tenantDomain;
+            this.proxyContextPath = proxyContextPath;
+            this.urlPath = urlPath;
+            this.parameters = parameters;
+            this.fragment = fragment;
+            this.absoluteUrl = fetchAbsoluteUrl();
+            this.relativePublicUrl = fetchRelativePublicUrl();
+            this.relativeInternalUrl = fetchRelativeInternalUrl();
         }
-        if (StringUtils.isNotBlank(resolvedParamsString)) {
-            try {
-                serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
-                        StandardCharsets.UTF_8.name()));
-            } catch (UnsupportedEncodingException e) {
-                throw new URLBuilderException(String.format("Error while trying to build the url. %s is not supported" +
-                        ".", StandardCharsets.UTF_8.name()), e);
+
+        /**
+         * Returns the protocol of Service URL.
+         *
+         * @return String of the protocol.
+         */
+        @Override
+        public String getProtocol() {
+
+            return protocol;
+        }
+
+        /**
+         * Returns the host name of Service URL.
+         *
+         * @return String of the host name.
+         */
+        @Override
+        public String getHostName() {
+
+            return hostName;
+        }
+
+        /**
+         * Returns the port of Service URL.
+         *
+         * @return value of the port.
+         */
+        @Override
+        public int getPort() {
+
+            return port;
+        }
+
+        /**
+         * Returns the Url path of Service URL.
+         *
+         * @return String of the url path.
+         */
+        @Override
+        public String getPath() {
+
+            return urlPath;
+        }
+
+        /**
+         * Returns the parameter value when the key is provided.
+         *
+         * @param key Key of the parameter.
+         * @return The value of the parameter.
+         */
+        @Override
+        public String getParameter(String key) {
+
+            return parameters.get(key);
+        }
+
+        /**
+         * Returns a map of the parameters.
+         *
+         * @return The parameters.
+         */
+        @Override
+        public Map<String, String> getParameters() {
+
+            return Collections.unmodifiableMap(parameters);
+        }
+
+        /**
+         * Returns decoded fragment from the url.
+         *
+         * @return The decoded fragment.
+         */
+        @Override
+        public String getFragment() {
+
+            return fragment;
+        }
+
+        /**
+         * Returns the tenant domain of the service URL.
+         *
+         * @return The tenant domain.
+         */
+        @Override
+        public String getTenantDomain() {
+
+            return tenantDomain;
+        }
+
+        /**
+         * Returns the absolute URL used for Identity Server internal calls.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+         * the fragment to return the internal absolute URL.
+         *
+         * @return The internal absolute URL from the Service URL instance.
+         */
+        @Override
+        public String getAbsoluteInternalURL() {
+
+            return absoluteUrl;
+        }
+
+        /**
+         * Returns the proxy server url when the Identity Server is fronted with a proxy.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+         * the fragment to return the public absolute URL.
+         *
+         * @return The public absolute URL from the Service URL instance.
+         */
+        @Override
+        public String getAbsolutePublicURL() {
+
+            return absoluteUrl;
+        }
+
+        /**
+         * Returns the relative url, relative to the proxy the server is fronted with.
+         * Concatenate the url context, query params and the fragment to the url path to return the public relative URL.
+         *
+         * @return The public relative URL from the Service URL instance.
+         */
+        @Override
+        public String getRelativePublicURL() {
+
+            return relativePublicUrl;
+        }
+
+        /**
+         * Returns the relative url, relative to the internal server host.
+         * Concatenate the query params and the fragment to the url path to return the internal relative URL.
+         *
+         * @return The internal relative URL from the Service URL instance.
+         */
+        @Override
+        public String getRelativeInternalURL() {
+
+            return relativeInternalUrl;
+        }
+
+        private String fetchAbsoluteUrl() throws URLBuilderException {
+
+            StringBuilder absoluteUrl = new StringBuilder();
+            absoluteUrl.append(protocol).append("://");
+            absoluteUrl.append(hostName.toLowerCase());
+            // If it's well known HTTPS port, skip adding port.
+            if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
+                absoluteUrl.append(":").append(port);
+            }
+            absoluteUrl.append(fetchRelativePublicUrl());
+            return absoluteUrl.toString();
+        }
+
+        private String fetchRelativePublicUrl() throws URLBuilderException {
+
+            StringBuilder relativeUrl = new StringBuilder();
+            appendContextToUri(relativeUrl, proxyContextPath);
+            appendContextToUri(relativeUrl, urlPath);
+            String resolvedParamsString = getResolvedParamString(parameters);
+            appendParamsToUri(relativeUrl, resolvedParamsString, "?");
+            appendParamsToUri(relativeUrl, fragment, "#");
+            return relativeUrl.toString();
+        }
+
+        private String fetchRelativeInternalUrl() throws URLBuilderException {
+
+            StringBuilder relativeUrl = new StringBuilder();
+            appendContextToUri(relativeUrl, urlPath);
+            String resolvedParamsString = getResolvedParamString(parameters);
+            appendParamsToUri(relativeUrl, resolvedParamsString, "?");
+            appendParamsToUri(relativeUrl, fragment, "#");
+            return relativeUrl.toString();
+        }
+
+        private void appendParamsToUri(StringBuilder serverUrl, String resolvedParamsString, String delimiter)
+                throws URLBuilderException {
+
+            if (serverUrl.length() > 0 && serverUrl.charAt(serverUrl.length() - 1) == '/') {
+                serverUrl.setLength(serverUrl.length() - 1);
+            }
+            if (StringUtils.isNotBlank(resolvedParamsString)) {
+                try {
+                    serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
+                            StandardCharsets.UTF_8.name()));
+                } catch (UnsupportedEncodingException e) {
+                    throw new URLBuilderException(String.format("Error while trying to build url. %s is not supported" +
+                            ".", StandardCharsets.UTF_8.name()), e);
+                }
+            }
+        }
+
+        private void appendContextToUri(StringBuilder serverUrl, String contextPath) {
+
+            if (StringUtils.isNotBlank(contextPath)) {
+                if (contextPath.endsWith("/")) {
+                    contextPath = contextPath.substring(0, contextPath.length() - 1);
+                }
+                if (StringUtils.isNotBlank(contextPath) && contextPath.trim().charAt(0) != '/') {
+                    serverUrl.append("/").append(contextPath.trim());
+                } else {
+                    serverUrl.append(contextPath.trim());
+                }
             }
         }
     }
 
-    private void appendContextToUri(StringBuilder serverUrl, String contextPath) {
-
-        if (StringUtils.isNotBlank(contextPath)) {
-            if (contextPath.endsWith("/")) {
-                contextPath = contextPath.substring(0, contextPath.length() - 1);
-            }
-            if (StringUtils.isNotBlank(contextPath) && contextPath.trim().charAt(0) != '/') {
-                serverUrl.append("/").append(contextPath.trim());
-            } else {
-                serverUrl.append(contextPath.trim());
-            }
-        }
-    }
 }

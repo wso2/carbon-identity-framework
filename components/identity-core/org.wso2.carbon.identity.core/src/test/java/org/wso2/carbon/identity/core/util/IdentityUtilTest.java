@@ -35,10 +35,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.DefaultURLResolverService;
-import org.wso2.carbon.identity.core.URLResolverService;
 import org.wso2.carbon.identity.core.internal.IdentityCoreServiceComponent;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
@@ -58,7 +55,6 @@ import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
 
 import java.net.SocketException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.Arrays;
@@ -74,7 +70,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
@@ -86,8 +81,7 @@ import static org.testng.Assert.assertTrue;
 
 
 @PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
-        IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class, URLResolverService.class,
-        PrivilegedCarbonContext.class})
+        IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
         ".*", "org.apache.xerces.*"})
 public class IdentityUtilTest {
@@ -114,8 +108,6 @@ public class IdentityUtilTest {
     private RealmConfiguration mockRealmConfiguration;
     @Mock
     private HttpServletRequest mockRequest;
-    @Mock
-    private URLResolverService mockURLResolverService = new DefaultURLResolverService();
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -126,10 +118,7 @@ public class IdentityUtilTest {
         mockStatic(IdentityConfigParser.class);
         mockStatic(CarbonUtils.class);
         mockStatic(IdentityTenantUtil.class);
-        mockStatic(PrivilegedCarbonContext.class);
-        PrivilegedCarbonContext privilegedCarbonContext = mock(PrivilegedCarbonContext.class);
 
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext()).thenReturn(privilegedCarbonContext);
         when(ServerConfiguration.getInstance()).thenReturn(mockServerConfiguration);
         when(IdentityCoreServiceComponent.getConfigurationContextService()).thenReturn(mockConfigurationContextService);
         when(mockConfigurationContextService.getServerConfigContext()).thenReturn(mockConfigurationContext);
@@ -141,7 +130,6 @@ public class IdentityUtilTest {
         when(mockUserStoreManager.getRealmConfiguration()).thenReturn(mockRealmConfiguration);
         when(mockRealmService.getBootstrapRealmConfiguration()).thenReturn(mockRealmConfiguration);
         when(mockUserRealm.getUserStoreManager()).thenReturn(mockUserStoreManager);
-        when(IdentityCoreServiceComponent.getURLResolverService()).thenReturn(mockURLResolverService);
         try {
             when(NetworkUtils.getLocalHostname()).thenReturn("localhost");
         } catch (SocketException e) {
@@ -401,8 +389,7 @@ public class IdentityUtilTest {
     }
 
     @DataProvider
-    public Object[][] getServerURLDataLegacyMode() {
-
+    public Object[][] getServerURLData() {
         return new Object[][]{
                 {"wso2.org", 9443, "", "", "", true, true, "https://wso2.org:9443"},
                 {"wso2.org", 443, "", "", "", true, true, "https://wso2.org"},
@@ -422,10 +409,9 @@ public class IdentityUtilTest {
         };
     }
 
-    @Test(dataProvider = "getServerURLDataLegacyMode")
-    public void testGetServerURLLegacyMode(String host, int port, String proxyCtx, String ctxRoot, String endpoint,
-                                           boolean addProxyContextPath, boolean addWebContextRoot, String expected)
-            throws Exception {
+    @Test(dataProvider = "getServerURLData")
+    public void testGetServerURL(String host, int port, String proxyCtx, String ctxRoot, String endpoint, boolean
+            addProxyContextPath, boolean addWebContextRoot, String expected) throws Exception {
 
         when(CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
         when(CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
@@ -446,139 +432,6 @@ public class IdentityUtilTest {
         when(mockConfigurationContext.getServicePath()).thenReturn("servicePath");
         assertEquals(IdentityUtil.getServicePath(), "servicePath", "Returned service patch doesn't match the " +
                 "expected");
-    }
-
-    @DataProvider
-    public Object[][] getServerURLData() {
-
-        return new Object[][]{
-                {"wso2.org", "wso2.com", false, 9443, "", "", "", true, true, true, false,
-                        "https://wso2.org:9443?tenantDomain=wso2.com"},
-                {"wso2.org", "wso2.com", false, 443, "", "", "", true, true, false, true, "https://wso2.org/t/wso2" +
-                        ".com"},
-                {"wso2.org", "wso2.com", false, 0, "", "", "", true, true, true, false,
-                        "https://wso2.org:9443?tenantDomain=wso2.com"},
-                {"wso2.org", null, false, 0, "", "", "/", true, true, true, true, "https://wso2.org:9443"},
-                {"wso2.org", null, false, 0, "", "", "/", true, true, true, false, "https://wso2.org:9443"},
-                {"wso2.org/", null, false, 443, "", "", "/", true, true, true, true, "https://wso2.org"},
-                {"wso2.org/", null, true, 9443, "", "", "/", true, true, true, true, "https://wso2.org:9443/t/carbon" +
-                        ".super"},
-                {"wso2.org", null, true, 9443, "/proxy", "/ctxroot", "/", true, true, true, true,
-                        "https://wso2.org:9443/proxy/ctxroot/t/carbon.super"},
-                {"wso2.org", null, true, 443, "proxy", "ctxroot", "/", true, true, true, false,
-                        "https://wso2.org/proxy/ctxroot/t/carbon.super"},
-                {"wso2.org", "wso2.com", false, 443, "proxy", "ctxroot", "carbon", true, true, true, false,
-                        "https://wso2.org/proxy/ctxroot/carbon?tenantDomain=wso2.com"},
-                {"wso2.org", "wso2.com", false, 443, "proxy", "ctxroot", "carbon", true, true, false, true,
-                        "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "carbon", true, true, false, true,
-                        "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "/carbon", true, true, false, false,
-                        "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot/", "carbon/", true, true, false, true,
-                        "https://wso2.org/proxy/ctxroot/t/wso2.com/carbon"},
-                {"wso2.org", "wso2.com", true, 443, "proxy", "ctxroot", "carbon", false, false, true, false,
-                        "https://wso2.org/t/wso2.com/carbon"},
-                {null, null, true, 443, "proxy", "ctxroot", "carbon", true, true, true, true,
-                        "https://localhost/proxy/ctxroot/t/carbon.super/carbon"},
-        };
-    }
-
-    @Test(dataProvider = "getServerURLData")
-    public void testGetServerURL(String host, String tenantFromContext, boolean enableTenantURLSupport, int port,
-                                 String proxyCtx, String ctxRoot, String endpoint, boolean addProxyContextPath,
-                                 boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode,
-                                 boolean addTenantPathParamInLegacyMode, String expected) throws Exception {
-
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantFromContext);
-        when(CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
-        when(CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
-        when(CarbonUtils.getManagementTransport()).thenReturn("https");
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(host);
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn(ctxRoot);
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn(proxyCtx);
-
-        assertEquals(IdentityUtil.getServerURL(endpoint, addProxyContextPath, addWebContextRoot,
-                addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode), expected, String
-                .format("Generated server url doesn't match the expected for input: host = %s, tenantFromContext = %s" +
-                                "enableTenantURLSupport = %b, port = %d, proxyCtx = %s, ctxRoot = %s, endpoint = %s, " +
-                                "addProxyContextPath = %b, addWebContextRoot = %b, addTenantQueryParamInLegacyMode = " +
-                                "%b, addTenantQueryParamInLegacyMode = %b", host, tenantFromContext,
-                        enableTenantURLSupport, port, proxyCtx, ctxRoot, endpoint, addProxyContextPath,
-                        addWebContextRoot, addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode));
-    }
-
-    @Test(dataProvider = "getServerURLData")
-    public void testGetServerURLWithTenantParam(String host, String tenantDomain, boolean enableTenantURLSupport,
-                                         int port,
-                                 String proxyCtx, String ctxRoot, String endpoint, boolean addProxyContextPath,
-                                 boolean addWebContextRoot, boolean addTenantQueryParamInLegacyMode,
-                                 boolean addTenantPathParamInLegacyMode, String expected) throws Exception {
-
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(null);
-        when(CarbonUtils.getTransportPort(any(AxisConfiguration.class), anyString())).thenReturn(9443);
-        when(CarbonUtils.getTransportProxyPort(any(AxisConfiguration.class), anyString())).thenReturn(port);
-        when(CarbonUtils.getManagementTransport()).thenReturn("https");
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(host);
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.WEB_CONTEXT_ROOT)).thenReturn(ctxRoot);
-        when(mockServerConfiguration.getFirstProperty(IdentityCoreConstants.PROXY_CONTEXT_PATH)).thenReturn(proxyCtx);
-
-        assertEquals(IdentityUtil.getServerURL(endpoint, tenantDomain, addProxyContextPath, addWebContextRoot,
-                addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode), expected, String
-                .format("Generated server url doesn't match the expected for input: host = %s, tenantDomain = %s" +
-                                "enableTenantURLSupport = %b, port = %d, proxyCtx = %s, ctxRoot = %s, endpoint = %s, " +
-                                "addProxyContextPath = %b, addWebContextRoot = %b, addTenantQueryParamInLegacyMode = " +
-                                "%b, addTenantQueryParamInLegacyMode = %b", host, tenantDomain,
-                        enableTenantURLSupport, port, proxyCtx, ctxRoot, endpoint, addProxyContextPath,
-                        addWebContextRoot, addTenantQueryParamInLegacyMode, addTenantPathParamInLegacyMode));
-    }
-
-    @DataProvider
-    public Object[][] resolveURLData() {
-
-        return new Object[][]{
-                {"https://wso2.org:9443", "wso2.com", false, true, false, "https://wso2.org:9443?tenantDomain=wso2" +
-                        ".com"},
-                {"https://wso2.org:9443", "wso2.com", true, true, false, "https://wso2.org:9443/t/wso2.com"},
-                {"https://wso2.org:9443", "wso2.com", false, true, false, "https://wso2.org:9443?tenantDomain=wso2" +
-                        ".com"},
-                {"https://wso2.org:9443", "wso2.com", false, false, true, "https://wso2.org:9443/t/wso2.com"},
-                {"https://wso2.org:9443", "wso2.com", true, false, true, "https://wso2.org:9443/t/wso2.com"},
-                {"https://wso2.org:9443", null, true, true, false, "https://wso2.org:9443/t/carbon.super"},
-                {"https://wso2.org:9443", null, true, false, false, "https://wso2.org:9443/t/carbon.super"},
-                {"https://wso2.org:9443", null, true, false, true, "https://wso2.org:9443/t/carbon.super"},
-                {"https://wso2.org:9443", null, false, false, false, "https://wso2.org:9443"},
-                {"https://wso2.org:9443", null, false, true, false, "https://wso2.org:9443"},
-                {"https://wso2.org:9443", null, false, false, true, "https://wso2.org:9443"}
-        };
-    }
-
-    @Test(dataProvider = "resolveURLData")
-    public void testResolveURL(String url, String tenantFromContext, Boolean enableTenantURLSupport,
-                               boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
-                               String expected) {
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantFromContext);
-
-        assertEquals(IdentityUtil.resolveURL(url, false, false, addTenantQueryParamInLegacyMode,
-                addTenantPathParamInLegacyMode), expected);
-    }
-
-    @Test(dataProvider = "resolveURLData")
-    public void testResolveURLwithTenantParam(String url, String tenantDomain, Boolean enableTenantURLSupport,
-                               boolean addTenantQueryParamInLegacyMode, boolean addTenantPathParamInLegacyMode,
-                               String expected) {
-        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
-        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
-        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(null);
-
-        assertEquals(IdentityUtil.resolveURL(url, tenantDomain, false, false, addTenantQueryParamInLegacyMode,
-                addTenantPathParamInLegacyMode), expected);
     }
 
     @DataProvider

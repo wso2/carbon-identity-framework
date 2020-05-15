@@ -83,6 +83,12 @@
   "oauth.response_type.id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenResponseTypeHandler",
   "oauth.response_type.id_token_token.enable": true,
   "oauth.response_type.id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.IDTokenTokenResponseTypeHandler",
+  "oauth.response_type.code_token.enable": true,
+  "oauth.response_type.code_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
+  "oauth.response_type.code_id_token.enable": true,
+  "oauth.response_type.code_id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
+  "oauth.response_type.code_id_token_token.enable": true,
+  "oauth.response_type.code_id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
   "oauth.response_type.device.enable": true,
   "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
   "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
@@ -117,6 +123,8 @@
   "oauth.grant_type.device_code.enable": true,
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
+
+  "oauth.dcrm.application_role_permission_required_to_view": true,
 
   "oauth.extensions.callback_handlers": [
     {
@@ -270,13 +278,15 @@
   "identity_mgt.user_onboarding.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_onboarding.password_generator": "org.wso2.carbon.user.mgt.common.DefaultPasswordGenerator",
 
+  "identity_mgt.tenant_registration.ask_password_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+
   "identity_mgt.user_self_registration.allow_self_registration": false,
   "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel" : true,
   "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
-  "identity_mgt.user_self_registration.callback_url": "${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do",
+  "identity_mgt.user_self_registration.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]",
 
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -444,7 +454,7 @@
     "/api/users/v2/me/webauthn",
     "/api/",
     "/user-portal/",
-    "/admin-portal/",
+    "/developer-portal/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/"
   ],
@@ -453,11 +463,14 @@
     "/identity/metadata/saml2",
     "/commonauth(.*)",
     "/logincontext(.*)",
-    "/oidc/"
+    "/oidc/",
+    "/samlsso(.*)",
+    "/samlartresolve",
+    "/passivests"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/",
-    "/admin-portal/"
+    "/developer-portal/"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
@@ -495,5 +508,21 @@
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
 
-  "user_filtering.show_display_name_of_user": false
+  "user_filtering.show_display_name_of_user": false,
+  "analytics.publish_password_grant_logins": false,
+
+  "allowed_user_stores": [
+    {
+      "class": "org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager"
+    },
+    {
+      "class": "org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager"
+    },
+    {
+      "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager"
+    },
+    {
+      "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
+    }
+  ]
 }

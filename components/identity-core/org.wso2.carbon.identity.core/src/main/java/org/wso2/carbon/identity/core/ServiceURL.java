@@ -83,17 +83,36 @@ public interface ServiceURL {
     String getTenantDomain();
 
     /**
+     * Returns the absolute URL used for Identity Server internal calls.
      * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
-     * the fragment to return the absolute URL.
+     * the fragment to return the internal absolute URL.
      *
-     * @return The absolute URL from the Service URL instance.
+     * @return The internal absolute URL from the Service URL instance.
      */
-    String getAbsoluteURL();
+    String getAbsoluteInternalURL();
 
     /**
-     * Concatenate the url context, query params and the fragment to return the relative URL.
+     * Returns the proxy server url when the Identity Server is fronted with a proxy.
+     * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
+     * the fragment to return the public absolute URL.
      *
-     * @return The relative URL from the Service URL instance.
+     * @return The public absolute URL from the Service URL instance.
      */
-    String getRelativeURL();
+    String getAbsolutePublicURL();
+
+    /**
+     * Returns the relative url, relative to the proxy the server is fronted with.
+     * Concatenate the url context, query params and the fragment to the url path to return the public relative URL.
+     *
+     * @return The public relative URL from the Service URL instance.
+     */
+    String getRelativePublicURL();
+
+    /**
+     * Returns the relative url, relative to the internal server host.
+     * Concatenate the query params and the fragment to the url path to return the internal relative URL.
+     *
+     * @return The internal relative URL from the Service URL instance.
+     */
+    String getRelativeInternalURL();
 }

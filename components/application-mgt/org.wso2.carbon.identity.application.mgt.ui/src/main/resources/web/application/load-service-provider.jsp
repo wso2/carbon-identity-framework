@@ -34,6 +34,7 @@
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page import="org.wso2.carbon.identity.application.common.model.xsd.InboundAuthenticationRequestConfig" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"
@@ -71,7 +72,8 @@
                 
                 ApplicationManagementServiceClient serviceClient = new ApplicationManagementServiceClient(cookie, backendServerURL, configContext);
                 ServiceProvider serviceProvider = serviceClient.getApplication(spName);
-                
+                InboundAuthenticationRequestConfig[] customInboundAuthenticatorConfigs =
+                        serviceClient.getCustomInboundAuthenticatorConfigs();
                 IdentityProvider[] federatedIdPs = serviceClient.getAllFederatedIdentityProvider();
                 String[] claimUris = serviceClient.getAllClaimUris();
                 
@@ -96,6 +98,7 @@
                 appBean.setRequestPathAuthenticators(requestPathAuthenticators);
                 appBean.setClaimUris(claimUris);
                 appBean.setClaimDialectUris(claimDialectUris);
+                appBean.setCustomInboundAuthenticatorConfigs(customInboundAuthenticatorConfigs);
                 
             } catch (Exception e) {
                 String message = resourceBundle.getString("alert.error.while.reading.service.provider") + " : " + e.getMessage();

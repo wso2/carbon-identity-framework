@@ -44,8 +44,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_RETRY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.AUTHENTICATION_ENDPOINT_WAIT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.DefaultUrlContexts.IDENTIFIER_FIRST_CONFIRMATION;
@@ -263,28 +263,21 @@ public class ConfigurationFacade {
 
     private String buildUrl(String defaultContext, Supplier<String> getValueFromFileBasedConfig) {
 
-        String url;
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            url = buildTenantQualifiedUrl(defaultContext);
-        } else {
-            String authenticationEndpointURLInFile = getValueFromFileBasedConfig.get();
-            if (StringUtils.isNotBlank(authenticationEndpointURLInFile)) {
-                // Use the value configured in the file.
-                url = authenticationEndpointURLInFile;
-            } else {
-                // Use the default context.
-                url = defaultContext;
+            try {
+                return ServiceURLBuilder.create().addPath(defaultContext).build().getAbsolutePublicURL();
+            } catch (URLBuilderException e) {
+                throw new IdentityRuntimeException(
+                        "Error while building tenant qualified url for context: " + defaultContext, e);
             }
-        }
-        return url;
-    }
-
-    private String buildTenantQualifiedUrl(String context) {
-
-        try {
-            return ServiceURLBuilder.create().addPath(context).build().getAbsoluteURL();
-        } catch (URLBuilderException e) {
-            throw new IdentityRuntimeException("Error while building url for context: " + context);
+        } else {
+            String urlFromFileBasedConfig = getValueFromFileBasedConfig.get();
+            if (StringUtils.isNotBlank(urlFromFileBasedConfig)) {
+                // If the file based URL is set, then we have to return the file based URL.
+                return urlFromFileBasedConfig;
+            } else {
+                return defaultContext;
+            }
         }
     }
 }

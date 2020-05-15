@@ -124,32 +124,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             // If internal roles exists convert internal role domain names to pre defined camel case domain names.
             List<String> rolesToAdd  = convertInternalRoleDomainsToCamelCase(roles);
 
-            // addingRoles = rolesToAdd AND allExistingRoles
-            Collection<String> addingRoles = getRolesAvailableToAdd(userStoreManager, rolesToAdd);
-
             String idp = attributes.remove(FrameworkConstants.IDP_ID);
             String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
 
             Map<String, String> userClaims = prepareClaimMappings(attributes);
 
             if (userStoreManager.isExistingUser(username)) {
-
-                if (roles != null && !roles.isEmpty()) {
-                    // Update user
-                    List<String> currentRolesList = Arrays.asList(userStoreManager
-                                                                                .getRoleListOfUser(username));
-                    // addingRoles = (newRoles AND existingRoles) - currentRolesList)
-                    addingRoles.removeAll(currentRolesList);
-
-                    Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
-
-                    // TODO : Does it need to check this?
-                    // Check for case whether superadmin login
-                    handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
-
-                    updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, addingRoles, deletingRoles);
-                }
-
                 if (!userClaims.isEmpty()) {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
@@ -175,18 +155,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
-                userStoreManager
-                        .addUser(username, password, addingRoles.toArray(new String[addingRoles.size()]), userClaims,
-                                null);
+                userStoreManager.addUser(username, password, null, userClaims, null);
 
                 // Associate User
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
 
                 if (log.isDebugEnabled()) {
-                    log.debug("Federated user: " + username
-                              + " is provisioned by authentication framework with roles : "
-                              + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
+                    log.debug("Federated user: " + username + " is provisioned by authentication framework.");
                 }
+            }
+
+            if (roles != null && !roles.isEmpty()) {
+                // Update user with roles
+                List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
+                Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
+                rolesToAdd.removeAll(currentRolesList);
+
+                // TODO : Does it need to check this?
+                // Check for case whether superadmin login
+                handleFederatedUserNameEqualsToSuperAdminUserName(realm, username, userStoreManager, deletingRoles);
+
+                updateUserWithNewRoleSet(username, userStoreManager, rolesToAdd, deletingRoles);
             }
 
             PermissionUpdateUtil.updatePermissionTree(tenantId);
@@ -252,21 +241,17 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
     }
 
     private void updateUserWithNewRoleSet(String username, UserStoreManager userStoreManager, List<String> rolesToAdd,
-                                          Collection<String> addingRoles, Collection<String> deletingRoles)
-            throws UserStoreException {
+                                          Collection<String> deletingRoles) throws UserStoreException {
+
         if (log.isDebugEnabled()) {
-            log.debug("Deleting roles : "
-                      + Arrays.toString(deletingRoles.toArray(new String[deletingRoles.size()]))
-                      + " and Adding roles : "
-                      + Arrays.toString(addingRoles.toArray(new String[addingRoles.size()])));
+            log.debug("Deleting roles : " + Arrays.toString(deletingRoles.toArray(new String[0]))
+                    + " and Adding roles : " + Arrays.toString(rolesToAdd.toArray(new String[0])));
         }
-        userStoreManager.updateRoleListOfUser(username, deletingRoles.toArray(new String[deletingRoles
-                                                      .size()]),
-                                              addingRoles.toArray(new String[addingRoles.size()]));
+        userStoreManager.updateRoleListOfUser(username, deletingRoles.toArray(new String[0]),
+                rolesToAdd.toArray(new String[0]));
         if (log.isDebugEnabled()) {
-            log.debug("Federated user: " + username
-                      + " is updated by authentication framework with roles : "
-                      + rolesToAdd);
+            log.debug("Federated user: " + username + " is updated by authentication framework with roles : "
+                    + rolesToAdd);
         }
     }
 
@@ -306,19 +291,6 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
         }
         return userClaims;
-    }
-
-    private Collection<String> getRolesAvailableToAdd(UserStoreManager userStoreManager, List<String> roles)
-            throws UserStoreException {
-
-        List<String> rolesAvailableToAdd = new ArrayList<>();
-        rolesAvailableToAdd.addAll(roles);
-
-        String[] roleNames = userStoreManager.getRoleNames();
-        if(roleNames != null) {
-            rolesAvailableToAdd.retainAll(Arrays.asList(roleNames));
-        }
-        return rolesAvailableToAdd;
     }
 
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)

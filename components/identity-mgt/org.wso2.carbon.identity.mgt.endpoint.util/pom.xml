@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-mgt</artifactId>
-        <version>5.17.37-SNAPSHOT</version>
+        <version>5.17.85-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -164,6 +164,10 @@
                 <exclusion>
                     <groupId>org.apache.axis2.wso2</groupId>
                     <artifactId>axis2-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javassist</groupId>
+                    <artifactId>javassist</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

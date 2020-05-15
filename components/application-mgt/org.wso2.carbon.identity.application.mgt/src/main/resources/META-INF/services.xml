@@ -145,6 +145,11 @@
                 /permission/admin/manage/identity/apptemplatemgt/view
             </parameter>
         </operation>
+        <operation name="getCustomInboundAuthenticatorConfigs">
+            <parameter name="AuthorizationAction" locked="true">
+                /permission/admin/manage/identity/applicationmgt/view
+            </parameter>
+        </operation>
         <parameter name="AuthorizationAction" locked="false">/permission/admin/manage/identity/applicationmgt,
             /permission/admin/manage/identity/apptemplatemgt/</parameter>
         <parameter name="adminService" locked="true">true</parameter>

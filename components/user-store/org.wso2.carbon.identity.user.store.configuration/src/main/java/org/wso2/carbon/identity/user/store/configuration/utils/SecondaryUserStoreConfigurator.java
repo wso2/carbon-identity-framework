@@ -87,15 +87,18 @@ public class SecondaryUserStoreConfigurator {
                     inputStream = new FileInputStream(new File(filePath).getAbsolutePath());
                     store = KeyStore.getInstance(keyStoreType);
                     store.load(inputStream, password.toCharArray());
-                    Certificate[] certs = store.getCertificateChain(keyAlias);
+                    Certificate cert = store.getCertificate(keyAlias);
+                    if (cert == null) {
+                        throw new IdentityUserStoreMgtException("No certificate found for the given alias.");
+                    }
                     if (System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY) != null) {
                         cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
-                        certificate = certs[0];
+                        certificate = cert;
                         cipher = Cipher.getInstance(cipherTransformation, "BC");
                     } else {
                         cipher = Cipher.getInstance("RSA", "BC");
                     }
-                    cipher.init(Cipher.ENCRYPT_MODE, certs[0].getPublicKey());
+                    cipher.init(Cipher.ENCRYPT_MODE, cert.getPublicKey());
                 } catch (FileNotFoundException e) {
                     String errorMsg = "Keystore File Not Found in configured location";
                     throw new IdentityUserStoreMgtException(errorMsg, e);

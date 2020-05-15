@@ -49,7 +49,9 @@ public interface TemplateManager {
      * @param templateName Name of the template.
      * @return Template matching the input parameters.
      * @throws TemplateManagementException Template Management Exception.
+     * @deprecated use {@link #getTemplateById(String)} ()} instead.
      */
+    @Deprecated
     Template getTemplateByName(String templateName) throws TemplateManagementException;
 
     /**
@@ -59,7 +61,9 @@ public interface TemplateManager {
      * @param template     Template element.
      * @return Return the updated Template element.
      * @throws TemplateManagementException Template Management Exception.
+     * @deprecated use {@link #updateTemplateById(String, Template)} ()} instead.
      */
+    @Deprecated
     Template updateTemplate(String templateName, Template template) throws TemplateManagementException;
 
     /**
@@ -67,7 +71,9 @@ public interface TemplateManager {
      *
      * @param templateName Name of the template.
      * @throws TemplateManagementException Template Management Exception.
+     * @deprecated use {@link #deleteTemplateById(String)} ()} instead.
      */
+    @Deprecated
     TemplateInfo deleteTemplate(String templateName) throws TemplateManagementException;
 
     /**
