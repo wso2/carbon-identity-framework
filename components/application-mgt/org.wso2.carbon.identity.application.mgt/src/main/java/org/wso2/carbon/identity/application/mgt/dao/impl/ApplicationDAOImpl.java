@@ -176,11 +176,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.L
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UUID_BY_APP_ID;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP_WITH_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_SP_APP_WITH_UUID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CERTIFICATE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CERTIFICATES_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CLIENT_FROM_APPMGT_CLIENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_PRO_CONNECTORS;
@@ -3539,6 +3541,41 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * Delete all applications of a given tenant id.
+     *
+     * @param
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public void deleteApplicationsByTenantId(int tenantId) throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all applications of the tenant: " + tenantId);
+        }
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement deleteClientPrepStmt = null;
+
+        try {
+            // Delete the application certificates of the tenant
+            deleteCertificatesByTenantId(connection, tenantId);
+
+            deleteClientPrepStmt = connection.prepareStatement(REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID);
+            deleteClientPrepStmt.setInt(1, tenantId);
+            deleteClientPrepStmt.execute();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            String errorMessege = "An error occurred while delete all the applications of the tenant: " + tenantId;
+            log.error(errorMessege, e);
+            throw new IdentityApplicationManagementException(errorMessege, e);
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
+            IdentityApplicationManagementUtil.closeConnection(connection);
+        }
+    }
+
+    /**
      * Deleting Clients of the Application
      *
      * @param applicationID
@@ -3754,6 +3791,29 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statementToRemoveCertificate.execute();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(statementToRemoveCertificate);
+        }
+    }
+
+    /**
+     * Deletes all certificates of a given tenant id from the database.
+     *
+     * @param connection Connection
+     * @param tenantId Id of the tenant.
+     */
+    private void deleteCertificatesByTenantId(Connection connection, int tenantId) throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all application certificates of tenant: " + tenantId);
+        }
+
+        PreparedStatement deleteCertificatesStmt = null;
+
+        try {
+            deleteCertificatesStmt = connection.prepareStatement(REMOVE_CERTIFICATES_BY_TENANT_ID);
+            deleteCertificatesStmt.setInt(1, tenantId);
+            deleteCertificatesStmt.execute();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteCertificatesStmt);
         }
     }
 

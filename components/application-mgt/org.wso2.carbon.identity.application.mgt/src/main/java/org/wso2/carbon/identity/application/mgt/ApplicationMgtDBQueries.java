@@ -227,6 +227,7 @@ public class ApplicationMgtDBQueries {
     // DELETE queries
     public static final String REMOVE_APP_FROM_APPMGT_APP = "DELETE FROM SP_APP WHERE APP_NAME = ? AND TENANT_ID = ?";
     public static final String REMOVE_APP_FROM_APPMGT_APP_WITH_ID = "DELETE FROM SP_APP WHERE ID = ? AND TENANT_ID = ?";
+    public static final String REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID = "DELETE FROM SP_APP WHERE TENANT_ID = ?";
     public static final String REMOVE_CLIENT_FROM_APPMGT_CLIENT = "DELETE FROM SP_INBOUND_AUTH WHERE APP_ID = ? " +
             "AND TENANT_ID = ?";
     public static final String REMOVE_STEP_FROM_APPMGT_STEP = "DELETE FROM SP_AUTH_STEP WHERE APP_ID = ? AND " +
@@ -266,6 +267,7 @@ public class ApplicationMgtDBQueries {
     public static final String GET_CERTIFICATE_ID_BY_NAME = "SELECT ID FROM IDN_CERTIFICATE WHERE NAME = ? AND " +
             "TENANT_ID = ?";
     public static final String REMOVE_CERTIFICATE = "DELETE FROM IDN_CERTIFICATE WHERE ID = ?";
+    public static final String REMOVE_CERTIFICATES_BY_TENANT_ID = "DELETE FROM IDN_CERTIFICATE WHERE TENANT_ID = ?";
     public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_MYSQL = "SELECT ID FROM IDN_CERTIFICATE " +
             "LIMIT 1";
     public static final String CHECK_AVAILABILITY_OF_IDN_CERTIFICATE_TABLE_DB2SQL = "SELECT ID FROM IDN_CERTIFICATE " +
