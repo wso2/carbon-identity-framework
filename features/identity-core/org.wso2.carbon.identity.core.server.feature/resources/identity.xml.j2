@@ -708,6 +708,9 @@
 
         <PublishPasswordGrantLogin>{{analytics.publish_password_grant_logins}}</PublishPasswordGrantLogin>
 
+        <DCRM>
+            <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+        </DCRM>
     </OAuth>
 
     <MultifactorAuthentication>
@@ -1883,7 +1886,7 @@
         <Resource context="/acs(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
-        <Resource context="/passivests(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/samlartresolve(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>

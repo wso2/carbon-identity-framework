@@ -422,6 +422,8 @@ public class FrameworkServiceComponent {
             reqPathAuthenticatorConfig.setName(authenticator.getName());
             reqPathAuthenticatorConfig.setProperties(configProperties);
             reqPathAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
+            AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
+            reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
         }
 

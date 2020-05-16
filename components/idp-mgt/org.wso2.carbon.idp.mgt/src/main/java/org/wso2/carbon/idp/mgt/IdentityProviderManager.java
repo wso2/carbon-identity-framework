@@ -191,10 +191,8 @@ public class IdentityProviderManager implements IdpManager {
         oAuth2JWKSPage = addTenantPathParamInLegacyMode(oAuth2JWKSPage, tenantDomain);
         oIDCDiscoveryEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DISCOVERY, oIDCDiscoveryEPUrl);
         oIDCDiscoveryEPUrl = addTenantPathParamInLegacyMode(oIDCDiscoveryEPUrl, tenantDomain);
+        passiveStsUrl = resolveAbsoluteURL(IdentityConstants.STS.PASSIVE_STS, passiveStsUrl);
 
-        if (StringUtils.isBlank(passiveStsUrl)) {
-            passiveStsUrl = IdentityUtil.getServerURL(IdentityConstants.STS.PASSIVE_STS, true, true);
-        }
         // If sts url is configured in file, change it according to tenant domain. If not configured, add a default url
         if (StringUtils.isNotBlank(stsUrl)) {
             stsUrl = stsUrl.replace(IdentityConstants.STS.WSO2_CARBON_STS, IdPManagementUtil.getTenantContext() +
@@ -592,8 +590,8 @@ public class IdentityProviderManager implements IdpManager {
                         + defaultContext + " for tenantDomain: " + tenantDomain, ex);
             }
         }
-
-        if (appendTenantDomainInLegacyMode) {
+        //Should not append the tenant domain as a query parameter if it is super tenant.
+        if (appendTenantDomainInLegacyMode && isNotSuperTenant(tenantDomain)) {
             Map<String, String[]> queryParams = new HashMap<>();
             queryParams.put(MultitenantConstants.TENANT_DOMAIN, new String[] {tenantDomain});
 
@@ -606,6 +604,11 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return resolveAbsoluteURL(defaultContext, url);
+    }
+
+    private boolean isNotSuperTenant(String tenantDomain) {
+
+        return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
     }
 
     private FederatedAuthenticatorConfig buildSAMLProperties(IdentityProvider identityProvider, String tenantDomain)

@@ -2487,7 +2487,7 @@ public class FrameworkUtils {
             if (StringUtils.countMatches(username, "@") == 1) {
                 return username + "@" + context.getTenantDomain();
             }
-        } else if (!username.contains("@")) {
+        } else if (!username.endsWith(context.getTenantDomain())) {
             return username + "@" + context.getTenantDomain();
         }
         return username;
