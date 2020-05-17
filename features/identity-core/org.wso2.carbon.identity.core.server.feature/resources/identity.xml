@@ -748,8 +748,10 @@
                     <MaxFailedAttempts>2</MaxFailedAttempts>
                 </ReCaptcha>
             </Password>
-            <AnswerRegex>.*</AnswerRegex>
-            <EnforceAnswerUniqueness>false</EnforceAnswerUniqueness>
+            <Answer>
+                <Regex>.*</Regex>
+                <Uniqueness>false</Uniqueness>
+            </Answer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>

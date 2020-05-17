@@ -917,8 +917,10 @@
                     <MaxFailedAttempts>{{identity_mgt.password_reset_challenge_questions.failures_before_recaptcha}}</MaxFailedAttempts>
                 </ReCaptcha>
             </Password>
-            <AnswerRegex>{{identity_mgt.recovery.challenge_question.answer_regex}}</AnswerRegex>
-            <EnforceAnswerUniqueness>{{identity_mgt.recovery.challenge_question.enforce_answer_uniqueness}}</EnforceAnswerUniqueness>
+            <Answer>
+                <Regex>{{identity_mgt.password_reset_challenge_questions.answer_regex}}</Regex>
+                <Uniqueness>{{identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness}}</Uniqueness>
+            </Answer>
         </Question>
         <ExpiryTime>{{identity_mgt.password_reset_email.reset_mail_validity}}</ExpiryTime>
         <NotifySuccess>{{identity_mgt.password_reset_email.notify_on_reset}}</NotifySuccess>
