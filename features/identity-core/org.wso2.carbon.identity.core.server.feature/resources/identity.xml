@@ -552,6 +552,9 @@
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
         </DCRM>
+
+        <!--By enabling this config, additional parameters will be append to OAuth2 error url-->
+        <AllowAdditionalParamsFromErrorUrl>true</AllowAdditionalParamsFromErrorUrl>
     </OAuth>
 
     <MultifactorAuthentication>
