@@ -126,7 +126,7 @@
 
   "oauth.dcrm.application_role_permission_required_to_view": true,
 
-  "oauth.dcrm.allow_additionala_params_from_error_url": true,
+  "oauth.allow_additionala_params_from_error_url": true,
 
   "oauth.extensions.callback_handlers": [
     {
