@@ -554,7 +554,9 @@
         </DCRM>
 
         <!--
-        By enabling this config, additional parameters will be append to OAuth2 error url
+        By enabling this config, additional parameters will be append to OAuth2 error url.
+        Currently it appends SP and tenant domain as the additional parameters.
+        Default value : false
         -->
         <AllowAdditionalParamsFromErrorUrl>false</AllowAdditionalParamsFromErrorUrl>
     </OAuth>

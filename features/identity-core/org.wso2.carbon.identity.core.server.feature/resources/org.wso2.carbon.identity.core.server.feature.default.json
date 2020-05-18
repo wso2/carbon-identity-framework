@@ -126,8 +126,6 @@
 
   "oauth.dcrm.application_role_permission_required_to_view": true,
 
-  "oauth.allow_additional_params_from_error_url": false,
-
   "oauth.extensions.callback_handlers": [
     {
       "class":"org.wso2.carbon.identity.oauth.callback.DefaultCallbackHandler"
