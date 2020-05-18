@@ -463,7 +463,8 @@
     "/user-portal/",
     "/developer-portal/",
     "/authenticationendpoint/",
-    "/accountrecoveryendpoint/"
+    "/accountrecoveryendpoint/",
+    "/lsp/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
