@@ -124,7 +124,7 @@
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
 
-  "oauth.dcrm.application_role_permission_required_to_view": true,
+  "oauth.dcrm.application_role_permission_required_to_view": false,
 
   "oauth.allow_additionala_params_from_error_url": true,
 
