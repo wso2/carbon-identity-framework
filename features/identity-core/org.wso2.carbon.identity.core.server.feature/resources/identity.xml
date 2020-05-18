@@ -558,7 +558,7 @@
         Currently it appends SP and tenant domain as the additional parameters.
         Default value : false
         -->
-        <AllowAdditionalParamsFromErrorUrl>false</AllowAdditionalParamsFromErrorUrl>
+        <!--<AllowAdditionalParamsFromErrorUrl>false</AllowAdditionalParamsFromErrorUrl>-->
     </OAuth>
 
     <MultifactorAuthentication>
