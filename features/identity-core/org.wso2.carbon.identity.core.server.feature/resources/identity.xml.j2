@@ -712,7 +712,9 @@
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
         </DCRM>
 
-        <AllowAdditionalParamsFromErrorUrl>{{"oauth.allow_additionala_params_from_error_url}}</AllowAdditionalParamsFromErrorUrl>
+        {% if oauth.allow_additional_params_from_error_url is defined %}
+        <AllowAdditionalParamsFromErrorUrl>{{oauth.allow_additional_params_from_error_url}}</AllowAdditionalParamsFromErrorUrl>
+        {% endif %}
     </OAuth>
 
     <MultifactorAuthentication>
