@@ -231,7 +231,7 @@ public class DefaultServiceURLBuilderTest {
                             valuesList[0]).addParameter(keysList[1], valuesList[1]).addParameter(keysList[2],
                             valuesList[2]).addFragmentParameter(keysList[0], valuesList[0])
                             .addFragmentParameter(keysList[1], valuesList[1])
-                            .addFragmentParameter(keysList[2], valuesList[2]).build().getAbsoluteInternalURL();
+                            .addFragmentParameter(keysList[2], valuesList[2]).build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             // Mock behaviour, hence ignored
         }
@@ -311,20 +311,20 @@ public class DefaultServiceURLBuilderTest {
                                 "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
                                 "fragment").addFragmentParameter("key4", "fragment").addParameter("key1", "v")
                                 .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
-                                .getAbsoluteInternalURL();
+                                .getAbsolutePublicURL();
             } else if (MapUtils.isNotEmpty(fragmentParams)){
                 absoluteUrl =
                         ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
                                 "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
-                                "fragment").addFragmentParameter("key4", "fragment").build().getAbsoluteInternalURL();
+                                "fragment").addFragmentParameter("key4", "fragment").build().getAbsolutePublicURL();
             } else if (MapUtils.isNotEmpty(parameters)){
                 absoluteUrl =
                         ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addParameter("key1", "v")
                                 .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
-                                .getAbsoluteInternalURL();
+                                .getAbsolutePublicURL();
             } else {
                 absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build().getAbsoluteInternalURL();
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build().getAbsolutePublicURL();
             }
 
         } catch (URLBuilderException e) {
