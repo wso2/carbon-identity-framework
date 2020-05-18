@@ -556,7 +556,7 @@
         <!--
         By enabling this config, additional parameters will be append to OAuth2 error url
         -->
-        <AllowAdditionalParamsFromErrorUrl>false</AllowAdditionalParamsFromErrorUrl>
+        <AllowAdditionalParamsFromErrorUrl>true</AllowAdditionalParamsFromErrorUrl>
     </OAuth>
 
     <MultifactorAuthentication>
