@@ -20,7 +20,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataClientException;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.DuplicateClaimException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
+import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.SQLConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.utils.DBUtils;
@@ -29,6 +31,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,8 +104,15 @@ public class ClaimDAO {
                 claimId = rs.getInt(1);
             }
         } catch (SQLException e) {
-            throw new ClaimMetadataException("Error while adding claim " + claimURI + " to dialect " +
-                    claimDialectURI, e);
+            if (isSQLIntegrityConstraintViolation(e)) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                if (isClaimAlreadyPersisted(connection, claimDialectURI, claimURI, tenantId)) {
+                    String msg = String.format("Claim %s in dialect %s is already persisted", claimURI, claimDialectURI);
+                    throw new DuplicateClaimException(msg, e);
+                }
+            }
+            String msg = String.format("Error while adding claim %s to dialect %s", claimURI, claimDialectURI);
+            throw new ClaimMetadataException(msg, e);
         } finally {
             IdentityDatabaseUtil.closeResultSet(rs);
             IdentityDatabaseUtil.closeStatement(prepStmt);
@@ -231,5 +241,38 @@ public class ClaimDAO {
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while deleting claim properties", e);
         }
+    }
+
+    /**
+     * Checks whether the specified claim is already persisted.
+     * Existence of a valid claim ID (id > 0) for given claimDialectURI and claimURI pair, verifies that the claim
+     * is already persisted.
+     *
+     * @param connection      Connection
+     * @param claimDialectURI DialectURI
+     * @param claimURI        ClaimURI
+     * @param tenantId        TenantID
+     * @return true if the claim is already persisted in DB
+     * @throws ClaimMetadataException
+     */
+    private boolean isClaimAlreadyPersisted(Connection connection, String claimDialectURI, String claimURI, int tenantId)
+            throws ClaimMetadataException {
+        return getClaimId(connection, claimDialectURI, claimURI, tenantId) > 0;
+    }
+
+    /**
+     * Checks whether the sqlexeption caught is due to a constraint violation error.
+     * In mssql, constraint violation error is wrapped in an SQLServerException instead of an
+     * SQLIntegrityConstraintViolationException. So for mssql we are checking the error code of the
+     * exception thrown to identify constrant violation errors in mssql.
+     *
+     * @param e  SQL exception caught
+     * @return   true if the exeption caught is an SQL Integrity Constraint violation
+     */
+    private boolean isSQLIntegrityConstraintViolation(SQLException e) {
+
+        return e instanceof SQLIntegrityConstraintViolationException
+                || e.getErrorCode() == ClaimConstants.UNIQUE_CONTRAINT_VIOLATION_MSSQL_ERROR_CODE
+                || ClaimConstants.UNIQUE_CONTRAINT_VIOLATION_POSTGRES_ERROR_CODE.equals(e.getSQLState());
     }
 }

@@ -39,6 +39,9 @@ public class ClaimConstants {
     public static final String DEFAULT_ATTRIBUTE = "DefaultAttribute";
     public static final String MAPPED_LOCAL_CLAIM_PROPERTY = "MappedLocalClaim";
 
+    public static final int UNIQUE_CONTRAINT_VIOLATION_MSSQL_ERROR_CODE = 2627;
+    public static final String UNIQUE_CONTRAINT_VIOLATION_POSTGRES_ERROR_CODE = "23505";
+
     /**
      * Enum for error messages.
      */

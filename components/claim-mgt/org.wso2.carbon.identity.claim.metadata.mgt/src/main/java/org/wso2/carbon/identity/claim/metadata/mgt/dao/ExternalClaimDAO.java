@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.DuplicateClaimException;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.Claim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
@@ -109,6 +110,8 @@ public class ExternalClaimDAO extends ClaimDAO {
             addClaimProperties(connection, externalClaimId, externalClaim.getClaimProperties(), tenantId);
             // End transaction
             connection.commit();
+        } catch (DuplicateClaimException e) {
+            log.warn(e.getMessage());
         } catch (SQLException e) {
             rollbackTransaction(connection);
             throw new ClaimMetadataException("Error while adding external claim " + externalClaimURI + " to " +
