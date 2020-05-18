@@ -261,7 +261,12 @@
   "identity_mgt.password_reset_challenge_questions.min_required_answers": "2",
   "identity_mgt.password_reset_challenge_questions.enable_recaptcha": true,
   "identity_mgt.password_reset_challenge_questions.failures_before_recaptcha": "2",
+  "identity_mgt.recovery.challenge_question.answer_regex": ".*",
+  "identity_mgt.recovery.challenge_question.enforce_answer_uniqueness": false,
   "identity_mgt.password_reset_challenge_questions.question_separator": "!",
+
+  "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
+  "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
 
   "identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset": false,
