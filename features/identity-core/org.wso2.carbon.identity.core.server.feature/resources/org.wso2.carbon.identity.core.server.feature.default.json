@@ -532,5 +532,7 @@
     {
       "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
     }
-  ]
+  ],
+
+  "continue_on_claim_handling_error": true
 }
