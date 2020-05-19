@@ -169,10 +169,6 @@ public class FrameworkUtils {
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
-    private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR_DEFAULT = "true";
-    private static final String TRUE = "true";
-    private static final String FALSE = "false";
-
 
     private FrameworkUtils() {
     }
@@ -2562,11 +2558,6 @@ public class FrameworkUtils {
         String continueOnClaimHandlingErrorValue = IdentityUtil.getProperty(CONTINUE_ON_CLAIM_HANDLING_ERROR);
 
         // If config is empty or not a boolean value, the property must be set to the default value which is true.
-        if (StringUtils.isBlank(continueOnClaimHandlingErrorValue) ||
-                !(TRUE.equalsIgnoreCase(continueOnClaimHandlingErrorValue) ||
-                        FALSE.equalsIgnoreCase(continueOnClaimHandlingErrorValue))) {
-            continueOnClaimHandlingErrorValue = CONTINUE_ON_CLAIM_HANDLING_ERROR_DEFAULT;
-        }
-        return Boolean.parseBoolean(continueOnClaimHandlingErrorValue);
+        return !Boolean.FALSE.toString().equalsIgnoreCase(continueOnClaimHandlingErrorValue);
     }
 }
