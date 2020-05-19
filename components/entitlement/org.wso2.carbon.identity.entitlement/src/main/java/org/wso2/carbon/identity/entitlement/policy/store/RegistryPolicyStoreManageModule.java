@@ -118,6 +118,10 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
                     resource.setProperty("order", Integer.toString(order));
                 }
             }
+            if (resource.getContent() == null) {
+                log.info("Prevented adding null content to resource " + policyPath);
+                return;
+            }
             registry.put(policyPath, resource);
         } catch (RegistryException e) {
             log.error("Error while persisting policy", e);
