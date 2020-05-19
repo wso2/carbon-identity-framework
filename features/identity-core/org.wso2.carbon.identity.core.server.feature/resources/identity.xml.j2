@@ -1364,7 +1364,7 @@
             {% endfor %}
         </Resource>
         {% endfor %}
-        <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
