@@ -1465,7 +1465,8 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/.well-known(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
+        <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
             <Scopes>internal_application_mgt_create</Scopes>
