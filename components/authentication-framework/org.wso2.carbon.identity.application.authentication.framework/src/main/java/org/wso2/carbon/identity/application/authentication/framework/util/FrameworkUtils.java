@@ -2563,7 +2563,8 @@ public class FrameworkUtils {
 
         // If config is empty or not a boolean value, the property must be set to the default value which is true.
         if (StringUtils.isBlank(continueOnClaimHandlingErrorValue) ||
-                !(TRUE.equals(continueOnClaimHandlingErrorValue) || FALSE.equals(continueOnClaimHandlingErrorValue))) {
+                !(TRUE.equalsIgnoreCase(continueOnClaimHandlingErrorValue) ||
+                        FALSE.equalsIgnoreCase(continueOnClaimHandlingErrorValue))) {
             continueOnClaimHandlingErrorValue = CONTINUE_ON_CLAIM_HANDLING_ERROR_DEFAULT;
         }
         return Boolean.parseBoolean(continueOnClaimHandlingErrorValue);
