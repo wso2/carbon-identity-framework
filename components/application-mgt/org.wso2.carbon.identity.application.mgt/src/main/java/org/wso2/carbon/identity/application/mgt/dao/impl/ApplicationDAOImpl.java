@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -240,6 +241,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
+    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
+    private static final String AUDIT_SUCCESS = "Success";
+    private static final String AUDIT_FAIL = "Fail";
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
@@ -3553,6 +3558,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.debug("Deleting all applications of the tenant: " + tenantId);
         }
 
+        String auditData = "\"" + "Tenant Id" + "\" : \"" + tenantId + "\"";
+
         Connection connection = IdentityDatabaseUtil.getDBConnection(false);
         PreparedStatement deleteClientPrepStmt = null;
 
@@ -3564,11 +3571,13 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             deleteClientPrepStmt.setInt(1, tenantId);
             deleteClientPrepStmt.execute();
             IdentityDatabaseUtil.commitTransaction(connection);
+            audit("Delete all applications of a tenant", auditData, AUDIT_SUCCESS);
         } catch (SQLException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
-            String errorMessege = "An error occurred while delete all the applications of the tenant: " + tenantId;
-            log.error(errorMessege, e);
-            throw new IdentityApplicationManagementException(errorMessege, e);
+            audit("Delete all applications of a tenant", auditData, AUDIT_FAIL);
+            String msg = "An error occurred while delete all the applications of the tenant: " + tenantId;
+            log.error(msg, e);
+            throw new IdentityApplicationManagementException(msg, e);
         } finally {
             IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
             IdentityApplicationManagementUtil.closeConnection(connection);
@@ -5119,5 +5128,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             applicationId = getApplicationIdByName(serviceProvider.getApplicationName(), tenantDomain);
         }
         return applicationId;
+    }
+
+    /**
+     * Add audit log entry.
+     *
+     * @param action Action
+     * @param data Audit data
+     * @param result Result
+     */
+    private void audit(String action, String data, String result) {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (StringUtils.isBlank(loggedInUser)) {
+            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
     }
 }

@@ -721,12 +721,11 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public void deleteApplicationsByTenantId(int tenantId) throws IdentityApplicationManagementException {
+    public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         appDAO.deleteApplicationsByTenantId(tenantId);
     }
-
 
     @Override
     public IdentityProvider getIdentityProvider(String federatedIdPName, String tenantDomain)

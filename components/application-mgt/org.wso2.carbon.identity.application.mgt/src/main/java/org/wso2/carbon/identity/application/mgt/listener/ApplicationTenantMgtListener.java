@@ -63,7 +63,7 @@ public class ApplicationTenantMgtListener implements TenantMgtListener {
     public void onPreDelete(int tenantId) throws StratosException {
 
         try {
-            ApplicationManagementService.getInstance().deleteApplicationsByTenantId(tenantId);
+            ApplicationManagementService.getInstance().deleteApplications(tenantId);
         } catch (IdentityApplicationManagementException e) {
             throw new StratosException("Error in deleting applications of tenant: " + tenantId, e);
         }
