@@ -168,6 +168,11 @@ public class FrameworkUtils {
     private static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
+    private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
+    private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR_DEFAULT = "true";
+    private static final String TRUE = "true";
+    private static final String FALSE = "false";
+
 
     private FrameworkUtils() {
     }
@@ -2545,5 +2550,22 @@ public class FrameworkUtils {
                     "manager: " + userStoreManager.getClass() + ", from the realm.");
         }
         return userStoreManager;
+    }
+
+    /**
+     * Check whether the authentication flow should continue upon facing a claim handling error.
+     *
+     * @return true/false Continue or break flow when facing claim handling errors.
+     */
+    public static boolean isContinueOnClaimHandlingErrorAllowed() {
+
+        String continueOnClaimHandlingErrorValue = IdentityUtil.getProperty(CONTINUE_ON_CLAIM_HANDLING_ERROR);
+
+        // If config is empty or not a boolean value, the property must be set to the default value which is true.
+        if (StringUtils.isBlank(continueOnClaimHandlingErrorValue) ||
+                !(TRUE.equals(continueOnClaimHandlingErrorValue) || FALSE.equals(continueOnClaimHandlingErrorValue))) {
+            continueOnClaimHandlingErrorValue = CONTINUE_ON_CLAIM_HANDLING_ERROR_DEFAULT;
+        }
+        return Boolean.parseBoolean(continueOnClaimHandlingErrorValue);
     }
 }
