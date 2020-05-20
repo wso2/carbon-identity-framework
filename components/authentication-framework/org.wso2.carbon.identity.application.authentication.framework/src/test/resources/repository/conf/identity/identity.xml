@@ -71,6 +71,9 @@
         <TrustManagerType>SunX509</TrustManagerType>
     </Security>
 
+    <!--This configuration is to resolve the internal service URL for internal API calls-->
+    <ServerHostName>localhost</ServerHostName>
+
     <Identity>
         <IssuerPolicy>SelfAndManaged</IssuerPolicy>
         <TokenValidationPolicy>CertValidate</TokenValidationPolicy>

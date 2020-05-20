@@ -70,6 +70,9 @@
         <TrustManagerType>{{key_mgt.trust_manager_type}}</TrustManagerType>
     </Security>
 
+    <!--This configuration is to resolve the internal service URL for internal API calls-->
+    <ServerHostName>{{server.internal_hostname}}</ServerHostName>
+
     <Identity>
         <IssuerPolicy>{{identity.issuer_policy}}</IssuerPolicy>
         <TokenValidationPolicy>{{identity.token_validation_policy}}</TokenValidationPolicy>
