@@ -713,6 +713,15 @@
         </DCRM>
 
         <!--
+        By enabling this config, additional parameters will be append to OAuth2 error url.
+        Currently it appends SP and tenant domain as the additional parameters.
+        Default value : false
+        -->
+        {% if oauth.allow_additional_params_from_error_url is defined %}
+        <AllowAdditionalParamsFromErrorUrl>{{oauth.allow_additional_params_from_error_url}}</AllowAdditionalParamsFromErrorUrl>
+        {% endif %}
+
+        <!--
         By enabling this feature, server will identify a JWT token at the introspection endpoint by attempting a JWT
         token parsing. If identified, introspection is performed by treating the token as a JWT access token.
 
