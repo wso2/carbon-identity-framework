@@ -240,7 +240,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     private String fetchInternalHostName() throws URLBuilderException {
 
         String internalHostName = ServerConfiguration.getInstance().
-                getFirstProperty(IdentityCoreConstants.INTERNAL_HOST_NAME);
+                getFirstProperty(IdentityCoreConstants.SERVER_HOST_NAME);
         try {
             if (StringUtils.isBlank(internalHostName)) {
                 internalHostName = NetworkUtils.getLocalHostname();
