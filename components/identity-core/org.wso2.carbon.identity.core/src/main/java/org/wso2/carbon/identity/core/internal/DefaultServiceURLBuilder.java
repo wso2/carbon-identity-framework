@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.NetworkUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -239,8 +240,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
     private String fetchInternalHostName() throws URLBuilderException {
 
-        String internalHostName = ServerConfiguration.getInstance().
-                getFirstProperty(IdentityCoreConstants.SERVER_HOST_NAME);
+        String internalHostName = IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME);
         try {
             if (StringUtils.isBlank(internalHostName)) {
                 internalHostName = NetworkUtils.getLocalHostname();
@@ -444,15 +444,15 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         private String fetchAbsolutePublicUrl() throws URLBuilderException {
 
-            StringBuilder absoluteUrl = new StringBuilder();
-            absoluteUrl.append(protocol).append("://");
-            absoluteUrl.append(hostName.toLowerCase());
+            StringBuilder absolutePublicUrl = new StringBuilder();
+            absolutePublicUrl.append(protocol).append("://");
+            absolutePublicUrl.append(hostName.toLowerCase());
             // If it's well known HTTPS port, skip adding port.
             if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-                absoluteUrl.append(":").append(port);
+                absolutePublicUrl.append(":").append(port);
             }
-            absoluteUrl.append(fetchRelativePublicUrl());
-            return absoluteUrl.toString();
+            absolutePublicUrl.append(fetchRelativePublicUrl());
+            return absolutePublicUrl.toString();
         }
 
         private String fetchAbsoluteInternalUrl() throws URLBuilderException {
