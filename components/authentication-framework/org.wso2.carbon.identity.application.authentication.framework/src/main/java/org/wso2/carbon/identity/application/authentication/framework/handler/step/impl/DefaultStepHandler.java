@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -441,6 +442,12 @@ public class DefaultStepHandler implements StepHandler {
             // TODO [IMPORTANT] validate the authenticator is inside the step.
             if (authenticator != null && authenticator.getName().equalsIgnoreCase(
                     request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
+                if (selectedIdp != null && authenticatorConfig.getIdps().get(selectedIdp) == null) {
+                    // if the selected idp name is not configured for the application, throw error since
+                    // this is an invalid case.
+                    throw new FrameworkException("Authenticators configured for application and user selected idp " +
+                            "does not match. Possible tampering of parameters in login page.");
+                }
                 doAuthentication(request, response, context, authenticatorConfig);
                 return;
             }
