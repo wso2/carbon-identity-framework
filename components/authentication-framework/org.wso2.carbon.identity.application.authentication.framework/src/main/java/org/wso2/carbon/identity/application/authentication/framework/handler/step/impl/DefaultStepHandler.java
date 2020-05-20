@@ -439,7 +439,6 @@ public class DefaultStepHandler implements StepHandler {
         for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
-            // TODO [IMPORTANT] validate the authenticator is inside the step.
             if (authenticator != null && authenticator.getName().equalsIgnoreCase(
                     request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
                 if (selectedIdp != null && authenticatorConfig.getIdps().get(selectedIdp) == null) {
@@ -452,10 +451,6 @@ public class DefaultStepHandler implements StepHandler {
                 return;
             }
         }
-
-        // TODO handle idp null
-
-        // TODO handle authenticator name unmatching
     }
 
     protected void handleResponse(HttpServletRequest request, HttpServletResponse response,
