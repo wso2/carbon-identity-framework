@@ -151,4 +151,14 @@ public interface ClaimMetadataManagementService {
     default void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
     }
+
+    /**
+     * Remove all claims of a given tenant.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ClaimMetadataException
+     */
+    default void removeAllClaims(int tenantId) throws ClaimMetadataException {
+
+    }
 }
