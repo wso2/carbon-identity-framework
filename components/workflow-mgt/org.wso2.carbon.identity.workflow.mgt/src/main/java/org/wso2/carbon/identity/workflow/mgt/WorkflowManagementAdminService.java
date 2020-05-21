@@ -251,8 +251,8 @@ public class WorkflowManagementAdminService {
      * @param condition  Condition to check the event for associating
      * @throws WorkflowException
      */
-    public void addAssociation(String associationName, String workflowId, String eventId, String condition) throws
-                                                                                                            WorkflowException {
+    public void addAssociation(String associationName, String workflowId, String eventId, String condition)
+            throws WorkflowException {
 
         try {
             WorkflowServiceDataHolder.getInstance().getWorkflowService()

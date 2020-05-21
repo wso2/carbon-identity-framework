@@ -85,6 +85,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
      */
     @Override
     public void doPostDeleteWorkflows(int tenantId) throws WorkflowException {
+
         String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
@@ -145,7 +146,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 
-        String auditData = "\"" + "Association Name" + "\" : \"" + associationName+ "\",\""
+        String auditData = "\"" + "Association Name" + "\" : \"" + associationName + "\",\""
                 + "Workflow ID" + "\" : \"" + workflowId + "\",\""
                 + "Event ID" + "\" : \"" + eventId + "\",\""
                 + "Condition" + "\" : \"" + condition + "\"";

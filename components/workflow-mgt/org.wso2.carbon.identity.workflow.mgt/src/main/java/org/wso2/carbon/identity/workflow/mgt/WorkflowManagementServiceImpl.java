@@ -367,8 +367,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         } else {
             workflowDAO.removeWorkflowParams(workflow.getWorkflowId());
             workflowDAO.updateWorkflow(workflow);
-            if (!StringUtils.equals(oldWorkflow.getWorkflowName(),workflow.getWorkflowName())) {
-                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(), workflow.getWorkflowName());
+            if (!StringUtils.equals(oldWorkflow.getWorkflowName(), workflow.getWorkflowName())) {
+                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(),
+                        workflow.getWorkflowName());
             }
         }
         workflowDAO.addWorkflowParams(parameterList, workflow.getWorkflowId(), tenantId);
