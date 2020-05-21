@@ -138,6 +138,30 @@ public class WorkflowDAO {
     }
 
     /**
+     * Remove all workflows of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws InternalWorkflowException
+     */
+    public void removeWorkflowByTenantId(int tenantId) throws InternalWorkflowException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.DELETE_WORKFLOW_BY_TENANT_ID_QUERY;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
+
+    /**
      * Update current workflow
      *
      * @param workflow Workflow object
@@ -232,7 +256,30 @@ public class WorkflowDAO {
         }
     }
 
+    /**
+     * Clear all the parameters of all the workflows of a given tenant.
+     *
+     * @param tenantId Id of the tenant
+     * @throws InternalWorkflowException
+     */
+    public void removeWorkflowParamsByTenantId(int tenantId) throws InternalWorkflowException {
 
+        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
+        PreparedStatement prepStmt = null;
+        String query = SQLConstants.DELETE_WORKFLOW_PARAMS_BY_TENANT_ID_QUERY;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new InternalWorkflowException(errorMessage, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
+    
     /**
      * Add new parameter List to given workflow id
      *

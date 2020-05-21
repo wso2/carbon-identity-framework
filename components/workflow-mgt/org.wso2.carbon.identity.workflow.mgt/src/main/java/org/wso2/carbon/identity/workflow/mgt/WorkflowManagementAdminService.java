@@ -328,6 +328,21 @@ public class WorkflowManagementAdminService {
     }
 
     /**
+     * Remove workflows by a given tenant id.
+     *
+     * @param tenantId Id of workflow to remove
+     * @throws WorkflowException
+     */
+    public void removeWorkflows(int tenantId) throws WorkflowException {
+        try {
+            WorkflowServiceDataHolder.getInstance().getWorkflowService().removeWorkflows(tenantId);
+        } catch (InternalWorkflowException e) {
+            log.error("Server error when removing workflows of the tenant " + tenantId, e);
+            throw new WorkflowException("Server error occurred when removing workflows");
+        }
+    }
+
+    /**
      * Remove association
      *
      * @param associationId  ID of association to remove

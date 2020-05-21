@@ -472,6 +472,39 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         }
     }
 
+    /**
+     * Remove all workflows by tenant id.
+     *
+     * @param tenantId  Id of the tenant
+     * @throws WorkflowException
+     */
+    @Override
+    public void removeWorkflows(int tenantId) throws WorkflowException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all workflows of tenant: " + tenantId);
+        }
+
+        List<WorkflowListener> workflowListenerList = WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+
+        // Invoke onPreDelete on workflow listeners
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreDeleteWorkflows(tenantId);
+            }
+        }
+
+        workflowDAO.removeWorkflowParamsByTenantId(tenantId);
+        workflowDAO.removeWorkflowByTenantId(tenantId);
+
+        // Invoke onPostDelete on workflow listeners
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostDeleteWorkflows(tenantId);
+            }
+        }
+    }
+
     @Override
     public void removeAssociation(int associationId) throws WorkflowException {
 
