@@ -83,9 +83,9 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
                 if (policy == null) {
                     log.debug("PolicyStoreDTO: " + policy + ", is null.");
                 } else {
-                    log.debug("Either PolicyStoreDTO's Id: " + policy.getPolicyId() + ", or it's policy: " + policy.
-                            getPolicy() + ", is null. Or else, the mentioned policy Id: " + policy.getPolicyId()
-                            + ", is empty.");
+                    log.debug(String.format("Either PolicyStoreDTO's Id: %s, or it's policy: %s, is null. Or " +
+                            "else, the mentioned policy Id: %s, is empty.", policy.getPolicyId(), policy.getPolicy(),
+                            policy.getPolicyId()));
                 }
             }
             throw new EntitlementException("Policy can not be null");
