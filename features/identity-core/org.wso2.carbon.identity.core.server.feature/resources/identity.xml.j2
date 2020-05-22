@@ -961,11 +961,15 @@
                     <Enable>{{identity_mgt.password_reset_challenge_questions.enable_recaptcha}}</Enable>
                     <MaxFailedAttempts>{{identity_mgt.password_reset_challenge_questions.failures_before_recaptcha}}</MaxFailedAttempts>
                 </ReCaptcha>
+                <Forced>
+                    <Enable>{{identity_mgt.forced_challenge_questions.enable_forced_challenge_questions}}</Enable>
+                </Forced>
             </Password>
             <Answer>
                 <Regex>{{identity_mgt.password_reset_challenge_questions.answer_regex}}</Regex>
                 <Uniqueness>{{identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness}}</Uniqueness>
             </Answer>
+            <MinQuestionsToAnswer>{{identity_mgt.challenge_questions.min_required_answers}}</MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>{{identity_mgt.password_reset_email.reset_mail_validity}}</ExpiryTime>
         <NotifySuccess>{{identity_mgt.password_reset_email.notify_on_reset}}</NotifySuccess>

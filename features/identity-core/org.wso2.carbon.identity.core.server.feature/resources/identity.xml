@@ -784,11 +784,15 @@
                     <Enable>true</Enable>
                     <MaxFailedAttempts>2</MaxFailedAttempts>
                 </ReCaptcha>
+                <Forced>
+                    <Enable>false</Enable>
+                </Forced>
             </Password>
             <Answer>
                 <Regex>.*</Regex>
                 <Uniqueness>false</Uniqueness>
             </Answer>
+            <MinQuestionsToAnswer>0</MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
