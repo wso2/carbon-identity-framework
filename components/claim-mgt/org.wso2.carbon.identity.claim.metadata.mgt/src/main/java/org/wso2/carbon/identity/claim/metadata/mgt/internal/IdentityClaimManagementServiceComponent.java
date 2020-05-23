@@ -24,9 +24,11 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataStoreFactory;
 import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimConfigListener;
+import org.wso2.carbon.identity.claim.metadata.mgt.listener.ClaimMetadataTenantMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
+import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.claim.ClaimManagerFactory;
 import org.wso2.carbon.user.core.listener.ClaimManagerListener;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -51,12 +53,19 @@ public class IdentityClaimManagementServiceComponent {
             BundleContext bundleCtx = ctxt.getBundleContext();
 
             IdentityClaimManagementServiceDataHolder.getInstance().setBundleContext(bundleCtx);
+
             ClaimMetadataStoreFactory claimMetadataStoreFactory = new ClaimMetadataStoreFactory();
             bundleCtx.registerService(ClaimManagerFactory.class.getName(), claimMetadataStoreFactory, null);
+
             ClaimMetadataManagementService claimManagementService = new ClaimMetadataManagementServiceImpl();
             bundleCtx.registerService(ClaimMetadataManagementService.class.getName(), claimManagementService, null);
             IdentityClaimManagementServiceDataHolder.getInstance().setClaimManagementService(claimManagementService);
+
+            bundleCtx.registerService(TenantMgtListener.class.getName(),
+                    new ClaimMetadataTenantMgtListener(), null);
+
             registerClaimConfigListener(bundleCtx);
+
             if (log.isDebugEnabled()) {
                 log.debug("Identity Claim Management Core bundle is activated");
             }
