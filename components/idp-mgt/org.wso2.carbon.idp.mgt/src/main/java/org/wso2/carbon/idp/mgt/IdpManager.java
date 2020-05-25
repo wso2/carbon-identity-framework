@@ -389,7 +389,7 @@ public interface IdpManager {
      * @param tenantDomain Domain of the tenant
      * @throws IdentityProviderManagementException
      */
-    default void deleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    default void deleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
     };
 

@@ -180,7 +180,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
      * @throws IdentityProviderManagementException
      */
     @Override
-    public boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
         // Clear the SP cache since deleted IDP might have contained association with SPs.
         IdentityServiceProviderCache.getInstance().clear();
@@ -188,7 +188,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
             log.debug("IdentityServiceProvider Cache is cleared on post delete event");
         }
 
-        return super.doPostDeleteIdPsByTenantDomain(tenantDomain);
+        return super.doPostDeleteIdPs(tenantDomain);
     }
 
     public int getDefaultOrderId() {

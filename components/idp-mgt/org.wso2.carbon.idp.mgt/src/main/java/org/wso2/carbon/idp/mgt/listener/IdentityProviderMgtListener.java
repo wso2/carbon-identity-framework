@@ -157,7 +157,7 @@ public interface IdentityProviderMgtListener {
      * @return Whether execution of the deletion must happen.
      * @throws IdentityProviderManagementException
      */
-    default boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    default boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
         return true;
     }

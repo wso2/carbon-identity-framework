@@ -90,7 +90,7 @@ public abstract class AbstractIdentityProviderMgtListener implements IdentityPro
      * @return
      * @throws IdentityProviderManagementException
      */
-    public boolean doPostDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
         return true;
     }

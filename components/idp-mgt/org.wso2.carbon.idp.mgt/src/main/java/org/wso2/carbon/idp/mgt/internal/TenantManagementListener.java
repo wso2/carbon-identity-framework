@@ -77,7 +77,7 @@ public class TenantManagementListener extends AbstractIdentityTenantMgtListener 
 
         String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
         try {
-            IdentityProviderManager.getInstance().deleteIdPsByTenantDomain(tenantDomain);
+            IdentityProviderManager.getInstance().deleteIdPs(tenantDomain);
         } catch (IdentityProviderManagementException e) {
             String message = "Error when deleting Identity Providers for tenant " + tenantDomain;
             throw new StratosException(message, e);

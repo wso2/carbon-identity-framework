@@ -2103,7 +2103,7 @@ public class IdentityProviderManager implements IdpManager {
      * @throws IdentityProviderManagementException
      */
     @Override
-    public void deleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    public void deleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
@@ -2124,7 +2124,7 @@ public class IdentityProviderManager implements IdpManager {
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPostDeleteIdPsByTenantDomain(tenantDomain)) {
+            if (listener.isEnable() && !listener.doPostDeleteIdPs(tenantDomain)) {
                 return;
             }
         }
@@ -2563,7 +2563,8 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
-    private String resolveAbsoluteURL(String urlContext, String resolvedUrl) throws IdentityProviderManagementServerException {
+    private String resolveAbsoluteURL(String urlContext, String resolvedUrl)
+            throws IdentityProviderManagementServerException {
 
         if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             try {
