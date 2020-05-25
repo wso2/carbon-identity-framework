@@ -101,9 +101,18 @@ public interface ServiceURL {
     String getAbsolutePublicURL();
 
     /**
-     * Concatenate the url context, query params and the fragment to return the relative URL.
+     * Returns the relative url, relative to the proxy the server is fronted with.
+     * Concatenate the url context, query params and the fragment to the url path to return the public relative URL.
      *
-     * @return The relative URL from the Service URL instance.
+     * @return The public relative URL from the Service URL instance.
      */
-    String getRelativeURL();
+    String getRelativePublicURL();
+
+    /**
+     * Returns the relative url, relative to the internal server host.
+     * Concatenate the query params and the fragment to the url path to return the internal relative URL.
+     *
+     * @return The internal relative URL from the Service URL instance.
+     */
+    String getRelativeInternalURL();
 }

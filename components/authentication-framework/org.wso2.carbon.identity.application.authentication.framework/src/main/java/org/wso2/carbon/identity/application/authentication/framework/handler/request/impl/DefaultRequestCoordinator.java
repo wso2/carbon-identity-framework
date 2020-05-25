@@ -68,6 +68,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -562,7 +563,18 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     private String getTenantDomain(HttpServletRequest request) throws FrameworkException {
 
-        String tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+        String tenantDomain = getTenantDomainFromContext();
+        if (StringUtils.isNotBlank(tenantDomain)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant domain resolved from the thread local context: " + tenantDomain);
+            }
+        } else {
+            // Fall back to the tenant domain in the request param.
+            tenantDomain = request.getParameter(FrameworkConstants.RequestParams.TENANT_DOMAIN);
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant domain resolved from request parameter: " + tenantDomain);
+            }
+        }
 
         if (tenantDomain == null || tenantDomain.isEmpty() || "null".equals(tenantDomain)) {
 
@@ -583,6 +595,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
         return tenantDomain;
+    }
+
+    private String getTenantDomainFromContext() {
+
+        // We use the tenant domain set in context only in tenant qualified URL mode.
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            return IdentityTenantUtil.getTenantDomainFromContext();
+        }
+
+        return null;
     }
 
     protected void findPreviousAuthenticatedSession(HttpServletRequest request, AuthenticationContext context)

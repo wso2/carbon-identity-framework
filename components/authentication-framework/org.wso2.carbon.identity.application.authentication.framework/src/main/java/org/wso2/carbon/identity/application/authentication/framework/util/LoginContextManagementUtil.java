@@ -49,7 +49,7 @@ public class LoginContextManagementUtil {
 
         String sessionDataKey = request.getParameter("sessionDataKey");
         String relyingParty = request.getParameter("relyingParty");
-        String tenantDomain = request.getParameter("tenantDomain");
+        String tenantDomain = getTenantDomain(request);
 
         JsonObject result = new JsonObject();
         response.setContentType("application/json");
@@ -91,6 +91,24 @@ public class LoginContextManagementUtil {
                 response.getWriter().write(result.toString());
             }
         }
+    }
+
+    private static String getTenantDomain(HttpServletRequest request) {
+
+        String tenantDomain;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Tenant Qualified URL mode enabled. Retrieving tenantDomain from thread local context.");
+            }
+            tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        } else {
+            tenantDomain = request.getParameter("tenantDomain");
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Service Provider tenant domain: " + tenantDomain);
+        }
+        return tenantDomain;
     }
 
     /**

@@ -57,6 +57,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.ClaimHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
@@ -114,6 +115,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -144,6 +146,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
@@ -165,6 +168,7 @@ public class FrameworkUtils {
     private static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
+    private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
 
     private FrameworkUtils() {
     }
@@ -2468,6 +2472,47 @@ public class FrameworkUtils {
         }
     }
 
+    /**
+     * Preprocess user's username considering authentication context.
+     *
+     * @param username Username of the user.
+     * @param context  Authentication context.
+     * @return preprocessed username
+     */
+    public static String preprocessUsername(String username, AuthenticationContext context) {
+
+        if (context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+            return username;
+        }
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            if (StringUtils.countMatches(username, "@") == 1) {
+                return username + "@" + context.getTenantDomain();
+            }
+        } else if (!username.endsWith(context.getTenantDomain())) {
+            return username + "@" + context.getTenantDomain();
+        }
+        return username;
+    }
+
+    /**
+     * Validate the username when email username is enabled.
+     *
+     * @param username Username.
+     * @param context Authentication context.
+     * @throws InvalidCredentialsException when username is not an email when email username is enabled.
+     */
+    public static void validateUsername(String username, AuthenticationContext context)
+            throws InvalidCredentialsException {
+
+        if (IdentityUtil.isEmailUsernameEnabled()) {
+            String tenantAwareUsername = MultitenantUtils.getTenantAwareUsername(username);
+            if (StringUtils.countMatches(tenantAwareUsername, "@") < 1) {
+                context.setProperty(CONTEXT_PROP_INVALID_EMAIL_USERNAME, true);
+                throw new InvalidCredentialsException("Invalid username. Username has to be an email.");
+            }
+        }
+    }
+
     private static String addUserId(String username, UserStoreManager userStoreManager) {
 
         String userId;
@@ -2501,5 +2546,18 @@ public class FrameworkUtils {
                     "manager: " + userStoreManager.getClass() + ", from the realm.");
         }
         return userStoreManager;
+    }
+
+    /**
+     * Check whether the authentication flow should continue upon facing a claim handling error.
+     *
+     * @return true/false Continue or break flow when facing claim handling errors.
+     */
+    public static boolean isContinueOnClaimHandlingErrorAllowed() {
+
+        String continueOnClaimHandlingErrorValue = IdentityUtil.getProperty(CONTINUE_ON_CLAIM_HANDLING_ERROR);
+
+        // If config is empty or not a boolean value, the property must be set to the default value which is true.
+        return !Boolean.FALSE.toString().equalsIgnoreCase(continueOnClaimHandlingErrorValue);
     }
 }

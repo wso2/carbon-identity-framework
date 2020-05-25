@@ -41,6 +41,8 @@
     "identity_mgt.user_self_registration.verification_email_validity": "m",
     "identity_mgt.user_claim_update.email.verification_email_validity": "m",
 
+    "identity_mgt.tenant_registration.ask_password_email_validity": "m",
+
     "cache.default_timeout": "ms",
     "cache.framework_session_context_cache.timeout": "ms",
     "cache.authentication_context_cache.timeout": "ms",

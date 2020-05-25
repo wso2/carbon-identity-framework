@@ -274,6 +274,24 @@
                 <ResponseTypeHandlerImplClass>{{oauth.response_type.id_token_token.class}}</ResponseTypeHandlerImplClass>
             </SupportedResponseType>
             {% endif %}
+            {% if oauth.response_type.code_token.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>code token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.code_token.class}}</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            {% endif %}
+            {% if oauth.response_type.code_id_token.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.code_id_token.class}}</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            {% endif %}
+            {% if oauth.response_type.code_id_token_token.enable is sameas true %}
+            <SupportedResponseType>
+                <ResponseTypeName>code id_token token</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>{{oauth.response_type.code_id_token_token.class}}</ResponseTypeHandlerImplClass>
+            </SupportedResponseType>
+            {% endif %}
             {% if oauth.response_type.device.enable is sameas true %}
                 <SupportedResponseType>
                 <ResponseTypeName>device</ResponseTypeName>
@@ -690,6 +708,33 @@
 
         <PublishPasswordGrantLogin>{{analytics.publish_password_grant_logins}}</PublishPasswordGrantLogin>
 
+        <DCRM>
+            <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+        </DCRM>
+
+        <!--
+        By enabling this config, additional parameters will be append to OAuth2 error url.
+        Currently it appends SP and tenant domain as the additional parameters.
+        Default value : false
+        -->
+        {% if oauth.allow_additional_params_from_error_url is defined %}
+        <AllowAdditionalParamsFromErrorUrl>{{oauth.allow_additional_params_from_error_url}}</AllowAdditionalParamsFromErrorUrl>
+        {% endif %}
+
+        <!--
+        By enabling this feature, server will identify a JWT token at the introspection endpoint by attempting a JWT
+        token parsing. If identified, introspection is performed by treating the token as a JWT access token.
+
+        Important: Enabling this feature will validate the token using the available JWT token validator. Ex: In the
+                   default pack, this will be Default JWT token validator. However, if the server issue custom JWT
+                   tokens, which fails the available JWT token validator, the existing flow can break. For an example,
+                   the default JWT token validator mandate to have the jti claim in the token. If a custom token issuer
+                   does not include this claim, introspection breaks once this feature is enabled. In such scenarios,
+                   a compatible JWT token validator should be deployed in the system prior to enabling this feature.
+
+        Default value: true
+        -->
+        <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
     </OAuth>
 
     <MultifactorAuthentication>
@@ -917,6 +962,10 @@
                     <MaxFailedAttempts>{{identity_mgt.password_reset_challenge_questions.failures_before_recaptcha}}</MaxFailedAttempts>
                 </ReCaptcha>
             </Password>
+            <Answer>
+                <Regex>{{identity_mgt.password_reset_challenge_questions.answer_regex}}</Regex>
+                <Uniqueness>{{identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness}}</Uniqueness>
+            </Answer>
         </Question>
         <ExpiryTime>{{identity_mgt.password_reset_email.reset_mail_validity}}</ExpiryTime>
         <NotifySuccess>{{identity_mgt.password_reset_email.notify_on_reset}}</NotifySuccess>
@@ -947,6 +996,12 @@
 	        <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
         </AskPassword>
     </EmailVerification>
+
+    <TenantRegistrationVerification>
+        <AskPassword>
+        <ExpiryTime>{{identity_mgt.tenant_registration.ask_password_email_validity}}</ExpiryTime>
+        </AskPassword>
+    </TenantRegistrationVerification>
 
     <SelfRegistration>
         <Enable>{{identity_mgt.user_self_registration.allow_self_registration}}</Enable>
@@ -1318,6 +1373,7 @@
             {% endfor %}
         </Resource>
         {% endfor %}
+        <Resource context="(.*)/lsp/(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)" secured="false" http-method="OPTIONS"/>
         <Resource context="/" secured="false" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/validate-code(.*)" secured="true" http-method="all">
@@ -1418,7 +1474,8 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/.well-known(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/.well-known/openid-configuration(.*)" secured="false" http-method="all"/>
+        <Resource context="/.well-known/webfinger(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/oauth2/dcr/v1.1/register(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/applicationmgt/create</Permissions>
             <Scopes>internal_application_mgt_create</Scopes>
@@ -1850,7 +1907,7 @@
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/admin-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/developer-portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -1859,8 +1916,8 @@
         <Resource context="/acs(.*)" secured="false" http-method="all"/>
         <Resource context="/openidserver(.*)" secured="false" http-method="all"/>
         <Resource context="/openid(.*)" secured="false" http-method="all"/>
-        <Resource context="/passivests(.*)" secured="false" http-method="all"/>
-        <Resource context="/samlartresolve(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/passivests(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/samlartresolve(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/request-token(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/authorize-url(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/oauth/access-token(.*)" secured="false" http-method="all"/>
@@ -1889,8 +1946,8 @@
         <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
         <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
         <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/identity/cas(.*)" secured="false" http-method="all"/>
-        <Resource context="/identity/saml/slo(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/saml/slo(.*)" secured="false" http-method="all"/>
         <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -2062,11 +2119,18 @@
     </UserFiltering>
 
     <!-- Allowed Userstores -->
-    {% if allowed_userstore is defined %}
+    {% if allowed_user_stores is defined %}
     <AllowedUserstores>
-        {% for userstore in allowed_userstore %}
-        <AllowedUserstore>{{userstore.class}}</AllowedUserstore>
+        {% for user_store in allowed_user_stores %}
+        <AllowedUserstore>{{user_store.class}}</AllowedUserstore>
         {% endfor %}
     </AllowedUserstores>
     {% endif %}
+
+    <MutualTLS>
+        <ClientCertificateHeader>{{oauth.mutualtls.client_certificate_header}}</ClientCertificateHeader>
+    </MutualTLS>
+
+    <!-- Configuration for allowing an uninterrupted token building flow upon facing claim handling errors. -->
+    <ContinueOnClaimHandlingError>{{continue_on_claim_handling_error}}</ContinueOnClaimHandlingError>
 </Server>

@@ -47,20 +47,13 @@ public class CallBackValidator {
     /**
      * This method is to validate the callback URL in the request with the configured one.
      *
-     * @param callbackURL  passed in the request
-     * @param tenantDomain of the user
-     * @return the status of the validation
-     * @throws IdentityRecoveryException
+     * @param callbackURL  CallbackURL Passed in the request.
+     * @param tenantDomain TenantDomain of the user.
+     * @return The status of the validation.
+     * @throws IdentityRecoveryException IdentityRecoveryException.
      */
-    public boolean isValidCallbackURL(String callbackURL, String tenantDomain, boolean isUserPortalURL)
+    public boolean isValidCallbackURL(String callbackURL, String tenantDomain)
             throws IdentityRecoveryException {
-
-        if (isUserPortalURL) {
-            if (log.isDebugEnabled()) {
-                log.debug("Callback URL is equal to the user portal URL: " + isUserPortalURL);
-            }
-            return true;
-        }
 
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -111,7 +104,7 @@ public class CallBackValidator {
                 callbackURL = new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null)
                         .toString();
                 if (log.isDebugEnabled()) {
-                    log.debug("Callbck URL in the username recovery request: " + callbackURL);
+                    log.debug("Callback URL in the username recovery request: " + callbackURL);
                 }
             } catch (URISyntaxException e) {
                 throw new IdentityRecoveryException("Error occurred while formatting the provided callback URL. ", e);
@@ -121,5 +114,28 @@ public class CallBackValidator {
         }
 
         return callbackRegex == null || callbackURL.matches(callbackRegex);
+    }
+
+    /**
+     * This method is to validate the callback URL in the request with the configured one.
+     *
+     * @param callbackURL     CallbackURL Passed in the request.
+     * @param tenantDomain    TenantDomain of the user.
+     * @param isUserPortalURL Whether this is the user portal url.
+     * @return The status of the validation.
+     * @throws IdentityRecoveryException IdentityRecoveryException.
+     * @deprecated As of release 5.17.61, replaced by {@link #isValidCallbackURL(String, String)}
+     */
+    @Deprecated
+    public boolean isValidCallbackURL(String callbackURL, String tenantDomain, boolean isUserPortalURL)
+            throws IdentityRecoveryException {
+
+        if (isUserPortalURL) {
+            if (log.isDebugEnabled()) {
+                log.debug("Callback URL is equal to the user portal URL: " + callbackURL);
+            }
+            return true;
+        }
+        return isValidCallbackURL(callbackURL, tenantDomain);
     }
 }

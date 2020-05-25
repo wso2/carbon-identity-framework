@@ -84,12 +84,8 @@ public class PasswordRecoveryApi {
             tenantDomain = recoveryInitiatingRequest.getUser().getTenantDomain();
         }
 
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-        }
-
-
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
 
         // create path and map variables
@@ -143,11 +139,8 @@ public class PasswordRecoveryApi {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-        }
-
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
 
         // create path and map variables
@@ -202,11 +195,8 @@ public class PasswordRecoveryApi {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-        }
-
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
 
         // create path and map variables
@@ -245,6 +235,7 @@ public class PasswordRecoveryApi {
      * @param resetPasswordRequest key, password and optional metadata properties (required)
      * @throws ApiException if fails to make API call
      */
+    @Deprecated
     public void setPasswordPost(ResetPasswordRequest resetPasswordRequest) throws ApiException {
         Object localVarPostBody = resetPasswordRequest;
 
@@ -287,6 +278,7 @@ public class PasswordRecoveryApi {
      * @return InitiateQuestionResponse
      * @throws ApiException if fails to make API call
      */
+    @Deprecated
     public InitiateQuestionResponse validateAnswerPost(AnswerVerificationRequest answerVerificationRequest) throws ApiException {
         Object localVarPostBody = answerVerificationRequest;
 

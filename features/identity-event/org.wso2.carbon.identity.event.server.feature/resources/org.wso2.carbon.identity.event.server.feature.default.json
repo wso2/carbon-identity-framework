@@ -18,7 +18,7 @@
   ],
   "identity_mgt.events.schemes.accountConfirmationValidation.module_index": "3",
   "identity_mgt.events.schemes.accountConfirmationValidation.subscriptions": [
-    "PRE_AUTHENTICATION"
+    "POST_AUTHENTICATION"
   ],
   "identity_mgt.events.schemes.passwordHistory.module_index": "4",
   "identity_mgt.events.schemes.passwordHistory.subscriptions": [
@@ -124,6 +124,15 @@
   "identity_mgt.events.schemes.'default.notification.sender'.module_index": "20",
   "identity_mgt.events.schemes.'default.notification.sender'.subscriptions": [
     "TRIGGER_SMS_NOTIFICATION"
+  ],
+  "identity_mgt.events.schemes.tenantRegistrationVerificationHandler.module_index": "21",
+  "identity_mgt.events.schemes.tenantRegistrationVerificationHandler.subscriptions": [
+    "PRE_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.challengeAnswerValidation.module_index": "22",
+  "identity_mgt.events.schemes.challengeAnswerValidation.subscriptions": [
+    "PRE_SET_CHALLENGE_QUESTION_ANSWERS",
+    "POST_SET_CHALLENGE_QUESTION_ANSWERS"
   ],
   "identity_mgt.events.schemes.'default.notification.sender'.properties.'subscription.TRIGGER_SMS_NOTIFICATION.stream'":"id_gov_sms_notify_stream:1.0.0",
   "identity_mgt.events.schemes.'default.notification.sender'.properties.'subscription.TRIGGER_SMS_NOTIFICATION.claim.mobile'":"http://wso2.org/claims/mobile",

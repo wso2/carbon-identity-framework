@@ -328,9 +328,7 @@ public class IdentityTenantUtil {
      */
     public static String getTenantDomainFromContext() {
 
-        String tenantDomain = (String) IdentityUtil.threadLocalProperties.get().get
-                (IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT);
-        return tenantDomain;
+        return (String) IdentityUtil.threadLocalProperties.get().get(IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT);
     }
 
     /**
