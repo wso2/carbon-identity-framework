@@ -791,8 +791,15 @@
             <Answer>
                 <Regex>.*</Regex>
                 <Uniqueness>false</Uniqueness>
-            </Answer>
-            <MinQuestionsToAnswer>0</MinQuestionsToAnswer>
+            </Answer>-->
+            <!--
+                The purpose of this property is to configure minimum number of challenge questions to be answered
+                by the user.
+                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                If this property is configured to a positive integer, user must answer more or equal to that number of
+                questions.
+            -->
+            <!--<MinQuestionsToAnswer></MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>1440</ExpiryTime>
         <NotifySuccess>false</NotifySuccess>
