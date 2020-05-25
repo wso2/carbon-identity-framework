@@ -265,6 +265,9 @@
   "identity_mgt.recovery.challenge_question.enforce_answer_uniqueness": false,
   "identity_mgt.password_reset_challenge_questions.question_separator": "!",
 
+  "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
+  "identity_mgt.challenge_questions.min_required_answers": "",
+
   "identity_mgt.password_reset_challenge_questions.answer_regex": ".*",
   "identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness": false,
 
