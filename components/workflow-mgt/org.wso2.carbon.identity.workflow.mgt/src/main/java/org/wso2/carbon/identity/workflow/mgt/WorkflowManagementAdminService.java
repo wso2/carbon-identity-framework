@@ -334,6 +334,7 @@ public class WorkflowManagementAdminService {
      * @throws WorkflowException
      */
     public void removeWorkflows(int tenantId) throws WorkflowException {
+
         try {
             WorkflowServiceDataHolder.getInstance().getWorkflowService().removeWorkflows(tenantId);
         } catch (InternalWorkflowException e) {

@@ -143,21 +143,17 @@ public class WorkflowDAO {
      * @param tenantId Id of the tenant
      * @throws InternalWorkflowException
      */
-    public void removeWorkflowByTenantId(int tenantId) throws InternalWorkflowException {
+    public void removeWorkflows(int tenantId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
-        PreparedStatement prepStmt = null;
-        String query = SQLConstants.DELETE_WORKFLOW_BY_TENANT_ID_QUERY;
-        try {
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(connection);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants
+                    .DELETE_WORKFLOW_BY_TENANT_ID_QUERY)) {
+                prepStmt.setInt(1, tenantId);
+                prepStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
 
@@ -262,21 +258,17 @@ public class WorkflowDAO {
      * @param tenantId Id of the tenant
      * @throws InternalWorkflowException
      */
-    public void removeWorkflowParamsByTenantId(int tenantId) throws InternalWorkflowException {
+    public void removeWorkflowParams(int tenantId) throws InternalWorkflowException {
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(true);
-        PreparedStatement prepStmt = null;
-        String query = SQLConstants.DELETE_WORKFLOW_PARAMS_BY_TENANT_ID_QUERY;
-        try {
-            prepStmt = connection.prepareStatement(query);
-            prepStmt.setInt(1, tenantId);
-            prepStmt.executeUpdate();
-            IdentityDatabaseUtil.commitTransaction(connection);
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants
+                    .DELETE_WORKFLOW_PARAMS_BY_TENANT_ID_QUERY)) {
+                prepStmt.setInt(1, tenantId);
+                prepStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             throw new InternalWorkflowException(errorMessage, e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
         }
     }
     

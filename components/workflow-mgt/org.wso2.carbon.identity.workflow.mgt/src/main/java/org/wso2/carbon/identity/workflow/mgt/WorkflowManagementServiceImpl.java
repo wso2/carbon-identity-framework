@@ -495,8 +495,8 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
             }
         }
 
-        workflowDAO.removeWorkflowParamsByTenantId(tenantId);
-        workflowDAO.removeWorkflowByTenantId(tenantId);
+        workflowDAO.removeWorkflowParams(tenantId);
+        workflowDAO.removeWorkflows(tenantId);
 
         // Invoke onPostDelete on workflow listeners
         for (WorkflowListener workflowListener : workflowListenerList) {
