@@ -961,11 +961,22 @@
                     <Enable>{{identity_mgt.password_reset_challenge_questions.enable_recaptcha}}</Enable>
                     <MaxFailedAttempts>{{identity_mgt.password_reset_challenge_questions.failures_before_recaptcha}}</MaxFailedAttempts>
                 </ReCaptcha>
+                <Forced>
+                    <Enable>{{identity_mgt.forced_challenge_questions.enable_forced_challenge_questions}}</Enable>
+                </Forced>
             </Password>
             <Answer>
                 <Regex>{{identity_mgt.password_reset_challenge_questions.answer_regex}}</Regex>
                 <Uniqueness>{{identity_mgt.password_reset_challenge_questions.enforce_answer_uniqueness}}</Uniqueness>
             </Answer>
+             <!--
+                The purpose of this property is to configure minimum number of challenge questions to be answered
+                by the user.
+                If this property is Empty, there is no minimum number of mandatory questions to be answered.
+                If this property is configured to a positive integer, user must answer more or equal to that number of
+                questions.
+             -->
+            <MinQuestionsToAnswer>{{identity_mgt.challenge_questions.min_required_answers}}</MinQuestionsToAnswer>
         </Question>
         <ExpiryTime>{{identity_mgt.password_reset_email.reset_mail_validity}}</ExpiryTime>
         <NotifySuccess>{{identity_mgt.password_reset_email.notify_on_reset}}</NotifySuccess>
