@@ -67,6 +67,14 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         return true;
     }
 
+    /**
+     * Post delete of IDP.
+     *
+     * @param idPName Name of the IDP
+     * @param tenantDomain Tenant Domain
+     * @return
+     * @throws IdentityProviderManagementException
+     */
     @Override
     public boolean doPostDeleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException {
         if (StringUtils.isEmpty(idPName)) {
@@ -77,6 +85,13 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
         return true;
     }
 
+    /**
+     * Additional actions after deleting IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
     @Override
     public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 

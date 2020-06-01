@@ -470,7 +470,7 @@ public class CacheBackedIdPMgtDAO {
     /**
      * Delete all IDPs of given tenant Id.
      *
-     * @param tenantId
+     * @param tenantId Id of the tenant
      * @throws IdentityProviderManagementException
      */
     public void deleteIdPsByTenantID(int tenantId)  throws IdentityProviderManagementException {

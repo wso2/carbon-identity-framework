@@ -64,13 +64,13 @@ public class ProvisioningIdentityProviderMgtListener extends AbstractIdentityPro
      * @throws IdentityProviderManagementException
      */
     @Override
-    public boolean doPreDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    public boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
         ProvisioningConnectorCache.getInstance().clear();
         if (log.isDebugEnabled()) {
             log.debug("ProvisioningConnector Cache is cleared on pre delete event");
         }
-        return super.doPreDeleteIdPsByTenantDomain(tenantDomain);
+        return super.doPreDeleteIdPs(tenantDomain);
     }
 
     @Override

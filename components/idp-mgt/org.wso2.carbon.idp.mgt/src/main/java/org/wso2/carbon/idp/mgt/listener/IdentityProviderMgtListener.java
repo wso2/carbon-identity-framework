@@ -123,7 +123,7 @@ public interface IdentityProviderMgtListener {
      * @return Whether execution of this method of the underlying UserStoreManager must happen.
      * @throws IdentityProviderManagementException
      */
-    default boolean doPreDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    default boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
         return true;
     }

@@ -63,10 +63,17 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         return true;
     }
 
+    /**
+     * Pre delete of IDP.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
     @Override
-    public boolean doPreDeleteIdPsByTenantDomain(String tenantDomain) throws IdentityProviderManagementException {
+    public boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
         
-        return super.doPreDeleteIdPsByTenantDomain(tenantDomain);
+        return super.doPreDeleteIdPs(tenantDomain);
     }
 
     public boolean doPreAddIdP(IdentityProvider identityProvider, String tenantDomain) throws

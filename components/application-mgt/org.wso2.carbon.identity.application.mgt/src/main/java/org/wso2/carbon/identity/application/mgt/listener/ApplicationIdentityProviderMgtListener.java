@@ -172,20 +172,14 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
     }
 
     /**
-     * Clear SP cache after deleting IDPs.
+     * Additional actions after deleting IdPs of a given tenant id.
      *
-     * @param tenantDomain Tenant domain to delete IdPs.
+     * @param tenantDomain Tenant domain to delete IdPs
      * @return
      * @throws IdentityProviderManagementException
      */
     @Override
     public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
-
-        // Clear the SP cache since deleted IDP might have contained association with SPs.
-        IdentityServiceProviderCache.getInstance().clear();
-        if (log.isDebugEnabled()) {
-            log.debug("IdentityServiceProvider Cache is cleared on post delete event");
-        }
 
         return super.doPostDeleteIdPs(tenantDomain);
     }

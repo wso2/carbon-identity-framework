@@ -2095,7 +2095,7 @@ public class IdentityProviderManager implements IdpManager {
     }
 
     /**
-     * Delete all Identity Providers from a given tenant
+     * Delete all Identity Providers from a given tenant.
      *
      * @param tenantDomain Domain of the tenant
      * @throws IdentityProviderManagementException
@@ -2106,7 +2106,7 @@ public class IdentityProviderManager implements IdpManager {
         // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreDeleteIdPsByTenantDomain(tenantDomain)) {
+            if (listener.isEnable() && !listener.doPreDeleteIdPs(tenantDomain)) {
                 return;
             }
         }
@@ -2177,6 +2177,14 @@ public class IdentityProviderManager implements IdpManager {
         }
     }
 
+    /**
+     * Delete an IDP.
+     *
+     * @param resourceId Resource Id
+     * @param idpName Name of the IDP
+     * @param tenantDomain Tenant Domain
+     * @throws IdentityProviderManagementException
+     */
     private void deleteIDP(String resourceId, String idpName, String tenantDomain) throws
             IdentityProviderManagementException {
 
