@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
@@ -53,7 +54,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
 @PrepareForTest({ServerConfiguration.class, CarbonUtils.class, IdentityCoreServiceComponent.class, NetworkUtils.class,
-        IdentityTenantUtil.class, PrivilegedCarbonContext.class})
+        IdentityTenantUtil.class, PrivilegedCarbonContext.class, IdentityUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
         ".*", "org.apache.xerces.*"})
 public class DefaultServiceURLBuilderTest {
@@ -242,11 +243,9 @@ public class DefaultServiceURLBuilderTest {
     }
 
     @DataProvider
-    public Object[][] getAbsoluteURLData() {
+    public Object[][] getAbsolutePublicURLData() {
 
-        int port = 9443;
         Map<String, String> parameters = new HashMap<>();
-        String fragment = "fragment";
         Map<String, String> fragmentParams = new HashMap<>();
 
         ArrayList<String> keys = new ArrayList<String>(Arrays.asList("key1", "key2", "key3", "key4"));
@@ -287,11 +286,55 @@ public class DefaultServiceURLBuilderTest {
         };
     }
 
-    @Test(dataProvider = "getAbsoluteURLData")
-    public void testGetAbsoluteURL(String protocol, String hostName, int port, String proxyContextPath,
-                                   String tenantNameFromContext, boolean enableTenantURLSupport,
-                                   Map<String, String> parameters, String fragment, Map<String, String> fragmentParams,
-                                   String expected, String urlPath) {
+    @DataProvider
+    public Object[][] getAbsoluteInternalURLData() {
+
+        Map<String, String> parameters = new HashMap<>();
+        Map<String, String> fragmentParams = new HashMap<>();
+
+        ArrayList<String> keys = new ArrayList<String>(Arrays.asList("key1", "key2", "key3", "key4"));
+        for (String key : keys) {
+            parameters.put(key, "v");
+            fragmentParams.put(key, "fragment");
+        }
+
+        return new Object[][]{
+                {"https", "internal.wso2.is", 9443, "abc", false, null, "", fragmentParams,
+                        "https://internal.wso2.is:9443#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
+                                "%26key4%3Dfragment", ""},
+                {"https", "internal.wso2.is", 9443, "", false, null, "fragment", fragmentParams,
+                        "https://internal.wso2.is:9443/samlsso#fragment", "/samlsso"},
+                {"https", "internal.wso2.is", 9443, "", true, null, "", fragmentParams,
+                        "https://internal.wso2.is:9443/samlsso#key1%3Dfragment%26key2%3D" +
+                                "fragment%26key3%3Dfragment%26key4%3Dfragment", "/samlsso/"},
+                {"https", null, 9443, "abc", false, null, "fragment", fragmentParams,
+                        "https://localhost:9443/samlsso#fragment", "samlsso"},
+                {"https", "internal.wso2.is", 9443, "abc", true, parameters, "fragment", fragmentParams,
+                        "https://internal.wso2.is:9443/t/abc/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#fragment",
+                        "/samlsso"},
+                {"https", "internal.wso2.is", 9443, "abc", false, parameters, "", null,
+                        "https://internal.wso2.is:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv", "/samlsso/"},
+                {"https", "internal.wso2.is", 9443, "abc", true, null, "fragment", fragmentParams,
+                        "https://internal.wso2.is:9443/t/abc/samlsso#fragment", "/samlsso"},
+                {"https", "internal.wso2.is", 9443, "abc", true, null, "", null,
+                        "https://internal.wso2.is:9443/t/abc/samlsso", "/samlsso/"},
+                {"https", "internal.wso2.is", 9443, "", true, null, "fragment", fragmentParams,
+                        "https://internal.wso2.is:9443/samlsso#fragment", "samlsso/"},
+                {"https", "internal.wso2.is", 9443, "", true, parameters, "", fragmentParams,
+                        "https://internal.wso2.is:9443?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1" +
+                                "%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
+                        null},
+                {"https", null, 9443, "", false, null, "", fragmentParams,
+                        "https://localhost:9443#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
+                                "%26key4%3Dfragment", null}
+        };
+    }
+
+    @Test(dataProvider = "getAbsolutePublicURLData")
+    public void testGetAbsolutePublicURL(String protocol, String hostName, int port, String proxyContextPath,
+                                         String tenantNameFromContext, boolean enableTenantURLSupport,
+                                         Map<String, String> parameters, String fragment, Map<String, String> fragmentParams,
+                                         String expected, String urlPath) {
 
         when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME)).thenReturn(hostName);
@@ -325,6 +368,52 @@ public class DefaultServiceURLBuilderTest {
             } else {
                 absoluteUrl =
                         ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build().getAbsolutePublicURL();
+            }
+
+        } catch (URLBuilderException e) {
+            //Mock behaviour, hence ignored
+        }
+
+        assertEquals(absoluteUrl, expected);
+    }
+
+    @Test(dataProvider = "getAbsoluteInternalURLData")
+    public void testGetAbsoluteInternalURL(String protocol, String serverHostName, int port,
+                                         String tenantNameFromContext, boolean enableTenantURLSupport,
+                                         Map<String, String> parameters, String fragment, Map<String, String> fragmentParams,
+                                         String expected, String urlPath) {
+
+        mockStatic(IdentityUtil.class);
+        when(IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME)).thenReturn(serverHostName);
+        when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
+        when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
+        when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
+        when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
+
+        String absoluteUrl = null;
+
+        try {
+            if (MapUtils.isNotEmpty(parameters) && MapUtils.isNotEmpty(fragmentParams)) {
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
+                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
+                                "fragment").addFragmentParameter("key4", "fragment").addParameter("key1", "v")
+                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
+                                .getAbsoluteInternalURL();
+            } else if (MapUtils.isNotEmpty(fragmentParams)){
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
+                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
+                                "fragment").addFragmentParameter("key4", "fragment").build().getAbsoluteInternalURL();
+            } else if (MapUtils.isNotEmpty(parameters)){
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addParameter("key1", "v")
+                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
+                                .getAbsoluteInternalURL();
+            } else {
+                absoluteUrl =
+                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).build().getAbsoluteInternalURL();
             }
 
         } catch (URLBuilderException e) {
