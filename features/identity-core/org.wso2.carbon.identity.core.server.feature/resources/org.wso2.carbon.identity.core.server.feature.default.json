@@ -537,5 +537,146 @@
     }
   ],
 
-  "continue_on_claim_handling_error": true
+  "continue_on_claim_handling_error": true,
+
+  "developer_portal.applications.scopes": {
+    "create": [
+      "internal_application_mgt_create"
+    ],
+    "read": [
+      "internal_application_mgt_view"
+    ],
+    "update": [
+      "internal_application_mgt_update"
+    ],
+    "delete": [
+      "internal_application_mgt_delete"
+    ]
+  },
+  "developer_portal.identity_providers.scopes": {
+    "create": [
+      "internal_idp_create"
+    ],
+    "read": [
+      "internal_idp_view"
+    ],
+    "update": [
+      "internal_idp_update"
+    ],
+    "delete": [
+      "internal_idp_delete"
+    ]
+  },
+  "developer_portal.users.scopes": {
+    "create": [
+      "internal_user_mgt_create"
+    ],
+    "read": [
+      "internal_user_mgt_list"
+    ],
+    "update": [
+      "internal_user_mgt_update"
+    ],
+    "delete": [
+      "internal_user_mgt_delete"
+    ]
+  },
+  "developer_portal.groups.scopes": {
+    "create": [
+      "internal_role_mgt_create"
+    ],
+    "read": [
+      "internal_role_mgt_view"
+    ],
+    "update": [
+      "internal_role_mgt_update"
+    ],
+    "delete": [
+      "internal_role_mgt_delete"
+    ]
+  },
+  "developer_portal.roles.scopes": {
+    "create": [
+      "internal_role_mgt_create"
+    ],
+    "read": [
+      "internal_role_mgt_view"
+    ],
+    "update": [
+      "internal_role_mgt_update"
+    ],
+    "delete": [
+      "internal_role_mgt_delete"
+    ]
+  },
+  "developer_portal.attribute_dialects.scopes": {
+    "create": [
+      "internal_claim_meta_create"
+    ],
+    "read": [
+      "internal_claim_meta_view"
+    ],
+    "update": [
+      "internal_claim_meta_update"
+    ],
+    "delete": [
+      "internal_claim_meta_delete"
+    ]
+  },
+  "developer_portal.user_stores.scopes": {
+    "create": [
+      "internal_userstore_create"
+    ],
+    "read": [
+      "internal_userstore_view"
+    ],
+    "update": [
+      "internal_userstore_update"
+    ],
+    "delete": [
+      "internal_userstore_delete"
+    ]
+  },
+  "developer_portal.certificates.scopes": {
+    "create": [
+      "internal_keystore_update"
+    ],
+    "read": [
+      "internal_keystore_view"
+    ],
+    "update": [
+      "internal_keystore_update"
+    ],
+    "delete": [
+      "internal_keystore_update"
+    ]
+  },
+  "developer_portal.general_configurations.scopes": {
+    "create": [
+      "internal_identity_mgt_create"
+    ],
+    "read": [
+      "internal_identity_mgt_view"
+    ],
+    "update": [
+      "internal_identity_mgt_update"
+    ],
+    "delete": [
+      "internal_identity_mgt_delete"
+    ]
+  },
+  "developer_portal.email_templates.scopes": {
+    "create": [
+      "internal_email_mgt_create"
+    ],
+    "read": [
+      "internal_email_mgt_view"
+    ],
+    "update": [
+      "internal_email_mgt_update"
+    ],
+    "delete": [
+      "internal_email_mgt_delete"
+    ]
+  }
 }
