@@ -1305,27 +1305,31 @@ public class FrameworkUtils {
                 && action.equals(FrameworkConstants.AUTH_ENDPOINT_QUERY_PARAMS_ACTION_EXCLUDE)) {
                 if (reqParamMap != null) {
                     for (Map.Entry<String, String[]> entry : reqParamMap.entrySet()) {
-                        String paramName = entry.getKey();
-                        String paramValue = entry.getValue()[0];
+                        if ((IdentityTenantUtil.isTenantQualifiedUrlsEnabled()
+                                && !entry.getKey().equals(TENANT_DOMAIN)) ||
+                                !IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                            String paramName = entry.getKey();
+                            String paramValue = entry.getValue()[0];
 
-                        //skip issuer and type and sessionDataKey parameters
-                        if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
-                                (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
-                            continue;
-                        }
-
-                        if (!queryParams.contains(paramName)) {
-                            if (queryStrBuilder.length() > 0) {
-                                queryStrBuilder.append('&');
+                            //skip issuer and type and sessionDataKey parameters
+                            if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
+                                    (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
+                                continue;
                             }
 
-                            try {
-                                queryStrBuilder.append(URLEncoder.encode(paramName, UTF_8)).append('=')
-                                        .append(URLEncoder.encode(paramValue, UTF_8));
-                            } catch (UnsupportedEncodingException e) {
-                                log.error(
-                                        "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
-                                        e);
+                            if (!queryParams.contains(paramName)) {
+                                if (queryStrBuilder.length() > 0) {
+                                    queryStrBuilder.append('&');
+                                }
+
+                                try {
+                                    queryStrBuilder.append(URLEncoder.encode(paramName, UTF_8)).append('=')
+                                            .append(URLEncoder.encode(paramValue, UTF_8));
+                                } catch (UnsupportedEncodingException e) {
+                                    log.error(
+                                            "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
+                                            e);
+                                }
                             }
                         }
                     }
@@ -1352,26 +1356,30 @@ public class FrameworkUtils {
         } else {
             if (reqParamMap != null) {
                 for (Map.Entry<String, String[]> entry : reqParamMap.entrySet()) {
-                    String paramName = entry.getKey();
-                    String paramValue = entry.getValue()[0];
+                    if ((IdentityTenantUtil.isTenantQualifiedUrlsEnabled()
+                            && !entry.getKey().equals(TENANT_DOMAIN)) ||
+                            !IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                        String paramName = entry.getKey();
+                        String paramValue = entry.getValue()[0];
 
-                    //skip issuer and type and sessionDataKey parameters
-                    if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
-                            (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
-                        continue;
-                    }
+                        //skip issuer and type and sessionDataKey parameters
+                        if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
+                                (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
+                            continue;
+                        }
 
-                    if (queryStrBuilder.length() > 0) {
-                        queryStrBuilder.append('&');
-                    }
+                        if (queryStrBuilder.length() > 0) {
+                            queryStrBuilder.append('&');
+                        }
 
-                    try {
-                        queryStrBuilder.append(URLEncoder.encode(paramName, UTF_8)).append('=')
-                                .append(URLEncoder.encode(paramValue, UTF_8));
-                    } catch (UnsupportedEncodingException e) {
-                        log.error(
-                                "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
-                                e);
+                        try {
+                            queryStrBuilder.append(URLEncoder.encode(paramName, UTF_8)).append('=')
+                                    .append(URLEncoder.encode(paramValue, UTF_8));
+                        } catch (UnsupportedEncodingException e) {
+                            log.error(
+                                    "Error while URL Encoding query param to be sent to the AuthenticationEndpoint",
+                                    e);
+                        }
                     }
                 }
             }

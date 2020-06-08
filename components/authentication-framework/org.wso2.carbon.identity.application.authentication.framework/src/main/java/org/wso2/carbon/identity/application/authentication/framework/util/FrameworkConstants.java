@@ -60,6 +60,7 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD = "password";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
+    public static final String TENANT_DOMAIN = "tenantDomain";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
