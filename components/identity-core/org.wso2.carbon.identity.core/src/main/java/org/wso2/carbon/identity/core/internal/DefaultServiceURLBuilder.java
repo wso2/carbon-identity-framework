@@ -80,7 +80,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURL build() throws URLBuilderException {
 
         String protocol = fetchProtocol();
-        String hostName = fetchHostName();
+        String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
         int port = fetchPort();
         String tenantDomain = resolveTenantDomain();
@@ -88,7 +88,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
 
-        return new ServiceURLImpl(protocol, hostName, internalHostName, port, tenantDomain, proxyContextPath, urlPath,
+        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, tenantDomain, proxyContextPath, urlPath,
                 parameters, resolvedFragment);
     }
 
@@ -220,10 +220,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return CarbonUtils.getManagementTransport();
     }
 
-    private String fetchHostName() throws URLBuilderException {
+    private String fetchProxyHostName() throws URLBuilderException {
 
-        String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
-        return resolveHostName(hostName);
+        String proxyHostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        return resolveHostName(proxyHostName);
     }
 
     private String fetchInternalHostName() throws URLBuilderException {
@@ -264,7 +264,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     private class ServiceURLImpl implements ServiceURL {
 
         private String protocol;
-        private String hostName;
+        private String proxyHostName;
         private String internalHostName;
         private int port;
         private String tenantDomain;
@@ -277,12 +277,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String relativePublicUrl;
         private String relativeInternalUrl;
 
-        private ServiceURLImpl(String protocol, String hostName, String internalHostName, int port, String tenantDomain,
+        private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int port, String tenantDomain,
                                String proxyContextPath, String urlPath, Map<String, String> parameters, String fragment)
                 throws URLBuilderException {
 
             this.protocol = protocol;
-            this.hostName = hostName;
+            this.proxyHostName = proxyHostName;
             this.internalHostName = internalHostName;
             this.port = port;
             this.tenantDomain = tenantDomain;
@@ -313,9 +313,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
          * @return String of the host name.
          */
         @Override
-        public String getHostName() {
+        public String getProxyHostName() {
 
-            return hostName;
+            return proxyHostName;
         }
 
         /**
@@ -441,11 +441,11 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             if (StringUtils.isBlank(protocol)) {
                 throw new URLBuilderException("Protocol of service URL is not available");
             }
-            if (StringUtils.isBlank(hostName)) {
+            if (StringUtils.isBlank(proxyHostName)) {
                 throw new URLBuilderException("Hostname of service URL is not available");
             }
             absolutePublicUrl.append(protocol).append("://");
-            absolutePublicUrl.append(hostName.toLowerCase());
+            absolutePublicUrl.append(proxyHostName.toLowerCase());
             // If it's well known HTTPS port, skip adding port.
             if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
                 absolutePublicUrl.append(":").append(port);

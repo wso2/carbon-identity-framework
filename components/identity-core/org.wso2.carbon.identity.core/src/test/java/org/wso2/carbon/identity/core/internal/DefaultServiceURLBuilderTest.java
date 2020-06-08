@@ -106,6 +106,7 @@ public class DefaultServiceURLBuilderTest {
 
         String testPath = "/testPath";
         String urlPath = null;
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         try {
             urlPath = ServiceURLBuilder.create().addPath(testPath).build().getPath();
         } catch (URLBuilderException e) {
@@ -122,6 +123,7 @@ public class DefaultServiceURLBuilderTest {
         String testPath2 = "testPath2/";
         String testPath3 = "/testPath3/";
         String urlPath = null;
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         try {
             urlPath = ServiceURLBuilder.create().addPath(testPath1, testPath2, testPath3).build().getPath();
         } catch (URLBuilderException e) {
@@ -135,6 +137,7 @@ public class DefaultServiceURLBuilderTest {
     public void testAddParameter() {
 
         String parameterValue = null;
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         try {
             parameterValue = ServiceURLBuilder.create().addParameter("key", "value").build().getParameter("key");
         } catch (URLBuilderException e) {
@@ -147,8 +150,8 @@ public class DefaultServiceURLBuilderTest {
     @Test
     public void testAddParameters() {
 
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         Map<String, String> parameters = new HashMap<>();
-
         Map<String, String> expected = new HashMap<String, String>() {
             {
                 put("key1", "value1");
@@ -184,7 +187,7 @@ public class DefaultServiceURLBuilderTest {
     public void testAddFragmentParameter() {
 
         String fragment = null;
-
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         try {
             fragment =
                     ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
@@ -200,7 +203,7 @@ public class DefaultServiceURLBuilderTest {
     public void testAddFragmentParameters() {
 
         String fragment = null;
-
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         try {
             fragment =
                     ServiceURLBuilder.create().addFragmentParameter("key1", "value1").addFragmentParameter("key2",
@@ -223,6 +226,7 @@ public class DefaultServiceURLBuilderTest {
         String[] valuesList = {"value1", "value2", "value3"};
         when(ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants
                 .PROXY_CONTEXT_PATH)).thenReturn("proxyContextPath");
+        when(CarbonUtils.getManagementTransport()).thenReturn("https");
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(true);
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
 
@@ -238,7 +242,7 @@ public class DefaultServiceURLBuilderTest {
         }
 
         assertEquals(absoluteUrl,
-                "null://localhost:0/proxyContextPath/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2" +
+                "https://localhost:0/proxyContextPath/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2" +
                         "%26key3%3Dvalue3#key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3");
     }
 
