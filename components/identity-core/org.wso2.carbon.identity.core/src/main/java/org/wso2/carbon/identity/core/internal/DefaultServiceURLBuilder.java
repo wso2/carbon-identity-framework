@@ -460,8 +460,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             if (StringUtils.isBlank(protocol)) {
                 throw new URLBuilderException("Protocol of service URL is not available");
             }
-            if (StringUtils.isBlank(hostName)) {
-                throw new URLBuilderException("Hostname of service URL is not available");
+            if (StringUtils.isBlank(internalHostName)) {
+                throw new URLBuilderException("Internal hostname of service URL is not available");
             }
             absoluteInternalUrl.append(protocol).append("://");
             absoluteInternalUrl.append(internalHostName.toLowerCase());
