@@ -223,6 +223,17 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     private String fetchHostName() throws URLBuilderException {
 
         String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
+        return resolveHostName(hostName);
+    }
+
+    private String fetchInternalHostName() throws URLBuilderException {
+
+        String internalHostName = IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME);
+        return resolveHostName(internalHostName);
+    }
+
+    private String resolveHostName(String hostName) throws URLBuilderException {
+
         try {
             if (StringUtils.isBlank(hostName)) {
                 hostName = NetworkUtils.getLocalHostname();
@@ -236,24 +247,6 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             hostName = hostName.substring(0, hostName.length() - 1);
         }
         return hostName;
-    }
-
-    private String fetchInternalHostName() throws URLBuilderException {
-
-        String internalHostName = IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME);
-        try {
-            if (StringUtils.isBlank(internalHostName)) {
-                internalHostName = NetworkUtils.getLocalHostname();
-            }
-        } catch (SocketException e) {
-            throw new URLBuilderException(String.format("Error while trying to resolve the internal " +
-                    "hostname %s from the system", internalHostName), e);
-        }
-
-        if (StringUtils.isNotBlank(internalHostName) && internalHostName.endsWith("/")) {
-            internalHostName = internalHostName.substring(0, internalHostName.length() - 1);
-        }
-        return internalHostName;
     }
 
     private Integer fetchPort() {
@@ -445,6 +438,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String fetchAbsolutePublicUrl() throws URLBuilderException {
 
             StringBuilder absolutePublicUrl = new StringBuilder();
+            if (StringUtils.isBlank(protocol)) {
+                throw new URLBuilderException("Protocol of service URL is not available");
+            }
+            if (StringUtils.isBlank(hostName)) {
+                throw new URLBuilderException("Hostname of service URL is not available");
+            }
             absolutePublicUrl.append(protocol).append("://");
             absolutePublicUrl.append(hostName.toLowerCase());
             // If it's well known HTTPS port, skip adding port.
@@ -458,6 +457,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String fetchAbsoluteInternalUrl() throws URLBuilderException {
 
             StringBuilder absoluteInternalUrl = new StringBuilder();
+            if (StringUtils.isBlank(protocol)) {
+                throw new URLBuilderException("Protocol of service URL is not available");
+            }
+            if (StringUtils.isBlank(hostName)) {
+                throw new URLBuilderException("Hostname of service URL is not available");
+            }
             absoluteInternalUrl.append(protocol).append("://");
             absoluteInternalUrl.append(internalHostName.toLowerCase());
             // If it's well known HTTPS port, skip adding port.

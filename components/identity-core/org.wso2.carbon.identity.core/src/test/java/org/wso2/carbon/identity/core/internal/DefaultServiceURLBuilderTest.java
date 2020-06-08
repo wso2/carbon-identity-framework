@@ -371,7 +371,7 @@ public class DefaultServiceURLBuilderTest {
             }
 
         } catch (URLBuilderException e) {
-            //Mock behaviour, hence ignored
+            // Mock behaviour, hence ignored.
         }
 
         assertEquals(absoluteUrl, expected);
