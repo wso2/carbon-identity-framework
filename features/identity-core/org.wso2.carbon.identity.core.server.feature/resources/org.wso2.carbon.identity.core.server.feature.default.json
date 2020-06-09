@@ -25,6 +25,8 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
+  "server.internal_hostname": "localhost",
+
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
   "remotefetch.enable":false,

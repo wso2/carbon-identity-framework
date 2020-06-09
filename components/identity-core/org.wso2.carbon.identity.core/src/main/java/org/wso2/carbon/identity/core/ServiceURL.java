@@ -37,7 +37,7 @@ public interface ServiceURL {
      *
      * @return String of the host name.
      */
-    String getHostName();
+    String getProxyHostName();
 
     /**
      * Returns the port of Service URL.
