@@ -44,7 +44,6 @@
 <%@ page
         import="org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder" %>
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig" %>
-<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="java.util.Comparator" %>
 <%@page import="java.util.HashMap" %>
@@ -4555,7 +4554,7 @@
                                    value="<%=Encode.forHtmlAttribute(Boolean.toString(isOIDCDefault))%>"/>
                     </jsp:include>
 
-                    <% if (isPassivestsAuthenticatorActive && STSServiceValidationUtil.isWSFederationAvailable()) { %>
+                    <% if (isPassivestsAuthenticatorActive) { %>
 
                     <h2 id="passive_sts_head" class="sectionSeperator trigger active" style="background-color: beige;">
                         <a href="#"><fmt:message key="passive.sts.config"/></a>

@@ -722,7 +722,6 @@ function removeDefaultAuthSeq() {
                     </table>
                     </div>
 
-                    <% if (STSServiceValidationUtil.isWSFederationAvailable()) { %>
                     <h2 id="passivestsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">
                 		<a href="#"><fmt:message key='passive.sts.local.config'/></a>
             		</h2>
@@ -755,7 +754,6 @@ function removeDefaultAuthSeq() {
                         </tr>
                     </table>
                     </div>
-                    <%} %>
 
                         <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                         <h2 id="stsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">

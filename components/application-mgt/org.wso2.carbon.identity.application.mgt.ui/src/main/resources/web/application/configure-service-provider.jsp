@@ -2289,7 +2289,7 @@
                                     </table>
                                 </div>
 
-                                <% if (STSServiceValidationUtil.isWSFederationAvailable()) { %>
+
                                 <h2 id="passive.sts.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#">WS-Federation (Passive) Configuration</a>
@@ -2346,7 +2346,6 @@
 
                                     </table>
                                 </div>
-                                <%} %>
 
                                 <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
