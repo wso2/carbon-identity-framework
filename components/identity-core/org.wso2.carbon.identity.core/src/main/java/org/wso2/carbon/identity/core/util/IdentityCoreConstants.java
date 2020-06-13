@@ -25,6 +25,7 @@ public class IdentityCoreConstants {
     public static final String IDENTITY_CONFIG = "identity.xml";
     public static final String IDENTITY_DEFAULT_NAMESPACE = "http://wso2.org/projects/carbon/carbon.xml";
     public static final String HOST_NAME = "HostName";
+    public static final String SERVER_HOST_NAME = "ServerHostName";
     public static final String FILE_NAME_REGEX = "FileNameRegEx";
     public static final String PORTS_OFFSET = "Ports.Offset";
 

@@ -25,6 +25,8 @@
   "identity.issuer_policy": "SelfAndManaged",
   "identity.token_validation_policy": "CertValidate",
 
+  "server.internal_hostname": "localhost",
+
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
   "remotefetch.enable":false,
@@ -92,6 +94,9 @@
   "oauth.response_type.device.enable": true,
   "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
   "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
+  "oauth.response_type.none.enable": true,
+  "oauth.response_type.none.class": "org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler",
+  "oauth.response_type.none.validator": "org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator",
 
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
@@ -465,6 +470,7 @@
     "/api/",
     "/user-portal/",
     "/developer-portal/",
+    "/admin-portal/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
     "/lsp/"
@@ -481,7 +487,8 @@
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/",
-    "/developer-portal/"
+    "/developer-portal/",
+    "/admin-portal/"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
@@ -539,6 +546,32 @@
 
   "continue_on_claim_handling_error": true,
 
+  "developer_portal.applications.account_app.configs": {
+    "path": "/user-portal/overview"
+  },
+  "developer_portal.app_base_name": "developer-portal",
+  "developer_portal.client_id": "DEVELOPER_PORTAL",
+  "developer_portal.debug.enable": false,
+  "developer_portal.documentation.base_url": "https://api.github.com",
+  "developer_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
+  "developer_portal.documentation.github_options": {
+    "branch": "new_restructure"
+  },
+  "developer_portal.documentation.image_prefix_url": "https://github.com/wso2/docs-is/raw/new_restructure/en/docs/",
+  "developer_portal.documentation.provider": "GITHUB",
+  "developer_portal.documentation.structure_file_type": "YAML",
+  "developer_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
+  "developer_portal.login_callback_path": "/login",
+  "developer_portal.logout_callback_path": "/login",
+  "developer_portal.route_paths": {
+    "home": "/overview",
+    "login": "/login",
+    "logout": "/logout"
+  },
+  "developer_portal.ui.app_copyright": "WSO2 Identity Server",
+  "developer_portal.ui.app_title": "WSO2 Identity Server Developer Dashboard",
+  "developer_portal.ui.app_name": "Identity Server",
+  "developer_portal.ui.app_logo_path": "/assets/images/logo.svg",
   "developer_portal.applications.scopes": {
     "create": [
       "internal_application_mgt_create"
@@ -678,5 +711,14 @@
     "delete": [
       "internal_email_mgt_delete"
     ]
+  },
+  "developer_portal.gravatar.configs": {
+    "fallback": "404"
+  },
+  "developer_portal.session.params": {
+    "userIdleTimeOut": 600,
+    "userIdleWarningTimeOut": 580,
+    "sessionRefreshTimeOut": 300,
+    "checkSessionInterval": 3
   }
 }
