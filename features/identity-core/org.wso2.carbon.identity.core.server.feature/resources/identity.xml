@@ -73,6 +73,9 @@
         <UserStorePasswordEncryption>InternalKeyStore</UserStorePasswordEncryption>
     </Security>
 
+    <!-- This configuration is to resolve the internal service URL for internal API calls -->
+    <ServerHostName>localhost</ServerHostName>
+
     <Identity>
         <IssuerPolicy>SelfAndManaged</IssuerPolicy>
         <TokenValidationPolicy>CertValidate</TokenValidationPolicy>
@@ -260,6 +263,11 @@
                 <ResponseTypeName>device</ResponseTypeName>
                 <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler</ResponseTypeHandlerImplClass>
                 <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator</ResponseTypeValidatorImplClass>
+            </SupportedResponseType>
+            <SupportedResponseType>
+                <ResponseTypeName>none</ResponseTypeName>
+                <ResponseTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler</ResponseTypeHandlerImplClass>
+                <ResponseTypeValidatorImplClass>org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator</ResponseTypeValidatorImplClass>
             </SupportedResponseType>
         </SupportedResponseTypes>
         <!-- Supported Grant Types -->
@@ -550,7 +558,7 @@
         <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
 
         <DCRM>
-            <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
+            <ApplicationRolePermissionRequiredToView>true</ApplicationRolePermissionRequiredToView>
         </DCRM>
 
         <!--
@@ -1519,6 +1527,7 @@
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/developer-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/admin-portal(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -1606,6 +1615,7 @@
             <Context>/api/</Context>
             <Context>/user-portal/</Context>
             <Context>/developer-portal/</Context>
+            <Context>/admin-portal/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
@@ -1613,6 +1623,7 @@
         <OverwriteDispatch>
             <Context>/user-portal/</Context>
             <Context>/developer-portal/</Context>
+            <Context>/admin-portal/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 
