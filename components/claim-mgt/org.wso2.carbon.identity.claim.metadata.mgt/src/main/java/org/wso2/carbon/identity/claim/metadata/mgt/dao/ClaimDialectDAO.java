@@ -136,4 +136,30 @@ public class ClaimDialectDAO {
             IdentityDatabaseUtil.closeConnection(connection);
         }
     }
+
+    /**
+     * Remove all claim dialects of a given tenant.
+     *
+     * @param tenantId Id of the tenant
+     * @throws ClaimMetadataException
+     */
+    public void removeAllClaimDialects(int tenantId) throws ClaimMetadataException {
+
+        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+        PreparedStatement prepStmt = null;
+
+        String query = SQLConstants.REMOVE_CLAIM_DIALECTS_BY_TENANT_ID;
+        try {
+            prepStmt = connection.prepareStatement(query);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.executeUpdate();
+            IdentityDatabaseUtil.commitTransaction(connection);
+        } catch (SQLException e) {
+            IdentityDatabaseUtil.rollbackTransaction(connection);
+            throw new ClaimMetadataException("Error while deleting claim dialects of tenant: " + tenantId, e);
+        } finally {
+            IdentityDatabaseUtil.closeStatement(prepStmt);
+            IdentityDatabaseUtil.closeConnection(connection);
+        }
+    }
 }

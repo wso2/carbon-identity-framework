@@ -48,6 +48,7 @@ public class SQLConstants {
             "DIALECT_URI=? AND TENANT_ID=?";
     public static final String REMOVE_CLAIM_DIALECT = "DELETE FROM IDN_CLAIM_DIALECT WHERE DIALECT_URI=? AND " +
             "TENANT_ID=?";
+    public static final String REMOVE_CLAIM_DIALECTS_BY_TENANT_ID = "DELETE FROM IDN_CLAIM_DIALECT WHERE TENANT_ID = ?";
 
     // Claim SQLs
     public static final String GET_CLAIMS_BY_DIALECT = "SELECT ID, CLAIM_URI FROM IDN_CLAIM WHERE DIALECT_ID=(SELECT " +

@@ -186,7 +186,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         }
 
         for (ApplicationMgtListener listener : listeners) {
-            if (listener.isEnable() && !listener.doPreCreateApplication(serviceProvider, tenantDomain, username)) {
+            if (listener.isEnable() && !listener.doPostCreateApplication(serviceProvider, tenantDomain, username)) {
                 log.error("Post create application operation of listener:" + getName(listener) + " failed for " +
                         "application: " + serviceProvider.getApplicationName() + " of tenantDomain: " + tenantDomain);
                 break;
