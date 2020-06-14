@@ -48,6 +48,8 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.model.script.AuthenticationScriptConfig;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCache;
+import org.wso2.carbon.identity.application.mgt.cache.IdentityServiceProviderCacheKey;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCache;
 import org.wso2.carbon.identity.application.mgt.cache.ServiceProviderTemplateCacheKey;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
@@ -64,6 +66,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerS
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.api.RegistryException;
 import org.wso2.carbon.registry.core.RegistryConstants;
@@ -73,6 +76,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -723,8 +727,27 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     @Override
     public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
 
+        String tenantDomain = IdentityTenantUtil.getTenantDomain(tenantId);
+        ApplicationBasicInfo[] applicationBasicInfos = getAllApplicationBasicInfo(
+                tenantDomain, CarbonContext.getThreadLocalCarbonContext().getUsername());
+
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         appDAO.deleteApplicationsByTenantId(tenantId);
+
+        // Clear cache entries of each deleted SP
+        if (log.isDebugEnabled()) {
+            log.debug("Clearing the cache entries of all SP applications of the tenant: " + tenantDomain);
+        }
+
+        try {
+            ApplicationMgtUtil.startTenantFlow(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            for (ApplicationBasicInfo applicationBasicInfo : applicationBasicInfos) {
+                IdentityServiceProviderCache.getInstance().clearCacheEntry(
+                        new IdentityServiceProviderCacheKey(applicationBasicInfo.getApplicationName(), tenantDomain));
+            }
+        } finally {
+            ApplicationMgtUtil.endTenantFlow();
+        }
     }
 
     @Override

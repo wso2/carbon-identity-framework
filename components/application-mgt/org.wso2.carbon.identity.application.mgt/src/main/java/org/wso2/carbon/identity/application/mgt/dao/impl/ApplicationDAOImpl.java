@@ -3548,7 +3548,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Delete all applications of a given tenant id.
      *
-     * @param
+     * @param tenantId Id of the tenant
      * @throws IdentityApplicationManagementException
      */
     @Override
@@ -3807,7 +3807,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * Deletes all certificates of a given tenant id from the database.
      *
      * @param connection Connection
-     * @param tenantId Id of the tenant.
+     * @param tenantId Id of the tenant
      */
     private void deleteCertificatesByTenantId(Connection connection, int tenantId) throws SQLException {
 
