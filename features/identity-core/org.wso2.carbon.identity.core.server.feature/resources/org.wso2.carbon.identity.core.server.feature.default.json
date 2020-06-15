@@ -720,5 +720,30 @@
     "userIdleWarningTimeOut": 580,
     "sessionRefreshTimeOut": 300,
     "checkSessionInterval": 3
+  },
+
+  "user_portal.app_base_name": "user-portal",
+  "user_portal.client_id": "USER_PORTAL",
+  "user_portal.login_callback_path": "/login",
+  "user_portal.logout_callback_path": "/login",
+  "user_portal.route_paths": {
+    "home": "/overview",
+    "login": "/login",
+    "logout": "/logout"
+  },
+  "user_portal.ui.app_copyright": "WSO2 Identity Server",
+  "user_portal.ui.app_title": "Manage your WSO2 Identity Server Account",
+  "user_portal.ui.app_name": "Identity Server Account",
+  "user_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "user_portal.authenticator_app_configs": {
+    "enabled": true
+  },
+  "user_portal.operations.scopes": {
+    "create": [],
+    "read": [
+      "internal_humantask_view"
+    ],
+    "update": [],
+    "delete": []
   }
 }
