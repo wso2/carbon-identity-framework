@@ -139,6 +139,7 @@ public class IdentityEventConstants {
         public static final String POST_GET_ROLE_LIST_OF_USERS_WITH_ID = "POST_GET_ROLE_LIST_OF_USERS_WITH_ID";
         public static final String PRE_SET_CHALLENGE_QUESTION_ANSWERS = "PRE_SET_CHALLENGE_QUESTION_ANSWERS";
         public static final String POST_SET_CHALLENGE_QUESTION_ANSWERS = "POST_SET_CHALLENGE_QUESTION_ANSWERS";
+        public static final String POST_USER_ACCOUNT_VERIFICATION = "POST_USER_ACCOUNT_VERIFICATION";
     }
 
     /**
