@@ -563,6 +563,7 @@
   "developer_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "developer_portal.login_callback_path": "/login",
   "developer_portal.logout_callback_path": "/login",
+  "developer_portal.server_origin": "https://localhost:9443",
   "developer_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
@@ -572,6 +573,13 @@
   "developer_portal.ui.app_title": "WSO2 Identity Server Developer Dashboard",
   "developer_portal.ui.app_name": "Identity Server",
   "developer_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "developer_portal.session.params": {
+    "userIdleTimeOut": 600,
+    "userIdleWarningTimeOut": 580,
+    "sessionRefreshTimeOut": 300,
+    "checkSessionInterval": 3
+  },
+  "developer_portal.applications.enabled": true,
   "developer_portal.applications.scopes": {
     "create": [
       "internal_application_mgt_create"
@@ -586,6 +594,7 @@
       "internal_application_mgt_delete"
     ]
   },
+  "developer_portal.identity_providers.enabled": true,
   "developer_portal.identity_providers.scopes": {
     "create": [
       "internal_idp_create"
@@ -600,7 +609,45 @@
       "internal_idp_delete"
     ]
   },
-  "developer_portal.users.scopes": {
+  "developer_portal.gravatar.configs": {
+    "fallback": "404"
+  },
+
+  "admin_portal.applications.account_app.configs": {
+    "path": "/user-portal/overview"
+  },
+  "admin_portal.app_base_name": "admin-portal",
+  "admin_portal.client_id": "ADMIN_PORTAL",
+  "admin_portal.debug.enable": false,
+  "admin_portal.documentation.base_url": "https://api.github.com",
+  "admin_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
+  "admin_portal.documentation.github_options": {
+    "branch": "new_restructure"
+  },
+  "admin_portal.documentation.image_prefix_url": "https://github.com/wso2/docs-is/raw/new_restructure/en/docs/",
+  "admin_portal.documentation.provider": "GITHUB",
+  "admin_portal.documentation.structure_file_type": "YAML",
+  "admin_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
+  "admin_portal.login_callback_path": "/login",
+  "admin_portal.logout_callback_path": "/login",
+  "admin_portal.server_origin": "https://localhost:9443",
+  "admin_portal.route_paths": {
+    "home": "/overview",
+    "login": "/login",
+    "logout": "/logout"
+  },
+  "admin_portal.ui.app_copyright": "WSO2 Identity Server",
+  "admin_portal.ui.app_title": "WSO2 Identity Server Admin Dashboard",
+  "admin_portal.ui.app_name": "Identity Server",
+  "admin_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "admin_portal.session.params": {
+    "userIdleTimeOut": 600,
+    "userIdleWarningTimeOut": 580,
+    "sessionRefreshTimeOut": 300,
+    "checkSessionInterval": 3
+  },
+  "admin_portal.users.enabled": true,
+  "admin_portal.users.scopes": {
     "create": [
       "internal_user_mgt_create"
     ],
@@ -614,7 +661,8 @@
       "internal_user_mgt_delete"
     ]
   },
-  "developer_portal.groups.scopes": {
+  "admin_portal.groups.enabled": true,
+  "admin_portal.groups.scopes": {
     "create": [
       "internal_role_mgt_create"
     ],
@@ -628,7 +676,8 @@
       "internal_role_mgt_delete"
     ]
   },
-  "developer_portal.roles.scopes": {
+  "admin_portal.roles.enabled": true,
+  "admin_portal.roles.scopes": {
     "create": [
       "internal_role_mgt_create"
     ],
@@ -642,7 +691,8 @@
       "internal_role_mgt_delete"
     ]
   },
-  "developer_portal.attribute_dialects.scopes": {
+  "admin_portal.attribute_dialects.enabled": true,
+  "admin_portal.attribute_dialects.scopes": {
     "create": [
       "internal_claim_meta_create"
     ],
@@ -656,7 +706,8 @@
       "internal_claim_meta_delete"
     ]
   },
-  "developer_portal.user_stores.scopes": {
+  "admin_portal.user_stores.enabled": true,
+  "admin_portal.user_stores.scopes": {
     "create": [
       "internal_userstore_create"
     ],
@@ -670,7 +721,8 @@
       "internal_userstore_delete"
     ]
   },
-  "developer_portal.certificates.scopes": {
+  "admin_portal.certificates.enabled": true,
+  "admin_portal.certificates.scopes": {
     "create": [
       "internal_keystore_update"
     ],
@@ -684,7 +736,8 @@
       "internal_keystore_update"
     ]
   },
-  "developer_portal.general_configurations.scopes": {
+  "admin_portal.general_configurations.enabled": true,
+  "admin_portal.general_configurations.scopes": {
     "create": [
       "internal_identity_mgt_create"
     ],
@@ -698,7 +751,8 @@
       "internal_identity_mgt_delete"
     ]
   },
-  "developer_portal.email_templates.scopes": {
+  "admin_portal.email_templates.enabled": true,
+  "admin_portal.email_templates.scopes": {
     "create": [
       "internal_email_mgt_create"
     ],
@@ -712,20 +766,15 @@
       "internal_email_mgt_delete"
     ]
   },
-  "developer_portal.gravatar.configs": {
+  "admin_portal.gravatar.configs": {
     "fallback": "404"
-  },
-  "developer_portal.session.params": {
-    "userIdleTimeOut": 600,
-    "userIdleWarningTimeOut": 580,
-    "sessionRefreshTimeOut": 300,
-    "checkSessionInterval": 3
   },
 
   "user_portal.app_base_name": "user-portal",
   "user_portal.client_id": "USER_PORTAL",
   "user_portal.login_callback_path": "/login",
   "user_portal.logout_callback_path": "/login",
+  "user_portal.server_origin": "https://localhost:9443",
   "user_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
@@ -738,6 +787,12 @@
   "user_portal.authenticator_app_configs": {
     "enabled": true
   },
+  "user_portal.applications.enabled": true,
+  "user_portal.operations.enabled": true,
+  "user_portal.overview.enabled": true,
+  "user_portal.personal_info.enabled": true,
+  "user_portal.security.enabled": true,
+
   "user_portal.operations.scopes": {
     "create": [],
     "read": [
