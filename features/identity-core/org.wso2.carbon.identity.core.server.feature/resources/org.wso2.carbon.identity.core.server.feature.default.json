@@ -745,5 +745,11 @@
     ],
     "update": [],
     "delete": []
+  },
+  "user_portal.session.params": {
+    "userIdleTimeOut": 600,
+    "userIdleWarningTimeOut": 580,
+    "sessionRefreshTimeOut": 300,
+    "checkSessionInterval": 3
   }
 }
