@@ -95,7 +95,8 @@ public class IDPMgtAuditLogger extends AbstractIdentityProviderMgtListener {
     @Override
     public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
 
-        return super.doPostDeleteIdPs(tenantDomain);
+        audit.info(String.format(AUDIT_MESSAGE, getUser(), "delete all IdPs", tenantDomain, null, SUCCESS));
+        return true;
     }
 
     private String getUser() {

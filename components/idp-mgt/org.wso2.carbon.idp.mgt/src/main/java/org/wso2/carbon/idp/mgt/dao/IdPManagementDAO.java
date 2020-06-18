@@ -2866,21 +2866,14 @@ public class IdPManagementDAO {
      */
     public void deleteIdPs(int tenantId) throws IdentityProviderManagementException {
 
-        PreparedStatement prepStmt = null;
-        String query = IdPManagementConstants.SQLQueries.DELETE_ALL_IDP_BY_TENANT_ID_SQL;
-        Connection conn = IdentityDatabaseUtil.getDBConnection(true);
-        try {
-            prepStmt = conn.prepareStatement(query);
+        try (Connection conn = IdentityDatabaseUtil.getDBConnection(false)) {
+            PreparedStatement prepStmt = conn.prepareStatement(
+                    IdPManagementConstants.SQLQueries.DELETE_ALL_IDP_BY_TENANT_ID_SQL);
             prepStmt.setInt(1, tenantId);
             prepStmt.executeUpdate();
-
-            IdentityDatabaseUtil.commitTransaction(conn);
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(conn);
             throw new IdentityProviderManagementException("Error occurred while deleting Identity Providers of tenant "
                     + tenantId, e);
-        } finally {
-            IdentityDatabaseUtil.closeConnection(conn);
         }
     }
 

@@ -2118,7 +2118,7 @@ public class IdentityProviderManager implements IdpManager {
             deleteMetadataStrings(identityProvider.getIdentityProviderName(), tenantId);
         }
 
-        dao.deleteIdPsByTenantID(tenantId);
+        dao.deleteIdPs(tenantId);
 
         // Invoking the post listeners.
         for (IdentityProviderMgtListener listener : listeners) {
