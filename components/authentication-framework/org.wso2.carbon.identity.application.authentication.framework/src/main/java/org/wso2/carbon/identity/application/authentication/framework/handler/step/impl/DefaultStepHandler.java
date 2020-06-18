@@ -198,7 +198,7 @@ public class DefaultStepHandler implements StepHandler {
             }
         } else {
 
-            if (!context.isForceAuthenticate() && !authenticatedStepIdps.isEmpty()) {
+            if (!(context.isForceAuthenticate() || stepConfig.isForced()) && !authenticatedStepIdps.isEmpty()) {
 
                 Map.Entry<String, AuthenticatorConfig> entry = authenticatedStepIdps.entrySet()
                         .iterator().next();
@@ -368,8 +368,9 @@ public class DefaultStepHandler implements StepHandler {
             Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
                     .getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
 
-            if (authenticatedStepIdps.containsKey(idpName) && !context.isForceAuthenticate() && !context
-                    .isReAuthenticate()) {
+            if (authenticatedStepIdps.containsKey(idpName)
+                    && !(context.isForceAuthenticate() || stepConfig.isForced())
+                    && !context.isReAuthenticate()) {
                 // skip the step if this is a normal request
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idpName);
                 populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps

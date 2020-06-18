@@ -291,6 +291,26 @@ public class JsGraphBuilder {
                 log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
             }
         }
+
+        Object stepOptions = options.get(FrameworkConstants.JSAttributes.STEP_OPTIONS);
+        if (stepOptions instanceof Map) {
+            handleStepOptions(stepConfig, (Map<String, String>) stepOptions);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Step options not provided or invalid, hence proceeding without handling");
+            }
+        }
+    }
+
+    /**
+     * Handle step options provided for the step from the authentication script.
+     *
+     * @param stepConfig config of the step
+     * @param stepOptions options provided from the script for the step
+     */
+    private void handleStepOptions(StepConfig stepConfig, Map<String, String> stepOptions) {
+
+        stepConfig.setForced(Boolean.parseBoolean(stepOptions.get(FrameworkConstants.JSAttributes.FORCE_AUTH_PARAM)));
     }
 
     /**
