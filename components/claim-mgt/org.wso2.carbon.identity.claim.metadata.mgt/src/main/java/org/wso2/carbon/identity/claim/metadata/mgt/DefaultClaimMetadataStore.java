@@ -307,7 +307,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
 
             if (log.isDebugEnabled()) {
-                log.error("Returning NULL for getAttributeName() for domain : " + domainName + ", claim URI : " +
+                log.debug("Returning NULL for getAttributeName() for domain : " + domainName + ", claim URI : " +
                         claimURI);
             }
 
@@ -413,7 +413,7 @@ public class DefaultClaimMetadataStore implements ClaimMetadataStore {
             }
 
             if (log.isDebugEnabled()) {
-                log.error("Returning NULL for getClaim() for claim URI : " + claimURI);
+                log.debug("Returning NULL for getClaim() for claim URI : " + claimURI);
             }
             return null;
         } catch (ClaimMetadataException e) {
