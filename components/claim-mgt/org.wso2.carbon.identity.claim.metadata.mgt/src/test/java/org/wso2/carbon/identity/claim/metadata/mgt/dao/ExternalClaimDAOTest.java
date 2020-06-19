@@ -160,17 +160,17 @@ public class ExternalClaimDAOTest {
         Claim externalClaim2 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI2",
                 "http://wso2.org/claims/test2");
         Map<String, String> claimProperties2 = new HashMap<>();
-        claimProperties1.put("DisplayName", "FirstName");
-        claimProperties1.put("FriendlyName", "givenName");
-        claimProperties1.put("Description", "Sampletest2");
+        claimProperties2.put("DisplayName", "FirstName");
+        claimProperties2.put("FriendlyName", "givenName");
+        claimProperties2.put("Description", "Sampletest2");
         externalClaim2.setClaimProperties(claimProperties2);
 
         Claim externalClaim3 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI3",
                 "http://wso2.org/claims/test3");
         Map<String, String> claimProperties3 = new HashMap<>();
-        claimProperties1.put("DisplayName", "FirstName");
-        claimProperties1.put("FriendlyName", "givenName");
-        claimProperties1.put("Description", "Sampletest3");
+        claimProperties3.put("DisplayName", "FirstName");
+        claimProperties3.put("FriendlyName", "givenName");
+        claimProperties3.put("Description", "Sampletest3");
         externalClaim3.setClaimProperties(claimProperties3);
 
         return new Object[][] {
@@ -251,17 +251,17 @@ public class ExternalClaimDAOTest {
         Claim externalClaim2 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI2",
                 "http://wso2.org/claims/test2");
         Map<String, String> claimProperties2 = new HashMap<>();
-        claimProperties1.put("DisplayName", "FirstName");
-        claimProperties1.put("FriendlyName", "givenName");
-        claimProperties1.put("Description", "Sampletest2");
+        claimProperties2.put("DisplayName", "FirstName");
+        claimProperties2.put("FriendlyName", "givenName");
+        claimProperties2.put("Description", "Sampletest2");
         externalClaim2.setClaimProperties(claimProperties2);
 
         Claim externalClaim3 = new ExternalClaim(EXTERNAL_CLAIM_DIALECT_URI, "TestExternalClaimURI3",
                 "http://wso2.org/claims/test3");
         Map<String, String> claimProperties3 = new HashMap<>();
-        claimProperties1.put("DisplayName", "FirstName");
-        claimProperties1.put("FriendlyName", "givenName");
-        claimProperties1.put("Description", "Sampletest3");
+        claimProperties3.put("DisplayName", "FirstName");
+        claimProperties3.put("FriendlyName", "givenName");
+        claimProperties3.put("Description", "Sampletest3");
         externalClaim3.setClaimProperties(claimProperties3);
 
         return new Object[][] {
