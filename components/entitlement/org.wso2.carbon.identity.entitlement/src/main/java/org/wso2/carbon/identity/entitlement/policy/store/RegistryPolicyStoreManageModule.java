@@ -77,17 +77,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
         Resource resource;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (policy == null || policy.getPolicyId() == null || policy.getPolicy() == null || policy.getPolicyId()
-                .trim().length() == 0) {
-            if (log.isDebugEnabled()) {
-                if (policy == null) {
-                    log.debug("PolicyStoreDTO: " + policy + ", is null.");
-                } else {
-                    log.debug("Either PolicyStoreDTO's Id: " + policy.getPolicyId() + ", or it's policy: " + policy.
-                            getPolicy() + ", is null. Or else, the mentioned policy Id: " + policy.getPolicyId()
-                            + ", is empty.");
-                }
-            }
+        if (policy == null || policy.getPolicyId() == null || policy.getPolicyId().trim().length() == 0) {
             throw new EntitlementException("Policy can not be null");
         }
 
@@ -111,7 +101,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
                 resource = registry.newResource();
             }
 
-            if (policy.getPolicy().trim().length() != 0) {
+            if (policy.getPolicy() != null && policy.getPolicy().trim().length() != 0) {
                 resource.setContent(policy.getPolicy());
                 resource.setMediaType(PDPConstants.REGISTRY_MEDIA_TYPE);
                 AttributeDTO[] attributeDTOs = policy.getAttributeDTOs();

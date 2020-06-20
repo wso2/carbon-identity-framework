@@ -158,9 +158,9 @@ public class PAPPolicyStore {
             log.debug("Creating or updating entitlement policy");
         }
 
-        if (policy == null || policy.getPolicy() == null || policyId == null) {
+        if (policy == null || policyId == null) {
             log.error("Error while creating or updating entitlement policy: " +
-                      "Policy DTO or the policy included in Policy DTO or Policy Id can not be null");
+                      "Policy DTO or Policy Id can not be null");
             throw new EntitlementException("Invalid Entitlement Policy. Policy or policyId can not be Null");
         }
 
@@ -207,7 +207,7 @@ public class PAPPolicyStore {
                 }
             }
 
-            if (policy.getPolicy().trim().length() > 0) {
+            if (policy.getPolicy() != null && policy.getPolicy().trim().length() > 0) {
                 resource.setContent(policy.getPolicy());
                 newPolicy = true;
                 PolicyAttributeBuilder policyAttributeBuilder = new PolicyAttributeBuilder(policy.getPolicy());
