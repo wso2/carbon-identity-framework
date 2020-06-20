@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.policy.store;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -77,7 +78,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
         Resource resource;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (policy == null || policy.getPolicyId() == null || policy.getPolicyId().trim().length() == 0) {
+        if (policy == null || StringUtils.isBlank(policy.getPolicyId())) {
             throw new EntitlementException("Policy can not be null");
         }
 
