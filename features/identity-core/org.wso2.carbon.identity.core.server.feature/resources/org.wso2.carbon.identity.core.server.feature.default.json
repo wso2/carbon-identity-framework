@@ -563,7 +563,6 @@
   "developer_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "developer_portal.login_callback_path": "/login",
   "developer_portal.logout_callback_path": "/login",
-  "developer_portal.server_origin": "https://localhost:9443",
   "developer_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
@@ -630,7 +629,6 @@
   "admin_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "admin_portal.login_callback_path": "/login",
   "admin_portal.logout_callback_path": "/login",
-  "admin_portal.server_origin": "https://localhost:9443",
   "admin_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
@@ -774,7 +772,6 @@
   "user_portal.client_id": "USER_PORTAL",
   "user_portal.login_callback_path": "/login",
   "user_portal.logout_callback_path": "/login",
-  "user_portal.server_origin": "https://localhost:9443",
   "user_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
