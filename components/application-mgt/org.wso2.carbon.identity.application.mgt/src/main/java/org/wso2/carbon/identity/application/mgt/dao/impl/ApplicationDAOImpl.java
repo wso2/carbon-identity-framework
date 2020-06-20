@@ -3552,7 +3552,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
      * @throws IdentityApplicationManagementException
      */
     @Override
-    public void deleteApplicationsByTenantId(int tenantId) throws IdentityApplicationManagementException {
+    public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
 
         if (log.isDebugEnabled()) {
             log.debug("Deleting all applications of the tenant: " + tenantId);
@@ -3560,27 +3560,23 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         String auditData = "\"" + "Tenant Id" + "\" : \"" + tenantId + "\"";
 
-        Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-        PreparedStatement deleteClientPrepStmt = null;
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
 
-        try {
             // Delete the application certificates of the tenant
             deleteCertificatesByTenantId(connection, tenantId);
 
-            deleteClientPrepStmt = connection.prepareStatement(REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID);
-            deleteClientPrepStmt.setInt(1, tenantId);
-            deleteClientPrepStmt.execute();
-            IdentityDatabaseUtil.commitTransaction(connection);
-            audit("Delete all applications of a tenant", auditData, AUDIT_SUCCESS);
+            try (PreparedStatement deleteClientPrepStmt = connection
+                    .prepareStatement(REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID)) {
+                deleteClientPrepStmt.setInt(1, tenantId);
+                deleteClientPrepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
+                audit("Delete all applications of a tenant", auditData, AUDIT_SUCCESS);
+            }
         } catch (SQLException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
             audit("Delete all applications of a tenant", auditData, AUDIT_FAIL);
             String msg = "An error occurred while delete all the applications of the tenant: " + tenantId;
             log.error(msg, e);
             throw new IdentityApplicationManagementException(msg, e);
-        } finally {
-            IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
-            IdentityApplicationManagementUtil.closeConnection(connection);
         }
     }
 

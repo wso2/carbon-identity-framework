@@ -51,12 +51,10 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationIdentityProv
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogger;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
-import org.wso2.carbon.identity.application.mgt.listener.ApplicationTenantMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.STSApplicationMgtListener;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
@@ -93,8 +91,6 @@ public class ApplicationManagementServiceComponent {
                     ApplicationManagementServiceImpl.getInstance(), null);
             bundleContext.registerService(IdentityProviderMgtListener.class.getName(),
                     new ApplicationIdentityProviderMgtListener(), null);
-            bundleContext.registerService(TenantMgtListener.class.getName(),
-                    new ApplicationTenantMgtListener(), null);
             ApplicationMgtSystemConfig.getInstance();
             bundleContext.registerService(ApplicationMgtListener.class.getName(), new ApplicationMgtAuditLogger(),
                     null);

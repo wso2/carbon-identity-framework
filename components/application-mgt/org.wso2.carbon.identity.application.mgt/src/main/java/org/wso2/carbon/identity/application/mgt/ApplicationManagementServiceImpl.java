@@ -732,7 +732,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 tenantDomain, CarbonContext.getThreadLocalCarbonContext().getUsername());
 
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
-        appDAO.deleteApplicationsByTenantId(tenantId);
+        appDAO.deleteApplications(tenantId);
 
         // Clear cache entries of each deleted SP
         if (log.isDebugEnabled()) {
