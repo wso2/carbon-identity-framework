@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>user-store</artifactId>
-        <version>5.17.7-SNAPSHOT</version>
+        <version>5.17.117-SNAPSHOT</version>
 	    <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -122,7 +122,8 @@
                             org.wso2.carbon.utils; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
-                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}"
+                            org.osgi.framework; version="${osgi.framework.imp.pkg.version.range}",
+                            org.apache.axiom.om; version="${axiom.osgi.version.range}"
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.user.store.configuration.internal,

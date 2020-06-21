@@ -21,9 +21,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.util.Base64;
-import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
-import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -35,13 +33,19 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Error;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -55,7 +59,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class defines utility methods used within this web application.
@@ -140,7 +143,13 @@ public class IdentityManagementEndpointUtil {
         if (StringUtils.isNotBlank(userPortalUrl)) {
             return userPortalUrl;
         }
-        return IdentityUtil.getServerURL(IdentityManagementEndpointConstants.USER_PORTAL_URL, true, true);
+        try {
+            return ServiceURLBuilder.create().addPath(IdentityManagementEndpointConstants.USER_PORTAL_URL).build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + IdentityManagementEndpointConstants.USER_PORTAL_URL);
+        }
     }
 
     /**
@@ -519,6 +528,7 @@ public class IdentityManagementEndpointUtil {
      * @param path path of the url
      * @return endpoint url
      */
+    @Deprecated
     public static String buildEndpointUrl(String path) {
 
         String serviceContextURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL();
@@ -632,5 +642,54 @@ public class IdentityManagementEndpointUtil {
     public static void setOptions(ServiceClient client, String accessUsername, String accessPassword) {
 
         IdentityManagementServiceUtil.setAutheticationOptions(client, accessUsername, accessPassword);
+    }
+
+    /**
+     * Get base path URL for API clients.
+     *
+     * @param tenantDomain tenant Domain.
+     * @param context      URL context.
+     * @return base path.
+     * @throws ApiException ApiException.
+     */
+    public static String getBasePath(String tenantDomain, String context) throws ApiException {
+
+        return getBasePath(tenantDomain, context, true);
+    }
+
+    /**
+     * Get base path URL for API clients.
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param context               URL context.
+     * @param isEndpointTenantAware Whether the endpoint is tenant aware.
+     * @return Base path.
+     * @throws ApiException ApiException.
+     */
+    public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware)
+            throws ApiException {
+
+        String basePath;
+        String serverUrl = IdentityManagementServiceUtil.getInstance().getContextURLFromFile();
+        try {
+            if (StringUtils.isBlank(serverUrl)) {
+                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    basePath = ServiceURLBuilder.create().addPath(context).build().getAbsoluteInternalURL();
+                } else {
+                    serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
+                    if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
+                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
+                        basePath = serverUrl + "/t/" + tenantDomain + context;
+                    } else {
+                        basePath = serverUrl + context;
+                    }
+                }
+            } else {
+                basePath = serverUrl + context;
+            }
+        } catch (URLBuilderException e) {
+            throw new ApiException("Error while building url for context: " + context);
+        }
+        return basePath;
     }
 }

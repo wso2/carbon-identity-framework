@@ -111,7 +111,9 @@ public class NotificationApi {
             tenantDomain = recoveryInitiatingRequest.getUser().getTenantDomain();
         }
 
-        setBasePath(tenantDomain);
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/recover-password".replaceAll("\\{format\\}", "json");
@@ -167,7 +169,9 @@ public class NotificationApi {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
-        setBasePath(tenantDomain);
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/recover-username/".replaceAll("\\{format\\}", "json");
@@ -220,7 +224,9 @@ public class NotificationApi {
             }
         }
 
-        setBasePath(userTenantDomain);
+        basePath = IdentityManagementEndpointUtil.getBasePath(userTenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/set-password".replaceAll("\\{format\\}", "json");
@@ -262,7 +268,10 @@ public class NotificationApi {
         };
         final String headerAccept = apiClient.selectHeaderAccept(contentType);
         String tenantDomain = getTenantDomain(code);
-        setBasePath(tenantDomain);
+
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         Map<String, String> headerParams = new HashMap<>();
         if (headerAccept != null) {
@@ -278,16 +287,6 @@ public class NotificationApi {
         Map<String, Object> formParams = new HashMap<>();
         apiClient.invokeAPI(path, "POST", queryParams, code, headerParams,
                 formParams, headerAccept, headerContentType, authNames, localVarReturnType);
-    }
-
-    private void setBasePath(String tenantDomain) {
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-        }
-
-        apiClient.setBasePath(basePath);
     }
 
     private String getTenantDomain(CodeValidationRequest code) {

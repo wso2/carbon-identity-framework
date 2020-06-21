@@ -320,4 +320,24 @@ public class IdentityTenantUtil {
             return tenantId;
         }
     }
+
+    /**
+     * Get the tenant name from the thread local properties.
+     *
+     * @return Tenant name from the context.
+     */
+    public static String getTenantDomainFromContext() {
+
+        return (String) IdentityUtil.threadLocalProperties.get().get(IdentityCoreConstants.TENANT_NAME_FROM_CONTEXT);
+    }
+
+    /**
+     * Checks whether the tenant URL support is enabled.
+     *
+     * @return true if the config is set to true, false otherwise.
+     */
+    public static boolean isTenantQualifiedUrlsEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
+    }
 }

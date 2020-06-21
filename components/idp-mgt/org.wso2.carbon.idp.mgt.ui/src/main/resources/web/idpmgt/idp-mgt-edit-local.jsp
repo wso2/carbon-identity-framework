@@ -26,6 +26,7 @@
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.Property" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.idp.xsd.ProvisioningConnectorConfig" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityTenantUtil" %>
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
@@ -654,14 +655,24 @@ function removeDefaultAuthSeq() {
                     <table class="carbonFormTable">
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='idp.entity.id'/>:</td>
-                            <td>
-                                <input id="oidcIdPEntityId" name="oidcIdPEntityId" type="text"
-                                       value="<%=Encode.forHtmlAttribute(oidcIdpEntityId)%>"/>
+                            <%
+                                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                            %>
+                                    <td><%=Encode.forHtmlContent(tokenUrl)%></td>
+                            <%
+                                } else {
+                            %>
+                                    <td>
+                                        <input id="oidcIdPEntityId" name="oidcIdPEntityId" type="text"
+                                               value="<%=Encode.forHtmlAttribute(oidcIdpEntityId)%>"/>
 
-                                <div class="sectionHelp">
-                                    <fmt:message key='idp.entity.id.help'/>
-                                </div>
-                            </td>
+                                        <div class="sectionHelp">
+                                            <fmt:message key='idp.entity.id.help'/>
+                                        </div>
+                                    </td>
+                            <%
+                                }
+                            %>
                         </tr>
                         <tr>
                             <td class="leftCol-med labelField"><fmt:message key='authz.endpoint'/>:</td>

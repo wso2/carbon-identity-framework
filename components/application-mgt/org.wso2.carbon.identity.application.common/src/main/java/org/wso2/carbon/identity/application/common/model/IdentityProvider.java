@@ -519,6 +519,8 @@ public class IdentityProvider implements Serializable {
                         this.certificateInfoArray = handleEncodedCertificate(certificateValue);
                     }
                 }
+            } else {
+                this.certificateInfoArray = new CertificateInfo[0];
             }
         } catch (NoSuchAlgorithmException e) {
             log.error("Error while generating thumbPrint. Unsupported hash algorithm. ", e);

@@ -29,6 +29,7 @@ public abstract class FrameworkConstants {
     public static final String DEFAULT_SEQUENCE = "default";
     public static final String AUTHENTICATED_AUTHENTICATORS = "authenticatedAuthenticators";
     public static final String COMMONAUTH_COOKIE = "commonAuthId";
+    public static final String CONTEXT_PROP_INVALID_EMAIL_USERNAME = "InvalidEmailUsername";
     // Cookie used for post authenticaion sequence tracking
     public static final String PASTR_COOKIE = "pastr";
     public static final String CLAIM_URI_WSO2_EXT_IDP = "http://wso2.org/claims/externalIDP";
@@ -306,6 +307,17 @@ public abstract class FrameworkConstants {
         }
     }
 
+    public static class DefaultUrlContexts {
+
+        public static final String AUTHENTICATION_ENDPOINT = "/authenticationendpoint/login.do";
+        public static final String AUTHENTICATION_ENDPOINT_RETRY = "/authenticationendpoint/retry.do";
+        public static final String AUTHENTICATION_ENDPOINT_WAIT = "/authenticationendpoint/wait.do";
+        public static final String IDENTIFIER_FIRST_CONFIRMATION = "/authenticationendpoint/idf-confirm.do";
+        public static final String AUTHENTICATION_ENDPOINT_DYNAMIC_PROMPT = "/authenticationendpoint/dynamic_prompt.do";
+        public static final String AUTHENTICATION_ENDPOINT_MISSING_CLAIMS_PROMPT = "/authenticationendpoint/claims.do";
+
+    }
+
     public static class AnalyticsAttributes {
 
         public static final String USER = "user";
@@ -377,7 +389,9 @@ public abstract class FrameworkConstants {
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
+        public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
+        public static final String FORCE_AUTH_PARAM = "forceAuth";
     }
     public static class InternalRoleDomains {
 

@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
@@ -355,8 +356,19 @@ public class IdentityUtil {
         return serverUrl.toString();
     }
 
+    /**
+     * This method is used to return a URL with a proxy context path, a web context root and the tenant domain (If
+     * required) when provided with a URL context.
+     *
+     * @param endpoint            Endpoint.
+     * @param addProxyContextPath Add proxy context path to the URL.
+     * @param addWebContextRoot   Add web context path to the URL.
+     * @return Complete URL for the given URL context.
+     * @throws IdentityRuntimeException If error occurred while constructing the URL
+     */
     public static String getServerURL(String endpoint, boolean addProxyContextPath, boolean addWebContextRoot)
             throws IdentityRuntimeException {
+
         String hostName = ServerConfiguration.getInstance().getFirstProperty(IdentityCoreConstants.HOST_NAME);
 
         try {

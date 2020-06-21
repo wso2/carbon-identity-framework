@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,14 +33,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultSequenceHandlerUtils;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -48,6 +47,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -157,7 +157,10 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
         sequenceConfig.setAuthenticatedUser(
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId));
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);
-        Map<ClaimMapping, String> authenticatedUserAttributes = getClaimMapping(stepConfig, context);
+
+        Map<String, String> mappedAttrs = handleClaimMappings(stepConfig, context);
+        handleRoleMapping(context, sequenceConfig, mappedAttrs);
+        Map<ClaimMapping, String> authenticatedUserAttributes = getClaimMapping(context, mappedAttrs);
         if (MapUtils.isNotEmpty(authenticatedUserAttributes)) {
             sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
             if (log.isDebugEnabled()) {
@@ -227,25 +230,14 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
     /**
      * To get the claim mapping based on user local.
      *
-     * @param stepConfig Step Config.
      * @param context    Authentication Context.
+     * @param mappedAttrs    Mapped user attributes.
      * @return claim mapping.
-     * @throws PostAuthenticationFailedException Post Authentication Failed Exception.
      */
     @SuppressWarnings("unchecked")
-    private Map<ClaimMapping, String> getClaimMapping(StepConfig stepConfig, AuthenticationContext context)
-            throws PostAuthenticationFailedException {
+    private Map<ClaimMapping, String> getClaimMapping(AuthenticationContext context, Map<String, String> mappedAttrs) {
 
-        Map<String, String> mappedAttrs;
         Map<ClaimMapping, String> mappedClaims = null;
-        try {
-            mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context, null, false);
-        } catch (FrameworkException e) {
-            throw new PostAuthenticationFailedException(FrameworkErrorConstants.ErrorMessages.
-                    ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getCode(), String.format(FrameworkErrorConstants.ErrorMessages.
-                            ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
-                    context.getSequenceConfig().getAuthenticatedUser().getUserName()), e);
-        }
         Map<String, String> localClaimValues = (Map<String, String>) context
                 .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
         Map<String, String> idpClaimValues = (Map<String, String>) context
@@ -263,5 +255,42 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             mappedClaims = FrameworkUtils.buildClaimMappings(mappedAttrs);
         }
         return mappedClaims;
+    }
+
+    private void handleRoleMapping(AuthenticationContext context, SequenceConfig sequenceConfig, Map<String, String>
+            mappedAttrs) throws PostAuthenticationFailedException {
+
+        String spRoleUri = DefaultSequenceHandlerUtils.getSpRoleClaimUri(sequenceConfig.getApplicationConfig());
+        String[] roles;
+        try {
+            roles = DefaultSequenceHandlerUtils.getRolesFromSPMappedClaims(context, sequenceConfig, mappedAttrs,
+                    spRoleUri);
+        } catch (FrameworkException e) {
+            throw new PostAuthenticationFailedException(FrameworkErrorConstants.ErrorMessages.
+                    ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getCode(), FrameworkErrorConstants.ErrorMessages.
+                    ERROR_WHILE_HANDLING_CLAIM_MAPPINGS.getMessage(), e);
+        }
+
+        if (!ArrayUtils.isEmpty(roles)) {
+            String spMappedUserRoles = DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig,
+                    Arrays.asList(roles));
+            mappedAttrs.put(spRoleUri, spMappedUserRoles);
+        }
+
+    }
+
+    private Map<String, String> handleClaimMappings(StepConfig stepConfig, AuthenticationContext context)
+            throws PostAuthenticationFailedException {
+
+        Map<String, String> mappedAttrs;
+        try {
+            mappedAttrs = FrameworkUtils.getClaimHandler().handleClaimMappings(stepConfig, context, null, false);
+            return mappedAttrs;
+        } catch (FrameworkException e) {
+            throw new PostAuthenticationFailedException(FrameworkErrorConstants.ErrorMessages.
+                    ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getCode(), String.format(FrameworkErrorConstants.ErrorMessages.
+                            ERROR_WHILE_GETTING_CLAIM_MAPPINGS.getMessage(),
+                    context.getSequenceConfig().getAuthenticatedUser().getUserName()), e);
+        }
     }
 }

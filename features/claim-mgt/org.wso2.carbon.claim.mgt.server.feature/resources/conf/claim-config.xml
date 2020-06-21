@@ -413,6 +413,14 @@
 				<Description>Temporary claim to invoke email ask Password feature</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/tenantAdminAskPassword</ClaimURI>
+				<DisplayName>Tenant Admin Ask Password</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>tenantAdminAskPassword</AttributeID>
+				<Description>Temporary claim to invoke email tenant admin ask Password feature</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/adminForcedPasswordReset</ClaimURI>
 				<DisplayName>Force Password Reset</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
@@ -566,6 +574,30 @@
 				<Description>Failed Attempts Before Success</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/failedSmsOtpAttempts</ClaimURI>
+				<DisplayName>Failed SMS OTP Attempts</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>failedSmsOtpAttempts</AttributeID>
+				<Description>Failed SMS OTP Attempts</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/failedEmailOtpAttempts</ClaimURI>
+				<DisplayName>Failed Email OTP Attempts</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>failedEmailOtpAttempts</AttributeID>
+				<Description>Failed Email OTP Attempts</Description>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/failedTotpAttempts</ClaimURI>
+				<DisplayName>Failed TOTP Attempts</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>failedTotpAttempts</AttributeID>
+				<Description>Failed TOTP Attempts</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/failedLoginLockoutCount</ClaimURI>
 				<DisplayName>Failed Lockout Count</DisplayName>
 				<!-- If user store based identity store is used, a proper mapped attribute
@@ -663,6 +695,14 @@
 				<AttributeID>pendingEmailAddress</AttributeID>
 				<Description>Claim to store newly updated email address until the new email address is verified.</Description>
 				<ReadOnly/>
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/verifySecretkey</ClaimURI>
+				<DisplayName>Verify Secret Key</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>verifySecretkey</AttributeID>
+				<Description>Claim to store the secret key until verified</Description>
 			</Claim>
 		</Dialect>
 

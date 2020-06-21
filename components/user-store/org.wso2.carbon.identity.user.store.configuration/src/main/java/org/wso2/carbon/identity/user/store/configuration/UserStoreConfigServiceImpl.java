@@ -249,7 +249,18 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public Set<String> getAvailableUserStoreClasses() throws IdentityUserStoreMgtException {
 
-        return UserStoreManagerRegistry.getUserStoreManagerClasses();
+        return getAllowedUserstoreClasses(UserStoreManagerRegistry.getUserStoreManagerClasses());
+    }
+
+    private Set<String> getAllowedUserstoreClasses(Set<String> userstores) {
+
+        Set<String> allowedUserstores = UserStoreConfigListenersHolder.getInstance().getAllowedUserstores();
+        // Preserving the old behavior, if the 'AllowedUserstores' config is not set.
+        if (allowedUserstores == null) {
+            return userstores;
+        }
+        userstores.retainAll(allowedUserstores);
+        return userstores;
     }
 
     @Override

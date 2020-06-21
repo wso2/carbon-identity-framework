@@ -23,13 +23,15 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -42,19 +44,20 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManagerImpl;
-import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
-import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLStreamException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Matchers.any;
@@ -67,7 +70,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
  */
-@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class})
+@PrepareForTest({FrameworkUtils.class, ConfigurationFacade.class, ClaimMetadataHandler.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
 
@@ -78,16 +81,28 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     private HttpServletResponse response;
     private PostAuthAssociationHandler postAuthAssociationHandler;
     private ServiceProvider sp;
+    private static final String ORI_ROLE_1 = "Internal/everyone";
+    private static final String ORI_ROLE_2 = "locnomrole";
+    private static final String SP_MAPPED_ROLE_1 = "everyone";
+    private static final String SP_MAPPED_ROLE_2 = "splocnomrole";
 
-    @BeforeClass
-    protected void setupSuite() throws XMLStreamException, IdentityProviderManagementException, FrameworkException {
+    @BeforeMethod
+    protected void setupSuite() throws Exception {
 
         configurationLoader = new UIBasedConfigurationLoader();
         mockStatic(FrameworkUtils.class);
         mockStatic(ConfigurationFacade.class);
+        mockStatic(ClaimMetadataHandler.class);
         ConfigurationFacade configurationFacade = mock(ConfigurationFacade.class);
 
         PowerMockito.when(ConfigurationFacade.getInstance()).thenReturn(configurationFacade);
+
+        ClaimMetadataHandler claimMetadataHandler = mock(ClaimMetadataHandler.class);
+        PowerMockito.when(ClaimMetadataHandler.getInstance()).thenReturn(claimMetadataHandler);
+        Map<String, String> emptyMap = new HashMap<>();
+        PowerMockito.when(ClaimMetadataHandler.getInstance().getMappingsMapFromOtherDialectToCarbon(Mockito.anyString(),
+                Mockito.anySet(), Mockito.anyString(), Mockito.anyBoolean())).thenReturn(emptyMap);
+
         IdentityProvider identityProvider = getTestIdentityProvider("default-tp-1.xml");
         ExternalIdPConfig externalIdPConfig = new ExternalIdPConfig(identityProvider);
         Mockito.doReturn(externalIdPConfig).when(configurationFacade).getIdPConfigByName(Mockito.anyString(), Mockito
@@ -95,25 +110,30 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         when(FrameworkUtils.isStepBasedSequenceHandlerExecuted(Mockito.any(AuthenticationContext.class)))
                 .thenCallRealMethod();
         when(FrameworkUtils.prependUserStoreDomainToName(Mockito.anyString())).thenCallRealMethod();
+        when(FrameworkUtils.buildClaimMappings(Mockito.anyMap())).thenCallRealMethod();
+        when(FrameworkUtils.getStandardDialect(Mockito.anyString(), Mockito.any(ApplicationConfig.class)))
+                .thenCallRealMethod();
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
         sp = getTestServiceProvider("default-sp-1.xml");
 
+        PowerMockito.when(FrameworkUtils.getMultiAttributeSeparator()).thenReturn(",");
         ClaimHandler claimHandler = PowerMockito.mock(ClaimHandler.class);
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
+        claims.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, String.format("%s,%s", ORI_ROLE_1, ORI_ROLE_2));
         PowerMockito.doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class),
                 any(AuthenticationContext.class), any(Map.class), anyBoolean());
         PowerMockito.when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
     }
 
     @Test(description = "This test case tests the Post Authentication Association handling flow with an authenticated" +
-            " user via federated IDP")
-    public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore()
-            throws FrameworkException, FederatedAssociationManagerException {
+            " user via federated IDP", dataProvider = "provideTestScenarios")
+    public void testHandleWithAuthenticatedUserWithFederatedIdpAssociatedToSecondaryUserStore(boolean hasSpRoleMapping)
+            throws Exception {
 
-        AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true);
+        AuthenticationContext context = processAndGetAuthenticationContext(sp, true, true, hasSpRoleMapping);
         FederatedAssociationManager federatedAssociationManager = mock(FederatedAssociationManagerImpl.class);
         when(FrameworkUtils.getFederatedAssociationManager()).thenReturn(federatedAssociationManager);
         doReturn(SECONDARY + "/" + LOCAL_USER).when(federatedAssociationManager).getUserForFederatedAssociation
@@ -129,6 +149,18 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
                 "associated user's domain");
         Assert.assertEquals(postAuthnHandlerFlowStatus, PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED,
                 "Post Association handler failed to execute with an associated user in a secondary user store.");
+        if (hasSpRoleMapping) {
+            Assert.assertTrue(isSpRoleMappingSuccessful(authUser.getUserAttributes()), "SP role mapping failed.");
+        }
+    }
+
+    @DataProvider(name = "provideTestScenarios")
+    public Object[][] provideTestScenarios() {
+
+        return new Object[][]{
+                {false},
+                {true}
+        };
     }
 
     /**
@@ -139,7 +171,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
      * @throws FrameworkException Framework Exception.
      */
     private AuthenticationContext processAndGetAuthenticationContext(ServiceProvider sp1, boolean
-            withAuthenticatedUser, boolean isFederated) throws FrameworkException {
+            withAuthenticatedUser, boolean isFederated, boolean withSpRoleMapping) throws FrameworkException {
 
         AuthenticationContext context = getAuthenticationContext(sp1);
         SequenceConfig sequenceConfig = configurationLoader
@@ -171,6 +203,27 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
             }
             context.setSequenceConfig(sequenceConfig);
         }
+
+        if (withSpRoleMapping) {
+            sequenceConfig.getApplicationConfig().getClaimMappings().put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI,
+                    FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+            sequenceConfig.getApplicationConfig().getServiceProvider().getClaimConfig().setLocalClaimDialect(true);
+            sequenceConfig.getApplicationConfig().getRoleMappings().put(ORI_ROLE_1, SP_MAPPED_ROLE_1);
+            sequenceConfig.getApplicationConfig().getRoleMappings().put(ORI_ROLE_2, SP_MAPPED_ROLE_2);
+        }
+
         return context;
+    }
+
+    private boolean isSpRoleMappingSuccessful(Map<ClaimMapping, String> authenticatedUserAttributes) {
+
+        for (Map.Entry<ClaimMapping, String> entry : authenticatedUserAttributes.entrySet()) {
+            if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey().getLocalClaim().getClaimUri())) {
+                List<String> roles = Arrays.asList(entry.getValue().split(","));
+                return roles.size() == 2 && roles.contains(SP_MAPPED_ROLE_1) && roles.contains(SP_MAPPED_ROLE_2);
+            }
+
+        }
+        return false;
     }
 }

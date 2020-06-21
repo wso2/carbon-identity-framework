@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,23 +16,22 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.common.model;
+package org.wso2.carbon.identity.core;
+
+import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
 
 /**
- * SPML provisioning connector configuration.
+ * Service URL Builder Factory representation.
  */
-public class SPMLProvisioningConnectorConfig extends ProvisioningConnectorConfig {
+public class ServiceURLBuilderFactory {
 
-    private static final long serialVersionUID = -8336211694205008436L;
+    /**
+     * This method is called to create a {@link ServiceURLBuilder} instance.
+     *
+     * @return {@link ServiceURLBuilder}.
+     */
+    public ServiceURLBuilder createServiceURLBuilder() {
 
-    @Override
-    public String getName() {
-        return "spml";
+        return new DefaultServiceURLBuilder();
     }
-
-    @Override
-    public boolean isValid() {
-        return false;
-    }
-
 }

@@ -43,6 +43,8 @@ public class UserStoreConfigurationConstant {
     public static final String PERIOD = ".";
     public static final String DISABLED = "Disabled";
     public static final String FILE_EXTENSION_XML = ".xml";
+    public static final String ALLOWED_USERSTORES = "AllowedUserstores";
+    public static final String ALLOWED_USERSTORE = "AllowedUserstore";
 
     private UserStoreConfigurationConstant() {
 

@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -197,7 +198,7 @@ public class DefaultStepHandler implements StepHandler {
             }
         } else {
 
-            if (!context.isForceAuthenticate() && !authenticatedStepIdps.isEmpty()) {
+            if (!(context.isForceAuthenticate() || stepConfig.isForced()) && !authenticatedStepIdps.isEmpty()) {
 
                 Map.Entry<String, AuthenticatorConfig> entry = authenticatedStepIdps.entrySet()
                         .iterator().next();
@@ -367,8 +368,9 @@ public class DefaultStepHandler implements StepHandler {
             Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
                     .getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
 
-            if (authenticatedStepIdps.containsKey(idpName) && !context.isForceAuthenticate() && !context
-                    .isReAuthenticate()) {
+            if (authenticatedStepIdps.containsKey(idpName)
+                    && !(context.isForceAuthenticate() || stepConfig.isForced())
+                    && !context.isReAuthenticate()) {
                 // skip the step if this is a normal request
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(idpName);
                 populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
@@ -438,17 +440,18 @@ public class DefaultStepHandler implements StepHandler {
         for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
             ApplicationAuthenticator authenticator = authenticatorConfig
                     .getApplicationAuthenticator();
-            // TODO [IMPORTANT] validate the authenticator is inside the step.
             if (authenticator != null && authenticator.getName().equalsIgnoreCase(
                     request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
+                if (selectedIdp != null && authenticatorConfig.getIdps().get(selectedIdp) == null) {
+                    // if the selected idp name is not configured for the application, throw error since
+                    // this is an invalid case.
+                    throw new FrameworkException("Authenticators configured for application and user selected idp " +
+                            "does not match. Possible tampering of parameters in login page.");
+                }
                 doAuthentication(request, response, context, authenticatorConfig);
                 return;
             }
         }
-
-        // TODO handle idp null
-
-        // TODO handle authenticator name unmatching
     }
 
     protected void handleResponse(HttpServletRequest request, HttpServletResponse response,
@@ -716,7 +719,7 @@ public class DefaultStepHandler implements StepHandler {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8") + "&remainingAttempts=" + remainingAttempts;
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                 } else if (UserCoreConstants.ErrorCode.USER_IS_LOCKED.equals(errorCode)) {
                     String redirectURL;
                     if (remainingAttempts == 0) {
@@ -760,7 +763,7 @@ public class DefaultStepHandler implements StepHandler {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (username, "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                 } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
                     String username = request.getParameter("username");
                     return response.encodeRedirectURL(
@@ -770,11 +773,11 @@ public class DefaultStepHandler implements StepHandler {
                     retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
-                            + "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                            + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                 }
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
             }
         } else {
             String errorCode = errorContext != null ? errorContext.getErrorCode() : null;
@@ -782,7 +785,7 @@ public class DefaultStepHandler implements StepHandler {
                 String redirectURL;
                 redirectURL = response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()
                 )) + "&failedUsername=" + URLEncoder.encode(request.getParameter("username"), "UTF-8") +
-                        "&authenticators=" + authenticatorNames + ":" + FrameworkConstants.LOCAL + retryParam;
+                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
                 return redirectURL;
 
             } else if (IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.equals(errorCode)) {
@@ -792,8 +795,7 @@ public class DefaultStepHandler implements StepHandler {
                         + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp;
             } else {
                 return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams())) +
-                        "&authenticators=" + URLEncoder.encode(authenticatorNames + ":" + FrameworkConstants.LOCAL,
-                        "UTF-8") + retryParam;
+                        "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
             }
         }
     }
