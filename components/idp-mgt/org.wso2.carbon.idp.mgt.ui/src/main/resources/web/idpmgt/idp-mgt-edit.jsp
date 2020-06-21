@@ -186,14 +186,6 @@
     String scimDefaultPwd = null;
     String disableDefaultPwd = "";
     String scimUniqueID = null;
-
-    boolean isSpmlProvEnabled = false;
-    boolean isSpmlProvDefault = false;
-    String spmlUserName = null;
-    String spmlPassword = null;
-    String spmlEndpoint = null;
-    String spmlObjectClass = null;
-    String spmlUniqueID = null;
     
     String samlQueryParam = "";
     String passiveSTSQueryParam = "";
@@ -672,14 +664,11 @@
         ProvisioningConnectorConfig googleApps = null;
         ProvisioningConnectorConfig salesforce = null;
         ProvisioningConnectorConfig scim = null;
-        ProvisioningConnectorConfig spml = null;
 
         if (provisioningConnectors != null) {
             for (ProvisioningConnectorConfig provisioningConnector : provisioningConnectors) {
                 if (provisioningConnector != null && "scim".equals(provisioningConnector.getName())) {
                     scim = provisioningConnector;
-                } else if (provisioningConnector != null && "spml".equals(provisioningConnector.getName())) {
-                    spml = provisioningConnector;
                 } else if (provisioningConnector != null && "salesforce".equals(provisioningConnector.getName())) {
                     salesforce = provisioningConnector;
                 } else if (provisioningConnector != null && "googleapps".equals(provisioningConnector.getName())) {
@@ -805,37 +794,6 @@
 
             if (googleApps.getEnabled()) {
                 isGoogleProvEnabled = true;
-            }
-        }
-
-        if (spml != null) {
-
-            if (identityProvider.getDefaultProvisioningConnectorConfig() != null
-                    && identityProvider.getDefaultProvisioningConnectorConfig().getName() != null) {
-                isSpmlProvDefault = identityProvider.getDefaultProvisioningConnectorConfig().getName().equals(spml.getName());
-            }
-
-            Property[] spmlProperties = spml.getProvisioningProperties();
-            if (spmlProperties != null && spmlProperties.length > 0) {
-                for (Property spmlProperty : spmlProperties) {
-                    if (spmlProperty != null) {
-                        if ("spml-username".equals(spmlProperty.getName())) {
-                            spmlUserName = spmlProperty.getValue();
-                        } else if ("spml-password".equals(spmlProperty.getName())) {
-                            spmlPassword = spmlProperty.getValue();
-                        } else if ("spml-ep".equals(spmlProperty.getName())) {
-                            spmlEndpoint = spmlProperty.getValue();
-                        } else if ("spml-oc".equals(spmlProperty.getName())) {
-                            spmlObjectClass = spmlProperty.getValue();
-                        } else if ("UniqueID".equals(spmlProperty.getName())) {
-                            spmlUniqueID = spmlProperty.getValue();
-                        }
-                    }
-                }
-            }
-
-            if (spml.getEnabled()) {
-                isSpmlProvEnabled = true;
             }
         }
     }
@@ -1197,34 +1155,6 @@
         googleProvisioningSeparator = "";
     }
 
-    String spmlProvEnabledChecked = "";
-    String spmlProvDefaultDisabled = "";
-    String spmlProvDefaultChecked = "disabled=\'disabled\'";
-
-
-    if (identityProvider != null) {
-        if (isSpmlProvEnabled) {
-            spmlProvEnabledChecked = "checked=\'checked\'";
-            spmlProvDefaultChecked = "";
-            if (isSpmlProvDefault) {
-                spmlProvDefaultChecked = "checked=\'checked\'";
-            }
-        }
-    }
-
-    if (spmlUserName == null) {
-        spmlUserName = "";
-    }
-    if (spmlPassword == null) {
-        spmlPassword = "";
-    }
-    if (spmlEndpoint == null) {
-        spmlEndpoint = "";
-    }
-    if (spmlObjectClass == null) {
-        spmlObjectClass = "";
-    }
-
     String scimProvEnabledChecked = "";
     String scimProvDefaultDisabled = "";
     String scimPwdProvEnabledChecked = "";
@@ -1298,7 +1228,6 @@
 <script>
 
     var claimMappinRowID = -1;
-    var claimMappinRowIDSPML = -1;
     var advancedClaimMappinRowID = -1;
     var roleRowId = -1;
     var claimRowId = -1;
@@ -1552,7 +1481,6 @@
         jQuery('#googleProvDefault').attr('disabled', 'disabled');
         jQuery('#sfProvDefault').attr('disabled', 'disabled');
         jQuery('#scimProvDefault').attr('disabled', 'disabled');
-        jQuery('#spmlProvDefault').attr('disabled', 'disabled');
         jQuery('#openIdDefault').attr('disabled', 'disabled');
         jQuery('#saml2SSODefault').attr('disabled', 'disabled');
         jQuery('#oidcDefault').attr('disabled', 'disabled');
@@ -1562,11 +1490,6 @@
         if ($(jQuery('#claimMappingAddTable tr')).length < 2) {
             $(jQuery('#claimMappingAddTable')).hide();
         }
-
-        if ($(jQuery('#claimMappingAddTableSPML tr')).length < 2) {
-            $(jQuery('#claimMappingAddTableSPML')).hide();
-        }
-
 
         if (<%=isOpenIdEnabled%>) {
             jQuery('#openid_enable_logo').show();
@@ -1608,12 +1531,6 @@
             jQuery('#scim_enable_logo').show();
         } else {
             jQuery('#scim_enable_logo').hide();
-        }
-
-        if (<%=isSpmlProvEnabled%>) {
-            jQuery('#spml_enable_logo').show();
-        } else {
-            jQuery('#spml_enable_logo').hide();
         }
 
         jQuery('h2.trigger').click(function () {
@@ -3106,7 +3023,6 @@
         jQuery('#passiveSTSDefault').removeAttr('disabled');
         jQuery('#fbAuthDefault').removeAttr('disabled');
         jQuery('#googleProvDefault').removeAttr('disabled');
-        jQuery('#spmlProvDefault').removeAttr('disabled');
         jQuery('#sfProvDefault').removeAttr('disabled');
         jQuery('#scimProvDefault').removeAttr('disabled');
 
@@ -5463,93 +5379,6 @@
                             </tr>
                         </table>
 
-                    </div>
-
-                    <h2 id="spml_prov_head" class="sectionSeperator trigger active"
-                        style="background-color: beige; display:none;">
-                        <a href="#"><fmt:message key="spml.provisioning.connector"/></a>
-
-                        <div id="spml_enable_logo" class="enablelogo"
-                             style="float:right;padding-right: 5px;padding-top: 5px;"><img
-                                src="images/ok.png" alt="enable" width="16" height="16"></div>
-
-                    </h2>
-                    <div class="toggle_container sectionSub"
-                         style="margin-bottom: 10px; display: none;" id="spmlProvRow">
-
-                        <table class="carbonFormTable">
-
-                            <tr>
-                                <td class="leftCol-med labelField"><label
-                                        for="spmlProvEnabled"><fmt:message
-                                        key='spml.provisioning.enabled'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="spmlProvEnabled" name="spmlProvEnabled"
-                                               type="checkbox" <%=spmlProvEnabledChecked%>
-                                               onclick="checkProvEnabled(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='spml.provisioning.enabled.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr style="display:none;">
-                                <td class="leftCol-med labelField"><label
-                                        for="spmlProvDefault"><fmt:message
-                                        key='spml.provisioning.default'/>:</label></td>
-                                <td>
-                                    <div class="sectionCheckbox">
-                                        <!-- -->
-                                        <input id="spmlProvDefault" name="spmlProvDefault"
-                                               type="checkbox" <%=spmlProvDefaultChecked%>
-                                                <%=spmlProvDefaultDisabled%>
-                                               onclick="checkProvDefault(this);"/> <span
-                                            style="display: inline-block" class="sectionHelp"> <fmt:message
-                                            key='spml.provisioning.default.help'/>
-                                        </span>
-                                    </div>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.user.name'/>:
-                                </td>
-                                <td><input class="text-box-big" id="spml-username"
-                                           name="spml-username" type="text"
-                                           value=<%=Encode.forHtmlAttribute(spmlUserName) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.user.password'/>:
-                                </td>
-                                <td><input class="text-box-big" id="spml-password"
-                                           name="spml-password" type="password" autocomplete="off"
-                                           value=<%=Encode.forHtmlAttribute(spmlPassword) %>></td>
-                            </tr>
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.endpoint'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="spml-ep" name="spml-ep"
-                                           type="text" value=<%=Encode.forHtmlAttribute(spmlEndpoint) %>></td>
-                            </tr>
-
-                            <tr>
-                                <td class="leftCol-med labelField"><fmt:message
-                                        key='spml.provisioning.objectClass'/>:<span
-                                        class="required">*</span></td>
-                                <td><input class="text-box-big" id="spml-oc" name="spml-oc"
-                                           type="text" value=<%=Encode.forHtmlAttribute(spmlObjectClass) %>></td>
-                                <%if (spmlUniqueID != null) {%>
-                                <input type="hidden" id="spml-unique-id" name="spml-unique-id"
-                                       value=<%=Encode.forHtmlAttribute(spmlUniqueID)%>>
-                                <%}%>
-                            </tr>
-
-                        </table>
                     </div>
 
                     <%
