@@ -44,6 +44,17 @@ public interface ConfigurationManager {
     Resources getTenantResources(Condition searchCondition) throws ConfigurationManagementException;
 
     /**
+     * This API is used to get resources from a specific tenant filtered with the {@link Condition}.
+     *
+     * @param tenantDomain    Tenant domain.
+     * @param searchCondition {@link Condition} representing a search filter for resources.
+     * @return {@link Resources} object with a collection of resources matching to the given {@link Condition}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    Resources getTenantResources(String tenantDomain, Condition searchCondition) throws
+            ConfigurationManagementException;
+
+    /**
      * This API is used to store a new {@link ResourceType}.
      *
      * @param resourceTypeAdd {@link ResourceType} create request.
