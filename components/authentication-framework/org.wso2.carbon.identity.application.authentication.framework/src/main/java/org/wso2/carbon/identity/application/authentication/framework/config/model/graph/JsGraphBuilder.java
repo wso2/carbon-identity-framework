@@ -143,6 +143,8 @@ public class JsGraphBuilder {
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                     this::sendError);
+            globalBindings.put(FrameworkConstants.JSAttributes.JS_AUTH_FAILURE,
+                    (FailAuthenticationFunction) this::fail);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
                     (PromptExecutor) this::addShowPrompt);
             globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
@@ -211,6 +213,7 @@ public class JsGraphBuilder {
 
         FailNode failNode = new FailNode();
         failNode.setErrorPageUri(url);
+        failNode.setShowErrorPage(true);
 
         parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
         return failNode;
@@ -226,6 +229,39 @@ public class JsGraphBuilder {
         FailNode newNode = createFailNode(url, parameterMap);
         if (currentNode == null) {
             result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public void fail(Object... parameters) {
+
+        FailNode newNode = new FailNode();
+
+        newNode.setShowErrorPage(false);
+        newNode.setFailureData((Map<String, String>) parameters[0]);
+
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void failAsync(Object... parameters) {
+
+        FailNode newNode = new FailNode();
+
+        newNode.setShowErrorPage(false);
+
+        if (parameters.length == 1) {
+            newNode.setFailureData((Map<String, String>) parameters[0]);
+        }
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
+        if (currentNode == null) {
+            dynamicallyBuiltBaseNode.set(newNode);
         } else {
             attachToLeaf(currentNode, newNode);
         }
@@ -818,6 +854,12 @@ public class JsGraphBuilder {
     }
 
     @FunctionalInterface
+    public interface FailAuthenticationFunction {
+
+        void fail(Object... parameterMap);
+    }
+
+    @FunctionalInterface
     public interface StepExecutor {
 
         void executeStep(Integer stepId, Object... parameterMap);
@@ -886,6 +928,8 @@ public class JsGraphBuilder {
                             (StepExecutor) graphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
                             (BiConsumer<String, Map>) JsGraphBuilder::sendErrorAsync);
+                    globalBindings.put(FrameworkConstants.JSAttributes.JS_AUTH_FAILURE,
+                            (FailAuthenticationFunction) JsGraphBuilder::failAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
