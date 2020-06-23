@@ -213,6 +213,7 @@ public class JsGraphBuilder {
 
         FailNode failNode = new FailNode();
         failNode.setErrorPageUri(url);
+        // setShowErrorPage is set to true as sendError function redirects to a specific error page.
         failNode.setShowErrorPage(true);
 
         parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
@@ -238,7 +239,7 @@ public class JsGraphBuilder {
     public void fail(Object... parameters) {
 
         FailNode newNode = new FailNode();
-
+        // setShowErrorPage is set to false as fail function does not redirect to a specific error page.
         newNode.setShowErrorPage(false);
         newNode.setFailureData((Map<String, String>) parameters[0]);
 

@@ -178,7 +178,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
         } else if (currentNode instanceof FailNode) {
-            handleAuthFail(request, response, context, (FailNode)currentNode);
+            handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
         }
         return isInterrupt;
     }
@@ -327,12 +327,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * @throws FrameworkException
      */
     private void handleAuthFail(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
-                                FailNode node) throws FrameworkException {
+                                SequenceConfig sequenceConfig, FailNode node) throws FrameworkException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Found a Fail Node in conditional authentication");
+        }
 
         if (node.isShowErrorPage()) {
-            if (log.isDebugEnabled()) {
-                log.debug("Found a Fail Node in conditional authentication");
-            }
+            // Set parameters specific to sendError function to context if isShowErrorPage  is true
             String errorPage = node.getErrorPageUri();
             String redirectURL = null;
             if (StringUtils.isBlank(errorPage)) {
@@ -356,6 +358,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
                     redirectURL);
         } else {
+            // If isShowErrorPage is false, set parameters specific to fail function to context.
             setErrorPropertiesToContext(node, context);
         }
     }

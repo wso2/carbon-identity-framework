@@ -36,7 +36,7 @@ public class FailNode extends AbstractAuthGraphNode implements AuthGraphNode {
         return errorPageUri;
     }
 
-    void setErrorPageUri(String errorPageUri) {
+    public void setErrorPageUri(String errorPageUri) {
         this.errorPageUri = errorPageUri;
     }
 
@@ -44,7 +44,7 @@ public class FailNode extends AbstractAuthGraphNode implements AuthGraphNode {
         return showErrorPage;
     }
 
-    void setShowErrorPage(boolean showErrorPage) {
+    public void setShowErrorPage(boolean showErrorPage) {
         this.showErrorPage = showErrorPage;
     }
 
