@@ -1925,6 +1925,22 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/media/create</Permissions>
+            <Scopes>internal_media_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/media/v1.0/content/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/media/view</Permissions>
+            <Scopes>internal_media_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
+            <Scopes>internal_media_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
@@ -1998,6 +2014,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
