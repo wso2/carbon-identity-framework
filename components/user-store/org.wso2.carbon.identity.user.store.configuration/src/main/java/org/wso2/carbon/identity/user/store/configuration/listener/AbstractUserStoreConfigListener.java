@@ -75,4 +75,10 @@ public abstract class AbstractUserStoreConfigListener implements UserStoreConfig
     public void onUserStorePostDelete(int tenantId, String userStoreName) throws UserStoreException {
         /* Method not implemented */
     }
+
+    @Override
+    public void onUserStorePerAdd(int tenantId, String userStoreName) throws UserStoreException {
+
+        /* Method not implemented. */
+    }
 }
