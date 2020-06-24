@@ -187,6 +187,7 @@ public class IdentityEventConstants {
         public static final String DELETED_ROLES = "DELETED_ROLES";
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
+        public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
