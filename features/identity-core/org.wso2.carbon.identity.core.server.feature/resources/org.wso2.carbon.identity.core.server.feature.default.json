@@ -552,6 +552,9 @@
   "developer_portal.app_base_name": "developer-portal",
   "developer_portal.client_id": "DEVELOPER_PORTAL",
   "developer_portal.debug.enable": false,
+  "developer_portal.applications.admin_app.configs": {
+    "path": "/admin-portal/overview"
+  },
   "developer_portal.documentation.base_url": "https://api.github.com",
   "developer_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "developer_portal.documentation.github_options": {
@@ -618,6 +621,9 @@
   "admin_portal.app_base_name": "admin-portal",
   "admin_portal.client_id": "ADMIN_PORTAL",
   "admin_portal.debug.enable": false,
+  "admin_portal.applications.developer_app.configs": {
+    "path": "/developer-portal/overview"
+  },
   "admin_portal.documentation.base_url": "https://api.github.com",
   "admin_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "admin_portal.documentation.github_options": {
