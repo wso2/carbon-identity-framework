@@ -57,6 +57,7 @@ import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryU
         .convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
         .triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil
@@ -282,6 +283,8 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
+            // Run pre user-store add listeners.
+            triggerListenersOnUserStorePreAdd(domainName);
             boolean validDomain = isValidDomainToAdd(domainName);
             validateForFederatedDomain(domainName);
             if (validDomain) {

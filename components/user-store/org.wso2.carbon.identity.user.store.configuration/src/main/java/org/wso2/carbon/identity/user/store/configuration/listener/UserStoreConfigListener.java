@@ -40,4 +40,16 @@ public interface UserStoreConfigListener {
         // Not implemented.
     }
 
+    /**
+     * Called before adding a userstore.
+     *
+     * @param tenantId Tenant id.
+     * @param userStoreName Userstore domain name.
+     * @throws UserStoreException throws when an error occurrs in the listener.
+     */
+    default void onUserStorePerAdd(int tenantId, String userStoreName) throws UserStoreException {
+
+        // Not implemented.
+    }
+
 }
