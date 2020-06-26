@@ -248,16 +248,18 @@ public class ExternalClaimDAO extends ClaimDAO {
 
     /**
      * This method retrieve the external claim, mapped URI,claim properties of the given claimDialectURI
+     *
      * @param connection connection to the DB
      * @param claimDialectURI claimDialectURI to retrieve external claims
      * @param tenantId  tenantID of the claims to be retrieved
      * @return  List of External claims
      * @throws ClaimMetadataException
      */
-    private List<ExternalClaim> getExternalClaimsFromDB(Connection connection, String claimDialectURI, int tenantId) throws
-            ClaimMetadataException {
+    private List<ExternalClaim> getExternalClaimsFromDB(Connection connection, String claimDialectURI, int tenantId)
+            throws ClaimMetadataException {
+
         Map<Integer, ExternalClaim> claimMap = new HashMap<>();
-        Map<String,String > propmap;
+        Map<String, String> propmap;
 
         PreparedStatement prepStmt = null;
         ResultSet rs = null;
@@ -272,22 +274,20 @@ public class ExternalClaimDAO extends ClaimDAO {
             rs = prepStmt.executeQuery();
 
             while (rs.next()) {
-
                 String claimPropertyName = rs.getString(SQLConstants.PROPERTY_NAME_COLUMN);
                 String claimPropertyValue = rs.getString(SQLConstants.PROPERTY_VALUE_COLUMN);
                 int localId = rs.getInt(SQLConstants.ID_COLUMN);
-                if ( claimMap.get(localId) == null)  {
-                    String mappedURI = rs.getString(SQLConstants.MAPPED_URI);
+                if (claimMap.get(localId) == null) {
+                    String mappedURI = rs.getString(SQLConstants.MAPPED_URI_COLUMN);
                     String claimURI = rs.getString(SQLConstants.CLAIM_URI_COLUMN);
                     propmap = new HashMap<>();
                     propmap.put(claimPropertyName, claimPropertyValue);
-                    ExternalClaim temp = new ExternalClaim(claimDialectURI,claimURI, mappedURI, propmap);
+                    ExternalClaim temp = new ExternalClaim(claimDialectURI, claimURI, mappedURI, propmap);
                     claimMap.put(localId, temp);
                 } else {
-                    (claimMap.get(localId)).getClaimProperties().put(claimPropertyName, claimPropertyValue);
+                    claimMap.get(localId).getClaimProperties().put(claimPropertyName, claimPropertyValue);
                 }
             }
-
         } catch (SQLException e) {
             throw new ClaimMetadataException("Error while listing claims for dialect " + claimDialectURI, e);
         } finally {

@@ -39,8 +39,8 @@ public class SQLConstants {
     public static final String PROPERTY_NAME_COLUMN = "PROPERTY_NAME";
     public static final String PROPERTY_VALUE_COLUMN = "PROPERTY_VALUE";
     public static final String LOCAL_CLAIM_ID_COLUMN = "LOCAL_CLAIM_ID";
-    public static final String EXT_CLAIM_ID = "EXT_CLAIM_ID";
-    public static final String MAPPED_URI = "MAPPED_URI";
+    public static final String EXT_CLAIM_ID_COLUMN = "EXT_CLAIM_ID";
+    public static final String MAPPED_URI_COLUMN = "MAPPED_URI";
 
     // Claim Dialect SQLs
     public static final String GET_CLAIM_DIALECTS = "SELECT DIALECT_URI FROM IDN_CLAIM_DIALECT WHERE TENANT_ID=?";
@@ -92,14 +92,14 @@ public class SQLConstants {
             "TENANT_ID=?";
 
     public static final String GET_CLAIMS = "SELECT CLAIMS.ID, PROPERTY.PROPERTY_NAME, PROPERTY.PROPERTY_VALUE, "
-            + "CLAIMS.CLAIM_URI, RESOLVED.CLAIM_URI as MAPPED_URI FROM IDN_CLAIM as CLAIMS "
+            + "CLAIMS.CLAIM_URI, RESOLVED.CLAIM_URI AS MAPPED_URI FROM IDN_CLAIM AS CLAIMS "
             + "LEFT JOIN IDN_CLAIM_PROPERTY AS PROPERTY "
             +           "ON PROPERTY.LOCAL_CLAIM_ID=CLAIMS.ID AND CLAIMS.TENANT_ID=PROPERTY.TENANT_ID "
             + "INNER JOIN IDN_CLAIM_MAPPING AS MAPPING "
             +           "ON MAPPING.EXT_CLAIM_ID=CLAIMS.ID  AND CLAIMS.TENANT_ID=MAPPING.TENANT_ID "
-            + "INNER JOIN IDN_CLAIM as RESOLVED "
+            + "INNER JOIN IDN_CLAIM AS RESOLVED "
             + "         ON RESOLVED.ID=MAPPING.MAPPED_LOCAL_CLAIM_ID AND RESOLVED.TENANT_ID=MAPPING.TENANT_ID "
-            + "WHERE CLAIMS.DIALECT_ID=(select ID from IDN_CLAIM_DIALECT WHERE DIALECT_URI=? AND "
+            + "WHERE CLAIMS.DIALECT_ID=(SELECT ID FROM IDN_CLAIM_DIALECT WHERE DIALECT_URI=? AND "
             + "TENANT_ID=?) AND CLAIMS.TENANT_ID=?";
 
     // External Claim Mapping SQLs
