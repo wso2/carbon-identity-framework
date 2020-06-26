@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryM
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -199,7 +200,7 @@ public class JsGraphBuilder {
      */
     public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(url, parameterMap);
+        FailNode newNode = createFailNode(url, parameterMap, true);
 
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
         if (currentNode == null) {
@@ -209,12 +210,14 @@ public class JsGraphBuilder {
         }
     }
 
-    private static FailNode createFailNode(String url, Map<String, Object> parameterMap) {
+    private static FailNode createFailNode(String url, Map<String, Object> parameterMap, boolean isShowErrorPage) {
 
         FailNode failNode = new FailNode();
-        failNode.setErrorPageUri(url);
+        if (isShowErrorPage && StringUtils.isNotBlank(url)) {
+            failNode.setErrorPageUri(url);
+        }
         // setShowErrorPage is set to true as sendError function redirects to a specific error page.
-        failNode.setShowErrorPage(true);
+        failNode.setShowErrorPage(isShowErrorPage);
 
         parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
         return failNode;
@@ -227,7 +230,7 @@ public class JsGraphBuilder {
      */
     public void sendError(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(url, parameterMap);
+        FailNode newNode = createFailNode(url, parameterMap, true);
         if (currentNode == null) {
             result.setStartNode(newNode);
         } else {
@@ -238,10 +241,15 @@ public class JsGraphBuilder {
     @SuppressWarnings("unchecked")
     public void fail(Object... parameters) {
 
-        FailNode newNode = new FailNode();
-        // setShowErrorPage is set to false as fail function does not redirect to a specific error page.
-        newNode.setShowErrorPage(false);
-        newNode.setFailureData((Map<String, String>) parameters[0]);
+        Map<String, Object> parameterMap;
+
+        if (parameters.length == 1) {
+            parameterMap = (Map<String, Object>) parameters[0];
+        } else {
+            parameterMap = (HashMap<String, Object>) Collections.EMPTY_MAP;
+        }
+
+        FailNode newNode = createFailNode(StringUtils.EMPTY, parameterMap, false);
 
         if (currentNode == null) {
             result.setStartNode(newNode);
@@ -253,13 +261,16 @@ public class JsGraphBuilder {
     @SuppressWarnings("unchecked")
     public static void failAsync(Object... parameters) {
 
-        FailNode newNode = new FailNode();
-
-        newNode.setShowErrorPage(false);
+        Map<String, Object> parameterMap;
 
         if (parameters.length == 1) {
-            newNode.setFailureData((Map<String, String>) parameters[0]);
+            parameterMap = (Map<String, Object>) parameters[0];
+        } else {
+            parameterMap = (HashMap<String, Object>) Collections.EMPTY_MAP;
         }
+
+        FailNode newNode = createFailNode(StringUtils.EMPTY, parameterMap, false);
+
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
         if (currentNode == null) {
             dynamicallyBuiltBaseNode.set(newNode);
