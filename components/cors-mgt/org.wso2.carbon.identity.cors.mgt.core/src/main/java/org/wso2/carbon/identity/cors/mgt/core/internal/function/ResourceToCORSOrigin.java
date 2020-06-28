@@ -18,37 +18,31 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.function;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
- * Converts a ConfigurationManagement Resource to a list of CORSOrigins.
+ * Converts a ConfigurationManagement Resource to a list of ValidatedOrigins.
  */
-public class ResourceToCORSOrigin implements CheckedFunction<Resource, List<CORSOrigin>> {
-
-    private static final Log log = LogFactory.getLog(ResourceToCORSOrigin.class);
+public class ResourceToCORSOrigin implements Function<Resource, CORSOrigin> {
 
     @Override
-    public List<CORSOrigin> apply(Resource resource) throws IOException {
+    public CORSOrigin apply(Resource resource) {
 
-        ObjectMapper mapper = new ObjectMapper();
-
-        ArrayList<CORSOrigin> corsOrigins = new ArrayList<>();
+        CORSOrigin corsOrigin = new CORSOrigin();
+        corsOrigin.setId(resource.getResourceId());
+        corsOrigin.setOrigin(resource.getResourceName());
         if (resource.isHasAttribute()) {
             List<Attribute> attributes = resource.getAttributes();
             for (Attribute attribute : attributes) {
-                CORSOrigin corsOrigin = mapper.readValue(attribute.getValue(), CORSOrigin.class);
-                corsOrigins.add(corsOrigin);
+                corsOrigin.getAppIds().add(attribute.getKey());
             }
         }
-        return corsOrigins;
+
+        return corsOrigin;
     }
 }

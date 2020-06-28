@@ -2190,4 +2190,17 @@
         <DisallowedCharacters>{{user_identifier.disallowed.characters.regex}}</DisallowedCharacters>
     </UserIdentifier>
     {% endif %}
+
+    <!-- CORS -->
+    <CORS>
+        <AllowGenericHttpRequests>{{cors.allow_generic_http_requests}}</AllowGenericHttpRequests>
+        <AllowedOrigins>{{cors.allowed_origins}}</AllowedOrigins>
+        <AllowSubdomains>{{cors.allow_subdomains}}</AllowSubdomains>
+        <SupportedMethods>{{cors.supported_methods}}</SupportedMethods>
+        <SupportedHeaders>{{cors.supported_headers}}</SupportedHeaders>
+        <ExposedHeaders>{{cors.exposed_headers}}</ExposedHeaders>
+        <SupportsCredentials>{{cors.supports_credentials}}</SupportsCredentials>
+        <MaxAge>{{cors.max_age}}</MaxAge>
+        <TagRequests>{{cors.tag_requests}}</TagRequests>
+    </CORS>
 </Server>

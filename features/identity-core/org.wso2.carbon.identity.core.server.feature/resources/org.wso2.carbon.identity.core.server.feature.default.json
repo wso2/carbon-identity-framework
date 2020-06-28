@@ -818,5 +818,14 @@
     "userIdleWarningTimeOut": 580,
     "sessionRefreshTimeOut": 300,
     "checkSessionInterval": 3
-  }
+  },
+  "cors.allow_generic_http_requests": true,
+  "cors.allowed_origins": "",
+  "cors.allow_subdomains": false,
+  "cors.supported_methods": "GET, POST, HEAD, OPTIONS",
+  "cors.supported_headers": "*",
+  "cors.exposed_headers": "",
+  "cors.supports_credentials": true,
+  "cors.max_age": -1,
+  "cors.tag_requests": false
 }

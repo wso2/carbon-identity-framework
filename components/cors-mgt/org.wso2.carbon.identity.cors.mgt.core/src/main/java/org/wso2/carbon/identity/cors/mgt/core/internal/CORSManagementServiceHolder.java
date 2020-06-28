@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 public class CORSManagementServiceHolder {
 
     private ConfigurationManager configurationManager;
-
     private CORSManagementService corsManagementService;
 
     private CORSManagementServiceHolder() {

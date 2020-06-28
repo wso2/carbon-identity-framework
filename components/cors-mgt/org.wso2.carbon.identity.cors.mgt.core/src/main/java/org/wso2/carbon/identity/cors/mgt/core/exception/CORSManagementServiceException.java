@@ -74,7 +74,7 @@ public class CORSManagementServiceException extends Exception {
     /**
      * Get the {@code errorCode}.
      *
-     * @return The {@code errorCode}.
+     * @return Returns the {@code errorCode}.
      */
     public String getErrorCode() {
 

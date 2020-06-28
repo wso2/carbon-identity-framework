@@ -11,7 +11,7 @@
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
+ * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
  */
@@ -19,25 +19,36 @@
 package org.wso2.carbon.identity.cors.mgt.core.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.sql.DataSource;
+
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
- * Utility class for CORSServiceTest.
+ * Utility class for database functions.
  */
-public class TestUtils {
+public class DatabaseUtils {
 
     public static final String H2_SCRIPT_NAME = "h2.sql";
     private static final String DB_NAME = "Config";
     public static Map<String, BasicDataSource> dataSourceMap = new HashMap<>();
+
+    /**
+     * Private constructor of DatabaseUtils.
+     */
+    private DatabaseUtils() {
+
+    }
 
     /**
      * Initiate an H2 database.
@@ -52,13 +63,15 @@ public class TestUtils {
         dataSource.setPassword("password");
         dataSource.setUrl("jdbc:h2:mem:test" + DB_NAME);
         try (Connection connection = dataSource.getConnection()) {
-            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + getFilePath(H2_SCRIPT_NAME) + "'");
+            connection.createStatement().executeUpdate("RUNSCRIPT FROM '" + FileUtils.getFilePath(H2_SCRIPT_NAME) +
+                    "'");
         }
         dataSourceMap.put(DB_NAME, dataSource);
     }
 
     /**
      * Close the initiated H2 database.
+     *
      * @throws Exception
      */
     public static void closeH2Base() throws Exception {
@@ -69,16 +82,20 @@ public class TestUtils {
         }
     }
 
-    public static String getFilePath(String fileName) {
+    public static Connection createDataSource() throws SQLException {
 
-        if (StringUtils.isNotBlank(fileName)) {
-            return Paths.get(System.getProperty("user.dir"), "src", "test", "resources", "dbscripts", "config",
-                    fileName).toString();
-        }
-        throw new IllegalArgumentException("DB Script file name cannot be empty.");
+        DataSource dataSource = mock(DataSource.class);
+        mockStatic(IdentityDatabaseUtil.class);
+        when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
+
+        Connection connection = getConnection();
+        Connection spyConnection = spyConnection(connection);
+        when(dataSource.getConnection()).thenReturn(spyConnection);
+
+        return connection;
     }
 
-    public static Connection getConnection() throws SQLException {
+    private static Connection getConnection() throws SQLException {
 
         if (dataSourceMap.get(DB_NAME) != null) {
             return dataSourceMap.get(DB_NAME).getConnection();
@@ -86,7 +103,7 @@ public class TestUtils {
         throw new RuntimeException("No data source initiated for database: " + DB_NAME);
     }
 
-    public static Connection spyConnection(Connection connection) throws SQLException {
+    private static Connection spyConnection(Connection connection) throws SQLException {
 
         Connection spy = spy(connection);
         doNothing().when(spy).close();

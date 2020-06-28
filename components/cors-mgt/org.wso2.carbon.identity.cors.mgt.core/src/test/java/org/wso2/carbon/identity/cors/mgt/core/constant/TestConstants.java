@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.constant;
 
-import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,16 +26,18 @@ import java.util.List;
  */
 public class TestConstants {
 
-    public static final List<CORSOrigin> SAMPLE_ORIGIN_LIST_1 = Arrays.asList(
-            new CORSOrigin(String.valueOf("http://foo.com".hashCode()), "http://foo.com"),
-            new CORSOrigin(String.valueOf("http://bar.com".hashCode()), "http://bar.com"),
-            new CORSOrigin(String.valueOf("https://foobar.com".hashCode()), "https://foobar.com"));
-    public static final List<CORSOrigin> SAMPLE_ORIGIN_LIST_2 = Arrays.asList(
-            new CORSOrigin(String.valueOf("http://abc.com".hashCode()), "http://abc.com"),
-            new CORSOrigin(String.valueOf("https://pqr.com".hashCode()), "https://pqr.com"),
-            new CORSOrigin(String.valueOf("http://xyz.com".hashCode()), "http://xyz.com"));
+    public static final List<String> SAMPLE_ORIGIN_LIST_1 = Arrays.asList(
+            "http://foo.com",
+            "http://bar.com",
+            "https://foobar.com");
+    public static final List<String> SAMPLE_ORIGIN_LIST_2 = Arrays.asList(
+            "http://abc.com",
+            "https://pqr.com",
+            "http://xyz.com");
     public static final int TENANT_ID = -1111;
     public static final String TENANT_DOMAIN_NAME = "abc.com";
+    public static final String APP_ID_1 = "test_app_1";
+    public static final String APP_ID_2 = "test_app_2";
 
     private TestConstants() {
 

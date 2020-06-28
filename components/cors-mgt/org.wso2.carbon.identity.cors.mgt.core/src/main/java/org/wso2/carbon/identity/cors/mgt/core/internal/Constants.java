@@ -23,12 +23,41 @@ package org.wso2.carbon.identity.cors.mgt.core.internal;
  */
 public class Constants {
 
-    public static final String CORS_ORIGIN_RESOURCE_TYPE_NAME = "CORS";
-    public static final String CORS_ORIGIN_RESOURCE_TYPE_DESCRIPTION = "A resource type to keep the tenant " +
-            "CORS Origins";
-    public static final String CORS_ORIGIN_RESOURCE_NAME = "CORS_ORIGINS";
+    public static final String CORS_ORIGIN_RESOURCE_TYPE_NAME = "CORS_ORIGIN";
+    public static final String CORS_ORIGIN_RESOURCE_TYPE_DESCRIPTION = "A resource type to keep a tenant CORS origin.";
+    public static final String CORS_CONFIGURATION_RESOURCE_TYPE_NAME = "CORS_CONFIGURATION";
+    public static final String CORS_CONFIGURATION_RESOURCE_TYPE_DESCRIPTION =
+            "A resource type to keep the tenant CORS configuration.";
+    public static final String CORS_CONFIGURATION_RESOURCE_NAME = "TENANT_CORS_CONFIGURATION";
+
+    /**
+     * The delimiter that will be using when serializing/deserializing between a {@code Set<String>} and {@code String}.
+     */
+    public static final String SERIALIZATION_DELIMITER = ";";
 
     private Constants() {
 
+    }
+
+    /**
+     * CORSConfiguration attributes.
+     */
+    public static class CORSConfigurationAttributes {
+
+        public static final String ALLOW_GENERIC_HTTP_REQUESTS = "allowGenericHttpRequests";
+        public static final String ALLOW_ANY_ORIGIN = "allowAnyOrigin";
+        public static final String ALLOWED_ORIGINS = "allowedOrigins";
+        public static final String ALLOW_SUBDOMAINS = "allowSubdomains";
+        public static final String SUPPORTED_METHODS = "supportedMethods";
+        public static final String SUPPORT_ANY_HEADER = "supportAnyHeader";
+        public static final String SUPPORTED_HEADERS = "supportedHeaders";
+        public static final String EXPOSED_HEADERS = "exposedHeaders";
+        public static final String SUPPORTS_CREDENTIALS = "supportsCredentials";
+        public static final String MAX_AGE = "maxAge";
+        public static final String TAG_REQUESTS = "tagRequests";
+
+        private CORSConfigurationAttributes() {
+
+        }
     }
 }

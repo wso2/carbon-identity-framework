@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.cors.mgt.core;
 
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
+import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 
 import java.util.List;
@@ -32,7 +33,7 @@ public interface CORSManagementService {
      * Get all the CORS Origins belonging to a tenant.
      *
      * @param tenantDomain The tenant domain.
-     * @return List<CORSOrigins> Returns a list of CORS Origins configured by the tenant as CORSOrigin objects.
+     * @return List<CORSOrigin> Returns a list of CORS Origins configured by the tenant as Origin objects.
      * @throws CORSManagementServiceException
      */
     List<CORSOrigin> getCORSOrigins(String tenantDomain) throws CORSManagementServiceException;
@@ -41,26 +42,52 @@ public interface CORSManagementService {
      * Set the CORS Origins for a tenant. This method replaces any existing Origins.
      *
      * @param tenantDomain The tenant domain.
-     * @param corsOrigins  A list of CORS Origins to be set.
+     * @param appId        The  application ID that the CORS origin(s) belongs to. Should be {@code null} if the CORS
+     *                     origin(s) belong to the tenant level.
+     * @param origins      A list of CORS origins to be set.
      * @throws CORSManagementServiceException
      */
-    void setCORSOrigins(String tenantDomain, List<CORSOrigin> corsOrigins) throws CORSManagementServiceException;
+    void setCORSOrigins(String tenantDomain, String appId, List<String> origins) throws CORSManagementServiceException;
 
     /**
      * Add the CORS Origin(s) to the existing CORS Origin list of the tenant.
      *
      * @param tenantDomain The tenant domain.
-     * @param corsOrigins  A list of CORS Origins to be added.
+     * @param appId        The  application ID that the CORS origin(s) belongs to. Should be {@code null} if the CORS
+     *                     origin(s) belong to the tenant level.
+     * @param origins      A list of CORS origins to be added.
      * @throws CORSManagementServiceException
      */
-    void addCORSOrigins(String tenantDomain, List<CORSOrigin> corsOrigins) throws CORSManagementServiceException;
+    void addCORSOrigins(String tenantDomain, String appId, List<String> origins) throws CORSManagementServiceException;
 
     /**
      * Delete the CORS Origin(s) from the existing CORS Origin list of the tenant.
      *
      * @param tenantDomain The tenant domain.
-     * @param corsOrigins  A list of CORS Origins to be deleted.
+     * @param appId        The  application ID that the CORS origin(s) belongs to. Should be {@code null} if the CORS
+     *                     origin(s) belong to the tenant level.
+     * @param originIds    A list of CORS origin IDs to be deleted.
      * @throws CORSManagementServiceException
      */
-    void deleteCORSOrigins(String tenantDomain, List<CORSOrigin> corsOrigins) throws CORSManagementServiceException;
+    void deleteCORSOrigins(String tenantDomain, String appId, List<String> originIds)
+            throws CORSManagementServiceException;
+
+    /**
+     * Get the CORS configurations of a tenant.
+     *
+     * @param tenantDomain The tenant domain.
+     * @return CORSConfiguration Returns an instance of {@code CORSConfiguration} belonging to the tenant.
+     * @throws CORSManagementServiceException
+     */
+    CORSConfiguration getCORSConfiguration(String tenantDomain) throws CORSManagementServiceException;
+
+    /**
+     * Set the CORS configurations of a tenant.
+     *
+     * @param tenantDomain      The tenant domain.
+     * @param corsConfiguration The {@code CORSConfiguration} object to be set.
+     * @throws CORSManagementServiceException
+     */
+    void setCORSConfiguration(String tenantDomain, CORSConfiguration corsConfiguration)
+            throws CORSManagementServiceException;
 }

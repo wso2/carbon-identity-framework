@@ -500,4 +500,17 @@ public class IdentityConstants {
         public static final String CARBON_PORT_HTTP_PROPERTY = "mgt.transport.http.port";
         public static final String CARBON_PORT_HTTPS_PROPERTY = "mgt.transport.https.port";
     }
+
+    public static class CORS {
+
+        public static final String ALLOW_GENERIC_HTTP_REQUESTS = "CORS.AllowGenericHttpRequests";
+        public static final String ALLOWED_ORIGINS = "CORS.AllowedOrigins";
+        public static final String ALLOW_SUBDOMAINS = "CORS.AllowSubdomains";
+        public static final String SUPPORTED_METHODS = "CORS.SupportedMethods";
+        public static final String SUPPORTED_HEADERS = "CORS.SupportedHeaders";
+        public static final String EXPOSED_HEADERS = "CORS.ExposedHeaders";
+        public static final String SUPPORTS_CREDENTIALS = "CORS.SupportsCredentials";
+        public static final String MAX_AGE = "CORS.MaxAge";
+        public static final String TAG_REQUESTS = "CORS.TagRequests";
+    }
 }
