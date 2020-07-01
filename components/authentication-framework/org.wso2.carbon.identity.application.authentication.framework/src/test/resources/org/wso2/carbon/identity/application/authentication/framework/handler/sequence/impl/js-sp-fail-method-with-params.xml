@@ -44,7 +44,7 @@
             </AuthenticationStep>
         </AuthenticationSteps>
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
-var authFailErrorMap = {'errorCode': 'access_denied', 'errorMessage': 'login could not be completed', "errorURI":'https://www.google.com'};
+var authFailErrorMap = {'errorCode': 'access_denied', 'errorMessage': 'login could not be completed', "errorURI":'https://wso2.com/'};
 
 function onLoginRequest(context) {
   executeStep(1, {

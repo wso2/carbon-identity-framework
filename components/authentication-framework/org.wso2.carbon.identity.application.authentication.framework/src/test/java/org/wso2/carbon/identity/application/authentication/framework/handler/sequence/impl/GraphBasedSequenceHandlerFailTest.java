@@ -38,9 +38,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 @Test
 @WithH2Database(jndiName = "jdbc/WSO2CarbonDB", files = {"dbScripts/h2.sql"})
@@ -75,9 +75,9 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
         List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
         assertNotNull(authHistories);
         assertFalse(context.isRequestAuthenticated());
-        assertTrue(context.getProperties().containsKey(FrameworkConstants.AUTH_ERROR_MSG));
-        assertTrue(context.getProperties().containsKey(FrameworkConstants.AUTH_ERROR_CODE));
-        assertTrue(context.getProperties().containsKey(FrameworkConstants.AUTH_ERROR_URI));
+        assertEquals(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE), "access_denied");
+        assertEquals(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG), "login could not be completed");
+        assertEquals(context.getProperty(FrameworkConstants.AUTH_ERROR_URI), "https://wso2.com/");
     }
 
     @Test
