@@ -296,8 +296,6 @@ public class ExternalClaimDAO extends ClaimDAO {
         }
         return new ArrayList<ExternalClaim>(claimMap.values());
     }
-
-
     /**
      * Revoke the transaction when catch then sql transaction errors.
      *
