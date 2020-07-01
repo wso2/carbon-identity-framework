@@ -246,7 +246,7 @@ public class JsGraphBuilder {
         if (parameters.length == 1) {
             parameterMap = (Map<String, Object>) parameters[0];
         } else {
-            parameterMap = (HashMap<String, Object>) Collections.EMPTY_MAP;
+            parameterMap = Collections.EMPTY_MAP;
         }
 
         FailNode newNode = createFailNode(StringUtils.EMPTY, parameterMap, false);
@@ -266,7 +266,7 @@ public class JsGraphBuilder {
         if (parameters.length == 1) {
             parameterMap = (Map<String, Object>) parameters[0];
         } else {
-            parameterMap = (HashMap<String, Object>) Collections.EMPTY_MAP;
+            parameterMap = Collections.EMPTY_MAP;
         }
 
         FailNode newNode = createFailNode(StringUtils.EMPTY, parameterMap, false);
