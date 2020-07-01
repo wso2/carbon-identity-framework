@@ -40,6 +40,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -2391,6 +2392,7 @@
                                     </table>
                                 </div>
 
+                                <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#"><fmt:message key="title.config.sts.config"/></a>
@@ -2455,6 +2457,7 @@
 
                                         </table>
                                     </div>
+                                    <%} %>
 
                                     <h2 id="kerberos.kdc.head" class="sectionSeperator trigger active"
                                         style="background-color: beige;">

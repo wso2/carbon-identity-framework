@@ -552,6 +552,9 @@
   "developer_portal.app_base_name": "developer-portal",
   "developer_portal.client_id": "DEVELOPER_PORTAL",
   "developer_portal.debug.enable": false,
+  "developer_portal.applications.admin_app.configs": {
+    "path": "/admin-portal/overview"
+  },
   "developer_portal.documentation.base_url": "https://api.github.com",
   "developer_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "developer_portal.documentation.github_options": {
@@ -563,7 +566,6 @@
   "developer_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "developer_portal.login_callback_path": "/login",
   "developer_portal.logout_callback_path": "/login",
-  "developer_portal.server_origin": "https://localhost:9443",
   "developer_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
@@ -619,6 +621,9 @@
   "admin_portal.app_base_name": "admin-portal",
   "admin_portal.client_id": "ADMIN_PORTAL",
   "admin_portal.debug.enable": false,
+  "admin_portal.applications.developer_app.configs": {
+    "path": "/developer-portal/overview"
+  },
   "admin_portal.documentation.base_url": "https://api.github.com",
   "admin_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "admin_portal.documentation.github_options": {
@@ -630,7 +635,6 @@
   "admin_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "admin_portal.login_callback_path": "/login",
   "admin_portal.logout_callback_path": "/login",
-  "admin_portal.server_origin": "https://localhost:9443",
   "admin_portal.route_paths": {
     "home": "/overview",
     "login": "/login",
@@ -774,7 +778,6 @@
   "user_portal.client_id": "USER_PORTAL",
   "user_portal.login_callback_path": "/login",
   "user_portal.logout_callback_path": "/login",
-  "user_portal.server_origin": "https://localhost:9443",
   "user_portal.route_paths": {
     "home": "/overview",
     "login": "/login",

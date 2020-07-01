@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.template.mgt.handler.impl.WSTrustConnectorValidator.validateWSTrustTemplateAvailability;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.getTenantDomainFromCarbonContext;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleClientException;
 import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handleServerException;
@@ -65,6 +66,7 @@ public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
     public Template getTemplateById(String templateId) throws TemplateManagementException {
 
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        validateWSTrustTemplateAvailability(templateId);
         try {
             Resource resource = configManager.getTenantResourceById(templateId);
             Template template = new ResourceToTemplate().apply(resource);
@@ -100,6 +102,7 @@ public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
     public void updateTemplateById(String templateId, Template template) throws TemplateManagementException {
 
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        validateWSTrustTemplateAvailability(templateId);
         try {
             configManager.replaceResource(new TemplateToResource().apply(template));
         } catch (ConfigurationManagementException e) {
@@ -121,6 +124,7 @@ public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
     public void deleteTemplateById(String templateId) throws TemplateManagementException {
 
         ConfigurationManager configManager = TemplateManagerDataHolder.getInstance().getConfigurationManager();
+        validateWSTrustTemplateAvailability(templateId);
         try {
             configManager.deleteResourceById(templateId);
         } catch (ConfigurationManagementException e) {

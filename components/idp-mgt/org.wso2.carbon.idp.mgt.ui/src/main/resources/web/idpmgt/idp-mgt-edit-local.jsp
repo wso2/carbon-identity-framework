@@ -30,6 +30,7 @@
 <%@ page import="org.wso2.carbon.identity.governance.stub.bean.ConnectorConfig" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.client.IdentityGovernanceAdminClient" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
 <%@ page import="java.util.ArrayList" %>
@@ -754,6 +755,7 @@ function removeDefaultAuthSeq() {
                     </table>
                     </div>
 
+                        <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                         <h2 id="stsconfighead"  class="sectionSeperator trigger active" style="background-color: beige;">
                             <a href="#"><fmt:message key='sts.local.config'/></a>
                         </h2>
@@ -778,6 +780,7 @@ function removeDefaultAuthSeq() {
                                 </tr>
                             </table>
                         </div>
+                        <%} %>
                 </div>
                     <h2 id="inboundprovisioningconfighead"  class="sectionSeperator trigger active">
                 		<a href="#">Inbound Provisioning Configuration</a>
