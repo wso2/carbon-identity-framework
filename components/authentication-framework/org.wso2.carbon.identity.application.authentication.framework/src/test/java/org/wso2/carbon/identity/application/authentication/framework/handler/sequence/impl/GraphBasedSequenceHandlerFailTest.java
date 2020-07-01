@@ -65,7 +65,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
         HttpServletRequest req = mock(HttpServletRequest.class);
 
         when(req.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(AuthenticatorFlowStatus
-                .FAIL_COMPLETED);
+                .SUCCESS_COMPLETED);
 
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
@@ -98,7 +98,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
         HttpServletRequest req = mock(HttpServletRequest.class);
 
         when(req.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(AuthenticatorFlowStatus
-                .FAIL_COMPLETED);
+                .SUCCESS_COMPLETED);
 
         HttpServletResponse resp = mock(HttpServletResponse.class);
 

@@ -46,7 +46,7 @@
         <AuthenticationScript type="application/javascript" enabled="true"><![CDATA[
 function onLoginRequest(context) {
   executeStep(1, {
-	  onFail: function(context){
+	  onSuccess: function(context){
 		  fail();
 	  }
   });

@@ -48,7 +48,7 @@ var authFailErrorMap = {'errorCode': 'access_denied', 'errorMessage': 'login cou
 
 function onLoginRequest(context) {
   executeStep(1, {
-	  onFail: function(context){
+	  onSuccess: function(context){
 		  fail(authFailErrorMap);
 	  }
   });
