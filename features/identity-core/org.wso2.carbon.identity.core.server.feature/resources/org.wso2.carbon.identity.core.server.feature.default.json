@@ -519,6 +519,7 @@
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
+  "configuration.store.allow_cross_tenant_search": false,
 
   "fido.webauthn.enable": true,
   "fido.trusted.origins": [

@@ -1727,6 +1727,7 @@
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
+        <AllowCrossTenantSearch>false</AllowCrossTenantSearch>
     </ConfigurationStore>
 
     <FIDO>
