@@ -27,6 +27,7 @@ import java.util.List;
 /**
  * Read only template handler interface.
  */
+@Deprecated
 public interface ReadOnlyTemplateHandler {
 
     /**

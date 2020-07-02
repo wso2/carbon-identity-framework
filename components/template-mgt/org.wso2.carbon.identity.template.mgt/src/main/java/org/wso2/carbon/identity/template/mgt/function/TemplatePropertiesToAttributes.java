@@ -29,6 +29,7 @@ import java.util.function.Function;
 /**
  * Converts the properties of the template object to list of Attributes to pass to Configuration Management service.
  */
+@Deprecated
 public class TemplatePropertiesToAttributes implements Function<Template, List<Attribute>> {
 
     @Override

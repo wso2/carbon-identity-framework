@@ -24,6 +24,7 @@ import org.wso2.carbon.utils.CarbonUtils;
 /**
  * Cache implementation for config store based template cache.
  */
+@Deprecated
 public class ConfigStoreBasedTemplateCache extends BaseCache<ConfigStoreBasedTemplateCacheKey,
         ConfigStoreBasedTemplateCacheEntry> {
 

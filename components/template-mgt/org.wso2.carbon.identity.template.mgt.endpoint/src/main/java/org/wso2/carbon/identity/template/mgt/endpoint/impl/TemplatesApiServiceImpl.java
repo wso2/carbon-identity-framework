@@ -47,8 +47,8 @@ import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMe
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
 
-public class
-TemplatesApiServiceImpl extends TemplatesApiService {
+@Deprecated
+public class TemplatesApiServiceImpl extends TemplatesApiService {
 
     private static final Log LOG = LogFactory.getLog(TemplatesApiServiceImpl.class);
 

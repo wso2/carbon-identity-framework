@@ -36,6 +36,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+@Deprecated
 public class TestUtils {
 
     public static final String DB_NAME = "TemplateMgtDB";

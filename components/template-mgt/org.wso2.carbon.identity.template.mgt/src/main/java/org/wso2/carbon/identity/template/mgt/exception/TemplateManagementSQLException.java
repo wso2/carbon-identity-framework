@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.template.mgt.exception;
 
 import java.sql.SQLException;
 
+@Deprecated
 public class TemplateManagementSQLException extends SQLException {
 
     private static final long serialVersionUID = -6714845375112996530L;

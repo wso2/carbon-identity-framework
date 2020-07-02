@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 /**
  * This class holds the constants used in the module, template-mgt.
  */
+@Deprecated
 public class TemplateMgtConstants {
 
     public static final String MY_SQL = "MySQL";

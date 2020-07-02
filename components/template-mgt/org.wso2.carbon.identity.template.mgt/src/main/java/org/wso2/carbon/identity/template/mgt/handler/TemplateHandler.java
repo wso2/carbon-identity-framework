@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.template.mgt.model.Template;
 /**
  * Template handler interface.
  */
+@Deprecated
 public interface TemplateHandler extends ReadOnlyTemplateHandler {
 
     /**

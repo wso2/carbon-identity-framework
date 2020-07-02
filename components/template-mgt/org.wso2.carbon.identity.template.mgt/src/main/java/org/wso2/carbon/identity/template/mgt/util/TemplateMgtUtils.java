@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.template.mgt.exception.TemplateManagementServerE
 /**
  * This class is used to define the Utilities required in template management feature.
  */
+@Deprecated
 public class TemplateMgtUtils {
 
     /**

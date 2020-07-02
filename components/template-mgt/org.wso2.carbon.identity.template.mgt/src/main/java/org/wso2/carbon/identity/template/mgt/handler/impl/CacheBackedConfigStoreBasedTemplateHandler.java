@@ -34,6 +34,7 @@ import java.util.List;
  * Cached config store based template handler for the template management. All config store based template handling
  * happen through this layer to ensure single point of caching.
  */
+@Deprecated
 public class CacheBackedConfigStoreBasedTemplateHandler implements TemplateHandler {
 
     private static final Log log = LogFactory.getLog(CacheBackedConfigStoreBasedTemplateHandler.class);

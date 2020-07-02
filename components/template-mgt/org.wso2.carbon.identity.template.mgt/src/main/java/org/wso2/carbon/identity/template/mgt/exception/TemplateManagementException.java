@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.template.mgt.exception;
 /**
  * Base exception for template management feature.
  */
+@Deprecated
 public class TemplateManagementException extends Exception {
 
     private static final long serialVersionUID = -3711241843536343329L;

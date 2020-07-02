@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.template.mgt.exception;
 /**
  * This class is used to define the client side errors which need to be handled.
  */
+@Deprecated
 public class TemplateManagementClientException extends TemplateManagementException {
 
     private static final long serialVersionUID = -8485558090398546009L;

@@ -34,6 +34,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 /**
  * Converts the Template object to Resource object tp pass to configuration manager service.
  */
+@Deprecated
 public class TemplateToResource implements Function<Template, Resource> {
 
     @Override

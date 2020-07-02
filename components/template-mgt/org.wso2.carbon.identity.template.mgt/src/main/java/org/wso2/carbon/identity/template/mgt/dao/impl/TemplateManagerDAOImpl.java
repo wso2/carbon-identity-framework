@@ -55,6 +55,7 @@ import static org.wso2.carbon.identity.template.mgt.util.JdbcUtils.isMSSqlDB;
  *
  * @since 1.0.0
  */
+@Deprecated
 public class TemplateManagerDAOImpl implements TemplateManagerDAO {
 
     /**

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.template.mgt.model;
 /**
  * A data model class to define the TemplateInfo element.
  */
+@Deprecated
 public class TemplateInfo {
 
     private Integer templateId;

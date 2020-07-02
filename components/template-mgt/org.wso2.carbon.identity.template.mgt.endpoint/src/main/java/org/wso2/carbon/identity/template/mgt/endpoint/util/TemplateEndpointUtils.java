@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class TemplateEndpointUtils {
 
     public static TemplateManager getTemplateManager() {

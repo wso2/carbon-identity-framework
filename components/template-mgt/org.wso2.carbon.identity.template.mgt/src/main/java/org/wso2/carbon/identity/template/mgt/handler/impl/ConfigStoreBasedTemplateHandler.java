@@ -51,6 +51,7 @@ import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handle
 /**
  * Config store based template handler.
  */
+@Deprecated
 public class ConfigStoreBasedTemplateHandler implements TemplateHandler {
 
     private static Log log = LogFactory.getLog(ConfigStoreBasedTemplateHandler.class);

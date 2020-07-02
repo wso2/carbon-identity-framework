@@ -47,6 +47,7 @@ import static org.wso2.carbon.identity.template.mgt.util.TestUtils.initiateH2Bas
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.template.mgt.util.TestUtils.spyConnection;
 
+@Deprecated
 @PrepareForTest(IdentityDatabaseUtil.class)
 public class TemplateManagerDAOImplTest extends PowerMockTestCase {
 

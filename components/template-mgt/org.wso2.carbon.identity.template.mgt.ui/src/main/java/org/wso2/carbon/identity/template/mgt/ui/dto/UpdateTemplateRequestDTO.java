@@ -17,6 +17,7 @@
  */
 package org.wso2.carbon.identity.template.mgt.ui.dto;
 
+@Deprecated
 public class UpdateTemplateRequestDTO {
 
     private String templateName = null;
