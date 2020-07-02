@@ -501,13 +501,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 serverUrl.setLength(serverUrl.length() - 1);
             }
             if (StringUtils.isNotBlank(resolvedParamsString)) {
-                try {
-                    serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
-                            StandardCharsets.UTF_8.name()));
-                } catch (UnsupportedEncodingException e) {
-                    throw new URLBuilderException(String.format("Error while trying to build url. %s is not supported" +
-                            ".", StandardCharsets.UTF_8.name()), e);
-                }
+                serverUrl.append(delimiter).append(resolvedParamsString);
             }
         }
 
