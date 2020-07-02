@@ -54,7 +54,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
                 .SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-with-params.xml");
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-with-params-onSuccess.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
@@ -87,7 +87,7 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
                 .SUPER_TENANT_DOMAIN_NAME);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
 
-        ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-without-params.xml");
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-without-params-onSuccsss.xml");
 
         AuthenticationContext context = getAuthenticationContext(sp1);
 
@@ -99,6 +99,70 @@ public class GraphBasedSequenceHandlerFailTest extends GraphBasedSequenceHandler
 
         when(req.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(AuthenticatorFlowStatus
                 .SUCCESS_COMPLETED);
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+
+        graphBasedSequenceHandler.handle(req, resp, context);
+
+        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
+        assertNotNull(authHistories);
+        assertFalse(context.isRequestAuthenticated());
+    }
+
+    @Test
+    public void handleFailMethodWithParamsOnFailTest() throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants
+                .SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-with-params-onFail.xml");
+
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = configurationLoader
+                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+
+        when(req.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(AuthenticatorFlowStatus
+                .FAIL_COMPLETED);
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserCoreUtil.setDomainInThreadLocal("test_domain");
+        graphBasedSequenceHandler.handle(req, resp, context);
+
+        List<AuthHistory> authHistories = context.getAuthenticationStepHistory();
+        assertNotNull(authHistories);
+        assertFalse(context.isRequestAuthenticated());
+        assertEquals(context.getProperty(FrameworkConstants.AUTH_ERROR_CODE), "access_denied");
+        assertEquals(context.getProperty(FrameworkConstants.AUTH_ERROR_MSG), "login could not be completed");
+        assertEquals(context.getProperty(FrameworkConstants.AUTH_ERROR_URI), "https://wso2.com/");
+    }
+
+    @Test
+    public void handleFailMethodWithoutParamsOnFailTest() throws Exception {
+
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants
+                .SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+
+        ServiceProvider sp1 = getTestServiceProvider("js-sp-fail-method-without-params-onFail.xml");
+
+        AuthenticationContext context = getAuthenticationContext(sp1);
+
+        SequenceConfig sequenceConfig = configurationLoader
+                .getSequenceConfig(context, Collections.<String, String[]>emptyMap(), sp1);
+        context.setSequenceConfig(sequenceConfig);
+
+        HttpServletRequest req = mock(HttpServletRequest.class);
+
+        when(req.getAttribute(FrameworkConstants.RequestParams.FLOW_STATUS)).thenReturn(AuthenticatorFlowStatus
+                .FAIL_COMPLETED);
 
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
