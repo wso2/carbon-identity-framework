@@ -26,7 +26,6 @@ import java.util.function.Function;
 /**
  * Converts the Template object to ResourceAdd object to pass to Configuration Management service.
  */
-@Deprecated
 public class TemplateToResourceAdd implements Function<Template, ResourceAdd> {
 
     @Override

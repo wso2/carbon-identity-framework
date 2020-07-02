@@ -23,7 +23,6 @@ import org.wso2.carbon.identity.application.common.cache.CacheKey;
 /**
  * Cache key for lookup config store based template from the cache.
  */
-@Deprecated
 public class ConfigStoreBasedTemplateCacheKey extends CacheKey {
 
     private static final long serialVersionUID = 8263255365985309443L;

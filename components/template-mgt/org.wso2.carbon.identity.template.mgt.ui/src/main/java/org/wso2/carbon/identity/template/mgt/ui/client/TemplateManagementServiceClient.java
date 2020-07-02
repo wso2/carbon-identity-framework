@@ -33,7 +33,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.List;
 
-@Deprecated
 public class TemplateManagementServiceClient {
 
     private String loggedInUser;

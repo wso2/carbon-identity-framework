@@ -23,7 +23,6 @@ import org.wso2.carbon.user.core.service.RealmService;
 /**
  * This singleton data holder contains all the data required by the Template UI OSGi bundle
  */
-@Deprecated
 public class TemplateManagementUIServiceDataHolder {
 
     private static TemplateManagementUIServiceDataHolder instance = new TemplateManagementUIServiceDataHolder();

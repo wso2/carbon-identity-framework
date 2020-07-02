@@ -58,7 +58,6 @@ import java.util.Map;
         name = "carbon.identity.template.mgt.component",
         immediate = true
 )
-@Deprecated
 public class TemplateManagerComponent {
 
     private static Log log = LogFactory.getLog(TemplateManagerComponent.class);

@@ -40,7 +40,6 @@ import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handle
 /**
  * File based template handler implementation.
  */
-@Deprecated
 public class FileBasedTemplateHandler implements ReadOnlyTemplateHandler {
 
     private static final Log log = LogFactory.getLog(FileBasedTemplateHandler.class);

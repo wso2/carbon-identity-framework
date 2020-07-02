@@ -33,7 +33,6 @@ import java.util.function.Function;
 /**
  * Converts the Resource object coming from configuration manager service to a Template object.
  */
-@Deprecated
 public class ResourceToTemplate implements Function<Resource, Template> {
 
     @Override

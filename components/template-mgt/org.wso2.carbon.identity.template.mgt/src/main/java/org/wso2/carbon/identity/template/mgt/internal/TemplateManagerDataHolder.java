@@ -33,7 +33,6 @@ import java.util.Map;
 /**
  * A class to keep the data of the template manager component.
  */
-@Deprecated
 public class TemplateManagerDataHolder {
 
     private static TemplateManagerDataHolder instance = new TemplateManagerDataHolder();

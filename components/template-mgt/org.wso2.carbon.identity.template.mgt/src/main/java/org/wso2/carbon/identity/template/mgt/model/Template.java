@@ -25,7 +25,6 @@ import java.util.Map;
 /**
  * A data model class to define the Template element.
  */
-@Deprecated
 public class Template {
 
     private String templateId;

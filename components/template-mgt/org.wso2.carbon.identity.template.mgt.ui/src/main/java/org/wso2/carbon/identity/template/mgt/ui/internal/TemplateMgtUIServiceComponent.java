@@ -34,7 +34,6 @@ import org.wso2.carbon.user.core.service.RealmService;
         name = "carbon.identity.template.mgt.ui",
         immediate = true
 )
-@Deprecated
 public class TemplateMgtUIServiceComponent {
 
     private static final Log log = LogFactory.getLog(TemplateMgtUIServiceComponent.class);

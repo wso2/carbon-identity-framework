@@ -55,7 +55,6 @@ import static org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils.handle
 /**
  * Template manager service implementation.
  */
-@Deprecated
 public class TemplateManagerImpl implements TemplateManager {
 
     private static final Log log = LogFactory.getLog(TemplateManagerImpl.class);
