@@ -165,7 +165,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
             }
 
-            if (roles != null && !roles.isEmpty()) {
+            if (roles != null) {
                 // Update user with roles
                 List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
                 Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
