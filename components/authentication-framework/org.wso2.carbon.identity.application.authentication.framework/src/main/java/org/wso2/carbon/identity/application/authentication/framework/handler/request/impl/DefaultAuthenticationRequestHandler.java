@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.D
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AuthenticationRequestHandler;
+import org.wso2.carbon.identity.application.authentication.framework.inbound.FrameworkRuntimeException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -51,6 +52,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -752,11 +755,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         // TODO rememberMe should be handled by a cookie authenticator. For now rememberMe flag that
         // was set in the login page will be sent as a query param to the calling servlet so it will
         // handle rememberMe as usual.
-        String rememberMeParam = "";
-
-        if (context.isRequestAuthenticated() && context.isRememberMe()) {
-            rememberMeParam = rememberMeParam + "chkRemember=on";
-        }
 
         // if request is not authenticated populate error information sent from authenticators/handlers
         if (!context.isRequestAuthenticated()) {
@@ -765,19 +763,41 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
         // redirect to the caller
         String redirectURL;
-        String commonauthCallerPath = context.getCallerPath();
-
+        String callerPath = context.getCallerPath();
         try {
-            String queryParamsString = "";
-            if (context.getCallerSessionKey() != null) {
-                queryParamsString = FrameworkConstants.SESSION_DATA_KEY + "=" +
-                        URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
-            }
+            if (!FrameworkUtils.isAbsoluteURI(callerPath)) {
+                ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(context.getCallerPath());
+                if (context.getCallerSessionKey() != null) {
+                    serviceURLBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, URLEncoder.encode(context
+                            .getCallerSessionKey(), "UTF-8"));
+                }
 
-            if (StringUtils.isNotEmpty(rememberMeParam)) {
-                queryParamsString += "&" + rememberMeParam;
+                if (context.isRequestAuthenticated() && context.isRememberMe()) {
+                    serviceURLBuilder.addParameter("chkRemember", "on");
+                }
+
+                try {
+                    redirectURL = serviceURLBuilder.build().getAbsolutePublicURL();
+                } catch (URLBuilderException e) {
+                    throw FrameworkRuntimeException.error("Error while building redirect URL.", e);
+                }
+            } else {
+                String queryParamsString = "";
+                if (context.getCallerSessionKey() != null) {
+                    queryParamsString = FrameworkConstants.SESSION_DATA_KEY + "=" +
+                            URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+                }
+                String rememberMeParam = "";
+
+                if (context.isRequestAuthenticated() && context.isRememberMe()) {
+                    rememberMeParam = rememberMeParam + "chkRemember=on";
+                }
+
+                if (StringUtils.isNotEmpty(rememberMeParam)) {
+                    queryParamsString += "&" + rememberMeParam;
+                }
+                redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(callerPath, queryParamsString);
             }
-            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
             response.sendRedirect(redirectURL);
         } catch (IOException e) {
             throw new FrameworkException(e.getMessage(), e);

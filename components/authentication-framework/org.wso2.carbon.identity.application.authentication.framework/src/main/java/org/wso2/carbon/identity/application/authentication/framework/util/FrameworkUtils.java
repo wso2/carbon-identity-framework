@@ -120,6 +120,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -2572,5 +2573,26 @@ public class FrameworkUtils {
 
         // If config is empty or not a boolean value, the property must be set to the default value which is true.
         return !Boolean.FALSE.toString().equalsIgnoreCase(continueOnClaimHandlingErrorValue);
+    }
+
+    public static boolean isAbsoluteURI(String uri) {
+
+        if (StringUtils.isBlank(uri)) {
+            if (log.isDebugEnabled()) {
+                log.debug("URI is empty.");
+            }
+            return true;
+        }
+
+        try {
+            final URI uriObj = new URI(uri);
+            return uriObj.isAbsolute();
+        } catch (URISyntaxException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Unable to process the URI: " + uri, e);
+            }
+        }
+        // Default behavior of a URI is expected to be absolute;
+        return true;
     }
 }
