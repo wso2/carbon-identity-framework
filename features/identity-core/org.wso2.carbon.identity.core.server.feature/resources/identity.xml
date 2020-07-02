@@ -92,6 +92,11 @@
         <!--<SPNameRegex>^[a-zA-Z0-9._-]*$</SPNameRegex>-->
     <!--</ServiceProviders>-->
 
+    <LegacyFeatures>
+        <EnableOAuth1>false</EnableOAuth1>
+        <EnableIdentityConnectDCR>false</EnableIdentityConnectDCR>
+    </LegacyFeatures>
+
     <OpenID>
         <!--
             Default values for OpenIDServerUrl and OpenIDUSerPattern are built in following format

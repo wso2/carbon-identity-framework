@@ -314,6 +314,9 @@
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
   "authentication.jit_provisioning.password_provisioning_url": "/accountrecoveryendpoint/signup.do",
 
+  "LegacyFeatures.EnableOAuth1": false,
+  "LegacyFeatures.EnableIdentityConnectDCR": false,
+
   "event.default_listener.workflow.priority": "10",
   "event.default_listener.workflow.enable": true,
   "event.default_listener.identity_mgt.priority": "50",
