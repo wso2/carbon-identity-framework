@@ -22,7 +22,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
@@ -61,7 +60,9 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -322,7 +323,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * @param request HTTP Servlet request
      * @param response HTTP Servlet Response
      * @param context Authentication Context
-     * @param sequenceConfig Sequence Config
      * @param node Fail Node
      * @throws FrameworkException
      */
@@ -332,28 +332,67 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
-        String errorPage = node.getErrorPageUri();
-        String redirectURL = null;
-        if (StringUtils.isBlank(errorPage)) {
-            errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+
+        if (node.isShowErrorPage()) {
+            // Set parameters specific to sendError function to context if isShowErrorPage  is true
+            String errorPage = node.getErrorPageUri();
+            String redirectURL = null;
+            if (StringUtils.isBlank(errorPage)) {
+                errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+            }
+            try {
+                URIBuilder uriBuilder = new URIBuilder(errorPage);
+                node.getFailureData().forEach(uriBuilder::addParameter);
+                redirectURL = uriBuilder.toString();
+                response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
+            } catch (IOException e) {
+                throw new FrameworkException("Error when redirecting user to " + errorPage, e);
+            } catch (URISyntaxException e) {
+                throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
+                        + "URL.", e);
+            }
+
+            context.setRequestAuthenticated(false);
+            context.getSequenceConfig().setCompleted(true);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
+                    redirectURL);
+        } else {
+            // If isShowErrorPage is false, set parameters specific to fail function to context.
+            setErrorPropertiesToContext(node, context);
         }
-        try {
-            URIBuilder uriBuilder = new URIBuilder(errorPage);
-            node.getFailureData().forEach(uriBuilder::addParameter);
-            redirectURL = uriBuilder.toString();
-            response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
-        } catch (IOException e) {
-            throw new FrameworkException("Error when redirecting user to " + errorPage, e);
-        } catch (URISyntaxException e) {
-            throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
-                + "URL.", e);
+    }
+
+    /**
+     * Sets error properties to Authentication context and fail authentication.
+     */
+    private void setErrorPropertiesToContext(FailNode node, AuthenticationContext context) throws FrameworkException {
+
+        Map<String, String> parameterMap = node.getFailureData();
+
+        // If an error code is provided, set it to the context.
+        if (parameterMap.containsKey(FrameworkConstants.ERROR_CODE)) {
+            context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, parameterMap.get(FrameworkConstants.ERROR_CODE));
         }
 
+        // If an error description is provided, set it to the context.
+        if (parameterMap.containsKey(FrameworkConstants.ERROR_MESSAGE)) {
+            context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, parameterMap.get(FrameworkConstants.ERROR_MESSAGE));
+        }
+
+        // If an error URL is provided, validate is before proceeding.
+        if (parameterMap.containsKey(FrameworkConstants.ERROR_URI)) {
+            try {
+                new URL(parameterMap.get(FrameworkConstants.ERROR_URI));
+            } catch (MalformedURLException e) {
+                throw new FrameworkException("Error when validating provided errorURI: "
+                        + parameterMap.get(FrameworkConstants.ERROR_URI), e);
+            }
+            // Set the error URL to the context.
+            context.setProperty(FrameworkConstants.AUTH_ERROR_URI, parameterMap.get(FrameworkConstants.ERROR_URI));
+        }
         context.setRequestAuthenticated(false);
         context.getSequenceConfig().setCompleted(true);
-        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-        throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
-            redirectURL);
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,

@@ -60,6 +60,9 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD = "password";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
+    public static final String ERROR_CODE = "errorCode";
+    public static final String ERROR_MESSAGE = "errorMessage";
+    public static final String ERROR_URI = "errorURI";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -385,6 +388,7 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
+        public static final String JS_AUTH_FAILURE = "fail";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
