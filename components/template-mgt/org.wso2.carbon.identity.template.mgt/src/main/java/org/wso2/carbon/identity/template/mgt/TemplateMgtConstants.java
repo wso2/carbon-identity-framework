@@ -45,7 +45,7 @@ public class TemplateMgtConstants {
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
     public static final String FORBIDDEN = "Forbidden";
     public static final String FORBIDDEN_ERROR_CODE = "403";
-    public static final String FORBIDDEN_ERROR_MESSAGE= "Template-mgt API is not supported";
+    public static final String FORBIDDEN_ERROR_MESSAGE= "Template-mgt API is restricted";
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";

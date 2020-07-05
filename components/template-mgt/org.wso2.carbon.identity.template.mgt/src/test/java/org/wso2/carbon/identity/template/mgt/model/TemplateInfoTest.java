@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.template.mgt.model;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-
 public class TemplateInfoTest {
 
     private static final String templateName = "sampleTemplate";

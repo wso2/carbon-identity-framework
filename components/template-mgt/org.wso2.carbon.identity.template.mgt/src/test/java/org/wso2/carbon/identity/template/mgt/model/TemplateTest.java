@@ -22,7 +22,6 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.template.mgt.TemplateMgtConstants;
 
-
 public class TemplateTest {
 
     private static final String templateName = "sampleTemplate";
