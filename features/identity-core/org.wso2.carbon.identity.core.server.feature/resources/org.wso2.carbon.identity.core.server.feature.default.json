@@ -248,6 +248,7 @@
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
+  "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -467,6 +468,7 @@
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
     "/api/identity/config-mgt/v1.0/",
     "/api/users/v2/me/webauthn",
+    "/api/identity/media/v1.0/",
     "/api/",
     "/user-portal/",
     "/developer-portal/",
@@ -518,6 +520,7 @@
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
+  "configuration.store.allow_cross_tenant_search": false,
 
   "fido.webauthn.enable": true,
   "fido.trusted.origins": [

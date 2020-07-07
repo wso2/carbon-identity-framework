@@ -817,6 +817,7 @@
             <RecoveryLink>false</RecoveryLink>
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
+        <NotifyUserExistence>false</NotifyUserExistence>
     </Recovery>
 
     <EmailVerification>
@@ -1523,6 +1524,22 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/media/create</Permissions>
+            <Scopes>internal_media_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/media/v1.0/content/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/media/view</Permissions>
+            <Scopes>internal_media_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
+            <Scopes>internal_media_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
@@ -1589,6 +1606,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)" secured="true" http-method="GET, DELETE, POST, PUT"/>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET, DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -1613,6 +1631,7 @@
             <Context>/api/identity/oauth2/v1.0/</Context>
             <Context>/api/identity/config-mgt/v1.0/</Context>
             <Context>/api/users/v2/me/webauthn</Context>
+            <Context>/api/identity/media/v1.0/</Context>
             <Context>/api/</Context>
             <Context>/user-portal/</Context>
             <Context>/developer-portal/</Context>
@@ -1709,6 +1728,7 @@
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLengthInBytes>4194304</MaximumQueryLengthInBytes>
+        <AllowCrossTenantSearch>false</AllowCrossTenantSearch>
     </ConfigurationStore>
 
     <FIDO>
