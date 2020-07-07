@@ -155,6 +155,7 @@ public class TemplatesApiServiceImpl extends TemplatesApiService {
     }
 
     private Response handleForbiddenRequest() {
+
         throw  TemplateEndpointUtils.buildForbiddenException();
     }
 
