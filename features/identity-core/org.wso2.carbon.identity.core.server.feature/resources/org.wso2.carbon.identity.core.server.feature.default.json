@@ -578,6 +578,9 @@
   "developer_portal.ui.app_title": "WSO2 Identity Server Developer Dashboard",
   "developer_portal.ui.app_name": "Identity Server",
   "developer_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "developer_portal.ui.theme": {
+    "name": "default"
+  },
   "developer_portal.session.params": {
     "userIdleTimeOut": 600,
     "userIdleWarningTimeOut": 580,
@@ -647,6 +650,9 @@
   "admin_portal.ui.app_title": "WSO2 Identity Server Admin Dashboard",
   "admin_portal.ui.app_name": "Identity Server",
   "admin_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "admin_portal.ui.theme": {
+    "name": "default"
+  },
   "admin_portal.session.params": {
     "userIdleTimeOut": 600,
     "userIdleWarningTimeOut": 580,
@@ -790,6 +796,9 @@
   "user_portal.ui.app_title": "Manage your WSO2 Identity Server Account",
   "user_portal.ui.app_name": "Identity Server Account",
   "user_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "user_portal.ui.theme": {
+    "name": "default"
+  },
   "user_portal.authenticator_app_configs": {
     "enabled": true
   },
