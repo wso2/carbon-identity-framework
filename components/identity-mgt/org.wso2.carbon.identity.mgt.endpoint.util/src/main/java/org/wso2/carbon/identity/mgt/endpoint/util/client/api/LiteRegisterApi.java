@@ -31,13 +31,15 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.Pair;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.CodeIntrospectResponse;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.CodeValidationRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Property;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.ResendCodeRequest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * API related to lite user registration functions.
+ */
 public class LiteRegisterApi {
     String basePath = IdentityManagementEndpointUtil.buildEndpointUrl(IdentityManagementEndpointConstants
             .UserInfoRecovery.USER_API_RELATIVE_PATH);

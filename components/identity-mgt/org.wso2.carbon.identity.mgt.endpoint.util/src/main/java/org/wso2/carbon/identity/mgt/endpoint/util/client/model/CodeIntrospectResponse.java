@@ -24,7 +24,7 @@ import javax.validation.constraints.NotNull;
 
 public class CodeIntrospectResponse {
 
-    private ExtendedUser user = null;
+    private User user = null;
 
     private String recoveryScenario = null;
 
@@ -34,12 +34,12 @@ public class CodeIntrospectResponse {
      *
      **/
     @JsonProperty("user")
-    public ExtendedUser getUser() {
+    public User getUser() {
 
         return user;
     }
 
-    public void setUser(ExtendedUser user) {
+    public void setUser(User user) {
 
         this.user = user;
     }
