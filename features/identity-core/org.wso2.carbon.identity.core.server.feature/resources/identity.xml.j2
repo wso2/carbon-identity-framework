@@ -2179,4 +2179,11 @@
 
     <!-- Configuration for allowing an uninterrupted token building flow upon facing claim handling errors. -->
     <ContinueOnClaimHandlingError>{{continue_on_claim_handling_error}}</ContinueOnClaimHandlingError>
+
+    <!--Disallowed characters regEx property-->
+    {% if user_identifier.disallowed.characters.regex is defined %}
+    <UserIdentifier>
+        <DisallowedCharacters>{{user_identifier.disallowed.characters.regex}}</DisallowedCharacters>
+    </UserIdentifier>
+    {% endif %}
 </Server>
