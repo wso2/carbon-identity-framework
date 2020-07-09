@@ -575,9 +575,10 @@
     "logout": "/logout"
   },
   "developer_portal.ui.app_copyright": "WSO2 Identity Server",
-  "developer_portal.ui.app_title": "WSO2 Identity Server Developer Dashboard",
-  "developer_portal.ui.app_name": "Identity Server",
+  "developer_portal.ui.app_title": "Developer | WSO2 Identity Server",
+  "developer_portal.ui.app_name": "Developer",
   "developer_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "developer_portal.ui.product_name": "Identity Server",
   "developer_portal.ui.theme": {
     "name": "default"
   },
@@ -647,9 +648,10 @@
     "logout": "/logout"
   },
   "admin_portal.ui.app_copyright": "WSO2 Identity Server",
-  "admin_portal.ui.app_title": "WSO2 Identity Server Admin Dashboard",
-  "admin_portal.ui.app_name": "Identity Server",
+  "admin_portal.ui.app_title": "Admin | WSO2 Identity Server",
+  "admin_portal.ui.app_name": "Admin",
   "admin_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "admin_portal.ui.product_name": "Identity Server",
   "admin_portal.ui.theme": {
     "name": "default"
   },
@@ -793,9 +795,10 @@
     "logout": "/logout"
   },
   "user_portal.ui.app_copyright": "WSO2 Identity Server",
-  "user_portal.ui.app_title": "Manage your WSO2 Identity Server Account",
-  "user_portal.ui.app_name": "Identity Server Account",
+  "user_portal.ui.app_title": "Account | WSO2 Identity Server",
+  "user_portal.ui.app_name": "Account",
   "user_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "user_portal.ui.product_name": "Identity Server Account",
   "user_portal.ui.theme": {
     "name": "default"
   },
