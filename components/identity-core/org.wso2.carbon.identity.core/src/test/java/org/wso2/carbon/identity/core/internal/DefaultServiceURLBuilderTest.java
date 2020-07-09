@@ -250,6 +250,7 @@ public class DefaultServiceURLBuilderTest {
     public Object[][] getAbsolutePublicURLData() {
 
         Map<String, String> parameters = new HashMap<>();
+        Map<String, String> unencodedParameters = new HashMap<>();
         Map<String, String> fragmentParams = new HashMap<>();
 
         ArrayList<String> keys = new ArrayList<String>(Arrays.asList("key1", "key2", "key3", "key4"));
@@ -257,6 +258,7 @@ public class DefaultServiceURLBuilderTest {
             parameters.put(key, "v");
             fragmentParams.put(key, "fragment");
         }
+        unencodedParameters.put("key5", " v ");
 
         return new Object[][]{
                 {"https", "www.wso2.com", 9443, "/proxyContext", "abc", false, null, "", fragmentParams,
@@ -282,6 +284,9 @@ public class DefaultServiceURLBuilderTest {
                         "https://www.wso2.com:9443/samlsso#fragment", "samlsso/"},
                 {"https", "www.wso2.com", 9443, "", "", true, parameters, "", fragmentParams,
                         "https://www.wso2.com:9443?key1=v&key2=v&key3=v&key4=v#key1=fragment&key2=fragment&key3" +
+                                "=fragment&key4=fragment", null},
+                {"https", "www.wso2.com", 9443, "", "", true, unencodedParameters, "", fragmentParams,
+                        "https://www.wso2.com:9443?key5=+v+#key1=fragment&key2=fragment&key3" +
                                 "=fragment&key4=fragment", null},
                 {"https", "www.wso2.com", 9443, "/proxyContext", "", false, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext#key1=fragment&key2=fragment&key3=fragment&key4" +
@@ -349,12 +354,14 @@ public class DefaultServiceURLBuilderTest {
 
         try {
             if (MapUtils.isNotEmpty(parameters) && MapUtils.isNotEmpty(fragmentParams)) {
-                absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
-                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
-                                "fragment").addFragmentParameter("key4", "fragment").addParameter("key1", "v")
-                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
-                                .getAbsolutePublicURL();
+                ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment);
+                for (String paramKey : parameters.keySet()) {
+                    serviceURLBuilder.addParameter(paramKey, parameters.get(paramKey));
+                }
+                for (String fragmentKey : fragmentParams.keySet()) {
+                    serviceURLBuilder.addFragmentParameter(fragmentKey, fragmentParams.get(fragmentKey));
+                }
+                absoluteUrl = serviceURLBuilder.build().getAbsolutePublicURL();
             } else if (MapUtils.isNotEmpty(fragmentParams)){
                 absoluteUrl =
                         ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",

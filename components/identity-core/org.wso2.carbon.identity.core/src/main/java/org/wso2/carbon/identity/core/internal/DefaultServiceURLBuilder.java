@@ -171,7 +171,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return tenantDomain;
     }
 
-    private String buildFragment(String fragment, Map<String, String> fragmentParams) {
+    private String buildFragment(String fragment, Map<String, String> fragmentParams) throws URLBuilderException {
 
         if (StringUtils.isNotBlank(fragment)) {
             return fragment;
@@ -180,13 +180,19 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
     }
 
-    private String getResolvedParamString(Map<String, String> parameters) {
+    private String getResolvedParamString(Map<String, String> parameters) throws URLBuilderException {
 
         StringJoiner joiner = new StringJoiner("&");
         if (MapUtils.isNotEmpty(parameters)) {
             for (Map.Entry<String, String> entry : parameters.entrySet()) {
                 StringBuilder paramBuilder = new StringBuilder();
-                paramBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+                try {
+                    paramBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.name())).append("=")
+                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.name()));
+                } catch (UnsupportedEncodingException e) {
+                    throw new URLBuilderException(String.format("Error while trying to build url. %s is not supported" +
+                            ".", StandardCharsets.UTF_8.name()), e);
+                }
                 joiner.add(paramBuilder.toString());
             }
         }
