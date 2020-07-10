@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS IDN_CONFIG_TYPE (
 );
 
 INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
-('up2hxlkj-654n-1ujd-5wnf-uvhs3ppwf9j8', 'CORS', 'A resource type to keep the tenant CORS Origins');
+('up2hxlkj-654n-1ujd-5wnf-uvhs3ppwf9j8', 'CORS_ORIGIN', 'A resource type to keep the tenant CORS Origins'),
+('8ec6dbf1-218a-49bf-bc34-0d2db52d151c', 'CORS_CONFIGURATION', 'A resource type to keep the tenant CORS configurations');
 
 -- -----------------------------------------------------
 -- Table IDN_CONFIG_RESOURCE

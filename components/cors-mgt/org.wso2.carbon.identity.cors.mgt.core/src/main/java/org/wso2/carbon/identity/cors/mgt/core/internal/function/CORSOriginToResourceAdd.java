@@ -18,40 +18,33 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.function;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORS_ORIGIN_RESOURCE_NAME;
+import java.util.function.Function;
 
 /**
- * Converts a list of CORSOrigins to a ConfigurationManagement ResourceAdd object.
+ * Converts a {@code CORSOrigin} object to a {@code ConfigurationManagement} {@code ResourceAdd} object.
  */
-public class CORSOriginToResourceAdd implements CheckedFunction<List<CORSOrigin>, ResourceAdd> {
-
-    private static final Log log = LogFactory.getLog(CORSOriginToResourceAdd.class);
+public class CORSOriginToResourceAdd implements Function<CORSOrigin, ResourceAdd> {
 
     @Override
-    public ResourceAdd apply(List<CORSOrigin> corsOrigins) throws JsonProcessingException {
-
-        ObjectMapper mapper = new ObjectMapper();
+    public ResourceAdd apply(CORSOrigin corsOrigin) {
 
         ResourceAdd resourceAdd = new ResourceAdd();
-        resourceAdd.setName(CORS_ORIGIN_RESOURCE_NAME);
+        resourceAdd.setName(corsOrigin.getOrigin());
 
-        List<Attribute> attributes = new ArrayList<>();
-        for (CORSOrigin corsOrigin : corsOrigins) {
-            String corsOriginString = mapper.writeValueAsString(corsOrigin);
-            addAttribute(attributes, String.valueOf(corsOrigin.hashCode()), corsOriginString);
+        if (!corsOrigin.getAppIds().isEmpty()) {
+            List<Attribute> attributes = new ArrayList<>();
+            for (String appId : corsOrigin.getAppIds()) {
+                addAttribute(attributes, appId, "");
+            }
+            resourceAdd.setAttributes(attributes);
         }
-        resourceAdd.setAttributes(attributes);
+
         return resourceAdd;
     }
 
