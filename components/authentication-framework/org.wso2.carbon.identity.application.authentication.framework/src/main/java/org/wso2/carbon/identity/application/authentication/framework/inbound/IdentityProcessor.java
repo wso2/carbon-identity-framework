@@ -187,11 +187,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(FrameworkConstants.COMMONAUTH);
             commonAuthURL = serviceURLBuilder.build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error occurred when building URL.", e);
-            }
-            // Fallback to old way, for error scenarios.
-            commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+            throw new RuntimeException("Error occurred when building URL.", e);
         }
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
@@ -246,11 +242,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
             ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(FrameworkConstants.COMMONAUTH);
             commonAuthURL = serviceURLBuilder.build().getAbsolutePublicURL();
         } catch (URLBuilderException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error occurred when building URL.", e);
-            }
-            // Fallback to old way, for error scenarios.
-            commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+            throw new RuntimeException("Error occurred when building URL.", e);
         }
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;

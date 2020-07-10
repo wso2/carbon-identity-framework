@@ -2581,18 +2581,14 @@ public class FrameworkUtils {
             if (log.isDebugEnabled()) {
                 log.debug("URI is empty.");
             }
-            return true;
+            return false;
         }
 
         try {
             final URI uriObj = new URI(uri);
             return uriObj.isAbsolute();
         } catch (URISyntaxException e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Unable to process the URI: " + uri, e);
-            }
+            throw new RuntimeException("Unable to process the URI :" + uri, e);
         }
-        // Default behavior of a URI is expected to be absolute;
-        return true;
     }
 }

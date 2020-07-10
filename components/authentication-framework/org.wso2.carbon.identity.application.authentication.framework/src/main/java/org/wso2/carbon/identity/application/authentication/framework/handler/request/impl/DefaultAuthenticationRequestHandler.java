@@ -81,6 +81,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
     public static final String AUTHZ_FAIL_REASON = "AUTHZ_FAIL_REASON";
+    private static final String CHECK_REMEMBER = "chkRemember";
+    private static final String CHECK_REMEMBER_ON = "on";
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
@@ -773,7 +775,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 }
 
                 if (context.isRequestAuthenticated() && context.isRememberMe()) {
-                    serviceURLBuilder.addParameter("chkRemember", "on");
+                    serviceURLBuilder.addParameter(CHECK_REMEMBER, CHECK_REMEMBER_ON);
                 }
 
                 try {
@@ -790,7 +792,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 String rememberMeParam = "";
 
                 if (context.isRequestAuthenticated() && context.isRememberMe()) {
-                    rememberMeParam = rememberMeParam + "chkRemember=on";
+                    rememberMeParam = CHECK_REMEMBER + "=" + CHECK_REMEMBER_ON;
                 }
 
                 if (StringUtils.isNotEmpty(rememberMeParam)) {
