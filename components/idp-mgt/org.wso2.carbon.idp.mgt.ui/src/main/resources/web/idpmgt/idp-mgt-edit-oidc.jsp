@@ -163,7 +163,7 @@
         try {
             callBackUrl = ServiceURLBuilder.create().addPath(IdentityApplicationConstants.COMMONAUTH).build().getAbsolutePublicURL();
         } catch(URLBuilderException e) {
-            throw new RuntimeException("Error occurred while building URL in tenant qualified mode.", e);
+            throw new RuntimeException("Error occurred while building the URL.", e);
         }
     }
     if (StringUtils.isBlank(userInfoEndpoint)) {
