@@ -42,6 +42,7 @@ public class AbstractFrameworkTest {
         authenticationContext.setTenantDomain("test_domain");
         authenticationContext.setCurrentStep(1);
         authenticationContext.setContextIdentifier(UUID.randomUUID().toString());
+        authenticationContext.initializeAnalyticsData();
         return authenticationContext;
     }
 

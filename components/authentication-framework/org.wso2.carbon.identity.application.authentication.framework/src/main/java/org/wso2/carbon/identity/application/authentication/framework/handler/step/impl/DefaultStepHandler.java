@@ -42,7 +42,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -50,16 +49,17 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
-        SAML2SSO.FED_AUTH_NAME;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 
 public class DefaultStepHandler implements StepHandler {
@@ -84,6 +84,11 @@ public class DefaultStepHandler implements StepHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AuthenticationContext context) throws FrameworkException {
+
+        if (context.getAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME) == null) {
+            context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME,
+                    System.currentTimeMillis());
+        }
 
         StepConfig stepConfig = context.getSequenceConfig().getStepMap()
                 .get(context.getCurrentStep());
@@ -503,6 +508,11 @@ public class DefaultStepHandler implements StepHandler {
             return;
         }
 
+        String idpName = FrameworkConstants.LOCAL_IDP_NAME;
+        if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
+            idpName = context.getExternalIdP().getIdPName();
+        }
+
         try {
             context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
                     context.getExternalIdP(), authenticator.getName()));
@@ -530,7 +540,6 @@ public class DefaultStepHandler implements StepHandler {
 
                 if (context.getSubject().getFederatedIdPName() == null && context.getExternalIdP() != null) {
                     // Setting identity provider's name
-                    String idpName = context.getExternalIdP().getIdPName();
                     context.getSubject().setFederatedIdPName(idpName);
                 }
 
@@ -539,11 +548,6 @@ public class DefaultStepHandler implements StepHandler {
                     String tenantDomain = context.getTenantDomain();
                     context.getSubject().setTenantDomain(tenantDomain);
                 }
-            }
-
-            String idpName = FrameworkConstants.LOCAL_IDP_NAME;
-            if (context.getExternalIdP() != null && authenticator instanceof FederatedApplicationAuthenticator) {
-                idpName = context.getExternalIdP().getIdPName();
             }
 
             AuthenticatedIdPData authenticatedIdPData = getAuthenticatedIdPData(context, idpName);
@@ -575,10 +579,16 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
             if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)
-                  && FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
+                    && FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
                 authHistory.setIdpSessionIndex(idpSessionIndex);
                 authHistory.setRequestType(context.getRequestType());
             }
+            Serializable startTime =
+                    context.getAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME);
+            if (startTime instanceof Long) {
+                authHistory.setDuration((long) startTime - System.currentTimeMillis());
+            }
+            authHistory.setSuccess(true);
             context.addAuthenticationStepHistory(authHistory);
 
         } catch (InvalidCredentialsException e) {
