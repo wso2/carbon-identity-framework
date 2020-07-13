@@ -58,8 +58,10 @@ import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SAMP
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SAMPLE_ORIGIN_LIST_2;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.TENANT_DOMAIN_NAME;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.TENANT_ID;
-import static org.wso2.carbon.identity.cors.mgt.core.helper.CORSManagementServiceTestHelper.getSampleResourceAdd;
+import static org.wso2.carbon.identity.cors.mgt.core.helper.CORSManagementServiceTestHelper.getSampleApplicationResourceAdd;
+import static org.wso2.carbon.identity.cors.mgt.core.helper.CORSManagementServiceTestHelper.getSampleTenantResourceAdd;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORS_ORIGIN_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.TENANT_ASSOCIATION;
 
 /**
  * Unit test cases for CORSService.
@@ -103,7 +105,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     @Test
     public void testGetCORSOriginsWithNonExisting() throws CORSManagementServiceException {
 
-        List<CORSOrigin> corsOrigins = corsManagementService.getCORSOrigins(SUPER_TENANT_DOMAIN_NAME);
+        List<CORSOrigin> corsOrigins = corsManagementService.getTenantCORSOrigins(SUPER_TENANT_DOMAIN_NAME);
 
         assertTrue(corsOrigins.isEmpty());
     }
@@ -113,25 +115,27 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
             CORSManagementServiceException {
 
         for (String sampleOrigin : SAMPLE_ORIGIN_LIST_1) {
-            configurationManager.addResource(CORS_ORIGIN_RESOURCE_TYPE_NAME, getSampleResourceAdd(sampleOrigin));
+            configurationManager.addResource(CORS_ORIGIN_RESOURCE_TYPE_NAME, getSampleTenantResourceAdd(sampleOrigin));
         }
 
-        List<String> retrievedOrigins = corsManagementService.getCORSOrigins(SUPER_TENANT_DOMAIN_NAME).stream()
-                .map(CORSOrigin::getOrigin).collect(Collectors.toList());
+        List<String> retrievedOrigins = corsManagementService.getTenantCORSOrigins(SUPER_TENANT_DOMAIN_NAME)
+                .stream().map(CORSOrigin::getOrigin).collect(Collectors.toList());
 
         assertEquals(retrievedOrigins, SAMPLE_ORIGIN_LIST_1);
     }
 
     @Test
-    public void testGetCORSOrigins() throws ConfigurationManagementException, CORSManagementServiceException {
+    public void testGetCORSOriginsWithApplication() throws ConfigurationManagementException,
+            CORSManagementServiceException {
 
         CarbonUtils.mockCarbonContextForTenant(TENANT_ID, TENANT_DOMAIN_NAME);
         for (String sampleOrigin : SAMPLE_ORIGIN_LIST_1) {
-            configurationManager.addResource(CORS_ORIGIN_RESOURCE_TYPE_NAME, getSampleResourceAdd(sampleOrigin));
+            configurationManager.addResource(CORS_ORIGIN_RESOURCE_TYPE_NAME,
+                    getSampleApplicationResourceAdd(sampleOrigin));
         }
 
-        List<String> retrievedOrigins = corsManagementService.getCORSOrigins(TENANT_DOMAIN_NAME).stream()
-                .map(CORSOrigin::getOrigin).collect(Collectors.toList());
+        List<String> retrievedOrigins = corsManagementService.getApplicationCORSOrigins(TENANT_DOMAIN_NAME, APP_ID_1)
+                        .stream().map(CORSOrigin::getOrigin).collect(Collectors.toList());
 
         assertEquals(retrievedOrigins, SAMPLE_ORIGIN_LIST_1);
     }
@@ -139,7 +143,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     @Test
     public void testSetCORSOrigins() throws CORSManagementServiceException, ConfigurationManagementException {
 
-        corsManagementService.setCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1, SAMPLE_ORIGIN_LIST_1);
+        corsManagementService.setApplicationCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1, SAMPLE_ORIGIN_LIST_1);
 
         List<String> retrievedOrigins = configurationManager.getResourcesByType(CORS_ORIGIN_RESOURCE_TYPE_NAME)
                 .getResources().stream()
@@ -149,9 +153,10 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     }
 
     @Test
-    public void testAddCORSOrigins() throws ConfigurationManagementException, CORSManagementServiceException {
+    public void testAddCORSOriginsForApplication() throws ConfigurationManagementException,
+            CORSManagementServiceException {
 
-        corsManagementService.addCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1, SAMPLE_ORIGIN_LIST_1);
+        corsManagementService.addApplicationCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1, SAMPLE_ORIGIN_LIST_1);
 
         List<String> retrievedOrigins = configurationManager.getResourcesByType(CORS_ORIGIN_RESOURCE_TYPE_NAME)
                 .getResources().stream()
@@ -163,8 +168,8 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     @Test
     public void testAddCORSOriginsForTenant() throws ConfigurationManagementException, CORSManagementServiceException {
 
-        corsManagementService.setCORSOrigins(SUPER_TENANT_DOMAIN_NAME, null, SAMPLE_ORIGIN_LIST_1);
-        corsManagementService.addCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1, SAMPLE_ORIGIN_LIST_2);
+        corsManagementService.setTenantCORSOrigins(SUPER_TENANT_DOMAIN_NAME, SAMPLE_ORIGIN_LIST_1);
+        corsManagementService.addApplicationCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1, SAMPLE_ORIGIN_LIST_2);
 
         List<CORSOrigin> retrievedOrigins = configurationManager.getResourcesByType(CORS_ORIGIN_RESOURCE_TYPE_NAME)
                 .getResources().stream()
@@ -185,7 +190,8 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
         assertEquals(retrievedOrigins.stream().map(CORSOrigin::getOrigin).collect(Collectors.toList()),
                 Stream.concat(SAMPLE_ORIGIN_LIST_1.stream(), SAMPLE_ORIGIN_LIST_2.stream())
                         .collect(Collectors.toList()));
-        assertEquals(retrievedOrigins.stream().filter(corsOrigin -> corsOrigin.getAppIds().isEmpty())
+        assertEquals(retrievedOrigins.stream().filter(corsOrigin ->
+                corsOrigin.getAppIds().size() == 1 && corsOrigin.getAppIds().contains(TENANT_ASSOCIATION))
                 .map(CORSOrigin::getOrigin).collect(Collectors.toList()), SAMPLE_ORIGIN_LIST_1);
         assertEquals(retrievedOrigins.stream().filter(corsOrigin ->
                 corsOrigin.getAppIds().size() == 1 && corsOrigin.getAppIds().contains(APP_ID_1))
@@ -195,15 +201,16 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     @Test
     public void testAddCORSOriginsWithInvalidApp() {
 
-        assertThrows(CORSManagementServiceClientException.class,
-                () -> corsManagementService.addCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_2, SAMPLE_ORIGIN_LIST_2));
+        assertThrows(CORSManagementServiceClientException.class, () -> corsManagementService
+                .addApplicationCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_2, SAMPLE_ORIGIN_LIST_2));
     }
 
     @Test
     public void testDeleteCORSOrigins() throws CORSManagementServiceException, ConfigurationManagementException {
 
         for (String sampleOrigin : SAMPLE_ORIGIN_LIST_1) {
-            configurationManager.addResource(CORS_ORIGIN_RESOURCE_TYPE_NAME, getSampleResourceAdd(sampleOrigin));
+            configurationManager.addResource(CORS_ORIGIN_RESOURCE_TYPE_NAME,
+                    getSampleApplicationResourceAdd(sampleOrigin));
         }
         List<CORSOrigin> preRetrievedOrigins = configurationManager.getResourcesByType(CORS_ORIGIN_RESOURCE_TYPE_NAME)
                 .getResources().stream()
@@ -215,7 +222,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                 })
                 .collect(Collectors.toList());
 
-        corsManagementService.deleteCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1,
+        corsManagementService.deleteApplicationCORSOrigins(SUPER_TENANT_DOMAIN_NAME, APP_ID_1,
                 preRetrievedOrigins.subList(0, 2).stream()
                         .map(CORSOrigin::getId).collect(Collectors.toList()));
         List<String> retrievedOrigins = configurationManager.getResourcesByType(CORS_ORIGIN_RESOURCE_TYPE_NAME)

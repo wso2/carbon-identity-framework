@@ -25,13 +25,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.APP_ID_1;
+import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.TENANT_ASSOCIATION;
 
 /**
  * Helper class for CORSServiceTest.
  */
 public class CORSManagementServiceTestHelper {
 
-    public static ResourceAdd getSampleResourceAdd(String origin) {
+    public static ResourceAdd getSampleTenantResourceAdd(String origin) {
+
+        List<Attribute> attributeList = new ArrayList<>();
+        Attribute attribute = new Attribute(TENANT_ASSOCIATION, "");
+        attributeList.add(attribute);
+
+        ResourceAdd resourceAdd = new ResourceAdd();
+        resourceAdd.setName(origin);
+        resourceAdd.setAttributes(attributeList);
+        return resourceAdd;
+    }
+
+    public static ResourceAdd getSampleApplicationResourceAdd(String origin) {
 
         List<Attribute> attributeList = new ArrayList<>();
         Attribute attribute = new Attribute(APP_ID_1, "");
