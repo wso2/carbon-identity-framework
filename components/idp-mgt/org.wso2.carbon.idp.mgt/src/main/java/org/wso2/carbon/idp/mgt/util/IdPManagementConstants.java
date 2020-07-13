@@ -286,6 +286,8 @@ public class IdPManagementConstants {
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
 
+        public static final String DELETE_ALL_IDP_BY_TENANT_ID_SQL = "DELETE FROM IDP WHERE TENANT_ID = ?";
+
         public static final String DELETE_IDP_BY_RESOURCE_ID_SQL = "DELETE FROM IDP WHERE UUID=?";
 
         public static final String DELETE_IDP_SP_AUTH_ASSOCIATIONS = "DELETE FROM SP_FEDERATED_IDP WHERE " +

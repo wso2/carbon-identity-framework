@@ -63,6 +63,19 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
         return true;
     }
 
+    /**
+     * Pre delete of IDP.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+        
+        return super.doPreDeleteIdPs(tenantDomain);
+    }
+
     public boolean doPreAddIdP(IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
 
@@ -92,7 +105,7 @@ public class IdPMgtValidationListener extends AbstractIdentityProviderMgtListene
             throws IdentityProviderManagementException {
 
         if (identityProvider == null) {
-            throw new IllegalArgumentException("Invalid argument: 'newIdentityProvider' is NULL\'");
+            throw new IllegalArgumentException("Invalid argument: 'newIdentityProvider' is NULL'");
         }
         if (StringUtils.isEmpty(oldIdPName)) {
             throw new IllegalArgumentException("The IdP name which need to be updated is empty");
