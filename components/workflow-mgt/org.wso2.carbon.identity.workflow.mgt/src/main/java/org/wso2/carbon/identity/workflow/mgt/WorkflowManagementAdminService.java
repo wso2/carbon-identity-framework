@@ -251,8 +251,8 @@ public class WorkflowManagementAdminService {
      * @param condition  Condition to check the event for associating
      * @throws WorkflowException
      */
-    public void addAssociation(String associationName, String workflowId, String eventId, String condition) throws
-                                                                                                            WorkflowException {
+    public void addAssociation(String associationName, String workflowId, String eventId, String condition)
+            throws WorkflowException {
 
         try {
             WorkflowServiceDataHolder.getInstance().getWorkflowService()
@@ -324,6 +324,22 @@ public class WorkflowManagementAdminService {
         } catch (InternalWorkflowException e) {
             log.error("Server error when removing workflow " + id, e);
             throw new WorkflowException("Server error occurred when removing workflow");
+        }
+    }
+
+    /**
+     * Remove workflows by a given tenant id.
+     *
+     * @param tenantId Id of workflow to remove
+     * @throws WorkflowException
+     */
+    public void removeWorkflows(int tenantId) throws WorkflowException {
+
+        try {
+            WorkflowServiceDataHolder.getInstance().getWorkflowService().removeWorkflows(tenantId);
+        } catch (InternalWorkflowException e) {
+            log.error("Server error when removing workflows of the tenant " + tenantId, e);
+            throw new WorkflowException("Server error occurred when removing workflows");
         }
     }
 

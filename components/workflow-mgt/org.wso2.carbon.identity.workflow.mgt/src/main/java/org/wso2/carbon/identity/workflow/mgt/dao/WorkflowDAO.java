@@ -85,7 +85,7 @@ public class WorkflowDAO {
         ResultSet rs = null;
         String query = SQLConstants.GET_WORKFLOW;
 
-        Workflow workflow = null ;
+        Workflow workflow = null;
 
         try {
             prepStmt = connection.prepareStatement(query);
@@ -103,7 +103,7 @@ public class WorkflowDAO {
                 workflow.setTemplateId(templateId);
                 workflow.setWorkflowImplId(implId);
 
-                break ;
+                break;
             }
         } catch (SQLException e) {
             throw new InternalWorkflowException(errorMessage, e);
@@ -134,6 +134,26 @@ public class WorkflowDAO {
             throw new InternalWorkflowException(errorMessage, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
+        }
+    }
+
+    /**
+     * Remove all workflows of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws InternalWorkflowException
+     */
+    public void removeWorkflows(int tenantId) throws InternalWorkflowException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants
+                    .DELETE_WORKFLOW_BY_TENANT_ID_QUERY)) {
+                prepStmt.setInt(1, tenantId);
+                prepStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
         }
     }
 
@@ -232,7 +252,26 @@ public class WorkflowDAO {
         }
     }
 
+    /**
+     * Clear all the parameters of all the workflows of a given tenant.
+     *
+     * @param tenantId Id of the tenant
+     * @throws InternalWorkflowException
+     */
+    public void removeWorkflowParams(int tenantId) throws InternalWorkflowException {
 
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+            try (PreparedStatement prepStmt = connection.prepareStatement(SQLConstants
+                    .DELETE_WORKFLOW_PARAMS_BY_TENANT_ID_QUERY)) {
+                prepStmt.setInt(1, tenantId);
+                prepStmt.executeUpdate();
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
+        } catch (SQLException e) {
+            throw new InternalWorkflowException(errorMessage, e);
+        }
+    }
+    
     /**
      * Add new parameter List to given workflow id
      *
@@ -248,7 +287,7 @@ public class WorkflowDAO {
 
         String query = SQLConstants.ADD_WORKFLOW_PARAMS_QUERY;
         try {
-            for (Parameter parameter : parameterList){
+            for (Parameter parameter : parameterList) {
                 prepStmt = connection.prepareStatement(query);
                 prepStmt.setString(1, workflowId);
                 prepStmt.setString(2, parameter.getParamName());
@@ -292,7 +331,7 @@ public class WorkflowDAO {
                 String paramQName = rs.getString(SQLConstants.PARAM_QNAME_COLUMN);
                 String paramHolder = rs.getString(SQLConstants.PARAM_HOLDER_COLUMN);
                 if (StringUtils.isNotBlank(paramName)) {
-                    Parameter parameter = new Parameter(workflowId,paramName,paramValue,paramQName,paramHolder);
+                    Parameter parameter = new Parameter(workflowId, paramName, paramValue, paramQName, paramHolder);
                     parameterList.add(parameter);
                 }
             }
