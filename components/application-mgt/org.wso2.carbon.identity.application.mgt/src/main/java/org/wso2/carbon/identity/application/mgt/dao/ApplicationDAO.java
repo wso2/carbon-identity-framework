@@ -73,6 +73,16 @@ public interface ApplicationDAO {
     void deleteApplication(String applicationName) throws IdentityApplicationManagementException;
 
     /**
+     * Delete applications of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws IdentityApplicationManagementException
+     */
+    default void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
+
+    }
+
+    /**
      * @param applicationID
      * @return
      * @throws IdentityApplicationManagementException

@@ -132,6 +132,14 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
             throws IdentityApplicationManagementException;
 
     /**
+     * Delete Applications by tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws IdentityApplicationManagementException
+     */
+    public abstract void deleteApplications(int tenantId) throws IdentityApplicationManagementException;
+
+    /**
      * Get Identity Provider
      *
      * @param tenantDomain Tenant Domain
