@@ -46,6 +46,8 @@ public class IdentityManagementEndpointConstants {
 
         public static final String USER_IDENTITY_MANAGEMENT_SERVICE = "/UserIdentityManagementAdminService" +
                                                                       ".UserIdentityManagementAdminServiceHttpsSoap11Endpoint/";
+        public static final String IDENTITY_PROVIDER_MANAGEMENT_SERVICE = "/IdentityProviderMgtService" +
+                                                                      ".IdentityProviderMgtServiceHttpsSoap11Endpoint/";
     }
 
     public static final class PasswordRecoveryOptions {
