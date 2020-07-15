@@ -42,9 +42,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE;
 
 /**
@@ -81,8 +83,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             String tenantDomain = context.getTenantDomain();
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
                                 context.setProperty("UserTenantDomainMismatch", true);
-                                throw new AuthenticationFailedException("Service Provider tenant domain must be " +
-                                        "equal to user tenant domain for non-SaaS applications", context.getSubject());
+                                throw new AuthenticationFailedException(
+                                        ErrorMessages.MISMATCHING_TENANT_DOMAIN.getCode(),
+                                        ErrorMessages.MISMATCHING_TENANT_DOMAIN.getMessage(),
+                                        context.getSubject());
                             }
                         }
                     }
