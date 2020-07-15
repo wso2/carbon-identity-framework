@@ -547,9 +547,49 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * This flag is used to mark when this authentication context is used by an active thread. This is to prevent same
      * context is used by two different threads at the same time.
+     *
      * @param activeInAThread True when this context started to being used by a thread.
      */
     public void setActiveInAThread(boolean activeInAThread) {
+
         this.activeInAThread = activeInAThread;
+    }
+
+    /**
+     * Initialize the authentication time related parameter maps so that in later we don't need to
+     * check whether it is initialized.
+     *
+     * @return the map consists of authentication related parameters.
+     */
+    public void initializeAnalyticsData() {
+
+        Map<String, Serializable> analyticsData = new HashMap<>();
+        this.addParameter(FrameworkConstants.AnalyticsData.DATA_MAP, analyticsData);
+        this.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME,
+                System.currentTimeMillis());
+    }
+
+    /**
+     * Set analytics related params for Authentication.
+     *
+     * @param value the authentication related param.
+     */
+    public void setAnalyticsData(String key, Serializable value) {
+
+        Map<String, Serializable> analyticsData = (HashMap<String, Serializable>)
+                this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+        analyticsData.put(key, value);
+    }
+
+    /**
+     * Get analytics related params for Authentication.
+     *
+     * @return the analytics related params.
+     */
+    public Serializable getAnalyticsData(String key) {
+
+        Map<String, Serializable> analyticsData =
+                (HashMap<String, Serializable>) this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+        return analyticsData.get(key);
     }
 }
