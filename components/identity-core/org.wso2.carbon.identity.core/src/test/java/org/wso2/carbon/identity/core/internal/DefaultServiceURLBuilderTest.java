@@ -391,6 +391,7 @@ public class DefaultServiceURLBuilderTest {
         when(IdentityUtil.getProperty(IdentityCoreConstants.SERVER_HOST_NAME)).thenReturn(serverHostName);
         when(CarbonUtils.getManagementTransport()).thenReturn(protocol);
         when(CarbonUtils.getTransportProxyPort(mockAxisConfiguration, protocol)).thenReturn(port);
+        when(CarbonUtils.getTransportPort(mockAxisConfiguration, protocol)).thenReturn(port);
         when(IdentityTenantUtil.isTenantQualifiedUrlsEnabled()).thenReturn(enableTenantURLSupport);
         when(IdentityTenantUtil.getTenantDomainFromContext()).thenReturn(tenantNameFromContext);
         when(PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain()).thenReturn("carbon.super");
