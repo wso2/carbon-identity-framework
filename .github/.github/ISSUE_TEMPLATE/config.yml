@@ -1,5 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Report a issue
-    url: https://github.com/wso2/product-is/issues/new/choose
-    about: Click here to create a new issue
