@@ -447,8 +447,8 @@ public class DefaultStepHandler implements StepHandler {
                     .getApplicationAuthenticator();
             if (authenticator != null && authenticator.getName().equalsIgnoreCase(
                     request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
-                if (selectedIdp != null && authenticatorConfig.getIdps().get(selectedIdp) == null) {
-                    // if the selected idp name is not configured for the application, throw error since
+                if (StringUtils.isNotBlank(selectedIdp) && authenticatorConfig.getIdps().get(selectedIdp) == null) {
+                    // If the selected idp name is not configured for the application, throw error since
                     // this is an invalid case.
                     throw new FrameworkException("Authenticators configured for application and user selected idp " +
                             "does not match. Possible tampering of parameters in login page.");
