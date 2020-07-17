@@ -50,7 +50,7 @@ public interface RoleManagementService {
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(int limit, int offset, String sortBy, String sortOrder, String tenantDomain)
+    List<RoleBasicInfo> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder, String tenantDomain)
             throws IdentityRoleManagementException;
 
     /**
@@ -65,7 +65,7 @@ public interface RoleManagementService {
      * @return List of roles.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
-    List<RoleBasicInfo> getRoles(String filter, int limit, int offset, String sortBy, String sortOrder,
+    List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
             String tenantDomain) throws IdentityRoleManagementException;
 
     /**

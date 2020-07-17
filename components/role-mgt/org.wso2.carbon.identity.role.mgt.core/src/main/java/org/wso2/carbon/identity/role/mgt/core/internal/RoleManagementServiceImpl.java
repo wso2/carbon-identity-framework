@@ -47,14 +47,14 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public List<RoleBasicInfo> getRoles(int limit, int offset, String sortBy, String sortOrder, String tenantDomain)
-            throws IdentityRoleManagementException {
+    public List<RoleBasicInfo> getRoles(Integer limit, Integer offset, String sortBy, String sortOrder,
+            String tenantDomain) throws IdentityRoleManagementException {
 
         return roleDAO.getRoles(limit, offset, sortBy, sortOrder, tenantDomain);
     }
 
     @Override
-    public List<RoleBasicInfo> getRoles(String filter, int limit, int offset, String sortBy, String sortOrder,
+    public List<RoleBasicInfo> getRoles(String filter, Integer limit, Integer offset, String sortBy, String sortOrder,
             String tenantDomain) throws IdentityRoleManagementException {
 
         return roleDAO.getRoles(filter, limit, offset, sortBy, sortOrder, tenantDomain);
