@@ -20,7 +20,7 @@ package org.wso2.carbon.identity.role.mgt.core.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -30,7 +30,7 @@ import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 /**
  * Role management service component.
  */
-@Component(name = "org.wso2.carbon.identity.role.mgt.internal.RoleManagementServiceComponent",
+@Component(name = "org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceComponent",
            immediate = true)
 public class RoleManagementServiceComponent {
 
@@ -39,15 +39,15 @@ public class RoleManagementServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        ServiceRegistration roleManagementServiceRegistration = context.getBundleContext()
-                .registerService(RoleManagementService.class, new RoleManagementServiceImpl(), null);
+        try {
+            BundleContext bundleContext = context.getBundleContext();
+            bundleContext.registerService(RoleManagementService.class, new RoleManagementServiceImpl(), null);
 
-        if (roleManagementServiceRegistration == null) {
-            log.error("Error while activating Role management service.");
-        } else {
             if (log.isDebugEnabled()) {
                 log.debug("Role management service is activated.");
             }
+        } catch (Throwable e) {
+            log.error("Error while activating Role management service.", e);
         }
     }
 
