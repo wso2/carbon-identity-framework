@@ -45,8 +45,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
@@ -207,13 +205,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // attributes
         request.setAttribute(FrameworkConstants.ResponseParams.LOGGED_OUT, isLoggedOut);
 
-        String redirectURL = null;
-        ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create();
-        if (FrameworkUtils.isAbsoluteURI(context.getCallerPath())) {
-            redirectURL = context.getCallerPath();
-        } else {
-            serviceURLBuilder = serviceURLBuilder.addPath(context.getCallerPath());
-        }
+        String redirectURL;
 
         if(context.getCallerSessionKey() != null) {
             request.setAttribute(FrameworkConstants.SESSION_DATA_KEY, context.getCallerSessionKey());
@@ -234,20 +226,12 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
             } else {
                 FrameworkUtils.addAuthenticationResultToCache(context.getCallerSessionKey(), authenticationResult);
             }
-            if (FrameworkUtils.isAbsoluteURI(context.getCallerPath())) {
-                String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
-                        URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
-                redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(context.getCallerPath(), sessionDataKeyParam);
 
-            } else {
-                serviceURLBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, URLEncoder.encode(context
-                        .getCallerSessionKey(), "UTF-8"));
-                try {
-                    redirectURL = serviceURLBuilder.build().getAbsolutePublicURL();
-                } catch (URLBuilderException e) {
-                    throw new ServletException(e.getMessage(), e);
-                }
-            }
+            String sessionDataKeyParam = FrameworkConstants.SESSION_DATA_KEY + "=" +
+                    URLEncoder.encode(context.getCallerSessionKey(), "UTF-8");
+            redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(context.getCallerPath(), sessionDataKeyParam);
+        } else {
+            redirectURL = context.getCallerPath();
         }
 
         /*

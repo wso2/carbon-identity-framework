@@ -47,9 +47,6 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
-import org.wso2.carbon.identity.core.ServiceURL;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.internal.DefaultServiceURLBuilder;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -73,7 +70,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({FrameworkUtils.class, ServiceURLBuilder.class})
+@PrepareForTest(FrameworkUtils.class)
 @WithCarbonHome
 public class DefaultAuthenticationRequestHandlerTest {
 
@@ -84,12 +81,6 @@ public class DefaultAuthenticationRequestHandlerTest {
     HttpServletResponse response;
 
     DefaultAuthenticationRequestHandler authenticationRequestHandler;
-
-    @Mock
-    DefaultServiceURLBuilder serviceURLBuilder;
-
-    @Mock
-    ServiceURL serviceURL;
 
     @ObjectFactory
     public IObjectFactory getObjectFactory() {
@@ -102,10 +93,6 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         initMocks(this);
         authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
-        mockStatic(ServiceURLBuilder.class);
-        when(ServiceURLBuilder.create()).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.addPath(anyString())).thenReturn(serviceURLBuilder);
-        when(serviceURLBuilder.build()).thenReturn(serviceURL);
     }
 
     @AfterMethod
@@ -256,7 +243,7 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         DefaultAuthenticationRequestHandler requestHandler = spy(new DefaultAuthenticationRequestHandler());
         doNothing().when(requestHandler).populateErrorInformation(request, response, context);
-        when(serviceURL.getAbsolutePublicURL()).thenReturn(expectedRedirectUrl);
+
         ArgumentCaptor<String> captor = ArgumentCaptor.forClass(String.class);
         requestHandler.sendResponse(request, response, context);
         verify(response).sendRedirect(captor.capture());
@@ -350,7 +337,6 @@ public class DefaultAuthenticationRequestHandlerTest {
         when(request.getCookies()).thenReturn(cookies);
         when(FrameworkUtils.getCookie(any(HttpServletRequest.class), anyString())).thenReturn
                 (cookies[0]);
-        when(FrameworkUtils.isAbsoluteURI(anyString())).thenReturn(true);
         authenticationRequestHandler.handle(request, response, context);
         assertTrue(Boolean.parseBoolean(context.getProperty(
                 FrameworkConstants.POST_AUTHENTICATION_EXTENSION_COMPLETED).toString()));
