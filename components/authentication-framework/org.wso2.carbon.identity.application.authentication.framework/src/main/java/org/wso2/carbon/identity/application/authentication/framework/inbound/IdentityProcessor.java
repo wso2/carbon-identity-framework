@@ -28,8 +28,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.core.ServiceURLBuilder;
-import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
@@ -182,13 +180,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getType(context));
-        String commonAuthURL;
-        try {
-            ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(FrameworkConstants.COMMONAUTH);
-            commonAuthURL = serviceURLBuilder.build().getAbsolutePublicURL();
-        } catch (URLBuilderException e) {
-            throw new RuntimeException("Error occurred when building URL.", e);
-        }
+        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
     }
@@ -237,13 +229,8 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         responseBuilder.setCallbackPath(getCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
-        String commonAuthURL;
-        try {
-            ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(FrameworkConstants.COMMONAUTH);
-            commonAuthURL = serviceURLBuilder.build().getAbsolutePublicURL();
-        } catch (URLBuilderException e) {
-            throw new RuntimeException("Error occurred when building URL.", e);
-        }
+        responseBuilder.setAuthType(getType(context));
+        String commonAuthURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         responseBuilder.setRedirectURL(commonAuthURL);
         return responseBuilder;
     }
