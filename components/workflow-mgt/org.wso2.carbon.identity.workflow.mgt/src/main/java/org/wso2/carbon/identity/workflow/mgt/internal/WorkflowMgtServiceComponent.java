@@ -51,27 +51,38 @@ public class WorkflowMgtServiceComponent {
 
     @Activate
     protected void activate(ComponentContext context) {
-        BundleContext bundleContext = context.getBundleContext();
-        WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
-        bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
-        WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
-        WorkflowServiceDataHolder.getInstance().setBundleContext(bundleContext);
-        ServiceRegistration serviceRegistration = context.getBundleContext().registerService(WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);
-        context.getBundleContext().registerService(WorkflowExecutorManagerListener.class.getName(), new WorkflowExecutorAuditLogger(), null);
-        context.getBundleContext().registerService(TenantMgtListener.class.getName(), new WorkflowTenantMgtListener(), null);
 
-        if (serviceRegistration != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("WorkflowAuditLogger registered.");
+        try {
+            BundleContext bundleContext = context.getBundleContext();
+            WorkflowManagementService workflowService = new WorkflowManagementServiceImpl();
+            bundleContext.registerService(WorkflowManagementService.class, workflowService, null);
+            WorkflowServiceDataHolder.getInstance().setWorkflowService(workflowService);
+            WorkflowServiceDataHolder.getInstance().setBundleContext(bundleContext);
+            ServiceRegistration serviceRegistration = context.getBundleContext()
+                    .registerService(WorkflowListener.class.getName(), new WorkflowAuditLogger(), null);
+            context.getBundleContext()
+                    .registerService(WorkflowExecutorManagerListener.class.getName(), new WorkflowExecutorAuditLogger(),
+                            null);
+            context.getBundleContext()
+                    .registerService(TenantMgtListener.class.getName(), new WorkflowTenantMgtListener(), null);
+
+            if (serviceRegistration != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("WorkflowAuditLogger registered.");
+                }
+            } else {
+                log.error("Workflow Audit Logger could not be registered.");
             }
-        } else {
-            log.error("Workflow Audit Logger could not be registered.");
-        }
-        if (System.getProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID) == null) {
-            System.setProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance().getFirstProperty(WFConstant.KEYSTORE_CARBON_CONFIG_PATH));
-        }
-        if (System.getProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID) == null) {
-            System.setProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance().getFirstProperty(WFConstant.KEYSTORE_PASSWORD_CARBON_CONFIG_PATH));
+            if (System.getProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID) == null) {
+                System.setProperty(WFConstant.KEYSTORE_SYSTEM_PROPERTY_ID,
+                        ServerConfiguration.getInstance().getFirstProperty(WFConstant.KEYSTORE_CARBON_CONFIG_PATH));
+            }
+            if (System.getProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID) == null) {
+                System.setProperty(WFConstant.KEYSTORE_PASSWORD_SYSTEM_PROPERTY_ID, ServerConfiguration.getInstance()
+                        .getFirstProperty(WFConstant.KEYSTORE_PASSWORD_CARBON_CONFIG_PATH));
+            }
+        } catch (Throwable e) {
+            log.error("Failed to start the WorkflowMgtServiceComponent", e);
         }
     }
 
