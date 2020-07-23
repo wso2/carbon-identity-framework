@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
@@ -115,6 +116,7 @@ public class IdentityUtil {
             HashMap<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
+    private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -214,11 +216,41 @@ public class IdentityUtil {
         return identityCookiesConfigurationHolder;
     }
 
+    /**
+     * This method can use to check whether the legacy feature for the given legacy feature id is enabled or not
+     *
+     * @param legacyFeatureId      Legacy feature id.
+     * @param legacyFeatureVersion Legacy feature version.
+     * @return Whether the legacy feature is enabled or not.
+     */
+    public static boolean isLegacyFeatureEnabled(String legacyFeatureId, String legacyFeatureVersion) {
+
+        String legacyFeatureConfig = legacyFeatureId.trim() + legacyFeatureVersion.trim();
+        if (StringUtils.isNotBlank(legacyFeatureConfig)) {
+            LegacyFeatureConfig legacyFeatureConfiguration =
+                    legacyFeatureConfigurationHolder.get(legacyFeatureConfig);
+            if (legacyFeatureConfiguration != null && legacyFeatureConfiguration.isEnabled()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Legacy feature id: " + legacyFeatureConfiguration.getId() +
+                            " is enabled: " + legacyFeatureConfiguration.isEnabled());
+                }
+                return legacyFeatureConfiguration.isEnabled();
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("legacy feature is not configured or the configured legacy feature is empty. " +
+                        "Hence returning false ");
+            }
+        }
+        return false;
+    }
+
     public static void populateProperties() {
         configuration = IdentityConfigParser.getInstance().getConfiguration();
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
         identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
+        legacyFeatureConfigurationHolder = IdentityConfigParser.getLegacyFeatureConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {

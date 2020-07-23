@@ -513,4 +513,16 @@ public class IdentityConstants {
         public static final String MAX_AGE = "CORS.MaxAge";
         public static final String TAG_REQUESTS = "CORS.TagRequests";
     }
+
+    /**
+     * Contains the constants related to Legacy Feature config elements.
+     */
+    public static class LegacyFeatureConfigElements {
+
+        public final static String LEGACY_FEATURE_CONFIG = "LegacyFeatures";
+        public final static String LEGACY_FEATURE = "LegacyFeature";
+        public final static String LEGACY_FEATURE_ID = "Id";
+        public final static String LEGACY_FEATURE_VERSION = "Version";
+        public final static String LEGACY_FEATURE_ENABLE = "Enable";
+    }
 }
