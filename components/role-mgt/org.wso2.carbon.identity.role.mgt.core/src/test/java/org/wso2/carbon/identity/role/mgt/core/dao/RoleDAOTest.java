@@ -161,7 +161,7 @@ public class RoleDAOTest extends PowerMockTestCase {
 
             List<String> expectedRoles = new ArrayList<>();
             expectedRoles.add("role2");
-            expectedRoles.add("role1");
+            expectedRoles.add("role3");
 
             mockRealmConfiguration();
             mockStatic(UserCoreUtil.class);

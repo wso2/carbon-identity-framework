@@ -170,19 +170,7 @@ public class RoleDAOImpl implements RoleDAO {
                     roleID = addRoleID(roleName, tenantDomain);
                     // Add role permissions.
                     if (CollectionUtils.isNotEmpty(permissions)) {
-                        try {
-                            PrivilegedCarbonContext.startTenantFlow();
-                            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext
-                                    .getThreadLocalCarbonContext();
-                            carbonContext.setTenantDomain(tenantDomain);
-                            carbonContext.setTenantId(tenantId);
-                            getUserAdminProxy().setRoleUIPermission(roleName, permissions.toArray(new String[0]));
-                        } catch (UserAdminException e) {
-                            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                                    "An error occurred when setting permissions for the role: " + roleName, e);
-                        } finally {
-                            PrivilegedCarbonContext.endTenantFlow();
-                        }
+                        setPermissionsForRole(roleID, permissions, tenantDomain);
                     }
 
                     IdentityDatabaseUtil.commitUserDBTransaction(connection);
@@ -251,26 +239,14 @@ public class RoleDAOImpl implements RoleDAO {
     public Role getRole(String roleID, String tenantDomain) throws IdentityRoleManagementException {
 
         Role role = new Role();
-        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         String roleName = getRoleNameByID(roleID, tenantDomain);
         role.setId(roleID);
         role.setName(roleName);
         role.setTenantDomain(tenantDomain);
         role.setUsers(getUserListOfRole(roleID, tenantDomain));
         role.setGroups(getGroupListOfRole(roleID, tenantDomain));
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(tenantDomain);
-            carbonContext.setTenantId(tenantId);
-            role.setPermissions(getSelectedPermissions(getUserAdminProxy().getRolePermissions(roleName, tenantId)));
-        } catch (UserAdminException e) {
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "An error occurred when retrieving permissions of role : " + roleID + " in the tenantDomain: "
-                            + tenantDomain, e);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
+        role.setPermissions(getPermissionListOfRole(roleID, tenantDomain));
+
         return role;
     }
 
@@ -367,6 +343,12 @@ public class RoleDAOImpl implements RoleDAO {
         return roles;
     }
 
+    /**
+     * Append internal domain if there is no domain appended already.
+     *
+     * @param roleName Role name.
+     * @return Domain appended role name.
+     */
     private String appendInternalDomain(String roleName) {
 
         if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
@@ -449,9 +431,11 @@ public class RoleDAOImpl implements RoleDAO {
         if (offset == null) {
             // Return first page offset.
             offset = 0;
-        }
-
-        if (offset < 0) {
+        } else if (offset > 0) {
+            /* SCIM 2.0 implementation is using one based startIndex.
+            Therefore we are converting it to a zero based start index here. */
+            offset = offset - 1;
+        } else if (offset < 0) {
             String errorMessage =
                     "Invalid offset requested. Offset value should be zero or greater than zero. offSet: " + offset;
             throw new IdentityRoleManagementClientException(INVALID_OFFSET.getCode(), errorMessage);
@@ -1037,7 +1021,7 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
-        String roleName = getRoleNameByID(roleID, tenantDomain);
+        String roleName = appendInternalDomain(getRoleNameByID(roleID, tenantDomain));
         try {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
@@ -1056,7 +1040,7 @@ public class RoleDAOImpl implements RoleDAO {
     public RoleBasicInfo setPermissionsForRole(String roleID, List<String> permissions, String tenantDomain)
             throws IdentityRoleManagementException {
 
-        String roleName = getRoleNameByID(roleID, tenantDomain);
+        String roleName = appendInternalDomain(getRoleNameByID(roleID, tenantDomain));
         if (CollectionUtils.isEmpty(permissions)) {
             if (log.isDebugEnabled()) {
                 log.debug("Permissions list is empty.");
