@@ -47,7 +47,7 @@ public interface UserStoreConfigListener {
      * @param userStoreName Userstore domain name.
      * @throws UserStoreException throws when an error occurrs in the listener.
      */
-    default void onUserStorePerAdd(int tenantId, String userStoreName) throws UserStoreException {
+    default void onUserStorePreAdd(int tenantId, String userStoreName) throws UserStoreException {
 
         // Not implemented.
     }

@@ -774,7 +774,7 @@ public class SecondaryUserStoreConfigurationUtil {
                 .getUserStoreConfigListeners();
 
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
-            userStoreConfigListener.onUserStorePerAdd(tenantId, domainName);
+            userStoreConfigListener.onUserStorePreAdd(tenantId, domainName);
         }
     }
 
