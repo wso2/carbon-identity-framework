@@ -1,6 +1,7 @@
 package org.wso2.carbon.identity.template.mgt.endpoint;
 
 //comment
+@Deprecated
 public class ApiException extends Exception {
 
     private int code;
