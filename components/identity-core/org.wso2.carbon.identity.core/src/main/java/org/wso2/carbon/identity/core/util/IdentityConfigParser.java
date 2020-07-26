@@ -432,7 +432,7 @@ public class IdentityConfigParser {
                                 isLegacyFeatureEnable);
                         legacyFeatureConfigurationHolder.put(legacyFeatureConfigKey, legacyFeatureConfig);
                     } else {
-                        log.warn("Configured <Feature> element at index: " + legacyFeaturesConfigElementIndex +
+                        log.warn("Configured <LegacyFeature> element at index: " + legacyFeaturesConfigElementIndex +
                                 " contains invalid entry.");
                     }
                 }

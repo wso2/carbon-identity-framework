@@ -225,13 +225,22 @@ public class IdentityUtil {
      */
     public static boolean isLegacyFeatureEnabled(String legacyFeatureId, String legacyFeatureVersion) {
 
-        String legacyFeatureConfig = legacyFeatureId.trim() + legacyFeatureVersion.trim();
+        String legacyFeatureConfig;
+        if (StringUtils.isBlank(legacyFeatureId)) {
+            return false;
+        }
+        if (StringUtils.isBlank(legacyFeatureVersion)) {
+            legacyFeatureConfig = legacyFeatureId.trim();
+        } else {
+            legacyFeatureConfig = legacyFeatureId.trim() + legacyFeatureVersion.trim();
+        }
         if (StringUtils.isNotBlank(legacyFeatureConfig)) {
             LegacyFeatureConfig legacyFeatureConfiguration =
                     legacyFeatureConfigurationHolder.get(legacyFeatureConfig);
             if (legacyFeatureConfiguration != null && legacyFeatureConfiguration.isEnabled()) {
                 if (log.isDebugEnabled()) {
                     log.debug("Legacy feature id: " + legacyFeatureConfiguration.getId() +
+                            " legacy feature version : " + legacyFeatureConfiguration.getVersion() +
                             " is enabled: " + legacyFeatureConfiguration.isEnabled());
                 }
                 return legacyFeatureConfiguration.isEnabled();
