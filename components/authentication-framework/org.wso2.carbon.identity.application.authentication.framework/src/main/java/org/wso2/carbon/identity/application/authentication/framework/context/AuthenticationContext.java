@@ -588,8 +588,12 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      */
     public Serializable getAnalyticsData(String key) {
 
-        Map<String, Serializable> analyticsData =
-                (HashMap<String, Serializable>) this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
-        return analyticsData.get(key);
+        if (this.getParameters().containsKey(FrameworkConstants.AnalyticsData.DATA_MAP)) {
+            Map<String, Serializable> analyticsData =
+                    (HashMap<String, Serializable>) this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+            return analyticsData.get(key);
+        } else {
+            return null;
+        }
     }
 }
