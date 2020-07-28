@@ -21,18 +21,20 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.util;
 
-import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utility class for CORS configuration operations.
@@ -63,57 +65,44 @@ public class CORSConfigurationUtils {
                     IdentityConstants.CORS.ALLOW_GENERIC_HTTP_REQUESTS)));
 
             // Set allowAnyOrigin.
-            String allowedOriginsProperty = IdentityUtil.getProperty(IdentityConstants.CORS.ALLOWED_ORIGINS);
-            if (StringUtils.isNotBlank(allowedOriginsProperty) && allowedOriginsProperty.equals("*")) {
-                corsConfiguration.setAllowAnyOrigin(true);
-            }
+            corsConfiguration.setAllowAnyOrigin(Boolean.parseBoolean(IdentityUtil.getProperty(
+                    IdentityConstants.CORS.ALLOW_ANY_ORIGIN)));
 
             // Set allowSubdomains.
             corsConfiguration.setAllowSubdomains(Boolean.parseBoolean(IdentityUtil.getProperty(
                     IdentityConstants.CORS.ALLOW_SUBDOMAINS)));
 
             // Set supportedMethods.
-            String supportedMethodsProperty = IdentityUtil.getProperty(IdentityConstants.CORS.SUPPORTED_METHODS);
-            if (StringUtils.isNotBlank(supportedMethodsProperty)) {
-                Set<String> supportedMethods = new HashSet<>(parseWords(supportedMethodsProperty));
-                corsConfiguration.setSupportedMethods(supportedMethods);
-            }
+            Set<String> supportedMethods = new HashSet(readPropertyArray(IdentityConstants.CORS.SUPPORTED_METHODS));
+            corsConfiguration.setSupportedMethods(supportedMethods);
 
-            // Set supportAnyHeader and supportedHeaders.
-            String supportedHeadersProperty = IdentityUtil.getProperty(IdentityConstants.CORS.SUPPORTED_HEADERS);
-            if (StringUtils.isNotBlank(supportedHeadersProperty)) {
-                if (supportedHeadersProperty.equals("*")) {
-                    corsConfiguration.setSupportAnyHeader(true);
-                } else {
-                    corsConfiguration.setSupportAnyHeader(false);
+            // Set supportAnyHeader.
+            corsConfiguration.setSupportAnyHeader(Boolean.parseBoolean(IdentityUtil.getProperty(
+                    IdentityConstants.CORS.SUPPORT_ANY_HEADER)));
 
-                    Set<String> supportedHeaders = new HashSet<>();
-                    for (String header : parseWords(supportedHeadersProperty)) {
+            // Set supportedHeaders.
+            Set<String> supportedHeaders = readPropertyArray(IdentityConstants.CORS.SUPPORTED_HEADERS)
+                    .stream().map(header -> {
                         try {
-                            supportedHeaders.add(HeaderUtils.formatCanonical(header));
+                            return HeaderUtils.formatCanonical(header);
                         } catch (IllegalArgumentException e) {
-                            throw new IllegalArgumentException(String.format(
-                                    ErrorMessages.ERROR_CODE_BAD_HEADER.getDescription(), header));
+                            throw new IllegalArgumentException(String.format(ErrorMessages.ERROR_CODE_BAD_HEADER
+                                    .getDescription(), header));
                         }
-                    }
-                    corsConfiguration.setSupportedHeaders(supportedHeaders);
-                }
-            }
+                    }).collect(Collectors.toSet());
+            corsConfiguration.setSupportedHeaders(supportedHeaders);
 
             // Set exposedHeaders.
-            Set<String> exposedHeaders = new HashSet<>();
-            String exposedHeadersProperty = IdentityUtil.getProperty(IdentityConstants.CORS.EXPOSED_HEADERS);
-            if (StringUtils.isNotBlank(exposedHeadersProperty)) {
-                for (String header : parseWords(exposedHeadersProperty)) {
-                    try {
-                        exposedHeaders.add(HeaderUtils.formatCanonical(header));
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException(String.format(
-                                ErrorMessages.ERROR_CODE_BAD_HEADER.getDescription(), header));
-                    }
-                }
-                corsConfiguration.setExposedHeaders(exposedHeaders);
-            }
+            Set<String> exposedHeaders = readPropertyArray(IdentityConstants.CORS.EXPOSED_HEADERS)
+                    .stream().map(header -> {
+                        try {
+                            return HeaderUtils.formatCanonical(header);
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException(String.format(ErrorMessages.ERROR_CODE_BAD_HEADER
+                                    .getDescription(), header));
+                        }
+                    }).collect(Collectors.toSet());
+            corsConfiguration.setExposedHeaders(exposedHeaders);
 
             // Set supportsCredentials.
             corsConfiguration.setSupportsCredentials(Boolean.parseBoolean(IdentityUtil.getProperty(
@@ -146,6 +135,18 @@ public class CORSConfigurationUtils {
             return new ArrayList<>();
         } else {
             return Arrays.asList(trimmedWord.split("\\s*,\\s*|\\s+"));
+        }
+    }
+
+    private static List<String> readPropertyArray(String property) {
+
+        Object value = IdentityConfigParser.getInstance().getConfiguration().get(property);
+        if (value == null) {
+            return new ArrayList<>();
+        } else if (value instanceof ArrayList) {
+            return (ArrayList) value;
+        } else {
+            return new ArrayList<>(Collections.singletonList((String) value));
         }
     }
 }

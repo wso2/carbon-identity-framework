@@ -89,6 +89,7 @@ public class CORSConfiguration {
      * Default constructor.
      */
     public CORSConfiguration() {
+
         this.supportedMethods = new HashSet<>();
         this.supportedHeaders = new HashSet<>();
         this.exposedHeaders = new HashSet<>();

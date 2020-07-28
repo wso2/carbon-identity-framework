@@ -19,15 +19,20 @@
 package org.wso2.carbon.identity.cors.mgt.core.internal;
 
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
-import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service holder class for CORS-Service.
  */
 public class CORSManagementServiceHolder {
 
+    private List<CORSOriginDAO> corsOriginDAOS = new ArrayList<>();
+    private List<CORSConfigurationDAO> corsConfigurationDAOS = new ArrayList<>();
     private ConfigurationManager configurationManager;
-    private CORSManagementService corsManagementService;
 
     private CORSManagementServiceHolder() {
 
@@ -38,6 +43,26 @@ public class CORSManagementServiceHolder {
         return SingletonHelper.INSTANCE;
     }
 
+    public List<CORSOriginDAO> getCorsOriginDAOS() {
+
+        return corsOriginDAOS;
+    }
+
+    public void setCorsOriginDAOS(List<CORSOriginDAO> corsOriginDAOS) {
+
+        this.corsOriginDAOS = corsOriginDAOS;
+    }
+
+    public List<CORSConfigurationDAO> getCorsConfigurationDAOS() {
+
+        return corsConfigurationDAOS;
+    }
+
+    public void setCorsConfigurationDAOS(List<CORSConfigurationDAO> corsConfigurationDAOS) {
+
+        this.corsConfigurationDAOS = corsConfigurationDAOS;
+    }
+
     public ConfigurationManager getConfigurationManager() {
 
         return configurationManager;
@@ -46,16 +71,6 @@ public class CORSManagementServiceHolder {
     public void setConfigurationManager(ConfigurationManager configurationManager) {
 
         this.configurationManager = configurationManager;
-    }
-
-    public CORSManagementService getCorsManagementService() {
-
-        return corsManagementService;
-    }
-
-    public void setCorsManagementService(CORSManagementService corsManagementService) {
-
-        this.corsManagementService = corsManagementService;
     }
 
     /**

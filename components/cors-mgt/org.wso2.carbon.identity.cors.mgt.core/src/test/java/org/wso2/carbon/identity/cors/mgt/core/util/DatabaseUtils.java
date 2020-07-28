@@ -28,6 +28,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -92,10 +93,12 @@ public class DatabaseUtils {
         Connection spyConnection = spyConnection(connection);
         when(dataSource.getConnection()).thenReturn(spyConnection);
 
+        when(IdentityDatabaseUtil.getDBConnection(any(Boolean.class))).thenReturn(spyConnection);
+
         return connection;
     }
 
-    private static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
 
         if (dataSourceMap.get(DB_NAME) != null) {
             return dataSourceMap.get(DB_NAME).getConnection();

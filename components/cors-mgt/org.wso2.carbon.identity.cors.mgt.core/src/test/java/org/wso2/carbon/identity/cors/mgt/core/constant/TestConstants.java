@@ -34,12 +34,54 @@ public class TestConstants {
             "http://abc.com",
             "https://pqr.com",
             "http://xyz.com");
-    public static final int TENANT_ID = -1111;
-    public static final String TENANT_DOMAIN_NAME = "abc.com";
-    public static final String APP_ID_1 = "test_app_1";
-    public static final String APP_ID_2 = "test_app_2";
+    public static final String INSERT_APPLICATION =
+            "INSERT INTO SP_APP (ID, TENANT_ID, APP_NAME, UUID) " +
+                    "VALUES (?, ?, ?, ?)";
 
     private TestConstants() {
 
+    }
+
+    public static class SampleTenant {
+
+        public static final int ID = 4;
+        public static final String DOMAIN_NAME = "abc.com";
+
+        private SampleTenant() {
+
+        }
+    }
+
+    public static class SampleApp1 {
+
+        public static final int ID = 1;
+        public static final String NAME = "App 1";
+        public static final String UUID = "c0881fadfb6f4d08b4ad2680364bd998";
+
+        private SampleApp1() {
+
+        }
+    }
+
+    public static class SampleApp2 {
+
+        public static final int ID = 2;
+        public static final String NAME = "App 2";
+        public static final String UUID = "4d34790b8d164e03b6c5476c0bf31038";
+
+        private SampleApp2() {
+
+        }
+    }
+
+    public static class SampleApp3 {
+
+        public static final int ID = 3;
+        public static final String NAME = "App 3";
+        public static final String UUID = "1q67890b8d164jh39os574h5c6f36s38";
+
+        private SampleApp3() {
+
+        }
     }
 }

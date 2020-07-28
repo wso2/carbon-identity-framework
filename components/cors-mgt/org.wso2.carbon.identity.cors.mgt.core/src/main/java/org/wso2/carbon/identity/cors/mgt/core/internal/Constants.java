@@ -58,7 +58,7 @@ public class Constants {
      * CORS origin association name for the tenant level associated CORS origins. This will be used as a key in one
      * of the attributed of a CORS origin when stored in Configuration Management Store.
      */
-    public static final String TENANT_ASSOCIATION = "TENANT_ORIGIN";
+    public static final String TENANT_ASSOCIATION = "TENANT_APP";
 
     private Constants() {
 

@@ -1971,6 +1971,8 @@
             <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
             <Scopes>internal_media_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
@@ -2215,11 +2217,29 @@
     <!-- CORS -->
     <CORS>
         <AllowGenericHttpRequests>{{cors.allow_generic_http_requests}}</AllowGenericHttpRequests>
-        <AllowedOrigins>{{cors.allowed_origins}}</AllowedOrigins>
+        <AllowAnyOrigin>{{cors.allow_any_origin}}</AllowAnyOrigin>
+        <AllowedOrigins>
+            {% for origin in cors.allowed_origins %}
+            <Origin>{{origin}}</Origin>
+            {% endfor %}
+        </AllowedOrigins>
         <AllowSubdomains>{{cors.allow_subdomains}}</AllowSubdomains>
-        <SupportedMethods>{{cors.supported_methods}}</SupportedMethods>
-        <SupportedHeaders>{{cors.supported_headers}}</SupportedHeaders>
-        <ExposedHeaders>{{cors.exposed_headers}}</ExposedHeaders>
+        <SupportedMethods>
+            {% for method in cors.supported_methods %}
+            <Method>{{method}}</Method>
+            {% endfor %}
+        </SupportedMethods>
+        <SupportAnyHeader>{{cors.support_any_header}}</SupportAnyHeader>
+        <SupportedHeaders>
+            {% for header in cors.supported_headers %}
+            <Header>{{header}}</Header>
+            {% endfor %}
+        </SupportedHeaders>
+        <ExposedHeaders>
+            {% for header in cors.exposed_headers %}
+            <Header>{{header}}</Header>
+            {% endfor %}
+        </ExposedHeaders>
         <SupportsCredentials>{{cors.supports_credentials}}</SupportsCredentials>
         <MaxAge>{{cors.max_age}}</MaxAge>
         <TagRequests>{{cors.tag_requests}}</TagRequests>

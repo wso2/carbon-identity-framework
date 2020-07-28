@@ -1564,6 +1564,8 @@
             <Scopes>internal_media_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET"/>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
