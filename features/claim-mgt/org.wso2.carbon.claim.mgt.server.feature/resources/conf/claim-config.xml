@@ -712,6 +712,14 @@
 				<AttributeID>isLiteUser</AttributeID>
 				<Description>Claim to store if this is a lite user account.</Description>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/isReadOnlyUser</ClaimURI>
+				<DisplayName>Read Only User</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>isReadOnlyUser</AttributeID>
+				<Description>Claim to store if the user is read only</Description>
+			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2485,6 +2493,16 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/dob</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:isReadOnlyUser</ClaimURI>
+				<DisplayName>Read Only User</DisplayName>
+				<AttributeID>isReadOnlyUser</AttributeID>
+				<Description>Claim to store if the user is read only</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/isReadOnlyUser</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">
