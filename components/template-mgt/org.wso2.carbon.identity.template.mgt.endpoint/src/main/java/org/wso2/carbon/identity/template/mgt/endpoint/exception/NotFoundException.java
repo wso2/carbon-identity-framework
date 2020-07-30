@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.template.mgt.endpoint.dto.ErrorDTO;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
+@Deprecated
 public class NotFoundException extends WebApplicationException {
 
     private static final long serialVersionUID = 4691655188879913053L;

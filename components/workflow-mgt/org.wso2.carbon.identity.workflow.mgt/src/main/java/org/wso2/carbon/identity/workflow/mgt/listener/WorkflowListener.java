@@ -75,12 +75,32 @@ public interface WorkflowListener {
     void doPreDeleteWorkflow(Workflow workflow) throws WorkflowException;
 
     /**
+     * Trigger before deleting workflows by tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws WorkflowException
+     */
+    default void doPreDeleteWorkflows(int tenantId) throws WorkflowException {
+
+    }
+
+    /**
      * Trigger after delete the workflow
      *
      * @param workflow Workflow to delete
      * @throws WorkflowException
      */
     void doPostDeleteWorkflow(Workflow workflow) throws WorkflowException;
+
+    /**
+     * Trigger after deleting workflows by tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws WorkflowException
+     */
+    default void doPostDeleteWorkflows(int tenantId) throws WorkflowException {
+
+    }
 
     /**
      * Trigger before listing workflow Impls

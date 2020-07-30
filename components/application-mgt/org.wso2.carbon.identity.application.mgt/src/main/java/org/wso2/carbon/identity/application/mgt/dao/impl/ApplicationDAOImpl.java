@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -176,11 +177,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.L
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UUID_BY_APP_ID;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP_WITH_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_SP_APP_WITH_UUID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CERTIFICATE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CERTIFICATES_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CLIENT_FROM_APPMGT_CLIENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_PRO_CONNECTORS;
@@ -238,6 +241,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
+    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
+    private static final String AUDIT_SUCCESS = "Success";
+    private static final String AUDIT_FAIL = "Fail";
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
@@ -3539,6 +3546,41 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     }
 
     /**
+     * Delete all applications of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws IdentityApplicationManagementException
+     */
+    @Override
+    public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all applications of the tenant: " + tenantId);
+        }
+
+        String auditData = "\"" + "Tenant Id" + "\" : \"" + tenantId + "\"";
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+
+            // Delete the application certificates of the tenant
+            deleteCertificatesByTenantId(connection, tenantId);
+
+            try (PreparedStatement deleteClientPrepStmt = connection
+                    .prepareStatement(REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID)) {
+                deleteClientPrepStmt.setInt(1, tenantId);
+                deleteClientPrepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
+                audit("Delete all applications of a tenant", auditData, AUDIT_SUCCESS);
+            }
+        } catch (SQLException e) {
+            audit("Delete all applications of a tenant", auditData, AUDIT_FAIL);
+            String msg = "An error occurred while delete all the applications of the tenant: " + tenantId;
+            log.error(msg, e);
+            throw new IdentityApplicationManagementException(msg, e);
+        }
+    }
+
+    /**
      * Deleting Clients of the Application
      *
      * @param applicationID
@@ -3754,6 +3796,29 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statementToRemoveCertificate.execute();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(statementToRemoveCertificate);
+        }
+    }
+
+    /**
+     * Deletes all certificates of a given tenant id from the database.
+     *
+     * @param connection Connection
+     * @param tenantId Id of the tenant
+     */
+    private void deleteCertificatesByTenantId(Connection connection, int tenantId) throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all application certificates of tenant: " + tenantId);
+        }
+
+        PreparedStatement deleteCertificatesStmt = null;
+
+        try {
+            deleteCertificatesStmt = connection.prepareStatement(REMOVE_CERTIFICATES_BY_TENANT_ID);
+            deleteCertificatesStmt.setInt(1, tenantId);
+            deleteCertificatesStmt.execute();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteCertificatesStmt);
         }
     }
 
@@ -5059,5 +5124,25 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             applicationId = getApplicationIdByName(serviceProvider.getApplicationName(), tenantDomain);
         }
         return applicationId;
+    }
+
+    /**
+     * Add audit log entry.
+     *
+     * @param action Action
+     * @param data Audit data
+     * @param result Result
+     */
+    private void audit(String action, String data, String result) {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (StringUtils.isBlank(loggedInUser)) {
+            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        }
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
     }
 }

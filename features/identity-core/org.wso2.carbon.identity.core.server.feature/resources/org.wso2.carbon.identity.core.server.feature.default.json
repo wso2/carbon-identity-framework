@@ -248,6 +248,7 @@
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
+  "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -467,6 +468,7 @@
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
     "/api/identity/config-mgt/v1.0/",
     "/api/users/v2/me/webauthn",
+    "/api/identity/media/v1.0/",
     "/api/",
     "/user-portal/",
     "/developer-portal/",
@@ -518,6 +520,7 @@
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
+  "configuration.store.allow_cross_tenant_search": false,
 
   "fido.webauthn.enable": true,
   "fido.trusted.origins": [
@@ -552,6 +555,9 @@
   "developer_portal.app_base_name": "developer-portal",
   "developer_portal.client_id": "DEVELOPER_PORTAL",
   "developer_portal.debug.enable": false,
+  "developer_portal.applications.admin_app.configs": {
+    "path": "/admin-portal/overview"
+  },
   "developer_portal.documentation.base_url": "https://api.github.com",
   "developer_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "developer_portal.documentation.github_options": {
@@ -569,9 +575,11 @@
     "logout": "/logout"
   },
   "developer_portal.ui.app_copyright": "WSO2 Identity Server",
-  "developer_portal.ui.app_title": "WSO2 Identity Server Developer Dashboard",
-  "developer_portal.ui.app_name": "Identity Server",
+  "developer_portal.ui.app_title": "Developer | WSO2 Identity Server",
+  "developer_portal.ui.app_name": "Developer",
   "developer_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "developer_portal.ui.product_name": "Identity Server",
+  "developer_portal.theme": "default",
   "developer_portal.session.params": {
     "userIdleTimeOut": 600,
     "userIdleWarningTimeOut": 580,
@@ -618,6 +626,9 @@
   "admin_portal.app_base_name": "admin-portal",
   "admin_portal.client_id": "ADMIN_PORTAL",
   "admin_portal.debug.enable": false,
+  "admin_portal.applications.developer_app.configs": {
+    "path": "/developer-portal/overview"
+  },
   "admin_portal.documentation.base_url": "https://api.github.com",
   "admin_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "admin_portal.documentation.github_options": {
@@ -635,9 +646,11 @@
     "logout": "/logout"
   },
   "admin_portal.ui.app_copyright": "WSO2 Identity Server",
-  "admin_portal.ui.app_title": "WSO2 Identity Server Admin Dashboard",
-  "admin_portal.ui.app_name": "Identity Server",
+  "admin_portal.ui.app_title": "Admin | WSO2 Identity Server",
+  "admin_portal.ui.app_name": "Admin",
   "admin_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "admin_portal.ui.product_name": "Identity Server",
+  "admin_portal.theme": "default",
   "admin_portal.session.params": {
     "userIdleTimeOut": 600,
     "userIdleWarningTimeOut": 580,
@@ -778,9 +791,11 @@
     "logout": "/logout"
   },
   "user_portal.ui.app_copyright": "WSO2 Identity Server",
-  "user_portal.ui.app_title": "Manage your WSO2 Identity Server Account",
-  "user_portal.ui.app_name": "Identity Server Account",
+  "user_portal.ui.app_title": "Account | WSO2 Identity Server",
+  "user_portal.ui.app_name": "Account",
   "user_portal.ui.app_logo_path": "/assets/images/logo.svg",
+  "user_portal.ui.product_name": "Identity Server Account",
+  "user_portal.theme": "default",
   "user_portal.authenticator_app_configs": {
     "enabled": true
   },
@@ -803,5 +818,14 @@
     "userIdleWarningTimeOut": 580,
     "sessionRefreshTimeOut": 300,
     "checkSessionInterval": 3
-  }
+  },
+  "cors.allow_generic_http_requests": true,
+  "cors.allowed_origins": "",
+  "cors.allow_subdomains": false,
+  "cors.supported_methods": "GET, POST, HEAD, OPTIONS",
+  "cors.supported_headers": "*",
+  "cors.exposed_headers": "",
+  "cors.supports_credentials": true,
+  "cors.max_age": -1,
+  "cors.tag_requests": false
 }

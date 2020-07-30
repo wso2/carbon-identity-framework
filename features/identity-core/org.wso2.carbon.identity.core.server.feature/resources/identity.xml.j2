@@ -995,6 +995,7 @@
             <OTP>{{identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset}}</OTP>
             <RecoveryLink>{{identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset}}</RecoveryLink>
         </AdminPasswordReset>
+        <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
     </Recovery>
 
@@ -1404,8 +1405,13 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
              <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
@@ -1580,6 +1586,26 @@
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
             <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="GET">
+             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+             <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PUT">
+              <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+              <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PATCH">
+              <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+              <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="DELETE">
+              <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+              <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
         {% if resource_access_control.scim2_me_get_method.keep_resource is sameas true %}
         <Resource
@@ -1910,6 +1936,10 @@
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
+            <Scopes>internal_list_tenants</Scopes>
+         </Resource>
         <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
@@ -1925,6 +1955,22 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/media/create</Permissions>
+            <Scopes>internal_media_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/media/v1.0/content/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/media/view</Permissions>
+            <Scopes>internal_media_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
+            <Scopes>internal_media_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
@@ -1998,6 +2044,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -2120,6 +2167,7 @@
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLength>{{configuration.store.query_length.max}}</MaximumQueryLength>
+        <AllowCrossTenantSearch>{{configuration.store.allow_cross_tenant_search}}</AllowCrossTenantSearch>
     </ConfigurationStore>
 
     <FIDO>
@@ -2155,4 +2203,24 @@
 
     <!-- Configuration for allowing an uninterrupted token building flow upon facing claim handling errors. -->
     <ContinueOnClaimHandlingError>{{continue_on_claim_handling_error}}</ContinueOnClaimHandlingError>
+
+    <!--Disallowed characters regEx property-->
+    {% if user_identifier.disallowed.characters.regex is defined %}
+    <UserIdentifier>
+        <DisallowedCharacters>{{user_identifier.disallowed.characters.regex}}</DisallowedCharacters>
+    </UserIdentifier>
+    {% endif %}
+
+    <!-- CORS -->
+    <CORS>
+        <AllowGenericHttpRequests>{{cors.allow_generic_http_requests}}</AllowGenericHttpRequests>
+        <AllowedOrigins>{{cors.allowed_origins}}</AllowedOrigins>
+        <AllowSubdomains>{{cors.allow_subdomains}}</AllowSubdomains>
+        <SupportedMethods>{{cors.supported_methods}}</SupportedMethods>
+        <SupportedHeaders>{{cors.supported_headers}}</SupportedHeaders>
+        <ExposedHeaders>{{cors.exposed_headers}}</ExposedHeaders>
+        <SupportsCredentials>{{cors.supports_credentials}}</SupportsCredentials>
+        <MaxAge>{{cors.max_age}}</MaxAge>
+        <TagRequests>{{cors.tag_requests}}</TagRequests>
+    </CORS>
 </Server>

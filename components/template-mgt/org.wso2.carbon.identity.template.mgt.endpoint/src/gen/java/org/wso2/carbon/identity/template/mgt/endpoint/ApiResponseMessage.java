@@ -2,6 +2,7 @@ package org.wso2.carbon.identity.template.mgt.endpoint;
 
 import javax.xml.bind.annotation.XmlTransient;
 
+@Deprecated
 @javax.xml.bind.annotation.XmlRootElement
 public class ApiResponseMessage {
 

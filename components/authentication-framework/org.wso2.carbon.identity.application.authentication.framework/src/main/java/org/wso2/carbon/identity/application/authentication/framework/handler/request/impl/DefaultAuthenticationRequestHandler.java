@@ -61,6 +61,7 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,12 +69,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
-        SAML2SSO.FED_AUTH_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -678,6 +679,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
 
+        Serializable authenticationStartTime =
+                context.getAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME);
+        if (authenticationStartTime instanceof Long) {
+            context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_DURATION,
+                    System.currentTimeMillis() - (long) authenticationStartTime);
+        }
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {

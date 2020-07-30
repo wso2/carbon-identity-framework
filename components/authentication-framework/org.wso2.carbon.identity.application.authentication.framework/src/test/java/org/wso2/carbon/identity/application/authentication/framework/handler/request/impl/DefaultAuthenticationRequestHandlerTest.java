@@ -374,6 +374,7 @@ public class DefaultAuthenticationRequestHandlerTest {
         addPostAuthnHandler();
         mockStatic(FrameworkUtils.class);
         when(FrameworkUtils.getStepBasedSequenceHandler()).thenReturn(new DefaultStepBasedSequenceHandler());
+        context.initializeAnalyticsData();
         return context;
     }
 

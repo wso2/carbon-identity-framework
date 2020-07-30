@@ -20,7 +20,7 @@
     <groupId>org.wso2.carbon.identity.framework</groupId>
     <artifactId>identity-framework</artifactId>
     <packaging>pom</packaging>
-    <version>5.18.1-SNAPSHOT</version>
+    <version>5.18.32-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
     <url>http://wso2.org</url>
 
@@ -45,6 +45,7 @@
         <module>components/identity-core</module>
         <module>components/application-mgt</module>
         <module>components/user-mgt</module>
+        <module>components/role-mgt</module>
         <module>components/identity-mgt</module>
         <module>components/identity-event</module>
         <module>components/notification-mgt</module>
@@ -62,6 +63,7 @@
         <module>components/template-mgt</module>
         <module>components/configuration-mgt</module>
         <module>components/captcha-mgt</module>
+        <module>components/cors-mgt</module>
         <module>features/security-mgt</module>
         <module>features/claim-mgt</module>
         <module>features/identity-core</module>
@@ -75,6 +77,7 @@
         <module>features/idp-mgt</module>
         <module>features/directory-server-manager</module>
         <module>features/user-mgt</module>
+        <module>features/role-mgt</module>
         <module>features/workflow-mgt</module>
         <module>features/categories</module>
         <module>features/carbon-authenticators</module>
@@ -82,6 +85,7 @@
         <module>features/functions-library-mgt</module>
         <module>features/template-mgt</module>
         <module>features/configuration-mgt</module>
+        <module>features/cors-mgt</module>
     </modules>
 
     <repositories>
@@ -362,6 +366,19 @@
 
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.role.mgt.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.role.mgt.core.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.security.mgt</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -437,7 +454,7 @@
                 <version>${commons.logging.version}</version>
             </dependency>
             <dependency>
-                <groupId>xerces.wso2</groupId>
+                <groupId>org.wso2.orbit.xerces</groupId>
                 <artifactId>xercesImpl</artifactId>
                 <version>${xercesImpl.version}</version>
             </dependency>
@@ -682,7 +699,7 @@
                 <version>${commons-lang.wso2.version}</version>
             </dependency>
             <dependency>
-                <groupId>commons-codec.wso2</groupId>
+                <groupId>org.wso2.orbit.commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
             </dependency>
@@ -1308,6 +1325,17 @@
             </dependency>
             <dependency>
                 <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.cors.mgt.core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
+                <artifactId>org.wso2.carbon.identity.cors.mgt.server.feature</artifactId>
+                <version>${project.version}</version>
+                <type>zip</type>
+            </dependency>
+            <dependency>
+                <groupId>org.wso2.carbon.identity.framework</groupId>
                 <artifactId>org.wso2.carbon.identity.mgt.server.feature</artifactId>
                 <version>${project.version}</version>
                 <type>zip</type>
@@ -1706,7 +1734,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.6.1-m4</carbon.kernel.version>
+        <carbon.kernel.version>4.6.1-m6</carbon.kernel.version>
         <carbon.kernel.feature.version>4.6.0</carbon.kernel.feature.version>
         <carbon.kernel.package.import.version.range>[4.5.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
@@ -1723,7 +1751,7 @@
         <carbon.commons.version>4.7.18</carbon.commons.version>
         <carbon.commons.imp.pkg.version>[4.7.2, 5.0.0)</carbon.commons.imp.pkg.version>
 
-        <org.wso2.carbon.database.utils.version>2.0.7</org.wso2.carbon.database.utils.version>
+        <org.wso2.carbon.database.utils.version>2.0.12</org.wso2.carbon.database.utils.version>
         <org.wso2.carbon.database.utils.version.range>[2.0.0,2.1.0)</org.wso2.carbon.database.utils.version.range>
 
         <!--Carbon identity version-->
@@ -1787,7 +1815,7 @@
         <validateutility.version>0.95</validateutility.version>
         <wsdl-validator.version>1.2.0.wso2v1</wsdl-validator.version>
         <uddi4j.version>1.0.1</uddi4j.version>
-        <xercesImpl.version>2.8.1.wso2v2</xercesImpl.version>
+        <xercesImpl.version>2.12.0.wso2v1</xercesImpl.version>
         <juddi.wso2.version>3.0.3.wso2v2</juddi.wso2.version>
         <junit.version>4.11</junit.version>
         <version.javax.servlet>3.0.0.v201112011016</version.javax.servlet>
@@ -1870,7 +1898,7 @@
         <joda.version>2.9.4</joda.version>
         <joda.wso2.version>2.9.4.wso2v1</joda.wso2.version>
         <joda.wso2.osgi.version.range>[2.8.2,3.0.0)</joda.wso2.osgi.version.range>
-        <commons-codec.version>1.4.0.wso2v1</commons-codec.version>
+        <commons-codec.version>1.14.0.wso2v1</commons-codec.version>
         <commons-codec.wso2.osgi.version.range>[1.4.0,2.0.0)</commons-codec.wso2.osgi.version.range>
 
         <httpcore.version>4.3.3.wso2v1</httpcore.version>

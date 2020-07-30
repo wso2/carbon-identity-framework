@@ -28,6 +28,8 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.SearchApiService;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.SearchConditionException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.ws.rs.core.Response;
 
@@ -42,14 +44,20 @@ import static org.wso2.carbon.identity.configuration.mgt.endpoint.util.Configura
 public class SearchApiServiceImpl extends SearchApiService {
 
     private static final Log LOG = LogFactory.getLog(SearchApiServiceImpl.class);
+    private boolean allowCrossTenantSearch = Boolean.parseBoolean(IdentityUtil.getProperty("ConfigurationStore" +
+            ".AllowCrossTenantSearch"));
 
     @Override
     public Response searchGet(SearchContext searchContext) {
 
         try {
-            Resources resources = getConfigurationManager().getTenantResources(
-                    getSearchCondition(searchContext)
-            );
+            Resources resources;
+            if (allowCrossTenantSearch) {
+                resources = getConfigurationManager().getTenantResources(getSearchCondition(searchContext));
+            } else {
+                resources = getConfigurationManager().getTenantResources(IdentityTenantUtil
+                                .getTenantDomainFromContext(), getSearchCondition(searchContext));
+            }
             return Response.ok().entity(getResourcesDTO(resources)).build();
         } catch (SearchParseException | SearchConditionException e) {
             return handleSearchQueryParseError(e, LOG);
