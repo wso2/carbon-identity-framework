@@ -473,6 +473,9 @@ public class UserRealmProxy {
 
             String[] hybridRoles = ((AbstractUserStoreManager) userStoreMan).getHybridRoles(filter);
 
+            // Filter the internal system roles created to maintain the backward compatibility.
+            hybridRoles = filterInternalSystemRoles(hybridRoles);
+
             for (String hybridRole : hybridRoles) {
                 if (filteredDomain != null && !hybridRole.startsWith(filteredDomain)) {
                     continue;
@@ -535,6 +538,19 @@ public class UserRealmProxy {
             throw new UserAdminException(e.getMessage(), e);
         }
 
+    }
+
+    private String[] filterInternalSystemRoles(String[] roles) throws UserAdminException {
+
+        if (isRoleAndGroupSeparationEnabled()) {
+            List<String> hybridRolesList = new ArrayList<>(Arrays.asList(roles));
+            hybridRolesList.removeIf(s -> s.startsWith(
+                    UserCoreConstants.INTERNAL_DOMAIN + CarbonConstants.DOMAIN_SEPARATOR
+                            + UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX));
+
+            roles = hybridRolesList.toArray(new String[0]);
+        }
+        return roles;
     }
 
     public UserRealmInfo getUserRealmInfo() throws UserAdminException {
@@ -1302,6 +1318,9 @@ public class UserRealmProxy {
             UserStoreManager admin = realm.getUserStoreManager();
             String[] userRoles = ((AbstractUserStoreManager) admin).getRoleListOfUser(userName);
             Map<String, Integer> userCount = new HashMap<String, Integer>();
+
+            // Filter the internal system roles created to maintain the backward compatibility.
+            userRoles = filterInternalSystemRoles(userRoles);
 
             if (limit == 0) {
 
@@ -2406,5 +2425,194 @@ public class UserRealmProxy {
             userCountLimit = -1;
         }
         return userCountLimit;
+    }
+
+    /**
+     * Get permission of roles list.
+     *
+     * @param roleNames List of roles.
+     * @param tenantId  Tenanat ID.
+     * @return Permissions.
+     * @throws UserAdminException UserAdminException.
+     */
+    public UIPermissionNode getRolePermissions(List<String> roleNames, int tenantId) throws UserAdminException {
+
+        UIPermissionNode nodeRoot;
+        Collection regRoot;
+        Collection parent = null;
+        Registry tenantRegistry = null;
+
+        try {
+            Registry registry = UserMgtDSComponent.getRegistryService().getGovernanceSystemRegistry();
+            if (tenantId == MultitenantConstants.SUPER_TENANT_ID) {
+                regRoot = (Collection) registry.get(UserMgtConstants.UI_PERMISSION_ROOT);
+                String displayName = regRoot.getProperty(UserMgtConstants.DISPLAY_NAME);
+                nodeRoot = new UIPermissionNode(UserMgtConstants.UI_PERMISSION_ROOT, displayName);
+            } else {
+                regRoot = (Collection) registry.get(UserMgtConstants.UI_ADMIN_PERMISSION_ROOT);
+                tenantRegistry = UserMgtDSComponent.getRegistryService().getGovernanceSystemRegistry(tenantId);
+                Collection appRoot;
+
+                if (tenantRegistry.resourceExists(APPLICATIONS_PATH)) {
+                    appRoot = (Collection) tenantRegistry.get(APPLICATIONS_PATH);
+                    parent = (Collection) tenantRegistry.newCollection();
+                    parent.setProperty(UserMgtConstants.DISPLAY_NAME, "All Permissions");
+                    parent.setChildren(new String[] { regRoot.getPath(), appRoot.getPath() });
+                }
+
+                String displayName;
+                if (parent != null) {
+                    displayName = parent.getProperty(UserMgtConstants.DISPLAY_NAME);
+                } else {
+                    displayName = regRoot.getProperty(UserMgtConstants.DISPLAY_NAME);
+                }
+                nodeRoot = new UIPermissionNode(UserMgtConstants.UI_ADMIN_PERMISSION_ROOT, displayName);
+            }
+
+            if (parent != null) {
+                buildUIPermissionNode(parent, nodeRoot, registry, tenantRegistry, realm.getAuthorizationManager(),
+                        roleNames);
+            } else {
+                buildUIPermissionNode(regRoot, nodeRoot, registry, tenantRegistry, realm.getAuthorizationManager(),
+                        roleNames);
+            }
+            return nodeRoot;
+        } catch (UserStoreException | RegistryException e) {
+            log.error(e.getMessage(), e);
+            throw new UserAdminException(e.getMessage(), e);
+        }
+    }
+
+    private void buildUIPermissionNode(Collection parent, UIPermissionNode parentNode,
+            Registry registry, Registry tenantRegistry, AuthorizationManager authMan,
+            List<String> roleNames)
+            throws RegistryException, UserStoreException {
+
+        boolean isSelected = false;
+        for (String roleName : roleNames) {
+            if (StringUtils.isNotBlank(roleName)) {
+                if (authMan.isRoleAuthorized(roleName, parentNode.getResourcePath(),
+                        UserMgtConstants.EXECUTE_ACTION)) {
+                    isSelected = true;
+                    break;
+                }
+            }
+        }
+
+        if (isSelected) {
+            buildUIPermissionNodeAllSelected(parent, parentNode, registry, tenantRegistry);
+            parentNode.setSelected(true);
+        } else {
+            buildUIPermissionNodeNotAllSelected(parent, parentNode, registry, tenantRegistry,
+                    authMan, roleNames);
+        }
+    }
+
+    private void buildUIPermissionNodeNotAllSelected(Collection parent, UIPermissionNode parentNode,
+            Registry registry, Registry tenantRegistry,
+            AuthorizationManager authMan, List<String> roleNames)
+            throws RegistryException, UserStoreException {
+
+        String[] children = parent.getChildren();
+        UIPermissionNode[] childNodes = new UIPermissionNode[children.length];
+
+        for (int i = 0; i < children.length; i++) {
+            String child = children[i];
+            Resource resource;
+
+            if (tenantRegistry != null && child.startsWith("/permission/applications")) {
+                resource = tenantRegistry.get(child);
+            } else if (registry.resourceExists(child)) {
+                resource = registry.get(child);
+            } else {
+                throw new RegistryException("Permission resource not found in the registry.");
+            }
+
+            boolean isSelected = false;
+            for (String roleName : roleNames) {
+                if (StringUtils.isNotBlank(roleName)) {
+                    if (authMan.isRoleAuthorized(roleName, child, UserMgtConstants.EXECUTE_ACTION)) {
+                        isSelected = true;
+                        break;
+                    }
+                }
+            }
+            childNodes[i] = getUIPermissionNode(resource, isSelected);
+            if (resource instanceof Collection) {
+                buildUIPermissionNodeNotAllSelected((Collection) resource, childNodes[i],
+                        registry, tenantRegistry, authMan, roleNames);
+            }
+        }
+        parentNode.setNodeList(childNodes);
+    }
+
+    /**
+     * Get hybrid role list of a group.
+     *
+     * @param groupName Group name.
+     * @return List of hybrid roles of the group.
+     * @throws UserAdminException UserAdminException.
+     */
+    public List<String> getHybridRoleListOfGroup(String groupName, String domainName) throws UserAdminException {
+
+        try {
+            return ((AbstractUserStoreManager) realm.getUserStoreManager())
+                    .getHybridRoleListOfGroup(groupName, domainName);
+        } catch (UserStoreException e) {
+            log.error(e.getMessage(), e);
+            throw new UserAdminException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Check whether the given hybrid role is exist in the system.
+     *
+     * @param roleName Role name.
+     * @return {@code true} if the given role is exist in the system.
+     * @throws UserAdminException UserAdminException.
+     */
+    public boolean isExistingHybridRole(String roleName) throws UserAdminException {
+
+        try {
+            return ((AbstractUserStoreManager) realm.getUserStoreManager()).isExistingHybridRole(roleName);
+        } catch (UserStoreException e) {
+            log.error(e.getMessage(), e);
+            throw new UserAdminException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Update group list of role.
+     *
+     * @param roleName      Role name.
+     * @param deletedGroups Deleted groups.
+     * @param newGroups     New groups.
+     * @throws UserAdminException UserAdminException.
+     */
+    public void updateGroupListOfHybridRole(String roleName, String[] deletedGroups, String[] newGroups)
+            throws UserAdminException {
+
+        try {
+            ((AbstractUserStoreManager) realm.getUserStoreManager())
+                    .updateGroupListOfHybridRole(roleName, deletedGroups, newGroups);
+        } catch (UserStoreException e) {
+            log.error(e.getMessage(), e);
+            throw new UserAdminException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Checks whether groups and roles separation feature enabled.
+     *
+     * @return {@code true} if the groups and roles separation feature enabled.
+     */
+    public boolean isRoleAndGroupSeparationEnabled() throws UserAdminException {
+
+        try {
+            return ((AbstractUserStoreManager) realm.getUserStoreManager()).isRoleAndGroupSeparationEnabled();
+        } catch (UserStoreException e) {
+            log.error(e.getMessage(), e);
+            throw new UserAdminException(e.getMessage(), e);
+        }
     }
 }
