@@ -28,6 +28,7 @@ public class ResourceByNameCache extends BaseCache<ResourceByNameCacheKey, Resou
     private static volatile ResourceByNameCache instance;
 
     private ResourceByNameCache() {
+    
         super(RESOURCE_CACHE_NAME);
     }
 

@@ -27,6 +27,7 @@ public class ResourceCacheEntry extends CacheEntry {
     private Resource resource;
 
     public ResourceCacheEntry(Resource resource) {
+    
         this.resource = resource;
     }
 

@@ -51,6 +51,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     private final ResourceByNameCache resourceByNameCache;
 
     public CachedBackedConfigurationDAO(ConfigurationDAO configurationDAO) {
+    
         this.configurationDAO = configurationDAO;
         this.resourceByIdCache = ResourceByIdCache.getInstance();
         this.resourceByNameCache = ResourceByNameCache.getInstance();
