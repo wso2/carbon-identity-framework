@@ -30,13 +30,13 @@ import java.util.Set;
 public class CORSConfiguration {
 
     /**
-     * If {@code true} generic HTTP requests must be allowed to pass through the filter, else only valid and accepted
+     * If {@code true} generic HTTP requests must be allowed to pass through the valve, else only valid and accepted
      * CORS requests must be allowed (strict CORS filtering).
      */
     private boolean allowGenericHttpRequests;
 
     /**
-     * If {@code true} the CORS filter must allow requests from any origin, else the origin whitelist must be consulted.
+     * If {@code true} the CORS valve must allow requests from any origin, else the origin whitelist must be consulted.
      */
     private boolean allowAnyOrigin;
 

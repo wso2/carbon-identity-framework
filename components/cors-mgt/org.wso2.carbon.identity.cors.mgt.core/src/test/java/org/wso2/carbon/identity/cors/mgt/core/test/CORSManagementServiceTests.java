@@ -36,16 +36,11 @@ import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleApp1;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleApp2;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleTenant;
-import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
-import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
-import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSConfigurationDAOImpl;
-import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
 import org.wso2.carbon.identity.cors.mgt.core.internal.impl.CORSManagementServiceImpl;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
-import org.wso2.carbon.identity.cors.mgt.core.model.CORSManagementServiceConfigurationHolder;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 import org.wso2.carbon.identity.cors.mgt.core.util.CarbonUtils;
 import org.wso2.carbon.identity.cors.mgt.core.util.ConfigurationManagementUtils;
@@ -56,7 +51,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -105,16 +99,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
         connection = DatabaseUtils.createDataSource();
         configurationManager = ConfigurationManagementUtils.getConfigurationManager();
 
-        CORSManagementServiceConfigurationHolder corsManagementServiceConfigurationHolder =
-                new CORSManagementServiceConfigurationHolder();
-        CORSOriginDAO corsOriginDAO = new CORSOriginDAOImpl();
-        CORSConfigurationDAO corsConfigurationDAO = new CORSConfigurationDAOImpl();
-        corsManagementServiceConfigurationHolder
-                .setCorsOriginDAOS(Collections.singletonList(corsOriginDAO));
-        corsManagementServiceConfigurationHolder
-                .setCorsConfigurationDAOS(Collections.singletonList(corsConfigurationDAO));
-
-        corsManagementService = new CORSManagementServiceImpl(corsManagementServiceConfigurationHolder);
+        corsManagementService = new CORSManagementServiceImpl();
         CORSManagementServiceHolder.getInstance().setConfigurationManager(configurationManager);
     }
 

@@ -31,9 +31,9 @@ import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
+import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
-import org.wso2.carbon.identity.cors.mgt.core.model.CORSManagementServiceConfigurationHolder;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 import org.wso2.carbon.identity.cors.mgt.core.model.ValidatedOrigin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -43,12 +43,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_GET_DAO;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_NOT_PRESENT;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_PRESENT;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_VALIDATE_APP_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.handleClientException;
-import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.handleServerException;
 
 /**
  * Implementation of the CORSService.
@@ -56,16 +54,6 @@ import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.ha
 public class CORSManagementServiceImpl implements CORSManagementService {
 
     private static final Log log = LogFactory.getLog(CORSManagementServiceImpl.class);
-
-    private final List<CORSOriginDAO> corsOriginDAOS;
-    private final List<CORSConfigurationDAO> corsConfigurationDAOS;
-
-    public CORSManagementServiceImpl(
-            CORSManagementServiceConfigurationHolder corsManagementServiceConfigurationHolder) {
-
-        this.corsOriginDAOS = corsManagementServiceConfigurationHolder.getCorsOriginDAOS();
-        this.corsConfigurationDAOS = corsManagementServiceConfigurationHolder.getCorsConfigurationDAOS();
-    }
 
     /**
      * {@inheritDoc}
@@ -198,7 +186,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
     @Override
     public CORSConfiguration getCORSConfiguration(String tenantDomain) throws CORSManagementServiceException {
 
-        getTenantId(tenantDomain);
+        validateTenantDomain(tenantDomain);
 
         return getCORSConfigurationDAO().getCORSConfigurationByTenantDomain(tenantDomain);
     }
@@ -210,37 +198,29 @@ public class CORSManagementServiceImpl implements CORSManagementService {
     public void setCORSConfiguration(CORSConfiguration corsConfiguration, String tenantDomain)
             throws CORSManagementServiceException {
 
-        getTenantId(tenantDomain);
+        validateTenantDomain(tenantDomain);
 
         getCORSConfigurationDAO().setCORSConfigurationByTenantDomain(corsConfiguration, tenantDomain);
     }
 
     /**
-     * Select highest priority CORSOrigin DAO from an already sorted list of CORSOrigin DAOs.
+     * Returns a CORSOriginDAO instance.
      *
-     * @return Highest priority CORSOrigin DAO.
+     * @return A CORSOriginDAO instance.
      */
-    private CORSOriginDAO getCORSOriginDAO() throws CORSManagementServiceException {
+    private CORSOriginDAO getCORSOriginDAO() {
 
-        if (!this.corsOriginDAOS.isEmpty()) {
-            return corsOriginDAOS.get(corsOriginDAOS.size() - 1);
-        } else {
-            throw handleServerException(ERROR_CODE_CORS_GET_DAO, "corsOriginDAOs");
-        }
+        return CORSManagementServiceHolder.getInstance().getCorsOriginDAO();
     }
 
     /**
-     * Select highest priority CORSConfiguration DAO from an already sorted list of CORSConfiguration DAOs.
+     * Returns a CORSConfigurationDAO instance.
      *
-     * @return Highest priority CORSConfiguration DAO.
+     * @return A CORSConfigurationDAO instance.
      */
-    private CORSConfigurationDAO getCORSConfigurationDAO() throws CORSManagementServiceException {
+    private CORSConfigurationDAO getCORSConfigurationDAO() {
 
-        if (!this.corsConfigurationDAOS.isEmpty()) {
-            return corsConfigurationDAOS.get(corsConfigurationDAOS.size() - 1);
-        } else {
-            throw handleServerException(ERROR_CODE_CORS_GET_DAO, "corsConfigurationDAOs");
-        }
+        return CORSManagementServiceHolder.getInstance().getCorsConfigurationDAO();
     }
 
     /**
@@ -257,6 +237,20 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_TENANT_DOMAIN, tenantDomain);
         } else {
             return tenantId;
+        }
+    }
+
+    /**
+     * Validate the tenant domain.
+     *
+     * @param tenantDomain The tenant domain.
+     * @throws CORSManagementServiceClientException
+     */
+    private void validateTenantDomain(String tenantDomain) throws CORSManagementServiceClientException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_TENANT_DOMAIN, tenantDomain);
         }
     }
 

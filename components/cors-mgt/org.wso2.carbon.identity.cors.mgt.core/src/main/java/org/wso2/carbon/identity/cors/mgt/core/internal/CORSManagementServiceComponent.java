@@ -32,12 +32,7 @@ import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
-import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSConfigurationDAOImpl;
-import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.internal.impl.CORSManagementServiceImpl;
-import org.wso2.carbon.identity.cors.mgt.core.model.CORSManagementServiceConfigurationHolder;
-
-import java.util.Comparator;
 
 /**
  * Service component class for CORS-Service.
@@ -58,24 +53,15 @@ public class CORSManagementServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        BundleContext bundleContext = context.getBundleContext();
-        bundleContext.registerService(CORSOriginDAO.class,
-                new CORSOriginDAOImpl(), null);
-        bundleContext.registerService(CORSConfigurationDAO.class,
-                new CORSConfigurationDAOImpl(), null);
+        try {
+            BundleContext bundleContext = context.getBundleContext();
+            bundleContext.registerService(CORSManagementService.class, new CORSManagementServiceImpl(), null);
 
-        CORSManagementServiceConfigurationHolder corsManagementServiceConfigurationHolder =
-                new CORSManagementServiceConfigurationHolder();
-        corsManagementServiceConfigurationHolder
-                .setCorsOriginDAOS(CORSManagementServiceHolder.getInstance().getCorsOriginDAOS());
-        corsManagementServiceConfigurationHolder
-                .setCorsConfigurationDAOS(CORSManagementServiceHolder.getInstance().getCorsConfigurationDAOS());
-
-        bundleContext.registerService(CORSManagementService.class,
-                new CORSManagementServiceImpl(corsManagementServiceConfigurationHolder), null);
-
-        if (log.isDebugEnabled()) {
-            log.debug("CORSManagementServiceComponent is activated.");
+            if (log.isDebugEnabled()) {
+                log.debug("CORSManagementServiceComponent is activated.");
+            }
+        } catch (Throwable e) {
+            log.error("Error while activating CORS management service.", e);
         }
     }
 
@@ -97,27 +83,22 @@ public class CORSManagementServiceComponent {
             service = CORSOriginDAO.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetCORSOrigin"
+            unbind = "unregisterCORSOriginDAO"
     )
-    protected void setCORSOrigin(CORSOriginDAO corsOriginDAO) {
-
-        if (CORSManagementServiceHolder.getInstance().getCorsOriginDAOS() != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("CORSOriginDAO is registered in CORSManagementService.");
-            }
-
-            CORSManagementServiceHolder.getInstance().getCorsOriginDAOS().add(corsOriginDAO);
-            CORSManagementServiceHolder.getInstance().getCorsOriginDAOS()
-                    .sort(Comparator.comparingInt(CORSOriginDAO::getPriority));
-        }
-    }
-
-    protected void unsetCORSOrigin(CORSOriginDAO corsOriginDAO) {
+    protected void registerCORSOriginDAO(CORSOriginDAO corsOriginDAO) {
 
         if (log.isDebugEnabled()) {
-            log.debug("CORSOriginDAO is unregistered in CORSManagementService.");
+            log.debug("Registering the CORSOriginDAO in CORSManagementService.");
         }
-        CORSManagementServiceHolder.getInstance().getCorsOriginDAOS().remove(corsOriginDAO);
+        CORSManagementServiceHolder.getInstance().setCorsOriginDAO(corsOriginDAO);
+    }
+
+    protected void unregisterCORSOriginDAO(CORSOriginDAO corsOriginDAO) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unregistering the CORSOriginDAO in CORSManagementService.");
+        }
+        CORSManagementServiceHolder.getInstance().setCorsOriginDAO(null);
     }
 
     @Reference(
@@ -125,27 +106,22 @@ public class CORSManagementServiceComponent {
             service = CORSConfigurationDAO.class,
             cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetCORSConfiguration"
+            unbind = "unregisterCORSConfigurationDAO"
     )
-    protected void setCORSConfiguration(CORSConfigurationDAO corsConfigurationDAO) {
-
-        if (CORSManagementServiceHolder.getInstance().getCorsConfigurationDAOS() != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("CORSConfigurationDAO is registered in CORSManagementService.");
-            }
-
-            CORSManagementServiceHolder.getInstance().getCorsConfigurationDAOS().add(corsConfigurationDAO);
-            CORSManagementServiceHolder.getInstance().getCorsConfigurationDAOS()
-                    .sort(Comparator.comparingInt(CORSConfigurationDAO::getPriority));
-        }
-    }
-
-    protected void unsetCORSConfiguration(CORSConfigurationDAO corsConfigurationDAO) {
+    protected void registerCORSConfigurationDAO(CORSConfigurationDAO corsConfigurationDAO) {
 
         if (log.isDebugEnabled()) {
-            log.debug("CORSConfigurationDAO is unregistered in CORSManagementService.");
+            log.debug("Registering the CORSConfigurationDAO in CORSManagementService.");
         }
-        CORSManagementServiceHolder.getInstance().getCorsConfigurationDAOS().remove(corsConfigurationDAO);
+        CORSManagementServiceHolder.getInstance().setCorsConfigurationDAO(corsConfigurationDAO);
+    }
+
+    protected void unregisterCORSConfigurationDAO(CORSConfigurationDAO corsConfigurationDAO) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Unregistering the CORSConfigurationDAO in CORSManagementService.");
+        }
+        CORSManagementServiceHolder.getInstance().setCorsConfigurationDAO(null);
     }
 
     /**
@@ -158,12 +134,12 @@ public class CORSManagementServiceComponent {
             service = ConfigurationManager.class,
             cardinality = ReferenceCardinality.MANDATORY,
             policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetConfigurationManager"
+            unbind = "unregisterConfigurationManager"
     )
-    protected void setConfigurationManager(ConfigurationManager configurationManager) {
+    protected void registerConfigurationManager(ConfigurationManager configurationManager) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Setting the ConfigurationManager.");
+            log.debug("Registering the ConfigurationManager in CORSManagementService.");
         }
         CORSManagementServiceHolder.getInstance().setConfigurationManager(configurationManager);
     }
@@ -173,10 +149,10 @@ public class CORSManagementServiceComponent {
      *
      * @param configurationManager The {@code ConfigurationManager} instance.
      */
-    protected void unsetConfigurationManager(ConfigurationManager configurationManager) {
+    protected void unregisterConfigurationManager(ConfigurationManager configurationManager) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Unsetting the ConfigurationManager.");
+            log.debug("Unregistering the ConfigurationManager in CORSManagementService.");
         }
         CORSManagementServiceHolder.getInstance().setConfigurationManager(null);
     }
