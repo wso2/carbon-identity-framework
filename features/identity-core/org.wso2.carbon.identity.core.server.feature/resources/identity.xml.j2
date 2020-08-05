@@ -1386,7 +1386,8 @@
 
     <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
         {% for resource in resource.access_control %}
-        <Resource context="{{resource.context}}" secured="{{resource.secure}}" allowed-auth-handlers="{{resource.allowed_auth_handlers|join(', ')}}" http-method="{{resource.http_method}}">
+        <Resource context="{{resource.context}}" secured="{{resource.secure}}"
+                {% if resource.allowed_auth_handlers is defined %} allowed-auth-handlers="{{resource.allowed_auth_handlers|join(', ')}}" {% endif %} http-method="{{resource.http_method}}">
             {% for permission in resource.permissions %}
             <Permissions>{{permission}}</Permissions>
             {% endfor %}
