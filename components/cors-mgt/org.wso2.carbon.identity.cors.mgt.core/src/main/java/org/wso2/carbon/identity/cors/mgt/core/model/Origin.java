@@ -32,7 +32,7 @@ public class Origin {
     /**
      * The original origin value, used in hash code generation and equality checking.
      */
-    private String value;
+    private final String value;
 
     /**
      * Creates a new origin from the specified URI string. Note that the syntax is not validated.

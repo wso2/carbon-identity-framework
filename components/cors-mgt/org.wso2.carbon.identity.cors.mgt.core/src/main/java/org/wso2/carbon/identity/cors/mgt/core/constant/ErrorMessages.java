@@ -23,60 +23,80 @@ package org.wso2.carbon.identity.cors.mgt.core.constant;
  * CMS stands for Cors Management Service.
  */
 public enum ErrorMessages {
+    /**
+     * DAO is not registered.
+     */
+    ERROR_CODE_CORS_GET_DAO("CMS-65001",
+            "DAO is not registered.",
+            "No %s instances are registered."),
 
     /**
      * Unable to retrieve CORS origins.
      */
-    ERROR_CODE_CORS_RETRIEVE("CMS-65001",
+    ERROR_CODE_CORS_RETRIEVE("CMS-65002",
             "Unable to retrieve CORS Origins.",
             "Server encountered an error while retrieving the CORS Origins of %s."),
 
     /**
      * Unable to set CORS origins.
      */
-    ERROR_CODE_CORS_SET("CMS-65002",
+    ERROR_CODE_CORS_SET("CMS-65003",
             "Unable to set CORS Origins.",
             "Server encountered an error while setting the CORS Origins of %s."),
 
     /**
      * Unable to add CORS origins.
      */
-    ERROR_CODE_CORS_ADD("CMS-65003",
+    ERROR_CODE_CORS_ADD("CMS-65004",
             "Unable to add CORS Origins.",
             "Server encountered an error while adding the CORS Origins to %s."),
 
     /**
      * Unable to delete CORS origins.
      */
-    ERROR_CODE_CORS_DELETE("CMS-65004",
+    ERROR_CODE_CORS_DELETE("CMS-65005",
             "Unable to delete CORS Origins.",
             "Server encountered an error while deleting the CORS Origins of %s."),
 
     /**
+     * Unable to delete the CORS origins.
+     */
+    ERROR_CODE_CORS_ORIGIN_DELETE("CMS-65006",
+            "Unable to delete the CORS Origin.",
+            "Server encountered an error while deleting the CORS Origins with the ID %s."),
+
+    /**
      * Unable to retrieve CORS configuration.
      */
-    ERROR_CODE_CORS_CONFIG_RETRIEVE("CMS-65005",
+    ERROR_CODE_CORS_CONFIG_RETRIEVE("CMS-65007",
             "Unable to retrieve CORS configuration.",
             "Server encountered an error while retrieving the CORS configuration of %s."),
 
     /**
      * Unable to set CORS configuration.
      */
-    ERROR_CODE_CORS_CONFIG_SET("CMS-65006",
+    ERROR_CODE_CORS_CONFIG_SET("CMS-65008",
             "Unable to set CORS configuration.",
             "Server encountered an error while setting the CORS configuration of %s."),
 
     /**
+     * Unable to retrieve associated CORS applications.
+     */
+    ERROR_CODE_CORS_APPLICATIONS_RETRIEVE("CMS-65009",
+            "Unable to retrieve associated applications.",
+            "Server encountered an error while retrieving the associated CORS applications of %s."),
+
+    /**
      * Stored origin is invalid.
      */
-    ERROR_CODE_INVALID_STORED_ORIGIN("CMS-65007",
+    ERROR_CODE_INVALID_STORED_ORIGIN("CMS-65010",
             "The stored origin is invalid.",
             "Server encountered an error validating the stored origin %s."),
 
     /**
      * Unable to validate the application ID
      */
-    ERROR_CODE_VALIDATE_APP_ID("CMS-65008",
+    ERROR_CODE_VALIDATE_APP_ID("CMS-650011",
             "Unable to validate application ID.",
             "Server encountered an error while trying to validate the application ID %s."),
 

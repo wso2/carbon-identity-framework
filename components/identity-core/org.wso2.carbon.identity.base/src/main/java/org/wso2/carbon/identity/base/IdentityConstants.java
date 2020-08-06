@@ -504,11 +504,13 @@ public class IdentityConstants {
     public static class CORS {
 
         public static final String ALLOW_GENERIC_HTTP_REQUESTS = "CORS.AllowGenericHttpRequests";
+        public static final String ALLOW_ANY_ORIGIN = "CORS.AllowAnyOrigin";
         public static final String ALLOWED_ORIGINS = "CORS.AllowedOrigins";
         public static final String ALLOW_SUBDOMAINS = "CORS.AllowSubdomains";
-        public static final String SUPPORTED_METHODS = "CORS.SupportedMethods";
-        public static final String SUPPORTED_HEADERS = "CORS.SupportedHeaders";
-        public static final String EXPOSED_HEADERS = "CORS.ExposedHeaders";
+        public static final String SUPPORTED_METHODS = "CORS.SupportedMethods.Method";
+        public static final String SUPPORT_ANY_HEADER = "CORS.SupportAnyHeader";
+        public static final String SUPPORTED_HEADERS = "CORS.SupportedHeaders.Header";
+        public static final String EXPOSED_HEADERS = "CORS.ExposedHeaders.Header";
         public static final String SUPPORTS_CREDENTIALS = "CORS.SupportsCredentials";
         public static final String MAX_AGE = "CORS.MaxAge";
         public static final String TAG_REQUESTS = "CORS.TagRequests";

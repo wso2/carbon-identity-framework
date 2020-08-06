@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * A class for a CORS origin.
  */
@@ -29,25 +26,12 @@ public class CORSOrigin {
     /**
      * ID of the origin.
      */
-    String id;
+    private String id;
 
     /**
      * The origin of the CORSOrigin instance.
      */
     private String origin;
-
-    /**
-     * App IDs associated with the {@code origin}.
-     */
-    private Set<String> appIds;
-
-    /**
-     * Default constructor.
-     */
-    public CORSOrigin() {
-
-        this.appIds = new HashSet<>();
-    }
 
     /**
      * Get the {@code id}.
@@ -85,25 +69,5 @@ public class CORSOrigin {
     public void setOrigin(String origin) {
 
         this.origin = origin;
-    }
-
-    /**
-     * Get the {@code appIds}.
-     *
-     * @return Returns the {@code appIds}.
-     */
-    public Set<String> getAppIds() {
-
-        return appIds;
-    }
-
-    /**
-     * Set the {@code appIds}.
-     *
-     * @param appIds The values to be set as the {@code appIds}.
-     */
-    public void setAppIds(Set<String> appIds) {
-
-        this.appIds = appIds;
     }
 }
