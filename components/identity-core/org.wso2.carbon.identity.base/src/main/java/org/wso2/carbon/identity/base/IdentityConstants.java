@@ -529,4 +529,15 @@ public class IdentityConstants {
         public final static String LEGACY_FEATURE_VERSION = "Version";
         public final static String LEGACY_FEATURE_ENABLE = "Enable";
     }
+
+    /**
+     * Contains the constants related to Reverse Proxy configs elements.
+     */
+    public static class ReverseProxyConfigElements {
+
+        public final static String REVERSE_PROXY_CONFIG = "ReverseProxyConfig";
+        public final static String REVERSE_PROXY = "ReverseProxy";
+        public final static String PROXY_CONTEXT = "ProxyContext";
+        public final static String DEFAULT_CONTEXT = "DefaultContext";
+    }
 }

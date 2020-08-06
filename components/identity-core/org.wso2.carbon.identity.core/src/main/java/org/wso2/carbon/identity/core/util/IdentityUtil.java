@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
@@ -117,6 +118,7 @@ public class IdentityUtil {
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
+    private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -254,12 +256,39 @@ public class IdentityUtil {
         return false;
     }
 
+    /**
+     * Get the configured proxy context.
+     *
+     * @param defaultContext Default context.
+     * @return The proxy context if it is configured else return the default context.
+     */
+    public static String getProxyContext(String defaultContext) {
+
+        if (StringUtils.isNotBlank(defaultContext)) {
+            ReverseProxyConfig reverseProxyConfig = reverseProxyConfigurationHolder.get(defaultContext);
+            if (reverseProxyConfig != null && StringUtils.isNotBlank(reverseProxyConfig.getProxyContext())) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Returning the proxy context: " + reverseProxyConfig.getProxyContext() +
+                            " for the default context " + defaultContext);
+                }
+                return reverseProxyConfig.getProxyContext();
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Proxy context is not configured or the configured proxy context is empty. " +
+                        "Hence returning the default context: " + defaultContext);
+            }
+        }
+        return defaultContext;
+    }
+
     public static void populateProperties() {
         configuration = IdentityConfigParser.getInstance().getConfiguration();
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
         identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
         legacyFeatureConfigurationHolder = IdentityConfigParser.getLegacyFeatureConfigurationHolder();
+        reverseProxyConfigurationHolder = IdentityConfigParser.getInstance().getReverseProxyConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
