@@ -2224,4 +2224,14 @@
         <MaxAge>{{cors.max_age}}</MaxAge>
         <TagRequests>{{cors.tag_requests}}</TagRequests>
     </CORS>
+
+    <LegacyFeatures>
+        {% for feature in legacy_feature %}
+        <LegacyFeature>
+            <Id>{{feature.id}}</Id>
+            <Version>{{feature.version}}</Version>
+            <Enable>{{feature.enable}}</Enable>
+        </LegacyFeature>
+        {% endfor %}
+    </LegacyFeatures>
 </Server>

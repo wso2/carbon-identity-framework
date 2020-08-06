@@ -547,6 +547,18 @@
     }
   ],
 
+  "legacy_feature": [
+    {
+      "id": "oauth",
+      "version": "1.0",
+      "enable": true
+    },
+    {
+      "id": "identity/connect/dcr",
+      "enable": true
+    }
+  ],
+
   "continue_on_claim_handling_error": true,
 
   "developer_portal.applications.account_app.configs": {
