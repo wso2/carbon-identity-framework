@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -121,24 +120,7 @@ public class CORSConfigurationUtils {
         return corsConfiguration;
     }
 
-    /**
-     * Parses a string containing words separated by space and/or comma.
-     *
-     * @param word The string to parse. Must not be {@code null}.
-     * @return An array of the parsed words, empty if none were found.
-     */
-    public static List<String> parseWords(final String word) {
-
-        String trimmedWord = word.trim();
-
-        if (trimmedWord.isEmpty()) {
-            return new ArrayList<>();
-        } else {
-            return Arrays.asList(trimmedWord.split("\\s*,\\s*|\\s+"));
-        }
-    }
-
-    private static List<String> readPropertyArray(String property) {
+    public static List<String> readPropertyArray(String property) {
 
         Object value = IdentityConfigParser.getInstance().getConfiguration().get(property);
         if (value == null) {

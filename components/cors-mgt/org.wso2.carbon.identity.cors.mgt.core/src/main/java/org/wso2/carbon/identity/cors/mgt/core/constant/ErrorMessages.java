@@ -26,142 +26,133 @@ public enum ErrorMessages {
     /**
      * DAO is not registered.
      */
-    ERROR_CODE_CORS_GET_DAO("CMS-65001",
+    ERROR_CODE_CORS_GET_DAO("65001",
             "DAO is not registered.",
             "No %s instances are registered."),
 
     /**
      * Unable to retrieve CORS origins.
      */
-    ERROR_CODE_CORS_RETRIEVE("CMS-65002",
+    ERROR_CODE_CORS_RETRIEVE("65002",
             "Unable to retrieve CORS Origins.",
             "Server encountered an error while retrieving the CORS Origins of %s."),
 
     /**
      * Unable to set CORS origins.
      */
-    ERROR_CODE_CORS_SET("CMS-65003",
+    ERROR_CODE_CORS_SET("65003",
             "Unable to set CORS Origins.",
             "Server encountered an error while setting the CORS Origins of %s."),
 
     /**
      * Unable to add CORS origins.
      */
-    ERROR_CODE_CORS_ADD("CMS-65004",
+    ERROR_CODE_CORS_ADD("65004",
             "Unable to add CORS Origins.",
             "Server encountered an error while adding the CORS Origins to %s."),
 
     /**
      * Unable to delete CORS origins.
      */
-    ERROR_CODE_CORS_DELETE("CMS-65005",
+    ERROR_CODE_CORS_DELETE("65005",
             "Unable to delete CORS Origins.",
             "Server encountered an error while deleting the CORS Origins of %s."),
 
     /**
-     * Unable to delete the CORS origins.
-     */
-    ERROR_CODE_CORS_ORIGIN_DELETE("CMS-65006",
-            "Unable to delete the CORS Origin.",
-            "Server encountered an error while deleting the CORS Origins with the ID %s."),
-
-    /**
      * Unable to retrieve CORS configuration.
      */
-    ERROR_CODE_CORS_CONFIG_RETRIEVE("CMS-65007",
+    ERROR_CODE_CORS_CONFIG_RETRIEVE("65006",
             "Unable to retrieve CORS configuration.",
             "Server encountered an error while retrieving the CORS configuration of %s."),
 
     /**
      * Unable to set CORS configuration.
      */
-    ERROR_CODE_CORS_CONFIG_SET("CMS-65008",
+    ERROR_CODE_CORS_CONFIG_SET("65007",
             "Unable to set CORS configuration.",
             "Server encountered an error while setting the CORS configuration of %s."),
 
     /**
      * Unable to retrieve associated CORS applications.
      */
-    ERROR_CODE_CORS_APPLICATIONS_RETRIEVE("CMS-65009",
+    ERROR_CODE_CORS_APPLICATIONS_RETRIEVE("65008",
             "Unable to retrieve associated applications.",
             "Server encountered an error while retrieving the associated CORS applications of %s."),
 
     /**
-     * Stored origin is invalid.
+     * Unable to validate the application ID.
      */
-    ERROR_CODE_INVALID_STORED_ORIGIN("CMS-65010",
-            "The stored origin is invalid.",
-            "Server encountered an error validating the stored origin %s."),
-
-    /**
-     * Unable to validate the application ID
-     */
-    ERROR_CODE_VALIDATE_APP_ID("CMS-650011",
+    ERROR_CODE_VALIDATE_APP_ID("65009",
             "Unable to validate application ID.",
             "Server encountered an error while trying to validate the application ID %s."),
 
     /**
      * Invalid URI.
      */
-    ERROR_CODE_INVALID_URI("CMS-60001",
+    ERROR_CODE_INVALID_URI("60001",
             "Invalid URI",
             "%s is not a valid URI."),
 
     /**
      * Missing scheme.
      */
-    ERROR_CODE_MISSING_SCHEME("CMS-60002",
+    ERROR_CODE_MISSING_SCHEME("60002",
             "Bad URI: Missing scheme, such as http or https",
             "%s is missing scheme."),
 
     /**
      * Missing host.
      */
-    ERROR_CODE_MISSING_HOST("CMS-60003",
+    ERROR_CODE_MISSING_HOST("60003",
             "Bad origin URI: Missing authority (host)",
             "%s is missing host."),
 
     /**
      * Invalid tenant domain.
      */
-    ERROR_CODE_INVALID_TENANT_DOMAIN("CMS-60004",
+    ERROR_CODE_INVALID_TENANT_DOMAIN("60004",
             "Invalid input.",
             "%s is not a valid tenant domain."),
 
     /**
      * Invalid application ID.
      */
-    ERROR_CODE_INVALID_APP_ID("CMS-60005",
+    ERROR_CODE_INVALID_APP_ID("60005",
             "Invalid input.",
             "%s is not a valid application."),
 
     /**
      * Duplicate addition.
      */
-    ERROR_CODE_ORIGIN_PRESENT("CMS-60006",
+    ERROR_CODE_ORIGIN_PRESENT("60006",
             "Duplicate addition of existing CORS Origin.",
             "Tenant %s already have %s as a CORS Origin."),
 
     /**
      * Non existing deletion.
      */
-    ERROR_CODE_ORIGIN_NOT_PRESENT("CMS-60007",
+    ERROR_CODE_ORIGIN_NOT_PRESENT("60007",
             "Non existing CORS Origin deletion.",
             "Tenant %s doesn't have a CORS Origin with the ID of %s."),
 
     /**
      * Null origin.
      */
-    ERROR_CODE_NULL_ORIGIN("CMS-60008",
+    ERROR_CODE_NULL_ORIGIN("60008",
             "The origin value must not be null.",
             "%s is not an acceptable origin value."),
 
     /**
      * Bad header.
      */
-    ERROR_CODE_BAD_HEADER("CMS-60009",
+    ERROR_CODE_BAD_HEADER("60009",
             "Bad header name.",
             "%s is an invalid header name.");
+
+    /**
+     * The error prefix.
+     */
+    private static final String ERROR_PREFIX = "CMS";
 
     /**
      * The error code.
@@ -187,7 +178,7 @@ public enum ErrorMessages {
      */
     ErrorMessages(String code, String message, String description) {
 
-        this.code = code;
+        this.code = ERROR_PREFIX +  "-" + code;
         this.message = message;
         this.description = description;
     }

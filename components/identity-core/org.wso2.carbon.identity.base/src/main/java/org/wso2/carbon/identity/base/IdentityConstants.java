@@ -505,7 +505,7 @@ public class IdentityConstants {
 
         public static final String ALLOW_GENERIC_HTTP_REQUESTS = "CORS.AllowGenericHttpRequests";
         public static final String ALLOW_ANY_ORIGIN = "CORS.AllowAnyOrigin";
-        public static final String ALLOWED_ORIGINS = "CORS.AllowedOrigins";
+        public static final String ALLOWED_ORIGINS = "CORS.AllowedOrigins.Origin";
         public static final String ALLOW_SUBDOMAINS = "CORS.AllowSubdomains";
         public static final String SUPPORTED_METHODS = "CORS.SupportedMethods.Method";
         public static final String SUPPORT_ANY_HEADER = "CORS.SupportAnyHeader";

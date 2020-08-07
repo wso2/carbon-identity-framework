@@ -37,7 +37,7 @@ import java.util.UUID;
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_ADD;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_APPLICATIONS_RETRIEVE;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_ORIGIN_DELETE;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_DELETE;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_RETRIEVE;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.DELETE_CORS_APPLICATION_ASSOCIATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.DELETE_ORIGIN;
@@ -305,7 +305,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                                 }
                             } else {
                                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                                throw handleServerException(ERROR_CODE_CORS_ORIGIN_DELETE, currentId);
+                                throw handleServerException(ERROR_CODE_CORS_DELETE, currentId);
                             }
                         }
                     }
@@ -315,13 +315,13 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 cleanupDanglingOrigins(connection, tenantId);
             } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
-                throw handleServerException(ERROR_CODE_CORS_ORIGIN_DELETE, e, currentId);
+                throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId);
             }
 
             // Commit the transaction as no errors were thrown.
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException e) {
-            throw handleServerException(ERROR_CODE_CORS_ORIGIN_DELETE, e, currentId);
+            throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId);
         }
     }
 
