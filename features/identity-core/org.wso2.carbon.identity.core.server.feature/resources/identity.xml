@@ -1570,7 +1570,6 @@
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/developer-portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
@@ -1660,7 +1659,6 @@
             <Context>/api/identity/media/v1.0/</Context>
             <Context>/api/</Context>
             <Context>/user-portal/</Context>
-            <Context>/developer-portal/</Context>
             <Context>/console/</Context>
         </WebApp>
         <Servlet>
@@ -1668,7 +1666,6 @@
         </Servlet>
         <OverwriteDispatch>
             <Context>/user-portal/</Context>
-            <Context>/developer-portal/</Context>
             <Context>/console/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>

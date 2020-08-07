@@ -471,7 +471,6 @@
     "/api/identity/media/v1.0/",
     "/api/",
     "/user-portal/",
-    "/developer-portal/",
     "/console/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
@@ -489,7 +488,6 @@
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
     "/user-portal/",
-    "/developer-portal/",
     "/console/"
   ],
   "intermediate_cert_validation.enable":false,
