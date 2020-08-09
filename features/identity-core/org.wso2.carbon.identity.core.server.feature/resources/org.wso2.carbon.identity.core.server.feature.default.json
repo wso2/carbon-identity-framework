@@ -770,7 +770,7 @@
   "user_portal.ui.app_title": "Account | WSO2 Identity Server",
   "user_portal.ui.app_name": "Account",
   "user_portal.ui.app_logo_path": "/assets/images/logo.svg",
-  "user_portal.ui.product_name": "Identity Server Account",
+  "user_portal.ui.product_name": "Identity Server",
   "user_portal.theme": "default",
   "user_portal.authenticator_app_configs": {
     "enabled": true
