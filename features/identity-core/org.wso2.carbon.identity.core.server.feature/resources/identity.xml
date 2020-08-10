@@ -720,6 +720,7 @@
         <!--GroupEPUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/scim2/Groups</GroupEPUrl-->
         <!--<ComplexMultiValuedAttributeSupportEnabled>true</ComplexMultiValuedAttributeSupportEnabled>-->
         <!--<EnableFilteringEnhancements>true</EnableFilteringEnhancements>-->
+        <!--<NotifyUserstoreStatus>true</NotifyUserstoreStatus>-->
 
         <!--
             If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will filter
