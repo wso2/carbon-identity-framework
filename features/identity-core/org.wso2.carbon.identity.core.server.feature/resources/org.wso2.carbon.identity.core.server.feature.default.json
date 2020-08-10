@@ -549,11 +549,11 @@
     {
       "id": "oauth",
       "version": "1.0",
-      "enable": true
+      "enable": false
     },
     {
       "id": "identity/connect/dcr",
-      "enable": true
+      "enable": false
     }
   ],
 
