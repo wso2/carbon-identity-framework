@@ -110,6 +110,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_METADATA;
@@ -2100,6 +2102,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
+            serviceProvider.setTemplateId(getTemplateId(propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2149,6 +2152,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    private String getTemplateId(List<ServiceProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
     }
 
     private String getJwksUri(List<ServiceProviderProperty> propertyList) {
@@ -4453,7 +4465,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
         spPropertyMap.put(jwksUri.getName(), jwksUri);
 
+        ServiceProviderProperty templateIdProperty = buildTemplateIdProperty(sp);
+        spPropertyMap.put(templateIdProperty.getName(), templateIdProperty);
+
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
+    }
+
+    private ServiceProviderProperty buildTemplateIdProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty templateIdProperty = new ServiceProviderProperty();
+        templateIdProperty.setName(TEMPLATE_ID_SP_PROPERTY_NAME);
+        templateIdProperty.setDisplayName(TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME);
+        templateIdProperty
+                .setValue(StringUtils.isNotBlank(sp.getTemplateId()) ? sp.getTemplateId() : StringUtils.EMPTY);
+        return templateIdProperty;
     }
 
     private ServiceProviderProperty buildJwksProperty(ServiceProvider sp) {
