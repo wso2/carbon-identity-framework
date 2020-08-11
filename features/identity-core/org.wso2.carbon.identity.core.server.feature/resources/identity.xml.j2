@@ -2067,14 +2067,23 @@
             {% for webapp in tenant_context.rewrite.webapps %}
             <Context>{{webapp}}</Context>
             {% endfor %}
+            {% for webapp in tenant_context.rewrite.custom_webapps %}
+            <Context>{{webapp}}</Context>
+            {% endfor %}
         </WebApp>
         <Servlet>
             {% for servlet in tenant_context.rewrite.servlets %}
             <Context>{{servlet}}</Context>
             {% endfor %}
+            {% for servlet in tenant_context.rewrite.custom_servlets %}
+            <Context>{{servlet}}</Context>
+            {% endfor %}
         </Servlet>
         <OverwriteDispatch>
             {% for context in tenant_context.rewrite.overwrite.dispatch %}
+            <Context>{{context}}</Context>
+            {% endfor %}
+            {% for context in tenant_context.rewrite.overwrite.custom_dispatch %}
             <Context>{{context}}</Context>
             {% endfor %}
         </OverwriteDispatch>
