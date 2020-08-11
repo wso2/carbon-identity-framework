@@ -73,7 +73,9 @@ public class TemplateMgtConstants {
     public static final String TYPES = "types";
     public static final String CATEGORY = "category";
     public static final String DISPLAY_ORDER = "displayOrder";
+    public static final String TEMPLATE_GROUP = "templateGroup";
     public static final String PROPERTY_DISPLAY_ORDER = "display-order";
+    public static final String PROPERTY_TEMPLATE_GROUP = "template-group";
     public static final String APPLICATION = "application";
 
     public enum TemplateType {
