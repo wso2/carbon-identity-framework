@@ -797,7 +797,7 @@
     "checkSessionInterval": 3
   },
   "cors.allow_generic_http_requests": true,
-  "cors.allow_any_origin": false,
+  "cors.allow_any_origin": true,
   "cors.allowed_origins": [],
   "cors.allow_subdomains": false,
   "cors.supported_methods": [
