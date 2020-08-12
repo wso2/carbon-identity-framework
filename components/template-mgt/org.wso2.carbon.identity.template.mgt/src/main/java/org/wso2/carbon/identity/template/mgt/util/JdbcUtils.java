@@ -31,7 +31,6 @@ import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.S_MICRO
 /**
  * A util class to support the Jdbc executions.
  */
-
 public class JdbcUtils {
 
     /**

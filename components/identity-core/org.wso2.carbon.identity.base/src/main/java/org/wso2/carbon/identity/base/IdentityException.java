@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.base;
 
-
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Used for creating checked exceptions that can be handled.
  */

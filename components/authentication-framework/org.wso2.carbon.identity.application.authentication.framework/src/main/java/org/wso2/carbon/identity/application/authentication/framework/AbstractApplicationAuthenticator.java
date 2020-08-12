@@ -37,14 +37,17 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.REDIRECT_TO_MULTI_OPTION_PAGE_ON_FAILURE;
 
 /**
@@ -81,8 +84,10 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             String tenantDomain = context.getTenantDomain();
                             if (!StringUtils.equals(userDomain, tenantDomain)) {
                                 context.setProperty("UserTenantDomainMismatch", true);
-                                throw new AuthenticationFailedException("Service Provider tenant domain must be " +
-                                        "equal to user tenant domain for non-SaaS applications", context.getSubject());
+                                throw new AuthenticationFailedException(
+                                        ErrorMessages.MISMATCHING_TENANT_DOMAIN.getCode(),
+                                        ErrorMessages.MISMATCHING_TENANT_DOMAIN.getMessage(),
+                                        context.getSubject());
                             }
                         }
                     }
@@ -91,7 +96,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 } catch (AuthenticationFailedException e) {
-                    publishAuthenticationStepAttempt(request, context, e.getUser(), false);
+                    publishAuthenticationStepAttemptFailure(request, context, e.getUser(), e.getErrorCode());
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     // Decide whether we need to redirect to the login page to retry authentication.
                     boolean sendToMultiOptionPage =
@@ -154,11 +159,17 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     }
 
     protected void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
-                                                  User user, boolean success) {
+                                                    User user, boolean success) {
 
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            Serializable currentAuthenticatorStartTime =
+                    context.getAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME);
+            if (currentAuthenticatorStartTime instanceof Long) {
+                context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_DURATION,
+                        System.currentTimeMillis() - (long) currentAuthenticatorStartTime);
+            }
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
@@ -179,17 +190,32 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
+                // Resetting the authenticator start time to null since the step event is Success and for the next
+                // step event start time will be added in DefaultStepHandler handle method.
+                context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME, null);
 
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
+                // Resetting the authenticator start time to current time since the step event is failure and retrying
+                // the event duration will be counted as a new step.
+                context.setAnalyticsData(
+                        FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME, System.currentTimeMillis());
             }
         }
+    }
+
+    private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
+                                                         User user, String errorCode) {
+
+        context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_ERROR_CODE, errorCode);
+        publishAuthenticationStepAttempt(request, context, user, false);
     }
 
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+
     }
 
     protected abstract void processAuthenticationResponse(HttpServletRequest request,

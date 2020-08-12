@@ -891,6 +891,7 @@
         <GroupEPUrl>{{scim2.endpoints.groups_endpoint}}</GroupEPUrl>
         <ComplexMultiValuedAttributeSupportEnabled>{{scim2.enable_complex_multivalued_attribute_support}}</ComplexMultiValuedAttributeSupportEnabled>
         <EnableFilteringEnhancements>{{scim2.enable_filtering_enhancements}}</EnableFilteringEnhancements>
+        <NotifyUserstoreStatus>{{scim2.notify_userstore_status}}</NotifyUserstoreStatus>
 
         <!--
                 If you set the property value to true, regardless the Users endpoint and Groups endpoint, it will filter
@@ -995,6 +996,7 @@
             <OTP>{{identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset}}</OTP>
             <RecoveryLink>{{identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset}}</RecoveryLink>
         </AdminPasswordReset>
+        <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
         <ErrorMessage>
             <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
@@ -1388,7 +1390,8 @@
 
     <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
         {% for resource in resource.access_control %}
-        <Resource context="{{resource.context}}" secured="{{resource.secure}}" http-method="{{resource.http_method}}">
+        <Resource context="{{resource.context}}" secured="{{resource.secure}}"
+                {% if resource.allowed_auth_handlers is defined %} allowed-auth-handlers="{{resource.allowed_auth_handlers|join(', ')}}" {% endif %} http-method="{{resource.http_method}}">
             {% for permission in resource.permissions %}
             <Permissions>{{permission}}</Permissions>
             {% endfor %}
@@ -1407,8 +1410,13 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/user/v1.0/introspect-code(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/identitymgt</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/user/v1.0/resend-code(.*)" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/user/v1.0/lite(.*)" secured="true" http-method="POST"/>
         <Resource context="(.*)/api/identity/user/v1.0/me(.*)" secured="true" http-method="GET"/>
         <Resource context="(.*)/api/identity/user/v1.0/pi-info" secured="true" http-method="all">
              <Permissions>/permission/admin/manage/identity/usermgt/view</Permissions>
@@ -1583,6 +1591,26 @@
         <Resource context="(.*)/scim2/Groups/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
             <Scopes>internal_role_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/create</Permissions>
+            <Scopes>internal_role_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles(.*)" secured="true" http-method="GET">
+             <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+             <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PUT">
+              <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+              <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="PATCH">
+              <Permissions>/permission/admin/manage/identity/rolemgt/update</Permissions>
+              <Scopes>internal_role_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/(.*)" secured="true" http-method="DELETE">
+              <Permissions>/permission/admin/manage/identity/rolemgt/delete</Permissions>
+              <Scopes>internal_role_mgt_delete</Scopes>
         </Resource>
         {% if resource_access_control.scim2_me_get_method.keep_resource is sameas true %}
         <Resource
@@ -1913,6 +1941,10 @@
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
+            <Scopes>internal_list_tenants</Scopes>
+         </Resource>
         <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
@@ -1928,11 +1960,28 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/media/create</Permissions>
+            <Scopes>internal_media_mgt_create</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="POST"/>
+        <Resource context="(.*)/api/identity/media/v1.0/content/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/media/view</Permissions>
+            <Scopes>internal_media_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/user/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
+            <Scopes>internal_media_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/developer-portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/admin-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/services(.*)" secured="false" http-method="all"/>
@@ -2001,6 +2050,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/metadata/(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
@@ -2022,14 +2072,23 @@
             {% for webapp in tenant_context.rewrite.webapps %}
             <Context>{{webapp}}</Context>
             {% endfor %}
+            {% for webapp in tenant_context.rewrite.custom_webapps %}
+            <Context>{{webapp}}</Context>
+            {% endfor %}
         </WebApp>
         <Servlet>
             {% for servlet in tenant_context.rewrite.servlets %}
             <Context>{{servlet}}</Context>
             {% endfor %}
+            {% for servlet in tenant_context.rewrite.custom_servlets %}
+            <Context>{{servlet}}</Context>
+            {% endfor %}
         </Servlet>
         <OverwriteDispatch>
             {% for context in tenant_context.rewrite.overwrite.dispatch %}
+            <Context>{{context}}</Context>
+            {% endfor %}
+            {% for context in tenant_context.rewrite.overwrite.custom_dispatch %}
             <Context>{{context}}</Context>
             {% endfor %}
         </OverwriteDispatch>
@@ -2125,6 +2184,7 @@
         specially for searching resources. This property will prevent any unwanted errors due to too large queries.
         Default value is the maximum packet size for MySQL 5.7 in bytes.-->
         <MaximumQueryLength>{{configuration.store.query_length.max}}</MaximumQueryLength>
+        <AllowCrossTenantSearch>{{configuration.store.allow_cross_tenant_search}}</AllowCrossTenantSearch>
     </ConfigurationStore>
 
     <FIDO>
@@ -2160,4 +2220,52 @@
 
     <!-- Configuration for allowing an uninterrupted token building flow upon facing claim handling errors. -->
     <ContinueOnClaimHandlingError>{{continue_on_claim_handling_error}}</ContinueOnClaimHandlingError>
+
+    <!--Disallowed characters regEx property-->
+    {% if user_identifier.disallowed.characters.regex is defined %}
+    <UserIdentifier>
+        <DisallowedCharacters>{{user_identifier.disallowed.characters.regex}}</DisallowedCharacters>
+    </UserIdentifier>
+    {% endif %}
+
+    <!-- CORS -->
+    <CORS>
+        <AllowGenericHttpRequests>{{cors.allow_generic_http_requests}}</AllowGenericHttpRequests>
+        <AllowAnyOrigin>{{cors.allow_any_origin}}</AllowAnyOrigin>
+        <AllowedOrigins>
+            {% for origin in cors.allowed_origins %}
+            <Origin>{{origin}}</Origin>
+            {% endfor %}
+        </AllowedOrigins>
+        <AllowSubdomains>{{cors.allow_subdomains}}</AllowSubdomains>
+        <SupportedMethods>
+            {% for method in cors.supported_methods %}
+            <Method>{{method}}</Method>
+            {% endfor %}
+        </SupportedMethods>
+        <SupportAnyHeader>{{cors.support_any_header}}</SupportAnyHeader>
+        <SupportedHeaders>
+            {% for header in cors.supported_headers %}
+            <Header>{{header}}</Header>
+            {% endfor %}
+        </SupportedHeaders>
+        <ExposedHeaders>
+            {% for header in cors.exposed_headers %}
+            <Header>{{header}}</Header>
+            {% endfor %}
+        </ExposedHeaders>
+        <SupportsCredentials>{{cors.supports_credentials}}</SupportsCredentials>
+        <MaxAge>{{cors.max_age}}</MaxAge>
+        <TagRequests>{{cors.tag_requests}}</TagRequests>
+    </CORS>
+
+    <LegacyFeatures>
+        {% for feature in legacy_feature %}
+        <LegacyFeature>
+            <Id>{{feature.id}}</Id>
+            <Version>{{feature.version}}</Version>
+            <Enable>{{feature.enable}}</Enable>
+        </LegacyFeature>
+        {% endfor %}
+    </LegacyFeatures>
 </Server>

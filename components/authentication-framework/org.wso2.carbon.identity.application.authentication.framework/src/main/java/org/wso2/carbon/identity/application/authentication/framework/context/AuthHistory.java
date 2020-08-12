@@ -37,13 +37,17 @@ public class AuthHistory implements Serializable {
     private String idpSessionIndex;
     private String requestType;
     private String code;
+    private long duration;
+    private boolean success;
 
     public AuthHistory(String authenticatorName, String idpName) {
+
         this.authenticatorName = authenticatorName;
         this.idpName = idpName;
     }
 
     public AuthHistory(String authenticatorName, String idpName, String code) {
+
         this.authenticatorName = authenticatorName;
         this.idpName = idpName;
         this.code = code;
@@ -128,11 +132,32 @@ public class AuthHistory implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
+
         if (obj instanceof AuthHistory) {
             AuthHistory rhs = (AuthHistory) obj;
             return new EqualsBuilder().appendSuper(super.equals(obj)).append(authenticatorName, rhs.authenticatorName)
                     .append(idpName, rhs.idpName).append(code, rhs.code).isEquals();
         }
         return false;
+    }
+
+    public long getDuration() {
+
+        return duration;
+    }
+
+    public void setDuration(long duration) {
+
+        this.duration = duration;
+    }
+
+    public boolean isSuccess() {
+
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+
+        this.success = success;
     }
 }

@@ -60,6 +60,9 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD = "password";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
+    public static final String ERROR_CODE = "errorCode";
+    public static final String ERROR_MESSAGE = "errorMessage";
+    public static final String ERROR_URI = "errorURI";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -385,11 +388,14 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
+        public static final String JS_AUTH_FAILURE = "fail";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
+        public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
+        public static final String FORCE_AUTH_PARAM = "forceAuth";
     }
     public static class InternalRoleDomains {
 
@@ -430,5 +436,27 @@ public abstract class FrameworkConstants {
 
         public static final String ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY = "account.lock.handler.enable";
         public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
+    }
+
+
+    /**
+     * Constants related with Analytics parameters.
+     */
+    public static class AnalyticsData {
+
+        public static final String AUTHENTICATION_START_TIME = "authenticationStartTime";
+        public static final String AUTHENTICATION_DURATION = "authenticationDuration";
+        public static final String DATA_MAP = "dataMap";
+        public static final String AUTHENTICATION_ERROR_CODE = "authenticationErrorCode";
+        public static final String CURRENT_AUTHENTICATOR_START_TIME = "currentAuthenticatorStartTime";
+        public static final String CURRENT_AUTHENTICATOR_DURATION = "currentAuthenticatorDuration";
+        public static final String CURRENT_AUTHENTICATOR_ERROR_CODE = "currentAuthenticatorErrorCode";
+        public static final String CUSTOM_PARAM_PREFIX = "customParam";
+        public static final int CUSTOM_PARAM_LENGTH = 5;
+        public static final String CUSTOM_PARAM_1 = CUSTOM_PARAM_PREFIX + "1";
+        public static final String CUSTOM_PARAM_2 = CUSTOM_PARAM_PREFIX + "2";
+        public static final String CUSTOM_PARAM_3 = CUSTOM_PARAM_PREFIX + "3";
+        public static final String CUSTOM_PARAM_4 = CUSTOM_PARAM_PREFIX + "4";
+        public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
     }
 }

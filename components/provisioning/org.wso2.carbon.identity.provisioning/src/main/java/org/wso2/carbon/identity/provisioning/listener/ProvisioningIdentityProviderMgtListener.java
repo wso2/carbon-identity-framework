@@ -56,6 +56,19 @@ public class ProvisioningIdentityProviderMgtListener extends AbstractIdentityPro
         return true;
     }
 
+    /**
+     * Clear Provisioning Connector Cache before deleting IDPs.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs.
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public boolean doPreDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
+        return super.doPreDeleteIdPs(tenantDomain);
+    }
+
     @Override
     public boolean doPreUpdateIdP(String oldIdPName, IdentityProvider identityProvider, String tenantDomain) throws
             IdentityProviderManagementException {
@@ -84,8 +97,10 @@ public class ProvisioningIdentityProviderMgtListener extends AbstractIdentityPro
             carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
             carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
 
-            ProvisioningConnectorCacheKey cacheKey = new ProvisioningConnectorCacheKey(identityProviderName, tenantDomain);
-            ProvisioningConnectorCacheEntry entry = ProvisioningConnectorCache.getInstance().getValueFromCache(cacheKey);
+            ProvisioningConnectorCacheKey cacheKey =
+                    new ProvisioningConnectorCacheKey(identityProviderName, tenantDomain);
+            ProvisioningConnectorCacheEntry entry =
+                    ProvisioningConnectorCache.getInstance().getValueFromCache(cacheKey);
 
             if (entry != null) {
                 ProvisioningConnectorCache.getInstance().clearCacheEntry(cacheKey);
@@ -143,7 +158,8 @@ public class ProvisioningIdentityProviderMgtListener extends AbstractIdentityPro
         }
     }
 
-    public int getDefaultOrderId(){
+    public int getDefaultOrderId() {
+
         return 20;
     }
 }

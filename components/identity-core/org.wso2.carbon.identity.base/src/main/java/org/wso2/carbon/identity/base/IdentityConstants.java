@@ -500,4 +500,31 @@ public class IdentityConstants {
         public static final String CARBON_PORT_HTTP_PROPERTY = "mgt.transport.http.port";
         public static final String CARBON_PORT_HTTPS_PROPERTY = "mgt.transport.https.port";
     }
+
+    public static class CORS {
+
+        public static final String ALLOW_GENERIC_HTTP_REQUESTS = "CORS.AllowGenericHttpRequests";
+        public static final String ALLOW_ANY_ORIGIN = "CORS.AllowAnyOrigin";
+        public static final String ALLOWED_ORIGINS = "CORS.AllowedOrigins.Origin";
+        public static final String ALLOW_SUBDOMAINS = "CORS.AllowSubdomains";
+        public static final String SUPPORTED_METHODS = "CORS.SupportedMethods.Method";
+        public static final String SUPPORT_ANY_HEADER = "CORS.SupportAnyHeader";
+        public static final String SUPPORTED_HEADERS = "CORS.SupportedHeaders.Header";
+        public static final String EXPOSED_HEADERS = "CORS.ExposedHeaders.Header";
+        public static final String SUPPORTS_CREDENTIALS = "CORS.SupportsCredentials";
+        public static final String MAX_AGE = "CORS.MaxAge";
+        public static final String TAG_REQUESTS = "CORS.TagRequests";
+    }
+
+    /**
+     * Contains the constants related to Legacy Feature config elements.
+     */
+    public static class LegacyFeatureConfigElements {
+
+        public final static String LEGACY_FEATURE_CONFIG = "LegacyFeatures";
+        public final static String LEGACY_FEATURE = "LegacyFeature";
+        public final static String LEGACY_FEATURE_ID = "Id";
+        public final static String LEGACY_FEATURE_VERSION = "Version";
+        public final static String LEGACY_FEATURE_ENABLE = "Enable";
+    }
 }

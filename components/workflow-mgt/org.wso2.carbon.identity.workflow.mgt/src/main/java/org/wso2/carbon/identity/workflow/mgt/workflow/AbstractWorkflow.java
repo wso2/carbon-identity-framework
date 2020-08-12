@@ -46,7 +46,7 @@ public abstract class AbstractWorkflow {
     private MetaData metaData = null;
     private ParametersMetaData parametersMetaData = null ;
 
-    private Class<? extends TemplateInitializer> templateInitializerClass ;
+    private Class<? extends TemplateInitializer> templateInitializerClass;
     private Class<? extends WorkFlowExecutor> workFlowExecutorClass;
 
     /**
@@ -59,11 +59,11 @@ public abstract class AbstractWorkflow {
             WorkFlowExecutor> workFlowExecutorClass, String metaDataXML) throws WorkflowRuntimeException {
         try {
 
-            this.templateInitializerClass = templateInitializerClass ;
-            this.workFlowExecutorClass = workFlowExecutorClass ;
+            this.templateInitializerClass = templateInitializerClass;
+            this.workFlowExecutorClass = workFlowExecutorClass;
 
             this.metaData = WorkflowManagementUtil.unmarshalXML(metaDataXML, MetaData.class);
-            if(this.metaData == null || this.metaData.getWorkflowImpl() == null ){
+            if (this.metaData == null || this.metaData.getWorkflowImpl() == null) {
                 throw new WorkflowRuntimeException("Error occurred while Loading WorkflowImpl Meta Data");
             }
             this.parametersMetaData = this.metaData.getWorkflowImpl().getParametersMetaData();
@@ -80,7 +80,7 @@ public abstract class AbstractWorkflow {
      * @param parameterList Parameter of the workflow
      * @throws WorkflowException
      */
-    public void deploy(List< Parameter> parameterList) throws WorkflowException {
+    public void deploy(List <Parameter> parameterList) throws WorkflowException {
 
         TemplateInitializer initializer = getTemplateInitializer();
         if (initializer != null) {
@@ -111,10 +111,10 @@ public abstract class AbstractWorkflow {
      * @throws WorkflowException
      */
     public ParametersMetaData getParametersMetaData() throws WorkflowException{
-        if(parametersMetaData != null){
-            ParameterMetaData[] parameterMetaData  = parametersMetaData.getParameterMetaData();
-            for(ParameterMetaData metaData: parameterMetaData){
-                if(metaData.isIsInputDataRequired()){
+        if (parametersMetaData != null) {
+            ParameterMetaData[] parameterMetaData = parametersMetaData.getParameterMetaData();
+            for (ParameterMetaData metaData: parameterMetaData){
+                if (metaData.isIsInputDataRequired()) {
                     InputData inputData = getInputData(metaData);
                     metaData.setInputData(inputData);
                 }
@@ -161,7 +161,7 @@ public abstract class AbstractWorkflow {
     }
 
     public WorkFlowExecutor getWorkFlowExecutor() {
-        WorkFlowExecutor workFlowExecutor = null ;
+        WorkFlowExecutor workFlowExecutor = null;
         try {
             workFlowExecutor = workFlowExecutorClass.newInstance();
         } catch (InstantiationException e) {
@@ -178,8 +178,8 @@ public abstract class AbstractWorkflow {
 
 
 
-    public TemplateInitializer getTemplateInitializer() throws WorkflowRuntimeException{
-        TemplateInitializer templateInitializer = null ;
+    public TemplateInitializer getTemplateInitializer() throws WorkflowRuntimeException {
+        TemplateInitializer templateInitializer = null;
         try {
             templateInitializer = templateInitializerClass.newInstance();
         } catch (InstantiationException e) {

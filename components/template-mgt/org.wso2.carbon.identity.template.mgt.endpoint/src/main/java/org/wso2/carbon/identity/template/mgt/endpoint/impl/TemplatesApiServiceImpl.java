@@ -47,98 +47,39 @@ import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMe
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_UNEXPECTED;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.ErrorMessages.ERROR_CODE_USER_NOT_AUTHORIZED;
 
-public class
-TemplatesApiServiceImpl extends TemplatesApiService {
+@Deprecated
+public class TemplatesApiServiceImpl extends TemplatesApiService {
 
     private static final Log LOG = LogFactory.getLog(TemplatesApiServiceImpl.class);
 
     @Override
     public Response addTemplate(TemplateDTO template) {
 
-        try {
-            TemplateResponseDTO response = postTemplate(template);
-            return Response.created(getTemplateLocationURI(response.getTemplateName()))
-                    .lastModified(Calendar.getInstance().getTime())
-                    .entity(response)
-                    .build();
-        } catch (TemplateManagementClientException e) {
-            return handleBadRequestResponse(e);
-        } catch (TemplateManagementException e) {
-            return handleServerErrorResponse(e);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable);
-        }
+        return handleForbiddenRequest();
     }
 
     @Override
     public Response updateTemplate(String templateName, TemplateDTO updateTemplateRequestDTO) {
 
-        try {
-            TemplateResponseDTO response = postUpdatedTemplate(templateName, updateTemplateRequestDTO);
-            return Response.ok()
-                    .location(getTemplateLocationURI(response.getTemplateName()))
-                    .lastModified(Calendar.getInstance().getTime())
-                    .entity(response)
-                    .build();
-        } catch (TemplateManagementClientException e) {
-            return handleBadRequestResponse(e);
-        } catch (TemplateManagementException e) {
-            return handleServerErrorResponse(e);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable);
-        }
+        return handleForbiddenRequest();
     }
 
     @Override
     public Response getTemplateByName(String templateName) {
 
-        try {
-            TemplateDTO template = getTemplate(templateName);
-            return Response.ok()
-                    .entity(template)
-                    .build();
-        } catch (TemplateManagementClientException e) {
-            return handleBadRequestResponse(e);
-        } catch (TemplateManagementException e) {
-            return handleServerErrorResponse(e);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable);
-        }
+        return handleForbiddenRequest();
     }
 
     @Override
     public Response deleteTemplate(String templateName) {
 
-        try {
-            TemplateEndpointUtils.getTemplateManager().deleteTemplate(templateName);
-            Date date = Calendar.getInstance().getTime();
-            return Response.ok()
-                    .lastModified(date)
-                    .build();
-        } catch (TemplateManagementClientException e) {
-            return handleBadRequestResponse(e);
-        } catch (TemplateManagementException e) {
-            return handleServerErrorResponse(e);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable);
-        }
+        return handleForbiddenRequest();
     }
 
     @Override
     public Response getTemplates(Integer limit, Integer offset) {
 
-        try {
-            List<GetTemplatesResponseDTO> getTemplatesResponseDTOS = getTemplatesList(limit, offset);
-            return Response.ok()
-                    .entity(getTemplatesResponseDTOS)
-                    .build();
-        } catch (TemplateManagementClientException e) {
-            return handleBadRequestResponse(e);
-        } catch (TemplateManagementException e) {
-            return handleServerErrorResponse(e);
-        } catch (Throwable throwable) {
-            return handleUnexpectedServerError(throwable);
-        }
+        return handleForbiddenRequest();
     }
 
     private List<GetTemplatesResponseDTO> getTemplatesList(Integer limit, Integer offset)
@@ -211,6 +152,11 @@ TemplatesApiServiceImpl extends TemplatesApiService {
             throw TemplateEndpointUtils.buildNotFoundRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
         }
         throw TemplateEndpointUtils.buildBadRequestException(e.getMessage(), e.getErrorCode(), LOG, e);
+    }
+
+    private Response handleForbiddenRequest() {
+
+        throw  TemplateEndpointUtils.buildForbiddenException();
     }
 
     private boolean isForbiddenError(TemplateManagementClientException e) {

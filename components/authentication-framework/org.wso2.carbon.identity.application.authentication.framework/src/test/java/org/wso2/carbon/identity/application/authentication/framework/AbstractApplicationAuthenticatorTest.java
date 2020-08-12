@@ -82,6 +82,7 @@ public class AbstractApplicationAuthenticatorTest {
         initMocks(this);
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
         when(abstractApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
+        context.initializeAnalyticsData();
         when(context.getTenantDomain()).thenReturn(TENANT_DOMAIN);
         doCallRealMethod().when(abstractApplicationAuthenticator).getUserStoreAppendedName(anyString());
         doCallRealMethod().when(abstractApplicationAuthenticator).process(request, response, context);

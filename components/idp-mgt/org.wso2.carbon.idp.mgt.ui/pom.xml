@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-provider-management</artifactId>
-        <version>5.17.110-SNAPSHOT</version>
+        <version>5.18.50-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -75,6 +75,10 @@
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.default.auth.sequence.mgt.stub</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.security.mgt</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -107,13 +111,15 @@
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.idp.mgt.stub; version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.core.util;version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.core;version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.common.util,
                             org.wso2.carbon.identity.application.mgt.defaultsequence.stub.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.defaultsequence.xsd.*;
                             version="${carbon.identity.package.import.version.range}",
                             org.wso2.carbon.identity.application.mgt.defaultsequence.stub.types.axis2.*;
-                            version="${carbon.identity.package.import.version.range}"
+                            version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.security.sts.service.*; version="${carbon.identity.package.import.version.range}"
                         </Import-Package>
                         <Export-Package>
                             org.wso2.carbon.idp.mgt.ui.*; version="${carbon.identity.package.export.version}",

@@ -242,14 +242,15 @@ public class DefaultServiceURLBuilderTest {
         }
 
         assertEquals(absoluteUrl,
-                "https://localhost:0/proxyContextPath/testPath1/testPath2/testPath3?key1%3Dvalue1%26key2%3Dvalue2" +
-                        "%26key3%3Dvalue3#key1%3Dvalue1%26key2%3Dvalue2%26key3%3Dvalue3");
+                "https://localhost:0/proxyContextPath/testPath1/testPath2/testPath3?key1=value1&key2=value2&key3" +
+                        "=value3#key1=value1&key2=value2&key3=value3");
     }
 
     @DataProvider
     public Object[][] getAbsolutePublicURLData() {
 
         Map<String, String> parameters = new HashMap<>();
+        Map<String, String> unencodedParameters = new HashMap<>();
         Map<String, String> fragmentParams = new HashMap<>();
 
         ArrayList<String> keys = new ArrayList<String>(Arrays.asList("key1", "key2", "key3", "key4"));
@@ -257,23 +258,24 @@ public class DefaultServiceURLBuilderTest {
             parameters.put(key, "v");
             fragmentParams.put(key, "fragment");
         }
+        unencodedParameters.put("key5", " v ");
 
         return new Object[][]{
                 {"https", "www.wso2.com", 9443, "/proxyContext", "abc", false, null, "", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
-                                "%26key4%3Dfragment", ""},
+                        "https://www.wso2.com:9443/proxyContext#key1=fragment&key2=fragment&key3=fragment&key4" +
+                                "=fragment", ""},
                 {"https", "www.wso2.com", 9443, "/proxyContext/", "", false, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext/samlsso#fragment", "/samlsso"},
                 {"https", "www.wso2.com", 9443, "proxyContext", "", true, null, "", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext/samlsso#key1%3Dfragment%26key2%3D" +
-                                "fragment%26key3%3Dfragment%26key4%3Dfragment", "/samlsso/"},
+                        "https://www.wso2.com:9443/proxyContext/samlsso#key1=fragment&key2=fragment&key3=fragment" +
+                                "&key4=fragment", "/samlsso/"},
                 {"https", "www.wso2.com", 9443, "", "abc", false, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/samlsso#fragment", "samlsso"},
                 {"https", "www.wso2.com", 9443, null, "abc", true, parameters, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/t/abc/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#fragment",
+                        "https://www.wso2.com:9443/t/abc/samlsso?key1=v&key2=v&key3=v&key4=v#fragment",
                         "/samlsso"},
                 {"https", "www.wso2.com", 9443, null, "abc", false, parameters, "", null,
-                        "https://www.wso2.com:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv", "/samlsso/"},
+                        "https://www.wso2.com:9443/samlsso?key1=v&key2=v&key3=v&key4=v", "/samlsso/"},
                 {"https", "www.wso2.com", 9443, "proxyContext/", "abc", true, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext/t/abc/samlsso#fragment", "/samlsso"},
                 {"https", "www.wso2.com", 9443, "/proxyContext", "abc", true, null, "", null,
@@ -281,12 +283,14 @@ public class DefaultServiceURLBuilderTest {
                 {"https", "www.wso2.com", 9443, "", "", true, null, "fragment", fragmentParams,
                         "https://www.wso2.com:9443/samlsso#fragment", "samlsso/"},
                 {"https", "www.wso2.com", 9443, "", "", true, parameters, "", fragmentParams,
-                        "https://www.wso2.com:9443?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1" +
-                                "%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
-                        null},
+                        "https://www.wso2.com:9443?key1=v&key2=v&key3=v&key4=v#key1=fragment&key2=fragment&key3" +
+                                "=fragment&key4=fragment", null},
+                {"https", "www.wso2.com", 9443, "", "", true, unencodedParameters, "", fragmentParams,
+                        "https://www.wso2.com:9443?key5=+v+#key1=fragment&key2=fragment&key3" +
+                                "=fragment&key4=fragment", null},
                 {"https", "www.wso2.com", 9443, "/proxyContext", "", false, null, "", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
-                                "%26key4%3Dfragment", null}
+                        "https://www.wso2.com:9443/proxyContext#key1=fragment&key2=fragment&key3=fragment&key4" +
+                                "=fragment", null}
         };
     }
 
@@ -304,20 +308,19 @@ public class DefaultServiceURLBuilderTest {
 
         return new Object[][]{
                 {"https", "internal.wso2.is", 9443, "abc", false, null, "", fragmentParams,
-                        "https://internal.wso2.is:9443#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
-                                "%26key4%3Dfragment", ""},
+                        "https://internal.wso2.is:9443#key1=fragment&key2=fragment&key3=fragment&key4=fragment", ""},
                 {"https", "internal.wso2.is", 9443, "", false, null, "fragment", fragmentParams,
                         "https://internal.wso2.is:9443/samlsso#fragment", "/samlsso"},
                 {"https", "internal.wso2.is", 9443, "", true, null, "", fragmentParams,
-                        "https://internal.wso2.is:9443/samlsso#key1%3Dfragment%26key2%3D" +
-                                "fragment%26key3%3Dfragment%26key4%3Dfragment", "/samlsso/"},
+                        "https://internal.wso2.is:9443/samlsso#key1=fragment&key2=fragment&key3=fragment&key4" +
+                                "=fragment", "/samlsso/"},
                 {"https", null, 9443, "abc", false, null, "fragment", fragmentParams,
                         "https://localhost:9443/samlsso#fragment", "samlsso"},
                 {"https", "internal.wso2.is", 9443, "abc", true, parameters, "fragment", fragmentParams,
-                        "https://internal.wso2.is:9443/t/abc/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#fragment",
+                        "https://internal.wso2.is:9443/t/abc/samlsso?key1=v&key2=v&key3=v&key4=v#fragment",
                         "/samlsso"},
                 {"https", "internal.wso2.is", 9443, "abc", false, parameters, "", null,
-                        "https://internal.wso2.is:9443/samlsso?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv", "/samlsso/"},
+                        "https://internal.wso2.is:9443/samlsso?key1=v&key2=v&key3=v&key4=v", "/samlsso/"},
                 {"https", "internal.wso2.is", 9443, "abc", true, null, "fragment", fragmentParams,
                         "https://internal.wso2.is:9443/t/abc/samlsso#fragment", "/samlsso"},
                 {"https", "internal.wso2.is", 9443, "abc", true, null, "", null,
@@ -325,12 +328,10 @@ public class DefaultServiceURLBuilderTest {
                 {"https", "internal.wso2.is", 9443, "", true, null, "fragment", fragmentParams,
                         "https://internal.wso2.is:9443/samlsso#fragment", "samlsso/"},
                 {"https", "internal.wso2.is", 9443, "", true, parameters, "", fragmentParams,
-                        "https://internal.wso2.is:9443?key1%3Dv%26key2%3Dv%26key3%3Dv%26key4%3Dv#key1" +
-                                "%3Dfragment%26key2%3Dfragment%26key3%3Dfragment%26key4%3Dfragment",
-                        null},
+                        "https://internal.wso2.is:9443?key1=v&key2=v&key3=v&key4=v#key1=fragment&key2=fragment&key3" +
+                                "=fragment&key4=fragment", null},
                 {"https", null, 9443, "", false, null, "", fragmentParams,
-                        "https://localhost:9443#key1%3Dfragment%26key2%3Dfragment%26key3%3Dfragment" +
-                                "%26key4%3Dfragment", null}
+                        "https://localhost:9443#key1=fragment&key2=fragment&key3=fragment&key4=fragment", null}
         };
     }
 
@@ -353,12 +354,14 @@ public class DefaultServiceURLBuilderTest {
 
         try {
             if (MapUtils.isNotEmpty(parameters) && MapUtils.isNotEmpty(fragmentParams)) {
-                absoluteUrl =
-                        ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",
-                                "fragment").addFragmentParameter("key2", "fragment").addFragmentParameter("key3",
-                                "fragment").addFragmentParameter("key4", "fragment").addParameter("key1", "v")
-                                .addParameter("key2", "v").addParameter("key3", "v").addParameter("key4", "v").build()
-                                .getAbsolutePublicURL();
+                ServiceURLBuilder serviceURLBuilder = ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment);
+                for (String paramKey : parameters.keySet()) {
+                    serviceURLBuilder.addParameter(paramKey, parameters.get(paramKey));
+                }
+                for (String fragmentKey : fragmentParams.keySet()) {
+                    serviceURLBuilder.addFragmentParameter(fragmentKey, fragmentParams.get(fragmentKey));
+                }
+                absoluteUrl = serviceURLBuilder.build().getAbsolutePublicURL();
             } else if (MapUtils.isNotEmpty(fragmentParams)){
                 absoluteUrl =
                         ServiceURLBuilder.create().addPath(urlPath).setFragment(fragment).addFragmentParameter("key1",

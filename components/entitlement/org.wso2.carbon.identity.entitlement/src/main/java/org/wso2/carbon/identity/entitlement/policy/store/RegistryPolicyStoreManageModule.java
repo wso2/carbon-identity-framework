@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.entitlement.policy.store;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -77,17 +78,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
         Resource resource;
         int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
 
-        if (policy == null || policy.getPolicyId() == null || policy.getPolicy() == null || policy.getPolicyId()
-                .trim().length() == 0) {
-            if (log.isDebugEnabled()) {
-                if (policy == null) {
-                    log.debug("PolicyStoreDTO: " + policy + ", is null.");
-                } else {
-                    log.debug(String.format("Either PolicyStoreDTO's Id: %s, or it's policy: %s, is null. Or " +
-                            "else, the mentioned policy Id: %s, is empty.", policy.getPolicyId(), policy.getPolicy(),
-                            policy.getPolicyId()));
-                }
-            }
+        if (policy == null || StringUtils.isBlank(policy.getPolicyId())) {
             throw new EntitlementException("Policy can not be null");
         }
 
@@ -111,7 +102,7 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
                 resource = registry.newResource();
             }
 
-            if (policy.getPolicy().trim().length() != 0) {
+            if (policy.getPolicy() != null && policy.getPolicy().trim().length() != 0) {
                 resource.setContent(policy.getPolicy());
                 resource.setMediaType(PDPConstants.REGISTRY_MEDIA_TYPE);
                 AttributeDTO[] attributeDTOs = policy.getAttributeDTOs();
@@ -127,6 +118,10 @@ public class RegistryPolicyStoreManageModule extends AbstractPolicyFinderModule
                 if (order > 0) {
                     resource.setProperty("order", Integer.toString(order));
                 }
+            }
+            if (resource.getContent() == null) {
+                log.info("Prevented adding null content to resource " + policyPath);
+                return;
             }
             registry.put(policyPath, resource);
         } catch (RegistryException e) {

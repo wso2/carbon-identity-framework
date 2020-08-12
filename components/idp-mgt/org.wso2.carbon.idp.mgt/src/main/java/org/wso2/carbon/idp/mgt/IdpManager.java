@@ -131,12 +131,13 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     default List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
-			throws IdentityProviderManagementException {
-	return null;     
+            throws IdentityProviderManagementException {
+
+	    return null;
     }
-    
+
     /**
-     * Retrieves registered Enabled Identity providers for a given tenant
+     * Retrieves registered Enabled Identity providers for a given tenant.
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
@@ -381,6 +382,16 @@ public interface IdpManager {
      */
     @Deprecated
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
+
+    /**
+     * Delete all Identity Providers from a given tenant.
+     *
+     * @param tenantDomain Domain of the tenant
+     * @throws IdentityProviderManagementException
+     */
+    default void deleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
+    };
 
     /**
      * Deletes an Identity Provider from a given tenant using its resource ID.

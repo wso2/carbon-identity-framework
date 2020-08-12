@@ -54,7 +54,10 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
@@ -503,17 +506,17 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             HttpServletRequest request) throws PostAuthenticationFailedException {
 
         try {
-            URIBuilder uriBuilder;
+            ServiceURLBuilder uriBuilder = ServiceURLBuilder.create();
             if (externalIdPConfig.isModifyUserNameAllowed()) {
                 context.setProperty(FrameworkConstants.CHANGING_USERNAME_ALLOWED, true);
-                uriBuilder = new URIBuilder(FrameworkUtils.getUserNameProvisioningUIUrl());
+                uriBuilder = uriBuilder.addPath(FrameworkUtils.getUserNameProvisioningUIUrl());
                 uriBuilder.addParameter(FrameworkConstants.ALLOW_CHANGE_USER_NAME, String.valueOf(true));
                 if (log.isDebugEnabled()) {
                     log.debug(externalIdPConfig.getName() + " allow to change the username, redirecting to "
                             + "registration endpoint to provision the user: " + username);
                 }
             } else {
-                uriBuilder = new URIBuilder(FrameworkUtils.getPasswordProvisioningUIUrl());
+                    uriBuilder = uriBuilder.addPath(FrameworkUtils.getPasswordProvisioningUIUrl());
                 if (log.isDebugEnabled()) {
                     if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                         log.debug(externalIdPConfig.getName() + " supports password provisioning, redirecting to "
@@ -524,7 +527,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             if (externalIdPConfig.isPasswordProvisioningEnabled()) {
                 uriBuilder.addParameter(FrameworkConstants.PASSWORD_PROVISION_ENABLED, String.valueOf(true));
             }
-            uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN_HEADER_NAME, context.getTenantDomain());
+            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                uriBuilder.addParameter(MultitenantConstants.TENANT_DOMAIN_HEADER_NAME, context.getTenantDomain());
+            }
             uriBuilder.addParameter(FrameworkConstants.SERVICE_PROVIDER, context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName());
             uriBuilder.addParameter(FrameworkConstants.USERNAME, username);
@@ -532,8 +537,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
             uriBuilder.addParameter(FrameworkConstants.SESSION_DATA_KEY, context.getContextIdentifier());
             addMissingClaims(uriBuilder, context);
             localClaimValues.forEach(uriBuilder::addParameter);
-            response.sendRedirect(uriBuilder.build().toString());
-        } catch (URISyntaxException | IOException e) {
+            response.sendRedirect(uriBuilder.build().getRelativePublicURL());
+        } catch (IOException | URLBuilderException e) {
             handleExceptions(String.format(
                     ErrorMessages.ERROR_WHILE_TRYING_CALL_SIGN_UP_ENDPOINT_FOR_PASSWORD_PROVISIONING.getMessage(),
                     username, externalIdPConfig.getName()),
@@ -547,7 +552,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
      * @param uriBuilder Relevant URI builder.
      * @param context    Authentication context.
      */
-    private void addMissingClaims(URIBuilder uriBuilder, AuthenticationContext context) {
+    private void addMissingClaims(ServiceURLBuilder uriBuilder, AuthenticationContext context) {
 
         String[] missingClaims = FrameworkUtils.getMissingClaims(context);
         if (StringUtils.isNotEmpty(missingClaims[1])) {

@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.xerces.impl.Constants;
 import org.apache.xerces.util.SecurityManager;
-import org.apache.xml.security.utils.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.wso2.carbon.CarbonConstants;
@@ -44,6 +43,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -115,6 +116,7 @@ public class IdentityUtil {
             HashMap<>();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap<>();
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
+    private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -214,18 +216,57 @@ public class IdentityUtil {
         return identityCookiesConfigurationHolder;
     }
 
+    /**
+     * This method can use to check whether the legacy feature for the given legacy feature id is enabled or not
+     *
+     * @param legacyFeatureId      Legacy feature id.
+     * @param legacyFeatureVersion Legacy feature version.
+     * @return Whether the legacy feature is enabled or not.
+     */
+    public static boolean isLegacyFeatureEnabled(String legacyFeatureId, String legacyFeatureVersion) {
+
+        String legacyFeatureConfig;
+        if (StringUtils.isBlank(legacyFeatureId)) {
+            return false;
+        }
+        if (StringUtils.isBlank(legacyFeatureVersion)) {
+            legacyFeatureConfig = legacyFeatureId.trim();
+        } else {
+            legacyFeatureConfig = legacyFeatureId.trim() + legacyFeatureVersion.trim();
+        }
+        if (StringUtils.isNotBlank(legacyFeatureConfig)) {
+            LegacyFeatureConfig legacyFeatureConfiguration =
+                    legacyFeatureConfigurationHolder.get(legacyFeatureConfig);
+            if (legacyFeatureConfiguration != null && legacyFeatureConfiguration.isEnabled()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Legacy feature id: " + legacyFeatureConfiguration.getId() +
+                            " legacy feature version : " + legacyFeatureConfiguration.getVersion() +
+                            " is enabled: " + legacyFeatureConfiguration.isEnabled());
+                }
+                return legacyFeatureConfiguration.isEnabled();
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("legacy feature is not configured or the configured legacy feature is empty. " +
+                        "Hence returning false ");
+            }
+        }
+        return false;
+    }
+
     public static void populateProperties() {
         configuration = IdentityConfigParser.getInstance().getConfiguration();
         eventListenerConfiguration = IdentityConfigParser.getInstance().getEventListenerConfiguration();
         identityCacheConfigurationHolder = IdentityConfigParser.getInstance().getIdentityCacheConfigurationHolder();
         identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
+        legacyFeatureConfigurationHolder = IdentityConfigParser.getLegacyFeatureConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("Generating display value of PPID : " + value);
         }
-        byte[] rawPpid = Base64.decode(value);
+        byte[] rawPpid = Base64.getDecoder().decode(value);
         MessageDigest sha1 = MessageDigest.getInstance("SHA1");
         sha1.update(rawPpid);
         byte[] hashId = sha1.digest();
@@ -260,7 +301,7 @@ public class IdentityUtil {
             Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            return Base64.encode(rawHmac);
+            return Base64.getEncoder().encodeToString(rawHmac);
         } catch (Exception e) {
             throw new SignatureException("Failed to generate HMAC : " + e.getMessage());
         }
@@ -306,7 +347,7 @@ public class IdentityUtil {
             Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(key);
             byte[] rawHmac = mac.doFinal(baseString.getBytes());
-            String random = Base64.encode(rawHmac);
+            String random = Base64.getEncoder().encodeToString(rawHmac);
             // Registry doesn't have support for these character.
             random = random.replace("/", "_");
             random = random.replace("=", "a");

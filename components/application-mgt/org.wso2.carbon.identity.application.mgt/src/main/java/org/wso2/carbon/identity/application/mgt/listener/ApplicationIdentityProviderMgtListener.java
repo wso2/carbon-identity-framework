@@ -171,6 +171,19 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
         return super.doPostDeleteIdP(idPName, tenantDomain);
     }
 
+    /**
+     * Additional actions after deleting IdPs of a given tenant id.
+     *
+     * @param tenantDomain Tenant domain to delete IdPs
+     * @return
+     * @throws IdentityProviderManagementException
+     */
+    @Override
+    public boolean doPostDeleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
+        return super.doPostDeleteIdPs(tenantDomain);
+    }
+
     public int getDefaultOrderId() {
 
         return 10;
@@ -255,7 +268,7 @@ public class ApplicationIdentityProviderMgtListener extends AbstractIdentityProv
     }
 
     /**
-     * Updates Outbound Provisioning Connectors
+     * Updates Outbound Provisioning Connectors.
      *
      * @param identityProvider
      * @param provisioningIdps
