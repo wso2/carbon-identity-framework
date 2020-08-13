@@ -347,7 +347,8 @@ public class UserAdmin {
         getUserAdminProxy().deleteRole(roleName);
         if (getUserAdminProxy().isRoleAndGroupSeparationEnabled()) {
             String internalSystemRoleName =
-                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.removeDomainFromName(roleName);
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
+                            .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
             getUserAdminProxy().deleteRole(appendInternalDomain(internalSystemRoleName));
         }
     }
@@ -502,7 +503,8 @@ public class UserAdmin {
     private void addInternalSystemRole(String roleName, String[] rawResources) throws UserAdminException {
 
         String internalSystemRoleName =
-                UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.removeDomainFromName(roleName);
+                UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX + UserCoreUtil.extractDomainFromName(roleName)
+                        .toLowerCase() + "_" + UserCoreUtil.removeDomainFromName(roleName);
         if (getUserAdminProxy().isExistingHybridRole(internalSystemRoleName)) {
             getUserAdminProxy().setRoleUIPermission(appendInternalDomain(internalSystemRoleName), rawResources);
         } else {
