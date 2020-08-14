@@ -135,6 +135,11 @@
             <artifactId>jmockit</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -163,7 +168,7 @@
                             org.apache.axis2.transport.http; version="${axis2.osgi.version.range}",
                             org.apache.commons.logging; version="${import.package.version.commons.logging}",
                             org.apache.commons.lang; version="${commons-lang.wso2.osgi.version.range}",
-
+                            org.slf4j; version="${org.slf4j.imp.pkg.version.range}",
                             org.apache.poi.hssf.usermodel,
                             org.apache.poi.poifs.filesystem,
                             org.apache.poi.ss.usermodel,
