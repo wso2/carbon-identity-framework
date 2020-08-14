@@ -92,6 +92,8 @@ public class IdentityApplicationConstants {
     public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
 
+    public static final String IDP_ISSUER_NAME = "idpIssuerName";
+
     /**
      * Config elements.
      */
