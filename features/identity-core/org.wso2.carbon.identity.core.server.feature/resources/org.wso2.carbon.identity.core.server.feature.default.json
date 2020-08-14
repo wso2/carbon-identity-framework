@@ -567,14 +567,14 @@
   "console.client_id": "CONSOLE",
   "console.debug.enable": false,
   "console.applications.admin_app.configs": {
-    "basePath": "/admin",
-    "displayName": "Admin",
-    "path": "/admin/overview"
+    "basePath": "/manage",
+    "displayName": "Manage",
+    "path": "/manage/overview"
   },
   "console.applications.developer_app.configs": {
-    "basePath": "/developer",
-    "displayName": "Developer",
-    "path": "/developer/overview"
+    "basePath": "/develop",
+    "displayName": "Develop",
+    "path": "/develop/overview"
   },
   "console.documentation.base_url": "https://api.github.com",
   "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
@@ -588,7 +588,7 @@
   "console.login_callback_path": "/login",
   "console.logout_callback_path": "/login",
   "console.route_paths": {
-    "home": "/developer/overview",
+    "home": "/develop/overview",
     "login": "/login",
     "logout": "/logout"
   },
