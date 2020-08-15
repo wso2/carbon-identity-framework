@@ -308,6 +308,9 @@
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
 
+  "identity_mgt.user_claim_update.mobile_num.enable_verification": false,
+  "identity_mgt.user_claim_update.mobile_num.sms_otp_validity": "15m",
+
   "identity_mgt_account_suspension.use_identity_claims": true,
 
   "sp_role_management.return_only_mapped_local_roles": false,
