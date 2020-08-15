@@ -252,43 +252,46 @@ public class DefaultServiceURLBuilderTest {
         Map<String, String> parameters = new HashMap<>();
         Map<String, String> unencodedParameters = new HashMap<>();
         Map<String, String> fragmentParams = new HashMap<>();
+        String proxyContext = "proxyContext";
+        String fragment = "fragment";
+        String samlsso = "samlsso";
 
         ArrayList<String> keys = new ArrayList<String>(Arrays.asList("key1", "key2", "key3", "key4"));
         for (String key : keys) {
             parameters.put(key, "v");
-            fragmentParams.put(key, "fragment");
+            fragmentParams.put(key, fragment);
         }
         unencodedParameters.put("key5", " v ");
 
         return new Object[][]{
-                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", false, null, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "/" + proxyContext, "abc", false, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext#key1=fragment&key2=fragment&key3=fragment&key4" +
                                 "=fragment", ""},
-                {"https", "www.wso2.com", 9443, "/proxyContext/", "", false, null, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext/samlsso#fragment", "/samlsso"},
-                {"https", "www.wso2.com", 9443, "proxyContext", "", true, null, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "/" + proxyContext + "/", "", false, null, fragment, fragmentParams,
+                        "https://www.wso2.com:9443/proxyContext/samlsso#fragment", "/" + samlsso},
+                {"https", "www.wso2.com", 9443, proxyContext, "", true, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext/samlsso#key1=fragment&key2=fragment&key3=fragment" +
-                                "&key4=fragment", "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "", "abc", false, null, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/samlsso#fragment", "samlsso"},
-                {"https", "www.wso2.com", 9443, null, "abc", true, parameters, "fragment", fragmentParams,
+                                "&key4=fragment", "/" + samlsso + "/"},
+                {"https", "www.wso2.com", 9443, "", "abc", false, null, fragment, fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#fragment", samlsso},
+                {"https", "www.wso2.com", 9443, null, "abc", true, parameters, fragment, fragmentParams,
                         "https://www.wso2.com:9443/t/abc/samlsso?key1=v&key2=v&key3=v&key4=v#fragment",
                         "/samlsso"},
                 {"https", "www.wso2.com", 9443, null, "abc", false, parameters, "", null,
-                        "https://www.wso2.com:9443/samlsso?key1=v&key2=v&key3=v&key4=v", "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "proxyContext/", "abc", true, null, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/proxyContext/t/abc/samlsso#fragment", "/samlsso"},
-                {"https", "www.wso2.com", 9443, "/proxyContext", "abc", true, null, "", null,
-                        "https://www.wso2.com:9443/proxyContext/t/abc/samlsso", "/samlsso/"},
-                {"https", "www.wso2.com", 9443, "", "", true, null, "fragment", fragmentParams,
-                        "https://www.wso2.com:9443/samlsso#fragment", "samlsso/"},
+                        "https://www.wso2.com:9443/samlsso?key1=v&key2=v&key3=v&key4=v", "/" + samlsso + "/"},
+                {"https", "www.wso2.com", 9443, proxyContext + "/", "abc", true, null, "fragment", fragmentParams,
+                        "https://www.wso2.com:9443/proxyContext/t/abc/samlsso#fragment", "/" + samlsso},
+                {"https", "www.wso2.com", 9443, "/" + proxyContext, "abc", true, null, "", null,
+                        "https://www.wso2.com:9443/proxyContext/t/abc/samlsso", "/" + samlsso + "/"},
+                {"https", "www.wso2.com", 9443, "", "", true, null, fragment, fragmentParams,
+                        "https://www.wso2.com:9443/samlsso#fragment", samlsso + "/"},
                 {"https", "www.wso2.com", 9443, "", "", true, parameters, "", fragmentParams,
                         "https://www.wso2.com:9443?key1=v&key2=v&key3=v&key4=v#key1=fragment&key2=fragment&key3" +
                                 "=fragment&key4=fragment", null},
                 {"https", "www.wso2.com", 9443, "", "", true, unencodedParameters, "", fragmentParams,
                         "https://www.wso2.com:9443?key5=+v+#key1=fragment&key2=fragment&key3" +
                                 "=fragment&key4=fragment", null},
-                {"https", "www.wso2.com", 9443, "/proxyContext", "", false, null, "", fragmentParams,
+                {"https", "www.wso2.com", 9443, "/" + proxyContext, "", false, null, "", fragmentParams,
                         "https://www.wso2.com:9443/proxyContext#key1=fragment&key2=fragment&key3=fragment&key4" +
                                 "=fragment", null}
         };
