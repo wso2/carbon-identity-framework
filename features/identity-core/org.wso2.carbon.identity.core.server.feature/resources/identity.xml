@@ -796,6 +796,7 @@
                 <Forced>
                     <Enable>false</Enable>
                 </Forced>
+                <SkipOnInsufficientAnswers>true</SkipOnInsufficientAnswers>
             </Password>
             <Answer>
                 <Regex>.*</Regex>
