@@ -571,12 +571,12 @@
   "console.applications.admin_app.configs": {
     "basePath": "/manage",
     "displayName": "Manage",
-    "path": "/manage/overview"
+    "path": "/manage/users"
   },
   "console.applications.developer_app.configs": {
     "basePath": "/develop",
     "displayName": "Develop",
-    "path": "/develop/overview"
+    "path": "/develop/applications"
   },
   "console.documentation.base_url": "https://api.github.com",
   "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
@@ -590,7 +590,7 @@
   "console.login_callback_path": "/login",
   "console.logout_callback_path": "/login",
   "console.route_paths": {
-    "home": "/develop/overview",
+    "home": "/develop/applications",
     "login": "/login",
     "logout": "/logout"
   },
