@@ -170,6 +170,10 @@ public interface ClaimMetadataManagementService {
      * @return Masking regex pattern.
      * @throws ClaimMetadataException If an error occurred while retrieving local claims.
      */
-    String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws ClaimMetadataException;
+    default String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        return null;
+    }
 
 }
