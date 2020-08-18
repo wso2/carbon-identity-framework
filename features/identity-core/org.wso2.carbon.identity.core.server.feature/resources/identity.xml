@@ -778,6 +778,9 @@
         <Notification>
             <Password>
                 <Enable>false</Enable>
+                <smsOtp>
+                    <Regex>[a-zA-Z0-9]{6}</Regex>
+                </smsOtp>
             </Password>
             <Username>
                 <Enable>false</Enable>
