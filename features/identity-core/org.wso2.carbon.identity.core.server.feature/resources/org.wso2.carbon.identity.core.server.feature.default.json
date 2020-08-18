@@ -115,6 +115,7 @@
   "oauth.grant_type.jwt_bearer.enable": true,
   "oauth.grant_type.jwt_bearer.grant_handler": "org.wso2.carbon.identity.oauth2.grant.jwt.JWTBearerGrantHandler",
   "oauth.grant_type.jwt_bearer.grant_validator": "org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator",
+  "oauth.grant_type.jwt_bearer.allow_refresh_tokens": true,
   "oauth.grant_type.uma_ticket.enable": true,
   "oauth.grant_type.uma_ticket.grant_handler": "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler",
   "oauth.grant_type.uma_ticket.grant_validator": "org.wso2.carbon.identity.oauth.uma.grant.GrantValidator",

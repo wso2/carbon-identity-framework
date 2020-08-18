@@ -72,6 +72,7 @@ import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -81,7 +82,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.stream.XMLStreamException;
 
 public class IdentityProviderManager implements IdpManager {
@@ -2040,6 +2040,7 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         validateIdPEntityId(identityProvider.getFederatedAuthenticatorConfigs(), tenantId, tenantDomain);
+        validateIdPIssuerName(identityProvider, tenantId, tenantDomain);
 
         handleMetadata(tenantId, identityProvider);
         String resourceId = dao.addIdP(identityProvider, tenantId, tenantDomain);
@@ -2366,6 +2367,7 @@ public class IdentityProviderManager implements IdpManager {
                 newIdentityProvider.getFederatedAuthenticatorConfigs(),
                 tenantId, tenantDomain);
 
+        validateIdPIssuerName(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
         handleMetadata(tenantId, newIdentityProvider);
         dao.updateIdP(newIdentityProvider, currentIdentityProvider, tenantId, tenantDomain);
     }
@@ -2747,5 +2749,135 @@ public class IdentityProviderManager implements IdpManager {
     private boolean isMetadataFileExist(String idpName, String metadata) {
 
         return StringUtils.isNotEmpty(idpName) && StringUtils.isNotEmpty(metadata);
+    }
+
+    @Override
+    public IdentityProvider getIdPByMetadataProperty(String property, String value, String tenantDomain,
+                                                     boolean ignoreFileBasedIdps)
+            throws IdentityProviderManagementException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+
+        if (StringUtils.isEmpty(property) || StringUtils.isEmpty(value)) {
+            String msg = "Invalid argument: IDP metadata property or property value is empty";
+            throw new IdentityProviderManagementException(msg);
+        }
+
+        String idPName = getIDPNameByMetadataProperty(null, property, value, tenantId, tenantDomain,
+                ignoreFileBasedIdps);
+
+        if (idPName == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("IDP Name not found for metadata property name: " + property + " value: " + value +
+                        ". Returning null without continuing.");
+            }
+            return null;
+        }
+
+        return getIdPByName(idPName, tenantDomain, ignoreFileBasedIdps);
+    }
+
+    /**
+     * Method to validate the uniqueness of the IDP Issuer Name.
+     * Ideally used when adding a IDP.
+     *
+     * @param identityProvider Identity Provider being added.
+     * @param tenantId Tenant id.
+     * @param tenantDomain Tenant domain.
+     * @return Returns true if valid.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    private boolean validateIdPIssuerName(IdentityProvider identityProvider, int tenantId, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        IdentityProviderProperty[] identityProviderProperties = identityProvider.getIdpProperties();
+        if (!ArrayUtils.isEmpty(identityProviderProperties)) {
+            for (IdentityProviderProperty prop : identityProviderProperties) {
+                if (prop != null && IdentityApplicationConstants.IDP_ISSUER_NAME.equals(prop.getName())
+                        && StringUtils.isNotBlank(prop.getValue())) {
+
+                    String idpWithIssuer = getIDPNameByMetadataProperty(null,
+                            IdentityApplicationConstants.IDP_ISSUER_NAME, prop.getValue(), tenantId, tenantDomain,
+                            false);
+                    if (StringUtils.isNotEmpty(idpWithIssuer)) {
+                        String msg = "The provided IDP Issuer Name '" + prop.getValue() + "' has already been " +
+                                "registered with the IDP '" + idpWithIssuer + "'.";
+                        throw new IdentityProviderManagementClientException(msg);
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Method to validate the uniqueness of the IDP Issuer Name.
+     * Ideally used when updating a IDP.
+     * If the provided two IDP configs have the same Issuer Name validation is passed.
+     *
+     * @param currentIdP Existing Identity Provider config.
+     * @param newIdP Updated Identity Provider config.
+     * @param tenantId Tenant id.
+     * @param tenantDomain Tenant domain.
+     * @return Returns true if valid.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    private boolean validateIdPIssuerName(IdentityProvider currentIdP, IdentityProvider newIdP, int tenantId,
+                                          String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String newIdPIssuerName = null;
+        IdentityProviderProperty[] identityProviderProperties = newIdP.getIdpProperties();
+        if (!ArrayUtils.isEmpty(identityProviderProperties)) {
+            for (IdentityProviderProperty prop : identityProviderProperties) {
+                if (prop != null && IdentityApplicationConstants.IDP_ISSUER_NAME.equals(prop.getName())
+                        && StringUtils.isNotBlank(prop.getValue())) {
+
+                    newIdPIssuerName = prop.getValue();
+                }
+            }
+        }
+
+        String currentIdPIssuerName = null;
+        identityProviderProperties = currentIdP.getIdpProperties();
+        if (!ArrayUtils.isEmpty(identityProviderProperties)) {
+            for (IdentityProviderProperty prop : identityProviderProperties) {
+                if (prop != null && IdentityApplicationConstants.IDP_ISSUER_NAME.equals(prop.getName())
+                        && StringUtils.isNotBlank(prop.getValue())) {
+
+                    currentIdPIssuerName = prop.getValue();
+                }
+            }
+        }
+
+        if (StringUtils.isNotBlank(newIdPIssuerName) && !StringUtils.equals(newIdPIssuerName, currentIdPIssuerName)) {
+            String idpWithIssuer = getIDPNameByMetadataProperty(null,
+                    IdentityApplicationConstants.IDP_ISSUER_NAME, newIdPIssuerName, tenantId, tenantDomain,
+                    false);
+            if (StringUtils.isNotEmpty(idpWithIssuer)) {
+                String msg = "The provided IDP Issuer Name '" + newIdPIssuerName + "' has already been " +
+                        "registered with the IDP '" + idpWithIssuer + "'.";
+                throw new IdentityProviderManagementClientException(msg);
+            }
+        }
+
+        return true;
+    }
+
+    private String getIDPNameByMetadataProperty(Connection dbConnection, String property, String value, int tenantId,
+                                                String tenantDomain, boolean ignoreFileBasedIdps)
+            throws IdentityProviderManagementException {
+
+        String idPName = dao.getIdPNameByMetadataProperty(null, property, value, tenantId, tenantDomain);
+        if (idPName == null && !ignoreFileBasedIdps) {
+            if (log.isDebugEnabled()) {
+                log.debug("Attempting to retrieve IDP Name from filebased IDPs for IDP metadata " +
+                        "property name: " + property + " value: " + value);
+            }
+            idPName = new FileBasedIdPMgtDAO().getIdPNameByMetadataProperty(property, value);
+        }
+
+        return idPName;
     }
 }
