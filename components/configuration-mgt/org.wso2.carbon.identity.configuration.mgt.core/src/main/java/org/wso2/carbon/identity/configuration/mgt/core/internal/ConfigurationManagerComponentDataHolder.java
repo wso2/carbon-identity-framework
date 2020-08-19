@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.internal;
 
+import org.wso2.carbon.user.core.service.RealmService;
+
 /**
  * A class to keep the data of the configuration manager component.
  */
@@ -25,6 +27,7 @@ public class ConfigurationManagerComponentDataHolder {
     private static boolean useCreatedTime = false;
 
     private boolean configurationManagementEnabled;
+    private RealmService realmService;
 
     public static ConfigurationManagerComponentDataHolder getInstance() {
 
@@ -49,5 +52,15 @@ public class ConfigurationManagerComponentDataHolder {
     public void setConfigurationManagementEnabled(boolean configurationManagementEnabled) {
 
         this.configurationManagementEnabled = configurationManagementEnabled;
+    }
+
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 }
