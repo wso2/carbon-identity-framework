@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.configuration.mgt.endpoint.util;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.ext.search.PrimitiveStatement;
@@ -54,6 +55,9 @@ import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ConflictReq
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.ForbiddenException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.InternalServerErrorException;
 import org.wso2.carbon.identity.configuration.mgt.endpoint.exception.NotFoundException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.net.URI;
@@ -470,10 +474,22 @@ public class ConfigurationEndpointUtils {
      */
     public static URI buildURIForHeader(String endpoint) {
 
-        String tenantQualifiedRelativePath =
-                String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
-        String url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, false, true);
-
+        String url = null;
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            try {
+                url = ServiceURLBuilder.create().addPath(SERVER_API_PATH_COMPONENT + endpoint).build()
+                        .getRelativePublicURL();
+            } catch (URLBuilderException e) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Error occurred while building URI for header.", e);
+                }
+            }
+        }
+        if (StringUtils.isBlank(url)) {
+            String tenantQualifiedRelativePath =
+                    String.format(TENANT_CONTEXT_PATH_COMPONENT, getTenantDomainFromContext()) + SERVER_API_PATH_COMPONENT;
+            url = IdentityUtil.getEndpointURIPath(tenantQualifiedRelativePath + endpoint, false, true);
+        }
         URI loc = URI.create(url);
         if (!loc.isAbsolute()) {
             Message currentMessage = PhaseInterceptorChain.getCurrentMessage();

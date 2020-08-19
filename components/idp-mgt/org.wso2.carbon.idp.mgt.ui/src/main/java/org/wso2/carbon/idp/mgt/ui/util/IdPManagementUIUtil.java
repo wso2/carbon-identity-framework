@@ -964,6 +964,15 @@ public class IdPManagementUIUtil {
             jwksProperty.setDisplayName("Identity Provider's JWKS Endpoint");
             fedIdp.addIdpProperties(jwksProperty);
         }
+
+        // Set idpIssuerName of the identity provider.
+        String idpIssuerName = paramMap.get(IdentityApplicationConstants.IDP_ISSUER_NAME);
+        if (StringUtils.isNotBlank(idpIssuerName)) {
+            IdentityProviderProperty idpIssuerNameProperty = new IdentityProviderProperty();
+            idpIssuerNameProperty.setName(IdentityApplicationConstants.IDP_ISSUER_NAME);
+            idpIssuerNameProperty.setValue(idpIssuerName);
+            fedIdp.addIdpProperties(idpIssuerNameProperty);
+        }
     }
 
     private static String handleCertificateDeletion(String oldCertificateValues, String deletedCertificateValues) {

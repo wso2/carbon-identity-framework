@@ -41,13 +41,13 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.ConnectorException;
+import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
 import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
-import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.idp.mgt.model.ConnectedAppsResult;
 import org.wso2.carbon.idp.mgt.model.FilterQueryBuilder;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
@@ -782,7 +782,7 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Get Identity properties map
+     * Get Identity properties map.
      *
      * @param dbConnection database connection
      * @param idpId        IDP Id
@@ -1639,7 +1639,7 @@ public class IdPManagementDAO {
 
                         List<Property> provisioningProperties = new ArrayList<Property>();
                         while (rs2.next()) {
-                            Property Property = new Property();
+                            Property property = new Property();
                             String name = rs2.getString("PROPERTY_KEY");
                             String value = rs2.getString("PROPERTY_VALUE");
                             String blobValue = getBlobValue(rs2.getBinaryStream("PROPERTY_BLOB_VALUE"));
@@ -1647,23 +1647,23 @@ public class IdPManagementDAO {
                             String propertyType = rs2.getString("PROPERTY_TYPE");
                             String isSecret = rs2.getString("IS_SECRET");
 
-                            Property.setName(name);
+                            property.setName(name);
                             if (propertyType != null && IdentityApplicationConstants.ConfigElements.
                                     PROPERTY_TYPE_BLOB.equals(propertyType.trim())) {
-                                Property.setValue(blobValue);
+                                property.setValue(blobValue);
                             } else {
-                                Property.setValue(value);
+                                property.setValue(value);
                             }
 
-                            Property.setType(propertyType);
+                            property.setType(propertyType);
 
                             if ((IdPManagementConstants.IS_TRUE_VALUE).equals(isSecret)) {
-                                Property.setConfidential(true);
+                                property.setConfidential(true);
                             } else {
-                                Property.setConfidential(false);
+                                property.setConfidential(false);
                             }
 
-                            provisioningProperties.add(Property);
+                            provisioningProperties.add(property);
                         }
                         provisioningConnector.setProvisioningProperties(provisioningProperties
                                 .toArray(new Property[provisioningProperties.size()]));
@@ -2859,6 +2859,25 @@ public class IdPManagementDAO {
     }
 
     /**
+     * Delete all IDPs of a given tenant id.
+     *
+     * @param tenantId Id of the tenant
+     * @throws IdentityProviderManagementException
+     */
+    public void deleteIdPs(int tenantId) throws IdentityProviderManagementException {
+
+        try (Connection conn = IdentityDatabaseUtil.getDBConnection(false)) {
+            PreparedStatement prepStmt = conn.prepareStatement(
+                    IdPManagementConstants.SQLQueries.DELETE_ALL_IDP_BY_TENANT_ID_SQL);
+            prepStmt.setInt(1, tenantId);
+            prepStmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while deleting Identity Providers of tenant "
+                    + tenantId, e);
+        }
+    }
+
+    /**
      * @param resourceId
      * @param tenantId
      * @param tenantDomain
@@ -3619,7 +3638,7 @@ public class IdPManagementDAO {
     }
 
     /**
-     * Delete Provisioning associations of the deleted IDP with any SPs in a given tenant
+     * Delete Provisioning associations of the deleted IDP with any SPs in a given tenant.
      *
      * @param conn
      * @param tenantId
@@ -3936,5 +3955,52 @@ public class IdPManagementDAO {
             }
         }
         return propertiesFromConnectors;
+    }
+
+    /**
+     * Retrieves the first matching IDP for the given metadata property.
+     * Intended to ony be used to retrieve IDP name based on a unique metadata property.
+     *
+     * @param dbConnection Optional. DB connection.
+     * @param property IDP metadata property name.
+     * @param value Value associated with given Property.
+     * @param tenantId Tenant id whose information is requested.
+     * @return Identity Provider name.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    public String getIdPNameByMetadataProperty(Connection dbConnection, String property, String value, int tenantId)
+            throws IdentityProviderManagementException {
+
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        boolean dbConnectionInitialized = true;
+        if (dbConnection == null) {
+            dbConnection = IdentityDatabaseUtil.getDBConnection(false);
+        } else {
+            dbConnectionInitialized = false;
+        }
+        try {
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_NAME_BY_METADATA;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setString(1, property);
+            prepStmt.setString(2, value);
+            prepStmt.setInt(3, tenantId);
+            rs = prepStmt.executeQuery();
+            String idPName = null;
+
+            if (rs.next()) {
+                idPName = rs.getString(1);
+            }
+            return idPName;
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while retrieving Identity Provider " +
+                    "information for IDP metadata property name: " + property + " value: " + value, e);
+        } finally {
+            if (dbConnectionInitialized) {
+                IdentityDatabaseUtil.closeAllConnections(dbConnection, rs, prepStmt);
+            } else {
+                IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+            }
+        }
     }
 }

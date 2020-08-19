@@ -16,11 +16,16 @@
 
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
 
-<suite name="ConfigurationManagementServerTestSuite" object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
+<suite name="ConfigurationManagementServerTestSuite"
+       object-factory="org.powermock.modules.testng.PowerMockObjectFactory">
 
     <test name="ConfigurationManagementServerTests" preserve-order="true" parallel="false">
         <classes>
-            <class name="org.wso2.carbon.identity.cors.mgt.core.CORSManagementServiceTest"/>
+            <class name="org.wso2.carbon.identity.cors.mgt.core.test.CORSManagementServiceTests"/>
+            <class name="org.wso2.carbon.identity.cors.mgt.core.test.HeaderUtilTests"/>
+            <class name="org.wso2.carbon.identity.cors.mgt.core.test.OriginTests"/>
+            <class name="org.wso2.carbon.identity.cors.mgt.core.test.SerializationUtilTests"/>
+            <class name="org.wso2.carbon.identity.cors.mgt.core.test.ValidatedOriginTests"/>
         </classes>
     </test>
 </suite>

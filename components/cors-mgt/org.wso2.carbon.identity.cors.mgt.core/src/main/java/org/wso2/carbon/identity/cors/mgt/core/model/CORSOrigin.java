@@ -19,66 +19,24 @@
 package org.wso2.carbon.identity.cors.mgt.core.model;
 
 /**
- * CORSOrigin model class.
+ * A class for a CORS origin.
  */
 public class CORSOrigin {
 
     /**
-     * A {@code String} to hold the ID.
+     * ID of the origin.
      */
     private String id;
 
     /**
-     * A {@code String} to hold the URL.
+     * The origin of the CORSOrigin instance.
      */
-    private String url;
-
-    /**
-     * Default constructor.
-     */
-    public CORSOrigin() {
-
-    }
-
-    /**
-     * Constructor with the {@code id} and {@code url} parameter.
-     *
-     * @param id  The value to be set as the {@code id}.
-     * @param url The value to be set as the {@code url}.
-     */
-    public CORSOrigin(String id, String url) {
-
-        this.id = id;
-        this.url = url;
-    }
-
-    /**
-     * Overrides {@code Object.hashCode}.
-     *
-     * @return The object hash code.
-     */
-    @Override
-    public int hashCode() {
-
-        return url.hashCode();
-    }
-
-    /**
-     * Overrides {@code Object.equals()}.
-     *
-     * @param object The object to compare to.
-     * @return {@code true} if the objects are both origins with the same value, else {@code false}.
-     */
-    @Override
-    public boolean equals(Object object) {
-
-        return object instanceof CORSOrigin && this.toString().equals(object.toString());
-    }
+    private String origin;
 
     /**
      * Get the {@code id}.
      *
-     * @return The {@code id}.
+     * @return Returns the {@code id}.
      */
     public String getId() {
 
@@ -87,8 +45,6 @@ public class CORSOrigin {
 
     /**
      * Set the {@code id}.
-     *
-     * @param id The value to be set as the {@code id}.
      */
     public void setId(String id) {
 
@@ -96,22 +52,22 @@ public class CORSOrigin {
     }
 
     /**
-     * Get the {@code url}.
+     * Get the {@code origin}.
      *
-     * @return The {@code url}.
+     * @return Returns the {@code origin}.
      */
-    public String getUrl() {
+    public String getOrigin() {
 
-        return url;
+        return origin;
     }
 
     /**
-     * Set the {@code url}.
+     * Set the {@code origin}.
      *
-     * @param url The value to be set as the {@code url}.
+     * @param origin The value to be set as the {@code origin}.
      */
-    public void setUrl(String url) {
+    public void setOrigin(String origin) {
 
-        this.url = url;
+        this.origin = origin;
     }
 }

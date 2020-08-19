@@ -156,6 +156,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String TENANT_DOMAIN = "tenantDomain";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static int maxInactiveInterval;
@@ -246,7 +247,7 @@ public class FrameworkUtils {
                 modifiableParameters.put(FrameworkConstants.RequestParams.ISSUER,
                                          new String[]{authenticationRequest.getRelyingParty()});
             }
-            if (authenticationRequest.getTenantDomain() != null) {
+            if (authenticationRequest.getTenantDomain() != null && !IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                 modifiableParameters.put(FrameworkConstants.RequestParams.TENANT_DOMAIN,
                                          new String[]{authenticationRequest.getTenantDomain()});
             }
@@ -566,11 +567,13 @@ public class FrameworkUtils {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
             }
 
-            if (StringUtils.isNotBlank(tenantDomain)) {
+            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain)) {
                 redirectURL = appendUri(redirectURL, TENANT_DOMAIN, tenantDomain);
             }
         } catch (UnsupportedEncodingException e) {
-            log.debug("Error occurred while encoding parameters: " + tenantDomain + " and/or " + spName, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while encoding parameters: " + tenantDomain + " and/or " + spName, e);
+            }
             return redirectURL;
         }
 
@@ -1315,6 +1318,11 @@ public class FrameworkUtils {
                             continue;
                         }
 
+                        // Skip tenant domain if, 'isTenantQualifiedUrlsEnabled' is enabled in identity.xml
+                        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && TENANT_DOMAIN.equals(paramName)) {
+                            continue;
+                        }
+
                         if (!queryParams.contains(paramName)) {
                             if (queryStrBuilder.length() > 0) {
                                 queryStrBuilder.append('&');
@@ -1359,6 +1367,11 @@ public class FrameworkUtils {
                     //skip issuer and type and sessionDataKey parameters
                     if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
                             (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
+                        continue;
+                    }
+
+                    // Skip tenant domain if, 'isTenantQualifiedUrlsEnabled' is enabled in identity.xml
+                    if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && TENANT_DOMAIN.equals(paramName)) {
                         continue;
                     }
 

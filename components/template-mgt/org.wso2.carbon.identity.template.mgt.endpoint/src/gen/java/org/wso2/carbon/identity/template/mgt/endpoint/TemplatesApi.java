@@ -16,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
+@Deprecated
 @Path("/templates")
 @Consumes({"application/json"})
 @Produces({"application/json"})

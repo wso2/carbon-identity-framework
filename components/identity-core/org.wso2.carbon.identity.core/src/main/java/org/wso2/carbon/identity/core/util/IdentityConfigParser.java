@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
@@ -54,6 +55,7 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
+    private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
@@ -104,6 +106,15 @@ public class IdentityConfigParser {
         return identityCookieConfigurationHolder;
     }
 
+    /**
+     * Get the legacy feature config Map.
+     *
+     * @return Legacy feature config Map
+     */
+    public static Map<String, LegacyFeatureConfig> getLegacyFeatureConfigurationHolder() {
+
+        return legacyFeatureConfigurationHolder;
+    }
 
     /**
      * @return
@@ -170,6 +181,7 @@ public class IdentityConfigParser {
             buildEventListenerData();
             buildCacheConfig();
             buildCookieConfig();
+            buildLegacyFeatureConfig();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -371,6 +383,60 @@ public class IdentityConfigParser {
                 }
             }
 
+        }
+    }
+
+    public void buildLegacyFeatureConfig() {
+
+        LegacyFeatureConfig legacyFeatureConfig;
+        OMElement legacyFeaturesConfigElement =
+                this.getConfigElement(IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_CONFIG);
+        if (legacyFeaturesConfigElement != null) {
+
+            int legacyFeaturesConfigElementIndex = 0;
+            Iterator<OMElement> legacyFeatures = legacyFeaturesConfigElement.
+                    getChildrenWithName(getQNameWithIdentityNS(IdentityConstants.
+                            LegacyFeatureConfigElements.LEGACY_FEATURE));
+            if (legacyFeatures != null) {
+                while (legacyFeatures.hasNext()) {
+                    legacyFeaturesConfigElementIndex += 1;
+                    OMElement legacyFeature = legacyFeatures.next();
+
+                    OMElement legacyFeatureIdElement = legacyFeature.getFirstChildWithName(getQNameWithIdentityNS(
+                            IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_ID));
+                    OMElement legacyFeatureVersionElement = legacyFeature.getFirstChildWithName(getQNameWithIdentityNS(
+                            IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_VERSION));
+                    OMElement legacyFeatureEnableElement = legacyFeature.getFirstChildWithName(getQNameWithIdentityNS(
+                            IdentityConstants.LegacyFeatureConfigElements.LEGACY_FEATURE_ENABLE));
+
+                    String legacyFeatureId;
+                    String legacyFeatureVersion;
+                    boolean isLegacyFeatureEnable = false;
+                    if (legacyFeatureIdElement != null && legacyFeatureVersionElement != null
+                            && legacyFeatureEnableElement != null) {
+                        legacyFeatureId = legacyFeatureIdElement.getText();
+                        if (StringUtils.isNotBlank(legacyFeatureId)) {
+                            legacyFeatureId = legacyFeatureId.trim();
+                        }
+                        legacyFeatureVersion = legacyFeatureVersionElement.getText();
+                        if (StringUtils.isNotBlank(legacyFeatureVersion)) {
+                            legacyFeatureVersion = legacyFeatureVersion.trim();
+                        }
+                        String legacyFeatureEnable = legacyFeatureEnableElement.getText();
+                        if (StringUtils.isNotBlank(legacyFeatureEnable)) {
+                            isLegacyFeatureEnable = Boolean.parseBoolean(legacyFeatureEnable.trim());
+                        }
+
+                        String legacyFeatureConfigKey = legacyFeatureId + legacyFeatureVersion;
+                        legacyFeatureConfig = new LegacyFeatureConfig(legacyFeatureId, legacyFeatureVersion,
+                                isLegacyFeatureEnable);
+                        legacyFeatureConfigurationHolder.put(legacyFeatureConfigKey, legacyFeatureConfig);
+                    } else {
+                        log.warn("Configured <LegacyFeature> element at index: " + legacyFeaturesConfigElementIndex +
+                                " contains invalid entry.");
+                    }
+                }
+            }
         }
     }
 

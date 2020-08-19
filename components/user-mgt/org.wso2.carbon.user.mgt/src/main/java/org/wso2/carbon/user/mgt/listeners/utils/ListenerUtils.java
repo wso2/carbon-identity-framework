@@ -68,6 +68,7 @@ public class ListenerUtils {
     public static final String NEW_ROLES = "New Roles";
     public static final String PROFILE_FIELD = "Profile";
     public static final String FILTER_FIELD = "Filter";
+    public static final String NEW_ROLE_NAME = "NewRoleName";
 
     /**
      * Audit log fields.

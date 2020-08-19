@@ -131,12 +131,13 @@ public interface IdpManager {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     default List<IdentityProvider> getIdPsSearch(String tenantDomain, String filter)
-			throws IdentityProviderManagementException {
-	return null;     
+            throws IdentityProviderManagementException {
+
+	    return null;
     }
-    
+
     /**
-     * Retrieves registered Enabled Identity providers for a given tenant
+     * Retrieves registered Enabled Identity providers for a given tenant.
      *
      * @param tenantDomain Tenant domain whose IdP names are requested
      * @return Set of <code>IdentityProvider</code>. IdP names, primary IdP and home realm
@@ -383,6 +384,16 @@ public interface IdpManager {
     void deleteIdP(String idPName, String tenantDomain) throws IdentityProviderManagementException;
 
     /**
+     * Delete all Identity Providers from a given tenant.
+     *
+     * @param tenantDomain Domain of the tenant
+     * @throws IdentityProviderManagementException
+     */
+    default void deleteIdPs(String tenantDomain) throws IdentityProviderManagementException {
+
+    };
+
+    /**
      * Deletes an Identity Provider from a given tenant using its resource ID.
      *
      * @param resourceId    Resource ID of the IdP to be deleted
@@ -449,4 +460,22 @@ public interface IdpManager {
         return null;
     }
 
+    /**
+     * Retrieves the first matching IDP for the given metadata property.
+     * Intended to ony be used to retrieve IDP based on a unique metadata property.
+     *
+     * @param property     IDP metadata property name.
+     * @param value        Value associated with given Property.
+     * @param tenantDomain Tenant domain whose information is requested.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @return <code>IdentityProvider</code> Identity Provider information.
+     * @throws IdentityProviderManagementException Error when getting Identity Provider
+     *                                                information by IdP name.
+     */
+    default IdentityProvider getIdPByMetadataProperty(String property, String value, String tenantDomain,
+                                                      boolean ignoreFileBasedIdps)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
 }

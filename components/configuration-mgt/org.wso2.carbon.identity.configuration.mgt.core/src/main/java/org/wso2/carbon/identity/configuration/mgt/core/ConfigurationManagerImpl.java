@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants;
 import org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages;
 import org.wso2.carbon.identity.configuration.mgt.core.dao.ConfigurationDAO;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementClientException;
@@ -34,9 +35,14 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceTypeAdd;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
+import org.wso2.carbon.identity.configuration.mgt.core.search.ComplexCondition;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.PrimitiveCondition;
+import org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
@@ -77,6 +83,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.constant.Configura
         .ERROR_CODE_RESOURCE_TYPE_NAME_REQUIRED;
 import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages
         .ERROR_CODE_SEARCH_REQUEST_INVALID;
+import static org.wso2.carbon.identity.configuration.mgt.core.search.constant.ConditionType.PrimitiveOperator.EQUALS;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.generateUniqueID;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleClientException;
@@ -108,6 +115,40 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
             throw handleClientException(ErrorMessages.ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, null);
         }
         return resources;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Resources getTenantResources(String tenantDomain, Condition searchCondition) throws
+            ConfigurationManagementException {
+
+        return getTenantResources(getTenantSpecificSearchCondition(tenantDomain, searchCondition));
+    }
+
+    /**
+     * Append tenant domain search to then search condition.
+     *
+     * @param tenantDomain    Tenant domain.
+     * @param searchCondition Search condition.
+     * @return Condition.
+     */
+    private Condition getTenantSpecificSearchCondition(String tenantDomain, Condition searchCondition) {
+
+        if (searchCondition != null) {
+            Condition tenantCondition = new PrimitiveCondition(ConfigurationConstants
+                    .RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN, EQUALS, tenantDomain);
+            List<Condition> list = new ArrayList<>();
+            list.add(searchCondition);
+            list.add(tenantCondition);
+            return new ComplexCondition(ConditionType.ComplexOperator.AND, list);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Search condition is null");
+            }
+            return new PrimitiveCondition(ConfigurationConstants
+                    .RESOURCE_SEARCH_BEAN_FIELD_TENANT_DOMAIN, EQUALS, tenantDomain);
+        }
     }
 
     /**

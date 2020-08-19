@@ -25,6 +25,7 @@ security:
 paths:
   /templates:
     get:
+      deprecated: true
       summary: "Get an array of templates."
       x-wso2-request: |
         curl -k -X GET "https://localhost:9443/api/identity/template/mgt/v1.0.0/templates" -u <username:password> -H "accept: application/json" -H "Content-Type: application/json"
@@ -115,6 +116,7 @@ paths:
             $ref: "#/definitions/Error"
   /templates/{templateName}:
     get:
+      deprecated: true
       summary: "Find template by Name.\n"
       description: "This API is used to retrieve a specific template using the template name. \n"
       x-wso2-request: |

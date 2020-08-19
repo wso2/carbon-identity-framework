@@ -106,7 +106,8 @@
 
     function deleteUserStores() {
         var selected = false;
-        if (document.userStoreForm.userStores[0] != null) { // there is more than 1 user store
+        if (Array.isArray(document.userStoreForm.userStores)
+            &&  document.userStoreForm.userStore.length) { // there is more than 1 user store
             for (var j = 0; j < document.userStoreForm.userStores.length; j++) {
                 selected = document.userStoreForm.userStores[j].checked;
                 if (selected) break;
@@ -214,7 +215,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <% if (userStoreDTOs != null && userStoreDTOs[0] != null) {
+                <% if (userStoreDTOs != null && userStoreDTOs.length > 0) {
                     for (UserStoreDTO userstoreDTO : userStoreDTOs) {
                         String className = userstoreDTO.getClassName();
                         String description = userstoreDTO.getDescription();

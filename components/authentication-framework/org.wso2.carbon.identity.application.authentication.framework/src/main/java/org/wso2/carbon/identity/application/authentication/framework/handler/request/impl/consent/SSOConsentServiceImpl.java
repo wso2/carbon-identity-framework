@@ -54,7 +54,6 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,6 +65,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
@@ -479,7 +479,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             spDescription = spName;
         }
         serviceInput.setService(spName);
-        serviceInput.setSpDisplayName(spDescription);
+        serviceInput.setSpDisplayName(spName);
         serviceInput.setSpDescription(spDescription);
         return serviceInput;
     }

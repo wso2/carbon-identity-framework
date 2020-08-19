@@ -43,6 +43,9 @@ public class TemplateMgtConstants {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String DEFAULT_RESPONSE_CONTENT_TYPE = APPLICATION_JSON;
     public static final String STATUS_BAD_REQUEST_MESSAGE_DEFAULT = "Bad Request";
+    public static final String FORBIDDEN = "Forbidden";
+    public static final String FORBIDDEN_ERROR_CODE = "403";
+    public static final String FORBIDDEN_ERROR_MESSAGE= "Template-mgt API is restricted";
     public static final String STATUS_INTERNAL_SERVER_ERROR_MESSAGE_DEFAULT = "Internal server error";
 
     public static final String TEMPLATE_RESOURCE_PATH = "/";
@@ -70,7 +73,9 @@ public class TemplateMgtConstants {
     public static final String TYPES = "types";
     public static final String CATEGORY = "category";
     public static final String DISPLAY_ORDER = "displayOrder";
+    public static final String TEMPLATE_GROUP = "templateGroup";
     public static final String PROPERTY_DISPLAY_ORDER = "display-order";
+    public static final String PROPERTY_TEMPLATE_GROUP = "template-group";
     public static final String APPLICATION = "application";
 
     public enum TemplateType {

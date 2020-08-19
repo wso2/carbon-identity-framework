@@ -18,46 +18,35 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
-import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
-import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
-import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
-import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ApplicationBasicInfo;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
 import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
-import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceServerException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
-import org.wso2.carbon.identity.cors.mgt.core.internal.function.CORSOriginToAttribute;
-import org.wso2.carbon.identity.cors.mgt.core.internal.function.CORSOriginToResourceAdd;
-import org.wso2.carbon.identity.cors.mgt.core.internal.function.ResourceToCORSOrigin;
+import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
+import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
+import org.wso2.carbon.identity.cors.mgt.core.model.ValidatedOrigin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_ADD;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_DELETE;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_RETRIEVE;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_SET;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_EMPTY_LIST;
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_INVALID_ORIGIN;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_NOT_PRESENT;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_PRESENT;
-import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORS_ORIGIN_RESOURCE_NAME;
-import static org.wso2.carbon.identity.cors.mgt.core.internal.Constants.CORS_ORIGIN_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_VALIDATE_APP_ID;
+import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.handleClientException;
 
 /**
  * Implementation of the CORSService.
@@ -66,140 +55,188 @@ public class CORSManagementServiceImpl implements CORSManagementService {
 
     private static final Log log = LogFactory.getLog(CORSManagementServiceImpl.class);
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public List<CORSOrigin> getCORSOrigins(String tenantDomain) throws CORSManagementServiceException {
+    public List<CORSOrigin> getTenantCORSOrigins(String tenantDomain) throws CORSManagementServiceException {
 
-        validateTenantDomain(tenantDomain);
-        try {
-            FrameworkUtils.startTenantFlow(tenantDomain);
+        int tenantId = getTenantId(tenantDomain);
 
-            Resource resource = getConfigurationManager().getResource(CORS_ORIGIN_RESOURCE_TYPE_NAME,
-                    CORS_ORIGIN_RESOURCE_NAME);
-            List<CORSOrigin> corsOrigins;
-            if (resource == null) {
-                corsOrigins = new ArrayList<>();
-            } else {
-                corsOrigins = new ResourceToCORSOrigin().apply(resource);
-            }
-
-            return Collections.unmodifiableList(corsOrigins);
-        } catch (ConfigurationManagementException | IOException e) {
-            throw handleServerException(ERROR_CODE_CORS_RETRIEVE, e, tenantDomain);
-        } finally {
-            FrameworkUtils.endTenantFlow();
-        }
-    }
-
-    @Override
-    public void setCORSOrigins(String tenantDomain, List<CORSOrigin> corsOrigins)
-            throws CORSManagementServiceException {
-
-        validateTenantDomain(tenantDomain);
-        validateOrigins(corsOrigins);
-        try {
-            FrameworkUtils.startTenantFlow(tenantDomain);
-
-            ResourceAdd resourceAdd = new CORSOriginToResourceAdd().apply(corsOrigins);
-            getConfigurationManager().replaceResource(CORS_ORIGIN_RESOURCE_TYPE_NAME, resourceAdd);
-        } catch (ConfigurationManagementException | JsonProcessingException e) {
-            throw handleServerException(ERROR_CODE_CORS_SET, e, tenantDomain);
-        } finally {
-            FrameworkUtils.endTenantFlow();
-        }
-    }
-
-    @Override
-    public void addCORSOrigins(String tenantDomain, List<CORSOrigin> corsOrigins)
-            throws CORSManagementServiceException {
-
-        validateTenantDomain(tenantDomain);
-        validateOrigins(corsOrigins);
-        try {
-            FrameworkUtils.startTenantFlow(tenantDomain);
-
-            // Check if origins are present
-            for (CORSOrigin corsOrigin : corsOrigins) {
-                if (isDefinedCORSOriginResource(corsOrigin)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format(String.format(ERROR_CODE_ORIGIN_PRESENT.getMessage(),
-                                tenantDomain, corsOrigin)));
-                    }
-                    throw handleClientException(ERROR_CODE_ORIGIN_PRESENT, tenantDomain, corsOrigin.getUrl());
-                }
-            }
-
-            for (CORSOrigin corsOrigin : corsOrigins) {
-                Attribute attribute = new CORSOriginToAttribute().apply(corsOrigin);
-                getConfigurationManager().addAttribute(CORS_ORIGIN_RESOURCE_TYPE_NAME, CORS_ORIGIN_RESOURCE_NAME,
-                        attribute);
-            }
-        } catch (ConfigurationManagementException | IOException e) {
-            throw handleServerException(ERROR_CODE_CORS_ADD, e, tenantDomain);
-        } finally {
-            FrameworkUtils.endTenantFlow();
-        }
-    }
-
-    @Override
-    public void deleteCORSOrigins(String tenantDomain, List<CORSOrigin> corsOrigins)
-            throws CORSManagementServiceException {
-
-        validateTenantDomain(tenantDomain);
-        validateOrigins(corsOrigins);
-        try {
-            FrameworkUtils.startTenantFlow(tenantDomain);
-
-            // Check if origins are not present
-            for (CORSOrigin corsOrigin : corsOrigins) {
-                if (!isDefinedCORSOriginResource(corsOrigin)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug(String.format(String.format(ERROR_CODE_ORIGIN_NOT_PRESENT.getMessage(),
-                                tenantDomain, corsOrigin)));
-                    }
-                    throw handleClientException(ERROR_CODE_ORIGIN_NOT_PRESENT, tenantDomain, corsOrigin.getUrl());
-                }
-            }
-
-            for (CORSOrigin corsOrigin : corsOrigins) {
-                Attribute attribute = new CORSOriginToAttribute().apply(corsOrigin);
-                getConfigurationManager().deleteAttribute(CORS_ORIGIN_RESOURCE_TYPE_NAME, CORS_ORIGIN_RESOURCE_NAME,
-                        attribute.getKey());
-            }
-        } catch (ConfigurationManagementException | IOException e) {
-            throw handleServerException(ERROR_CODE_CORS_DELETE, e, tenantDomain);
-        } finally {
-            FrameworkUtils.endTenantFlow();
-        }
+        return Collections.unmodifiableList(getCORSOriginDAO().getCORSOriginsByTenantId(tenantId));
     }
 
     /**
-     * Retrieve the ConfigurationManager instance from the CORSServiceHolder.
-     *
-     * @return ConfigurationManager The ConfigurationManager instance.
+     * {@inheritDoc}
      */
-    private ConfigurationManager getConfigurationManager() {
+    @Override
+    public List<CORSOrigin> getApplicationCORSOrigins(String applicationId, String tenantDomain)
+            throws CORSManagementServiceException {
 
-        return CORSManagementServiceHolder.getInstance().getConfigurationManager();
+        int tenantId = getTenantId(tenantDomain);
+        ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
+
+        return Collections.unmodifiableList(getCORSOriginDAO().getCORSOriginsByApplicationId(
+                applicationBasicInfo.getApplicationId(), tenantId));
     }
 
     /**
-     * Returns true if the tenant already has a particular CORS Origin.
-     *
-     * @param origin The Origin to be checked against the existing Origins.
-     * @return {@code true} if the tenant already have the particular CORS Origin, {@code false} otherwise.
-     * @throws ConfigurationManagementException
+     * {@inheritDoc}
      */
-    private boolean isDefinedCORSOriginResource(CORSOrigin origin) throws ConfigurationManagementException,
-            IOException {
+    @Override
+    public void setCORSOrigins(String applicationId, List<String> origins, String tenantDomain)
+            throws CORSManagementServiceException {
 
-        Resource resource = getConfigurationManager().getResource(CORS_ORIGIN_RESOURCE_TYPE_NAME,
-                CORS_ORIGIN_RESOURCE_NAME);
-        if (resource != null) {
-            List<CORSOrigin> currentCORSOrigins = new ResourceToCORSOrigin().apply(resource);
+        int tenantId = getTenantId(tenantDomain);
+        ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
 
-            return currentCORSOrigins.contains(origin);
+        // Convert Origins to ValidatedOrigins.
+        List<ValidatedOrigin> validatedOrigins = originsToValidatedOrigins(origins);
+
+        // Set the CORS origins.
+        getCORSOriginDAO().setCORSOrigins(applicationBasicInfo.getApplicationId(),
+                validatedOrigins.stream().map(validatedOrigin -> {
+                    // Create the CORS origin.
+                    CORSOrigin corsOrigin = new CORSOrigin();
+                    corsOrigin.setOrigin(validatedOrigin.getValue());
+                    return corsOrigin;
+                }).collect(Collectors.toList()), tenantId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void addCORSOrigins(String applicationId, List<String> origins, String tenantDomain)
+            throws CORSManagementServiceException {
+
+        int tenantId = getTenantId(tenantDomain);
+        ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
+
+        // Convert Origins to ValidatedOrigins.
+        List<ValidatedOrigin> validatedOrigins = originsToValidatedOrigins(origins);
+
+        // Check if the CORS origins are already present.
+        List<CORSOrigin> existingCORSOrigins = getCORSOriginDAO().getCORSOriginsByApplicationId(
+                applicationBasicInfo.getApplicationId(), tenantId);
+        for (ValidatedOrigin validatedOrigin : validatedOrigins) {
+            if (existingCORSOrigins.stream().map(CORSOrigin::getId).collect(Collectors.toList())
+                    .contains(validatedOrigin.getValue())) {
+                // CORS origin is already registered for the application.
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format(ERROR_CODE_ORIGIN_PRESENT.getMessage(), tenantDomain, validatedOrigin));
+                }
+                throw handleClientException(ERROR_CODE_ORIGIN_PRESENT, tenantDomain, validatedOrigin.getValue());
+            }
+        }
+
+        // Add the CORS origins.
+        getCORSOriginDAO().addCORSOrigins(applicationBasicInfo.getApplicationId(),
+                validatedOrigins.stream().map(validatedOrigin -> {
+                    // Create the CORS origin.
+                    CORSOrigin corsOrigin = new CORSOrigin();
+                    corsOrigin.setOrigin(validatedOrigin.getValue());
+                    return corsOrigin;
+                }).collect(Collectors.toList()), tenantId
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteCORSOrigins(String applicationId, List<String> originIds, String tenantDomain)
+            throws CORSManagementServiceException {
+
+        int tenantId = getTenantId(tenantDomain);
+        ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
+
+        // Check if the CORS origins are not in the system.
+        List<CORSOrigin> existingCORSOrigins = getCORSOriginDAO().getCORSOriginsByApplicationId(
+                applicationBasicInfo.getApplicationId(), tenantId);
+        for (String originId : originIds) {
+            if (!existingCORSOrigins.stream().map(CORSOrigin::getId).collect(Collectors.toList()).contains(originId)) {
+                // CORS origin is not registered for the application.
+                if (log.isDebugEnabled()) {
+                    log.debug(String.format(ERROR_CODE_ORIGIN_NOT_PRESENT.getMessage(), tenantDomain, originId));
+                }
+                throw handleClientException(ERROR_CODE_ORIGIN_NOT_PRESENT, tenantDomain, originId);
+            }
+        }
+
+        // Delete the CORS origin application associations.
+        getCORSOriginDAO().deleteCORSOrigins(applicationBasicInfo.getApplicationId(), originIds, tenantId);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<CORSApplication> getCORSApplicationsByCORSOriginId(String corsOriginId, String tenantDomain)
+            throws CORSManagementServiceException {
+
+        // DAO layer throws an exception if CORSApplications cannot be retrieved for the corsOriginId.
+        // i.e The corsOriginId is invalid.
+        return Collections.unmodifiableList(getCORSOriginDAO().getCORSOriginApplications(corsOriginId));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public CORSConfiguration getCORSConfiguration(String tenantDomain) throws CORSManagementServiceException {
+
+        validateTenantDomain(tenantDomain);
+
+        return getCORSConfigurationDAO().getCORSConfigurationByTenantDomain(tenantDomain);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setCORSConfiguration(CORSConfiguration corsConfiguration, String tenantDomain)
+            throws CORSManagementServiceException {
+
+        validateTenantDomain(tenantDomain);
+
+        getCORSConfigurationDAO().setCORSConfigurationByTenantDomain(corsConfiguration, tenantDomain);
+    }
+
+    /**
+     * Returns a CORSOriginDAO instance.
+     *
+     * @return A CORSOriginDAO instance.
+     */
+    private CORSOriginDAO getCORSOriginDAO() {
+
+        return CORSManagementServiceHolder.getInstance().getCorsOriginDAO();
+    }
+
+    /**
+     * Returns a CORSConfigurationDAO instance.
+     *
+     * @return A CORSConfigurationDAO instance.
+     */
+    private CORSConfigurationDAO getCORSConfigurationDAO() {
+
+        return CORSManagementServiceHolder.getInstance().getCorsConfigurationDAO();
+    }
+
+    /**
+     * Returns the tenant ID from the tenant domain.
+     *
+     * @param tenantDomain The tenant domain.
+     * @return The tenant ID.
+     * @throws CORSManagementServiceClientException
+     */
+    private int getTenantId(String tenantDomain) throws CORSManagementServiceClientException {
+
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_TENANT_DOMAIN, tenantDomain);
         } else {
-            return false;
+            return tenantId;
         }
     }
 
@@ -211,76 +248,59 @@ public class CORSManagementServiceImpl implements CORSManagementService {
      */
     private void validateTenantDomain(String tenantDomain) throws CORSManagementServiceClientException {
 
-        if (IdentityTenantUtil.getTenantId(tenantDomain) == MultitenantConstants.INVALID_TENANT_ID) {
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
             throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_TENANT_DOMAIN, tenantDomain);
         }
     }
 
     /**
-     * Validate the CORSOrigin list.
+     * Get an {code ApplicationBasicInfo} instance belonging to the application with the resource ID {@code appId}.
      *
-     * @param corsOrigins List of CORSOrigin instances.
+     * @param applicationId The application resource ID.
+     * @param tenantDomain  The tenant domain.
+     * @return An {@code ApplicationBasicInfo} instance.
      * @throws CORSManagementServiceClientException
      */
-    private void validateOrigins(List<CORSOrigin> corsOrigins) throws CORSManagementServiceClientException {
+    private ApplicationBasicInfo getApplicationBasicInfo(String applicationId, String tenantDomain)
+            throws CORSManagementServiceClientException {
 
-        if (corsOrigins == null) {
-            if (log.isDebugEnabled()) {
-                log.debug(ERROR_CODE_EMPTY_LIST.getMessage());
-            }
-            throw handleClientException(ERROR_CODE_EMPTY_LIST);
+        // If the appId is blank then throw an exception.
+        if (StringUtils.isBlank(applicationId)) {
+            throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_APP_ID, applicationId);
         }
 
-        for (CORSOrigin corsOrigin : corsOrigins) {
-            if (isInvalidOrigin(corsOrigin)) {
-                if (log.isDebugEnabled()) {
-                    log.debug(String.format(ERROR_CODE_INVALID_ORIGIN.getMessage(), corsOrigin.getUrl()));
-                }
-                throw handleClientException(ERROR_CODE_INVALID_ORIGIN, corsOrigin.getUrl());
-            }
-        }
-    }
-
-    /**
-     * Check if the format of the Origin is valid.
-     *
-     * @param origin Origin to be checked for validity.
-     * @return {@code true} if the origin is valid, {@code false} otherwise.
-     */
-    private boolean isInvalidOrigin(CORSOrigin origin) {
-
+        // Check whether the appId belongs to the tenant with the tenantDomain.
         try {
-            new URL(origin.getUrl()).toURI();
-        } catch (MalformedURLException | URISyntaxException e) {
-            return true;
+            ApplicationBasicInfo applicationBasicInfo = ApplicationManagementService.getInstance()
+                    .getApplicationBasicInfoByResourceId(applicationId, tenantDomain);
+            if (applicationBasicInfo == null) {
+                throw handleClientException(ErrorMessages.ERROR_CODE_INVALID_APP_ID, applicationId);
+            } else {
+                return applicationBasicInfo;
+            }
+        } catch (IdentityApplicationManagementException e) {
+            // Something else happened.
+            log.error(String.format(ERROR_CODE_VALIDATE_APP_ID.getDescription(), applicationId), e);
         }
-        return false;
+        return null;
     }
 
     /**
-     * Handle server exceptions.
+     * Convert origin strings to ValidatedOrigins.
      *
-     * @param error The ErrorMessage.
-     * @param e     Original error.
-     * @param data  Additional data that should be added to the error message. This is a String var-arg.
-     * @return CORSManagementServiceServerException instance.
+     * @param origins A list of origin strings.
+     * @return A list of {@code ValidatedOrigin}s containing the initial origins.
+     * @throws CORSManagementServiceClientException
      */
-    private CORSManagementServiceServerException handleServerException(ErrorMessages error, Throwable e,
-                                                                       String... data) {
+    private List<ValidatedOrigin> originsToValidatedOrigins(List<String> origins)
+            throws CORSManagementServiceClientException {
 
-        return new CORSManagementServiceServerException(error.getCode(), String.format(error.getDescription(),
-                data), e);
-    }
+        List<ValidatedOrigin> validatedOrigins = new ArrayList<>();
+        for (String origin : origins) {
+            validatedOrigins.add(new ValidatedOrigin(origin));
+        }
 
-    /**
-     * Handle client exceptions.
-     *
-     * @param error The ErrorMessage.
-     * @param data  Additional data that should be added to the error message. This is a String var-arg.
-     * @return CORSManagementServiceClientException instance.
-     */
-    private CORSManagementServiceClientException handleClientException(ErrorMessages error, String... data) {
-
-        return new CORSManagementServiceClientException(error.getCode(), String.format(error.getDescription(), data));
+        return validatedOrigins;
     }
 }

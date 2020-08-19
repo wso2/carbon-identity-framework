@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.template.mgt.util.TemplateMgtUtils;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class TemplateEndpointUtils {
 
     public static TemplateManager getTemplateManager() {
@@ -161,4 +162,15 @@ public class TemplateEndpointUtils {
         return new ForbiddenException(errorDTO);
     }
 
+    /**
+     * This method is used to create a Forbidden Exception with the errorCode and message.
+     *
+     * @return ForbiddenException with the errorCode and description.
+     */
+    public static ForbiddenException buildForbiddenException() {
+
+        ErrorDTO errorDTO = getErrorDTO(TemplateMgtConstants.FORBIDDEN, TemplateMgtConstants.FORBIDDEN_ERROR_MESSAGE,
+                TemplateMgtConstants.FORBIDDEN_ERROR_CODE);
+        return new ForbiddenException(errorDTO);
+    }
 }

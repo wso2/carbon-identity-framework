@@ -18,17 +18,24 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.internal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.configuration.mgt.core.ConfigurationManager;
-import org.wso2.carbon.identity.cors.mgt.core.CORSManagementService;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSConfigurationDAOImpl;
+import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 
 /**
  * Service holder class for CORS-Service.
  */
 public class CORSManagementServiceHolder {
 
-    private ConfigurationManager configurationManager;
+    private static final Log log = LogFactory.getLog(CORSManagementServiceHolder.class);
 
-    private CORSManagementService corsManagementService;
+    private CORSOriginDAO corsOriginDAO = new CORSOriginDAOImpl();
+    private CORSConfigurationDAO corsConfigurationDAO = new CORSConfigurationDAOImpl();
+    private ConfigurationManager configurationManager;
 
     private CORSManagementServiceHolder() {
 
@@ -39,6 +46,46 @@ public class CORSManagementServiceHolder {
         return SingletonHelper.INSTANCE;
     }
 
+    public CORSOriginDAO getCorsOriginDAO() {
+
+        return corsOriginDAO;
+    }
+
+    public void setCorsOriginDAO(CORSOriginDAO corsOriginDAO) {
+
+        if (corsOriginDAO == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Setting the corsOriginDAO to be null.");
+            }
+            this.corsOriginDAO = null;
+        } else if (corsOriginDAO.getPriority() > this.corsOriginDAO.getPriority()) {
+            log.info(String.format("Replacing the CORSOriginDAO of priority %s " +
+                            "with a CORSOriginDAO of priority %s.",
+                    this.corsOriginDAO.getPriority(), corsOriginDAO.getPriority()));
+            this.corsOriginDAO = corsOriginDAO;
+        }
+    }
+
+    public CORSConfigurationDAO getCorsConfigurationDAO() {
+
+        return corsConfigurationDAO;
+    }
+
+    public void setCorsConfigurationDAO(CORSConfigurationDAO corsConfigurationDAO) {
+
+        if (corsConfigurationDAO == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Setting the corsConfigurationDAO to be null.");
+            }
+            this.corsConfigurationDAO = null;
+        } else if (corsConfigurationDAO.getPriority() > this.corsConfigurationDAO.getPriority()) {
+            log.info(String.format("Replacing the CORSConfigurationDAO of priority %s " +
+                            "with a CORSConfigurationDAO of priority %s.",
+                    this.corsOriginDAO.getPriority(), corsOriginDAO.getPriority()));
+            this.corsConfigurationDAO = corsConfigurationDAO;
+        }
+    }
+
     public ConfigurationManager getConfigurationManager() {
 
         return configurationManager;
@@ -47,16 +94,6 @@ public class CORSManagementServiceHolder {
     public void setConfigurationManager(ConfigurationManager configurationManager) {
 
         this.configurationManager = configurationManager;
-    }
-
-    public CORSManagementService getCorsManagementService() {
-
-        return corsManagementService;
-    }
-
-    public void setCorsManagementService(CORSManagementService corsManagementService) {
-
-        this.corsManagementService = corsManagementService;
     }
 
     /**
