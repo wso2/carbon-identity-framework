@@ -88,6 +88,8 @@ public class IdentityEventConstants {
         public static final String POST_ACCOUNT_SUSPENSION = "POST_ACCOUNT_SUSPENSION";      
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
         public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
+        public static final String PRE_ACCOUNT_RECOVERY = "PRE_ACCOUNT_RECOVERY";
+        public static final String POST_ACCOUNT_RECOVERY = "POST_ACCOUNT_RECOVERY";
 
         public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
         public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";
@@ -186,6 +188,7 @@ public class IdentityEventConstants {
         public static final String DELETED_ROLES = "DELETED_ROLES";
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
+        public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
