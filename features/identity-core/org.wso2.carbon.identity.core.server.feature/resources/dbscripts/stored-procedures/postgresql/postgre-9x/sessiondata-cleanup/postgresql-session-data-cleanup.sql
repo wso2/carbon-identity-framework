@@ -90,7 +90,7 @@ THEN
     operationCleanupTime = (unix_timestamp*1000000000) - (720*60000000000);
 
 
-    purgingCondition := 'select session_id from idn_auth_session_store where operation = ''delete'' and time_created < '||operationCleanupTime||'';
+    purgingCondition := 'select session_id from idn_auth_session_store where operation = ''DELETE'' and time_created < '||operationCleanupTime||'';
 
     IF (operationid = 3)
     THEN
