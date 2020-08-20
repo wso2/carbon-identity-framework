@@ -2575,11 +2575,11 @@ public class IdentityProviderManager implements IdpManager {
      * Resolves the public service url given the default context and the url picked from the configuration based on
      * the 'tenant_context.enable_tenant_qualified_urls' mode set in deployment.toml.
      *
-     * @param defaultUrlContext default url context path
-     * @param urlFromConfig     url picked from the file configuration
-     * @return absolute public url of the service if 'enable_tenant_qualified_urls' is 'true', else returns the url
-     * from the file config
-     * @throws IdentityProviderManagementServerException when fail to build the absolute public url
+     * @param defaultUrlContext Default url context path.
+     * @param urlFromConfig     Url picked from the file configuration.
+     * @return Absolute public url of the service if 'enable_tenant_qualified_urls' is 'true', else returns the url
+     * from the file config.
+     * @throws IdentityProviderManagementServerException When fail to build the absolute public url.
      */
     private String resolveAbsoluteURL(String defaultUrlContext, String urlFromConfig) throws IdentityProviderManagementServerException {
 
