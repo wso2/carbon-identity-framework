@@ -88,8 +88,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
 
-        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, tenantDomain, proxyContextPath, urlPath,
-                parameters, resolvedFragment);
+        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, tenantDomain, proxyContextPath,
+                urlPath, parameters, resolvedFragment);
     }
 
     private String getResolvedUrlPath(String tenantDomain) {
@@ -283,9 +283,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String relativePublicUrl;
         private String relativeInternalUrl;
 
-        private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int port, String tenantDomain,
-                               String proxyContextPath, String urlPath, Map<String, String> parameters, String fragment)
-                throws URLBuilderException {
+        private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int port,
+                               String tenantDomain, String proxyContextPath, String urlPath,
+                               Map<String, String> parameters, String fragment) throws URLBuilderException {
 
             this.protocol = protocol;
             this.proxyHostName = proxyHostName;
@@ -393,8 +393,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         /**
          * Returns the absolute URL used for Identity Server internal calls.
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
-         * the fragment to return the internal absolute URL.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
+         * and the fragment to return the internal absolute URL.
          *
          * @return The internal absolute URL from the Service URL instance.
          */
@@ -406,8 +406,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         /**
          * Returns the proxy server url when the Identity Server is fronted with a proxy.
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
-         * the fragment to return the public absolute URL.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
+         * and the fragment to return the public absolute URL.
          *
          * @return The public absolute URL from the Service URL instance.
          */
