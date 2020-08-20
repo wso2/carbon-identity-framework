@@ -34,6 +34,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.entitlement.EntitlementUtil;
@@ -54,7 +55,10 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ConfigurationContextService;
 import org.wso2.carbon.utils.NetworkUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
+
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -73,7 +77,12 @@ public class EntitlementServiceComponent {
      * Property used to specify the configuration file.
      */
     public static final String PDP_CONFIG_FILE_PATH = "org.wso2.balana.PDPConfigFile";
-    
+
+    /**
+     * Property used to enhance the XACML policy loading flow from the filesystem.
+     */
+    private static final String ENHANCED_XACML_LOADING_SYSTEM_PROPERTY = "enableEnhancedXACMLLoading";
+
     private static final Log log = LogFactory.getLog(EntitlementServiceComponent.class);
     private static RegistryService registryService = null;
     private static RealmService realmservice;
@@ -256,21 +265,23 @@ public class EntitlementServiceComponent {
                 File[] fileList;
                 if (policyFolder != null && policyFolder.exists()
                         && ArrayUtils.isNotEmpty(fileList = policyFolder.listFiles())) {
-                    for (File policyFile : fileList) {
-                        if (policyFile.isFile()) {
-                            PolicyDTO policyDTO = new PolicyDTO();
-                            policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
-                            if (!policyIdList.contains(policyDTO.getPolicyId())) {
-                                try {
-                                    EntitlementUtil.addFilesystemPolicy(policyDTO, registryService
-                                            .getGovernanceSystemRegistry(), true);
-                                } catch (Exception e) {
-                                    // log and ignore
-                                    log.error("Error while adding XACML policies", e);
-                                }
-                            }
-                            customPolicies = true;
+                    if (Boolean.parseBoolean(System.getProperty(ENHANCED_XACML_LOADING_SYSTEM_PROPERTY))) {
+                        try {
+                            PrivilegedCarbonContext.startTenantFlow();
+                            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
+                            carbonContext.setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+                            carbonContext.setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+                            long startTime = System.currentTimeMillis();
+
+                            customPolicies = addPolicyFiles(policyIdList, fileList);
+
+                            long endTime = (System.currentTimeMillis() - startTime) / 1000;
+                            log.info("XACML Policies loaded in "  + endTime + " sec");
+                        } finally {
+                            PrivilegedCarbonContext.endTenantFlow();
                         }
+                    } else {
+                        customPolicies = addPolicyFiles(policyIdList, fileList);
                     }
                 }
 
@@ -278,7 +289,6 @@ public class EntitlementServiceComponent {
                     // load default policies
                     EntitlementUtil.addSamplePolicies(registryService.getGovernanceSystemRegistry());
                 }
-
             }
             // Cache clearing listener is always registered since cache clearing is a must when
             // an update happens of user attributes
@@ -305,6 +315,36 @@ public class EntitlementServiceComponent {
         } catch (Throwable throwable) {
             log.error("Failed to initialize Entitlement Service", throwable);
         }
+    }
+
+    /**
+     * Adds policy files with unique policyIDs to the registry.
+     *
+     * @param policyIdList
+     * @param fileList
+     * @return
+     * @throws IOException
+     */
+    private boolean addPolicyFiles(List<String> policyIdList, File[] fileList) throws IOException {
+
+        boolean customPolicies = false;
+        for (File policyFile : fileList) {
+            if (policyFile.isFile()) {
+                PolicyDTO policyDTO = new PolicyDTO();
+                policyDTO.setPolicy(FileUtils.readFileToString(policyFile));
+                if (!policyIdList.contains(policyDTO.getPolicyId())) {
+                    try {
+                        EntitlementUtil.addFilesystemPolicy(policyDTO, registryService
+                                .getGovernanceSystemRegistry(), true);
+                    } catch (Exception e) {
+                        // log and ignore
+                        log.error("Error while adding XACML policies", e);
+                    }
+                }
+                customPolicies = true;
+            }
+        }
+        return customPolicies;
     }
 
     /**
