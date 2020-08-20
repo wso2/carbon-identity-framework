@@ -2059,7 +2059,7 @@
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
-        <Application name="{{client_app.authentication.name}}" hash="{{client_app.authentication.hash}}" />
+        <Application name="{{account_recovery.endpoint.auth.name}}" hash="{{account_recovery.endpoint.auth.hash}}" />
         {% for client_app in client_apps.authentication %}
         <Application name="{{client_app.name}}" hash="{{client_app.hash}}" />
         {% endfor %}
