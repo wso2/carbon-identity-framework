@@ -121,7 +121,7 @@ PDP.Policy.Data.Store.Module={{identity.entitlement.policy_point.pdp.policy_data
 {% if identity.entitlement.extension is defined %}
 {% for extension in identity.entitlement.extension %}
 {% for key,value in extension.properties.items() %}
-org.wso2.carbon.identity.entitlement.{{extension.name}}.{{loop.index}}={{key}},{{value}}
+{{extension.name}}.{{loop.index}}={{key}},{{value}}
 {% endfor %}
 {% endfor %}
 {% endif %}
