@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.user.functionality.mgt.internal;
 
+import org.wso2.carbon.user.core.service.RealmService;
+
 import javax.sql.DataSource;
 
 /**
@@ -28,6 +30,7 @@ public class UserFunctionalityManagerComponentDataHolder {
     private static UserFunctionalityManagerComponentDataHolder
             instance = new UserFunctionalityManagerComponentDataHolder();
     private DataSource dataSource;
+    private RealmService realmService;
 
     public static UserFunctionalityManagerComponentDataHolder getInstance() {
 
@@ -42,5 +45,15 @@ public class UserFunctionalityManagerComponentDataHolder {
     public void setDataSource(DataSource dataSource) {
 
         this.dataSource = dataSource;
+    }
+
+    public RealmService getRealmService() {
+
+        return realmService;
+    }
+
+    public void setRealmService(RealmService realmService) {
+
+        this.realmService = realmService;
     }
 }

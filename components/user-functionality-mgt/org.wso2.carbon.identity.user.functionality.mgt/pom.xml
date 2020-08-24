@@ -61,6 +61,10 @@
                             org.wso2.carbon.identity.configuration.mgt.core.util;
                             version="${carbon.identity.package.import.version.range}",
                             org.apache.commons.collections; version="${commons-collections.wso2.osgi.version.range}",
+                            org.wso2.carbon.user.core;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.service;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.core.common;version="${carbon.kernel.package.import.version.range}",
+                            org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                         </Import-Package>
                     </instructions>
                 </configuration>
