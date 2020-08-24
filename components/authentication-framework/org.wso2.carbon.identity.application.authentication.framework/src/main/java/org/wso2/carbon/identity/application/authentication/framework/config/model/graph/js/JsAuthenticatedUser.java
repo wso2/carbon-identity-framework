@@ -124,6 +124,13 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
+            case FrameworkConstants.JSAttributes.JS_CLAIMS:
+                if (StringUtils.isNotBlank(idp)) {
+                    return new JsRuntimeClaims(getContext(), step, idp);
+                } else {
+                    // Represent step independent user
+                    return new JsRuntimeClaims(getContext(), getWrapped());
+                }
             default:
                 return super.getMember(name);
         }

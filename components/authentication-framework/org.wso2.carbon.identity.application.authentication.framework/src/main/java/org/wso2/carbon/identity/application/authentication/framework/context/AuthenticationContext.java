@@ -596,4 +596,53 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             return null;
         }
     }
+
+    /**
+     * The Runtime claims in the the context.
+     *
+     * @param claimUri  Claim URI
+     * @return Claim value
+     */
+    public String getRuntimeClaim(String claimUri) {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            Map<String, String> tempClaims = (Map<String, String>) parameter;
+            return tempClaims.get(claimUri);
+        }
+        return null;
+    }
+
+    /**
+     * Set Runtime claims to the context.  In the the claim handler the priority will be given to these values.
+     *
+     * @param claimUri  Claim URI
+     * @param claimValue    Claim value
+     */
+    public void addRuntimeClaim(String claimUri, String claimValue) {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            Map<String, String> tempClaims = (Map<String, String>) parameter;
+            tempClaims.put(claimUri, claimValue);
+        } else {
+            Map<String, String> tempClaims = new HashMap<>();
+            tempClaims.put(claimUri, claimValue);
+            setProperty(FrameworkConstants.RUNTIME_CLAIMS, tempClaims);
+        }
+    }
+
+    /**
+     * Get the Runtime claims map.
+     *
+     * @return  Map of Claim URI and value
+     */
+    public Map<String, String> getRuntimeClaims() {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            return (Map<String, String>) parameter;
+        }
+        return Collections.emptyMap();
+    }
 }

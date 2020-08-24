@@ -116,6 +116,7 @@ public abstract class FrameworkConstants {
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
     public static final String RUNTIME_PARAMS = "RUNTIME_PARAMS";
     public static final String SP_STANDARD_DIALECT = "SP_STANDARD_DIALECT";
+    public static final String RUNTIME_CLAIMS = "RUNTIME_CLAIMS";
 
     public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
 
@@ -368,6 +369,7 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
         public static final String JS_LOCAL_ROLES = "roles";
+        public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
