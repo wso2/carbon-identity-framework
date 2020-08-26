@@ -473,7 +473,7 @@
     "/api/users/v2/me/webauthn",
     "/api/identity/media/v1.0/",
     "/api/",
-    "/user-portal/",
+    "/myaccount/",
     "/console/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
@@ -490,7 +490,7 @@
     "/passivests"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
-    "/user-portal/",
+    "/myaccount/",
     "/console/"
   ],
   "intermediate_cert_validation.enable":false,
@@ -563,7 +563,7 @@
   "continue_on_claim_handling_error": true,
 
   "console.applications.account_app.configs": {
-    "path": "/user-portal/overview"
+    "path": "/myaccount/overview"
   },
   "console.app_base_name": "console",
   "console.client_id": "CONSOLE",
@@ -760,31 +760,31 @@
     "fallback": "404"
   },
 
-  "user_portal.app_base_name": "user-portal",
-  "user_portal.client_id": "USER_PORTAL",
-  "user_portal.login_callback_path": "/login",
-  "user_portal.logout_callback_path": "/login",
-  "user_portal.route_paths": {
+  "myaccount.app_base_name": "myaccount",
+  "myaccount.client_id": "MY_ACCOUNT",
+  "myaccount.login_callback_path": "/login",
+  "myaccount.logout_callback_path": "/login",
+  "myaccount.route_paths": {
     "home": "/overview",
     "login": "/login",
     "logout": "/logout"
   },
-  "user_portal.ui.app_copyright": "WSO2 Identity Server",
-  "user_portal.ui.app_title": "Account | WSO2 Identity Server",
-  "user_portal.ui.app_name": "Account",
-  "user_portal.ui.app_logo_path": "/assets/images/logo.svg",
-  "user_portal.ui.product_name": "Identity Server",
-  "user_portal.theme": "default",
-  "user_portal.authenticator_app_configs": {
+  "myaccount.ui.app_copyright": "WSO2 Identity Server",
+  "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
+  "myaccount.ui.app_name": "My Account",
+  "myaccount.ui.app_logo_path": "/assets/images/logo.svg",
+  "myaccount.ui.product_name": "Identity Server",
+  "myaccount.theme": "default",
+  "myaccount.authenticator_app_configs": {
     "enabled": true
   },
-  "user_portal.applications.enabled": true,
-  "user_portal.operations.enabled": true,
-  "user_portal.overview.enabled": true,
-  "user_portal.personal_info.enabled": true,
-  "user_portal.security.enabled": true,
+  "myaccount.applications.enabled": true,
+  "myaccount.operations.enabled": true,
+  "myaccount.overview.enabled": true,
+  "myaccount.personal_info.enabled": true,
+  "myaccount.security.enabled": true,
 
-  "user_portal.operations.scopes": {
+  "myaccount.operations.scopes": {
     "create": [],
     "read": [
       "internal_humantask_view"
@@ -792,7 +792,7 @@
     "update": [],
     "delete": []
   },
-  "user_portal.session.params": {
+  "myaccount.session.params": {
     "userIdleTimeOut": 600,
     "userIdleWarningTimeOut": 580,
     "sessionRefreshTimeOut": 300,
