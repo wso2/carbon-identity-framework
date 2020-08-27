@@ -96,8 +96,8 @@ public class IdentityManagementEndpointConstants {
 
     public static final String WSO2_DIALECT = "http://wso2.org/claims";
 
-    public static final String DEFAULT_USER_PORTAL_URL = "../user-portal";
-    public static final String USER_PORTAL_URL = "/user-portal";
+    public static final String DEFAULT_USER_PORTAL_URL = "../myaccount";
+    public static final String USER_PORTAL_URL = "/myaccount";
 
     public static final String RELATIVE_PATH_START_CHAR = ".";
     public static final String SERVICE_CONFIG_RELATIVE_PATH =
