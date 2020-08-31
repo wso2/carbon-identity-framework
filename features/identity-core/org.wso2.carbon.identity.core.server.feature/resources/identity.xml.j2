@@ -566,6 +566,11 @@
             <IDTokenBuilder>{{oauth.oidc.extensions.id_token_builder}}</IDTokenBuilder>
             <SignatureAlgorithm>{{oauth.oidc.id_token.signature_algorithm}}</SignatureAlgorithm>
 
+            <!-- Send the response to OAuth2 error page -->
+            {% if oauth.oidc.id_token.redirect_error_page is defined %}
+            <RedirectToOAuth2ErrorPage>{{oauth.oidc.id_token.redirect_error_page}}</RedirectToOAuth2ErrorPage>
+            {% endif %}
+
             <!-- Default asymmetric encryption algorithm that used to encrypt CEK. -->
             <IDTokenEncryptionAlgorithm>{{oauth.oidc.id_token.supported_encryption_algorithms[0]}}</IDTokenEncryptionAlgorithm>
             <!-- Default symmetric encryption algorithm that used to encrypt JWT claims set. -->
