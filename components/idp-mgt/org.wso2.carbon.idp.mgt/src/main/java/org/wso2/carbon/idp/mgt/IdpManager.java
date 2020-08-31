@@ -460,4 +460,22 @@ public interface IdpManager {
         return null;
     }
 
+    /**
+     * Retrieves the first matching IDP for the given metadata property.
+     * Intended to ony be used to retrieve IDP based on a unique metadata property.
+     *
+     * @param property     IDP metadata property name.
+     * @param value        Value associated with given Property.
+     * @param tenantDomain Tenant domain whose information is requested.
+     * @param ignoreFileBasedIdps Whether to ignore file based idps or not.
+     * @return <code>IdentityProvider</code> Identity Provider information.
+     * @throws IdentityProviderManagementException Error when getting Identity Provider
+     *                                                information by IdP name.
+     */
+    default IdentityProvider getIdPByMetadataProperty(String property, String value, String tenantDomain,
+                                                      boolean ignoreFileBasedIdps)
+            throws IdentityProviderManagementException {
+
+        return null;
+    }
 }

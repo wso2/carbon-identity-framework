@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
- * Client for calling /api/identity/template/mgt/v1.0.0/templates/ with mutual ssl authentication
+ * Client for calling the /api/identity/template/mgt/v1.0.0/templates/  endpoint with mutual ssl authentication.
  */
 public class TemplateMgtAPIClient {
 
@@ -40,11 +40,10 @@ public class TemplateMgtAPIClient {
     private static final String HTTP_METHOD_GET = "GET";
 
     /**
-     * Send mutual ssl https post request and return data
+     * Send mutual ssl https post request and return data.
      *
      * @param backendURL URL of the service
      * @return Received data
-     * @throws IOException
      */
     public static String getTemplateData(String backendURL) {
 

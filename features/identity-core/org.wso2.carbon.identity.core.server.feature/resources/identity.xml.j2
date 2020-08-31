@@ -362,6 +362,7 @@
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:jwt-bearer</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.jwt_bearer.grant_handler}}</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>{{oauth.grant_type.jwt_bearer.grant_validator}}</GrantTypeValidatorImplClass>
+                <IsRefreshTokenAllowed>{{oauth.grant_type.jwt_bearer.allow_refresh_tokens}}</IsRefreshTokenAllowed>
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.uma_ticket.enable is sameas true %}
@@ -975,6 +976,7 @@
                 <Forced>
                     <Enable>{{identity_mgt.forced_challenge_questions.enable_forced_challenge_questions}}</Enable>
                 </Forced>
+                <SkipOnInsufficientAnswers>{{identity_mgt.password_reset_challenge_questions.skip_on_insufficient_answers}}</SkipOnInsufficientAnswers>
             </Password>
             <Answer>
                 <Regex>{{identity_mgt.password_reset_challenge_questions.answer_regex}}</Regex>
@@ -1972,12 +1974,18 @@
             <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
             <Scopes>internal_media_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET"/>
+        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
+            <Scopes>internal_cors_origins_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
+            <Scopes>internal_cors_origins_view</Scopes>
+        </Resource>
         <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
@@ -2051,7 +2059,10 @@
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
-        <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
+        <Application name="{{account_recovery.endpoint.auth.name}}" hash="{{account_recovery.endpoint.auth.hash}}" />
+        {% for client_app in client_apps.authentication %}
+        <Application name="{{client_app.name}}" hash="{{client_app.hash}}" />
+        {% endfor %}
     </ClientAppAuthentication>
 
     <!--

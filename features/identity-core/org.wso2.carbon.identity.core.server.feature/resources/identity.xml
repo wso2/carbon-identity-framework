@@ -302,6 +302,7 @@
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:jwt-bearer</GrantTypeName>
                 <GrantTypeHandlerImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTBearerGrantHandler</GrantTypeHandlerImplClass>
                 <GrantTypeValidatorImplClass>org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator</GrantTypeValidatorImplClass>
+                <IsRefreshTokenAllowed>true</IsRefreshTokenAllowed>
             </SupportedGrantType>
             <!-- Supported versions: IS 5.7.0 onwards.-->
             <SupportedGrantType>
@@ -796,6 +797,7 @@
                 <Forced>
                     <Enable>false</Enable>
                 </Forced>
+                <SkipOnInsufficientAnswers>true</SkipOnInsufficientAnswers>
             </Password>
             <Answer>
                 <Regex>.*</Regex>
@@ -1565,12 +1567,10 @@
             <Scopes>internal_media_mgt_delete</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
-        <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET"/>
-        <Resource context="(.*)/api/server/v1/cors/origins/(.*)/apps" secured="true" http-method="GET"/>
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
@@ -1659,14 +1659,14 @@
             <Context>/api/users/v2/me/webauthn</Context>
             <Context>/api/identity/media/v1.0/</Context>
             <Context>/api/</Context>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
             <Context>/console/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
         </Servlet>
         <OverwriteDispatch>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
             <Context>/console/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>

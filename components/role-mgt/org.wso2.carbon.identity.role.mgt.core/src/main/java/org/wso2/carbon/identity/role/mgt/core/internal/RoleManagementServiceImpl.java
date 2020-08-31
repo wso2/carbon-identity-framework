@@ -18,9 +18,11 @@
 
 package org.wso2.carbon.identity.role.mgt.core.internal;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.role.mgt.core.GroupBasicInfo;
+import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementClientException;
 import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
 import org.wso2.carbon.identity.role.mgt.core.Role;
 import org.wso2.carbon.identity.role.mgt.core.RoleBasicInfo;
@@ -28,8 +30,11 @@ import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.identity.role.mgt.core.UserBasicInfo;
 import org.wso2.carbon.identity.role.mgt.core.dao.RoleDAO;
 import org.wso2.carbon.identity.role.mgt.core.dao.RoleMgtDAOFactory;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.util.List;
+
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.INVALID_REQUEST;
 
 /**
  * Implementation of the {@link RoleManagementService} interface.
@@ -42,6 +47,15 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     @Override
     public RoleBasicInfo addRole(String roleName, List<String> userList, List<String> groupList,
             List<String> permissions, String tenantDomain) throws IdentityRoleManagementException {
+
+        /* Block the role names with the prefix 'system_' as it is used for the special roles created by the system in
+        order to maintain the backward compatibility. */
+        if (StringUtils.startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
+            String errorMessage = String.format("Invalid role name: %s. Role names with the prefix: %s, is not allowed"
+                            + " to be created from externally in the system.", roleName,
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
+            throw new IdentityRoleManagementClientException(INVALID_REQUEST.getCode(), errorMessage);
+        }
 
         return roleDAO.addRole(roleName, userList, groupList, permissions, tenantDomain);
     }
