@@ -250,6 +250,7 @@
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
+  "identity_mgt.recovery.enable_detailed_error_messages":false,
   "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
@@ -456,6 +457,7 @@
   "resource_access_control.scim2_me_post_method.keep_resource": true,
 
   "user.association.enable_for_federated_users": false,
+  "user.enable_per_user_functionality_locking": true,
   "tenant_context.enable_tenant_qualified_urls": false,
   "tenant_context.rewrite.webapps": [
     "/api/identity/user/v1.0/",
