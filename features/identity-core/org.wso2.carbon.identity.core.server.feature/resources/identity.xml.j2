@@ -2184,6 +2184,13 @@
     </LoggableUserClaims>
     {% endif %}
 
+     <!-- This configuration specifies enabling contextual param for audit logs. -->
+     <LoggableContextualParams>
+       {% for param in audit.log.contextual_param.params %}
+        <contextual_param>{{param}}</contextual_param>
+       {% endfor %}
+     </LoggableContextualParams>
+
     <!--Configuration Store properties-->
     <ConfigurationStore>
         <!--Set an upper limit to the database call queries. Configuration store uses dynamic query generation,

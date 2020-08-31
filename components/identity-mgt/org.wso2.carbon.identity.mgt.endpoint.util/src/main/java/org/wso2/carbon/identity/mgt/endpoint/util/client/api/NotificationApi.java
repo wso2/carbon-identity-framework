@@ -248,7 +248,62 @@ public class NotificationApi {
 
         String[] localVarAuthNames = new String[]{};
 
-        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
+        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
+    }
+
+    /**
+     * This API will be used to reset user password using the confirmatin key recieved through recovery process. Need to input &#x60;key&#x60;  and the new &#x60;password&#x60;.
+     *
+     * @param resetPasswordRequest key, password and optional metadata properties (required)
+     * @throws ApiException if fails to make API call
+     */
+    public void setPasswordPost(ResetPasswordRequest resetPasswordRequest, Map<String, String> localVarHeaderParams)
+            throws ApiException {
+
+        Object localVarPostBody = resetPasswordRequest;
+
+        // verify the required parameter 'resetPasswordRequest' is set
+        if (resetPasswordRequest == null) {
+            throw new ApiException(400,
+                    "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
+        }
+
+        String userTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        List<Property> properties = resetPasswordRequest.getProperties();
+        for (Property property : properties) {
+            if (StringUtils.equalsIgnoreCase(IdentityManagementEndpointConstants.TENANT_DOMAIN, property.getKey())) {
+                userTenantDomain = property.getValue();
+                properties.remove(property);
+                break;
+            }
+        }
+
+        basePath = IdentityManagementEndpointUtil.getBasePath(userTenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
+
+        // create path and map variables
+        String localVarPath = "/set-password".replaceAll("\\{format\\}", "json");
+
+        // query params
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+
+        String[] localVarAuthNames = new String[]{};
+
+        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
     }
 
     /**

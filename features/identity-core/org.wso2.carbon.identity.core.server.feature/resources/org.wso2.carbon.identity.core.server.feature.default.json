@@ -813,5 +813,6 @@
   "cors.exposed_headers": [],
   "cors.supports_credentials": true,
   "cors.max_age": -1,
-  "cors.tag_requests": false
+  "cors.tag_requests": false,
+  "audit.log.contextual_param.params": []
 }
