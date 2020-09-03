@@ -18,9 +18,6 @@
 
 package org.wso2.carbon.identity.user.functionality.mgt;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * This class holds the constants used in the module, user-functionality-mgt.
  */
@@ -79,68 +76,25 @@ public class UserFunctionalityMgtConstants {
         private final String description;
         private static final String USER_FUNCTIONALITY_MGT_ERROR_PREFIX = "UFM-";
 
-
         private ErrorMessages(int code, String description) {
+
             this.code = code;
             this.description = description;
         }
 
         public String getCode() {
+
             return USER_FUNCTIONALITY_MGT_ERROR_PREFIX + this.code;
         }
 
         public String getDescription() {
+
             return this.description;
         }
 
         public String toString() {
+
             return this.code + " - " + this.description;
-        }
-    }
-
-    /**
-     * Enum contains the Functionality and Functionality Identifier.
-     */
-    public enum FunctionalityTypes {
-
-        FUNCTIONALITY_SECURITY_QUESTION_PW_RECOVERY("FUNCTIONALITY_SECURITY_QUESTION_PW_RECOVERY",
-                "SecurityQuestionBasedPasswordRecovery"),
-        FUNCTIONALITY_NOTIFICATION_BASED_PW_RECOVERY_SMS("FUNCTIONALITY_NOTIFICATION_BASED_PW_RECOVERY_SMS",
-                "SMSBasedPasswordRecovery");
-
-        private final String functionalityName;
-        private final String functionalityIdentifier;
-        private static Map<String, FunctionalityTypes> functionalityToTypeMapping;
-
-        private FunctionalityTypes(String functionalityName, String functionalityIdentifier) {
-            this.functionalityName = functionalityName;
-            this.functionalityIdentifier = functionalityIdentifier;
-        }
-
-        public String getFunctionalityIdentifier() {
-            return this.functionalityIdentifier;
-        }
-
-        public String getDescription() {
-            return this.functionalityName;
-        }
-
-        public String toString() {
-            return this.functionalityIdentifier + " - " + this.functionalityName;
-        }
-
-        public static FunctionalityTypes getFunctionality(String functionalityName){
-            if(functionalityToTypeMapping == null){
-                initMapping();
-            }
-            return functionalityToTypeMapping.get(functionalityName);
-        }
-
-        private static void initMapping(){
-            functionalityToTypeMapping = new HashMap<>();
-            for(FunctionalityTypes types : values()){
-                functionalityToTypeMapping.put(types.functionalityName, types);
-            }
         }
     }
 
@@ -150,9 +104,7 @@ public class UserFunctionalityMgtConstants {
     public enum FunctionalityLockReasons {
 
         USER_MANUALLY_LOCKED("FL_001", "User manually locked."),
-        ADMIN_MANUALLY_LOCKED("FL_002", "Admin manually locked."),
-        PWD_RECOVERY_MAX_ATTEMPTS_EXCEEDED("FL_003", "Maximum attempts exceeded for password recovery.");
-
+        ADMIN_MANUALLY_LOCKED("FL_002", "Admin manually locked.");
 
         private final String functionalityLockCode;
         private final String functionalityLockReason;
