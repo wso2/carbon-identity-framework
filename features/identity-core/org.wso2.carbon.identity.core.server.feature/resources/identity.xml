@@ -1570,7 +1570,7 @@
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
@@ -1659,14 +1659,14 @@
             <Context>/api/users/v2/me/webauthn</Context>
             <Context>/api/identity/media/v1.0/</Context>
             <Context>/api/</Context>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
             <Context>/console/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
         </Servlet>
         <OverwriteDispatch>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
             <Context>/console/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>

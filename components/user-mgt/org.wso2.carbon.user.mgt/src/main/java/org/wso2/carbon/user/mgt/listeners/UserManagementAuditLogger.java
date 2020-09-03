@@ -21,9 +21,9 @@ package org.wso2.carbon.user.mgt.listeners;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
-import org.slf4j.MDC;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -377,6 +377,9 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      */
     private String createAuditMessage(String action, String target, JSONObject data, String resultField) {
 
+        if (data == null) {
+            data = new JSONObject();
+        }
         addContextualAuditParams(data);
         String auditMessage =
                 ListenerUtils.INITIATOR + "=%s " + ListenerUtils.ACTION + "=%s " + ListenerUtils.TARGET + "=%s "
