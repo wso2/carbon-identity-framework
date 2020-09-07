@@ -63,4 +63,72 @@ public class UserFunctionalityMgtConstants {
         public static final String DELETE_ALL_PROPERTIES_FOR_TENANT =
                 "DELETE FROM IDN_USER_FUNCTIONALITY_PROPERTY WHERE USER_ID=? AND TENANT_ID=? AND FUNCTIONALITY_ID=?";
     }
+
+    /**
+     * Enum contains Error Codes and Error Messages.
+     */
+    public enum ErrorMessages {
+
+        USER_NOT_FOUND(60001, "Invalid user ID"),
+        ERROR_OCCURRED_WHILE_RETRIEVING_USER(65001, "Error occurred when retrieving user from user ID");
+
+        private final int code;
+        private final String description;
+        private static final String USER_FUNCTIONALITY_MGT_ERROR_PREFIX = "UFM-";
+
+        private ErrorMessages(int code, String description) {
+
+            this.code = code;
+            this.description = description;
+        }
+
+        public String getCode() {
+
+            return USER_FUNCTIONALITY_MGT_ERROR_PREFIX + this.code;
+        }
+
+        public String getDescription() {
+
+            return this.description;
+        }
+
+        public String toString() {
+
+            return this.code + " - " + this.description;
+        }
+    }
+
+    /**
+     * Enum contains the codes and status messages for per-user functionality locking.
+     */
+    public enum FunctionalityLockReasons {
+
+        USER_MANUALLY_LOCKED("FL_001", "User manually locked."),
+        ADMIN_MANUALLY_LOCKED("FL_002", "Admin manually locked.");
+
+        private final String functionalityLockCode;
+        private final String functionalityLockReason;
+
+        /**
+         * Per-user lock code constructor.
+         *
+         * @param functionalityLockCode   Lock reason code.
+         * @param functionalityLockReason Reason for the functionality lock.
+         */
+        FunctionalityLockReasons(String functionalityLockCode, String functionalityLockReason) {
+
+            this.functionalityLockCode = functionalityLockCode;
+            this.functionalityLockReason = functionalityLockReason;
+        }
+
+        public String getFunctionalityLockReason() {
+
+            return functionalityLockReason;
+        }
+
+        public String getFunctionalityLockCode() {
+
+            return functionalityLockCode;
+        }
+    }
 }

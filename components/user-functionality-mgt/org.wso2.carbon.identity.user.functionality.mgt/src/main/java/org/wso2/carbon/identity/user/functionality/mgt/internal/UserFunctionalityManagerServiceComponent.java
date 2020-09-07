@@ -29,9 +29,11 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManager;
 import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManagerImpl;
+import org.wso2.carbon.user.core.service.RealmService;
 
 /**
  * OSGi declarative services component which handles registration and un-registration of user functionality management
@@ -46,7 +48,6 @@ public class UserFunctionalityManagerServiceComponent {
     private static final Log log = LogFactory.getLog(UserFunctionalityManagerServiceComponent.class);
 
     private ServiceRegistration userFunctionalityMgtService;
-
 
     /**
      * Register User Functionality Manager as an OSGi service.
@@ -94,5 +95,28 @@ public class UserFunctionalityManagerServiceComponent {
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started. */
+    }
+
+    @Reference(
+            name = "user.realmservice.default",
+            service = RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService"
+    )
+    protected void setRealmService(RealmService realmService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("RealmService is set in the User Functionality Manager bundle");
+        }
+        UserFunctionalityManagerComponentDataHolder.getInstance().setRealmService(realmService);
+    }
+
+    protected void unsetRealmService(RealmService realmService) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("RealmService is unset in the User Functionality Manager bundle");
+        }
+        UserFunctionalityManagerComponentDataHolder.getInstance().setRealmService(null);
     }
 }

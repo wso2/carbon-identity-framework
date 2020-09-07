@@ -20,7 +20,16 @@ package org.wso2.carbon.identity.user.functionality.mgt.util;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.powermock.api.mockito.PowerMockito;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.user.functionality.mgt.internal.UserFunctionalityManagerComponentDataHolder;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserRealmService;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.common.User;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.nio.file.Paths;
 import java.sql.Connection;
@@ -30,6 +39,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -99,5 +109,29 @@ public class TestUtils {
 
         mockStatic(IdentityDatabaseUtil.class);
         when(IdentityDatabaseUtil.getDataSource()).thenReturn(dataSource);
+    }
+
+   public static void mockUserFunctionalityManagerComponentDataHolder(UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder) {
+
+        mockStatic(UserFunctionalityManagerComponentDataHolder.class);
+        PowerMockito.when(UserFunctionalityManagerComponentDataHolder.getInstance()).thenReturn(userFunctionalityManagerComponentDataHolder);
+
+    }
+
+    public static void mockIdentityTenantUtil() {
+
+        mockStatic(IdentityTenantUtil.class);
+        PowerMockito.when(IdentityTenantUtil.getTenantDomain(anyInt())).thenReturn("carbon.super");
+    }
+
+    public static void mockUserStoreManager(UserFunctionalityManagerComponentDataHolder
+                                              userFunctionalityManagerComponentDataHolder,
+                                            RealmService realmService, UserRealm userRealm,
+                                            UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        PowerMockito.when(userFunctionalityManagerComponentDataHolder.getRealmService()).thenReturn(realmService);
+        PowerMockito.when(realmService.getTenantUserRealm(anyInt())).thenReturn(userRealm);
+        PowerMockito.when(userRealm.getUserStoreManager()).thenReturn(userStoreManager);
     }
 }

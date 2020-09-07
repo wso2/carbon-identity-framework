@@ -31,6 +31,11 @@ public class UserFunctionalityManagementException extends Exception {
         super();
     }
 
+    public UserFunctionalityManagementException(String message) {
+
+        super(message);
+    }
+
     public UserFunctionalityManagementException(String message, String errorCode) {
 
         super(message);

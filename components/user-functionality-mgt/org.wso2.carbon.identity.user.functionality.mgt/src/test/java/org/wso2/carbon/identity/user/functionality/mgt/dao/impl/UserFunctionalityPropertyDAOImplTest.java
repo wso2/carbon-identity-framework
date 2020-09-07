@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.functionality.mgt.dao.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mockito.Mock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
@@ -29,12 +30,20 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.ObjectFactory;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManager;
 import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManagerImpl;
 import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityMgtConstants;
 import org.wso2.carbon.identity.user.functionality.mgt.dao.UserFunctionalityPropertyDAO;
+import org.wso2.carbon.identity.user.functionality.mgt.exception.UserFunctionalityManagementException;
 import org.wso2.carbon.identity.user.functionality.mgt.exception.UserFunctionalityManagementServerException;
+import org.wso2.carbon.identity.user.functionality.mgt.internal.UserFunctionalityManagerComponentDataHolder;
+import org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UniqueIDUserStoreManager;
+import org.wso2.carbon.user.core.service.RealmService;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -48,6 +57,7 @@ import java.util.stream.Stream;
 
 import javax.sql.DataSource;
 
+import static org.mockito.Matchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -59,8 +69,18 @@ import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.ini
 import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.mockDataSource;
 import static org.wso2.carbon.identity.user.functionality.mgt.util.TestUtils.spyConnection;
 
-@PrepareForTest({IdentityDatabaseUtil.class, IdentityUtil.class})
+@PrepareForTest({IdentityDatabaseUtil.class, IdentityUtil.class, UserFunctionalityManagerComponentDataHolder.class,
+        IdentityTenantUtil.class})
 public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
+
+    @Mock
+    private RealmService realmService;
+    @Mock
+    private UserRealm userRealm;
+    @Mock
+    private UniqueIDUserStoreManager userStoreManager;
+    @Mock
+    private UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder;
 
     private static final Log log = LogFactory.getLog(UserFunctionalityPropertyDAOImplTest.class);
     private UserFunctionalityPropertyDAO userFunctionalityPropertyDAO = new UserFunctionalityPropertyDAOImpl();
@@ -202,12 +222,13 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
         try (Connection connection = getConnection()) {
             Connection spyConnection = spyConnection(connection);
             when(dataSource.getConnection()).thenReturn(spyConnection);
+            mockUser(userId);
             userFunctionalityManager.setProperties(userId, tenantId, functionalityIdentifier, properties);
             userFunctionalityPropertyDAO.deleteAllPropertiesForUser(userId, tenantId, functionalityIdentifier);
             Map<String, String> functionalityLockProperties =
                     userFunctionalityPropertyDAO.getAllProperties(userId, tenantId, functionalityIdentifier);
             assertTrue(functionalityLockProperties.isEmpty());
-        } catch (SQLException | UserFunctionalityManagementServerException e) {
+        } catch (SQLException | UserFunctionalityManagementException | UserStoreException e) {
             //Mock behaviour. Hence ignored.
         }
     }
@@ -301,5 +322,13 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
     public IObjectFactory getObjectFactory() {
 
         return new org.powermock.modules.testng.PowerMockObjectFactory();
+    }
+
+    private void mockUser(String userId) throws UserStoreException {
+
+        TestUtils.mockUserFunctionalityManagerComponentDataHolder(userFunctionalityManagerComponentDataHolder);
+        TestUtils.mockIdentityTenantUtil();
+        TestUtils.mockUserStoreManager(userFunctionalityManagerComponentDataHolder, realmService, userRealm, userStoreManager);
+        when(userStoreManager.isExistingUserWithID(anyString())).thenReturn(true);
     }
 }

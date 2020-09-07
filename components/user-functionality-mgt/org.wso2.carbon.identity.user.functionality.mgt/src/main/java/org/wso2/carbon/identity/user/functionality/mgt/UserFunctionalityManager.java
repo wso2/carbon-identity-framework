@@ -51,10 +51,10 @@ public interface UserFunctionalityManager {
      * @param tenantId                Unique identifier for the tenant domain.
      * @param functionalityIdentifier Identifier of the the functionality.
      * @return The properties of the user-functionality mapping.
-     * @throws UserFunctionalityManagementServerException
+     * @throws UserFunctionalityManagementException
      */
     Map<String, String> getProperties(String userId, int tenantId, String functionalityIdentifier)
-            throws UserFunctionalityManagementServerException;
+            throws UserFunctionalityManagementException;
 
     /**
      * Set the properties of the user-functionality mapping. These properties may include invalid attempts counts,
@@ -64,11 +64,11 @@ public interface UserFunctionalityManager {
      * @param tenantId                    Unique identifier for the tenant domain.
      * @param functionalityIdentifier     Identifier of the the functionality.
      * @param functionalityLockProperties The properties of the user-functionality mapping.
-     * @throws UserFunctionalityManagementServerException
+     * @throws UserFunctionalityManagementException
      */
     void setProperties(String userId, int tenantId, String functionalityIdentifier,
                        Map<String, String> functionalityLockProperties)
-            throws UserFunctionalityManagementServerException;
+            throws UserFunctionalityManagementException;
 
     /**
      * Lock a functionality given the functionality identifier, user id, tenant id, functionality lock time and the
@@ -93,10 +93,10 @@ public interface UserFunctionalityManager {
      * @param userId                  Unique identifier of the user.
      * @param tenantId                Unique identifier for the tenant domain.
      * @param functionalityIdentifier Identifier of the the functionality.
-     * @throws UserFunctionalityManagementServerException
+     * @throws UserFunctionalityManagementException
      */
     void unlock(String userId, int tenantId, String functionalityIdentifier)
-            throws UserFunctionalityManagementServerException;
+            throws UserFunctionalityManagementException;
 
     /**
      * Deletes all the properties that are related to a certain user-functionality mapping identified by the user id,
@@ -105,10 +105,10 @@ public interface UserFunctionalityManager {
      * @param userId                  Unique identifier of the user.
      * @param tenantId                Unique identifier for the tenant domain.
      * @param functionalityIdentifier Identifier of the the functionality.
-     * @throws UserFunctionalityManagementServerException
+     * @throws UserFunctionalityManagementException
      */
     void deleteAllPropertiesForUser(String userId, int tenantId, String functionalityIdentifier)
-            throws UserFunctionalityManagementServerException;
+            throws UserFunctionalityManagementException;
 
     /**
      * Deletes a certain list of properties indicated by the propertiesToDelete set that are related to a certain
@@ -118,10 +118,10 @@ public interface UserFunctionalityManager {
      * @param tenantId                Unique identifier for the tenant domain.
      * @param functionalityIdentifier Identifier of the the functionality.
      * @param propertiesToDelete      Set of property names to delete.
-     * @throws UserFunctionalityManagementServerException
+     * @throws UserFunctionalityManagementException
      */
     void deletePropertiesForUser(String userId, int tenantId, String functionalityIdentifier,
-                                 Set<String> propertiesToDelete) throws UserFunctionalityManagementServerException;
+                                 Set<String> propertiesToDelete) throws UserFunctionalityManagementException;
 
     /**
      * Deletes all the user-functionality mappings of a tenant.
