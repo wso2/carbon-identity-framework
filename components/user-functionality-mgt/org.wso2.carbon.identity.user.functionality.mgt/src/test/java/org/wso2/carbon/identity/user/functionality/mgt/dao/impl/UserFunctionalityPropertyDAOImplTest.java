@@ -82,7 +82,6 @@ public class UserFunctionalityPropertyDAOImplTest extends PowerMockTestCase {
     @Mock
     private UserFunctionalityManagerComponentDataHolder userFunctionalityManagerComponentDataHolder;
 
-
     private static final Log log = LogFactory.getLog(UserFunctionalityPropertyDAOImplTest.class);
     private UserFunctionalityPropertyDAO userFunctionalityPropertyDAO = new UserFunctionalityPropertyDAOImpl();
     private UserFunctionalityManager userFunctionalityManager = new UserFunctionalityManagerImpl();

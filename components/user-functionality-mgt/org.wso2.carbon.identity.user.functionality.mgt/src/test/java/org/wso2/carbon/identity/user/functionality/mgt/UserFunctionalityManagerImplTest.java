@@ -159,7 +159,6 @@ public class UserFunctionalityManagerImplTest extends PowerMockTestCase {
                             expected);
                 } catch (UserFunctionalityManagementException | UserStoreException e) {
                     log.error(String.format("Error while selecting functionality: %s", functionalityIdentifier), e);
-
                 }
             }
         } catch (SQLException e) {
