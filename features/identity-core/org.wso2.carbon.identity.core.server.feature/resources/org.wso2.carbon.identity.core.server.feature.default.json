@@ -259,6 +259,7 @@
   "identity_mgt.endpoint.enable_self_signup_endpoint": true,
   "identity_mgt.password_reset_email.enable_password_reset_email": false,
   "identity_mgt.password_reset_sms.sms_otp_validity": "1m",
+  "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
