@@ -154,7 +154,8 @@ public class IdentityEventConstants {
         AUTHENTICATION_FAILURE,
         SESSION_CREATE,
         SESSION_UPDATE,
-        SESSION_TERMINATE
+        SESSION_TERMINATE,
+        SESSION_EXPIRE
     }
 
     public class EventProperty {
