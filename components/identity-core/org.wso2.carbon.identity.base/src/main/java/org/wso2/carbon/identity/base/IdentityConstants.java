@@ -252,6 +252,8 @@ public class IdentityConstants {
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
+        public static final String ADD_NAME_ID_POLICY_IF_UNSPECIFIED = "SSOService" +
+                ".SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
