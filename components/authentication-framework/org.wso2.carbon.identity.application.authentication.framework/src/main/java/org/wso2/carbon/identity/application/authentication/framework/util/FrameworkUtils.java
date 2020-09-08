@@ -106,12 +106,11 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -140,6 +139,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
@@ -148,10 +148,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 
 public class FrameworkUtils {
 
@@ -2034,12 +2033,23 @@ public class FrameworkUtils {
                 .getMandatoryClaimMappings();
         Map<String, String> missingClaims = new HashMap<>();
         for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
-            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
+            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null &&
+                    getUserClaimValue(context, entry.getValue()) == null) {
                 missingClaims.put(entry.getKey(), entry.getValue());
             }
         }
 
         return missingClaims;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String getUserClaimValue(AuthenticationContext context, String localClaim) {
+
+        Object unFilteredLocalClaims = context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+        if (unFilteredLocalClaims instanceof Map) {
+            return ((Map<String, String>) unFilteredLocalClaims).get(localClaim);
+        }
+        return null;
     }
 
     /**
