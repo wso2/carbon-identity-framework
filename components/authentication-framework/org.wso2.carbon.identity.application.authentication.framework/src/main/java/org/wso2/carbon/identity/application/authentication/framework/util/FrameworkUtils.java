@@ -56,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
@@ -101,6 +102,10 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -949,6 +954,79 @@ public class FrameworkUtils {
             }
         }
         return sessionContext;
+    }
+
+    /**
+     * Retrieve session context from the session cache.
+     *
+     * @param request           HttpServletRequest.
+     * @param context           Authentication context.
+     * @param sessionContextKey Session context key.
+     * @return Session context key.
+     * @throws AuthenticationFailedException Error in triggering session expire event.
+     */
+    public static SessionContext getSessionContextFromCache(HttpServletRequest request, AuthenticationContext context
+            , String sessionContextKey) throws AuthenticationFailedException {
+
+        SessionContext sessionContext = null;
+        if (StringUtils.isNotBlank(sessionContextKey)) {
+            SessionContextCacheKey cacheKey = new SessionContextCacheKey(sessionContextKey);
+            SessionContextCache sessionContextCache = SessionContextCache.getInstance();
+            SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey);
+
+            if (cacheEntry != null) {
+                sessionContext = cacheEntry.getContext();
+                boolean isSessionExpired = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
+                if (isSessionExpired) {
+                    triggerSessionExpireEvent(request, context, sessionContext);
+                    if (log.isDebugEnabled()) {
+                        log.debug("A SESSION_EXPIRE event was fired for the expired session found corresponding " +
+                                "to the key: " + cacheKey.getContextId());
+                    }
+                    return null;
+                }
+            }
+        }
+        return sessionContext;
+    }
+
+    /**
+     * Trigger SESSION_EXPIRE event on session expiry due to a session idle timeout or a remember me session time out.
+     *
+     * @param request        HttpServletRequest.
+     * @param context        Authentication context.
+     * @param sessionContext Session context.
+     * @throws AuthenticationFailedException Error in triggering the session expiry event.
+     */
+    private static void triggerSessionExpireEvent(HttpServletRequest request, AuthenticationContext context,
+                                                  SessionContext sessionContext) throws AuthenticationFailedException {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        if (sessionContext != null) {
+            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+            if (authenticatedUserObj instanceof AuthenticatedUser) {
+                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            }
+            context.setSubject(authenticatedUser);
+
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+            try {
+                Map<String, Object> eventProperties = new HashMap<>();
+                eventProperties.put(IdentityEventConstants.EventProperty.REQUEST, request);
+                eventProperties.put(IdentityEventConstants.EventProperty.CONTEXT, context);
+                eventProperties.put(IdentityEventConstants.EventProperty.SESSION_CONTEXT, sessionContext);
+                Map<String, Object> paramMap = new HashMap<>();
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, authenticatedUser);
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, context.getSessionIdentifier());
+                Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+                eventProperties.put(IdentityEventConstants.EventProperty.PARAMS, unmodifiableParamMap);
+
+                Event event = new Event(IdentityEventConstants.EventName.SESSION_EXPIRE.name(), eventProperties);
+                eventService.handleEvent(event);
+            } catch (IdentityEventException e) {
+                throw new AuthenticationFailedException("Error in triggering the session expire event.", e);
+            }
+        }
     }
 
     /**
