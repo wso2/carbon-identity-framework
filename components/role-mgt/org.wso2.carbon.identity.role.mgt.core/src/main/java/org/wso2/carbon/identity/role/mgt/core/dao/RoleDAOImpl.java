@@ -343,9 +343,9 @@ public class RoleDAOImpl implements RoleDAO {
         }
         Map<String, String> roleNamesToIDs = getRoleIDsByNames(roleNames, tenantDomain);
 
-        // Filter scimDisabledRoles.
+        // Filter scim disabled roles.
         roleNames.removeAll(new ArrayList<>(roleNamesToIDs.keySet()));
-        // Add roleIDs for scimDisabledRoles.
+        // Add roleIDs for scim disabled roles.
         for (String roleName : roleNames) {
             roleNamesToIDs.put(roleName, addRoleID(roleName, tenantDomain));
         }
@@ -692,6 +692,17 @@ public class RoleDAOImpl implements RoleDAO {
                 // Update the role name in IDN_SCIM_GROUP table.
                 updateSCIMRoleName(roleName, newRoleName, tenantDomain);
 
+                /* UM_ROLE_PERMISSION Table, roles are associated with Domain ID.
+                   At this moment Role name doesn't contain the Domain prefix.
+                   resetPermissionOnUpdateRole() expects domain qualified name.
+                   Hence we add the "Internal" Domain name explicitly here. */
+                if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+                    roleName = UserCoreUtil.addDomainToName(roleName, UserCoreConstants.INTERNAL_DOMAIN);
+                }
+                if (!newRoleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+                    newRoleName = UserCoreUtil.addDomainToName(newRoleName, UserCoreConstants.INTERNAL_DOMAIN);
+                }
+                // Reset role authorization.
                 try {
                     UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
                     userRealm.getAuthorizationManager().resetPermissionOnUpdateRole(roleName, newRoleName);
@@ -720,6 +731,9 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        // Append internal domain in order to maintain the backward compatibility.
+        roleName = appendInternalDomain(roleName);
+        newRoleName = appendInternalDomain(newRoleName);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL)) {
                 statement.setString(RoleTableColumns.NEW_ROLE_NAME, newRoleName);
