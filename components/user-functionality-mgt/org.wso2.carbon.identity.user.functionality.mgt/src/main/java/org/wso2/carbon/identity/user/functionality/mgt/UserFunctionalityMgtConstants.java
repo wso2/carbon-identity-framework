@@ -25,6 +25,8 @@ public class UserFunctionalityMgtConstants {
 
     public static final String ENABLE_PER_USER_FUNCTIONALITY_LOCKING = "EnablePerUserFunctionalityLocking";
 
+    public static final String ORACLE = "oracle";
+
     /**
      * SQL Query definitions.
      */
@@ -62,6 +64,23 @@ public class UserFunctionalityMgtConstants {
                 "DELETE FROM IDN_USER_FUNCTIONALITY_PROPERTY WHERE USER_ID=? AND TENANT_ID=? AND FUNCTIONALITY_ID=?";
         public static final String DELETE_ALL_PROPERTIES_FOR_TENANT =
                 "DELETE FROM IDN_USER_FUNCTIONALITY_PROPERTY WHERE USER_ID=? AND TENANT_ID=? AND FUNCTIONALITY_ID=?";
+
+        public static final String INSERT_PROPERTY_ORACLE = "INSERT INTO %s (ID, " +
+                "USER_ID, TENANT_ID, FUNCTIONALITY_ID, PROPERTY_NAME, PROPERTY_VALUE) VALUES (?,?,?,?,?,?)";
+        public static final String GET_PROPERTY_VALUE_ORACLE = "SELECT PROPERTY_VALUE FROM %s WHERE USER_ID=? AND " +
+                "TENANT_ID=? AND FUNCTIONALITY_ID=? AND PROPERTY_NAME=?";
+        public static final String GET_ALL_PROPERTIES_ORACLE = "SELECT PROPERTY_NAME, PROPERTY_VALUE FROM " +
+                "%s WHERE USER_ID=? AND TENANT_ID=? AND FUNCTIONALITY_ID=?";
+        public static final String UPDATE_PROPERTY_VALUE_ORACLE = "UPDATE %s SET PROPERTY_VALUE=? WHERE USER_ID=? AND" +
+                " TENANT_ID=? AND FUNCTIONALITY_ID=? AND PROPERTY_NAME=?";
+        public static final String DELETE_PROPERTY_ORACLE = "DELETE FROM %s WHERE USER_ID=? AND TENANT_ID=? AND " +
+                "FUNCTIONALITY_ID=? AND PROPERTY_NAME=?";
+        public static final String DELETE_ALL_PROPERTIES_FOR_MAPPING_ORACLE =
+                "DELETE FROM %s WHERE USER_ID=? AND TENANT_ID=? AND FUNCTIONALITY_ID=?";
+        public static final String DELETE_ALL_PROPERTIES_FOR_TENANT_ORACLE =
+                "DELETE FROM %s WHERE USER_ID=? AND TENANT_ID=? AND FUNCTIONALITY_ID=?";
+        public static final String GET_ORACLE_TABLE_NAME = "SELECT TABLE_NAME FROM USER_TABLES WHERE TABLE_NAME IN " +
+                "('IDN_USR_FUNCTIONALITY_PROPERTY','IDN_USER_FUNCTIONALITY_PROPERTY')";
     }
 
     /**
@@ -76,7 +95,7 @@ public class UserFunctionalityMgtConstants {
         private final String description;
         private static final String USER_FUNCTIONALITY_MGT_ERROR_PREFIX = "UFM-";
 
-        private ErrorMessages(int code, String description) {
+        ErrorMessages(int code, String description) {
 
             this.code = code;
             this.description = description;

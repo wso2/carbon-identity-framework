@@ -59,7 +59,7 @@ public class UserFunctionalityManagerImpl implements UserFunctionalityManager {
     public FunctionalityLockStatus getLockStatus(String userId, int tenantId, String functionalityIdentifier)
             throws UserFunctionalityManagementException {
 
-        if (!isPerUserFunctionalityLockingEnabled()) {
+            if (!isPerUserFunctionalityLockingEnabled()) {
             throw new UnsupportedOperationException("Per-user functionality locking is not enabled.");
         }
 
