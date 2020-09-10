@@ -56,7 +56,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
@@ -963,10 +962,10 @@ public class FrameworkUtils {
      * @param context           Authentication context.
      * @param sessionContextKey Session context key.
      * @return Session context key.
-     * @throws AuthenticationFailedException Error in triggering session expire event.
+     * @throws FrameworkException Error in triggering session expire event.
      */
     public static SessionContext getSessionContextFromCache(HttpServletRequest request, AuthenticationContext context
-            , String sessionContextKey) throws AuthenticationFailedException {
+            , String sessionContextKey) throws FrameworkException {
 
         SessionContext sessionContext = null;
         if (StringUtils.isNotBlank(sessionContextKey)) {
@@ -996,10 +995,10 @@ public class FrameworkUtils {
      * @param request        HttpServletRequest.
      * @param context        Authentication context.
      * @param sessionContext Session context.
-     * @throws AuthenticationFailedException Error in triggering the session expiry event.
+     * @throws FrameworkException Error in triggering the session expiry event.
      */
     private static void triggerSessionExpireEvent(HttpServletRequest request, AuthenticationContext context,
-                                                  SessionContext sessionContext) throws AuthenticationFailedException {
+                                                  SessionContext sessionContext) throws FrameworkException {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         if (sessionContext != null) {
@@ -1024,7 +1023,8 @@ public class FrameworkUtils {
                 Event event = new Event(IdentityEventConstants.EventName.SESSION_EXPIRE.name(), eventProperties);
                 eventService.handleEvent(event);
             } catch (IdentityEventException e) {
-                throw new AuthenticationFailedException("Error in triggering the session expire event.", e);
+                throw new FrameworkException("Error in triggering session expire event for the session: " +
+                        context.getSessionIdentifier() + " of user: " + authenticatedUser.toFullQualifiedUsername(), e);
             }
         }
     }
