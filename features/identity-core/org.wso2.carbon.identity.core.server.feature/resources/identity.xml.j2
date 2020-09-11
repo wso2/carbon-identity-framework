@@ -543,12 +543,22 @@
             <!-- Validate issued at time (iat) of JWT token. The validity can be set using 'IATValidity' configuration.
              Default value is 'true'.
              -->
-            <EnableIATValidation>true</EnableIATValidation>
+            {% if jwt.enable.iat_validation is defined %}
+            <!--This config will be DEPRECATED. Use `oauth.grant_type.jwt.enable_iat_validation`-->
+            <EnableIATValidation>{{jwt.enable.iat_validation}}</EnableIATValidation>
+            {% else %}
+            <EnableIATValidation>{{oauth.grant_type.jwt.enable_iat_validation}}</EnableIATValidation>
+            {% endif %}
             <!-- Reject the JWT if the iat of JWT is pass a certain time period. Time period is in minutes.
              'EnableIATValidation' configuration should be set to 'true' in order to make use of the validity period.
              Default value is '30' minutes.
              -->
-            <IATValidityPeriod>30</IATValidityPeriod>
+            {% if jwt.iat.validity_period is defined %}
+            <!--This config will be DEPRECATED. Use `oauth.grant_type.jwt.iat_validity_period`-->
+            <IATValidityPeriod>{{jwt.iat.validity_period}}</IATValidityPeriod>
+            {% else %}
+            <IATValidityPeriod>{{oauth.grant_type.jwt.iat_validity_period}}</IATValidityPeriod>
+            {% endif %}
         </JWTGrant>
 
         <SAML2Grant>
