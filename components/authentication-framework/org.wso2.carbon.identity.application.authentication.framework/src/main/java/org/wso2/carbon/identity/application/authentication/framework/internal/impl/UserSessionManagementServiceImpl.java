@@ -64,9 +64,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
+                        userStoreDomain + " in tenant: " + tenantDomain);
+            }
             terminateSessionsByUserId(userId);
         } catch (SessionManagementException e) {
-            throw new UserSessionException("Error while terminating sessions of user.", e);
+            throw new UserSessionException("Error while terminating sessions of user:" + username +
+                    " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
         }
     }
 
@@ -92,8 +97,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
-                            "AbstractUserStore manager");
+                    log.debug("Provided user store manager for the user: " + username + " of userstore domain: " +
+                            userStoreDomain + ", is not an instance of the AbstractUserStore manager");
                 }
                 throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
