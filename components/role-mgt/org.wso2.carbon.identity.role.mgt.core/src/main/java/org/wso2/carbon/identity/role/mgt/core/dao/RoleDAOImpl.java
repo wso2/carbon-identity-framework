@@ -135,7 +135,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         // Remove internal domain before persisting in order to maintain the backward compatibility.
         roleName = removeInternalDomain(roleName);
-        String roleID = null;
+        String roleID;
 
         if (!isExistingRoleName(roleName, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
@@ -146,25 +146,29 @@ public class RoleDAOImpl implements RoleDAO {
                         statement.executeUpdate();
                     }
 
-                    // Add users to the created role.
-                    List<String> userNamesList = getUserNamesByIDs(userList, tenantDomain);
                     String databaseProductName = connection.getMetaData().getDatabaseProductName();
-                    String addUsersSQL = ADD_USER_TO_ROLE_SQL;
-                    if (MICROSOFT.equals(databaseProductName)) {
-                        addUsersSQL = ADD_USER_TO_ROLE_SQL_MSSQL;
+                    // Add users to the created role.
+                    if (CollectionUtils.isNotEmpty(userList)) {
+                        List<String> userNamesList = getUserNamesByIDs(userList, tenantDomain);
+                        String addUsersSQL = ADD_USER_TO_ROLE_SQL;
+                        if (MICROSOFT.equals(databaseProductName)) {
+                            addUsersSQL = ADD_USER_TO_ROLE_SQL_MSSQL;
+                        }
+                        processBatchUpdateForUsers(roleName, userNamesList, tenantId, primaryDomainName, connection,
+                                addUsersSQL);
                     }
-                    processBatchUpdateForUsers(roleName, userNamesList, tenantId, primaryDomainName, connection,
-                            addUsersSQL);
 
                     // Add groups to the created role.
-                    Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupList, tenantDomain);
-                    List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
-                    String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL;
-                    if (MICROSOFT.equals(databaseProductName)) {
-                        addGroupsSQL = ADD_GROUP_TO_ROLE_SQL_MSSQL;
+                    if (CollectionUtils.isNotEmpty(groupList)) {
+                        Map<String, String> groupIdsToNames = getGroupNamesByIDs(groupList, tenantDomain);
+                        List<String> groupNamesList = new ArrayList<>(groupIdsToNames.values());
+                        String addGroupsSQL = ADD_GROUP_TO_ROLE_SQL;
+                        if (MICROSOFT.equals(databaseProductName)) {
+                            addGroupsSQL = ADD_GROUP_TO_ROLE_SQL_MSSQL;
+                        }
+                        processBatchUpdateForGroups(roleName, groupNamesList, tenantId, primaryDomainName, connection,
+                                addGroupsSQL);
                     }
-                    processBatchUpdateForGroups(roleName, groupNamesList, tenantId, primaryDomainName, connection,
-                            addGroupsSQL);
 
                     // Add role ID.
                     roleID = addRoleID(roleName, tenantDomain);
@@ -338,6 +342,14 @@ public class RoleDAOImpl implements RoleDAO {
                     "Error while getting the realmConfiguration in the tenantDomain: " + tenantDomain, e);
         }
         Map<String, String> roleNamesToIDs = getRoleIDsByNames(roleNames, tenantDomain);
+
+        // Filter scim disabled roles.
+        roleNames.removeAll(new ArrayList<>(roleNamesToIDs.keySet()));
+        // Add roleIDs for scim disabled roles.
+        for (String roleName : roleNames) {
+            roleNamesToIDs.put(roleName, addRoleID(roleName, tenantDomain));
+        }
+
         roleNamesToIDs
                 .forEach((roleName, roleID) -> roles.add(new RoleBasicInfo(roleID, removeInternalDomain(roleName))));
         return roles;
@@ -680,6 +692,17 @@ public class RoleDAOImpl implements RoleDAO {
                 // Update the role name in IDN_SCIM_GROUP table.
                 updateSCIMRoleName(roleName, newRoleName, tenantDomain);
 
+                /* UM_ROLE_PERMISSION Table, roles are associated with Domain ID.
+                   At this moment Role name doesn't contain the Domain prefix.
+                   resetPermissionOnUpdateRole() expects domain qualified name.
+                   Hence we add the "Internal" Domain name explicitly here. */
+                if (!roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+                    roleName = UserCoreUtil.addDomainToName(roleName, UserCoreConstants.INTERNAL_DOMAIN);
+                }
+                if (!newRoleName.contains(UserCoreConstants.DOMAIN_SEPARATOR)) {
+                    newRoleName = UserCoreUtil.addDomainToName(newRoleName, UserCoreConstants.INTERNAL_DOMAIN);
+                }
+                // Reset role authorization.
                 try {
                     UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
                     userRealm.getAuthorizationManager().resetPermissionOnUpdateRole(roleName, newRoleName);
@@ -708,6 +731,9 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        // Append internal domain in order to maintain the backward compatibility.
+        roleName = appendInternalDomain(roleName);
+        newRoleName = appendInternalDomain(newRoleName);
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_SCIM_ROLE_NAME_SQL)) {
                 statement.setString(RoleTableColumns.NEW_ROLE_NAME, newRoleName);
