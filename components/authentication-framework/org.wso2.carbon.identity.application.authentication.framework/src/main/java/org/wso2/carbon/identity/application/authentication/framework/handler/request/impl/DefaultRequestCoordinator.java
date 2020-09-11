@@ -645,13 +645,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
-            SessionContext sessionContext;
+            SessionContext sessionContext = null;
             // get the authentication details from the cache
             try {
                 //Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
                 // tenant wise session expiry time
                 FrameworkUtils.startTenantFlow(context.getTenantDomain());
-                sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
+                sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
             } finally {
                 FrameworkUtils.endTenantFlow();
             }
