@@ -859,7 +859,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         List<ResourceFile> resourceFiles = getConfigurationDAO().getFilesByResourceType(resourceTypeId, tenantId);
         if (CollectionUtils.isEmpty(resourceFiles)) {
             if (log.isDebugEnabled()) {
-                log.debug("Resource type: " + resourceTypeName + " does not have any files.");
+                log.debug("Resource type: " + resourceTypeName + "  in tenant: " + getTenantDomain() +
+                        " does not have any files.");
             }
             throw handleClientException(ERROR_CODE_FILES_DOES_NOT_EXISTS, resourceTypeName);
         }
