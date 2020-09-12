@@ -386,6 +386,9 @@ public class IdentityConfigParser {
         }
     }
 
+    /**
+     * Build legacy feature config by adding the configs to legacyFeatureConfigurationHolder Map.
+     */
     public void buildLegacyFeatureConfig() {
 
         LegacyFeatureConfig legacyFeatureConfig;
