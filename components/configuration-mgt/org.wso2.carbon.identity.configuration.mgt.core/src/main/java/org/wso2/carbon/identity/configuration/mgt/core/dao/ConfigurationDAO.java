@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core.dao;
 
+import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
+import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -23,9 +25,17 @@ import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceFile;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceType;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resources;
 import org.wso2.carbon.identity.configuration.mgt.core.search.Condition;
+import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
 
 import java.io.InputStream;
 import java.util.List;
+
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.*;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.ConfigurationConstants.ErrorMessages.ERROR_CODE_GET_FILES_BY_TYPE;
+import static org.wso2.carbon.identity.configuration.mgt.core.constant.SQLConstants.GET_FILES_BY_RESOURCE_TYPE_ID_SQL;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.getFilePath;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 
 /**
  * Perform CRUD operations for {@link Resource}.
@@ -251,13 +261,50 @@ public interface ConfigurationDAO {
             ConfigurationManagementException;
 
     /**
+     * Get files for the {@link ResourceType}.
+     *
+     * @param resourceTypeId Id of the {@link ResourceType}.
+     * @return A list of {@link ResourceFile} for the given resource.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    default List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException {
+
+        throw new ConfigurationManagementException("This method is not implemented", null);
+    }
+
+    /**
      * Get files for the resource by resource type Id and tenant Id.
      *
      * @param resourceTypeId Id of the {@link ResourceType}
      * @param tenantId       Id of the tenant
      * @return A list of {@link ResourceFile} for the given resource.
+     * @throws ConfigurationManagementException Configuration Management Exception.
      */
-    List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId) throws ConfigurationManagementException;
+    default List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId)
+            throws ConfigurationManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_TYPE_ID_SQL,
+                    ((resultSet, rowNumber) -> {
+                        String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
+                        String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_NAME);
+                        String resourceName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME);
+                        String resourceTypeName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME);
+                        return new ResourceFile(
+                                resourceFileId,
+                                getFilePath(resourceFileId, resourceTypeName, resourceName),
+                                resourceFileName
+                        );
+                    }),
+                    preparedStatement -> {
+                        preparedStatement.setString(1, resourceTypeId);
+                        preparedStatement.setInt(2, tenantId);
+                    });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceTypeId, e);
+        }
+    }
 
     /**
      * Delete the file.

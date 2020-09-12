@@ -1444,32 +1444,6 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
     }
 
     @Override
-    public List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId) throws ConfigurationManagementServerException {
-
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            return jdbcTemplate.executeQuery(GET_FILES_BY_RESOURCE_TYPE_ID_SQL,
-                    ((resultSet, rowNumber) -> {
-                        String resourceFileId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
-                        String resourceFileName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_FILE_NAME);
-                        String resourceName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_NAME);
-                        String resourceTypeName = resultSet.getString(DB_SCHEMA_COLUMN_NAME_RESOURCE_TYPE_NAME);
-                        return new ResourceFile(
-                                resourceFileId,
-                                getFilePath(resourceFileId, resourceTypeName, resourceName),
-                                resourceFileName
-                        );
-                    }),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, resourceTypeId);
-                        preparedStatement.setInt(2, tenantId);
-                    });
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_GET_FILES_BY_TYPE, resourceTypeId, e);
-        }
-    }
-
-    @Override
     public void deleteFiles(String resourceId) throws ConfigurationManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
