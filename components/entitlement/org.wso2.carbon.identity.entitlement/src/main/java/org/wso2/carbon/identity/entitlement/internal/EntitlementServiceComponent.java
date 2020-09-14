@@ -320,9 +320,9 @@ public class EntitlementServiceComponent {
     /**
      * Adds policy files with unique policyIDs to the registry.
      *
-     * @param policyIdList
-     * @param fileList
-     * @return
+     * @param policyIdList List of IDs of existing policies
+     * @param fileList List of files in policy folder
+     * @return boolean stating whether custom policies exist
      * @throws IOException
      */
     private boolean addPolicyFiles(List<String> policyIdList, File[] fileList) throws IOException {
@@ -337,7 +337,7 @@ public class EntitlementServiceComponent {
                         EntitlementUtil.addFilesystemPolicy(policyDTO, registryService
                                 .getGovernanceSystemRegistry(), true);
                     } catch (Exception e) {
-                        // log and ignore
+                        // Log error and continue with the rest of the files.
                         log.error("Error while adding XACML policies", e);
                     }
                 }
