@@ -320,8 +320,8 @@ public class EntitlementServiceComponent {
     /**
      * Adds policy files with unique policyIDs to the registry.
      *
-     * @param policyIdList List of IDs of existing policies
-     * @param fileList List of files in policy folder
+     * @param policyIdList list of IDs of existing policies
+     * @param fileList list of files in policy folder
      * @return boolean stating whether custom policies exist
      * @throws IOException
      */
