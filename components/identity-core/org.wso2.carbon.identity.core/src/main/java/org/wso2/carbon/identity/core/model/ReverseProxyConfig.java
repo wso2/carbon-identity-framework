@@ -26,6 +26,7 @@ public class ReverseProxyConfig {
     private final String proxyContext;
 
     public ReverseProxyConfig(String defaultContext, String proxyContext) {
+
         this.defaultContext = defaultContext;
         this.proxyContext = proxyContext;
     }

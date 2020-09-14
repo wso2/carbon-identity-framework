@@ -492,7 +492,6 @@ public class IdentityConfigParser {
         }
     }
 
-
     private void readChildElements(OMElement serverConfig, Stack<String> nameStack) {
         for (Iterator childElements = serverConfig.getChildElements(); childElements.hasNext(); ) {
             OMElement element = (OMElement) childElements.next();

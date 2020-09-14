@@ -257,7 +257,6 @@ public class IdentityUtilTest {
         };
     }
 
-
     @Test(dataProvider = "getIdentityCacheConfigTestData")
     public void testGetIdentityCacheConfig(String cacheManagerName, String cacheName, Object expected)
             throws Exception {
