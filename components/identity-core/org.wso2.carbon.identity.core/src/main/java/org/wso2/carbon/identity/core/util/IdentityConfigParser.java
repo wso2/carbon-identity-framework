@@ -56,7 +56,7 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
-    private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap();
+    private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
