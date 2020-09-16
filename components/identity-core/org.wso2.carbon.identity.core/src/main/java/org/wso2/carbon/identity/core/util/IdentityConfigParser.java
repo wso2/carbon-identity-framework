@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.core.model.IdentityCacheConfigKey;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.identity.core.model.LegacyFeatureConfig;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
@@ -55,6 +56,7 @@ public class IdentityConfigParser {
     private static Map<IdentityEventListenerConfigKey, IdentityEventListenerConfig> eventListenerConfiguration = new HashMap();
     private static Map<IdentityCacheConfigKey, IdentityCacheConfig> identityCacheConfigurationHolder = new HashMap();
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
+    private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
@@ -104,6 +106,11 @@ public class IdentityConfigParser {
 
     public static Map<String, IdentityCookieConfig> getIdentityCookieConfigurationHolder() {
         return identityCookieConfigurationHolder;
+    }
+
+    public static Map<String, ReverseProxyConfig> getReverseProxyConfigurationHolder() {
+
+        return reverseProxyConfigurationHolder;
     }
 
     /**
@@ -182,6 +189,7 @@ public class IdentityConfigParser {
             buildCacheConfig();
             buildCookieConfig();
             buildLegacyFeatureConfig();
+            buildReverseProxyConfig();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -433,6 +441,50 @@ public class IdentityConfigParser {
                         legacyFeatureConfigurationHolder.put(legacyFeatureConfigKey, legacyFeatureConfig);
                     } else {
                         log.warn("Configured <LegacyFeature> element at index: " + legacyFeaturesConfigElementIndex +
+                                " contains invalid entry.");
+                    }
+                }
+            }
+        }
+    }
+
+    private void buildReverseProxyConfig() {
+
+        ReverseProxyConfig reverseProxyConfig;
+        OMElement reverseProxyConfigElement =
+                this.getConfigElement(IdentityConstants.ReverseProxyConfigElements.REVERSE_PROXY_CONFIG);
+        if (reverseProxyConfigElement != null) {
+
+            int reverseProxyConfigElementIndex = 0;
+            Iterator<OMElement> reverseProxies = reverseProxyConfigElement.getChildrenWithName(
+                    getQNameWithIdentityNS(IdentityConstants.ReverseProxyConfigElements.REVERSE_PROXY));
+
+            if (reverseProxies != null) {
+                while (reverseProxies.hasNext()) {
+                    reverseProxyConfigElementIndex += 1;
+                    OMElement reverseProxy = reverseProxies.next();
+
+                    OMElement defaultContextElement = reverseProxy.getFirstChildWithName(
+                            getQNameWithIdentityNS(IdentityConstants.ReverseProxyConfigElements.DEFAULT_CONTEXT));
+                    OMElement proxyContextElement = reverseProxy.getFirstChildWithName(
+                            getQNameWithIdentityNS(IdentityConstants.ReverseProxyConfigElements.PROXY_CONTEXT));
+
+                    String defaultContext;
+                    String proxyContext;
+                    if (defaultContextElement != null && proxyContextElement != null) {
+                        defaultContext = defaultContextElement.getText();
+                        if (StringUtils.isNotBlank(defaultContext)) {
+                            defaultContext = defaultContext.trim();
+                        }
+                        proxyContext = proxyContextElement.getText();
+                        if (StringUtils.isNotBlank(proxyContext)) {
+                            proxyContext = proxyContext.trim();
+                        }
+
+                        reverseProxyConfig = new ReverseProxyConfig(defaultContext, proxyContext);
+                        reverseProxyConfigurationHolder.put(defaultContext, reverseProxyConfig);
+                    } else {
+                        log.warn("Configured <ReverseProxy> element at index: " + reverseProxyConfigElementIndex +
                                 " contains invalid entry.");
                     }
                 }

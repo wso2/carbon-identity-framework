@@ -566,4 +566,15 @@
     </TenantContextsToRewrite>
 
     <ClockSkew>300</ClockSkew>
+
+    <ReverseProxyConfig>
+        <ReverseProxy>
+            <DefaultContext>/oauth2/authorize</DefaultContext>
+            <ProxyContext>/authorize</ProxyContext>
+        </ReverseProxy>
+        <ReverseProxy>
+            <DefaultContext>/oidc/logout</DefaultContext>
+            <ProxyContext>/logout</ProxyContext>
+        </ReverseProxy>
+    </ReverseProxyConfig>
 </Server>
