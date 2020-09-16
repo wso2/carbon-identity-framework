@@ -247,8 +247,8 @@ public class IdentityUtil {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("legacy feature is not configured or the configured legacy feature is empty. " +
-                        "Hence returning false ");
+                log.debug("Legacy feature is not configured or the configured legacy feature is empty. " +
+                        "Hence returning false.");
             }
         }
         return false;
