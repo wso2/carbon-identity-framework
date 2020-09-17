@@ -159,6 +159,9 @@ public class DefaultClaimHandler implements ClaimHandler {
             idPStandardDialect = authenticator.getClaimDialectURI();
         }
 
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        remoteClaims.putAll(context.getRuntimeClaims());
+
         // set unfiltered remote claims as a property
         context.setProperty(FrameworkConstants.UNFILTERED_IDP_CLAIM_VALUES, remoteClaims);
 
@@ -452,6 +455,9 @@ public class DefaultClaimHandler implements ClaimHandler {
         // Retrieve all non-null user claim values against local claim uris.
         allLocalClaims = retrieveAllNunNullUserClaimValues(authenticatedUser, claimManager, appConfig,
                 (org.wso2.carbon.user.core.UserStoreManager) userStore);
+
+        // Insert the runtime claims from the context. The priority is for runtime claims.
+        allLocalClaims.putAll(context.getRuntimeClaims());
 
         handleRoleClaim(context, allLocalClaims);
         context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, allLocalClaims);
