@@ -307,7 +307,7 @@
             var passwordMethod = document.getElementById('defineHere');
             if (passwordMethod.checked) {
                 skipPasswordValidation = false;
-                jQuery('#emailRow').hide();
+                jQuery('#emailRow').remove();
                 jQuery('#passwordRow').show();
                 jQuery('#retypeRow').show();
             }
