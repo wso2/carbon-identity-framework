@@ -123,4 +123,13 @@ public class SQLQueries {
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
             + " WHERE SESSION_ID=?";
+
+    public static final String SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT =
+            "SELECT COUNT( DISTINCT IDN_AUTH_SESSION_META_DATA.SESSION_ID) " +
+                    "FROM IDN_AUTH_SESSION_META_DATA INNER JOIN IDN_AUTH_USER_SESSION_MAPPING " +
+                    "ON IDN_AUTH_SESSION_META_DATA.SESSION_ID = IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID " +
+                    "INNER JOIN IDN_AUTH_SESSION_STORE " +
+                    "ON IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID = IDN_AUTH_SESSION_STORE.SESSION_ID " +
+                    "WHERE IDN_AUTH_SESSION_META_DATA.PROPERTY_TYPE = ? AND IDN_AUTH_SESSION_META_DATA.VALUE " +
+                    "BETWEEN ? AND ? AND IDN_AUTH_SESSION_STORE.TENANT_ID = ? ";
 }

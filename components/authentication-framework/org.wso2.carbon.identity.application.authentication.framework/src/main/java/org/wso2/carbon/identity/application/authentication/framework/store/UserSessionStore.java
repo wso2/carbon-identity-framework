@@ -27,10 +27,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.D
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
+import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -42,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class to store and retrieve user related data.
@@ -754,5 +757,42 @@ public class UserSessionStore {
             throw new UserSessionException("Error while retrieving information of user id: " + userId, e);
         }
         return isExisting;
+    }
+
+    /**
+     * Counts the number of active sessions of the given tenant domain. For a session to be active, the last access
+     * time of the session should not be earlier than the session timeout time.
+     *
+     * @param tenantDomain tenant domain
+     * @return number of active sessions of the given tenant domain
+     * @throws UserSessionException if something goes wrong
+     */
+    public int getActiveSessionCount(String tenantDomain) throws UserSessionException {
+
+        int activeSessionCount = 0;
+        int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        long idleSessionTimeOut = TimeUnit.SECONDS.toMillis(IdPManagementUtil.getIdleSessionTimeOut(tenantDomain));
+        long currentTime = System.currentTimeMillis();
+        long minTimestamp = currentTime - idleSessionTimeOut;
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(
+                    SQLQueries.SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT)) {
+                preparedStatement.setString(1, SessionMgtConstants.LAST_ACCESS_TIME);
+                preparedStatement.setString(2, String.valueOf(minTimestamp));
+                preparedStatement.setString(3, String.valueOf(currentTime));
+                preparedStatement.setInt(4, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        activeSessionCount = resultSet.getInt(1);
+                    }
+                }
+                IdentityDatabaseUtil.commitTransaction(connection);
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving active session count of the tenant domain, " +
+                    tenantDomain, e);
+        }
+        return activeSessionCount;
     }
 }
