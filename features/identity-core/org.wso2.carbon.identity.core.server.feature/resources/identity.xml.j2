@@ -239,11 +239,7 @@
         {% if oauth.extensions.token_persistence_processor is defined %}
         <TokenPersistenceProcessor>{{oauth.extensions.token_persistence_processor}}</TokenPersistenceProcessor>
         {% else %}
-        {% if oauth.hash_tokens_and_secrets is sameas true %}
-        <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.HashingPersistenceProcessor</TokenPersistenceProcessor>
-        {% else %}
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
-        {% endif %}
         {% endif %}
 
         <HashAlgorithm>{{oauth.hash_token_algorithm}}</HashAlgorithm>
