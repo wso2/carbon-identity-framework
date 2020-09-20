@@ -41,7 +41,15 @@ public interface MetadataConverter {
 
     void deleteMetadataString(int tenantId, String idPName)throws IdentityProviderManagementException;
 
+
+    /**
+     * @param tenantId ID of the Tenant.
+     * @param idPName Name of the Identity Provider.
+     * @return A boolean by checking the conditions. Default is false.
+     * @throws IdentityProviderManagementException If any error occurred during the checking.
+     */
     default boolean canDelete(int tenantId, String idPName) throws IdentityProviderManagementException {
+
         return false;
     }
 }
