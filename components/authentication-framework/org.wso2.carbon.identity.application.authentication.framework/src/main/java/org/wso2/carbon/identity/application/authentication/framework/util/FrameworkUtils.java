@@ -156,6 +156,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 
 public class FrameworkUtils {
 
@@ -2609,14 +2610,21 @@ public class FrameworkUtils {
      */
     public static String preprocessUsername(String username, AuthenticationContext context) {
 
-        if (context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
             return username;
         }
+
         if (IdentityUtil.isEmailUsernameEnabled()) {
             if (StringUtils.countMatches(username, "@") == 1) {
                 return username + "@" + context.getTenantDomain();
             }
         } else if (!username.endsWith(context.getTenantDomain())) {
+
+            if (isSaaSApp && StringUtils.countMatches(username, "@") == 1) {
+                return username;
+            }
             return username + "@" + context.getTenantDomain();
         }
         return username;

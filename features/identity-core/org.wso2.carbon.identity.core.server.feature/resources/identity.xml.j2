@@ -2123,6 +2123,18 @@
 
     <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
 
+
+    <!--
+        When this property is set to 'true', if the username provided during the SaaS application authentication does
+        not have a tenant domain appended, the user will be treated as a super tenant user and will be authenticated
+        against the super tenant domain.
+
+        When this property is set to 'false', if the username provided during the SaaS application authentication does
+        not have a tenant domain appended, the user will be treated as a application tenant domain user and will be
+        authenticated against the application tenant domain.
+    -->
+    <EnableLegacySaaSAuthentication>{{authentication.enable_legacy_saas_mode | default(false)}}</EnableLegacySaaSAuthentication>
+
     <EnablePerUserFunctionalityLocking>{{user.enable_per_user_functionality_locking}}</EnablePerUserFunctionalityLocking>
 
     <TenantContextsToRewrite>
