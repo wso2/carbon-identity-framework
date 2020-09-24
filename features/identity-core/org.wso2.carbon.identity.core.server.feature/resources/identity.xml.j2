@@ -2344,4 +2344,9 @@
         {% endfor %}
     </ReverseProxyConfig>
     {% endif %}
+
+    <!-- Configuration for preserving the current session and token when updating the password. -->
+    <PasswordUpdate>
+        <PreserveCurrentSessionAndToken>{{password_update.preserve_current_session_and_token}}</PreserveCurrentSessionAndToken>
+    </PasswordUpdate>
 </Server>
