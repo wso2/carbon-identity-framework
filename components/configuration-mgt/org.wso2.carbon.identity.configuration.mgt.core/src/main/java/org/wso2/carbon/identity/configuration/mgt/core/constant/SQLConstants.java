@@ -239,7 +239,7 @@ public class SQLConstants {
             "  F.NAME FILE_NAME," +
             "  A.ID ATTR_ID," +
             "  A.ATTR_KEY ATTR_KEY," +
-            "  A.ATTR_VALUE ATTR_VALUE" +
+            "  A.ATTR_VALUE ATTR_VALUE " +
             "FROM" +
             "  IDN_CONFIG_RESOURCE R" +
             "  INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
@@ -323,7 +323,7 @@ public class SQLConstants {
             "   F.ID FILE_ID," +
             "   A.ID ATTR_ID," +
             "   A.ATTR_KEY ATTR_KEY," +
-            "   A.ATTR_VALUE ATTR_VALUE" +
+            "   A.ATTR_VALUE ATTR_VALUE " +
             "FROM" +
             "   IDN_CONFIG_RESOURCE R" +
             "   INNER JOIN IDN_CONFIG_TYPE T ON R.TYPE_ID = T.ID" +
@@ -397,7 +397,7 @@ public class SQLConstants {
             "   F.ID  FILE_ID," +
             "   A.ID  ATTR_ID," +
             "   A.ATTR_KEY  ATTR_KEY," +
-            "   A.ATTR_VALUE  ATTR_VALUE" +
+            "   A.ATTR_VALUE  ATTR_VALUE " +
             "FROM" +
             "   IDN_CONFIG_RESOURCE  R" +
             "   INNER JOIN IDN_CONFIG_TYPE  T ON R.TYPE_ID = T.ID" +
