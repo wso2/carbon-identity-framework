@@ -29,7 +29,7 @@ public class SQLQueries {
 
     public static final String INSERT_CORS_ORIGIN =
             "INSERT INTO IDN_CORS_ORIGIN (TENANT_ID, ORIGIN, UUID) " +
-            "VALUES (?, ?, ?)";
+            "VALUES (:TENANT_ID;, :ORIGIN;, :UUID;)";
 
     public static final String INSERT_CORS_ASSOCIATION =
             "INSERT INTO IDN_CORS_ASSOCIATION (IDN_CORS_ORIGIN_ID, SP_APP_ID) " +

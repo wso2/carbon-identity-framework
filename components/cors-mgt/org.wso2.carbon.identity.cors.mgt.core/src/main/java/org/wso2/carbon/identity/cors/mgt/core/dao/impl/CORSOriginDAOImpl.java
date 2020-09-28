@@ -86,7 +86,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 while (resultSet.next()) {
                     CORSOrigin corsOrigin = new CORSOrigin();
                     corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID).trim());
+                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID));
 
                     corsOrigins.add(corsOrigin);
                 }
@@ -118,7 +118,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 while (resultSet.next()) {
                     CORSOrigin corsOrigin = new CORSOrigin();
                     corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID).trim());
+                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID));
 
                     corsOrigins.add(corsOrigin);
                 }
@@ -167,12 +167,12 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                         try (ResultSet resultSet1 = namedPreparedStatement2.executeQuery()) {
                             int corsOriginId = -1;
                             if (!resultSet1.next()) {
-                                try (PreparedStatement preparedStatement3 =
-                                             connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
+                                try (NamedPreparedStatement preparedStatement3 =
+                                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
                                     // Origin is not present. Therefore add an origin.
                                     preparedStatement3.setInt(1, tenantId);
                                     preparedStatement3.setString(2, corsOrigin.getOrigin());
-                                    preparedStatement3.setString(3, UUID.randomUUID().toString().replace("-", ""));
+                                    preparedStatement3.setString(3, UUID.randomUUID().toString());
                                     preparedStatement3.executeUpdate();
 
                                     // Get origin id.
