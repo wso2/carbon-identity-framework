@@ -82,6 +82,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
+    private static String EXTEND_REMEMBER_ME_SESSION_ON_AUTH = "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
 
     public static DefaultAuthenticationRequestHandler getInstance() {
 
@@ -418,6 +419,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     } catch (UserSessionException e) {
                         log.error("Updating session meta data failed.", e);
                     }
+                }
+                /*
+                 * In the default configuration, the expiry time of the commonAuthCookie is fixed when rememberMe
+                 * option is selected. With this config, the expiry time will increase at every authentication.
+                 */
+                if (sessionContext.isRememberMe() &&
+                        Boolean.parseBoolean(IdentityUtil.getProperty(EXTEND_REMEMBER_ME_SESSION_ON_AUTH))) {
+                    context.setRememberMe(sessionContext.isRememberMe());
+                    setAuthCookie(request, response, context, commonAuthCookie, applicationTenantDomain);
                 }
 
                 // TODO add to cache?

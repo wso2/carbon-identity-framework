@@ -62,6 +62,7 @@
     <TimeConfig>
         <SessionIdleTimeout>15</SessionIdleTimeout>
         <RememberMeTimeout>20160</RememberMeTimeout>
+        <ExtendRememberMeSessionTimeoutOnAuth>true</ExtendRememberMeSessionTimeoutOnAuth>
     </TimeConfig>
 
     <!-- Security configurations -->
