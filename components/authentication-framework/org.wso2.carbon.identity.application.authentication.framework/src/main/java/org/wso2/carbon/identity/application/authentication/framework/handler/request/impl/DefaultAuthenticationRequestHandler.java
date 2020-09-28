@@ -82,7 +82,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
-    private static String EXTEND_REMEMBER_ME_SESSION_ON_AUTH = "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
+    private static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH = "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
 
     public static DefaultAuthenticationRequestHandler getInstance() {
 

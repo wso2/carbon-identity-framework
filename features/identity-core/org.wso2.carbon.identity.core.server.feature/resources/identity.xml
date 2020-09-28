@@ -62,6 +62,11 @@
     <TimeConfig>
         <SessionIdleTimeout>15</SessionIdleTimeout>
         <RememberMeTimeout>20160</RememberMeTimeout>
+        <!--
+        Setting ExtendRememberMeSessionTimeoutOnAuth to TRUE will change the expiry time of the commonAuth cookie
+        during the authentication. The default value will be TRUE and the expiry time of the commonAuth cookie
+        will change.
+        -->
         <ExtendRememberMeSessionTimeoutOnAuth>true</ExtendRememberMeSessionTimeoutOnAuth>
     </TimeConfig>
 
