@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -82,7 +83,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private static final Log log = LogFactory.getLog(DefaultAuthenticationRequestHandler.class);
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
     private static volatile DefaultAuthenticationRequestHandler instance;
-    private static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH = "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
 
     public static DefaultAuthenticationRequestHandler getInstance() {
 
@@ -425,7 +425,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                  * option is selected. With this config, the expiry time will increase at every authentication.
                  */
                 if (sessionContext.isRememberMe() &&
-                        Boolean.parseBoolean(IdentityUtil.getProperty(EXTEND_REMEMBER_ME_SESSION_ON_AUTH))) {
+                        Boolean.parseBoolean(IdentityUtil.getProperty(
+                                IdentityConstants.ServerConfig.EXTEND_REMEMBER_ME_SESSION_ON_AUTH))) {
                     context.setRememberMe(sessionContext.isRememberMe());
                     setAuthCookie(request, response, context, commonAuthCookie, applicationTenantDomain);
                 }
