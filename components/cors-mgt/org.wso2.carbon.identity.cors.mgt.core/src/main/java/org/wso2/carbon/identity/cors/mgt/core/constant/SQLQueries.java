@@ -33,7 +33,7 @@ public class SQLQueries {
 
     public static final String INSERT_CORS_ASSOCIATION =
             "INSERT INTO IDN_CORS_ASSOCIATION (IDN_CORS_ORIGIN_ID, SP_APP_ID) " +
-            "VALUES (:IDN_CORS_ORIGIN_ID;, :SP_APP_ID;)";
+            "VALUES (?,?)";
 
     public static final String DELETE_ORIGIN =
             "DELETE " +
@@ -55,5 +55,5 @@ public class SQLQueries {
     public static final String DELETE_CORS_APPLICATION_ASSOCIATION =
             "DELETE " +
             "FROM IDN_CORS_ASSOCIATION " +
-            "WHERE IDN_CORS_ORIGIN_ID = :IDN_CORS_ORIGIN_ID; AND SP_APP_ID = :SP_APP_ID;";
+            "WHERE IDN_CORS_ORIGIN_ID = ? AND SP_APP_ID = ?";
 }

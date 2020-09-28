@@ -169,12 +169,12 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                             }
                         }
 
-                        try (NamedPreparedStatement namedPreparedStatement3 =
-                                     new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
+                        try (PreparedStatement preparedStatement3 =
+                                     connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
                             // Add application associations.
-                            namedPreparedStatement3.setInt(1, corsOriginId);
-                            namedPreparedStatement3.setInt(2, SampleApp1.ID);
-                            namedPreparedStatement3.executeUpdate();
+                            preparedStatement3.setInt(1, corsOriginId);
+                            preparedStatement3.setInt(2, SampleApp1.ID);
+                            preparedStatement3.executeUpdate();
                         }
                     }
                 }
@@ -287,12 +287,12 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                             }
                         }
 
-                        try (NamedPreparedStatement namedPreparedStatement2 =
-                                     new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
+                        try (PreparedStatement preparedStatement2 =
+                                     connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
                             // Add application associations.
-                            namedPreparedStatement2.setInt(1, corsOriginId);
-                            namedPreparedStatement2.setInt(2, SampleApp1.ID);
-                            namedPreparedStatement2.executeUpdate();
+                            preparedStatement2.setInt(1, corsOriginId);
+                            preparedStatement2.setInt(2, SampleApp1.ID);
+                            preparedStatement2.executeUpdate();
                         }
                     }
                 }
@@ -367,20 +367,20 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                         }
                     }
 
-                    try (NamedPreparedStatement namedPreparedStatement4 =
-                                 new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
+                    try (PreparedStatement preparedStatement4 =
+                                 connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
                         // Add application associations.
-                        namedPreparedStatement4.setInt(1, corsOriginId);
-                        namedPreparedStatement4.setInt(2, SampleApp1.ID);
-                        namedPreparedStatement4.executeUpdate();
+                        preparedStatement4.setInt(1, corsOriginId);
+                        preparedStatement4.setInt(2, SampleApp1.ID);
+                        preparedStatement4.executeUpdate();
                     }
 
-                    try (NamedPreparedStatement namedPreparedStatement5 =
-                                 new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
+                    try (PreparedStatement preparedStatement5 =
+                                 connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
                         // Add application associations.
-                        namedPreparedStatement5.setInt(1, corsOriginId);
-                        namedPreparedStatement5.setInt(2, SampleApp2.ID);
-                        namedPreparedStatement5.executeUpdate();
+                        preparedStatement5.setInt(1, corsOriginId);
+                        preparedStatement5.setInt(2, SampleApp2.ID);
+                        preparedStatement5.executeUpdate();
                     }
                 }
             } catch (SQLException e) {

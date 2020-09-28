@@ -86,7 +86,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 while (resultSet.next()) {
                     CORSOrigin corsOrigin = new CORSOrigin();
                     corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID));
+                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID).trim());
 
                     corsOrigins.add(corsOrigin);
                 }
@@ -118,7 +118,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 while (resultSet.next()) {
                     CORSOrigin corsOrigin = new CORSOrigin();
                     corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID));
+                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID).trim());
 
                     corsOrigins.add(corsOrigin);
                 }
@@ -146,8 +146,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 namedPreparedStatement1.setInt(1, tenantId);
                 try (ResultSet resultSet = namedPreparedStatement1.executeQuery()) {
                     while (resultSet.next()) {
-                        try (NamedPreparedStatement namedPreparedStatement =
-                                     new NamedPreparedStatement(connection, DELETE_CORS_APPLICATION_ASSOCIATION)) {
+                        try (PreparedStatement namedPreparedStatement =
+                                     connection.prepareStatement(DELETE_CORS_APPLICATION_ASSOCIATION)) {
                             namedPreparedStatement.setInt(1, resultSet.getInt("ID"));
                             namedPreparedStatement.setInt(2, applicationId);
                             namedPreparedStatement.executeUpdate();
@@ -188,8 +188,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                             }
 
                             // Add application associations.
-                            try (NamedPreparedStatement namedPreparedStatement4 =
-                                         new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
+                            try (PreparedStatement namedPreparedStatement4 =
+                                         connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
                                 namedPreparedStatement4.setInt(1, corsOriginId);
                                 namedPreparedStatement4.setInt(2, applicationId);
                                 namedPreparedStatement4.executeUpdate();
@@ -250,11 +250,11 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                                 int corsOriginId = resultSet2.getInt("ID");
 
                                 // Add application associations.
-                                try (NamedPreparedStatement namedPreparedStatement4 =
-                                             new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
-                                    namedPreparedStatement4.setInt(1, corsOriginId);
-                                    namedPreparedStatement4.setInt(2, applicationId);
-                                    namedPreparedStatement4.executeUpdate();
+                                try (PreparedStatement preparedStatement4 =
+                                             connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
+                                    preparedStatement4.setInt(1, corsOriginId);
+                                    preparedStatement4.setInt(2, applicationId);
+                                    preparedStatement4.executeUpdate();
                                 }
                             } else {
                                 IdentityDatabaseUtil.rollbackTransaction(connection);
@@ -296,12 +296,11 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                                 int corsOriginDbId = resultSet.getInt(CORSOriginTableColumns.ID);
 
                                 // Delete application association.
-                                try (NamedPreparedStatement namedPreparedStatement2 =
-                                             new NamedPreparedStatement(connection,
-                                                     DELETE_CORS_APPLICATION_ASSOCIATION)) {
-                                    namedPreparedStatement2.setInt(1, corsOriginDbId);
-                                    namedPreparedStatement2.setInt(2, applicationId);
-                                    namedPreparedStatement2.executeUpdate();
+                                try (PreparedStatement preparedStatement2 =
+                                             connection.prepareStatement(DELETE_CORS_APPLICATION_ASSOCIATION)) {
+                                    preparedStatement2.setInt(1, corsOriginDbId);
+                                    preparedStatement2.setInt(2, applicationId);
+                                    preparedStatement2.executeUpdate();
                                 }
                             } else {
                                 IdentityDatabaseUtil.rollbackTransaction(connection);
