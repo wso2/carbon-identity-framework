@@ -1500,10 +1500,13 @@ CREATE TABLE IDN_CONFIG_TYPE (
 )
 /
 
-INSERT INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
-('9ab0ef95-13e9-4ed5-afaf-d29bed62f7bd', 'IDP_TEMPLATE', 'Template type to uniquely identify IDP templates'),
-('3c4ac3d0-5903-4e3d-aaca-38df65b33bfd', 'APPLICATION_TEMPLATE', 'Template type to uniquely identify Application templates'),
+INSERT ALL INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('9ab0ef95-13e9-4ed5-afaf-d29bed62f7bd', 'IDP_TEMPLATE', 'Template type to uniquely identify IDP templates')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
+('3c4ac3d0-5903-4e3d-aaca-38df65b33bfd', 'APPLICATION_TEMPLATE', 'Template type to uniquely identify Application templates')
+INTO IDN_CONFIG_TYPE (ID, NAME, DESCRIPTION) VALUES
 ('8ec6dbf1-218a-49bf-bc34-0d2db52d151c', 'CORS_CONFIGURATION', 'A resource type to keep the tenant CORS configurations')
+SELECT 1 FROM dual
 /
 
 CREATE TABLE IDN_CONFIG_RESOURCE (
