@@ -607,12 +607,10 @@
   "console.ui.app_logo_path": "/assets/images/logo.svg",
   "console.ui.product_name": "Identity Server",
   "console.theme": "default",
-  "console.session.params": {
-    "userIdleTimeOut": 600,
-    "userIdleWarningTimeOut": 580,
-    "sessionRefreshTimeOut": 300,
-    "checkSessionInterval": 3
-  },
+  "console.session.params.userIdleTimeOut": 600,
+  "console.session.params.userIdleWarningTimeOut": 580,
+  "console.session.params.sessionRefreshTimeOut": 300,
+  "console.session.params.checkSessionInterval": 3,
   "console.applications.enabled": true,
   "console.applications.scopes": {
     "create": [
@@ -799,12 +797,10 @@
     "update": [],
     "delete": []
   },
-  "myaccount.session.params": {
-    "userIdleTimeOut": 600,
-    "userIdleWarningTimeOut": 580,
-    "sessionRefreshTimeOut": 300,
-    "checkSessionInterval": 3
-  },
+  "myaccount.session.params.userIdleTimeOut": 600,
+  "myaccount.session.params.userIdleWarningTimeOut": 580,
+  "myaccount.session.params.sessionRefreshTimeOut": 300,
+  "myaccount.session.params.checkSessionInterval": 3,
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": true,
   "cors.allowed_origins": [],
