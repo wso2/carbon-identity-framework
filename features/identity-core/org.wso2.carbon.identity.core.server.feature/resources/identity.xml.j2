@@ -1149,6 +1149,13 @@
             <Property name="Log.Token">false</Property>
         </EventListener>
 
+        <!-- Basic OAuth client authenticator -->
+        <EventListener id="basic_auth_client_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
+                       orderId="{{event.default_listener.basic_auth_client_authenticator.priority}}"
+                       enable="{{event.default_listener.basic_auth_client_authenticator.enable}}"/>
+
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener id="user_deletion"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
