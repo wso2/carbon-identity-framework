@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_ADD;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_APPLICATIONS_RETRIEVE;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_CORS_DELETE;
@@ -50,6 +49,9 @@ import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.GET_COR
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ASSOCIATION;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SQLQueries.INSERT_CORS_ORIGIN;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.ORIGIN;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.TENANT_ID;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.SchemaConstants.CORSOriginTableColumns.UNIQUE_ID;
 import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.handleServerException;
 
 /**
@@ -85,8 +87,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 List<CORSOrigin> corsOrigins = new ArrayList<>();
                 while (resultSet.next()) {
                     CORSOrigin corsOrigin = new CORSOrigin();
-                    corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID));
+                    corsOrigin.setOrigin(resultSet.getString(ORIGIN));
+                    corsOrigin.setId(resultSet.getString(UNIQUE_ID));
 
                     corsOrigins.add(corsOrigin);
                 }
@@ -117,8 +119,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 List<CORSOrigin> corsOrigins = new ArrayList<>();
                 while (resultSet.next()) {
                     CORSOrigin corsOrigin = new CORSOrigin();
-                    corsOrigin.setOrigin(resultSet.getString(CORSOriginTableColumns.ORIGIN));
-                    corsOrigin.setId(resultSet.getString(CORSOriginTableColumns.UUID));
+                    corsOrigin.setOrigin(resultSet.getString(ORIGIN));
+                    corsOrigin.setId(resultSet.getString(UNIQUE_ID));
 
                     corsOrigins.add(corsOrigin);
                 }
@@ -146,11 +148,11 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                 namedPreparedStatement1.setInt(1, tenantId);
                 try (ResultSet resultSet = namedPreparedStatement1.executeQuery()) {
                     while (resultSet.next()) {
-                        try (PreparedStatement namedPreparedStatement =
+                        try (PreparedStatement preparedStatement =
                                      connection.prepareStatement(DELETE_CORS_APPLICATION_ASSOCIATION)) {
-                            namedPreparedStatement.setInt(1, resultSet.getInt("ID"));
-                            namedPreparedStatement.setInt(2, applicationId);
-                            namedPreparedStatement.executeUpdate();
+                            preparedStatement.setInt(1, resultSet.getInt("ID"));
+                            preparedStatement.setInt(2, applicationId);
+                            preparedStatement.executeUpdate();
                         }
                     }
                 }
@@ -162,21 +164,21 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                     // Check if the origins is there.
                     try (NamedPreparedStatement namedPreparedStatement2 =
                                  new NamedPreparedStatement(connection, GET_CORS_ORIGIN_ID)) {
-                        namedPreparedStatement2.setInt(1, tenantId);
-                        namedPreparedStatement2.setString(2, corsOrigin.getOrigin());
+                        namedPreparedStatement2.setInt(TENANT_ID, tenantId);
+                        namedPreparedStatement2.setString(ORIGIN, corsOrigin.getOrigin());
                         try (ResultSet resultSet1 = namedPreparedStatement2.executeQuery()) {
                             int corsOriginId = -1;
                             if (!resultSet1.next()) {
-                                try (NamedPreparedStatement preparedStatement3 =
+                                try (NamedPreparedStatement namedPreparedStatement3 =
                                              new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
                                     // Origin is not present. Therefore add an origin.
-                                    preparedStatement3.setInt(1, tenantId);
-                                    preparedStatement3.setString(2, corsOrigin.getOrigin());
-                                    preparedStatement3.setString(3, UUID.randomUUID().toString());
-                                    preparedStatement3.executeUpdate();
+                                    namedPreparedStatement3.setInt(TENANT_ID, tenantId);
+                                    namedPreparedStatement3.setString(ORIGIN, corsOrigin.getOrigin());
+                                    namedPreparedStatement3.setString(UNIQUE_ID, UUID.randomUUID().toString());
+                                    namedPreparedStatement3.executeUpdate();
 
                                     // Get origin id.
-                                    try (ResultSet resultSet2 = preparedStatement3.getGeneratedKeys()) {
+                                    try (ResultSet resultSet2 = namedPreparedStatement3.getGeneratedKeys()) {
                                         if (resultSet2.next()) {
                                             corsOriginId = resultSet2.getInt(1);
                                         }
@@ -188,11 +190,11 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                             }
 
                             // Add application associations.
-                            try (PreparedStatement namedPreparedStatement4 =
+                            try (PreparedStatement preparedStatement4 =
                                          connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
-                                namedPreparedStatement4.setInt(1, corsOriginId);
-                                namedPreparedStatement4.setInt(2, applicationId);
-                                namedPreparedStatement4.executeUpdate();
+                                preparedStatement4.setInt(1, corsOriginId);
+                                preparedStatement4.setInt(2, applicationId);
+                                preparedStatement4.executeUpdate();
                             }
                         }
                     }
@@ -231,9 +233,9 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                                 // Origin is not present. Therefore add an origin without the tenant association.
                                 try (NamedPreparedStatement namedPreparedStatement2 =
                                              new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
-                                    namedPreparedStatement2.setInt(1, tenantId);
-                                    namedPreparedStatement2.setString(2, corsOrigin.getOrigin());
-                                    namedPreparedStatement2.setString(3, UUID.randomUUID().toString().replace("-", ""));
+                                    namedPreparedStatement2.setInt(TENANT_ID, tenantId);
+                                    namedPreparedStatement2.setString(ORIGIN, corsOrigin.getOrigin());
+                                    namedPreparedStatement2.setString(UNIQUE_ID, UUID.randomUUID().toString());
                                     namedPreparedStatement2.executeUpdate();
                                 }
                             }
@@ -243,8 +245,8 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                     try (NamedPreparedStatement namedPreparedStatement3 = new NamedPreparedStatement(connection,
                             GET_CORS_ORIGIN_ID)) {
                         // Get origin id.
-                        namedPreparedStatement3.setInt(1, tenantId);
-                        namedPreparedStatement3.setString(2, corsOrigin.getOrigin());
+                        namedPreparedStatement3.setInt(TENANT_ID, tenantId);
+                        namedPreparedStatement3.setString(ORIGIN, corsOrigin.getOrigin());
                         try (ResultSet resultSet2 = namedPreparedStatement3.executeQuery()) {
                             if (resultSet2.next()) {
                                 int corsOriginId = resultSet2.getInt("ID");
@@ -338,7 +340,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
             try (ResultSet resultSet = namedPreparedStatement.executeQuery()) {
                 List<CORSApplication> corsApplications = new ArrayList<>();
                 while (resultSet.next()) {
-                    CORSApplication corsApplication = new CORSApplication(resultSet.getString("UUID"),
+                    CORSApplication corsApplication = new CORSApplication(resultSet.getString(UNIQUE_ID),
                             resultSet.getString("APP_NAME"));
                     corsApplications.add(corsApplication);
                 }

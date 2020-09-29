@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
@@ -128,7 +127,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                         INSERT_CORS_ORIGIN)) {
                     namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
                     namedPreparedStatement.setString(2, origin);
-                    namedPreparedStatement.setString(3, UUID.randomUUID().toString().replace("-", ""));
+                    namedPreparedStatement.setString(3, UUID.randomUUID().toString());
                     namedPreparedStatement.executeUpdate();
                 }
             }
@@ -150,17 +149,17 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
                 for (String origin : SAMPLE_ORIGIN_LIST_1) {
-                    try (PreparedStatement preparedStatement2 =
-                                 connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
+                    try (NamedPreparedStatement namedPreparedStatement =
+                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
                         // Origin is not present. Therefore add an origin.
-                        preparedStatement2.setInt(1, SampleTenant.ID);
-                        preparedStatement2.setString(2, origin);
-                        preparedStatement2.setString(3, UUID.randomUUID().toString().replace("-", ""));
-                        preparedStatement2.executeUpdate();
+                        namedPreparedStatement.setInt(1, SampleTenant.ID);
+                        namedPreparedStatement.setString(2, origin);
+                        namedPreparedStatement.setString(3, UUID.randomUUID().toString());
+                        namedPreparedStatement.executeUpdate();
 
                         // Get origin id.
                         int corsOriginId;
-                        try (ResultSet resultSet = preparedStatement2.getGeneratedKeys()) {
+                        try (ResultSet resultSet = namedPreparedStatement.getGeneratedKeys()) {
                             if (resultSet.next()) {
                                 corsOriginId = resultSet.getInt(1);
                             } else {
@@ -268,16 +267,16 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
             try {
                 for (String origin : SAMPLE_ORIGIN_LIST_1) {
                     // Origin is not present. Therefore add the origin.
-                    try (PreparedStatement preparedStatement1 =
-                                 connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
-                        preparedStatement1.setInt(1, SUPER_TENANT_ID);
-                        preparedStatement1.setString(2, origin);
-                        preparedStatement1.setString(3, UUID.randomUUID().toString().replace("-", ""));
-                        preparedStatement1.executeUpdate();
+                    try (NamedPreparedStatement namedPreparedStatement =
+                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                        namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
+                        namedPreparedStatement.setString(2, origin);
+                        namedPreparedStatement.setString(3, UUID.randomUUID().toString());
+                        namedPreparedStatement.executeUpdate();
 
                         // Get origin id.
                         int corsOriginId = -1;
-                        try (ResultSet resultSet1 = preparedStatement1.getGeneratedKeys()) {
+                        try (ResultSet resultSet1 = namedPreparedStatement.getGeneratedKeys()) {
                             if (resultSet1.next()) {
                                 corsOriginId = resultSet1.getInt(1);
                             } else {
@@ -323,7 +322,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     @Test
     public void testGetCORSApplicationsByCORSOriginId() throws CORSManagementServiceException {
 
-        String originUUID = UUID.randomUUID().toString().replace("-", "");
+        String originUUID = UUID.randomUUID().toString();
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
@@ -333,7 +332,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                     preparedStatement1.setInt(1, SampleApp1.ID);
                     preparedStatement1.setInt(2, SampleTenant.ID);
                     preparedStatement1.setString(3, SampleApp1.NAME);
-                    preparedStatement1.setString(4, SampleApp1.UUID.replace("-", ""));
+                    preparedStatement1.setString(4, SampleApp1.UUID);
                     preparedStatement1.executeUpdate();
                 }
 
@@ -343,22 +342,22 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                     preparedStatement2.setInt(1, SampleApp2.ID);
                     preparedStatement2.setInt(2, SampleApp2.ID);
                     preparedStatement2.setString(3, SampleApp2.NAME);
-                    preparedStatement2.setString(4, SampleApp2.UUID.replace("-", ""));
+                    preparedStatement2.setString(4, SampleApp2.UUID);
                     preparedStatement2.executeUpdate();
                 }
 
                 String origin = SAMPLE_ORIGIN_LIST_1.get(0);
-                try (PreparedStatement preparedStatement3 =
-                             connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
+                try (NamedPreparedStatement namedPreparedStatement =
+                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
                     // Origin is not present. Therefore add an origin.
-                    preparedStatement3.setInt(1, SampleTenant.ID);
-                    preparedStatement3.setString(2, origin);
-                    preparedStatement3.setString(3, originUUID);
-                    preparedStatement3.executeUpdate();
+                    namedPreparedStatement.setInt(1, SampleTenant.ID);
+                    namedPreparedStatement.setString(2, origin);
+                    namedPreparedStatement.setString(3, originUUID);
+                    namedPreparedStatement.executeUpdate();
 
                     // Get origin id.
                     int corsOriginId;
-                    try (ResultSet resultSet = preparedStatement3.getGeneratedKeys()) {
+                    try (ResultSet resultSet = namedPreparedStatement.getGeneratedKeys()) {
                         if (resultSet.next()) {
                             corsOriginId = resultSet.getInt(1);
                         } else {

@@ -13,7 +13,7 @@ public class SchemaConstants {
         public static final String ID = "ID";
         public static final String TENANT_ID = "TENANT_ID";
         public static final String ORIGIN = "ORIGIN";
-        public static final String UUID = "UUID";
+        public static final String UNIQUE_ID = "UUID";
 
         private CORSOriginTableColumns() {
 
