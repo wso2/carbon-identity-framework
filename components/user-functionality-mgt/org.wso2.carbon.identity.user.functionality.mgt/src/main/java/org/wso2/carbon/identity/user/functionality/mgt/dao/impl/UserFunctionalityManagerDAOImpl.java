@@ -23,13 +23,17 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 import org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils;
+import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManager;
+import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityManagerImpl;
 import org.wso2.carbon.identity.user.functionality.mgt.UserFunctionalityMgtConstants;
 import org.wso2.carbon.identity.user.functionality.mgt.dao.UserFunctionalityManagerDAO;
+import org.wso2.carbon.identity.user.functionality.mgt.exception.UserFunctionalityManagementException;
 import org.wso2.carbon.identity.user.functionality.mgt.exception.UserFunctionalityManagementServerException;
 import org.wso2.carbon.identity.user.functionality.mgt.model.FunctionalityLockStatus;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -85,6 +89,13 @@ public class UserFunctionalityManagerDAOImpl implements UserFunctionalityManager
             throws UserFunctionalityManagementServerException {
 
         FunctionalityLockStatus functionalityLockStatus;
+        UserFunctionalityManager userFunctionalityManager = new UserFunctionalityManagerImpl();
+        try {
+            userFunctionalityManager.setProperties("ad8aef93-9808-4aea-a1ed-f1f9d4f9e147", -1234,
+                    "SMSBasedPasswordRecovery", new HashMap<>());
+        } catch (UserFunctionalityManagementException e) {
+            e.printStackTrace();
+        }
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             functionalityLockStatus =
