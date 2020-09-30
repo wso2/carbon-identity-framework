@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertThrows;
 import static org.testng.Assert.assertTrue;
@@ -127,7 +128,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                         INSERT_CORS_ORIGIN)) {
                     namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
                     namedPreparedStatement.setString(2, origin);
-                    namedPreparedStatement.setString(3, UUID.randomUUID().toString());
+                    namedPreparedStatement.setString(3, UUID.randomUUID().toString().replace("-", ""));
                     namedPreparedStatement.executeUpdate();
                 }
             }
@@ -149,17 +150,17 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
                 for (String origin : SAMPLE_ORIGIN_LIST_1) {
-                    try (NamedPreparedStatement namedPreparedStatement =
-                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                    try (PreparedStatement preparedStatement2 =
+                                 connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
                         // Origin is not present. Therefore add an origin.
-                        namedPreparedStatement.setInt(1, SampleTenant.ID);
-                        namedPreparedStatement.setString(2, origin);
-                        namedPreparedStatement.setString(3, UUID.randomUUID().toString());
-                        namedPreparedStatement.executeUpdate();
+                        preparedStatement2.setInt(1, SampleTenant.ID);
+                        preparedStatement2.setString(2, origin);
+                        preparedStatement2.setString(3, UUID.randomUUID().toString().replace("-", ""));
+                        preparedStatement2.executeUpdate();
 
                         // Get origin id.
                         int corsOriginId;
-                        try (ResultSet resultSet = namedPreparedStatement.getGeneratedKeys()) {
+                        try (ResultSet resultSet = preparedStatement2.getGeneratedKeys()) {
                             if (resultSet.next()) {
                                 corsOriginId = resultSet.getInt(1);
                             } else {
@@ -168,12 +169,12 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                             }
                         }
 
-                        try (PreparedStatement preparedStatement3 =
-                                     connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
+                        try (NamedPreparedStatement namedPreparedStatement3 =
+                                     new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
                             // Add application associations.
-                            preparedStatement3.setInt(1, corsOriginId);
-                            preparedStatement3.setInt(2, SampleApp1.ID);
-                            preparedStatement3.executeUpdate();
+                            namedPreparedStatement3.setInt(1, corsOriginId);
+                            namedPreparedStatement3.setInt(2, SampleApp1.ID);
+                            namedPreparedStatement3.executeUpdate();
                         }
                     }
                 }
@@ -267,16 +268,16 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
             try {
                 for (String origin : SAMPLE_ORIGIN_LIST_1) {
                     // Origin is not present. Therefore add the origin.
-                    try (NamedPreparedStatement namedPreparedStatement =
-                                 new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
-                        namedPreparedStatement.setInt(1, SUPER_TENANT_ID);
-                        namedPreparedStatement.setString(2, origin);
-                        namedPreparedStatement.setString(3, UUID.randomUUID().toString());
-                        namedPreparedStatement.executeUpdate();
+                    try (PreparedStatement preparedStatement1 =
+                                 connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
+                        preparedStatement1.setInt(1, SUPER_TENANT_ID);
+                        preparedStatement1.setString(2, origin);
+                        preparedStatement1.setString(3, UUID.randomUUID().toString().replace("-", ""));
+                        preparedStatement1.executeUpdate();
 
                         // Get origin id.
                         int corsOriginId = -1;
-                        try (ResultSet resultSet1 = namedPreparedStatement.getGeneratedKeys()) {
+                        try (ResultSet resultSet1 = preparedStatement1.getGeneratedKeys()) {
                             if (resultSet1.next()) {
                                 corsOriginId = resultSet1.getInt(1);
                             } else {
@@ -286,12 +287,12 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                             }
                         }
 
-                        try (PreparedStatement preparedStatement2 =
-                                     connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
+                        try (NamedPreparedStatement namedPreparedStatement2 =
+                                     new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
                             // Add application associations.
-                            preparedStatement2.setInt(1, corsOriginId);
-                            preparedStatement2.setInt(2, SampleApp1.ID);
-                            preparedStatement2.executeUpdate();
+                            namedPreparedStatement2.setInt(1, corsOriginId);
+                            namedPreparedStatement2.setInt(2, SampleApp1.ID);
+                            namedPreparedStatement2.executeUpdate();
                         }
                     }
                 }
@@ -322,7 +323,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     @Test
     public void testGetCORSApplicationsByCORSOriginId() throws CORSManagementServiceException {
 
-        String originUUID = UUID.randomUUID().toString();
+        String originUUID = UUID.randomUUID().toString().replace("-", "");
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             try {
@@ -332,7 +333,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                     preparedStatement1.setInt(1, SampleApp1.ID);
                     preparedStatement1.setInt(2, SampleTenant.ID);
                     preparedStatement1.setString(3, SampleApp1.NAME);
-                    preparedStatement1.setString(4, SampleApp1.UUID);
+                    preparedStatement1.setString(4, SampleApp1.UUID.replace("-", ""));
                     preparedStatement1.executeUpdate();
                 }
 
@@ -342,22 +343,22 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                     preparedStatement2.setInt(1, SampleApp2.ID);
                     preparedStatement2.setInt(2, SampleApp2.ID);
                     preparedStatement2.setString(3, SampleApp2.NAME);
-                    preparedStatement2.setString(4, SampleApp2.UUID);
+                    preparedStatement2.setString(4, SampleApp2.UUID.replace("-", ""));
                     preparedStatement2.executeUpdate();
                 }
 
                 String origin = SAMPLE_ORIGIN_LIST_1.get(0);
-                try (NamedPreparedStatement namedPreparedStatement =
-                             new NamedPreparedStatement(connection, INSERT_CORS_ORIGIN)) {
+                try (PreparedStatement preparedStatement3 =
+                             connection.prepareStatement(INSERT_CORS_ORIGIN, RETURN_GENERATED_KEYS)) {
                     // Origin is not present. Therefore add an origin.
-                    namedPreparedStatement.setInt(1, SampleTenant.ID);
-                    namedPreparedStatement.setString(2, origin);
-                    namedPreparedStatement.setString(3, originUUID);
-                    namedPreparedStatement.executeUpdate();
+                    preparedStatement3.setInt(1, SampleTenant.ID);
+                    preparedStatement3.setString(2, origin);
+                    preparedStatement3.setString(3, originUUID);
+                    preparedStatement3.executeUpdate();
 
                     // Get origin id.
                     int corsOriginId;
-                    try (ResultSet resultSet = namedPreparedStatement.getGeneratedKeys()) {
+                    try (ResultSet resultSet = preparedStatement3.getGeneratedKeys()) {
                         if (resultSet.next()) {
                             corsOriginId = resultSet.getInt(1);
                         } else {
@@ -366,20 +367,20 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
                         }
                     }
 
-                    try (PreparedStatement preparedStatement4 =
-                                 connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
+                    try (NamedPreparedStatement namedPreparedStatement4 =
+                                 new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
                         // Add application associations.
-                        preparedStatement4.setInt(1, corsOriginId);
-                        preparedStatement4.setInt(2, SampleApp1.ID);
-                        preparedStatement4.executeUpdate();
+                        namedPreparedStatement4.setInt(1, corsOriginId);
+                        namedPreparedStatement4.setInt(2, SampleApp1.ID);
+                        namedPreparedStatement4.executeUpdate();
                     }
 
-                    try (PreparedStatement preparedStatement5 =
-                                 connection.prepareStatement(INSERT_CORS_ASSOCIATION)) {
+                    try (NamedPreparedStatement namedPreparedStatement5 =
+                                 new NamedPreparedStatement(connection, INSERT_CORS_ASSOCIATION)) {
                         // Add application associations.
-                        preparedStatement5.setInt(1, corsOriginId);
-                        preparedStatement5.setInt(2, SampleApp2.ID);
-                        preparedStatement5.executeUpdate();
+                        namedPreparedStatement5.setInt(1, corsOriginId);
+                        namedPreparedStatement5.setInt(2, SampleApp2.ID);
+                        namedPreparedStatement5.executeUpdate();
                     }
                 }
             } catch (SQLException e) {
