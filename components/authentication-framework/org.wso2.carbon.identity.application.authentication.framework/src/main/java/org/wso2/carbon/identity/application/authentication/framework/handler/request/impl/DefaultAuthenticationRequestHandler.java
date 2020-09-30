@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -418,6 +419,16 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     } catch (UserSessionException e) {
                         log.error("Updating session meta data failed.", e);
                     }
+                }
+                /*
+                 * In the default configuration, the expiry time of the commonAuthCookie is fixed when rememberMe
+                 * option is selected. With this config, the expiry time will increase at every authentication.
+                 */
+                if (sessionContext.isRememberMe() &&
+                        Boolean.parseBoolean(IdentityUtil.getProperty(
+                                IdentityConstants.ServerConfig.EXTEND_REMEMBER_ME_SESSION_ON_AUTH))) {
+                    context.setRememberMe(sessionContext.isRememberMe());
+                    setAuthCookie(request, response, context, commonAuthCookie, applicationTenantDomain);
                 }
 
                 // TODO add to cache?
