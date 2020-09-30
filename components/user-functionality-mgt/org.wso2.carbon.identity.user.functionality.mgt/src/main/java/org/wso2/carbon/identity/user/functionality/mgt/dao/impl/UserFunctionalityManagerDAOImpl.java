@@ -89,13 +89,6 @@ public class UserFunctionalityManagerDAOImpl implements UserFunctionalityManager
             throws UserFunctionalityManagementServerException {
 
         FunctionalityLockStatus functionalityLockStatus;
-        UserFunctionalityManager userFunctionalityManager = new UserFunctionalityManagerImpl();
-        try {
-            userFunctionalityManager.setProperties("ad8aef93-9808-4aea-a1ed-f1f9d4f9e147", -1234,
-                    "SMSBasedPasswordRecovery", new HashMap<>());
-        } catch (UserFunctionalityManagementException e) {
-            e.printStackTrace();
-        }
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             functionalityLockStatus =
