@@ -848,6 +848,7 @@
     <SelfRegistration>
         <Enable>false</Enable>
         <LockOnCreation>true</LockOnCreation>
+        <NotifyAccountConfirmation>false</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
