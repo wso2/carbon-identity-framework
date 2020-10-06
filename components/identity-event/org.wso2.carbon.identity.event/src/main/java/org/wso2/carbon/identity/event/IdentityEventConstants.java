@@ -214,6 +214,10 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATION_STATUS = "authenticationStatus";
         public static final String USER_CHALLENGE_ANSWERS = "userChallengeAnswers";
         public static final String USER_OLD_CHALLENGE_ANSWERS = "userOldChallengeAnswers";
+        public static final String SELF_REGISTRATION_CODE = "selfsignup-code";
+        public static final String SELF_REGISTRATION_VERIFIED_CHANNEL = "selfsignup-verify-channel";
+        public static final String SELF_REGISTRATION_VERIFIED_CHANNEL_CLAIM = "selfsignup-verify-channel-claim";
+        public static final String SELF_SIGNUP_CONFIRM_TIME = "selfsignup-confirm-time";
     }
 
     public class ErrorMessage {
