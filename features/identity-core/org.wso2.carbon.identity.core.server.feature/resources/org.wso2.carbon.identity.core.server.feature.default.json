@@ -4,6 +4,12 @@
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
+  "database.identity_db.pool_options.maxActive": "50",
+  "database.identity_db.pool_options.maxWait": "60000",
+  "database.identity_db.pool_options.testOnBorrow": "true",
+  "database.identity_db.pool_options.validationInterval": "30000",
+  "database.identity_db.pool_options.defaultAutoCommit": "true",
+  "database.identity_db.jmx_enable": "false",
   "server.clock_skew": "5m",
   "session_data.persistence.enable_persistence": true,
   "session_data.persistence.persistence_pool_size": "0",
