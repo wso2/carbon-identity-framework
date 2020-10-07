@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.MDC;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
@@ -98,6 +99,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
+    private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -194,7 +196,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
-
+                if (StringUtils.isNotBlank(context.getServiceProviderName())) {
+                    MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
+                }
                 // Monitor should be context itself as we need to synchronize only if the same context is used by two
                 // different threads.
                 synchronized (context) {
@@ -641,13 +645,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
-            SessionContext sessionContext;
+            SessionContext sessionContext = null;
             // get the authentication details from the cache
             try {
                 //Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
                 // tenant wise session expiry time
                 FrameworkUtils.startTenantFlow(context.getTenantDomain());
-                sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
+                sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
             } finally {
                 FrameworkUtils.endTenantFlow();
             }

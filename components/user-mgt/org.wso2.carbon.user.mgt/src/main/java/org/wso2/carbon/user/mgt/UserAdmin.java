@@ -301,6 +301,16 @@ public class UserAdmin {
      */
     public void addInternalRole(String roleName, String[] userList, String[] permissions)
             throws UserAdminException {
+
+        /* Block the role names with the prefix 'system_' as it is used for the special roles created by the system in
+        order to maintain the backward compatibility. */
+        if (getUserAdminProxy().isRoleAndGroupSeparationEnabled() && StringUtils
+                .startsWithIgnoreCase(roleName, UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX)) {
+            String errorMessage = String.format("Invalid role name: %s. Role names with the prefix: %s, is not allowed"
+                            + " to be created from externally in the system.", roleName,
+                    UserCoreConstants.INTERNAL_SYSTEM_ROLE_PREFIX);
+            throw new UserAdminException(errorMessage);
+        }
         addUserRole(roleName, userList, permissions, false, true);
     }
 

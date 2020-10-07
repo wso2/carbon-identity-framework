@@ -62,6 +62,12 @@
     <TimeConfig>
         <SessionIdleTimeout>15</SessionIdleTimeout>
         <RememberMeTimeout>20160</RememberMeTimeout>
+        <!--
+        Setting ExtendRememberMeSessionTimeoutOnAuth to TRUE will change the expiry time of the commonAuth cookie
+        during the authentication. The default value will be TRUE and the expiry time of the commonAuth cookie
+        will change.
+        -->
+        <ExtendRememberMeSessionTimeoutOnAuth>true</ExtendRememberMeSessionTimeoutOnAuth>
     </TimeConfig>
 
     <!-- Security configurations -->
@@ -778,6 +784,9 @@
         <Notification>
             <Password>
                 <Enable>false</Enable>
+                <smsOtp>
+                    <Regex>[a-zA-Z0-9]{6}</Regex>
+                </smsOtp>
             </Password>
             <Username>
                 <Enable>false</Enable>
@@ -839,6 +848,7 @@
     <SelfRegistration>
         <Enable>false</Enable>
         <LockOnCreation>true</LockOnCreation>
+        <NotifyAccountConfirmation>false</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>true</InternallyManage>
         </Notification>
@@ -919,6 +929,11 @@
                        orderId="12" enable="false">
             <Property name="Log.Token">false</Property>
         </EventListener>
+
+        <!-- Basic client authenticator -->
+        <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
+                       orderId="100" enable="true"/>
 
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1570,7 +1585,7 @@
 
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
@@ -1659,14 +1674,14 @@
             <Context>/api/users/v2/me/webauthn</Context>
             <Context>/api/identity/media/v1.0/</Context>
             <Context>/api/</Context>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
             <Context>/console/</Context>
         </WebApp>
         <Servlet>
             <Context>/identity/(.*)</Context>
         </Servlet>
         <OverwriteDispatch>
-            <Context>/user-portal/</Context>
+            <Context>/myaccount/</Context>
             <Context>/console/</Context>
         </OverwriteDispatch>
     </TenantContextsToRewrite>

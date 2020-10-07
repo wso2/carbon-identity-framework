@@ -116,6 +116,7 @@ public abstract class FrameworkConstants {
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
     public static final String RUNTIME_PARAMS = "RUNTIME_PARAMS";
     public static final String SP_STANDARD_DIALECT = "SP_STANDARD_DIALECT";
+    public static final String RUNTIME_CLAIMS = "RUNTIME_CLAIMS";
 
     public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
 
@@ -225,6 +226,11 @@ public abstract class FrameworkConstants {
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
 
+        /**
+         * Configuration to enable publishing the active session count in analytics event.
+         */
+        public static final String PUBLISH_ACTIVE_SESSION_COUNT = "Analytics.PublishActiveSessionCount";
+
         private Config() {
         }
 
@@ -333,6 +339,7 @@ public abstract class FrameworkConstants {
         public static final String SESSION_CREATE = "sessionCreated";
         public static final String SESSION_UPDATE = "sessionUpdated";
         public static final String SESSION_TERMINATE = "sessionTerminated";
+        public static final String ACTIVE_SESSION_COUNT = "activeSessionCount";
     }
 
     public static class JSAttributes {
@@ -368,6 +375,7 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
         public static final String JS_LOCAL_ROLES = "roles";
+        public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";

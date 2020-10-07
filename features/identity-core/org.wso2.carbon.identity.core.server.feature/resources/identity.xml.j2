@@ -60,6 +60,12 @@
     <TimeConfig>
         <SessionIdleTimeout>{{session.timeout.idle_session_timeout}}</SessionIdleTimeout>
         <RememberMeTimeout>{{session.timeout.remember_me_session_timeout}}</RememberMeTimeout>
+        <!--
+        Setting ExtendRememberMeSessionTimeoutOnAuth to TRUE will change the expiry time of the commonAuth cookie
+        during the authentication. The default value will be TRUE and the expiry time of the commonAuth cookie
+        will change.
+        -->
+        <ExtendRememberMeSessionTimeoutOnAuth>{{session.timeout.extend_remember_me_session_timeout_on_auth}}</ExtendRememberMeSessionTimeoutOnAuth>
     </TimeConfig>
 
     <!-- Security configurations -->
@@ -543,12 +549,22 @@
             <!-- Validate issued at time (iat) of JWT token. The validity can be set using 'IATValidity' configuration.
              Default value is 'true'.
              -->
-            <EnableIATValidation>true</EnableIATValidation>
+            {% if jwt.enable.iat_validation is defined %}
+            <!--This config will be DEPRECATED. Use `oauth.grant_type.jwt.enable_iat_validation`-->
+            <EnableIATValidation>{{jwt.enable.iat_validation}}</EnableIATValidation>
+            {% else %}
+            <EnableIATValidation>{{oauth.grant_type.jwt.enable_iat_validation}}</EnableIATValidation>
+            {% endif %}
             <!-- Reject the JWT if the iat of JWT is pass a certain time period. Time period is in minutes.
              'EnableIATValidation' configuration should be set to 'true' in order to make use of the validity period.
              Default value is '30' minutes.
              -->
-            <IATValidityPeriod>30</IATValidityPeriod>
+            {% if jwt.iat.validity_period is defined %}
+            <!--This config will be DEPRECATED. Use `oauth.grant_type.jwt.iat_validity_period`-->
+            <IATValidityPeriod>{{jwt.iat.validity_period}}</IATValidityPeriod>
+            {% else %}
+            <IATValidityPeriod>{{oauth.grant_type.jwt.iat_validity_period}}</IATValidityPeriod>
+            {% endif %}
         </JWTGrant>
 
         <SAML2Grant>
@@ -565,6 +581,11 @@
             <AddUnmappedUserAttributes>{{oauth.oidc.claims.enable_unmapped_user_attributes}}</AddUnmappedUserAttributes>
             <IDTokenBuilder>{{oauth.oidc.extensions.id_token_builder}}</IDTokenBuilder>
             <SignatureAlgorithm>{{oauth.oidc.id_token.signature_algorithm}}</SignatureAlgorithm>
+
+            <!-- Send the response to OAuth2 error page -->
+            {% if oauth.oidc.id_token.redirect_error_page is defined %}
+            <RedirectToOAuth2ErrorPage>{{oauth.oidc.id_token.redirect_error_page}}</RedirectToOAuth2ErrorPage>
+            {% endif %}
 
             <!-- Default asymmetric encryption algorithm that used to encrypt CEK. -->
             <IDTokenEncryptionAlgorithm>{{oauth.oidc.id_token.supported_encryption_algorithms[0]}}</IDTokenEncryptionAlgorithm>
@@ -803,6 +824,9 @@
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>{{saml.enable_saml_sp_certificate_expiry_validation}}</SAMLSPCertificateExpiryValidationEnabled>
         <SAML2AuthnRequestsSigningEnabled>{{saml.metadata.enable_authentication_requests_signing}}</SAML2AuthnRequestsSigningEnabled>
+        {% if saml.metadata.define_name_id_policy_if_unspecified is defined %}
+            <SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>{{saml.metadata.define_name_id_policy_if_unspecified}}</SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>
+        {% endif %}
     </SSOService>
 
     <Consent>
@@ -957,6 +981,9 @@
                 <ExpiryTime>
                     <smsOtp>{{identity_mgt.password_reset_sms.sms_otp_validity}}</smsOtp>
                 </ExpiryTime>
+                <smsOtp>
+                    <Regex>{{identity_mgt.password_reset_sms.sms_otp_regex}}</Regex>
+                </smsOtp>
             </Password>
             <Username>
                 <Enable>{{identity_mgt.username_recovery.email.enable_username_recovery}}</Enable>
@@ -1000,6 +1027,12 @@
         </AdminPasswordReset>
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
+        <ErrorMessage>
+            <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
+        </ErrorMessage>
+        <AutoLogin>
+            <Enable>{{identity_mgt.recovery.enable_auto_login}}</Enable>
+        </AutoLogin>
     </Recovery>
 
     <Notification>
@@ -1035,6 +1068,7 @@
             <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
         </API>
         <LockOnCreation>{{identity_mgt.user_self_registration.lock_on_creation}}</LockOnCreation>
+        <NotifyAccountConfirmation>{{identity_mgt.user_self_registration.notify_account_confirmation}}</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
         </Notification>
@@ -1138,6 +1172,13 @@
             <Property name="Log.Token">false</Property>
         </EventListener>
 
+        <!-- Basic OAuth client authenticator -->
+        <EventListener id="basic_auth_client_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.client.authentication.BasicAuthClientAuthenticator"
+                       orderId="{{event.default_listener.basic_auth_client_authenticator.priority}}"
+                       enable="{{event.default_listener.basic_auth_client_authenticator.enable}}"/>
+
         <!-- Enable this listener to call DeleteEventRecorders. -->
         <EventListener id="user_deletion"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
@@ -1226,6 +1267,17 @@
         </EventListener>
         {% endfor %}
     </EventListeners>
+
+    {% if analytics.publish_active_session_count is defined %}
+    <Analytics>
+        <!-- By default value of analytics.publish_active_session_count is set to false so that the identity server
+        publishes session data to the stream org.wso2.is.analytics.stream.OverallSession:1.0.0.
+        When this configuration is enabled, the stream definition org.wso2.is.analytics.stream.OverallSession:1.0.1
+        is used and the current active session count of the identity server will be added as an attribute. Enable it
+        by setting analytics.publish_active_session_count = true -->
+        <PublishActiveSessionCount>{{analytics.publish_active_session_count}}</PublishActiveSessionCount>
+    </Analytics>
+    {% endif %}
 
     <!-- These recorders are used to write user delete information to specific sources. Default event recorder is CSV
      file recorder. This recorder is disabled by default. Enable it by setting enable="true". To run these recorders,
@@ -1775,6 +1827,18 @@
             <Permissions>/permission/admin/manage/identity/identitymgt/delete</Permissions>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v1/me/user-functionality(.*)" secured="true" http-method="GET, PUT">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/user-functionality(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/identitymgt/view</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)/user-functionality(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/identitymgt/update</Permissions>
+            <Scopes>internal_identity_mgt_update</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/claim-dialects(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/claimmgt/metadata/create</Permissions>
             <Scopes>internal_claim_meta_create</Scopes>
@@ -1985,7 +2049,7 @@
         <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
         <Resource context="/portal(.*)" secured="false" http-method="all"/>
-        <Resource context="(.*)/user-portal(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
         <Resource context="/t/(.*)/carbon(.*)" secured="false" http-method="all"/>
@@ -2059,7 +2123,10 @@
 </ResourceAccessControl>
 
     <ClientAppAuthentication>
-        <Application name="dashboard" hash="66cd9688a2ae068244ea01e70f0e230f5623b7fa4cdecb65070a09ec06452262"/>
+        <Application name="{{account_recovery.endpoint.auth.name}}" hash="{{account_recovery.endpoint.auth.hash}}" />
+        {% for client_app in client_apps.authentication %}
+        <Application name="{{client_app.name}}" hash="{{client_app.hash}}" />
+        {% endfor %}
     </ClientAppAuthentication>
 
     <!--
@@ -2069,6 +2136,20 @@
     <EnableFederatedUserAssociation>{{user.association.enable_for_federated_users}}</EnableFederatedUserAssociation>
 
     <EnableTenantQualifiedUrls>{{tenant_context.enable_tenant_qualified_urls}}</EnableTenantQualifiedUrls>
+
+
+    <!--
+        When this property is set to 'true', if the username provided during the SaaS application authentication does
+        not have a tenant domain appended, the user will be treated as a super tenant user and will be authenticated
+        against the super tenant domain.
+
+        When this property is set to 'false', if the username provided during the SaaS application authentication does
+        not have a tenant domain appended, the user will be treated as a application tenant domain user and will be
+        authenticated against the application tenant domain.
+    -->
+    <EnableLegacySaaSAuthentication>{{authentication.enable_legacy_saas_mode | default(false)}}</EnableLegacySaaSAuthentication>
+
+    <EnablePerUserFunctionalityLocking>{{user.enable_per_user_functionality_locking}}</EnablePerUserFunctionalityLocking>
 
     <TenantContextsToRewrite>
         <WebApp>
@@ -2181,6 +2262,13 @@
     </LoggableUserClaims>
     {% endif %}
 
+     <!-- This configuration specifies enabling contextual param for audit logs. -->
+     <LoggableContextualParams>
+       {% for param in audit.log.contextual_param.params %}
+        <contextual_param>{{param}}</contextual_param>
+       {% endfor %}
+     </LoggableContextualParams>
+
     <!--Configuration Store properties-->
     <ConfigurationStore>
         <!--Set an upper limit to the database call queries. Configuration store uses dynamic query generation,
@@ -2271,4 +2359,15 @@
         </LegacyFeature>
         {% endfor %}
     </LegacyFeatures>
+
+    {% if reverse_proxy_config is defined %}
+    <ReverseProxyConfig>
+        {% for config in reverse_proxy_config %}
+        <ReverseProxy>
+            <DefaultContext>{{config.default_context}}</DefaultContext>
+            <ProxyContext>{{config.proxy_context}}</ProxyContext>
+        </ReverseProxy>
+        {% endfor %}
+    </ReverseProxyConfig>
+    {% endif %}
 </Server>

@@ -252,6 +252,8 @@ public class IdentityConstants {
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
+        public static final String ADD_NAME_ID_POLICY_IF_UNSPECIFIED = "SSOService" +
+                ".SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
@@ -259,6 +261,8 @@ public class IdentityConstants {
         //Timeout Configurations
         public static final String SESSION_IDLE_TIMEOUT = "TimeConfig.SessionIdleTimeout";
         public static final String REMEMBER_ME_TIME_OUT = "TimeConfig.RememberMeTimeout";
+        public static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH =
+                "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
 
         public static final String CLEAN_UP_PERIOD = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpPeriod";
         public static final String CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpTimeout";
@@ -526,5 +530,16 @@ public class IdentityConstants {
         public final static String LEGACY_FEATURE_ID = "Id";
         public final static String LEGACY_FEATURE_VERSION = "Version";
         public final static String LEGACY_FEATURE_ENABLE = "Enable";
+    }
+
+    /**
+     * Contains the constants related to Reverse Proxy configs elements.
+     */
+    public static class ReverseProxyConfigElements {
+
+        public final static String REVERSE_PROXY_CONFIG = "ReverseProxyConfig";
+        public final static String REVERSE_PROXY = "ReverseProxy";
+        public final static String PROXY_CONTEXT = "ProxyContext";
+        public final static String DEFAULT_CONTEXT = "DefaultContext";
     }
 }

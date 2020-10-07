@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.inbound;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationRequestCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationResultCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -28,13 +30,18 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.handler.AbstractIdentityHandler;
 import org.wso2.carbon.identity.core.handler.InitConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -101,6 +108,60 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
     public abstract String getCallbackPath(IdentityMessageContext context);
 
     /**
+     * Get tenant qualified callback path.
+     *
+     * @param context IdentityMessageContext
+     * @return Tenant qualified callback path
+     */
+    protected String getTenantQualifiedCallbackPath(IdentityMessageContext context) {
+
+        String callbackPath = getCallbackPath(context);
+        try {
+            if (!isAbsoluteURI(callbackPath) && !isTenantQualifiedURI(callbackPath)) {
+                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    callbackPath = ServiceURLBuilder.create().addPath(getCallbackPath(context)).build()
+                            .getAbsolutePublicURL();
+                } else {
+                    String serverUrl = ServiceURLBuilder.create().build().getAbsolutePublicURL();
+                    String tenantDomain = getTenantDomainFromContext();
+                    if (!isSuperTenantFlow(tenantDomain)) {
+                        callbackPath = serverUrl + "/t/" + tenantDomain + "/" + callbackPath;
+                    } else {
+                        callbackPath = serverUrl + "/" + callbackPath;
+                    }
+                }
+            }
+        } catch (URISyntaxException | URLBuilderException e) {
+            throw new RuntimeException("Error while building tenant qualified Callback Path.", e);
+        }
+        return callbackPath;
+    }
+
+    private boolean isAbsoluteURI(String uri) throws URISyntaxException {
+
+       return new URI(uri).isAbsolute();
+    }
+
+    private boolean isTenantQualifiedURI(String uri) {
+
+        return uri.startsWith("/t/") || uri.startsWith("t/");
+    }
+
+    private String getTenantDomainFromContext() {
+
+        String tenantDomain = IdentityTenantUtil.getTenantDomainFromContext();
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        }
+        return tenantDomain;
+    }
+
+    private boolean isSuperTenantFlow(String tenantDomain) {
+
+        return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain);
+    }
+
+    /**
      * Get relying party unique ID
      *
      * @return Relying party unique ID
@@ -158,11 +219,11 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         authenticationRequest.setForceAuth(Boolean.parseBoolean(
                 String.valueOf(context.getParameter(InboundConstants.ForceAuth))));
         try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
+            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getTenantQualifiedCallbackPath(context),
                                                                             StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
-                    getCallbackPath(context), e);
+                    getTenantQualifiedCallbackPath(context), e);
         }
 
         AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
@@ -176,7 +237,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
                 new FrameworkLoginResponse.FrameworkLoginResponseBuilder(context);
         responseBuilder.setAuthName(getType(context));
         responseBuilder.setContextKey(sessionDataKey);
-        responseBuilder.setCallbackPath(getCallbackPath(context));
+        responseBuilder.setCallbackPath(getTenantQualifiedCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getType(context));
@@ -207,11 +268,11 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
         authenticationRequest.setRelyingParty(getRelyingPartyId(context));
         authenticationRequest.setType(getType(context));
         try {
-            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getCallbackPath(context),
+            authenticationRequest.setCommonAuthCallerPath(URLEncoder.encode(getTenantQualifiedCallbackPath(context),
                                                                             StandardCharsets.UTF_8.name()));
         } catch (UnsupportedEncodingException e) {
             throw FrameworkRuntimeException.error("Error occurred while URL encoding callback path " +
-                    getCallbackPath(context), e);
+                    getTenantQualifiedCallbackPath(context), e);
         }
         authenticationRequest.addRequestQueryParam(FrameworkConstants.RequestParams.LOGOUT, new String[]{"true"});
 
@@ -226,7 +287,7 @@ public abstract class IdentityProcessor extends AbstractIdentityHandler {
                 new FrameworkLogoutResponse.FrameworkLogoutResponseBuilder(context);
         responseBuilder.setAuthName(getType(context));
         responseBuilder.setContextKey(sessionDataKey);
-        responseBuilder.setCallbackPath(getCallbackPath(context));
+        responseBuilder.setCallbackPath(getTenantQualifiedCallbackPath(context));
         responseBuilder.setRelyingParty(getRelyingPartyId(context));
         //type parameter is using since framework checking it, but future it'll use AUTH_NAME
         responseBuilder.setAuthType(getType(context));

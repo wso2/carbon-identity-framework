@@ -266,7 +266,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     @Override
     public boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException {
 
-        return false;
+        return configurationDAO.isExistingResource(tenantId, resourceId);
     }
 
     private Resource getResourceFromCacheById(String resourceId, int tenantId)

@@ -193,7 +193,7 @@ public class User implements Serializable {
             if (StringUtils.isNotEmpty(userStoreDomain)) {
                 user.setUserStoreDomain(userStoreDomain);
             } else {
-                user.setTenantDomain(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
+                user.setUserStoreDomain(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME);
             }
         }
         return user;
