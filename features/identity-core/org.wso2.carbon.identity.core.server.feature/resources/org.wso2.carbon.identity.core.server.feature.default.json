@@ -823,5 +823,5 @@
   "cors.tag_requests": false,
   "audit.log.contextual_param.params": [],
 
-  "password_update.preserve_current_session_and_token": false
+  "password_update.preserve_logged_in_session": false
 }

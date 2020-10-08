@@ -49,6 +49,11 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.
+        CURRENT_SESSION_IDENTIFIER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.
+        PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
+
 /**
  * This a service class used to manage user sessions.
  */
@@ -56,8 +61,6 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
     private static final Log log = LogFactory.getLog(UserSessionManagementServiceImpl.class);
     private SessionManagementService sessionManagementService = new SessionManagementService();
-    private static final String PRESERVE_SESSION_WHEN_PASSWORD_UPDATE = "PasswordUpdate.PreserveCurrentSessionAndToken";
-    private static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
     @Override
     public void terminateSessionsOfUser(String username, String userStoreDomain, String tenantDomain) throws
@@ -181,7 +184,7 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
         List<String> sessionIdList = getSessionIdListByUserId(userId);
 
         boolean isSessionPreservingAtPasswordUpdateEnabled =
-                Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_SESSION_WHEN_PASSWORD_UPDATE));
+                Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
         String currentSessionId = "";
         boolean isSessionTerminationSkipped = false;
         if (isSessionPreservingAtPasswordUpdateEnabled) {
