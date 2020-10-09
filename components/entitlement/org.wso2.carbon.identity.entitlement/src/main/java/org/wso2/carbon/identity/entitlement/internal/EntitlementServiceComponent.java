@@ -320,10 +320,10 @@ public class EntitlementServiceComponent {
     /**
      * Adds policy files with unique policyIDs to the registry.
      *
-     * @param policyIdList list of IDs of existing policies
-     * @param fileList list of files in policy folder
-     * @return boolean stating whether custom policies exist
-     * @throws IOException
+     * @param policyIdList List of IDs of existing policies.
+     * @param fileList List of files in policy folder.
+     * @return Boolean stating whether custom policies exist.
+     * @throws IOException Error when reading policy files.
      */
     private boolean addPolicyFiles(List<String> policyIdList, File[] fileList) throws IOException {
 
