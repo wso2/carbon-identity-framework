@@ -96,6 +96,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     @Override
     public List<Parameter> getWorkflowParameters(String workflowId) throws WorkflowException {
+        
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -676,6 +677,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public boolean entityHasPendingWorkflowsOfType(Entity entity, String requestType) throws
             WorkflowException {
+        
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -813,6 +815,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     @Override
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
+        
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         String loggedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
