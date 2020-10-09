@@ -1865,7 +1865,7 @@ public class FrameworkUtils {
         } catch (UserStoreException e) {
             log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
             }
         }
 

@@ -252,7 +252,7 @@ public abstract class AbstractWorkflowRequestHandler implements WorkflowRequestH
             eventEngaged = WorkflowServiceDataHolder.getInstance().getWorkflowService().isEventAssociated(getEventId());
         } catch (InternalWorkflowException e) {
             String errorMsg = "Error occurred while checking any association for this event, " + e.getMessage() ;
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowException(errorMsg,e);
         }
         return eventEngaged ;
