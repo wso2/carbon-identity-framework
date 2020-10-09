@@ -155,6 +155,11 @@
     </RemoteFetch>
 
     <OAuth>
+        <AllowedScopes>
+             {%for scope in oauth.allowed_scopes%}
+                  <Scope>{{scope}}</Scope>
+             {% endfor %}
+        </AllowedScopes>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
