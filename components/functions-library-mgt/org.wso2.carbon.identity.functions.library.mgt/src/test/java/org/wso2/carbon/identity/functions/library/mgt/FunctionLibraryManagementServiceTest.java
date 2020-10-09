@@ -120,7 +120,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             functionLibraryManagementService.deleteFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         } catch (Exception e) {
-            log.error("Error test Create script library " + e);
+            throw new RuntimeException("Error test Create script library ", e);
         }
     }
 
@@ -404,7 +404,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             assertEquals(e.getMessage(), "The script library name is not valid! It is not adhering to the regex " +
                     FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
         } catch (Exception e) {
-            log.error("Exception" + e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -452,7 +452,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             assertEquals(e.getMessage(), "Already a script library available with the name: " +
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName() + ".");
         } catch (Exception e) {
-            log.error("Exception" + e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -486,7 +486,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         } catch (FunctionLibraryManagementException e) {
             assertEquals(e.getMessage(), "Script library name is required");
         } catch (Exception e) {
-            log.error("Exception" + e);
+            throw new RuntimeException(e);
         }
     }
 
