@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.functions.library.mgt;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.DataProvider;
@@ -34,9 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 import static org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryMgtUtil.isRegexValidated;
 
 @PrepareForTest({FunctionLibraryManagementServiceImpl.class})
@@ -44,7 +40,6 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
 
     private static final String SAMPLE_TENANT_DOMAIN = "carbon.super";
     private static final String SAMPLE_TENANT_DOMAIN2 = "abc.com";
-    private static final Log log = LogFactory.getLog(FunctionLibraryManagementServiceTest.class);
 
     @DataProvider(name = "createFunctionLibraryDataProvider")
     public Object[][] createFunctionLibraryData() {
@@ -62,7 +57,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         FunctionLibrary functionLibrary3 = new FunctionLibrary();
         functionLibrary3.setFunctionLibraryName("sample3");
         functionLibrary3.setDescription("sample3");
-        functionLibrary3.setFunctionLibraryScript("samplefunction3");
+        functionLibrary3.setFunctionLibraryScript("function samplefunction3(){}");
 
         FunctionLibrary functionLibrary4 = new FunctionLibrary();
         functionLibrary4.setFunctionLibraryName("sample4");
@@ -120,7 +115,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             functionLibraryManagementService.deleteFunctionLibrary(
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName(), tenantDomain);
         } catch (Exception e) {
-            throw new RuntimeException("Error test Create script library ", e);
+            fail("Error test Create script library ", e);
         }
     }
 
@@ -174,7 +169,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             deleteFunctionLibraries(functionLibraryManagementService, Collections.singletonList(functionLibrary),
                     tenantDomain);
         } catch (Exception e) {
-            log.error("Exception");
+            fail("Exception", e);
         }
     }
 
@@ -326,7 +321,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
                         FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
             }
         } catch (Exception e) {
-            log.error("Exception");
+            fail("Exception", e);
         }
     }
 
@@ -404,7 +399,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             assertEquals(e.getMessage(), "The script library name is not valid! It is not adhering to the regex " +
                     FunctionLibraryMgtUtil.FUNCTION_LIBRARY_NAME_VALIDATING_REGEX + ".");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            fail("Exception", e);
         }
     }
 
@@ -452,7 +447,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
             assertEquals(e.getMessage(), "Already a script library available with the name: " +
                     ((FunctionLibrary) functionLibrary).getFunctionLibraryName() + ".");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            fail("Exception", e);
         }
     }
 
@@ -486,7 +481,7 @@ public class FunctionLibraryManagementServiceTest extends PowerMockIdentityBaseT
         } catch (FunctionLibraryManagementException e) {
             assertEquals(e.getMessage(), "Script library name is required");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            fail("Exception", e);
         }
     }
 
