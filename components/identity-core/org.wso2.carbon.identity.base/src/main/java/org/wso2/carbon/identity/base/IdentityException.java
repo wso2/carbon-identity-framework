@@ -77,7 +77,7 @@ public class IdentityException extends Exception {
         try {
             exception = exceptionClass.getConstructor(String.class, String.class).newInstance(errorCode, message);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }
@@ -87,7 +87,7 @@ public class IdentityException extends Exception {
         try {
             exception = exceptionClass.getConstructor(String.class, Throwable.class).newInstance(message, cause);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }
@@ -99,7 +99,7 @@ public class IdentityException extends Exception {
             exception = exceptionClass.getConstructor(String.class, String.class, Throwable.class).
                     newInstance(errorCode, message, cause);
         } catch (Exception e) {
-            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage());
+            throw new IdentityRuntimeException("Invalid Exception Type, " + e.getMessage(), e);
         }
         return exception;
     }
