@@ -23,6 +23,8 @@ public final class UserStoreUIConstants {
 
     public static final String RWLDAP_USERSTORE_MANAGER = "org.wso2.carbon.user.core.ldap.ReadWriteLDAPUserStoreManager";
     public static final String ROLDAP_USERSTORE_MANAGER = "org.wso2.carbon.user.core.ldap.ReadOnlyLDAPUserStoreManager";
+    public static final String UROLDAP_USERSTORE_MANAGER = "org.wso2.carbon.user.core.ldap" +
+            ".UniqueIDReadOnlyLDAPUserStoreManager";
     public static final String ACTIVEDIRECTORY_USERSTORE_MANAGER = "org.wso2.carbon.user.core.ldap.ActiveDirectoryUserStoreManager";
     public static final String JDABC_USERSTORE_MANAGER = "org.wso2.carbon.user.core.jdbc.JDBCUserStoreManager";
     public static final String CASSANDRA_USERSTORE_MANAGER = "org.wso2.carbon.user.cassandra.CassandraUserStoreManager";
