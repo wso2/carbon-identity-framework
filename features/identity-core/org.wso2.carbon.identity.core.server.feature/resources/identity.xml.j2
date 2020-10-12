@@ -155,7 +155,7 @@
     </RemoteFetch>
 
     <OAuth>
-        <!-- Configuration to pass a list of scopes which are allowed without any validation -->
+        <!-- Configuration to pass a list of scopes which are allowed without any validation. -->
         <AllowedScopes>
              {%for scope in oauth.allowed_scopes%}
                   <Scope>{{scope}}</Scope>
