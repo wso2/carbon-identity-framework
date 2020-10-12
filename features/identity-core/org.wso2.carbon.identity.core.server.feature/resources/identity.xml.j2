@@ -155,12 +155,6 @@
     </RemoteFetch>
 
     <OAuth>
-        <!-- Configuration to pass a list of scopes which are allowed without any validation. -->
-        <AllowedScopes>
-             {%for scope in oauth.allowed_scopes%}
-                  <Scope>{{scope}}</Scope>
-             {% endfor %}
-        </AllowedScopes>
         <!-- Token cleanup feature config to clean IDN_OAUTH2_ACCESS_TOKEN table-->
         <TokenCleanup>
             <!--If true old access token cleaning feature is enabled -->
@@ -773,6 +767,15 @@
         Default value: true
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
+
+        {% if oauth.allowed_scopes is defined %}
+        <!-- Configuration to pass a list of scopes which are allowed without any validation. -->
+        <AllowedScopes>
+            {%for scope in oauth.allowed_scopes%}
+                <Scope>{{scope}}</Scope>
+            {% endfor %}
+        </AllowedScopes>
+        {% endif %}
     </OAuth>
 
     <MultifactorAuthentication>
