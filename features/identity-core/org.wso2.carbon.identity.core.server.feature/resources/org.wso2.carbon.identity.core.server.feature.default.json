@@ -290,6 +290,8 @@
   "identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_offline_otp_based_reset": false,
 
+  "identity_mgt.password_update.preserve_logged_in_session": false,
+
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
@@ -821,7 +823,5 @@
   "cors.supports_credentials": true,
   "cors.max_age": -1,
   "cors.tag_requests": false,
-  "audit.log.contextual_param.params": [],
-
-  "password_update.preserve_logged_in_session": false
+  "audit.log.contextual_param.params": []
 }
