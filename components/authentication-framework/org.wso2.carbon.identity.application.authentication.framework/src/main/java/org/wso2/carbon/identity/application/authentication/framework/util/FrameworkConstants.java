@@ -384,6 +384,7 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_SECURE = "secure";
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
+        public static final String JS_COOKIE_SAMESITE = "sameSite";
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
