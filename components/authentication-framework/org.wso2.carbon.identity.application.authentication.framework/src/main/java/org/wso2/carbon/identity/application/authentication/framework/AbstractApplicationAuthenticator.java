@@ -190,21 +190,33 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
-                // Resetting the authenticator start time to null since the step event is Success and for the next
-                // step event start time will be added in DefaultStepHandler handle method.
+                /*
+                Resetting the authenticator start time to null since the step event is Success and for the next
+                step event start time will be added in DefaultStepHandler handle method.
+                 */
                 context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME, null);
 
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
-                // Resetting the authenticator start time to current time since the step event is failure and retrying
-                // the event duration will be counted as a new step.
+                /*
+                Resetting the authenticator start time to current time since the step event is failure and retrying
+                the event duration will be counted as a new step.
+                 */
                 context.setAnalyticsData(
                         FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME, System.currentTimeMillis());
             }
         }
     }
 
+    /**
+     * Helper delegator to publish the events for Authentication Step Attempt Failure.
+     *
+     * @param request   Incoming Http request to framework for authentication
+     * @param context   Authentication Context
+     * @param user      initiated user
+     * @param errorCode of the exception
+     */
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
                                                          User user, String errorCode) {
 
