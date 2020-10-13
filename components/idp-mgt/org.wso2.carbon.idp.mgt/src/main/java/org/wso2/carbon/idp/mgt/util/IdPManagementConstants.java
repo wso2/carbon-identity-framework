@@ -416,14 +416,10 @@ public class IdPManagementConstants {
 
     public enum ErrorMessage {
 
-        ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
-        ERROR_CODE_ADD_IDP("IDP-65002", "Error while adding the Identity Provider: %s."),
+        // Client Errors.
         ERROR_CODE_IDP_ALREADY_EXISTS("IDP-60001", "Identity Provider with the name: %s already exists."),
-        ERROR_CODE_RETRIEVE_IDP("IDP-65003", "Error while getting the Identity Provider: %s."),
         ERROR_CODE_IDP_DOES_NOT_EXIST("IDP-60002", "Identity Provider with resource ID: %s does not exists."),
         ERROR_CODE_IDP_NAME_DOES_NOT_EXIST("IDP-60002", "Identity Provider with name: %s does not exists."),
-        ERROR_CODE_DELETE_IDP("IDP-65004", "Error while deleting Identity Provider: %s."),
-        ERROR_CODE_UPDATE_IDP("IDP-65005", "Error while updating Identity Provider: %s."),
         ERROR_CODE_IDP_ADD_REQUEST_INVALID("IDP-60003", "Identity Provider add request validation failed. %s"),
         ERROR_CODE_IDP_GET_REQUEST_INVALID("IDP-60004", "Identity Provider get request validation failed. %s"),
         ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP-60005", "Identity Provider delete request validation failed. %s"),
@@ -433,11 +429,21 @@ public class IdPManagementConstants {
                 "validation failed. %s"),
         DUPLICATE_OUTBOUND_CONNECTOR_PROPERTIES("IDP-60009", "Duplicate properties in Outbound " +
                 "Provisioning Connector configurations for connector : %s"),
-        ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
-        ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected applications of " +
-                "Identity Provider with resource ID: %s."),
         ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),
-        ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s");
+        ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s"),
+        ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "Roles: %s does not exist."),
+
+        // Server Errors.
+        ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
+        ERROR_CODE_ADD_IDP("IDP-65002", "Error while adding the Identity Provider: %s."),
+        ERROR_CODE_RETRIEVE_IDP("IDP-65003", "Error while getting the Identity Provider: %s."),
+        ERROR_CODE_DELETE_IDP("IDP-65004", "Error while deleting Identity Provider: %s."),
+        ERROR_CODE_UPDATE_IDP("IDP-65005", "Error while updating Identity Provider: %s."),
+        ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
+        ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected " +
+                "applications of Identity Provider with resource ID: %s."),
+        ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
+                "the outbound provisioning roles");
 
         private final String code;
         private final String message;
