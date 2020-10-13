@@ -175,4 +175,17 @@ public interface RoleManagementService {
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
      */
     boolean isExistingRole(String roleID, String tenantDomain) throws IdentityRoleManagementException;
+
+    /**
+     * Check whether the given role name exist.
+     *
+     * @param roleName     Role name.
+     * @param tenantDomain Tenant domain.
+     * @return {@code true} if the the given role ID exist.
+     * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     */
+    default boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+
+        throw new IdentityRoleManagementException("isExistingRoleName method is not implemented");
+    }
 }

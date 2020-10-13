@@ -140,4 +140,10 @@ public class RoleManagementServiceImpl implements RoleManagementService {
 
         return roleDAO.isExistingRoleID(roleID, tenantDomain);
     }
+
+    @Override
+    public boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+
+        return roleDAO.isExistingRoleName(roleName, tenantDomain);
+    }
 }

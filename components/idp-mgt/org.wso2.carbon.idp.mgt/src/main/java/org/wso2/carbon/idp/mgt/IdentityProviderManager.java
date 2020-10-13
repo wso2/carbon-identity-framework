@@ -50,6 +50,8 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -2024,8 +2026,9 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        validateOutboundProvisioningRoles(identityProvider,tenantDomain);
 
-        // invoking the pre listeners
+        // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreAddIdP(identityProvider, tenantDomain)) {
@@ -2915,5 +2918,44 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return idPName;
+    }
+
+    /**
+     * Validate whether the outbound provisioning roles does exist.
+     *
+     * @param identityProvider IdentityProvider.
+     * @param tenantDomain     Tenant Domain.
+     * @throws IdentityProviderManagementException If an error occurred while checking for role existence.
+     */
+    private void validateOutboundProvisioningRoles(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String provisioningRole = identityProvider.getProvisioningRole();
+        if (StringUtils.isBlank(provisioningRole)) {
+            return;
+        }
+        String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
+
+        try {
+            String notExistingRoles = null;
+            RoleManagementService roleManagementService =
+                    IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
+            for (String roleName : outboundProvisioningRoles) {
+                if (StringUtils.isNotBlank(notExistingRoles)) {
+                    notExistingRoles = notExistingRoles + ",";
+                }
+                if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
+                    notExistingRoles = roleName;
+                }
+            }
+            if (StringUtils.isNotBlank(notExistingRoles)) {
+                throw IdPManagementUtil.handleClientException(
+                        IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE,
+                        notExistingRoles);
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
+        }
     }
 }
