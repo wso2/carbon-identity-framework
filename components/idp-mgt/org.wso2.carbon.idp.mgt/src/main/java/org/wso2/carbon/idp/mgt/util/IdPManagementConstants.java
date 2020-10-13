@@ -431,6 +431,8 @@ public class IdPManagementConstants {
         ERROR_CODE_SEARCH_REQUEST_INVALID("IDP-60007", "Search request validation failed. Invalid search filter. %s"),
         ERROR_CODE_GET_CONNECTED_APPS_REQUEST_INVALID("IDP-60008", "Identity Provider get connected apps request " +
                 "validation failed. %s"),
+        DUPLICATE_OUTBOUND_CONNECTOR_PROPERTIES("IDP-60009", "Duplicate properties in Outbound " +
+                "Provisioning Connector configurations for connector : %s"),
         ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
         ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected applications of " +
                 "Identity Provider with resource ID: %s."),
