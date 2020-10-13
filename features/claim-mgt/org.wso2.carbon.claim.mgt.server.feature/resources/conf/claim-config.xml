@@ -720,6 +720,15 @@
 				<AttributeID>isReadOnlyUser</AttributeID>
 				<Description>Claim to store if the user is read only</Description>
 			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/identity/mobileNumber.pendingValue</ClaimURI>
+				<DisplayName>Verification Pending Mobile Number</DisplayName>
+				<!-- If user store based identity store is used, a proper mapped attribute
+				in your user store must be configured for this. -->
+				<AttributeID>pendingMobileNumber</AttributeID>
+				<Description>To store newly updated mobile number until it is verified.</Description>
+				<ReadOnly/>
+			</Claim>
 		</Dialect>
 
 		<Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -2503,6 +2512,16 @@
 				<DisplayOrder>1</DisplayOrder>
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/isReadOnlyUser</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:pendingMobileNumber</ClaimURI>
+				<DisplayName>Verification Pending Mobile</DisplayName>
+				<AttributeID>pendingMobileNumber</AttributeID>
+				<Description>To store newly updated mobile number until it is verified</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/mobileNumber.pendingValue</MappedLocalClaim>
 			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">
