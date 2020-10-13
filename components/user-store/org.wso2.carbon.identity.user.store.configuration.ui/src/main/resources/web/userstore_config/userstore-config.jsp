@@ -85,6 +85,8 @@
         return propertyMap;
     }
 %><%
+    domain = "0";
+    className = "0";
     if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled()) {
         repository = request.getParameter("repositoryName");
     }
@@ -111,7 +113,7 @@
 
 
     if (selectedClassApplied == null || selectedClassApplied.trim().length() == 0) {
-        selectedClassApplied = UserStoreUIConstants.UROLDAP_USERSTORE_MANAGER;
+        selectedClassApplied = UserStoreUIConstants.URWLDAP_USERSTORE_MANAGER;
     } else {
 
     }
