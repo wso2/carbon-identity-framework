@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.role.mgt.core.internal;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -142,7 +143,8 @@ public class RoleManagementServiceImpl implements RoleManagementService {
     }
 
     @Override
-    public boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+    public boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException,
+            NotImplementedException {
 
         return roleDAO.isExistingRoleName(roleName, tenantDomain);
     }

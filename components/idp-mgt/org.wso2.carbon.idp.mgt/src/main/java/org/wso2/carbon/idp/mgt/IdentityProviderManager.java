@@ -21,6 +21,7 @@ package org.wso2.carbon.idp.mgt;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -2937,15 +2938,22 @@ public class IdentityProviderManager implements IdpManager {
         String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
 
         try {
-            String notExistingRoles = null;
+            String notExistingRoles = StringUtils.EMPTY;
             RoleManagementService roleManagementService =
                     IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
             for (String roleName : outboundProvisioningRoles) {
                 if (StringUtils.isNotBlank(notExistingRoles)) {
                     notExistingRoles = notExistingRoles + ",";
                 }
-                if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
-                    notExistingRoles = roleName;
+                try {
+                    if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
+                        notExistingRoles = notExistingRoles + roleName;
+                    }
+                } catch (NotImplementedException e) {
+                    if(log.isDebugEnabled()){
+                        log.debug("isExistingRoleName is not implemented in the RoleManagementService. " +
+                                "Therefore, proceeding without validating outbound provisioning role existence.");
+                    }
                 }
             }
             if (StringUtils.isNotBlank(notExistingRoles)) {

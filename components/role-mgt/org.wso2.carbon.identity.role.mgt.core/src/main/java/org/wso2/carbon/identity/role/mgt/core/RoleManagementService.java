@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.role.mgt.core;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import java.util.List;
 
 /**
@@ -183,9 +185,11 @@ public interface RoleManagementService {
      * @param tenantDomain Tenant domain.
      * @return {@code true} if the the given role ID exist.
      * @throws IdentityRoleManagementException IdentityRoleManagementException.
+     * @throws NotImplementedException         If the method is not implemented.
      */
-    default boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException {
+    default boolean isExistingRoleName(String roleName, String tenantDomain) throws IdentityRoleManagementException,
+            NotImplementedException {
 
-        throw new IdentityRoleManagementException("isExistingRoleName method is not implemented");
+        throw new NotImplementedException("isExistingRoleName method is not implemented");
     }
 }
