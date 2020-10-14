@@ -558,7 +558,8 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
 
                 // Load the certificate stored in the database, if signature validation is enabled..
                 if (serviceProviderDO.isDoValidateSignatureInRequests() ||
-                        serviceProviderDO.isDoValidateSignatureInArtifactResolve()) {
+                        serviceProviderDO.isDoValidateSignatureInArtifactResolve() ||
+                        serviceProviderDO.isDoEnableEncryptedAssertion()) {
                     Tenant tenant = new Tenant();
                     tenant.setDomain(tenantDomain);
                     tenant.setId(userRegistry.getTenantId());
