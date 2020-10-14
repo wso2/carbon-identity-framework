@@ -2938,28 +2938,21 @@ public class IdentityProviderManager implements IdpManager {
         String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
 
         try {
-            String notExistingRoles = StringUtils.EMPTY;
             RoleManagementService roleManagementService =
                     IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
             for (String roleName : outboundProvisioningRoles) {
-                if (StringUtils.isNotBlank(notExistingRoles)) {
-                    notExistingRoles = notExistingRoles + ",";
-                }
                 try {
                     if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
-                        notExistingRoles = notExistingRoles + roleName;
+                        throw IdPManagementUtil.handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE,
+                                null);
                     }
                 } catch (NotImplementedException e) {
-                    if(log.isDebugEnabled()){
+                    if (log.isDebugEnabled()) {
                         log.debug("isExistingRoleName is not implemented in the RoleManagementService. " +
                                 "Therefore, proceeding without validating outbound provisioning role existence.");
                     }
                 }
-            }
-            if (StringUtils.isNotBlank(notExistingRoles)) {
-                throw IdPManagementUtil.handleClientException(
-                        IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE,
-                        notExistingRoles);
             }
         } catch (IdentityRoleManagementException e) {
             throw IdPManagementUtil.handleServerException(

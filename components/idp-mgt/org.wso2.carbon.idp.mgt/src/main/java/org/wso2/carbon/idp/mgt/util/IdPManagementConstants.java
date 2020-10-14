@@ -431,7 +431,8 @@ public class IdPManagementConstants {
                 "Provisioning Connector configurations for connector : %s"),
         ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),
         ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s"),
-        ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "Roles: %s does not exist."),
+        ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
+                "provisioning roles does not exist"),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
