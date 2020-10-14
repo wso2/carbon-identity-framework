@@ -276,7 +276,7 @@ public class TemplateManagerImpl implements TemplateManager {
                     templateType);
         }
         if (limit != null || offset != null) {
-            throw handleServerException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATION_NOT_SUPPORTED, null);
+            throw handleClientException(TemplateMgtConstants.ErrorMessages.ERROR_CODE_PAGINATION_NOT_SUPPORTED, null);
         }
 
         List<Template> templates = new ArrayList<>();

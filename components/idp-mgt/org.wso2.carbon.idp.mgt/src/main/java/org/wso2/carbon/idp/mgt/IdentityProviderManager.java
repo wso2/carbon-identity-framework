@@ -2342,8 +2342,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         IdentityProvider currentIdentityProvider = this
                 .getIdPByResourceId(resourceId, tenantDomain, true);
-        validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider.getIdentityProviderName(),
-                tenantDomain);
+        validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
         // Invoking the post listeners.
@@ -2704,26 +2703,63 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param currentIdentityProvider Old Identity Provider Information.
      * @param resourceId              Identity Provider's resource ID.
-     * @param newIdPName              New Identity Provider name.
+     * @param newIdentityProvider
      * @param tenantDomain            Tenant domain of IDP.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
-    private void validateUpdateIdPInputValues(IdentityProvider currentIdentityProvider, String resourceId, String
-            newIdPName, String tenantDomain) throws IdentityProviderManagementException {
+    private void validateUpdateIdPInputValues(IdentityProvider currentIdentityProvider, String resourceId,
+                                              IdentityProvider newIdentityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
 
         if (currentIdentityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
         }
         boolean isNewIdPNameExists = false;
-        IdentityProvider newIdentityProvider = getIdPByName(newIdPName, tenantDomain, true);
-        if (newIdentityProvider != null) {
-            isNewIdPNameExists = !StringUtils.equals(newIdentityProvider.getResourceId(), currentIdentityProvider
+        IdentityProvider retrievedIdentityProvider =
+                getIdPByName(newIdentityProvider.getIdentityProviderName(), tenantDomain, true);
+        if (retrievedIdentityProvider != null) {
+            isNewIdPNameExists = !StringUtils.equals(retrievedIdentityProvider.getResourceId(), currentIdentityProvider
                     .getResourceId());
         }
-        if (isNewIdPNameExists || IdPManagementServiceComponent.getFileBasedIdPs().containsKey(newIdPName)) {
+        if (isNewIdPNameExists || IdPManagementServiceComponent.getFileBasedIdPs()
+                .containsKey(newIdentityProvider.getIdentityProviderName())) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdPName);
+                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdentityProvider.getIdentityProviderName());
+        }
+
+        // Validate whether there are any duplicate properties in the ProvisioningConnectorConfig.
+        validateOutboundProvisioningConnectorProperties(newIdentityProvider);
+    }
+
+    /**
+     * Validate whether there are any duplicate properties in the ProvisioningConnectorConfig of an IdentityProvider.
+     *
+     * @param newIdentityProvider IdentityProvider object.
+     * @throws IdentityProviderManagementException If duplicate properties found in ProvisioningConnectorConfig.
+     */
+    private void validateOutboundProvisioningConnectorProperties(IdentityProvider newIdentityProvider)
+            throws IdentityProviderManagementException {
+
+        ProvisioningConnectorConfig[] provisioningConnectorConfigs =
+                newIdentityProvider.getProvisioningConnectorConfigs();
+        if (!ArrayUtils.isEmpty(provisioningConnectorConfigs)) {
+            for (ProvisioningConnectorConfig connectorConfig : provisioningConnectorConfigs) {
+                Property[] properties = connectorConfig.getProvisioningProperties();
+
+                // If no properties have specified, validation needs to stop.
+                if (ArrayUtils.isEmpty(properties) || properties.length < 2) {
+                    break;
+                }
+                Set<Property> connectorProperties = new HashSet<>();
+                for (Property property : properties) {
+                    if (!connectorProperties.add(property)) {
+                        throw IdPManagementUtil.handleClientException(
+                                IdPManagementConstants.ErrorMessage.DUPLICATE_OUTBOUND_CONNECTOR_PROPERTIES,
+                                newIdentityProvider.getIdentityProviderName());
+                    }
+                }
+            }
         }
     }
 
