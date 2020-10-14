@@ -21,6 +21,7 @@ package org.wso2.carbon.idp.mgt;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,6 +51,8 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -2024,8 +2027,9 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        validateOutboundProvisioningRoles(identityProvider,tenantDomain);
 
-        // invoking the pre listeners
+        // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreAddIdP(identityProvider, tenantDomain)) {
@@ -2915,5 +2919,44 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return idPName;
+    }
+
+    /**
+     * Validate whether the outbound provisioning roles does exist.
+     *
+     * @param identityProvider IdentityProvider.
+     * @param tenantDomain     Tenant Domain.
+     * @throws IdentityProviderManagementException If an error occurred while checking for role existence.
+     */
+    private void validateOutboundProvisioningRoles(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String provisioningRole = identityProvider.getProvisioningRole();
+        if (StringUtils.isBlank(provisioningRole)) {
+            return;
+        }
+        String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
+
+        try {
+            RoleManagementService roleManagementService =
+                    IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
+            for (String roleName : outboundProvisioningRoles) {
+                try {
+                    if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
+                        throw IdPManagementUtil.handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE,
+                                null);
+                    }
+                } catch (NotImplementedException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("isExistingRoleName is not implemented in the RoleManagementService. " +
+                                "Therefore, proceeding without validating outbound provisioning role existence.");
+                    }
+                }
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
+        }
     }
 }
