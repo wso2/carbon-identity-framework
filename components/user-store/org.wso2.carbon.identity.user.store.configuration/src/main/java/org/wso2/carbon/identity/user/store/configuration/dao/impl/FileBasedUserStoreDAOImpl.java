@@ -525,7 +525,9 @@ public class FileBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
     private boolean isDomainNameExists(String domainName) throws IdentityUserStoreMgtException {
 
         if (StringUtils.isEmpty(domainName)) {
-            throw new IdentityUserStoreClientException(" User store domain name should not be empty.");
+            throw new IdentityUserStoreClientException(
+                    UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_EMPTY_USERSTORE_DOMAIN_NAME.getCode(),
+                    UserStoreConfigurationConstant.ErrorMessage.ERROR_CODE_EMPTY_USERSTORE_DOMAIN_NAME.getMessage());
         }
 
         if (!getDomainNames().contains(domainName)) {

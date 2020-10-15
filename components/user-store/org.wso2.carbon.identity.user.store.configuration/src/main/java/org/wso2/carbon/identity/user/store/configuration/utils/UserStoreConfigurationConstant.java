@@ -62,7 +62,8 @@ public class UserStoreConfigurationConstant {
         ERROR_CODE_USER_STORE_DOMAIN_ALREADY_EXISTS("SUS-60002",
                 "User store domain already exists with same domain name."),
         ERROR_CODE_USER_STORE_DOMAIN_NOT_FOUND("SUS-60001",
-                "Unable to find any user store's domain id with the provided identifier.");
+                "Unable to find any user store's domain id with the provided identifier."),
+        ERROR_CODE_EMPTY_USERSTORE_DOMAIN_NAME("SUS-60008", "Userstore domain name cannot be emtpy.");
 
         private final String code;
         private final String message;
