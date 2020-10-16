@@ -78,7 +78,7 @@ public class PasswordRecoveryApiV1 {
      * @param tenantDomain        Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
      * @return Account recovery options response object.
-     * @throws ApiException if fails to make API call
+     * @throws ApiException if fails to make API call.
      */
     public List<AccountRecoveryType> initiatePasswordRecovery(RecoveryInitRequest recoveryInitRequest, String tenantDomain,
                                                               Map<String, String> headers) throws ApiException {
@@ -93,8 +93,8 @@ public class PasswordRecoveryApiV1 {
      * @param recoveryRequest   Recovery request. (required)
      * @param tenantDomain      Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers           Any additional headers to be embedded. (optional)
-     * @return Recovery response
-     * @throws ApiException if fails to make API call
+     * @return Recovery response.
+     * @throws ApiException if fails to make API call.
      */
     public RecoveryResponse recoverPassword(RecoveryRequest recoveryRequest, String tenantDomain,
                                             Map<String, String> headers) throws ApiException {
@@ -109,7 +109,7 @@ public class PasswordRecoveryApiV1 {
      * @param recoveryInitRequest Recovery initiating request. (required)
      * @param tenantDomain        Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
-     * @param localVarPath        Endpoint path
+     * @param localVarPath        Endpoint path.
      * @return Account recovery options response object.
      * @throws ApiException if fails to make API call.
      */
@@ -118,7 +118,7 @@ public class PasswordRecoveryApiV1 {
             throws ApiException {
 
         Object localVarPostBody = recoveryInitRequest;
-        // Verify the required parameter 'recoveryInitRequest' is set
+        // Verify the required parameter 'recoveryInitRequest' is set.
         if (recoveryInitRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'recoveryInitRequest' when calling initializeRecovery");
         }
@@ -156,15 +156,15 @@ public class PasswordRecoveryApiV1 {
      * @param recoveryRequest   Recovery request. (required)
      * @param tenantDomain      Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers           Any additional headers to be embedded. (optional)
-     * @param localVarPath      Endpoint path
-     * @return Recovery response
-     * @throws ApiException if fails to make API call
+     * @param localVarPath      Endpoint path.
+     * @return Recovery response.
+     * @throws ApiException if fails to make API call.
      */
     private RecoveryResponse recover(RecoveryRequest recoveryRequest, String tenantDomain,
                                      Map<String, String> headers, String localVarPath) throws ApiException {
 
         Object localVarPostBody = recoveryRequest;
-        // Verify if the required parameter 'recoveryRequest' is set
+        // Verify if the required parameter 'recoveryRequest' is set.
         if (recoveryRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'recoveryRequest' when requesting recovery");
         }
@@ -202,15 +202,15 @@ public class PasswordRecoveryApiV1 {
      * @param resentPasswordRequest     Resend request. (required)
      * @param tenantDomain              Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers                   Any additional headers to be embedded. (optional)
-     * @return Resend confirmation response
-     * @throws ApiException if fails to make API call
+     * @return Resend confirmation response.
+     * @throws ApiException if fails to make API call.
      */
     public ResendConfirmationCodeResponse resendPasswordConfirmationCode(
             ResendConfirmationRequest resentPasswordRequest, String tenantDomain, Map<String, String> headers)
             throws ApiException {
 
         Object localVarPostBody = resentPasswordRequest;
-        // verify the required parameter 'resentPasswordRequest' is set
+        // Verify the required parameter 'resentPasswordRequest' is set.
         if (resentPasswordRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'resentPasswordRequest' " +
                     "when calling resendPasswordConfirmationCode");
@@ -221,7 +221,7 @@ public class PasswordRecoveryApiV1 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V1_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        // Create path and map variables
+        // Create path and map variables.
         String localVarPath = "/password/resend".replaceAll("\\{format\\}","json");
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
@@ -252,14 +252,14 @@ public class PasswordRecoveryApiV1 {
      * @param confirmRequest            Confirmation request. (required)
      * @param tenantDomain              Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers                   Any additional headers to be embedded. (optional)
-     * @return Resent code response
-     * @throws ApiException if fails to make API call
+     * @return Resent code response.
+     * @throws ApiException if fails to make API call.
      */
     public ResetCodeResponse validateConfirmationCode(ConfirmRequest confirmRequest, String tenantDomain,
                                                       Map<String, String> headers) throws ApiException {
 
         Object localVarPostBody = confirmRequest;
-        // verify the required parameter 'confirmRequest' is set
+        // Verify the required parameter 'confirmRequest' is set.
         if (confirmRequest == null) {
             throw new ApiException(400, "Missing the required parameter 'confirmRequest' " +
                     "when calling validateConfirmationCode");
@@ -270,7 +270,7 @@ public class PasswordRecoveryApiV1 {
         basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
                 IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V1_RELATIVE_PATH);
         apiClient.setBasePath(basePath);
-        // Create path and map variables
+        // Create path and map variables.
         String localVarPath = "/password/confirm".replaceAll("\\{format\\}","json");
         List<Pair> localVarQueryParams = new ArrayList<Pair>();
         Map<String, String> localVarHeaderParams = new HashMap<String, String>();
