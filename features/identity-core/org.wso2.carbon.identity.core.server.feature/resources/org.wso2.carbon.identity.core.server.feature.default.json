@@ -4,6 +4,12 @@
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
+  "database.identity_db.pool_options.maxActive": "50",
+  "database.identity_db.pool_options.maxWait": "60000",
+  "database.identity_db.pool_options.testOnBorrow": "true",
+  "database.identity_db.pool_options.validationInterval": "30000",
+  "database.identity_db.pool_options.defaultAutoCommit": "true",
+  "database.identity_db.jmx_enable": "false",
   "server.clock_skew": "5m",
   "session_data.persistence.enable_persistence": true,
   "session_data.persistence.persistence_pool_size": "0",
@@ -19,6 +25,7 @@
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
+  "session.timeout.extend_remember_me_session_timeout_on_auth": true,
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",
@@ -98,6 +105,9 @@
   "oauth.response_type.none.class": "org.wso2.carbon.identity.oauth2.authz.handlers.NoneResponseTypeHandler",
   "oauth.response_type.none.validator": "org.wso2.carbon.identity.oauth.common.NoneResponseTypeValidator",
 
+  "oauth.grant_type.jwt.enable_iat_validation":"true",
+  "oauth.grant_type.jwt.iat_validity_period":"30",
+
   "oauth.grant_type.authorization_code.enable": true,
   "oauth.grant_type.authorization_code.grant_handler": "org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler",
   "oauth.grant_type.password.enable": true,
@@ -115,6 +125,7 @@
   "oauth.grant_type.jwt_bearer.enable": true,
   "oauth.grant_type.jwt_bearer.grant_handler": "org.wso2.carbon.identity.oauth2.grant.jwt.JWTBearerGrantHandler",
   "oauth.grant_type.jwt_bearer.grant_validator": "org.wso2.carbon.identity.oauth2.grant.jwt.JWTGrantValidator",
+  "oauth.grant_type.jwt_bearer.allow_refresh_tokens": true,
   "oauth.grant_type.uma_ticket.enable": true,
   "oauth.grant_type.uma_ticket.grant_handler": "org.wso2.carbon.identity.oauth.uma.grant.UMA2GrantHandler",
   "oauth.grant_type.uma_ticket.grant_validator": "org.wso2.carbon.identity.oauth.uma.grant.GrantValidator",
@@ -198,7 +209,8 @@
   "saml.enable_user_domain_crpto": false,
   "saml.enable_request_validity_period": false,
   "saml.request_validity_period": "5m",
-  "saml.enable_saml_sp_certificate_expiry_validation": false,
+  "saml.metadata.assertion_encrypt_with_app_cert": true,
+  "saml.enable_saml_sp_certificate_expiry_validation": true,
 
   "saml.endpoints.idp_url": "$ref{server.base_path}/samlsso",
   "saml.endpoints.logout": "$ref{server.base_path}/authenticationendpoint/samlsso_logout.do",
@@ -241,6 +253,7 @@
   "scim2.endpoints.groups_endpoint": "$ref{server.base_path}/scim2/Groups",
   "scim2.enable_complex_multivalued_attribute_support": false,
   "scim2.enable_filtering_enhancements": false,
+  "scim2.notify_userstore_status": false,
   "scim2.filter_users_and_groups_from_primary_domain": false,
   "scim2.mandate_domain_for_uesrnames_and_group_names_in_response": false,
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
@@ -248,6 +261,9 @@
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
+  "identity_mgt.recovery.enable_detailed_error_messages":false,
+  "identity_mgt.recovery.enable_auto_login": false,
+  "identity_mgt.recovery.notify_user_existence": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
@@ -255,6 +271,7 @@
   "identity_mgt.endpoint.enable_self_signup_endpoint": true,
   "identity_mgt.password_reset_email.enable_password_reset_email": false,
   "identity_mgt.password_reset_sms.sms_otp_validity": "1m",
+  "identity_mgt.password_reset_sms.sms_otp_regex": "[a-zA-Z0-9]{6}",
   "identity_mgt.password_reset_email.enable_recaptcha": false,
   "identity_mgt.password_reset_email.reset_mail_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
@@ -269,6 +286,7 @@
   "identity_mgt.recovery.challenge_question.answer_regex": ".*",
   "identity_mgt.recovery.challenge_question.enforce_answer_uniqueness": false,
   "identity_mgt.password_reset_challenge_questions.question_separator": "!",
+  "identity_mgt.password_reset_challenge_questions.skip_on_insufficient_answers": true,
 
   "identity_mgt.forced_challenge_questions.enable_forced_challenge_questions": false,
   "identity_mgt.challenge_questions.min_required_answers": "",
@@ -279,6 +297,8 @@
   "identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_offline_otp_based_reset": false,
+
+  "identity_mgt.password_update.preserve_logged_in_session": false,
 
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
@@ -299,12 +319,15 @@
   "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel" : true,
   "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
+  "identity_mgt.user_self_registration.notify_account_confirmation": false,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_self_registration.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]",
 
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+  "identity_mgt.user_claim_update.mobile.enable_verification": false,
+  "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
@@ -331,6 +354,8 @@
   "event.default_listener.application_authentication.enable": true,
   "event.default_listener.oauth_listener.priority": "12",
   "event.default_listener.oauth_listener.enable": false,
+  "event.default_listener.basic_auth_client_authenticator.priority": "100",
+  "event.default_listener.basic_auth_client_authenticator.enable": true,
   "event.default_listener.user_deletion.priority": "98",
   "event.default_listener.user_deletion.enable": false,
   "event.default_listener.consent_mgt_handler.priority": "110",
@@ -452,6 +477,7 @@
   "resource_access_control.scim2_me_post_method.keep_resource": true,
 
   "user.association.enable_for_federated_users": false,
+  "user.enable_per_user_functionality_locking": true,
   "tenant_context.enable_tenant_qualified_urls": false,
   "tenant_context.rewrite.webapps": [
     "/api/identity/user/v1.0/",
@@ -467,10 +493,10 @@
     "/api/identity/oauth2/uma/resourceregistration/v1.0/",
     "/api/identity/config-mgt/v1.0/",
     "/api/users/v2/me/webauthn",
+    "/api/identity/media/v1.0/",
     "/api/",
-    "/user-portal/",
-    "/developer-portal/",
-    "/admin-portal/",
+    "/myaccount/",
+    "/console/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
     "/lsp/"
@@ -486,9 +512,8 @@
     "/passivests"
   ],
   "tenant_context.rewrite.overwrite.dispatch": [
-    "/user-portal/",
-    "/developer-portal/",
-    "/admin-portal/"
+    "/myaccount/",
+    "/console/"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
@@ -518,6 +543,7 @@
 
   "federated.idp.role_claim_value_attribute_separator": ",",
   "configuration.store.query_length.max": "4194304",
+  "configuration.store.allow_cross_tenant_search": false,
 
   "fido.webauthn.enable": true,
   "fido.trusted.origins": [
@@ -544,35 +570,64 @@
     }
   ],
 
+  "legacy_feature": [
+    {
+      "id": "oauth",
+      "version": "1.0",
+      "enable": false
+    },
+    {
+      "id": "identity/connect/dcr",
+      "enable": false
+    }
+  ],
+
   "continue_on_claim_handling_error": true,
 
-  "developer_portal.applications.account_app.configs": {
-    "path": "/user-portal/overview"
+  "console.applications.account_app.configs": {
+    "path": "/myaccount/overview"
   },
-  "developer_portal.app_base_name": "developer-portal",
-  "developer_portal.client_id": "DEVELOPER_PORTAL",
-  "developer_portal.debug.enable": false,
-  "developer_portal.documentation.base_url": "https://api.github.com",
-  "developer_portal.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
-  "developer_portal.documentation.github_options": {
+  "console.app_base_name": "console",
+  "console.client_id": "CONSOLE",
+  "console.debug.enable": false,
+  "console.applications.admin_app.configs": {
+    "basePath": "/manage",
+    "displayName": "Manage",
+    "path": "/manage/users"
+  },
+  "console.applications.developer_app.configs": {
+    "basePath": "/develop",
+    "displayName": "Develop",
+    "path": "/develop/applications"
+  },
+  "console.documentation.base_url": "https://api.github.com",
+  "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
+  "console.documentation.github_options": {
     "branch": "new_restructure"
   },
-  "developer_portal.documentation.image_prefix_url": "https://github.com/wso2/docs-is/raw/new_restructure/en/docs/",
-  "developer_portal.documentation.provider": "GITHUB",
-  "developer_portal.documentation.structure_file_type": "YAML",
-  "developer_portal.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
-  "developer_portal.login_callback_path": "/login",
-  "developer_portal.logout_callback_path": "/login",
-  "developer_portal.route_paths": {
-    "home": "/overview",
+  "console.documentation.image_prefix_url": "https://github.com/wso2/docs-is/raw/new_restructure/en/docs/",
+  "console.documentation.provider": "GITHUB",
+  "console.documentation.structure_file_type": "YAML",
+  "console.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
+  "console.login_callback_path": "/login",
+  "console.logout_callback_path": "/login",
+  "console.route_paths": {
+    "home": "/develop/applications",
     "login": "/login",
     "logout": "/logout"
   },
-  "developer_portal.ui.app_copyright": "WSO2 Identity Server",
-  "developer_portal.ui.app_title": "WSO2 Identity Server Developer Dashboard",
-  "developer_portal.ui.app_name": "Identity Server",
-  "developer_portal.ui.app_logo_path": "/assets/images/logo.svg",
-  "developer_portal.applications.scopes": {
+  "console.ui.app_copyright": "WSO2 Identity Server",
+  "console.ui.app_title": "Console | WSO2 Identity Server",
+  "console.ui.app_name": "Console",
+  "console.ui.app_logo_path": "/assets/images/logo.svg",
+  "console.ui.product_name": "Identity Server",
+  "console.theme": "default",
+  "console.session.params.userIdleTimeOut": 600,
+  "console.session.params.userIdleWarningTimeOut": 580,
+  "console.session.params.sessionRefreshTimeOut": 300,
+  "console.session.params.checkSessionInterval": 3,
+  "console.applications.enabled": true,
+  "console.applications.scopes": {
     "create": [
       "internal_application_mgt_create"
     ],
@@ -586,63 +641,8 @@
       "internal_application_mgt_delete"
     ]
   },
-  "developer_portal.identity_providers.scopes": {
-    "create": [
-      "internal_idp_create"
-    ],
-    "read": [
-      "internal_idp_view"
-    ],
-    "update": [
-      "internal_idp_update"
-    ],
-    "delete": [
-      "internal_idp_delete"
-    ]
-  },
-  "developer_portal.users.scopes": {
-    "create": [
-      "internal_user_mgt_create"
-    ],
-    "read": [
-      "internal_user_mgt_list"
-    ],
-    "update": [
-      "internal_user_mgt_update"
-    ],
-    "delete": [
-      "internal_user_mgt_delete"
-    ]
-  },
-  "developer_portal.groups.scopes": {
-    "create": [
-      "internal_role_mgt_create"
-    ],
-    "read": [
-      "internal_role_mgt_view"
-    ],
-    "update": [
-      "internal_role_mgt_update"
-    ],
-    "delete": [
-      "internal_role_mgt_delete"
-    ]
-  },
-  "developer_portal.roles.scopes": {
-    "create": [
-      "internal_role_mgt_create"
-    ],
-    "read": [
-      "internal_role_mgt_view"
-    ],
-    "update": [
-      "internal_role_mgt_update"
-    ],
-    "delete": [
-      "internal_role_mgt_delete"
-    ]
-  },
-  "developer_portal.attribute_dialects.scopes": {
+  "console.attribute_dialects.enabled": true,
+  "console.attribute_dialects.scopes": {
     "create": [
       "internal_claim_meta_create"
     ],
@@ -656,21 +656,8 @@
       "internal_claim_meta_delete"
     ]
   },
-  "developer_portal.user_stores.scopes": {
-    "create": [
-      "internal_userstore_create"
-    ],
-    "read": [
-      "internal_userstore_view"
-    ],
-    "update": [
-      "internal_userstore_update"
-    ],
-    "delete": [
-      "internal_userstore_delete"
-    ]
-  },
-  "developer_portal.certificates.scopes": {
+  "console.certificates.enabled": true,
+  "console.certificates.scopes": {
     "create": [
       "internal_keystore_update"
     ],
@@ -684,21 +671,8 @@
       "internal_keystore_update"
     ]
   },
-  "developer_portal.general_configurations.scopes": {
-    "create": [
-      "internal_identity_mgt_create"
-    ],
-    "read": [
-      "internal_identity_mgt_view"
-    ],
-    "update": [
-      "internal_identity_mgt_update"
-    ],
-    "delete": [
-      "internal_identity_mgt_delete"
-    ]
-  },
-  "developer_portal.email_templates.scopes": {
+  "console.email_templates.enabled": true,
+  "console.email_templates.scopes": {
     "create": [
       "internal_email_mgt_create"
     ],
@@ -712,13 +686,151 @@
       "internal_email_mgt_delete"
     ]
   },
-  "developer_portal.gravatar.configs": {
+  "console.general_configurations.enabled": true,
+  "console.general_configurations.scopes": {
+    "create": [
+      "internal_identity_mgt_create"
+    ],
+    "read": [
+      "internal_identity_mgt_view"
+    ],
+    "update": [
+      "internal_identity_mgt_update"
+    ],
+    "delete": [
+      "internal_identity_mgt_delete"
+    ]
+  },
+  "console.groups.enabled": true,
+  "console.groups.scopes": {
+    "create": [
+      "internal_role_mgt_create"
+    ],
+    "read": [
+      "internal_role_mgt_view"
+    ],
+    "update": [
+      "internal_role_mgt_update"
+    ],
+    "delete": [
+      "internal_role_mgt_delete"
+    ]
+  },
+  "console.identity_providers.enabled": true,
+  "console.identity_providers.scopes": {
+    "create": [
+      "internal_idp_create"
+    ],
+    "read": [
+      "internal_idp_view"
+    ],
+    "update": [
+      "internal_idp_update"
+    ],
+    "delete": [
+      "internal_idp_delete"
+    ]
+  },
+  "console.roles.enabled": true,
+  "console.roles.scopes": {
+    "create": [
+      "internal_role_mgt_create"
+    ],
+    "read": [
+      "internal_role_mgt_view"
+    ],
+    "update": [
+      "internal_role_mgt_update"
+    ],
+    "delete": [
+      "internal_role_mgt_delete"
+    ]
+  },
+  "console.users.enabled": true,
+  "console.users.scopes": {
+    "create": [
+      "internal_user_mgt_create"
+    ],
+    "read": [
+      "internal_user_mgt_list"
+    ],
+    "update": [
+      "internal_user_mgt_update"
+    ],
+    "delete": [
+      "internal_user_mgt_delete"
+    ]
+  },
+  "console.user_stores.enabled": true,
+  "console.user_stores.scopes": {
+    "create": [
+      "internal_userstore_create"
+    ],
+    "read": [
+      "internal_userstore_view"
+    ],
+    "update": [
+      "internal_userstore_update"
+    ],
+    "delete": [
+      "internal_userstore_delete"
+    ]
+  },
+  "console.gravatar.configs": {
     "fallback": "404"
   },
-  "developer_portal.session.params": {
-    "userIdleTimeOut": 600,
-    "userIdleWarningTimeOut": 580,
-    "sessionRefreshTimeOut": 300,
-    "checkSessionInterval": 3
-  }
+
+  "myaccount.app_base_name": "myaccount",
+  "myaccount.client_id": "MY_ACCOUNT",
+  "myaccount.login_callback_path": "/login",
+  "myaccount.logout_callback_path": "/login",
+  "myaccount.route_paths": {
+    "home": "/overview",
+    "login": "/login",
+    "logout": "/logout"
+  },
+  "myaccount.ui.app_copyright": "WSO2 Identity Server",
+  "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
+  "myaccount.ui.app_name": "My Account",
+  "myaccount.ui.app_logo_path": "/assets/images/logo.svg",
+  "myaccount.ui.product_name": "Identity Server",
+  "myaccount.theme": "default",
+  "myaccount.authenticator_app_configs": {
+    "enabled": true
+  },
+  "myaccount.applications.enabled": true,
+  "myaccount.operations.enabled": true,
+  "myaccount.overview.enabled": true,
+  "myaccount.personal_info.enabled": true,
+  "myaccount.security.enabled": true,
+
+  "myaccount.operations.scopes": {
+    "create": [],
+    "read": [
+      "internal_humantask_view"
+    ],
+    "update": [],
+    "delete": []
+  },
+  "myaccount.session.params.userIdleTimeOut": 600,
+  "myaccount.session.params.userIdleWarningTimeOut": 580,
+  "myaccount.session.params.sessionRefreshTimeOut": 300,
+  "myaccount.session.params.checkSessionInterval": 3,
+  "cors.allow_generic_http_requests": true,
+  "cors.allow_any_origin": true,
+  "cors.allowed_origins": [],
+  "cors.allow_subdomains": false,
+  "cors.supported_methods": [
+    "GET",
+    "POST",
+    "HEAD",
+    "OPTIONS"
+  ],
+  "cors.support_any_header": true,
+  "cors.supported_headers": [],
+  "cors.exposed_headers": [],
+  "cors.supports_credentials": true,
+  "cors.max_age": -1,
+  "cors.tag_requests": false,
+  "audit.log.contextual_param.params": []
 }

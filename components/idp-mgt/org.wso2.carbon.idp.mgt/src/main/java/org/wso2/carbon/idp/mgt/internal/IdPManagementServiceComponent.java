@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -372,6 +373,23 @@ public class IdPManagementServiceComponent {
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    @Reference(
+            name = "org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceComponent",
+            service = RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService"
+    )
+    private void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(roleManagementService);
+    }
+
+    private void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(null);
     }
 
     @Reference(

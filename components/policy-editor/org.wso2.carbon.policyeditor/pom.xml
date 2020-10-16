@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>policy-editor</artifactId>
-        <version>5.17.110-SNAPSHOT</version>
+        <version>5.18.133-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -37,7 +37,7 @@
             <artifactId>org.wso2.carbon.core</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces.wso2</groupId>
+            <groupId>org.wso2.orbit.xerces</groupId>
             <artifactId>xercesImpl</artifactId>
         </dependency>
         <dependency>

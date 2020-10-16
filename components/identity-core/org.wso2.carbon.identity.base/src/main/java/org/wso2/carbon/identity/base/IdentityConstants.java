@@ -252,6 +252,8 @@ public class IdentityConstants {
         public static final String SAML_ECP_URL = "SSOService.SAMLECPEndpoint";
         public static final String SAML_METADATA_AUTHN_REQUESTS_SIGNING_ENABLED = "SSOService" +
                 ".SAML2AuthnRequestsSigningEnabled";
+        public static final String ADD_NAME_ID_POLICY_IF_UNSPECIFIED = "SSOService" +
+                ".SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified";
 
         //Identity Persistence Manager
         public static final String SKIP_DB_SCHEMA_CREATION = "JDBCPersistenceManager.SkipDBSchemaCreation";
@@ -259,6 +261,8 @@ public class IdentityConstants {
         //Timeout Configurations
         public static final String SESSION_IDLE_TIMEOUT = "TimeConfig.SessionIdleTimeout";
         public static final String REMEMBER_ME_TIME_OUT = "TimeConfig.RememberMeTimeout";
+        public static final String EXTEND_REMEMBER_ME_SESSION_ON_AUTH =
+                "TimeConfig.ExtendRememberMeSessionTimeoutOnAuth";
 
         public static final String CLEAN_UP_PERIOD = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpPeriod";
         public static final String CLEAN_UP_TIMEOUT = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.CleanUpTimeout";
@@ -499,5 +503,43 @@ public class IdentityConstants {
 
         public static final String CARBON_PORT_HTTP_PROPERTY = "mgt.transport.http.port";
         public static final String CARBON_PORT_HTTPS_PROPERTY = "mgt.transport.https.port";
+    }
+
+    public static class CORS {
+
+        public static final String ALLOW_GENERIC_HTTP_REQUESTS = "CORS.AllowGenericHttpRequests";
+        public static final String ALLOW_ANY_ORIGIN = "CORS.AllowAnyOrigin";
+        public static final String ALLOWED_ORIGINS = "CORS.AllowedOrigins.Origin";
+        public static final String ALLOW_SUBDOMAINS = "CORS.AllowSubdomains";
+        public static final String SUPPORTED_METHODS = "CORS.SupportedMethods.Method";
+        public static final String SUPPORT_ANY_HEADER = "CORS.SupportAnyHeader";
+        public static final String SUPPORTED_HEADERS = "CORS.SupportedHeaders.Header";
+        public static final String EXPOSED_HEADERS = "CORS.ExposedHeaders.Header";
+        public static final String SUPPORTS_CREDENTIALS = "CORS.SupportsCredentials";
+        public static final String MAX_AGE = "CORS.MaxAge";
+        public static final String TAG_REQUESTS = "CORS.TagRequests";
+    }
+
+    /**
+     * Contains the constants related to Legacy Feature config elements.
+     */
+    public static class LegacyFeatureConfigElements {
+
+        public final static String LEGACY_FEATURE_CONFIG = "LegacyFeatures";
+        public final static String LEGACY_FEATURE = "LegacyFeature";
+        public final static String LEGACY_FEATURE_ID = "Id";
+        public final static String LEGACY_FEATURE_VERSION = "Version";
+        public final static String LEGACY_FEATURE_ENABLE = "Enable";
+    }
+
+    /**
+     * Contains the constants related to Reverse Proxy configs elements.
+     */
+    public static class ReverseProxyConfigElements {
+
+        public final static String REVERSE_PROXY_CONFIG = "ReverseProxyConfig";
+        public final static String REVERSE_PROXY = "ReverseProxy";
+        public final static String PROXY_CONTEXT = "ProxyContext";
+        public final static String DEFAULT_CONTEXT = "DefaultContext";
     }
 }

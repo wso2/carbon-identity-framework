@@ -57,7 +57,7 @@ public abstract class AbstractTemplate {
             this.parametersMetaData = this.metaData.getTemplate().getParametersMetaData();
         } catch (JAXBException e) {
             String errorMsg = "Error occured while converting template parameter data to object : " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
     }

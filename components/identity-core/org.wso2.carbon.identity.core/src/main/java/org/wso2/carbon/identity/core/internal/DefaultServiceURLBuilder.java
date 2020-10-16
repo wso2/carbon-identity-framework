@@ -88,8 +88,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
 
-        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, tenantDomain, proxyContextPath, urlPath,
-                parameters, resolvedFragment);
+        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, tenantDomain, proxyContextPath,
+                urlPath, parameters, resolvedFragment);
     }
 
     private String getResolvedUrlPath(String tenantDomain) {
@@ -171,7 +171,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return tenantDomain;
     }
 
-    private String buildFragment(String fragment, Map<String, String> fragmentParams) {
+    private String buildFragment(String fragment, Map<String, String> fragmentParams) throws URLBuilderException {
 
         if (StringUtils.isNotBlank(fragment)) {
             return fragment;
@@ -180,13 +180,19 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
     }
 
-    private String getResolvedParamString(Map<String, String> parameters) {
+    private String getResolvedParamString(Map<String, String> parameters) throws URLBuilderException {
 
         StringJoiner joiner = new StringJoiner("&");
         if (MapUtils.isNotEmpty(parameters)) {
             for (Map.Entry<String, String> entry : parameters.entrySet()) {
                 StringBuilder paramBuilder = new StringBuilder();
-                paramBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+                try {
+                    paramBuilder.append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8.name())).append("=")
+                            .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8.name()));
+                } catch (UnsupportedEncodingException e) {
+                    throw new URLBuilderException(String.format("Error while trying to build url. %s is not supported" +
+                            ".", StandardCharsets.UTF_8.name()), e);
+                }
                 joiner.add(paramBuilder.toString());
             }
         }
@@ -277,9 +283,9 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String relativePublicUrl;
         private String relativeInternalUrl;
 
-        private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int port, String tenantDomain,
-                               String proxyContextPath, String urlPath, Map<String, String> parameters, String fragment)
-                throws URLBuilderException {
+        private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int port,
+                               String tenantDomain, String proxyContextPath, String urlPath,
+                               Map<String, String> parameters, String fragment) throws URLBuilderException {
 
             this.protocol = protocol;
             this.proxyHostName = proxyHostName;
@@ -387,8 +393,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         /**
          * Returns the absolute URL used for Identity Server internal calls.
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
-         * the fragment to return the internal absolute URL.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
+         * and the fragment to return the internal absolute URL.
          *
          * @return The internal absolute URL from the Service URL instance.
          */
@@ -400,8 +406,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
         /**
          * Returns the proxy server url when the Identity Server is fronted with a proxy.
-         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params and
-         * the fragment to return the public absolute URL.
+         * Concatenate the protocol, host name, port, proxy context path, web context root, url context, query params
+         * and the fragment to return the public absolute URL.
          *
          * @return The public absolute URL from the Service URL instance.
          */
@@ -501,13 +507,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
                 serverUrl.setLength(serverUrl.length() - 1);
             }
             if (StringUtils.isNotBlank(resolvedParamsString)) {
-                try {
-                    serverUrl.append(delimiter).append(URLEncoder.encode(resolvedParamsString,
-                            StandardCharsets.UTF_8.name()));
-                } catch (UnsupportedEncodingException e) {
-                    throw new URLBuilderException(String.format("Error while trying to build url. %s is not supported" +
-                            ".", StandardCharsets.UTF_8.name()), e);
-                }
+                serverUrl.append(delimiter).append(resolvedParamsString);
             }
         }
 

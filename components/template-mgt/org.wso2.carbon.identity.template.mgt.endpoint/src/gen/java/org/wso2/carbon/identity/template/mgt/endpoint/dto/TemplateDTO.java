@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
 
+@Deprecated
 @ApiModel(description = "")
 public class TemplateDTO {
 

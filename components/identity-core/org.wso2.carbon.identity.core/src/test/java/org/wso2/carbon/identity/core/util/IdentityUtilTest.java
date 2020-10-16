@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.model.IdentityErrorMsgContext;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfigKey;
+import org.wso2.carbon.identity.core.model.ReverseProxyConfig;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -237,6 +238,25 @@ public class IdentityUtilTest {
         };
     }
 
+    @DataProvider
+    public Object[][] getReverseProxyConfigData() {
+
+        return new Object[][]{
+                {"/oauth2/authorize", "/authorize", "/oidc/logout", "/logout", "/oauth2/authorize", "/authorize"},
+                {"/oauth2/authorize", null, "/oidc/logout", "/logout", "/oauth2/authorize", "/oauth2/authorize"},
+                {null, "/authorize", "/oidc/logout", "/logout", "/oauth2/authorize", "/oauth2/authorize"},
+                {null, null, "/oidc/logout", "/logout", "/oauth2/authorize", "/oauth2/authorize"},
+                {null, null, null, null, "/oauth2/authorize", "/oauth2/authorize"},
+                {"", "", "/oidc/logout", "/logout", "/oauth2/authorize", "/oauth2/authorize"},
+                {"/oauth2/authorize", "", "/oidc/logout", "/logout", "/oauth2/authorize", "/oauth2/authorize"},
+                {"", "/authorize", "/oidc/logout", "/logout", "/oauth2/authorize", "/oauth2/authorize"},
+                {"/oauth2/authorize", "/authorize", "/oidc/logout", "/logout", "", ""},
+                {"/oauth2/authorize", "/authorize", "/oidc/logout", "/logout", null, null},
+                {"/oauth2/authorize", "/authorize", "/oidc/logout", "/logout", "/oidc/logout", "/logout"},
+                {null, null, "/oidc/logout", "/logout", "/oidc/logout", "/logout"}
+        };
+    }
+
     @Test(dataProvider = "getIdentityCacheConfigTestData")
     public void testGetIdentityCacheConfig(String cacheManagerName, String cacheName, Object expected)
             throws Exception {
@@ -253,6 +273,22 @@ public class IdentityUtilTest {
                 mockIdentityCookiesConfigurationHolder);
         assertEquals(IdentityUtil.getIdentityCookiesConfigurationHolder(), mockIdentityCookiesConfigurationHolder,
                 "Returned cookie holder doesn't match the given.");
+    }
+
+    @Test(dataProvider = "getReverseProxyConfigData")
+    public void testGetProxyContext(String defaultContext1, String proxyContext1,
+                                    String defaultContext2, String proxyContext2,
+                                    String expectedDefaultContext, String expectedProxyContext) {
+
+        Map<String, ReverseProxyConfig> mockReverseProxyConfigurationHolder = new HashMap<>();
+        mockReverseProxyConfigurationHolder.put(defaultContext1,
+                new ReverseProxyConfig(defaultContext1, proxyContext1));
+        mockReverseProxyConfigurationHolder.put(defaultContext2,
+                new ReverseProxyConfig(defaultContext2, proxyContext2));
+        Whitebox.setInternalState(IdentityUtil.class, "reverseProxyConfigurationHolder",
+                mockReverseProxyConfigurationHolder);
+        assertEquals(IdentityUtil.getProxyContext(expectedDefaultContext), expectedProxyContext,
+                "Returned proxy context is incorrect.");
     }
 
     @Test

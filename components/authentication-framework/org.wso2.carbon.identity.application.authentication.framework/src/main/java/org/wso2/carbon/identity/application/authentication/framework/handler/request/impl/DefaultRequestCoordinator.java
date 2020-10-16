@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.slf4j.MDC;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
@@ -59,6 +60,7 @@ import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -97,6 +99,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
+    private static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
 
     public static DefaultRequestCoordinator getInstance() {
 
@@ -185,6 +188,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     FrameworkUtils.removeAuthenticationRequestFromCache(sessionDataKey);
                 }
                 context = initializeFlow(request, responseWrapper);
+                context.initializeAnalyticsData();
             } else {
                 returning = true;
                 context = FrameworkUtils.getContextData(request);
@@ -192,7 +196,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             if (context != null) {
-
+                if (StringUtils.isNotBlank(context.getServiceProviderName())) {
+                    MDC.put(SERVICE_PROVIDER_QUERY_KEY, context.getServiceProviderName());
+                }
                 // Monitor should be context itself as we need to synchronize only if the same context is used by two
                 // different threads.
                 synchronized (context) {
@@ -265,7 +271,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             if (log.isDebugEnabled()) {
                 log.debug("Script initiated Exception occured.", e);
             }
-            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
+                    e.getErrorCode());
             if (log.isDebugEnabled()) {
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
@@ -278,8 +285,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
             FrameworkUtils.removeCookie(request, responseWrapper,
                     FrameworkUtils.getPASTRCookieName(context.getContextIdentifier()));
-            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser());
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, "Authentication attempt failed.", e.getErrorCode());
+            publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
+                    e.getErrorCode());
+            FrameworkUtils
+                    .sendToRetryPage(request, responseWrapper, "Authentication attempt failed.", e.getErrorCode());
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, responseWrapper);
@@ -636,13 +645,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
 
             String sessionContextKey = DigestUtils.sha256Hex(cookie.getValue());
-            SessionContext sessionContext;
+            SessionContext sessionContext = null;
             // get the authentication details from the cache
             try {
                 //Starting tenant-flow as tenant domain is retrieved downstream from the carbon-context to get the
                 // tenant wise session expiry time
                 FrameworkUtils.startTenantFlow(context.getTenantDomain());
-                sessionContext = FrameworkUtils.getSessionContextFromCache(sessionContextKey);
+                sessionContext = FrameworkUtils.getSessionContextFromCache(request, context, sessionContextKey);
             } finally {
                 FrameworkUtils.endTenantFlow();
             }
@@ -808,8 +817,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private void publishAuthenticationFailure(HttpServletRequest request, AuthenticationContext context,
-            AuthenticatedUser user) {
+                                              AuthenticatedUser user, String errorCode) {
 
+        Serializable authenticationStartTime =
+                context.getAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME);
+        if (authenticationStartTime instanceof Long) {
+            context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_DURATION,
+                    System.currentTimeMillis() - (long) authenticationStartTime);
+        }
+        context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_ERROR_CODE, errorCode);
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
 

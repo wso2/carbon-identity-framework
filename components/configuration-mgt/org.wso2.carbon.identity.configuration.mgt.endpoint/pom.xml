@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>configuration-mgt</artifactId>
-        <version>5.17.110-SNAPSHOT</version>
+        <version>5.18.133-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -183,7 +183,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>${maven.build.helper.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>add-source</id>

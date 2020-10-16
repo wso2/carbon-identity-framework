@@ -96,6 +96,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     @Override
     public List<Parameter> getWorkflowParameters(String workflowId) throws WorkflowException {
+        
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -367,8 +368,9 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
         } else {
             workflowDAO.removeWorkflowParams(workflow.getWorkflowId());
             workflowDAO.updateWorkflow(workflow);
-            if (!StringUtils.equals(oldWorkflow.getWorkflowName(),workflow.getWorkflowName())) {
-                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(), workflow.getWorkflowName());
+            if (!StringUtils.equals(oldWorkflow.getWorkflowName(), workflow.getWorkflowName())) {
+                WorkflowManagementUtil.updateWorkflowRoleName(oldWorkflow.getWorkflowName(),
+                        workflow.getWorkflowName());
             }
         }
         workflowDAO.addWorkflowParams(parameterList, workflow.getWorkflowId(), tenantId);
@@ -469,6 +471,39 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
                 }
             }
 
+        }
+    }
+
+    /**
+     * Remove all workflows by tenant id.
+     *
+     * @param tenantId  Id of the tenant
+     * @throws WorkflowException
+     */
+    @Override
+    public void removeWorkflows(int tenantId) throws WorkflowException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all workflows of tenant: " + tenantId);
+        }
+
+        List<WorkflowListener> workflowListenerList = WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
+
+        // Invoke onPreDelete on workflow listeners
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPreDeleteWorkflows(tenantId);
+            }
+        }
+
+        workflowDAO.removeWorkflowParams(tenantId);
+        workflowDAO.removeWorkflows(tenantId);
+
+        // Invoke onPostDelete on workflow listeners
+        for (WorkflowListener workflowListener : workflowListenerList) {
+            if (workflowListener.isEnable()) {
+                workflowListener.doPostDeleteWorkflows(tenantId);
+            }
         }
     }
 
@@ -642,6 +677,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
     @Override
     public boolean entityHasPendingWorkflowsOfType(Entity entity, String requestType) throws
             WorkflowException {
+        
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         for (WorkflowListener workflowListener : workflowListenerList) {
@@ -779,6 +815,7 @@ public class WorkflowManagementServiceImpl implements WorkflowManagementService 
 
     @Override
     public void deleteWorkflowRequest(String requestId) throws WorkflowException {
+        
         List<WorkflowListener> workflowListenerList =
                 WorkflowServiceDataHolder.getInstance().getWorkflowListenerList();
         String loggedUser = CarbonContext.getThreadLocalCarbonContext().getUsername();

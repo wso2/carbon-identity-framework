@@ -60,6 +60,9 @@ public abstract class FrameworkConstants {
     public static final String PASSWORD = "password";
     public static final String SIGN_UP_ENDPOINT = "/accountrecoveryendpoint/signup.do";
     public static final String REGISTRATION_ENDPOINT = "/accountrecoveryendpoint/register.do";
+    public static final String ERROR_CODE = "errorCode";
+    public static final String ERROR_MESSAGE = "errorMessage";
+    public static final String ERROR_URI = "errorURI";
 
     // This is to support sign-up form to be displayed in the provisioning flow, as when trying to displaying the
     // sign-up form, we validate whether self-sign up is enabled.
@@ -113,6 +116,7 @@ public abstract class FrameworkConstants {
     public static final String LAST_FAILED_AUTHENTICATOR = "LastFailedAuthenticator";
     public static final String RUNTIME_PARAMS = "RUNTIME_PARAMS";
     public static final String SP_STANDARD_DIALECT = "SP_STANDARD_DIALECT";
+    public static final String RUNTIME_CLAIMS = "RUNTIME_CLAIMS";
 
     public static final String INPUT_TYPE_IDENTIFIER_FIRST = "idf";
 
@@ -128,6 +132,9 @@ public abstract class FrameworkConstants {
 
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
+
+    // Current session thread local identifier.
+    public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
     private FrameworkConstants() {
 
@@ -221,6 +228,18 @@ public abstract class FrameworkConstants {
          */
         public static final String USER_SESSION_MAPPING_ENABLED =
                 "JDBCPersistenceManager.SessionDataPersist.UserSessionMapping.Enable";
+
+        /**
+         * Configuration to enable publishing the active session count in analytics event.
+         */
+        public static final String PUBLISH_ACTIVE_SESSION_COUNT = "Analytics.PublishActiveSessionCount";
+
+        /**
+         * Configuration to enable preserving user from being logged out at password update by skipping current
+         * session and token from being terminated.
+         */
+        public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
+                "PasswordUpdate.PreserveLoggedInSession";
 
         private Config() {
         }
@@ -330,6 +349,7 @@ public abstract class FrameworkConstants {
         public static final String SESSION_CREATE = "sessionCreated";
         public static final String SESSION_UPDATE = "sessionUpdated";
         public static final String SESSION_TERMINATE = "sessionTerminated";
+        public static final String ACTIVE_SESSION_COUNT = "activeSessionCount";
     }
 
     public static class JSAttributes {
@@ -364,7 +384,9 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_SECURE = "secure";
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
+        public static final String JS_COOKIE_SAMESITE = "sameSite";
         public static final String JS_LOCAL_ROLES = "roles";
+        public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";
         public static final String JS_AUTHENTICATION_OPTIONS = "options";
         public static final String JS_LOCAL_IDP = "local";
@@ -385,11 +407,14 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
         public static final String JS_FUNC_LOAD_FUNC_LIB = "loadLocalLibrary";
+        public static final String JS_AUTH_FAILURE = "fail";
 
         public static final String IDP = "idp";
         public static final String AUTHENTICATOR = "authenticator";
         public static final String AUTHENTICATION_OPTIONS = "authenticationOptions";
+        public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
+        public static final String FORCE_AUTH_PARAM = "forceAuth";
     }
     public static class InternalRoleDomains {
 
@@ -430,5 +455,27 @@ public abstract class FrameworkConstants {
 
         public static final String ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY = "account.lock.handler.enable";
         public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
+    }
+
+
+    /**
+     * Constants related with Analytics parameters.
+     */
+    public static class AnalyticsData {
+
+        public static final String AUTHENTICATION_START_TIME = "authenticationStartTime";
+        public static final String AUTHENTICATION_DURATION = "authenticationDuration";
+        public static final String DATA_MAP = "dataMap";
+        public static final String AUTHENTICATION_ERROR_CODE = "authenticationErrorCode";
+        public static final String CURRENT_AUTHENTICATOR_START_TIME = "currentAuthenticatorStartTime";
+        public static final String CURRENT_AUTHENTICATOR_DURATION = "currentAuthenticatorDuration";
+        public static final String CURRENT_AUTHENTICATOR_ERROR_CODE = "currentAuthenticatorErrorCode";
+        public static final String CUSTOM_PARAM_PREFIX = "customParam";
+        public static final int CUSTOM_PARAM_LENGTH = 5;
+        public static final String CUSTOM_PARAM_1 = CUSTOM_PARAM_PREFIX + "1";
+        public static final String CUSTOM_PARAM_2 = CUSTOM_PARAM_PREFIX + "2";
+        public static final String CUSTOM_PARAM_3 = CUSTOM_PARAM_PREFIX + "3";
+        public static final String CUSTOM_PARAM_4 = CUSTOM_PARAM_PREFIX + "4";
+        public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
     }
 }

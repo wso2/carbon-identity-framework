@@ -88,6 +88,8 @@ public class IdentityEventConstants {
         public static final String POST_ACCOUNT_SUSPENSION = "POST_ACCOUNT_SUSPENSION";      
         public static final String TRIGGER_NOTIFICATION = "TRIGGER_NOTIFICATION";
         public static final String TRIGGER_SMS_NOTIFICATION = "TRIGGER_SMS_NOTIFICATION";
+        public static final String PRE_ACCOUNT_RECOVERY = "PRE_ACCOUNT_RECOVERY";
+        public static final String POST_ACCOUNT_RECOVERY = "POST_ACCOUNT_RECOVERY";
 
         public static final String PRE_ADD_INTERNAL_ROLE_WITH_ID = "PRE_ADD_INTERNAL_ROLE_WITH_ID";
         public static final String POST_ADD_INTERNAL_ROLE_WITH_ID = "POST_ADD_INTERNAL_ROLE_WITH_ID";
@@ -140,6 +142,10 @@ public class IdentityEventConstants {
         public static final String PRE_SET_CHALLENGE_QUESTION_ANSWERS = "PRE_SET_CHALLENGE_QUESTION_ANSWERS";
         public static final String POST_SET_CHALLENGE_QUESTION_ANSWERS = "POST_SET_CHALLENGE_QUESTION_ANSWERS";
         public static final String POST_USER_ACCOUNT_CONFIRMATION = "POST_USER_ACCOUNT_CONFIRMATION";
+        public static final String PRE_SELF_SIGNUP_REGISTER = "PRE_SELF_SIGNUP_REGISTER";
+        public static final String POST_SELF_SIGNUP_REGISTER = "POST_SELF_SIGNUP_REGISTER";
+        public static final String PRE_SELF_SIGNUP_CONFIRM = "PRE_SELF_SIGNUP_CONFIRM";
+        public static final String POST_SELF_SIGNUP_CONFIRM = "POST_SELF_SIGNUP_CONFIRM";
     }
 
     /**
@@ -153,7 +159,8 @@ public class IdentityEventConstants {
         AUTHENTICATION_FAILURE,
         SESSION_CREATE,
         SESSION_UPDATE,
-        SESSION_TERMINATE
+        SESSION_TERMINATE,
+        SESSION_EXPIRE
     }
 
     public class EventProperty {
@@ -188,6 +195,7 @@ public class IdentityEventConstants {
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
         public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
+        public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
 
         public static final String REQUEST = "request";
         public static final String USER_ID = "USER_ID";
@@ -208,6 +216,10 @@ public class IdentityEventConstants {
         public static final String AUTHENTICATION_STATUS = "authenticationStatus";
         public static final String USER_CHALLENGE_ANSWERS = "userChallengeAnswers";
         public static final String USER_OLD_CHALLENGE_ANSWERS = "userOldChallengeAnswers";
+        public static final String SELF_REGISTRATION_CODE = "selfsignup-code";
+        public static final String SELF_REGISTRATION_VERIFIED_CHANNEL = "selfsignup-verify-channel";
+        public static final String SELF_REGISTRATION_VERIFIED_CHANNEL_CLAIM = "selfsignup-verify-channel-claim";
+        public static final String SELF_SIGNUP_CONFIRM_TIME = "selfsignup-confirm-time";
     }
 
     public class ErrorMessage {

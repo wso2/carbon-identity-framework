@@ -547,9 +547,102 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * This flag is used to mark when this authentication context is used by an active thread. This is to prevent same
      * context is used by two different threads at the same time.
+     *
      * @param activeInAThread True when this context started to being used by a thread.
      */
     public void setActiveInAThread(boolean activeInAThread) {
+
         this.activeInAThread = activeInAThread;
+    }
+
+    /**
+     * Initialize the authentication time related parameter maps so that in later we don't need to
+     * check whether it is initialized.
+     *
+     * @return the map consists of authentication related parameters.
+     */
+    public void initializeAnalyticsData() {
+
+        Map<String, Serializable> analyticsData = new HashMap<>();
+        this.addParameter(FrameworkConstants.AnalyticsData.DATA_MAP, analyticsData);
+        this.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME,
+                System.currentTimeMillis());
+    }
+
+    /**
+     * Set analytics related params for Authentication.
+     *
+     * @param value the authentication related param.
+     */
+    public void setAnalyticsData(String key, Serializable value) {
+
+        Map<String, Serializable> analyticsData = (HashMap<String, Serializable>)
+                this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+        analyticsData.put(key, value);
+    }
+
+    /**
+     * Get analytics related params for Authentication.
+     *
+     * @return the analytics related params.
+     */
+    public Serializable getAnalyticsData(String key) {
+
+        if (this.getParameters().containsKey(FrameworkConstants.AnalyticsData.DATA_MAP)) {
+            Map<String, Serializable> analyticsData =
+                    (HashMap<String, Serializable>) this.getParameter(FrameworkConstants.AnalyticsData.DATA_MAP);
+            return analyticsData.get(key);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * The Runtime claims in the the context.
+     *
+     * @param claimUri  Claim URI
+     * @return Claim value
+     */
+    public String getRuntimeClaim(String claimUri) {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            Map<String, String> tempClaims = (Map<String, String>) parameter;
+            return tempClaims.get(claimUri);
+        }
+        return null;
+    }
+
+    /**
+     * Set Runtime claims to the context.  In the the claim handler the priority will be given to these values.
+     *
+     * @param claimUri  Claim URI
+     * @param claimValue    Claim value
+     */
+    public void addRuntimeClaim(String claimUri, String claimValue) {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            Map<String, String> tempClaims = (Map<String, String>) parameter;
+            tempClaims.put(claimUri, claimValue);
+        } else {
+            Map<String, String> tempClaims = new HashMap<>();
+            tempClaims.put(claimUri, claimValue);
+            setProperty(FrameworkConstants.RUNTIME_CLAIMS, tempClaims);
+        }
+    }
+
+    /**
+     * Get the Runtime claims map.
+     *
+     * @return  Map of Claim URI and value
+     */
+    public Map<String, String> getRuntimeClaims() {
+
+        Object parameter = getProperty(FrameworkConstants.RUNTIME_CLAIMS);
+        if (parameter instanceof Map) {
+            return (Map<String, String>) parameter;
+        }
+        return Collections.emptyMap();
     }
 }

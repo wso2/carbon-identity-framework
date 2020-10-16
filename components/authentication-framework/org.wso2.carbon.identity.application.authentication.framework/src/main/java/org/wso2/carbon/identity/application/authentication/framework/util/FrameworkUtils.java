@@ -85,6 +85,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationFrameworkWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationResult;
+import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.common.model.Claim;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
@@ -101,17 +102,20 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.config.UserStorePreferenceOrderSupplier;
-import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.constants.UserCoreClaimConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
@@ -140,6 +144,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
@@ -148,14 +153,15 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 
 public class FrameworkUtils {
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+    public static final String TENANT_DOMAIN = "tenantDomain";
     public static final String UTF_8 = "UTF-8";
     private static final Log log = LogFactory.getLog(FrameworkUtils.class);
     private static int maxInactiveInterval;
@@ -246,7 +252,7 @@ public class FrameworkUtils {
                 modifiableParameters.put(FrameworkConstants.RequestParams.ISSUER,
                                          new String[]{authenticationRequest.getRelyingParty()});
             }
-            if (authenticationRequest.getTenantDomain() != null) {
+            if (authenticationRequest.getTenantDomain() != null && !IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
                 modifiableParameters.put(FrameworkConstants.RequestParams.TENANT_DOMAIN,
                                          new String[]{authenticationRequest.getTenantDomain()});
             }
@@ -566,11 +572,13 @@ public class FrameworkUtils {
                 redirectURL = appendUri(redirectURL, REQUEST_PARAM_SP, spName);
             }
 
-            if (StringUtils.isNotBlank(tenantDomain)) {
+            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain)) {
                 redirectURL = appendUri(redirectURL, TENANT_DOMAIN, tenantDomain);
             }
         } catch (UnsupportedEncodingException e) {
-            log.debug("Error occurred while encoding parameters: " + tenantDomain + " and/or " + spName, e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while encoding parameters: " + tenantDomain + " and/or " + spName, e);
+            }
             return redirectURL;
         }
 
@@ -950,6 +958,80 @@ public class FrameworkUtils {
     }
 
     /**
+     * Retrieve session context from the session cache.
+     *
+     * @param request           HttpServletRequest.
+     * @param context           Authentication context.
+     * @param sessionContextKey Session context key.
+     * @return Session context key.
+     * @throws FrameworkException Error in triggering session expire event.
+     */
+    public static SessionContext getSessionContextFromCache(HttpServletRequest request, AuthenticationContext context
+            , String sessionContextKey) throws FrameworkException {
+
+        SessionContext sessionContext = null;
+        if (StringUtils.isNotBlank(sessionContextKey)) {
+            SessionContextCacheKey cacheKey = new SessionContextCacheKey(sessionContextKey);
+            SessionContextCache sessionContextCache = SessionContextCache.getInstance();
+            SessionContextCacheEntry cacheEntry = sessionContextCache.getSessionContextCacheEntry(cacheKey);
+
+            if (cacheEntry != null) {
+                sessionContext = cacheEntry.getContext();
+                boolean isSessionExpired = sessionContextCache.isSessionExpired(cacheKey, cacheEntry);
+                if (isSessionExpired) {
+                    triggerSessionExpireEvent(request, context, sessionContext);
+                    if (log.isDebugEnabled()) {
+                        log.debug("A SESSION_EXPIRE event was fired for the expired session found corresponding " +
+                                "to the key: " + cacheKey.getContextId());
+                    }
+                    return null;
+                }
+            }
+        }
+        return sessionContext;
+    }
+
+    /**
+     * Trigger SESSION_EXPIRE event on session expiry due to a session idle timeout or a remember me session time out.
+     *
+     * @param request        HttpServletRequest.
+     * @param context        Authentication context.
+     * @param sessionContext Session context.
+     * @throws FrameworkException Error in triggering the session expiry event.
+     */
+    private static void triggerSessionExpireEvent(HttpServletRequest request, AuthenticationContext context,
+                                                  SessionContext sessionContext) throws FrameworkException {
+
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser();
+        if (sessionContext != null) {
+            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+            if (authenticatedUserObj instanceof AuthenticatedUser) {
+                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            }
+            context.setSubject(authenticatedUser);
+
+            IdentityEventService eventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+            try {
+                Map<String, Object> eventProperties = new HashMap<>();
+                eventProperties.put(IdentityEventConstants.EventProperty.REQUEST, request);
+                eventProperties.put(IdentityEventConstants.EventProperty.CONTEXT, context);
+                eventProperties.put(IdentityEventConstants.EventProperty.SESSION_CONTEXT, sessionContext);
+                Map<String, Object> paramMap = new HashMap<>();
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, authenticatedUser);
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, context.getSessionIdentifier());
+                Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+                eventProperties.put(IdentityEventConstants.EventProperty.PARAMS, unmodifiableParamMap);
+
+                Event event = new Event(IdentityEventConstants.EventName.SESSION_EXPIRE.name(), eventProperties);
+                eventService.handleEvent(event);
+            } catch (IdentityEventException e) {
+                throw new FrameworkException("Error in triggering session expire event for the session: " +
+                        context.getSessionIdentifier() + " of user: " + authenticatedUser.toFullQualifiedUsername(), e);
+            }
+        }
+    }
+
+    /**
      * @param key
      */
     public static void removeSessionContextFromCache(String key) {
@@ -1315,6 +1397,11 @@ public class FrameworkUtils {
                             continue;
                         }
 
+                        // Skip tenant domain if, 'isTenantQualifiedUrlsEnabled' is enabled in identity.xml
+                        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && TENANT_DOMAIN.equals(paramName)) {
+                            continue;
+                        }
+
                         if (!queryParams.contains(paramName)) {
                             if (queryStrBuilder.length() > 0) {
                                 queryStrBuilder.append('&');
@@ -1359,6 +1446,11 @@ public class FrameworkUtils {
                     //skip issuer and type and sessionDataKey parameters
                     if (SESSION_DATA_KEY.equals(paramName) || FrameworkConstants.RequestParams.ISSUER.equals
                             (paramName) || FrameworkConstants.RequestParams.TYPE.equals(paramName)) {
+                        continue;
+                    }
+
+                    // Skip tenant domain if, 'isTenantQualifiedUrlsEnabled' is enabled in identity.xml
+                    if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && TENANT_DOMAIN.equals(paramName)) {
                         continue;
                     }
 
@@ -1684,12 +1776,23 @@ public class FrameworkUtils {
 
     public static void publishSessionEvent(String sessionId, HttpServletRequest request, AuthenticationContext
             context, SessionContext sessionContext, AuthenticatedUser user, String status) {
+
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
+
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put(FrameworkConstants.AnalyticsAttributes.USER, user);
             paramMap.put(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionId);
+
+            String isPublishingSessionCountEnabledValue = IdentityUtil.getProperty(FrameworkConstants.Config
+                    .PUBLISH_ACTIVE_SESSION_COUNT);
+            boolean isPublishingSessionCountEnabled = Boolean.parseBoolean(isPublishingSessionCountEnabledValue);
+
+            if (isPublishingSessionCountEnabled) {
+                paramMap.put(FrameworkConstants.AnalyticsAttributes.ACTIVE_SESSION_COUNT, getActiveSessionCount(user
+                        .getTenantDomain()));
+            }
             Map<String, Object> unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
             if (FrameworkConstants.AnalyticsAttributes.SESSION_CREATE.equalsIgnoreCase(status)) {
                 authnDataPublisherProxy.publishSessionCreation(request, context, sessionContext,
@@ -1702,6 +1805,21 @@ public class FrameworkUtils {
                         unmodifiableParamMap);
             }
         }
+    }
+
+    private static int getActiveSessionCount(String tenantDomain) {
+
+        int activeSessionCount = 0;
+        try {
+            if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+                activeSessionCount = UserSessionStore.getInstance().getActiveSessionCount(tenantDomain);
+            }
+        } catch (UserSessionException e) {
+            activeSessionCount = -1;
+            log.error("An error occurred while retrieving the active session count. Therefore the active session " +
+                    "count is set to -1 in the analytics event.");
+        }
+        return activeSessionCount;
     }
 
     private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
@@ -1747,7 +1865,7 @@ public class FrameworkUtils {
         } catch (UserStoreException e) {
             log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
             }
         }
 
@@ -2021,12 +2139,23 @@ public class FrameworkUtils {
                 .getMandatoryClaimMappings();
         Map<String, String> missingClaims = new HashMap<>();
         for (Map.Entry<String, String> entry : mandatoryClaims.entrySet()) {
-            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null) {
+            if (mappedAttrs.get(entry.getValue()) == null && mappedAttrs.get(entry.getKey()) == null &&
+                    getUserClaimValue(context, entry.getValue()) == null) {
                 missingClaims.put(entry.getKey(), entry.getValue());
             }
         }
 
         return missingClaims;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String getUserClaimValue(AuthenticationContext context, String localClaim) {
+
+        Object unFilteredLocalClaims = context.getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES);
+        if (unFilteredLocalClaims instanceof Map) {
+            return ((Map<String, String>) unFilteredLocalClaims).get(localClaim);
+        }
+        return null;
     }
 
     /**
@@ -2473,7 +2602,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Preprocess user's username considering authentication context.
+     * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
      * @param context  Authentication context.
@@ -2481,14 +2610,23 @@ public class FrameworkUtils {
      */
     public static String preprocessUsername(String username, AuthenticationContext context) {
 
-        if (context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
             return username;
         }
+
         if (IdentityUtil.isEmailUsernameEnabled()) {
             if (StringUtils.countMatches(username, "@") == 1) {
                 return username + "@" + context.getTenantDomain();
             }
         } else if (!username.endsWith(context.getTenantDomain())) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
             return username + "@" + context.getTenantDomain();
         }
         return username;

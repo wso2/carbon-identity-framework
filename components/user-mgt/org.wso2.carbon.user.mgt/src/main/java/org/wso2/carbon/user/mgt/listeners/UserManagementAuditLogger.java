@@ -20,18 +20,15 @@ package org.wso2.carbon.user.mgt.listeners;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
-import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
 
 import java.util.List;
@@ -45,10 +42,18 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     private static final Log audit = CarbonConstants.AUDIT_LOG;
     private static final String SUCCESS = "Success";
     private static final String IN_PROGRESS = "In-Progress";
+    public static final String USER_AGENT_QUERY_KEY = "User-Agent";
+    public static final String USER_AGENT_KEY = "User Agent";
+    public static final String REMOTE_ADDRESS_QUERY_KEY = "remoteAddress";
+    public static final String REMOTE_ADDRESS_KEY = "RemoteAddress";
+    public static final String SERVICE_PROVIDER_KEY = "ServiceProviderName";
+    public static final String SERVICE_PROVIDER_QUERY_KEY = "serviceProvider";
+    private final String USER_NAME_KEY = "UserName";
+    private final String USER_NAME_QUERY_KEY = "userName";
 
     @Override
     public boolean doPostAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
-            String profile, UserStoreManager userStoreManager) {
+                                 String profile, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
             JSONObject data = new JSONObject();
@@ -214,8 +219,10 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     public boolean doPostUpdateRoleName(String roleName, String newRoleName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            dataObject.put(ListenerUtils.NEW_ROLE_NAME, newRoleName);
             audit.warn(createAuditMessage(ListenerUtils.UPDATE_ROLE_NAME_ACTION,
-                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), newRoleName, SUCCESS));
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
         }
         return true;
     }
@@ -368,11 +375,23 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
      * @param resultField Result value.
      * @return Relevant audit log in Json format.
      */
-    private String createAuditMessage(String action, String target, Object data, String resultField) {
+    private String createAuditMessage(String action, String target, JSONObject data, String resultField) {
 
+        if (data == null) {
+            data = new JSONObject();
+        }
+        addContextualAuditParams(data);
         String auditMessage =
                 ListenerUtils.INITIATOR + "=%s " + ListenerUtils.ACTION + "=%s " + ListenerUtils.TARGET + "=%s "
                         + ListenerUtils.DATA + "=%s " + ListenerUtils.OUTCOME + "=%s";
         return String.format(auditMessage, ListenerUtils.getUser(), action, target, data, resultField);
+    }
+
+    private void addContextualAuditParams(JSONObject jsonObject) {
+
+        jsonObject.put(REMOTE_ADDRESS_KEY, MDC.get(REMOTE_ADDRESS_QUERY_KEY));
+        jsonObject.put(USER_AGENT_KEY, MDC.get(USER_AGENT_QUERY_KEY));
+        jsonObject.put(USER_NAME_KEY, MDC.get(USER_NAME_QUERY_KEY));
+        jsonObject.put(SERVICE_PROVIDER_KEY, MDC.get(SERVICE_PROVIDER_QUERY_KEY));
     }
 }

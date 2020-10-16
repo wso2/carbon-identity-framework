@@ -4,6 +4,7 @@ import org.wso2.carbon.identity.template.mgt.endpoint.dto.TemplateDTO;
 
 import javax.ws.rs.core.Response;
 
+@Deprecated
 public abstract class TemplatesApiService {
 
     public abstract Response addTemplate(TemplateDTO template);

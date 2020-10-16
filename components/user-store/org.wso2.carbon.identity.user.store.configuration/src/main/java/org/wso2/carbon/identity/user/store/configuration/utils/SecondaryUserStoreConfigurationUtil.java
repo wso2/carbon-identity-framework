@@ -80,10 +80,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant
-        .DEPLOYMENT_DIRECTORY;
-import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant
-        .ENCRYPTED_PROPERTY_MASK;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.DEPLOYMENT_DIRECTORY;
+import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.ENCRYPTED_PROPERTY_MASK;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.FILE_EXTENSION_XML;
 import static org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant.USERSTORES;
 
@@ -760,6 +758,23 @@ public class SecondaryUserStoreConfigurationUtil {
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
             userStoreConfigListener.onUserStorePreStateChange(isDisable ? UserStoreState.DISABLED
                     : UserStoreState.ENABLED, tenantId, domainName);
+        }
+    }
+
+    /**
+     * Trigger the listeners before userstore is added.
+     *
+     * @param domainName user store domain name.
+     * @throws UserStoreException throws when an error occurred when triggering listeners.
+     */
+    public static void triggerListenersOnUserStorePreAdd(String domainName) throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            userStoreConfigListener.onUserStorePreAdd(tenantId, domainName);
         }
     }
 

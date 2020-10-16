@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.configuration.mgt.core;
 
+import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
@@ -40,8 +41,21 @@ public interface ConfigurationManager {
      * @param searchCondition {@link Condition} representing a search filter for resources.
      * @return {@link Resources} object with a collection of resources matching to the given {@link Condition}.
      * @throws ConfigurationManagementException Configuration Management Exception.
+     * @deprecated use {@link ConfigurationManager#getTenantResources(String, Condition)} method.
      */
+    @Deprecated
     Resources getTenantResources(Condition searchCondition) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to get resources from a specific tenant filtered with the {@link Condition}.
+     *
+     * @param tenantDomain    Tenant domain.
+     * @param searchCondition {@link Condition} representing a search filter for resources.
+     * @return {@link Resources} object with a collection of resources matching to the given {@link Condition}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    Resources getTenantResources(String tenantDomain, Condition searchCondition) throws
+            ConfigurationManagementException;
 
     /**
      * This API is used to store a new {@link ResourceType}.

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report an issue
+    url: https://github.com/wso2/product-is/issues/new/choose
+    about: Issue creation for this component is done in the product-is repo. Click "Open" to continue.
