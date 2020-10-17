@@ -75,6 +75,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
@@ -133,6 +139,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         SequenceConfig seqConfig = context.getSequenceConfig();
         List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
 
+        boolean addOrUpdateNonceCookie = false;
         try {
             UserStorePreferenceOrderSupplier<List<String>> userStorePreferenceOrderSupplier =
                     FrameworkUtils.getUserStorePreferenceOrderSupplier(context, null);
@@ -158,16 +165,49 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // call step based sequence handler
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
+
+                // Add or Validate session nonce cookie.
+                if (isNonceCookieEnabled()) {
+                    String nonceCookieName = getNonceCookieName(context);
+                    if (context.isReturning()) {
+                        if (validateNonceCookie(request, context)) {
+                            addOrUpdateNonceCookie = true;
+                        } else {
+                            throw new FrameworkException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
+                                    "matching " +
+                                    "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
+                        }
+                    } else if (context.getProperty(nonceCookieName) == null) {
+                        addOrUpdateNonceCookie = true;
+                    }
+                }
             }
+        } catch (FrameworkException e) {
+            // Remove nonce cookie after authentication failure.
+            removeNonceCookie(request, response, context);
+            throw e;
         } finally {
             UserCoreUtil.removeUserMgtContextInThreadLocal();
         }
 
         // handle post authentication
-        handlePostAuthentication(request, response, context);
+        try {
+            handlePostAuthentication(request, response, context);
+        } catch (FrameworkException e) {
+            // Remove nonce cookie after post authentication failure.
+            removeNonceCookie(request, response, context);
+            throw e;
+        }
         // if flow completed, send response back
         if (canConcludeFlow(context)) {
+            // Remove nonce cookie after authentication completion.
+            if (addOrUpdateNonceCookie) {
+                removeNonceCookie(request, response, context);
+            }
             concludeFlow(request, response, context);
+        } else if (addOrUpdateNonceCookie) {
+            // Update nonce cookie value.
+            addNonceCookie(request, response, context);
         }
     }
 
