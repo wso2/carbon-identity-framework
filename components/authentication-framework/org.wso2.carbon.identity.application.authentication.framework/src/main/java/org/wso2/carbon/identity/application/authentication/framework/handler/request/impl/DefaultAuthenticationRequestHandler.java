@@ -163,9 +163,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // To keep track of whether particular request goes through the step based sequence handler.
                 context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
 
-                // call step based sequence handler
-                FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
-
                 // Add or Validate session nonce cookie.
                 if (isNonceCookieEnabled()) {
                     String nonceCookieName = getNonceCookieName(context);
@@ -181,6 +178,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         addOrUpdateNonceCookie = true;
                     }
                 }
+
+                // call step based sequence handler
+                FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
             }
         } catch (FrameworkException e) {
             // Remove nonce cookie after authentication failure.

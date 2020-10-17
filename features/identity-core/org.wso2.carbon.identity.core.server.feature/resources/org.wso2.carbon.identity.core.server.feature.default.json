@@ -23,6 +23,7 @@
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
   "session_data.cleanup.enable_pre_session_data_cleanup": true,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
+  "session.nonce.cookie.enabled": true,
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
   "session.timeout.extend_remember_me_session_timeout_on_auth": true,

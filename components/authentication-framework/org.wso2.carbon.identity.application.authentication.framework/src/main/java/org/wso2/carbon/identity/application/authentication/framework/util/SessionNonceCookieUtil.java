@@ -47,8 +47,7 @@ public class SessionNonceCookieUtil {
      */
     public static String getNonceCookieName(AuthenticationContext context) {
 
-        String cookieName = NONCE_COOKIE + "-" + context.getContextIdentifier();
-        return cookieName;
+        return NONCE_COOKIE + "-" + context.getContextIdentifier();
     }
 
     /**
@@ -80,24 +79,24 @@ public class SessionNonceCookieUtil {
     public static boolean validateNonceCookie(HttpServletRequest request,
                                               AuthenticationContext context) {
 
-        if (isNonceCookieEnabled()) {
-            boolean validNonceValue = false;
-            String cookieName = getNonceCookieName(context);
-            String nonceFromContext = (String) context.getProperty(cookieName);
-            Cookie nonceCookie = FrameworkUtils.getCookie(request, cookieName);
-            String nonceFromSession = null;
-            if (nonceCookie != null) {
-                nonceFromSession = nonceCookie.getValue();
-            }
-            if (!StringUtils.isEmpty(nonceFromContext) && !StringUtils.isEmpty(nonceFromSession)
-                    && nonceFromContext.equals(nonceFromSession)) {
-                validNonceValue = true;
-            }
-            return validNonceValue;
-        } else {
-            // Return true if session nonce cookie config is not enabled.
+        if (!isNonceCookieEnabled()) {
             return true;
         }
+
+        boolean validNonceValue = false;
+        String cookieName = getNonceCookieName(context);
+        String nonceFromContext = (String) context.getProperty(cookieName);
+        Cookie nonceCookie = FrameworkUtils.getCookie(request, cookieName);
+        String nonceFromSession = null;
+        if (nonceCookie != null) {
+            nonceFromSession = nonceCookie.getValue();
+        }
+        if (!StringUtils.isEmpty(nonceFromContext) && !StringUtils.isEmpty(nonceFromSession)
+                && nonceFromContext.equals(nonceFromSession)) {
+            validNonceValue = true;
+        }
+        return validNonceValue;
+
     }
 
     /**
@@ -125,12 +124,7 @@ public class SessionNonceCookieUtil {
     public static boolean isNonceCookieEnabled() {
 
         if (nonceCookieConfig == null) {
-            String configValue = IdentityUtil.getProperty(NONCE_COOKIE_CONFIG);
-            boolean isEnabled = false;
-            if (configValue != null) {
-                isEnabled = Boolean.parseBoolean(configValue);
-            }
-            nonceCookieConfig = isEnabled;
+            nonceCookieConfig = Boolean.parseBoolean(IdentityUtil.getProperty(NONCE_COOKIE_CONFIG));
         }
         return nonceCookieConfig;
     }
