@@ -339,6 +339,23 @@ LOOP
         RAISE NOTICE '%',notice;
         END IF;
 
+        -- Deleting user-session mappings from 'idn_auth_user_session_mapping' table
+        IF (enableLog AND logLevel IN ('TRACE')) THEN
+        notice := 'BATCH DELETE START ON TABLE '||purgingSessionUserMappingTable||' WITH :'||batchCount;
+        RAISE NOTICE '%',notice;
+        END IF;
+
+        EXECUTE 'DELETE from '||quote_ident(purgingSessionUserMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+        GET diagnostics deleteMappingCount := ROW_COUNT;
+        COMMIT;
+
+        IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionUserMappingTable||' WITH :'||deleteMappingCount;
+        RAISE NOTICE '%',notice;
+        END IF;
+        -- End of deleting user-session mappings from 'idn_auth_user_session_mapping' table
+
+
         EXECUTE ' DELETE from '||quote_ident(purgingChunkTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
         IF (enableLog AND logLevel IN ('TRACE')) THEN
         notice := 'DELETED BATCH ON TABLE '||purgingChunkTable||' WITH :'||batchCount;
