@@ -2760,7 +2760,8 @@ public class IdentityProviderManager implements IdpManager {
                     claimMappings);
 
             // Validate LocalClaim objects against local claim URIs.
-            Set<String> claimURIs = getLocalClaimURIs(tenantDomain);
+            List<LocalClaim> localClaimsList = getLocalClaimURIs(tenantDomain);
+            Set<String> claimURIs = localClaimsList.stream().map(LocalClaim::getClaimURI).collect(Collectors.toSet());
             for (ClaimMapping claimMapping : claimMappings) {
 
                 // If a claim URI can be added to the existing claimURIs, then that's a not existing URI.
@@ -2771,8 +2772,8 @@ public class IdentityProviderManager implements IdpManager {
             }
             return;
         }
-        Set<String> claimURIs = getLocalClaimURIs(tenantDomain);
-
+        List<LocalClaim> localClaimsList = getLocalClaimURIs(tenantDomain);
+        Set<String> claimURIs = localClaimsList.stream().map(LocalClaim::getClaimURI).collect(Collectors.toSet());
         // Validate userClaimURI and roleClaimURI.
         if (claimURIs.add(claimConfig.getUserClaimURI())) {
             throw IdPManagementUtil.handleClientException(
@@ -2824,7 +2825,7 @@ public class IdentityProviderManager implements IdpManager {
      * @return List of local claim URIs.
      * @throws IdentityProviderManagementServerException If an error occurred while getting the claims list.
      */
-    private Set<String> getLocalClaimURIs(String tenantDomain) throws IdentityProviderManagementServerException {
+    private List<LocalClaim> getLocalClaimURIs(String tenantDomain) throws IdentityProviderManagementServerException {
 
         try {
             List<LocalClaim> localClaimsList =
@@ -2835,9 +2836,9 @@ public class IdentityProviderManager implements IdpManager {
                     log.debug("No local claims found for tenant:" + tenantDomain + ".Therefore, skipping " +
                             "local claim URI validation.");
                 }
-                return new HashSet<>();
+                return new ArrayList<>();
             }
-            return localClaimsList.stream().map(LocalClaim::getClaimURI).collect(Collectors.toSet());
+            return localClaimsList;
         } catch (ClaimMetadataException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while validating the local claim URIs for tenant: " + tenantDomain, e);
