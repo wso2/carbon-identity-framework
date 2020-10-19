@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -393,6 +394,23 @@ public class IdPManagementServiceComponent {
     }
 
     @Reference(
+            name = "identity.claim.metadata.component",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance()
+                .setClaimMetadataManagementService(claimMetadataManagementService);
+    }
+
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
+    }
+
+    @Reference(
             name = "idp.mgt.event.listener.service",
             service = IdentityProviderMgtListener.class,
             cardinality = ReferenceCardinality.MULTIPLE,
@@ -464,6 +482,6 @@ public class IdPManagementServiceComponent {
 
     protected void unsetGovernanceConnector(ConnectorConfig identityConnectorConfig) {
 
-        IdpMgtServiceComponentHolder.getInstance().unsetGovernanceConnector(identityConnectorConfig);
+        IdpMgtServiceComponentHolder.getInstance().unsetGovernanceConnector(null);
     }
 }

@@ -433,6 +433,15 @@ public class IdPManagementConstants {
         ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s"),
         ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
                 "provisioning roles does not exist"),
+        ERROR_CODE_INVALID_USER_CLAIM_URI("IDP-60011", "User ID claim URI: %s does not match with the " +
+                "claim mappings"),
+        ERROR_CODE_INVALID_ROLE_CLAIM_URI("IDP-60012", "Role claim URI: %s does not match with the " +
+                "claim mappings"),
+        ERROR_CODE_NOT_EXISTING_CLAIM_URI("IDP-60013", "One or more local claim URIs does not exist"),
+        ERROR_CODE_NOT_EXISTING_USER_CLAIM_URI("IDP-60014", "User ID claim URI is not a local claim" +
+                " for tenant: %s"),
+        ERROR_CODE_NOT_EXISTING_ROLE_CLAIM_URI("IDP-60015", "Role claim URI is not a local claim" +
+                " for tenant: %s"),
 
         // Server Errors.
         ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
@@ -444,7 +453,9 @@ public class IdPManagementConstants {
         ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected " +
                 "applications of Identity Provider with resource ID: %s."),
         ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
-                "the outbound provisioning roles");
+                "the outbound provisioning roles"),
+        ERROR_CODE_VALIDATING_LOCAL_CLAIM_URIS("IDP-65009", "Error while validating " +
+                "the local claim URIs");
 
         private final String code;
         private final String message;

@@ -20,6 +20,7 @@ package org.wso2.carbon.idp.mgt.internal;
 
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
@@ -50,6 +51,7 @@ public class IdpMgtServiceComponentHolder {
     private volatile List<ConnectorConfig> identityConnectorConfigList = new ArrayList<>();
     private RegistryService registryService;
     private RoleManagementService roleManagementService;
+    private ClaimMetadataManagementService claimMetadataManagementService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -138,5 +140,25 @@ public class IdpMgtServiceComponentHolder {
     public void setRoleManagementService(RoleManagementService roleManagementService) {
 
         this.roleManagementService = roleManagementService;
+    }
+
+    /**
+     * Get ClaimMetadataManagementService instance.
+     *
+     * @return ClaimMetadataManagementService instance.
+     */
+    public ClaimMetadataManagementService getClaimMetadataManagementService() {
+
+        return claimMetadataManagementService;
+    }
+
+    /**
+     * Set ClaimMetadataManagementService instance.
+     *
+     * @param claimMetadataManagementService ClaimMetadataManagementService instance.
+     */
+    public void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+
+        this.claimMetadataManagementService = claimMetadataManagementService;
     }
 }

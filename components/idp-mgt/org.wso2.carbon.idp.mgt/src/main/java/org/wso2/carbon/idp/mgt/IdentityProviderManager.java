@@ -43,6 +43,8 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
@@ -2733,6 +2735,116 @@ public class IdentityProviderManager implements IdpManager {
 
         // Validate whether there are any duplicate properties in the ProvisioningConnectorConfig.
         validateOutboundProvisioningConnectorProperties(newIdentityProvider);
+
+        // Validate the claim configs of the IDP with the claim mapping and with the local claims of the tenant.
+        validateIDPClaimConfigs(newIdentityProvider, tenantDomain);
+    }
+
+    /**
+     * Validate the claim configs of an IDP.
+     *
+     * @param identityProvider IdentityProvider object.
+     * @param tenantDomain     Tenant domain.
+     * @throws IdentityProviderManagementException If an error while validating the claim configs or if an invalid
+     *                                             config is found.
+     */
+    private void validateIDPClaimConfigs(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        ClaimConfig claimConfig = identityProvider.getClaimConfig();
+        ClaimMapping[] claimMappings = claimConfig.getClaimMappings();
+
+        // EMPTY claimMappings indicate that the IDP is using local claim dialect.
+        if (!ArrayUtils.isEmpty(claimMappings)) {
+            validateUserIdRoleIdWithClaimMappings(claimConfig.getUserClaimURI(), claimConfig.getRoleClaimURI(),
+                    claimMappings);
+
+            // Validate LocalClaim objects against local claim URIs.
+            Set<String> claimURIs = getLocalClaimURIs(tenantDomain);
+            for (ClaimMapping claimMapping : claimMappings) {
+
+                // If a claim URI can be added to the existing claimURIs, then that's a not existing URI.
+                if (claimURIs.add(claimMapping.getLocalClaim().getClaimUri())) {
+                    throw IdPManagementUtil.handleClientException(
+                            IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_CLAIM_URI, null);
+                }
+            }
+            return;
+        }
+        Set<String> claimURIs = getLocalClaimURIs(tenantDomain);
+
+        // Validate userClaimURI and roleClaimURI.
+        if (claimURIs.add(claimConfig.getUserClaimURI())) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_USER_CLAIM_URI, null);
+        }
+        if (claimURIs.add(claimConfig.getRoleClaimURI())) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_ROLE_CLAIM_URI, null);
+        }
+    }
+
+    /**
+     * Validate whether the userClaimURI and the roleClaimURI align with the claim mappings.
+     *
+     * @param userClaimURI  User claim URI.
+     * @param roleClaimURI  Role claim URI.
+     * @param claimMappings List of claim mapping for the IDP.
+     * @throws IdentityProviderManagementClientException If the serClaimURI and the roleClaimURI does not match with
+     *                                                   the claim mappings.
+     */
+    private void validateUserIdRoleIdWithClaimMappings(String userClaimURI, String roleClaimURI,
+                                                       ClaimMapping[] claimMappings)
+            throws IdentityProviderManagementClientException {
+
+        boolean isValidUserClaimURI = false;
+        boolean isValidRoleClaimURI = false;
+        for (ClaimMapping claimMapping : claimMappings) {
+            if (userClaimURI.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+                isValidUserClaimURI = true;
+            }
+            if (roleClaimURI.equals(claimMapping.getRemoteClaim().getClaimUri())) {
+                isValidRoleClaimURI = true;
+            }
+        }
+        if (!isValidUserClaimURI) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_USER_CLAIM_URI, userClaimURI);
+        }
+        if (!isValidRoleClaimURI) {
+            throw IdPManagementUtil.handleClientException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_INVALID_ROLE_CLAIM_URI, roleClaimURI);
+        }
+    }
+
+    /**
+     * Get the local claim URIs of the tenant.
+     *
+     * @param tenantDomain Tenant domain.
+     * @return List of local claim URIs.
+     * @throws IdentityProviderManagementServerException If an error occurred while getting the claims list.
+     */
+    private Set<String> getLocalClaimURIs(String tenantDomain) throws IdentityProviderManagementServerException {
+
+        try {
+            List<LocalClaim> localClaimsList =
+                    IdpMgtServiceComponentHolder.getInstance().getClaimMetadataManagementService()
+                            .getLocalClaims(tenantDomain);
+            if (localClaimsList.isEmpty()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No local claims found for tenant:" + tenantDomain + ".Therefore, skipping " +
+                            "local claim URI validation.");
+                }
+                return new HashSet<>();
+            }
+            return localClaimsList.stream().map(LocalClaim::getClaimURI).collect(Collectors.toSet());
+        } catch (ClaimMetadataException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while validating the local claim URIs for tenant: " + tenantDomain, e);
+            }
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_LOCAL_CLAIM_URIS, null);
+        }
     }
 
     /**
