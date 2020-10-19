@@ -29,13 +29,9 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.Configuration;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.Pair;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.AccountRecoveryType;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.ConfirmRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.RecoveryInitRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.RecoveryRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.RecoveryResponse;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.ResendConfirmationCodeResponse;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.ResendConfirmationRequest;
-import org.wso2.carbon.identity.mgt.endpoint.util.client.model.passwordrecovery.v1.ResetCodeResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -191,103 +187,6 @@ public class PasswordRecoveryApiV1 {
         String[] localVarAuthNames = new String[]{};
         GenericType<RecoveryResponse> localVarReturnType = new GenericType<RecoveryResponse>() {
         };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody,
-                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
-                localVarReturnType);
-    }
-
-    /**
-     * This API is used to request to resend the password recovery confirmation code via requested notification channel.
-     *
-     * @param resentPasswordRequest     Resend request. (required)
-     * @param tenantDomain              Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
-     * @param headers                   Any additional headers to be embedded. (optional)
-     * @return Resend confirmation response.
-     * @throws ApiException if fails to make API call.
-     */
-    public ResendConfirmationCodeResponse resendPasswordConfirmationCode(
-            ResendConfirmationRequest resentPasswordRequest, String tenantDomain, Map<String, String> headers)
-            throws ApiException {
-
-        Object localVarPostBody = resentPasswordRequest;
-        // Verify the required parameter 'resentPasswordRequest' is set.
-        if (resentPasswordRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'resentPasswordRequest' " +
-                    "when calling resendPasswordConfirmationCode");
-        }
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
-        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
-                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V1_RELATIVE_PATH);
-        apiClient.setBasePath(basePath);
-        // Create path and map variables.
-        String localVarPath = "/password/resend".replaceAll("\\{format\\}","json");
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
-        if (MapUtils.isNotEmpty(headers)) {
-            localVarHeaderParams.putAll(headers);
-        }
-        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
-        final String[] localVarAccepts = {
-                "application/json"
-        };
-        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
-        final String[] localVarContentTypes = {
-                "application/json"
-        };
-        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
-        String[] localVarAuthNames = new String[]{};
-        GenericType<ResendConfirmationCodeResponse> localVarReturnType = new
-                GenericType<ResendConfirmationCodeResponse>() {
-                };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody,
-                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
-                localVarReturnType);
-    }
-
-    /**
-     * This API is used to request to validate the password recovery confirmation code.
-     *
-     * @param confirmRequest            Confirmation request. (required)
-     * @param tenantDomain              Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
-     * @param headers                   Any additional headers to be embedded. (optional)
-     * @return Resent code response.
-     * @throws ApiException if fails to make API call.
-     */
-    public ResetCodeResponse validateConfirmationCode(ConfirmRequest confirmRequest, String tenantDomain,
-                                                      Map<String, String> headers) throws ApiException {
-
-        Object localVarPostBody = confirmRequest;
-        // Verify the required parameter 'confirmRequest' is set.
-        if (confirmRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'confirmRequest' " +
-                    "when calling validateConfirmationCode");
-        }
-        if (StringUtils.isBlank(tenantDomain)) {
-            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-        }
-        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
-                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_V1_RELATIVE_PATH);
-        apiClient.setBasePath(basePath);
-        // Create path and map variables.
-        String localVarPath = "/password/confirm".replaceAll("\\{format\\}","json");
-        List<Pair> localVarQueryParams = new ArrayList<Pair>();
-        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
-        if (MapUtils.isNotEmpty(headers)) {
-            localVarHeaderParams.putAll(headers);
-        }
-        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
-        final String[] localVarAccepts = {
-                "application/json"
-        };
-        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
-        final String[] localVarContentTypes = {
-                "application/json"
-        };
-        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
-        String[] localVarAuthNames = new String[]{};
-        GenericType<ResetCodeResponse> localVarReturnType = new GenericType<ResetCodeResponse>() {};
         return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody,
                 localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames,
                 localVarReturnType);
