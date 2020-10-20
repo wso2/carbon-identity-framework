@@ -985,10 +985,14 @@ public class UserRealmProxy {
             if (usAdmin instanceof AbstractUserStoreManager) {
                 if ((roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR) && UserMgtConstants.APPLICATION_DOMAIN
                         .equals(roleName.substring(0, roleName.indexOf(UserCoreConstants.DOMAIN_SEPARATOR))))) {
-                    ((AbstractUserStoreManager) usAdmin).addRole(roleName, userList, null, false);
+                    usAdmin.addRole(roleName, userList, null, false);
                 } else {
-                    ((AbstractUserStoreManager) usAdmin).addRole(UserCoreConstants.INTERNAL_DOMAIN
-                            + UserCoreConstants.DOMAIN_SEPARATOR + roleName, userList, null, false);
+                    if (roleName.startsWith(UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR)) {
+                        usAdmin.addRole(roleName, userList, null, false);
+                    } else {
+                        usAdmin.addRole(UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR
+                                + roleName, userList, null, false);
+                    }
                 }
             } else {
                 throw new UserStoreException("Internal role can not be created");
