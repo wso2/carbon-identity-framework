@@ -19,6 +19,8 @@ sessionCleanupTime bigint :=0;
 operationCleanupTime bigint :=0;
 deleteCount INT := 0;
 deleteMappingCount INT := 0;
+deleteAppInfoCount INT := 0;
+deleteMetadataCount INT := 0;
 chunkCount INT := 0;
 batchCount INT := 0;
 
@@ -27,6 +29,8 @@ tablename  IN ('idn_auth_session_store');
 
 purgingTable text;
 purgingSessionUserMappingTable text;
+purgingSessionAppInfoTable text;
+purgingSessionMetadataTable text;
 purgingChunkTable text;
 purgingBatchTable text;
 purgeBseColmn text;
@@ -54,6 +58,8 @@ unix_timestamp := TRUNC(extract(epoch from now() at time zone 'utc'));
 
 purgingTable := 'idn_auth_session_store';
 purgingSessionUserMappingTable = 'idn_auth_user_session_mapping';
+purgingSessionAppInfoTable = 'idn_auth_session_app_info';
+purgingSessionMetadataTable = 'idn_auth_session_meta_data';
 purgeBseColmn := 'session_id';
 purgeBseColmnType := 'varchar';
 
@@ -208,21 +214,64 @@ LOOP
         END IF;
 
         -- Deleting user-session mappings from 'idn_auth_user_session_mapping' table
-        IF (enableLog AND logLevel IN ('TRACE')) THEN
-        notice := 'BATCH DELETE START ON TABLE '||purgingSessionUserMappingTable||' WITH :'||batchCount;
-        RAISE NOTICE '%',notice;
-        END IF;
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingSessionUserMappingTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+            notice := 'BATCH DELETE START ON TABLE '||purgingSessionUserMappingTable||' WITH :'||batchCount;
+            RAISE NOTICE '%',notice;
+            END IF;
 
-        EXECUTE 'DELETE from '||quote_ident(purgingSessionUserMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
-        GET diagnostics deleteMappingCount := ROW_COUNT;
-        COMMIT;
+            EXECUTE 'DELETE from '||quote_ident(purgingSessionUserMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+            GET diagnostics deleteMappingCount := ROW_COUNT;
+            COMMIT;
 
-        IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
-        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionUserMappingTable||' WITH :'||deleteMappingCount;
-        RAISE NOTICE '%',notice;
+            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+            notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionUserMappingTable||' WITH :'||deleteMappingCount;
+            RAISE NOTICE '%',notice;
+            END IF;
         END IF;
         -- End of deleting user-session mappings from 'idn_auth_user_session_mapping' table
 
+        -- Deleting session app info from 'idn_auth_session_app_info' table
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingSessionAppInfoTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+            notice := 'BATCH DELETE START ON TABLE '||purgingSessionAppInfoTable||' WITH :'||batchCount;
+            RAISE NOTICE '%',notice;
+            END IF;
+
+            EXECUTE 'DELETE from '||quote_ident(purgingSessionAppInfoTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+            GET diagnostics deleteAppInfoCount := ROW_COUNT;
+            COMMIT;
+
+            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+            notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionAppInfoTable||' WITH :'||deleteAppInfoCount;
+            RAISE NOTICE '%',notice;
+            END IF;
+        END IF;
+        -- End of deleting session app info from 'idn_auth_session_app_info' table
+
+        -- Deleting session metadata from 'idn_auth_session_meta_data' table
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingSessionMetadataTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+            notice := 'BATCH DELETE START ON TABLE '||purgingSessionMetadataTable||' WITH :'||batchCount;
+            RAISE NOTICE '%',notice;
+            END IF;
+
+            EXECUTE 'DELETE from '||quote_ident(purgingSessionMetadataTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+            GET diagnostics deleteMetadataCount := ROW_COUNT;
+            COMMIT;
+
+            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+            notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionMetadataTable||' WITH :'||deleteMetadataCount;
+            RAISE NOTICE '%',notice;
+            END IF;
+        END IF;
+        -- End of deleting session metadata from 'idn_auth_session_meta_data' table
 
         EXECUTE ' DELETE from '||quote_ident(purgingChunkTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
         IF (enableLog AND logLevel IN ('TRACE')) THEN
@@ -340,20 +389,64 @@ LOOP
         END IF;
 
         -- Deleting user-session mappings from 'idn_auth_user_session_mapping' table
-        IF (enableLog AND logLevel IN ('TRACE')) THEN
-        notice := 'BATCH DELETE START ON TABLE '||purgingSessionUserMappingTable||' WITH :'||batchCount;
-        RAISE NOTICE '%',notice;
-        END IF;
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingSessionUserMappingTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+                notice := 'BATCH DELETE START ON TABLE '||purgingSessionUserMappingTable||' WITH :'||batchCount;
+                RAISE NOTICE '%',notice;
+            END IF;
 
-        EXECUTE 'DELETE from '||quote_ident(purgingSessionUserMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
-        GET diagnostics deleteMappingCount := ROW_COUNT;
-        COMMIT;
+            EXECUTE 'DELETE from '||quote_ident(purgingSessionUserMappingTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+            GET diagnostics deleteMappingCount := ROW_COUNT;
+            COMMIT;
 
-        IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
-        notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionUserMappingTable||' WITH :'||deleteMappingCount;
-        RAISE NOTICE '%',notice;
+            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+                notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionUserMappingTable||' WITH :'||deleteMappingCount;
+                RAISE NOTICE '%',notice;
+            END IF;
         END IF;
         -- End of deleting user-session mappings from 'idn_auth_user_session_mapping' table
+
+        -- Deleting session app info from 'idn_auth_session_app_info' table
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingSessionAppInfoTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+                notice := 'BATCH DELETE START ON TABLE '||purgingSessionAppInfoTable||' WITH :'||batchCount;
+                RAISE NOTICE '%',notice;
+            END IF;
+
+            EXECUTE 'DELETE from '||quote_ident(purgingSessionAppInfoTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+            GET diagnostics deleteAppInfoCount := ROW_COUNT;
+            COMMIT;
+
+            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+                notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionAppInfoTable||' WITH :'||deleteAppInfoCount;
+                RAISE NOTICE '%',notice;
+            END IF;
+        END IF;
+        -- End of deleting session app info from 'idn_auth_session_app_info' table
+
+        -- Deleting session metadata from 'idn_auth_session_meta_data' table
+        EXECUTE 'SELECT count(1) from pg_catalog.pg_tables WHERE schemaname = current_schema() AND tablename =  $1' into rowcount USING purgingSessionMetadataTable;
+        IF (rowcount = 1)
+        THEN
+            IF (enableLog AND logLevel IN ('TRACE')) THEN
+                notice := 'BATCH DELETE START ON TABLE '||purgingSessionMetadataTable||' WITH :'||batchCount;
+                RAISE NOTICE '%',notice;
+            END IF;
+
+            EXECUTE 'DELETE from '||quote_ident(purgingSessionMetadataTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
+            GET diagnostics deleteMetadataCount := ROW_COUNT;
+            COMMIT;
+
+            IF (enableLog AND logLevel IN ('DEBUG','TRACE')) THEN
+                notice := 'BATCH DELETE FINISHED ON TABLE '||purgingSessionMetadataTable||' WITH :'||deleteMetadataCount;
+                RAISE NOTICE '%',notice;
+            END IF;
+        END IF;
+        -- End of deleting session metadata from 'idn_auth_session_meta_data' table
 
 
         EXECUTE ' DELETE from '||quote_ident(purgingChunkTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';

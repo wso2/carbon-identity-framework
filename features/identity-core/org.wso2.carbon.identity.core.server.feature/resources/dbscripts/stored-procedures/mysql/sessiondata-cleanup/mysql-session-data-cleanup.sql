@@ -10,6 +10,9 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     -- ------------------------------------------
     DECLARE deletedSessions INT;
     DECLARE deletedUserSessionMappings INT;
+    DECLARE deletedOperationUserSessionMappings INT;
+    DECLARE deletedOperationSessionAppInfo INT;
+    DECLARE deletedOperationalSessionMetadata INT;
     DECLARE deletedStoreOperations INT;
     DECLARE deletedDeleteOperations INT;
     DECLARE tracingEnabled BOOLEAN;
@@ -30,11 +33,21 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     SET chunkLimit=1000000;
     SET @deletedSessions = 0;
     SET @deletedUserSessionMappings = 0;
+    SET @deletedSessionAppInfo = 0;
+    SET @deletedSessionMetadata = 0;
+    SET @deletedOperationUserSessionMappings = 0;
+    SET @deletedOperationSessionAppInfo = 0;
+    SET @deletedOperationalSessionMetadata = 0;
     SET @deletedStoreOperations = 0;
     SET @deletedDeleteOperations = 0;
     SET @sessionCleanupCount = 1;
     SET @sessionMappingsCleanupCount = 1;
+    SET @sessionAppInfoCleanupCount = 1;
+    SET @sessionMetadataCleanupCount = 1;
     SET @operationCleanupCount = 1;
+    SET @operationalSessionMappingsCleanupCount = 1;
+    SET @operationalAppInfoCleanupCount = 1;
+    SET @operationalMetadataCleanupCount = 1;
     SET tracingEnabled = FALSE;	-- SET IF TRACE LOGGING IS ENABLED [DEFAULT : FALSE]
     SET sleepTime = 2;          -- Sleep time in seconds.
     SET autocommit = 0;
@@ -88,13 +101,41 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
 
         SELECT 'DELETED SESSION COUNT...!!' AS 'INFO LOG', @sessionCleanupCount;
 
-	    DELETE A
-        FROM IDN_AUTH_USER_SESSION_MAPPING AS A
-          INNER JOIN TEMP_SESSION_BATCH AS B ON
-                                               A.SESSION_ID = B.SESSION_ID;
-        SET @sessionMappingsCleanupCount = row_count();
-        COMMIT;
-        SELECT 'DELETED USER-SESSION MAPPINGS ...!!' AS 'INFO LOG', @sessionMappingsCleanupCount ;
+        -- Clean up session data from IDN_AUTH_USER_SESSION_MAPPING table.
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_AUTH_USER_SESSION_MAPPING'))
+        THEN
+            DELETE A
+            FROM IDN_AUTH_USER_SESSION_MAPPING AS A
+                    INNER JOIN TEMP_SESSION_BATCH AS B ON
+                    A.SESSION_ID = B.SESSION_ID;
+            SET @sessionMappingsCleanupCount = row_count();
+            COMMIT;
+            SELECT 'DELETED USER-SESSION MAPPINGS...!!' AS 'INFO LOG', @sessionMappingsCleanupCount ;
+        END IF;
+
+        -- Clean up session data from IDN_AUTH_SESSION_APP_INFO table.
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_AUTH_SESSION_APP_INFO'))
+        THEN
+            DELETE A
+            FROM IDN_AUTH_SESSION_APP_INFO AS A
+                     INNER JOIN TEMP_SESSION_BATCH AS B ON
+                    A.SESSION_ID = B.SESSION_ID;
+            SET @sessionAppInfoCleanupCount = row_count();
+            COMMIT;
+            SELECT 'DELETED SESSION APP INFO...!!' AS 'INFO LOG', @sessionAppInfoCleanupCount ;
+        END IF;
+
+        -- Clean up session data from IDN_AUTH_SESSION_META_DATA table.
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_AUTH_SESSION_META_DATA'))
+        THEN
+            DELETE A
+            FROM IDN_AUTH_SESSION_META_DATA AS A
+                     INNER JOIN TEMP_SESSION_BATCH AS B ON
+                    A.SESSION_ID = B.SESSION_ID;
+            SET @sessionMetadataCleanupCount = row_count();
+            COMMIT;
+            SELECT 'DELETED SESSION METADATA...!!' AS 'INFO LOG', @sessionMetadataCleanupCount ;
+        END IF;
 
         DELETE A
         FROM IDN_AUTH_SESSION_STORE_TMP AS A
@@ -109,8 +150,12 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
         IF (tracingEnabled) THEN SET
         @deletedSessions = @deletedSessions + @sessionCleanupCount;
           SET @deletedUserSessionMappings = @deletedUserSessionMappings + @sessionMappingsCleanupCount;
+          SET @deletedSessionAppInfo = @deletedSessionAppInfo + @sessionAppInfoCleanupCount;
+          SET @deletedSessionMetadata = @deletedSessionMetadata + @sessionMetadataCleanupCount;
           SELECT 'REMOVED SESSIONS: ' AS 'INFO LOG', @deletedSessions AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
           SELECT 'REMOVED USER-SESSION MAPPINGS: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
+          SELECT 'REMOVED SESSION APP INFO: ' AS 'INFO LOG', @deletedSessionAppInfo AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
+          SELECT 'REMOVED SESSION METADATA: ' AS 'INFO LOG', @deletedSessionMetadata AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
         END IF;
 
         DO SLEEP(sleepTime);
@@ -126,7 +171,9 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     IF (tracingEnabled)
     THEN
       SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_STORE: ' AS 'INFO LOG', @deletedSessions AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
-      SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_USER_SESSON_MAPPING: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_USER_SESSION_MAPPING: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_APP_INFO: ' AS 'INFO LOG', @deletedSessionAppInfo AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_META_DATA: ' AS 'INFO LOG', @deletedSessionMetadata AS 'TOTAL NO OF DELETED ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
     END IF;
 
     SELECT 'SESSION_CLEANUP_TASK ENDED .... !' AS 'INFO LOG';
@@ -167,10 +214,52 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
 
         SELECT 'DELETED STORE OPERATIONS COUNT...!!' AS 'INFO LOG', @operationCleanupCount ;
 
+        -- Clean up operational session data from IDN_AUTH_USER_SESSION_MAPPING table.
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_AUTH_USER_SESSION_MAPPING'))
+        THEN
+            DELETE A
+            FROM IDN_AUTH_USER_SESSION_MAPPING AS A
+                     INNER JOIN TEMP_SESSION_BATCH AS B ON
+                    A.SESSION_ID = B.SESSION_ID;
+            SET @operationalSessionMappingsCleanupCount = row_count();
+            COMMIT;
+            SELECT 'DELETED OPERATIONAL USER-SESSION MAPPINGS ...!!' AS 'INFO LOG', @operationalSessionMappingsCleanupCount ;
+        END IF;
+
+        -- Clean up operational session data from IDN_AUTH_SESSION_APP_INFO table.
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_AUTH_SESSION_APP_INFO'))
+        THEN
+            DELETE A
+            FROM IDN_AUTH_SESSION_APP_INFO AS A
+                     INNER JOIN TEMP_SESSION_BATCH AS B ON
+                    A.SESSION_ID = B.SESSION_ID;
+            SET @operationalAppInfoCleanupCount = row_count();
+            COMMIT;
+            SELECT 'DELETED OPERATIONAL SESSION APP INFO ...!!' AS 'INFO LOG', @operationalAppInfoCleanupCount ;
+        END IF;
+
+        -- Clean up operational session data from IDN_AUTH_SESSION_META_DATA table.
+        IF (EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'IDN_AUTH_SESSION_META_DATA'))
+        THEN
+            DELETE A
+            FROM IDN_AUTH_SESSION_META_DATA AS A
+                     INNER JOIN TEMP_SESSION_BATCH AS B ON
+                    A.SESSION_ID = B.SESSION_ID;
+            SET @operationalMetadataCleanupCount = row_count();
+            COMMIT;
+            SELECT 'DELETED OPERATIONAL SESSION METADATA ...!!' AS 'INFO LOG', @operationalMetadataCleanupCount ;
+        END IF;
+
         IF (tracingEnabled)
         THEN
           SET @deletedDeleteOperations = @operationCleanupCount + @deletedDeleteOperations;
+          SET @deletedOperationUserSessionMappings = @operationalSessionMappingsCleanupCount + @deletedOperationUserSessionMappings;
+          SET @deletedOperationSessionAppInfo = @operationalAppInfoCleanupCount + @deletedOperationSessionAppInfo;
+          SET @deletedOperationalSessionMetadata = @operationalMetadataCleanupCount + @deletedOperationalSessionMetadata;
           SELECT 'REMOVED DELETE OPERATION RECORDS: ' AS 'INFO LOG', @deletedDeleteOperations AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
+          SELECT 'REMOVED USER-SESSION MAPPINGS RECORDS: ' AS 'INFO LOG', @deletedOperationUserSessionMappings AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
+          SELECT 'REMOVED SESSION APP INFO RECORDS: ' AS 'INFO LOG', @deletedOperationSessionAppInfo AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
+          SELECT 'REMOVED SESSION METADATA RECORDS: ' AS 'INFO LOG', @deletedOperationalSessionMetadata AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
         END IF;
 
 
@@ -203,6 +292,9 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
     THEN
       SELECT 'STORE OPERATION RECORDS REMOVED FROM IDN_AUTH_SESSION_STORE: ' AS 'INFO LOG', @deletedStoreOperations  AS 'TOTAL NO OF DELETED STORE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
       SELECT 'DELETE OPERATION RECORDS REMOVED FROM IDN_AUTH_SESSION_STORE: ' AS 'INFO LOG', @deletedDeleteOperations AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_USER_SESSION_MAPPING: ' AS 'INFO LOG', @deletedOperationUserSessionMappings AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_APP_INFO: ' AS 'INFO LOG', @deletedOperationSessionAppInfo AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
+      SELECT 'DELETE OPERATION RELATED SESSION RECORDS REMOVED FROM IDN_AUTH_SESSION_META_DATA: ' AS 'INFO LOG', @deletedOperationalSessionMetadata AS 'TOTAL NO OF DELETED DELETE ENTRIES', NOW() AS 'COMPLETED_TIMESTAMP';
     END IF;
 
     SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
