@@ -109,6 +109,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
                     INNER JOIN TEMP_SESSION_BATCH AS B ON
                     A.SESSION_ID = B.SESSION_ID;
             SET @sessionMappingsCleanupCount = row_count();
+            SET @deletedUserSessionMappings = @deletedUserSessionMappings + @sessionMappingsCleanupCount;
             COMMIT;
             SELECT 'DELETED USER-SESSION MAPPINGS...!!' AS 'INFO LOG', @sessionMappingsCleanupCount ;
         END IF;
@@ -121,6 +122,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
                      INNER JOIN TEMP_SESSION_BATCH AS B ON
                     A.SESSION_ID = B.SESSION_ID;
             SET @sessionAppInfoCleanupCount = row_count();
+            SET @deletedSessionAppInfo = @deletedSessionAppInfo + @sessionAppInfoCleanupCount;
             COMMIT;
             SELECT 'DELETED SESSION APP INFO...!!' AS 'INFO LOG', @sessionAppInfoCleanupCount ;
         END IF;
@@ -133,6 +135,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
                      INNER JOIN TEMP_SESSION_BATCH AS B ON
                     A.SESSION_ID = B.SESSION_ID;
             SET @sessionMetadataCleanupCount = row_count();
+            SET @deletedSessionMetadata = @deletedSessionMetadata + @sessionMetadataCleanupCount;
             COMMIT;
             SELECT 'DELETED SESSION METADATA...!!' AS 'INFO LOG', @sessionMetadataCleanupCount ;
         END IF;
@@ -149,9 +152,6 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
 
         IF (tracingEnabled) THEN SET
         @deletedSessions = @deletedSessions + @sessionCleanupCount;
-          SET @deletedUserSessionMappings = @deletedUserSessionMappings + @sessionMappingsCleanupCount;
-          SET @deletedSessionAppInfo = @deletedSessionAppInfo + @sessionAppInfoCleanupCount;
-          SET @deletedSessionMetadata = @deletedSessionMetadata + @sessionMetadataCleanupCount;
           SELECT 'REMOVED SESSIONS: ' AS 'INFO LOG', @deletedSessions AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
           SELECT 'REMOVED USER-SESSION MAPPINGS: ' AS 'INFO LOG', @deletedUserSessionMappings AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
           SELECT 'REMOVED SESSION APP INFO: ' AS 'INFO LOG', @deletedSessionAppInfo AS 'NO OF DELETED ENTRIES', NOW() AS 'TIMESTAMP';
@@ -222,6 +222,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
                      INNER JOIN TEMP_SESSION_BATCH AS B ON
                     A.SESSION_ID = B.SESSION_ID;
             SET @operationalSessionMappingsCleanupCount = row_count();
+            SET @deletedOperationUserSessionMappings = @operationalSessionMappingsCleanupCount + @deletedOperationUserSessionMappings;
             COMMIT;
             SELECT 'DELETED OPERATIONAL USER-SESSION MAPPINGS ...!!' AS 'INFO LOG', @operationalSessionMappingsCleanupCount ;
         END IF;
@@ -234,6 +235,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
                      INNER JOIN TEMP_SESSION_BATCH AS B ON
                     A.SESSION_ID = B.SESSION_ID;
             SET @operationalAppInfoCleanupCount = row_count();
+            SET @deletedOperationSessionAppInfo = @operationalAppInfoCleanupCount + @deletedOperationSessionAppInfo;
             COMMIT;
             SELECT 'DELETED OPERATIONAL SESSION APP INFO ...!!' AS 'INFO LOG', @operationalAppInfoCleanupCount ;
         END IF;
@@ -246,6 +248,7 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
                      INNER JOIN TEMP_SESSION_BATCH AS B ON
                     A.SESSION_ID = B.SESSION_ID;
             SET @operationalMetadataCleanupCount = row_count();
+            SET @deletedOperationalSessionMetadata = @operationalMetadataCleanupCount + @deletedOperationalSessionMetadata;
             COMMIT;
             SELECT 'DELETED OPERATIONAL SESSION METADATA ...!!' AS 'INFO LOG', @operationalMetadataCleanupCount ;
         END IF;
@@ -253,9 +256,6 @@ CREATE PROCEDURE `CLEANUP_SESSION_DATA`()
         IF (tracingEnabled)
         THEN
           SET @deletedDeleteOperations = @operationCleanupCount + @deletedDeleteOperations;
-          SET @deletedOperationUserSessionMappings = @operationalSessionMappingsCleanupCount + @deletedOperationUserSessionMappings;
-          SET @deletedOperationSessionAppInfo = @operationalAppInfoCleanupCount + @deletedOperationSessionAppInfo;
-          SET @deletedOperationalSessionMetadata = @operationalMetadataCleanupCount + @deletedOperationalSessionMetadata;
           SELECT 'REMOVED DELETE OPERATION RECORDS: ' AS 'INFO LOG', @deletedDeleteOperations AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
           SELECT 'REMOVED USER-SESSION MAPPINGS RECORDS: ' AS 'INFO LOG', @deletedOperationUserSessionMappings AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
           SELECT 'REMOVED SESSION APP INFO RECORDS: ' AS 'INFO LOG', @deletedOperationSessionAppInfo AS 'NO OF DELETED DELETE ENTRIES', NOW() AS 'TIMESTAMP';
