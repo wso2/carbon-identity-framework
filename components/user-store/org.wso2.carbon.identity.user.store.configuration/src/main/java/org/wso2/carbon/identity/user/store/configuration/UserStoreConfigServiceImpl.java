@@ -19,6 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dto.UserStoreDTO;
@@ -34,6 +35,7 @@ import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void addUserStore(UserStoreDTO userStoreDTO) throws IdentityUserStoreMgtException {
 
+        loadTenant();
         try {
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
@@ -84,6 +87,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     @Override
     public void updateUserStore(UserStoreDTO userStoreDTO, boolean isStateChange) throws IdentityUserStoreMgtException {
 
+        loadTenant();
         try {
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
@@ -118,6 +122,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void updateUserStoreByDomainName(String previousDomainName, UserStoreDTO userStoreDTO)
             throws IdentityUserStoreMgtException {
 
+        loadTenant();
         try {
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
@@ -319,6 +324,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
     public void modifyUserStoreState(String domain, Boolean isDisable, String repositoryClass)
             throws IdentityUserStoreMgtException {
 
+        loadTenant();
         UserStoreDTO userStoreDTO;
         if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                 StringUtils.isNotEmpty(repositoryClass)) {
@@ -395,5 +401,34 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         userStoreDTO.setDisabled(isDisable);
         userStoreDTO.setRepositoryClass(repositoryClass);
         return userStoreDTO;
+    }
+
+    /**
+     * Checks whether the tenant is loaded if not loaded the tenant.
+     *
+     * Note: This is required only if tenant configurations
+     * need to be redeployed.
+     */
+    private void loadTenant() throws IdentityUserStoreMgtException {
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+
+        if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+            return;
+        }
+
+        Set<String> loadedTenants = TenantAxisUtils.getTenantConfigurationContexts(UserStoreConfigListenersHolder
+                .getInstance().getConfigurationContextService().getServerConfigContext()).keySet();
+        if (!loadedTenants.contains(tenantDomain)) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Tenant: " + tenantDomain + " is not loaded. Therefore attempting to load the tenant.");
+            }
+            try {
+                TenantAxisUtils.getTenantConfigurationContext(tenantDomain, UserStoreConfigListenersHolder
+                        .getInstance().getConfigurationContextService().getServerConfigContext());
+            } catch (Exception e) {
+                throw new IdentityUserStoreMgtException(e.getMessage(), e);
+            }
+        }
     }
 }
