@@ -72,6 +72,7 @@
     int cachePages = 3;
     int noOfPageLinksToDisplay = 5;
     int numberOfPages = 0;
+    boolean errorGettingUserCount = false;
     Map<Integer, PaginatedNamesBean> flaggedNameMap = null;
     Set<FlaggedName> workFlowAddPendingUsers = new LinkedHashSet<FlaggedName>();
     Set<String> workFlowAddPendingUsersList = new LinkedHashSet<String>();
@@ -241,19 +242,36 @@
 
                 countableUserStores = countClient.getCountableUserStores();
 
-                if (UserAdminUIConstants.SELECT.equalsIgnoreCase(countClaimUri)) {    //this is user name based search
-                    if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
-                        userCount = countClient.countUsers(countFilter);
-                    } else {
-                        userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
+                String countingUserDomain = null;
+                try {
+                    if (UserAdminUIConstants.SELECT.equalsIgnoreCase(countClaimUri)) {    //this is user name based search
+                        if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                            countingUserDomain = UserAdminUIConstants.ALL_DOMAINS;
+                            userCount = countClient.countUsers(countFilter);
+                            errorGettingUserCount = false;
+                        } else {
+                            countingUserDomain = selectedCountDomain;
+                            userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain
+                                (countFilter, selectedCountDomain)));
+                            errorGettingUserCount = false;
+                        }
+                    } else {                //this is a claim based search
+                        if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
+                            countingUserDomain = UserAdminUIConstants.ALL_DOMAINS;
+                            userCount = countClient.countByClaim(countClaimUri, countFilter);
+                            errorGettingUserCount = false;
+                        } else {
+                            countingUserDomain = selectedCountDomain;
+                            userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain
+                                (countClaimUri, countFilter, selectedCountDomain)));
+                            errorGettingUserCount = false;
+
+                        }
                     }
-                } else {                //this is a claim based search
-                    if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
-                        userCount = countClient.countByClaim(countClaimUri, countFilter);
-                    } else {
-                        userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
-                                countFilter, selectedCountDomain)));
-                    }
+                } catch (Exception e) {
+                    // In this scenario an error should be shown in the count results section.
+                    errorGettingUserCount = true;
+                    userCount.put(countingUserDomain, "0");
                 }
             }
 
@@ -595,9 +613,19 @@
                         <td class="leftCol-big" style="padding-right: 0 !important;"><%=Encode.forHtml(key)%>
                         </td>
                         <td>
+                            <%
+                            // If an error occurred while getting the count, an error should be displayed.
+                            if (errorGettingUserCount) {
+                            %>
+                            <p>Error occurred while getting the count</p>
+                            <%
+                            } else {
+                            %>
                             <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
                                    value="<%=Encode.forHtmlAttribute(value)%>"/>
-
+                            <%
+                            }
+                            %>
                         </td>
                     </tr>
 
