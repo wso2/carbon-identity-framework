@@ -620,17 +620,6 @@ public class IdentityManagementEndpointUtil {
         }
     }
 
-    /**
-     * Get configurations from the identity.xml.
-     *
-     * @param key Configuration key.
-     * @return Boolean value of the configuration.
-     */
-    public static boolean getConfiguration(String key) {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty(key));
-    }
-
     public static void authenticate(ServiceClient client) throws Exception {
 
         Properties properties = new Properties();

@@ -40,8 +40,9 @@ import org.json.JSONTokener;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -146,15 +147,10 @@ public class SelfRegistrationMgtClient {
     private String getUserAPIEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
         // Added to maintain backward compatibility.
-        if (!IdentityManagementEndpointUtil.getConfiguration(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS)) {
+        if (!Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS))) {
             return IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
         }
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            return IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    USERNAME_VALIDATE_API_RELATIVE_PATH);
-        }
-        return IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
+        return getEndpoint(tenantDomain, USERNAME_VALIDATE_API_RELATIVE_PATH);
     }
 
     private String getEndpoint(String tenantDomain, String context) throws SelfRegistrationMgtClientException {
