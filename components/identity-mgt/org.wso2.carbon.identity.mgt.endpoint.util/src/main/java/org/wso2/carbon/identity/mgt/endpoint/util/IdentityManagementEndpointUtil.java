@@ -38,7 +38,6 @@ import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Error;
@@ -618,17 +617,6 @@ public class IdentityManagementEndpointUtil {
             log.error("Exception while retrieving error details from original exception. Original exception:", e);
             return buildUnexpectedRetryError();
         }
-    }
-
-    /**
-     * Get configurations from the identity.xml.
-     *
-     * @param key Configuration key.
-     * @return Boolean value of the configuration.
-     */
-    public static boolean getConfiguration(String key) {
-
-        return Boolean.parseBoolean(IdentityUtil.getProperty(key));
     }
 
     public static void authenticate(ServiceClient client) throws Exception {
