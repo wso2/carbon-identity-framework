@@ -219,7 +219,13 @@
                 if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                     roleCount = countClient.countRoles(countFilter);
                 } else {
-                    roleCount.put(selectedCountDomain, String.valueOf(countClient.countRolesInDomain(countFilter, selectedCountDomain)));
+                    try {
+                        roleCount.put(selectedCountDomain, String.valueOf(countClient.countRolesInDomain(countFilter,
+                            selectedCountDomain)));
+                    } catch (Exception e) {
+                        // In this scenario an error should be shown in the count results section.
+                        roleCount.put(selectedCountDomain, "Error while getting the role count");
+                    }
                 }
             }
 
@@ -509,9 +515,18 @@
                     <tr>
                         <td class="leftCol-big" style="padding-right: 0 !important;"><%=Encode.forHtml(key)%></td>
                         <td>
+                            <%
+                            if (StringUtils.isNumeric(value)) {
+                            %>
                             <input type="text" readonly=true name="<%=UserAdminUIConstants.ROLE_COUNT%>"
                                    value="<%=Encode.forHtmlAttribute(value)%>" />
-
+                            <%
+                            } else {
+                            %>
+                            <p>Error occurred while getting the count</p>
+                            <%
+                            }
+                            %>
                         </td>
                     </tr>
 

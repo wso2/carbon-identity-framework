@@ -245,14 +245,25 @@
                     if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                         userCount = countClient.countUsers(countFilter);
                     } else {
-                        userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
+                        try {
+                            userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter,
+                                selectedCountDomain)));
+                        } catch (Exception e) {
+                            // In this scenario an error should be shown in the count results section.
+                            userCount.put(selectedCountDomain, "Error while getting user count");
+                        }
                     }
                 } else {                //this is a claim based search
                     if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                         userCount = countClient.countByClaim(countClaimUri, countFilter);
                     } else {
-                        userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
-                                countFilter, selectedCountDomain)));
+                        try {
+                            userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain
+                                (countClaimUri, countFilter, selectedCountDomain)));
+                        } catch (Exception e) {
+                            // In this scenario an error should be shown in the count results section.
+                            userCount.put(selectedCountDomain, "Error while getting user count");
+                        }
                     }
                 }
             }
@@ -595,9 +606,18 @@
                         <td class="leftCol-big" style="padding-right: 0 !important;"><%=Encode.forHtml(key)%>
                         </td>
                         <td>
+                            <%
+                            if (StringUtils.isNumeric(value)) {
+                            %>
                             <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
-                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
-
+                                                               value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            <%
+                            } else {
+                            %>
+                            <p>Error occurred while getting the count</p>
+                            <%
+                            }
+                            %>
                         </td>
                     </tr>
 
