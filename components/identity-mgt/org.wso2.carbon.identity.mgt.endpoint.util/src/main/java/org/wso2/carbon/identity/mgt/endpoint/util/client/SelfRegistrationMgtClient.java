@@ -41,10 +41,12 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -141,9 +143,18 @@ public class SelfRegistrationMgtClient {
         return getEndpoint(tenantDomain, CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
     }
 
-    private String getUserAPIEndpoint() throws SelfRegistrationMgtClientException {
+    private String getUserAPIEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        return getEndpoint(null, USERNAME_VALIDATE_API_RELATIVE_PATH);
+        // Added to maintain backward compatibility.
+        if (!IdentityManagementEndpointUtil.getConfiguration(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS)) {
+            return IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            return IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    USERNAME_VALIDATE_API_RELATIVE_PATH);
+        }
+        return IdentityManagementEndpointUtil.buildEndpointUrl(USERNAME_VALIDATE_API_RELATIVE_PATH);
     }
 
     private String getEndpoint(String tenantDomain, String context) throws SelfRegistrationMgtClientException {
@@ -256,7 +267,8 @@ public class SelfRegistrationMgtClient {
 
             userObject.put(PROPERTIES, properties);
 
-            HttpPost post = new HttpPost(getUserAPIEndpoint());
+            String tenantDomain = MultitenantUtils.getTenantDomain(user.getUsername());
+            HttpPost post = new HttpPost(getUserAPIEndpoint(tenantDomain));
             setAuthorizationHeader(post);
 
             post.setEntity(new StringEntity(userObject.toString(), ContentType.create(HTTPConstants
