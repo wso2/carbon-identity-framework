@@ -785,10 +785,10 @@ public class IdentityManagementEndpointUtil {
     /**
      * Get a query parameter value from a URL.
      *
-     * @param url               URL
-     * @param queryParameter    Required query parameter name
-     * @return Query parameter value
-     * @throws URISyntaxException
+     * @param url               URL.
+     * @param queryParameter    Required query parameter name.
+     * @return Query parameter value.
+     * @throws URISyntaxException If url is not in valid syntax.
      */
     public static String getQueryParameter(String url, String queryParameter) throws URISyntaxException {
 

@@ -74,7 +74,7 @@ public class PasswordRecoveryApiV1 {
      * @param tenantDomain        Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
      * @return Account recovery options response object.
-     * @throws ApiException if fails to make API call.
+     * @throws ApiException If fails to make API call.
      */
     public List<AccountRecoveryType> initiatePasswordRecovery(RecoveryInitRequest recoveryInitRequest, String tenantDomain,
                                                               Map<String, String> headers) throws ApiException {
@@ -90,7 +90,7 @@ public class PasswordRecoveryApiV1 {
      * @param tenantDomain      Tenant Domain which user belongs. Default &#x60;carbon.super&#x60; (optional)
      * @param headers           Any additional headers to be embedded. (optional)
      * @return Recovery response.
-     * @throws ApiException if fails to make API call.
+     * @throws ApiException If fails to make API call.
      */
     public RecoveryResponse recoverPassword(RecoveryRequest recoveryRequest, String tenantDomain,
                                             Map<String, String> headers) throws ApiException {
@@ -107,7 +107,7 @@ public class PasswordRecoveryApiV1 {
      * @param headers             If reCaptcha respond is found, embedded in request header. (optional)
      * @param localVarPath        Endpoint path.
      * @return Account recovery options response object.
-     * @throws ApiException if fails to make API call.
+     * @throws ApiException If fails to make API call.
      */
     private List<AccountRecoveryType> initiateRecovery(RecoveryInitRequest recoveryInitRequest, String tenantDomain,
                                                        Map<String, String> headers, String localVarPath)
@@ -154,7 +154,7 @@ public class PasswordRecoveryApiV1 {
      * @param headers           Any additional headers to be embedded. (optional)
      * @param localVarPath      Endpoint path.
      * @return Recovery response.
-     * @throws ApiException if fails to make API call.
+     * @throws ApiException If fails to make API call.
      */
     private RecoveryResponse recover(RecoveryRequest recoveryRequest, String tenantDomain,
                                      Map<String, String> headers, String localVarPath) throws ApiException {
