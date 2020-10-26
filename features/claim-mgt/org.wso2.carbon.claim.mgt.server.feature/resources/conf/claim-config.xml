@@ -2531,6 +2531,26 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/mobileNumber.pendingValue</MappedLocalClaim>
 			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:forcePasswordReset</ClaimURI>
+				<DisplayName>Force Password Reset</DisplayName>
+				<AttributeID>forcePasswordReset</AttributeID>
+				<Description>Temporary claim to invoke forced password reset feature</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/identity/adminForcedPasswordReset</MappedLocalClaim>
+			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:oneTimePassword</ClaimURI>
+				<DisplayName>One Time Password</DisplayName>
+				<AttributeID>oneTimePassword</AttributeID>
+				<Description>One Time Password</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/oneTimePassword</MappedLocalClaim>
+			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">
 			<Claim>
