@@ -106,8 +106,8 @@
 
     function deleteUserStores() {
         var selected = false;
-        if (Array.isArray(document.userStoreForm.userStores)
-            &&  document.userStoreForm.userStore.length) { // there is more than 1 user store
+        if (document.userStoreForm.userStores != null && document.userStoreForm.userStores.length > 1) {
+            // there is more than 1 user store
             for (var j = 0; j < document.userStoreForm.userStores.length; j++) {
                 selected = document.userStoreForm.userStores[j].checked;
                 if (selected) break;
