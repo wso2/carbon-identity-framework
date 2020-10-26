@@ -145,5 +145,10 @@
   ],
   "identity_mgt.events.schemes.'default.notification.sender'.properties.'subscription.TRIGGER_SMS_NOTIFICATION.stream'":"id_gov_sms_notify_stream:1.0.0",
   "identity_mgt.events.schemes.'default.notification.sender'.properties.'subscription.TRIGGER_SMS_NOTIFICATION.claim.mobile'":"http://wso2.org/claims/mobile",
-  "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable": true
+  "identity_mgt.events.schemes.OIDCLogoutEventHandler.properties.enable": true,
+  "identity_mgt.events.schemes.userMobileVerification.module_index": "25",
+  "identity_mgt.events.schemes.userMobileVerification.subscriptions": [
+    "PRE_SET_USER_CLAIMS",
+    "POST_SET_USER_CLAIMS"
+  ]
 }

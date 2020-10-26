@@ -21,6 +21,7 @@ package org.wso2.carbon.idp.mgt;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,6 +51,8 @@ import org.wso2.carbon.identity.core.model.Node;
 import org.wso2.carbon.identity.core.model.OperationNode;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.IdentityRoleManagementException;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.FileBasedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -184,7 +187,6 @@ public class IdentityProviderManager implements IdpManager {
         oauth2UserInfoEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.USERINFO, oauth2UserInfoEPUrl);
         oidcCheckSessionEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.CHECK_SESSION, oidcCheckSessionEPUrl);
         oidcLogoutEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.LOGOUT, oidcLogoutEPUrl);
-        oIDCWebFingerEPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.WEBFINGER, oIDCWebFingerEPUrl);
         oAuth2DCREPUrl = resolveAbsoluteURL(IdentityConstants.OAuth.DCR, oAuth2DCREPUrl);
         oAuth2DCREPUrl = addTenantPathParamInLegacyMode(oAuth2DCREPUrl, tenantDomain);
         oAuth2JWKSPage = resolveAbsoluteURL(IdentityConstants.OAuth.JWKS, oAuth2JWKSPage);
@@ -2024,8 +2026,9 @@ public class IdentityProviderManager implements IdpManager {
             throws IdentityProviderManagementException {
 
         validateAddIdPInputValues(identityProvider.getIdentityProviderName(), tenantDomain);
+        validateOutboundProvisioningRoles(identityProvider,tenantDomain);
 
-        // invoking the pre listeners
+        // Invoking the pre listeners.
         Collection<IdentityProviderMgtListener> listeners = IdPManagementServiceComponent.getIdpMgtListeners();
         for (IdentityProviderMgtListener listener : listeners) {
             if (listener.isEnable() && !listener.doPreAddIdP(identityProvider, tenantDomain)) {
@@ -2342,8 +2345,7 @@ public class IdentityProviderManager implements IdpManager {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         IdentityProvider currentIdentityProvider = this
                 .getIdPByResourceId(resourceId, tenantDomain, true);
-        validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider.getIdentityProviderName(),
-                tenantDomain);
+        validateUpdateIdPInputValues(currentIdentityProvider, resourceId, newIdentityProvider, tenantDomain);
         updateIDP(currentIdentityProvider, newIdentityProvider, tenantId, tenantDomain);
 
         // Invoking the post listeners.
@@ -2704,26 +2706,63 @@ public class IdentityProviderManager implements IdpManager {
      *
      * @param currentIdentityProvider Old Identity Provider Information.
      * @param resourceId              Identity Provider's resource ID.
-     * @param newIdPName              New Identity Provider name.
+     * @param newIdentityProvider
      * @param tenantDomain            Tenant domain of IDP.
      * @throws IdentityProviderManagementException IdentityProviderManagementException
      */
-    private void validateUpdateIdPInputValues(IdentityProvider currentIdentityProvider, String resourceId, String
-            newIdPName, String tenantDomain) throws IdentityProviderManagementException {
+    private void validateUpdateIdPInputValues(IdentityProvider currentIdentityProvider, String resourceId,
+                                              IdentityProvider newIdentityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
 
         if (currentIdentityProvider == null) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
                     .ERROR_CODE_IDP_DOES_NOT_EXIST, resourceId);
         }
         boolean isNewIdPNameExists = false;
-        IdentityProvider newIdentityProvider = getIdPByName(newIdPName, tenantDomain, true);
-        if (newIdentityProvider != null) {
-            isNewIdPNameExists = !StringUtils.equals(newIdentityProvider.getResourceId(), currentIdentityProvider
+        IdentityProvider retrievedIdentityProvider =
+                getIdPByName(newIdentityProvider.getIdentityProviderName(), tenantDomain, true);
+        if (retrievedIdentityProvider != null) {
+            isNewIdPNameExists = !StringUtils.equals(retrievedIdentityProvider.getResourceId(), currentIdentityProvider
                     .getResourceId());
         }
-        if (isNewIdPNameExists || IdPManagementServiceComponent.getFileBasedIdPs().containsKey(newIdPName)) {
+        if (isNewIdPNameExists || IdPManagementServiceComponent.getFileBasedIdPs()
+                .containsKey(newIdentityProvider.getIdentityProviderName())) {
             throw IdPManagementUtil.handleClientException(IdPManagementConstants.ErrorMessage
-                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdPName);
+                    .ERROR_CODE_IDP_ALREADY_EXISTS, newIdentityProvider.getIdentityProviderName());
+        }
+
+        // Validate whether there are any duplicate properties in the ProvisioningConnectorConfig.
+        validateOutboundProvisioningConnectorProperties(newIdentityProvider);
+    }
+
+    /**
+     * Validate whether there are any duplicate properties in the ProvisioningConnectorConfig of an IdentityProvider.
+     *
+     * @param newIdentityProvider IdentityProvider object.
+     * @throws IdentityProviderManagementException If duplicate properties found in ProvisioningConnectorConfig.
+     */
+    private void validateOutboundProvisioningConnectorProperties(IdentityProvider newIdentityProvider)
+            throws IdentityProviderManagementException {
+
+        ProvisioningConnectorConfig[] provisioningConnectorConfigs =
+                newIdentityProvider.getProvisioningConnectorConfigs();
+        if (!ArrayUtils.isEmpty(provisioningConnectorConfigs)) {
+            for (ProvisioningConnectorConfig connectorConfig : provisioningConnectorConfigs) {
+                Property[] properties = connectorConfig.getProvisioningProperties();
+
+                // If no properties have specified, validation needs to stop.
+                if (ArrayUtils.isEmpty(properties) || properties.length < 2) {
+                    break;
+                }
+                Set<Property> connectorProperties = new HashSet<>();
+                for (Property property : properties) {
+                    if (!connectorProperties.add(property)) {
+                        throw IdPManagementUtil.handleClientException(
+                                IdPManagementConstants.ErrorMessage.DUPLICATE_OUTBOUND_CONNECTOR_PROPERTIES,
+                                newIdentityProvider.getIdentityProviderName());
+                    }
+                }
+            }
         }
     }
 
@@ -2879,5 +2918,44 @@ public class IdentityProviderManager implements IdpManager {
         }
 
         return idPName;
+    }
+
+    /**
+     * Validate whether the outbound provisioning roles does exist.
+     *
+     * @param identityProvider IdentityProvider.
+     * @param tenantDomain     Tenant Domain.
+     * @throws IdentityProviderManagementException If an error occurred while checking for role existence.
+     */
+    private void validateOutboundProvisioningRoles(IdentityProvider identityProvider, String tenantDomain)
+            throws IdentityProviderManagementException {
+
+        String provisioningRole = identityProvider.getProvisioningRole();
+        if (StringUtils.isBlank(provisioningRole)) {
+            return;
+        }
+        String[] outboundProvisioningRoles = StringUtils.split(provisioningRole, ",");
+
+        try {
+            RoleManagementService roleManagementService =
+                    IdpMgtServiceComponentHolder.getInstance().getRoleManagementService();
+            for (String roleName : outboundProvisioningRoles) {
+                try {
+                    if (!roleManagementService.isExistingRoleName(roleName, tenantDomain)) {
+                        throw IdPManagementUtil.handleClientException(
+                                IdPManagementConstants.ErrorMessage.ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE,
+                                null);
+                    }
+                } catch (NotImplementedException e) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("isExistingRoleName is not implemented in the RoleManagementService. " +
+                                "Therefore, proceeding without validating outbound provisioning role existence.");
+                    }
+                }
+            }
+        } catch (IdentityRoleManagementException e) {
+            throw IdPManagementUtil.handleServerException(
+                    IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
+        }
     }
 }

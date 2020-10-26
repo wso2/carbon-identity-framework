@@ -22,6 +22,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.idp.mgt.dao.IdPManagementDAO;
@@ -48,6 +49,7 @@ public class IdpMgtServiceComponentHolder {
     private volatile List<IdentityProviderMgtListener> idpMgtListeners = new ArrayList<>();
     private volatile List<ConnectorConfig> identityConnectorConfigList = new ArrayList<>();
     private RegistryService registryService;
+    private RoleManagementService roleManagementService;
 
     private List<MetadataConverter> metadataConverters = new ArrayList<>();
 
@@ -116,5 +118,25 @@ public class IdpMgtServiceComponentHolder {
     protected void unsetGovernanceConnector(ConnectorConfig connector) {
 
         identityConnectorConfigList.remove(connector);
+    }
+
+    /**
+     * Get RoleManagementService instance.
+     *
+     * @return RoleManagementService instance.
+     */
+    public RoleManagementService getRoleManagementService() {
+
+        return roleManagementService;
+    }
+
+    /**
+     * Set RoleManagementService instance.
+     *
+     * @param roleManagementService RoleManagementService instance.
+     */
+    public void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        this.roleManagementService = roleManagementService;
     }
 }

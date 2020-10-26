@@ -1865,7 +1865,7 @@ public class FrameworkUtils {
         } catch (UserStoreException e) {
             log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
             }
         }
 
@@ -2602,7 +2602,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Preprocess user's username considering authentication context.
+     * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
      * @param context  Authentication context.
@@ -2622,7 +2622,9 @@ public class FrameworkUtils {
             }
         } else if (!username.endsWith(context.getTenantDomain())) {
 
-            if (isSaaSApp && StringUtils.countMatches(username, "@") == 1) {
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
                 return username;
             }
             return username + "@" + context.getTenantDomain();

@@ -767,6 +767,15 @@
         Default value: true
         -->
         <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
+
+        {% if oauth.allowed_scopes is defined %}
+        <!-- Configuration to pass a list of scopes which are allowed without any validation. -->
+        <AllowedScopes>
+            {%for scope in oauth.allowed_scopes%}
+                <Scope>{{scope}}</Scope>
+            {% endfor %}
+        </AllowedScopes>
+        {% endif %}
     </OAuth>
 
     <MultifactorAuthentication>
@@ -824,6 +833,7 @@
         <SAML2AuthenticationRequestValidityPeriod>{{saml.request_validity_period}}</SAML2AuthenticationRequestValidityPeriod>
         <SAMLSPCertificateExpiryValidationEnabled>{{saml.enable_saml_sp_certificate_expiry_validation}}</SAMLSPCertificateExpiryValidationEnabled>
         <SAML2AuthnRequestsSigningEnabled>{{saml.metadata.enable_authentication_requests_signing}}</SAML2AuthnRequestsSigningEnabled>
+        <SAMLAssertionEncyptWithAppCert>{{saml.metadata.assertion_encrypt_with_app_cert}}</SAMLAssertionEncyptWithAppCert>
         {% if saml.metadata.define_name_id_policy_if_unspecified is defined %}
             <SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>{{saml.metadata.define_name_id_policy_if_unspecified}}</SAML2AuthnRequestNameIdPolicyDefinedIfUnspecified>
         {% endif %}
@@ -1087,6 +1097,14 @@
                     <ExpiryTime>{{identity_mgt.user_claim_update.email.verification_email_validity}}</ExpiryTime>
                 </VerificationCode>
             </VerificationOnUpdate>
+        </Claim>
+        <Claim uri = "http://wso2.org/claims/mobile">
+             <VerificationOnUpdate>
+                <Enable>{{identity_mgt.user_claim_update.mobile.enable_verification}}</Enable>
+                <VerificationCode>
+                    <ExpiryTime>{{identity_mgt.user_claim_update.mobile.verification_sms_otp_validity}}</ExpiryTime>
+                </VerificationCode>
+             </VerificationOnUpdate>
         </Claim>
     </UserClaimUpdate>
 
@@ -2370,4 +2388,9 @@
         {% endfor %}
     </ReverseProxyConfig>
     {% endif %}
+
+    <!-- Configuration for preserving the current session and token when updating the password. -->
+    <PasswordUpdate>
+        <PreserveLoggedInSession>{{identity_mgt.password_update.preserve_logged_in_session}}</PreserveLoggedInSession>
+    </PasswordUpdate>
 </Server>

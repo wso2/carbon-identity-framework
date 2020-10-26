@@ -133,6 +133,9 @@ public abstract class FrameworkConstants {
     public static final String FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR =
             "FederatedIDPRoleClaimValueAttributeSeparator";
 
+    // Current session thread local identifier.
+    public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
+
     private FrameworkConstants() {
 
     }
@@ -230,6 +233,13 @@ public abstract class FrameworkConstants {
          * Configuration to enable publishing the active session count in analytics event.
          */
         public static final String PUBLISH_ACTIVE_SESSION_COUNT = "Analytics.PublishActiveSessionCount";
+
+        /**
+         * Configuration to enable preserving user from being logged out at password update by skipping current
+         * session and token from being terminated.
+         */
+        public static final String PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE =
+                "PasswordUpdate.PreserveLoggedInSession";
 
         private Config() {
         }
@@ -374,6 +384,7 @@ public abstract class FrameworkConstants {
         public static final String JS_COOKIE_SECURE = "secure";
         public static final String JS_COOKIE_VERSION = "version";
         public static final String JS_COOKIE_HTTP_ONLY = "httpOnly";
+        public static final String JS_COOKIE_SAMESITE = "sameSite";
         public static final String JS_LOCAL_ROLES = "roles";
         public static final String JS_CLAIMS = "claims";
         public static final String JS_AUTHENTICATED_IDP = "idp";

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.user.store.configuration.internal;
 import org.wso2.carbon.identity.user.store.configuration.UserStoreConfigService;
 import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +38,7 @@ public class UserStoreConfigListenersHolder {
     private Map<String, AbstractUserStoreDAOFactory> userStoreDAOFactory = new HashMap<>();
     private UserStoreConfigService userStoreConfigService;
     private Set<String> allowedUserstores = null;
+    private ConfigurationContextService configurationContextService;
 
 
     private UserStoreConfigListenersHolder() {
@@ -79,6 +81,16 @@ public class UserStoreConfigListenersHolder {
     public void setAllowedUserstores(Set<String> allowedUserstores) {
 
         this.allowedUserstores = allowedUserstores;
+    }
+
+    public ConfigurationContextService getConfigurationContextService() {
+
+        return configurationContextService;
+    }
+
+    public void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        this.configurationContextService = configurationContextService;
     }
 
 }

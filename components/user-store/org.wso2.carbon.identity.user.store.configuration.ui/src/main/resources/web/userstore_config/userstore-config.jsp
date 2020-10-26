@@ -113,7 +113,7 @@
 
 
     if (selectedClassApplied == null || selectedClassApplied.trim().length() == 0) {
-        selectedClassApplied = UserStoreUIConstants.RWLDAP_USERSTORE_MANAGER;
+        selectedClassApplied = UserStoreUIConstants.URWLDAP_USERSTORE_MANAGER;
     } else {
 
     }

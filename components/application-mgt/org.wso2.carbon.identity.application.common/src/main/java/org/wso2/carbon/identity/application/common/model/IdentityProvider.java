@@ -252,7 +252,7 @@ public class IdentityProvider implements Serializable {
                     } catch (IdentityApplicationManagementException e) {
                         log.error("Error while building provisioningConnectorConfig for IDP " + identityProvider
                                 .getIdentityProviderName() + ". Cause : " + e.getMessage() + ". Building rest of the " +
-                                "IDP configs");
+                                "IDP configs", e);
                     }
                     if (proConConfig != null) {
                         provisioningConnectorConfigsArrList.add(proConConfig);

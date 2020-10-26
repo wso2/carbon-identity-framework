@@ -56,11 +56,11 @@ public class UserStoreCountService {
             long count = -1L;
             try {
                 count = getUserCountWithClaims(UserStoreCountUtils.USERNAME_CLAIM, filterWithDomain);
+                userCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             } catch (UserStoreCounterException e) {
-                String errorMsg = "Error while getting user count from user store domain : " + userStoreDomain;
-                throw new UserStoreCounterException(errorMsg, e);
+                userCounts[i] = new PairDTO(userStoreDomain, "Error while getting user count");
+                log.error("Error while getting user count from user store domain : " + userStoreDomain, e);
             }
-            userCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
             i++;
         }
         return userCounts;
@@ -82,8 +82,13 @@ public class UserStoreCountService {
         for (String userStoreDomain : userStoreDomains) {
             long count = -1L;
             String filterWithDomain = getFilterWithDomain(userStoreDomain, filter);
-            count = getRoleCount(filterWithDomain);
-            roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
+            try {
+                count = getRoleCount(filterWithDomain);
+                roleCounts[i] = new PairDTO(userStoreDomain, Long.toString(count));
+            } catch (UserStoreCounterException e) {
+                roleCounts[i] = new PairDTO(userStoreDomain, "Error while getting role count");
+                log.error("Error while getting role count from user store domain : " + userStoreDomain, e);
+            }
             i++;
         }
         String internalDomainFilter = UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + filter;

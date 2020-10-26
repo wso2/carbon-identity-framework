@@ -140,7 +140,8 @@ public class RoleDAOImpl implements RoleDAO {
         if (!isExistingRoleName(roleName, tenantDomain)) {
             try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
                 try {
-                    try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SQL)) {
+                    try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, ADD_ROLE_SQL,
+                            RoleTableColumns.UM_ID)) {
                         statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                         statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                         statement.executeUpdate();
@@ -267,7 +268,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    getDBTypeSpecificRolesRetrievalQuery(databaseProductName))) {
+                    getDBTypeSpecificRolesRetrievalQuery(databaseProductName), RoleTableColumns.UM_ID)) {
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 roles = processListRolesQuery(limit, offset, statement, tenantDomain);
             }
@@ -295,7 +296,7 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    getDBTypeSpecificRolesRetrievalQueryByRoleName(databaseProductName))) {
+                    getDBTypeSpecificRolesRetrievalQueryByRoleName(databaseProductName), RoleTableColumns.UM_ID)) {
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, filterResolvedForSQL);
                 roles = processListRolesQuery(limit, offset, statement, tenantDomain);
@@ -559,7 +560,8 @@ public class RoleDAOImpl implements RoleDAO {
     private void processBatchUpdateForUsers(String roleName, List<String> userNamesList, int tenantId,
             String primaryDomainName, Connection connection, String removeUserFromRoleSql) throws SQLException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, removeUserFromRoleSql)) {
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, removeUserFromRoleSql,
+                RoleTableColumns.UM_ID)) {
             for (String userName : userNamesList) {
                 // Add domain if not set.
                 userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
@@ -640,7 +642,8 @@ public class RoleDAOImpl implements RoleDAO {
     private void processBatchUpdateForGroups(String roleName, List<String> groupNamesList, int tenantId,
             String primaryDomainName, Connection connection, String sql) throws SQLException {
 
-        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql)) {
+        try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql,
+                RoleTableColumns.UM_ID)) {
             for (String groupName : groupNamesList) {
                 // Add domain if not set.
                 groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
@@ -682,7 +685,8 @@ public class RoleDAOImpl implements RoleDAO {
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
 
             try {
-                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_ROLE_NAME_SQL)) {
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, UPDATE_ROLE_NAME_SQL,
+                        RoleTableColumns.UM_ID)) {
                     statement.setString(RoleTableColumns.NEW_UM_ROLE_NAME, newRoleName);
                     statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                     statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
@@ -774,7 +778,8 @@ public class RoleDAOImpl implements RoleDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
             try {
-                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLE_SQL)) {
+                try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_ROLE_SQL,
+                        RoleTableColumns.UM_ID)) {
                     statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                     statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                     statement.executeUpdate();
@@ -848,7 +853,8 @@ public class RoleDAOImpl implements RoleDAO {
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
         boolean isExist = false;
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, IS_ROLE_EXIST_SQL,
+                    RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, removeInternalDomain(roleName));
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -923,7 +929,8 @@ public class RoleDAOImpl implements RoleDAO {
         List<String> disabledDomainName = getDisabledDomainNames();
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_USER_LIST_OF_ROLE_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, GET_USER_LIST_OF_ROLE_SQL,
+                    RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -974,7 +981,7 @@ public class RoleDAOImpl implements RoleDAO {
 
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(false)) {
             try (NamedPreparedStatement statement = new NamedPreparedStatement(connection,
-                    GET_GROUP_LIST_OF_ROLE_SQL)) {
+                    GET_GROUP_LIST_OF_ROLE_SQL, RoleTableColumns.UM_ID)) {
                 statement.setString(RoleTableColumns.UM_ROLE_NAME, roleName);
                 statement.setInt(RoleTableColumns.UM_TENANT_ID, tenantId);
                 try (ResultSet resultSet = statement.executeQuery()) {
@@ -1097,7 +1104,8 @@ public class RoleDAOImpl implements RoleDAO {
             primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
         }
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_USER_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_USER_SQL,
+                    RoleTableColumns.UM_ID)) {
                 // Add domain if not set.
                 userName = UserCoreUtil.addDomainToName(userName, primaryDomainName);
                 // Get domain from name.
@@ -1146,7 +1154,8 @@ public class RoleDAOImpl implements RoleDAO {
             primaryDomainName = primaryDomainName.toUpperCase(Locale.ENGLISH);
         }
         try (Connection connection = IdentityDatabaseUtil.getUserDBConnection(true)) {
-            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_GROUP_SQL)) {
+            try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, DELETE_GROUP_SQL,
+                    RoleTableColumns.UM_ID)) {
                 // Add domain if not set.
                 groupName = UserCoreUtil.addDomainToName(groupName, primaryDomainName);
                 // Get domain from name.

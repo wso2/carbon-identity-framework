@@ -4,6 +4,12 @@
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
+  "database.identity_db.pool_options.maxActive": "50",
+  "database.identity_db.pool_options.maxWait": "60000",
+  "database.identity_db.pool_options.testOnBorrow": "true",
+  "database.identity_db.pool_options.validationInterval": "30000",
+  "database.identity_db.pool_options.defaultAutoCommit": "true",
+  "database.identity_db.jmx_enable": "false",
   "server.clock_skew": "5m",
   "session_data.persistence.enable_persistence": true,
   "session_data.persistence.persistence_pool_size": "0",
@@ -203,7 +209,8 @@
   "saml.enable_user_domain_crpto": false,
   "saml.enable_request_validity_period": false,
   "saml.request_validity_period": "5m",
-  "saml.enable_saml_sp_certificate_expiry_validation": false,
+  "saml.metadata.assertion_encrypt_with_app_cert": true,
+  "saml.enable_saml_sp_certificate_expiry_validation": true,
 
   "saml.endpoints.idp_url": "$ref{server.base_path}/samlsso",
   "saml.endpoints.logout": "$ref{server.base_path}/authenticationendpoint/samlsso_logout.do",
@@ -291,6 +298,8 @@
   "identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_offline_otp_based_reset": false,
 
+  "identity_mgt.password_update.preserve_logged_in_session": false,
+
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
@@ -317,6 +326,8 @@
 
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+  "identity_mgt.user_claim_update.mobile.enable_verification": false,
+  "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 

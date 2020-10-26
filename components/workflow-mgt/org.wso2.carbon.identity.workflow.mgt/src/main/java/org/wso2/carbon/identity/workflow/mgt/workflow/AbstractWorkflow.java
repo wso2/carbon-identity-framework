@@ -69,7 +69,7 @@ public abstract class AbstractWorkflow {
             this.parametersMetaData = this.metaData.getWorkflowImpl().getParametersMetaData();
         } catch (JAXBException e) {
             String errorMsg = "Error occurred while converting workflow parameter data to object : " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
     }
@@ -166,11 +166,11 @@ public abstract class AbstractWorkflow {
             workFlowExecutor = workFlowExecutorClass.newInstance();
         } catch (InstantiationException e) {
             String errorMsg = "Error occurred while initializing WorkFlowExecutor : " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         } catch (IllegalAccessException e) {
             String errorMsg = "Error occurred while initializing WorkFlowExecutor : " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
         return workFlowExecutor;
@@ -184,11 +184,11 @@ public abstract class AbstractWorkflow {
             templateInitializer = templateInitializerClass.newInstance();
         } catch (InstantiationException e) {
             String errorMsg = "Error occurred while initializing TemplateInitializer : " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         } catch (IllegalAccessException e) {
             String errorMsg = "Error occurred while initializing TemplateInitializer : " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowRuntimeException(errorMsg, e);
         }
         return templateInitializer;
