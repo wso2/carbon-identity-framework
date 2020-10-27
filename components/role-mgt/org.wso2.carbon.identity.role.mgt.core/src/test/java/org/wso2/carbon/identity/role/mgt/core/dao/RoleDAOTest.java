@@ -52,6 +52,7 @@ import java.util.Map;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyCollection;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -67,7 +68,7 @@ import static org.testng.Assert.assertTrue;
 
 @WithCarbonHome
 @PrepareForTest({IdentityDatabaseUtil.class, IdentityTenantUtil.class, IdentityUtil.class, UserCoreUtil.class,
-                 CarbonContext.class})
+                 CarbonContext.class, RoleDAOImpl.class})
 public class RoleDAOTest extends PowerMockTestCase {
 
     private static final int SAMPLE_TENANT_ID = 1;
@@ -126,6 +127,7 @@ public class RoleDAOTest extends PowerMockTestCase {
                 Connection connection3 = DAOUtils.getConnection(DB_NAME)) {
 
             roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
             addRole("role1");
@@ -244,6 +246,7 @@ public class RoleDAOTest extends PowerMockTestCase {
                 Connection connection6 = DAOUtils.getConnection(DB_NAME)) {
 
             roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
             RoleBasicInfo role = addRole("role1");
@@ -280,6 +283,7 @@ public class RoleDAOTest extends PowerMockTestCase {
                 Connection connection6 = DAOUtils.getConnection(DB_NAME)) {
 
             roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
             RoleBasicInfo role = addRole("role1");
@@ -414,6 +418,7 @@ public class RoleDAOTest extends PowerMockTestCase {
                 Connection connection7 = DAOUtils.getConnection(DB_NAME)) {
 
             roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
             RoleBasicInfo role = addRole("role1");
@@ -458,6 +463,7 @@ public class RoleDAOTest extends PowerMockTestCase {
                 Connection connection7 = DAOUtils.getConnection(DB_NAME)) {
 
             roleDAO = spy(RoleMgtDAOFactory.getInstance().getRoleDAO());
+            mockCacheClearing();
             when(IdentityDatabaseUtil.getUserDBConnection(anyBoolean())).thenReturn(connection1);
             when(IdentityDatabaseUtil.getDBConnection(anyBoolean())).thenReturn(connection2);
             RoleBasicInfo role = addRole("role1");
@@ -529,6 +535,7 @@ public class RoleDAOTest extends PowerMockTestCase {
 
     private RoleBasicInfo addRole(String roleName) throws Exception {
 
+        mockCacheClearing();
         mockStatic(IdentityUtil.class);
         when(IdentityUtil.getPrimaryDomainName()).thenReturn("PRIMARY");
         doCallRealMethod().when(IdentityUtil.class, "extractDomainFromName", anyString());
@@ -593,5 +600,11 @@ public class RoleDAOTest extends PowerMockTestCase {
             String errorMessage = "Error while Adding test data for UM_DOMAIN table";
             throw new Exception(errorMessage, e);
         }
+    }
+
+    private void mockCacheClearing() throws Exception {
+
+        doNothing().when(roleDAO, "clearUserRolesCache", anyString(), anyInt());
+        doNothing().when(roleDAO, "clearUserRolesCacheByTenant", anyInt());
     }
 }
