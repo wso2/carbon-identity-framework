@@ -1081,9 +1081,11 @@ public class RoleDAOImpl implements RoleDAO {
             return new RoleBasicInfo(roleID, roleName);
         }
         try {
+            String loggedInUser = CarbonContext.getThreadLocalCarbonContext().getUsername();
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
             carbonContext.setTenantDomain(tenantDomain, true);
+            carbonContext.setUsername(loggedInUser);
             getUserAdminProxy().setRoleUIPermission(roleName, permissions.toArray(new String[0]));
             return new RoleBasicInfo(roleID, roleName);
         } catch (UserAdminException e) {
