@@ -98,7 +98,7 @@
   "oauth.response_type.code_id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
   "oauth.response_type.code_id_token_token.enable": true,
   "oauth.response_type.code_id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
-  "oauth.response_type.device.enable": true,
+  "oauth.response_type.device.enable": false,
   "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
   "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
   "oauth.response_type.none.enable": true,
@@ -136,7 +136,7 @@
   "oauth.grant_type.account_switch.enable": true,
   "oauth.grant_type.account_switch.grant_handler": "org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler",
   "oauth.grant_type.account_switch.grant_validator": "org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator",
-  "oauth.grant_type.device_code.enable": true,
+  "oauth.grant_type.device_code.enable": false,
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
 
