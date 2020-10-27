@@ -403,7 +403,7 @@ public class UserSessionStore {
             log.debug("Removing meta information of the deleted sessions.");
         }
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
 
             deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
                     SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
