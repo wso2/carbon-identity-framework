@@ -44,8 +44,11 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Error;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
+import org.wso2.securevault.SecretResolver;
+import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
-import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -53,12 +56,16 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * This class defines utility methods used within this web application.
@@ -73,10 +80,16 @@ public class IdentityManagementEndpointUtil {
     public static final String PURPOSES = "purposes";
     public static final String MANDATORY = "mandatory";
     public static final String DISPLAY_NAME = "displayName";
+    private static final String PROTECTED_TOKENS = "protectedTokens";
+    private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    private static final String SECRET_PROVIDER = "secretProvider";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
     private static final String CODE = "51007";
     private static final String UNEXPECTED_ERROR = "Unexpected Error.";
+
+    private static String accessUsername = null;
+    private static String accessPassword = null;
 
     private IdentityManagementEndpointUtil() {
 
@@ -621,22 +634,32 @@ public class IdentityManagementEndpointUtil {
 
     public static void authenticate(ServiceClient client) throws Exception {
 
-        Properties properties = new Properties();
-        try (InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
-                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
-            properties.load(inputStream);
+        if (accessPassword == null || accessUsername == null) {
+            loadCredentials();
         }
-
-        String accessUsername = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
-                .SERVICE_ACCESS_USERNAME);
-        String accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
-                .SERVICE_ACCESS_PASSWORD);
 
         if (accessUsername != null && accessPassword != null) {
             setOptions(client, accessUsername, accessPassword);
         } else {
             throw new Exception("Authentication username or password not set");
         }
+    }
+
+    private static void loadCredentials() throws IOException {
+
+        Properties properties = new Properties();
+        try (InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
+                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
+            properties.load(inputStream);
+
+            // Resolve encrypted properties with secure vault.
+            resolveSecrets(properties);
+        }
+
+        accessUsername = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                .SERVICE_ACCESS_USERNAME);
+        accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                .SERVICE_ACCESS_PASSWORD);
     }
 
     public static void setOptions(ServiceClient client, String accessUsername, String accessPassword) {
@@ -691,5 +714,71 @@ public class IdentityManagementEndpointUtil {
             throw new ApiException("Error while building url for context: " + context);
         }
         return basePath;
+    }
+
+    /**
+     * Get status of the availability of secured (with secure vault) properties
+     *
+     * @return availability of secured properties
+     */
+    private static boolean isSecuredPropertyAvailable(Properties properties) {
+
+        Enumeration propertyNames = properties.propertyNames();
+
+        while (propertyNames.hasMoreElements()) {
+            String key = (String) propertyNames.nextElement();
+            if (PROTECTED_TOKENS.equals(key) && StringUtils.isNotBlank(properties.getProperty(key))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * There can be sensitive information like passwords in configuration file. If they are encrypted using secure
+     * vault, this method will resolve them and replace with original values.
+     */
+    private static void resolveSecrets(Properties properties) {
+
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
+                }
+                properties.put(key, value);
+            }
+        }
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated.
+        if (isSecuredPropertyAvailable(properties)) {
+            SecretResolver resolver = SecretResolverFactory.create(properties, "");
+            String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
+            StringTokenizer st = new StringTokenizer(protectedTokens, ",");
+            while (st.hasMoreElements()) {
+                String element = st.nextElement().toString().trim();
+
+                if (resolver.isTokenProtected(element)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Resolving and replacing secret for " + element);
+                    }
+                    // Replaces the original encrypted property with resolved property
+                    properties.put(element, resolver.resolve(element));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No encryption done for value with key :" + element);
+                    }
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Secure vault encryption ignored since no protected tokens available.");
+            }
+        }
     }
 }

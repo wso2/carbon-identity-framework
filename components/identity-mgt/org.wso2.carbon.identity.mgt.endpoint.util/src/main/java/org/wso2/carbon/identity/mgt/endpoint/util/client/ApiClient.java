@@ -34,6 +34,7 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.jersey.multipart.file.FileDataBodyPart;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,16 +42,24 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointCons
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status.Family;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimeZone;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status.Family;
 
 public class ApiClient {
 
@@ -462,6 +471,36 @@ public class ApiClient {
         }
 
         final String url = buildUrl(path, queryParams);
+
+        if (log.isDebugEnabled()) {
+            String headerParamsAsString = StringUtils.EMPTY;
+            if (MapUtils.isNotEmpty(headerParams)) {
+                headerParamsAsString = headerParams.keySet().stream()
+                        .map(key -> key + "=" + headerParams.get(key))
+                        .collect(Collectors.joining(", ", "{", "}"));
+            }
+
+            String formParamsAsString = StringUtils.EMPTY;
+            if (MapUtils.isNotEmpty(formParams)) {
+                formParamsAsString = formParams.keySet().stream()
+                        .map(key -> key + "=" + formParams.get(key))
+                        .collect(Collectors.joining(", ", "{", "}"));
+            }
+
+            log.debug(
+                    String.format(
+                            "Initiating api request for " +
+                                    "\npath=%s, " +
+                                    "\nmethod=%s, " +
+                                    "\nheaderParams=%s, " +
+                                    "\nformParams=%s, " +
+                                    "\naccept=%s, " +
+                                    "\ncontentType=%s",
+                            url, method, headerParamsAsString, formParamsAsString, accept, contentType
+                    )
+            );
+        }
+
         Builder builder;
         if (accept == null) {
             builder = httpClient.resource(url).getRequestBuilder();
@@ -500,6 +539,18 @@ public class ApiClient {
                 response = builder.type(contentType).header(X_HTTP_METHOD_OVERRIDE, PATCH).header
                         (AUTHORIZATION, CLIENT + authHeader).post
                         (ClientResponse.class, serialize(body, contentType, formParams));
+            }
+
+            if (log.isDebugEnabled()) {
+                if (response != null) {
+                    log.debug(String.format("Response from the %s request made to url %s " +
+                            "\nResponse: status=%s, statusMessage=%s",
+                            method, url, response.getStatusInfo().getStatusCode(),
+                            response.getStatusInfo().getReasonPhrase()));
+                } else {
+                    log.debug(String.format("Response from the %s request made to url %s is null.",
+                            method, url ));
+                }
             }
             return response;
         } catch (Exception e) {
