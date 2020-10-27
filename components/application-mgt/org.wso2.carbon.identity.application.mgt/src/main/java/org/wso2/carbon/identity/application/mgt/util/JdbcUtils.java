@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.core.persistence.JDBCPersistenceManager;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.DB2;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.H2;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.INFORMIX;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MARIADB;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MICROSOFT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.MY_SQL;
 import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.POSTGRE_SQL;
@@ -50,7 +51,7 @@ public class JdbcUtils {
      */
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL);
+        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIADB);
     }
 
     /**

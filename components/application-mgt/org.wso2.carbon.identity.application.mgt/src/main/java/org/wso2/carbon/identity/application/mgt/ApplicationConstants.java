@@ -72,6 +72,7 @@ public class ApplicationConstants {
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";

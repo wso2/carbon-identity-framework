@@ -349,7 +349,9 @@ public class IdPManagementDAO {
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         int filterAttributeValueSize = filterAttributeValue.entrySet().size();
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
-        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL_TAIL, sortedOrder);
@@ -3877,7 +3879,9 @@ public class IdPManagementDAO {
         String sqlQuery;
         PreparedStatement prepStmt;
         String databaseProductName = connection.getMetaData().getDatabaseProductName();
-        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);

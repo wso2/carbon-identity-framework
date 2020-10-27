@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 public class TemplateMgtConstants {
 
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String H2 = "H2";

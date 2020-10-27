@@ -30,6 +30,7 @@ public class ConfigurationConstants {
     public static final String RESOURCE_PATH = "/resource";
     public static final String RESOURCE_TYPE_PATH = "/resource-type";
     public static final String MY_SQL = "MySQL";
+    public static final String MARIA_DB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
