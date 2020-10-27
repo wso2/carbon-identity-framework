@@ -216,6 +216,7 @@ import static org.wso2.carbon.identity.configuration.mgt.core.util.Configuration
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.handleServerException;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.ConfigurationUtils.useCreatedTimeField;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isH2;
+import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMariaDB;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMySQLDB;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isMSSqlDB;
 import static org.wso2.carbon.identity.configuration.mgt.core.util.JdbcUtils.isPostgreSQLDB;
@@ -1230,7 +1231,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         StringBuilder sb = new StringBuilder();
         if (isH2()) {
             sb.append(SQLConstants.UPDATE_ATTRIBUTES_H2);
-        } else if (isMySQLDB() || isPostgreSQLDB()) {
+        } else if (isMySQLDB() || isPostgreSQLDB() || isMariaDB()) {
             sb.append(SQLConstants.INSERT_ATTRIBUTES_SQL);
         } else if (isMSSqlDB() || isDB2DB()) {
             sb.append(SQLConstants.INSERT_ATTRIBUTES_MSSQL_OR_DB2);
@@ -1254,7 +1255,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 throw handleClientException(ERROR_CODE_QUERY_LENGTH_EXCEEDED, null);
             }
         }
-        if (isMySQLDB()) {
+        if (isMySQLDB() || isMariaDB()) {
             sb.append(INSERT_OR_UPDATE_ATTRIBUTES_MYSQL);
         } else if (isPostgreSQLDB()) {
             sb.append(INSERT_OR_UPDATE_ATTRIBUTES_POSTGRESQL);

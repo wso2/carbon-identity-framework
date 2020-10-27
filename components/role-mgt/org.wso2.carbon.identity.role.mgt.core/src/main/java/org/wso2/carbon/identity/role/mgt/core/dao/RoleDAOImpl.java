@@ -73,6 +73,7 @@ import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.SORTING
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.Error.UNEXPECTED_SERVER_ERROR;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.H2;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.INFORMIX;
+import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MARIADB;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MICROSOFT;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.MY_SQL;
 import static org.wso2.carbon.identity.role.mgt.core.RoleConstants.ORACLE;
@@ -391,7 +392,9 @@ public class RoleDAOImpl implements RoleDAO {
     private String getDBTypeSpecificRolesRetrievalQueryByRoleName(String databaseProductName)
             throws IdentityRoleManagementException {
 
-        if (MY_SQL.equals(databaseProductName) || H2.equals(databaseProductName)) {
+        if (MY_SQL.equals(databaseProductName)
+                || MARIADB.equals(databaseProductName)
+                || H2.equals(databaseProductName)) {
             return GET_ROLES_BY_TENANT_AND_ROLE_NAME_MYSQL;
         } else if (ORACLE.equals(databaseProductName)) {
             return GET_ROLES_BY_TENANT_AND_ROLE_NAME_ORACLE;
@@ -413,7 +416,9 @@ public class RoleDAOImpl implements RoleDAO {
     private String getDBTypeSpecificRolesRetrievalQuery(String databaseProductName)
             throws IdentityRoleManagementException {
 
-        if (MY_SQL.equals(databaseProductName) || H2.equals(databaseProductName)) {
+        if (MY_SQL.equals(databaseProductName)
+                || MARIADB.equals(databaseProductName)
+                || H2.equals(databaseProductName)) {
             return GET_ROLES_BY_TENANT_MYSQL;
         } else if (ORACLE.equals(databaseProductName)) {
             return GET_ROLES_BY_TENANT_ORACLE;
