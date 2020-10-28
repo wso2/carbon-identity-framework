@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.claim.metadata.mgt;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -377,6 +378,21 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         // The relevant external claim deletions are handled by the DB through ON DELETE CASCADE
         this.claimDialectDAO.removeAllClaimDialects(tenantId);
+    }
+
+    @Override
+    public String getMaskingRegexForLocalClaim(String localClaimURI, String tenantDomain) throws
+            ClaimMetadataException {
+
+        List<LocalClaim> localClaims = getLocalClaims(tenantDomain);
+
+        for (LocalClaim localClaim : localClaims) {
+            if (localClaim.getClaimURI().equals(localClaimURI)) {
+                return StringEscapeUtils.unescapeXml(localClaim.getClaimProperty(ClaimConstants
+                        .MASKING_REGULAR_EXPRESSION_PROPERTY));
+            }
+        }
+        return null;
     }
 
     private boolean isExistingExternalClaimURI(String externalClaimDialectURI, String externalClaimURI, int tenantId)
