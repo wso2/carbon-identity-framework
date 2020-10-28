@@ -24,6 +24,8 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -34,7 +36,11 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.doCallRealMethod;
@@ -43,6 +49,7 @@ import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 @PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class})
 public class AbstractApplicationAuthenticatorTest {
@@ -65,6 +72,9 @@ public class AbstractApplicationAuthenticatorTest {
     @Spy
     AuthenticationContext context;
 
+    @Mock
+    SequenceConfig sequenceConfig;
+
     private static final String AUTHENTICATOR = "AbstractAuthenticator";
     private static final String USER_NAME = "DummyUser";
     private static final String USER_STORE_NAME = "TEST.COM";
@@ -81,6 +91,7 @@ public class AbstractApplicationAuthenticatorTest {
     public void setUp() throws Exception {
         initMocks(this);
         when(abstractApplicationAuthenticator.retryAuthenticationEnabled()).thenCallRealMethod();
+        when(abstractApplicationAuthenticator.retryAuthenticationEnabled(anyObject())).thenCallRealMethod();
         when(abstractApplicationAuthenticator.getName()).thenReturn(AUTHENTICATOR);
         context.initializeAnalyticsData();
         when(context.getTenantDomain()).thenReturn(TENANT_DOMAIN);
@@ -209,6 +220,21 @@ public class AbstractApplicationAuthenticatorTest {
         doCallRealMethod().when(abstractApplicationAuthenticator).retryAuthenticationEnabled();
         Assert.assertFalse(abstractApplicationAuthenticator.retryAuthenticationEnabled());
     }
+
+    @Test
+    public void testRetryAuthenticationEnabled(AuthenticationContext context) {
+
+        when(context.getSequenceConfig()).thenReturn(sequenceConfig);
+        when(context.getCurrentAuthenticator()).thenReturn("TestAuthenticator");
+        Map<String, String> authParams = new HashMap<>();
+        authParams.put(AbstractApplicationAuthenticator.ENABLE_RETRY_FROM_AUTHENTICATOR, "true");
+        when(context.getAuthenticatorParams("TestAuthenticator")).thenReturn(authParams);
+        AuthenticationGraph graph = new AuthenticationGraph();
+        graph.setEnabled(true);
+        when(sequenceConfig.getAuthenticationGraph()).thenReturn(graph);
+        assertTrue(abstractApplicationAuthenticator.retryAuthenticationEnabled(context));
+    }
+
 
     @Test
     public void testGetClaimDialectURI() throws Exception {
