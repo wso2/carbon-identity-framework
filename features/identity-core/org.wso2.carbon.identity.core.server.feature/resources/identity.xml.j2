@@ -329,24 +329,36 @@
             <SupportedGrantType>
                 <GrantTypeName>authorization_code</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.authorization_code.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.authorization_code.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.authorization_code.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.password.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>password</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.password.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.password.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.password.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.refresh_token.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>refresh_token</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.refresh_token.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.refresh_token.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.refresh_token.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.client_credentials.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>client_credentials</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.client_credentials.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.client_credentials.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.client_credentials.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
                 <IsRefreshTokenAllowed>{{oauth.grant_type.client_credentials.allow_refresh_tokens}}</IsRefreshTokenAllowed>
                 <IdTokenAllowed>{{oauth.grant_type.client_credentials.allow_id_token}}</IdTokenAllowed>
             </SupportedGrantType>
@@ -355,12 +367,18 @@
             <SupportedGrantType>
                 <GrantTypeName>urn:ietf:params:oauth:grant-type:saml2-bearer</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.saml_bearer.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.saml_bearer.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.saml_bearer.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.iwa_ntlm.enable is sameas true %}
             <SupportedGrantType>
                 <GrantTypeName>iwa:ntlm</GrantTypeName>
                 <GrantTypeHandlerImplClass>{{oauth.grant_type.iwa_ntlm.grant_handler}}</GrantTypeHandlerImplClass>
+                {% if oauth.grant_type.iwa_ntlm.grant_validator is defined %}
+                <GrantTypeValidatorImplClass>{{oauth.grant_type.iwa_ntlm.grant_validator}}</GrantTypeValidatorImplClass>
+                {% endif %}
             </SupportedGrantType>
             {% endif %}
             {% if oauth.grant_type.jwt_bearer.enable is sameas true %}
@@ -1446,6 +1464,21 @@
                     isDistributed="false"/>
             {% endfor %}
         </CacheManager>
+
+        <!-- Add custom CacheManager -->
+         {% for cache_manager in cache_config.cache_manager %}
+         <CacheManager name="{{cache_manager.name}}">
+         {% for cache in cache_manager.cache %}
+             <Cache
+             {% for key,value in cache.items() %}
+                {{key}}="{{value}}"
+             {% endfor %}
+                enable="true"
+                isDistributed="false"/>
+             {% endfor %}
+         </CacheManager>
+         {% endfor %}
+
     </CacheConfig>
 
     {% if identity.cookies is defined %}
