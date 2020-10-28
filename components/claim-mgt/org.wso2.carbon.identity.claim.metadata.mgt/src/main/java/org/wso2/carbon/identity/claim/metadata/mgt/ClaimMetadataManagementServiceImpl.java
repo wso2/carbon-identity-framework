@@ -37,6 +37,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
@@ -97,8 +98,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         }
 
         List<ClaimDialect> claimDialects = this.claimDialectDAO.getClaimDialects(tenantId);
-        List<String> claimDialectUris = claimDialects.stream().map(ClaimDialect::getClaimDialectURI).
-                collect(Collectors.toList());
+        Set<String> claimDialectUris = claimDialects.stream().map(ClaimDialect::getClaimDialectURI).
+                collect(Collectors.toSet());
 
         if (claimDialectUris.contains(claimDialect.getClaimDialectURI())) {
             throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_CLAIM_DIALECT.getCode(),
