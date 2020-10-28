@@ -2145,9 +2145,11 @@ public class UserRealmProxy {
             }
 
             String loggedInUserName = addPrimaryDomainIfNotExists(getLoggedInUser());
-            String adminUser = addPrimaryDomainIfNotExists(realm.getRealmConfiguration().getAdminUserName());
-            if (rawResources != null &&
-                    !adminUser.equalsIgnoreCase(loggedInUserName)) {
+            AuthorizationManager authMan = realm.getAuthorizationManager();
+            boolean isAdminUser = authMan.isUserAuthorized(loggedInUserName, PERMISSION_PROTECTED,
+                    UserMgtConstants.EXECUTE_ACTION);
+
+            if (rawResources != null && !isAdminUser) {
                 Arrays.sort(rawResources);
                 if (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
                         Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
@@ -2161,7 +2163,6 @@ public class UserRealmProxy {
             }
 
             String[] optimizedList = UserCoreUtil.optimizePermissions(rawResources);
-            AuthorizationManager authMan = realm.getAuthorizationManager();
             authMan.clearRoleActionOnAllResources(roleName, UserMgtConstants.EXECUTE_ACTION);
 
             permissions = new Permission[optimizedList.length];
