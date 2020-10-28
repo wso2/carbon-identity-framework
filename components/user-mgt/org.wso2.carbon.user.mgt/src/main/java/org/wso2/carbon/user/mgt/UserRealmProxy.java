@@ -82,7 +82,9 @@ public class UserRealmProxy {
 
     public static final String FALSE = "false";
     public static final String PERMISSION = "/permission";
+    public static final String PERMISSION_TREE = "/permission/";
     public static final String PERMISSION_ADMIN = "/permission/admin";
+    public static final String PERMISSION_PROTECTED = "/permission/protected";
     private UserRealm realm = null;
 
     public UserRealmProxy(UserRealm userRealm) {
@@ -2148,8 +2150,10 @@ public class UserRealmProxy {
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
                 Arrays.sort(rawResources);
                 if (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
-                        Arrays.binarySearch(rawResources, "/permission/protected") > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION) > -1) {
+                        Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
+                        Arrays.binarySearch(rawResources, PERMISSION) > -1 ||
+                        Arrays.binarySearch(rawResources, PERMISSION_TREE) > -1) {
+
                     log.warn("An attempt to Assign admin permission for role by user : " +
                             loggedInUserName);
                     throw new UserStoreException("Can not assign Admin for permission role");
