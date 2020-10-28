@@ -150,5 +150,10 @@
   "identity_mgt.events.schemes.userMobileVerification.subscriptions": [
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
+  ],
+  "identity_mgt.events.schemes.liteUserRegistration.properties.enable": false,
+  "identity_mgt.events.schemes.liteUserRegistration.module_index": "26",
+  "identity_mgt.events.schemes.liteUserRegistration.subscriptions": [
+    "POST_ADD_USER"
   ]
 }
