@@ -58,6 +58,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     private static final long serialVersionUID = -4406878411547612129L;
     private static final Log log = LogFactory.getLog(AbstractApplicationAuthenticator.class);
+    public static final String ENABLE_RETRY_FROM_AUTHENTICATOR = "enableRetryFromAuthenticator";
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -138,7 +139,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     protected boolean retryAuthenticationEnabled(AuthenticationContext context) {
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled()) {
+        boolean isRetryAuthenticatorEnabled = false;
+        Map<String, String> authParams = context.getAuthenticatorParams(context.getCurrentAuthenticator());
+        if (MapUtils.isNotEmpty(authParams)) {
+            isRetryAuthenticatorEnabled = Boolean.parseBoolean(authParams.get(ENABLE_RETRY_FROM_AUTHENTICATOR));
+        }
+        if (graph == null || !graph.isEnabled() || isRetryAuthenticatorEnabled) {
             return retryAuthenticationEnabled();
         }
         return false;
