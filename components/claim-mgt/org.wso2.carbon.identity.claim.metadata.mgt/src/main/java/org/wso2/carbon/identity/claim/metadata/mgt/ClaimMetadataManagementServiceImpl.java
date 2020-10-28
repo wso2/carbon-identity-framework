@@ -34,19 +34,12 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_CLAIM_DIALECT;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_EXTERNAL_DIALECT_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_LOCAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_EXTERNAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_EXISTING_LOCAL_CLAIM_URI;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_INVALID_EXTERNAL_CLAIM_DIALECT;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_LOCAL_CLAIM_HAS_MAPPED_EXTERNAL_CLAIM;
-import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.ERROR_CODE_MAPPED_TO_EMPTY_LOCAL_CLAIM_URI;
+import static org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants.ErrorMessage.*;
 
 /**
  * Default implementation of {@link org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService}
@@ -82,11 +75,23 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         if (claimDialect == null || StringUtils.isBlank(claimDialect.getClaimDialectURI())) {
             throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_CLAIM_DIALECT);
         }
-
-        // TODO : validate claim dialect already exists?
-
-        // TODO : validate tenant domain?
+        if (StringUtils.isBlank(tenantDomain)) {
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_TENANT_DOMAIN);
+        }
         int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+        if (tenantId == MultitenantConstants.INVALID_TENANT_ID) {
+            throw new ClaimMetadataClientException(ERROR_CODE_INVALID_TENANT_DOMAIN.getCode(),
+                    String.format(ERROR_CODE_INVALID_TENANT_DOMAIN.getMessage(), tenantDomain));
+        }
+
+        List<ClaimDialect> claimDialects = this.claimDialectDAO.getClaimDialects(tenantId);
+        List<String> claimDialectUris = claimDialects.stream().map(ClaimDialect::getClaimDialectURI).
+                collect(Collectors.toList());
+
+        if (claimDialectUris.contains(claimDialect.getClaimDialectURI())) {
+            throw new ClaimMetadataClientException(ERROR_CODE_EXISTING_CLAIM_DIALECT.getCode(),
+                    String.format(ERROR_CODE_EXISTING_CLAIM_DIALECT.getMessage(), claimDialect.getClaimDialectURI()));
+        }
 
         // Add listener
 
@@ -351,8 +356,8 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
     public void removeClaimMappingAttributes(int tenantId, String userstoreDomain) throws ClaimMetadataException {
 
         if (StringUtils.isEmpty(userstoreDomain)) {
-            throw new ClaimMetadataClientException(ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN.getCode(),
-                    ClaimConstants.ErrorMessage.ERROR_CODE_EMPTY_TENANT_DOMAIN.getMessage());
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_TENANT_DOMAIN.getCode(),
+                    ERROR_CODE_EMPTY_TENANT_DOMAIN.getMessage());
         }
         try {
             this.localClaimDAO.removeClaimMappingAttributes(tenantId, userstoreDomain);
