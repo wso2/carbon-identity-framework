@@ -806,9 +806,6 @@
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
   "myaccount.security.enabled": true,
-  "myaccount.product_version.configs": {
-    "versionOverride": "BETA"
-  },
   "myaccount.operations.scopes": {
     "create": [],
     "read": [
