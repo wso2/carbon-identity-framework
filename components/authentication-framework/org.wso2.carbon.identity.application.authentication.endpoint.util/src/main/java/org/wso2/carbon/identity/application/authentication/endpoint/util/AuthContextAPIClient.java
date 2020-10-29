@@ -76,7 +76,7 @@ public class AuthContextAPIClient {
             }
             response = builder.toString();
         } catch (IOException e) {
-            log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + url + ",failed.", e);
+            log.error("Sending " + HTTP_METHOD_GET + " request to URL : " + url + ", failed.", e);
         } finally {
             try {
                 if (reader != null) {
