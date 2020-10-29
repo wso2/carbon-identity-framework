@@ -1086,16 +1086,11 @@ public class RoleDAOImpl implements RoleDAO {
             return new RoleBasicInfo(roleID, roleName);
         }
         try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
-            carbonContext.setTenantDomain(tenantDomain, true);
             getUserAdminProxy().setRoleUIPermission(roleName, permissions.toArray(new String[0]));
             return new RoleBasicInfo(roleID, roleName);
         } catch (UserAdminException e) {
             throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
                     "An error occurred when setting permissions for the role: " + roleName, e);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
         }
     }
 
