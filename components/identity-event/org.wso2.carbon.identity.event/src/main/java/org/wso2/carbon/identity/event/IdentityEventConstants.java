@@ -220,6 +220,8 @@ public class IdentityEventConstants {
         public static final String SELF_REGISTRATION_VERIFIED_CHANNEL = "selfsignup-verify-channel";
         public static final String SELF_REGISTRATION_VERIFIED_CHANNEL_CLAIM = "selfsignup-verify-channel-claim";
         public static final String SELF_SIGNUP_CONFIRM_TIME = "selfsignup-confirm-time";
+        public static final String LAST_PASSWORD_UPDATE_TIME = "lastPasswordUpdateTime";
+        public static final String LAST_LOGIN_TIME = "lastLoginTime";
     }
 
     public class ErrorMessage {
