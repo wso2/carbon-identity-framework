@@ -627,6 +627,9 @@
   "console.session.params.sessionRefreshTimeOut": 300,
   "console.session.params.checkSessionInterval": 3,
   "console.applications.enabled": true,
+  "console.product_version.configs": {
+    "versionOverride": "BETA"
+  },
   "console.applications.scopes": {
     "create": [
       "internal_application_mgt_create"
@@ -803,7 +806,6 @@
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
   "myaccount.security.enabled": true,
-
   "myaccount.operations.scopes": {
     "create": [],
     "read": [
