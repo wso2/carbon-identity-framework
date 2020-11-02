@@ -83,13 +83,14 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String proxyHostName = fetchProxyHostName();
         String internalHostName = fetchInternalHostName();
         int port = fetchPort();
+        int transportPort = fetchTransportPort();
         String tenantDomain = resolveTenantDomain();
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
         String urlPath = getResolvedUrlPath(tenantDomain);
 
-        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, tenantDomain, proxyContextPath,
-                urlPath, parameters, resolvedFragment);
+        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, port, transportPort, tenantDomain,
+                proxyContextPath, urlPath, parameters, resolvedFragment);
     }
 
     private String getResolvedUrlPath(String tenantDomain) {
@@ -255,7 +256,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return hostName;
     }
 
-    private Integer fetchPort() {
+    private int fetchPort() {
 
         String mgtTransport = CarbonUtils.getManagementTransport();
         AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
@@ -267,12 +268,21 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         return port;
     }
 
+    private int fetchTransportPort() {
+
+        String mgtTransport = CarbonUtils.getManagementTransport();
+        AxisConfiguration axisConfiguration = IdentityCoreServiceComponent.getConfigurationContextService().
+                getServerConfigContext().getAxisConfiguration();
+        return CarbonUtils.getTransportPort(axisConfiguration, mgtTransport);
+    }
+
     private class ServiceURLImpl implements ServiceURL {
 
         private String protocol;
         private String proxyHostName;
         private String internalHostName;
         private int port;
+        private int transportPort;
         private String tenantDomain;
         private String proxyContextPath;
         private String urlPath;
@@ -284,6 +294,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String relativeInternalUrl;
 
         private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int port,
+                               int transportPort,
                                String tenantDomain, String proxyContextPath, String urlPath,
                                Map<String, String> parameters, String fragment) throws URLBuilderException {
 
@@ -291,6 +302,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             this.proxyHostName = proxyHostName;
             this.internalHostName = internalHostName;
             this.port = port;
+            this.transportPort = transportPort;
             this.tenantDomain = tenantDomain;
             this.proxyContextPath = proxyContextPath;
             this.urlPath = urlPath;
@@ -472,8 +484,8 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             absoluteInternalUrl.append(protocol).append("://");
             absoluteInternalUrl.append(internalHostName.toLowerCase());
             // If it's well known HTTPS port, skip adding port.
-            if (port != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-                absoluteInternalUrl.append(":").append(port);
+            if (transportPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
+                absoluteInternalUrl.append(":").append(transportPort);
             }
             absoluteInternalUrl.append(fetchRelativeInternalUrl());
             return absoluteInternalUrl.toString();
