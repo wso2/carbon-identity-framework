@@ -645,9 +645,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
         try {
             // AppId is the auto generated id for the applications and it should be a positive integer.
-            if (appId > 0 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
-                    appId, inboundAuth)) {
-                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+            if (appId > 0) {
+                UserSessionStore.getInstance().storeAppSessionDataIfNotExist(sessionContextKey, subject, appId, inboundAuth);
             }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);

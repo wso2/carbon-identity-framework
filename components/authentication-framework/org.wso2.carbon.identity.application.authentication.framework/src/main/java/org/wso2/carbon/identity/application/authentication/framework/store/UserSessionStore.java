@@ -22,6 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.database.utils.jdbc.JdbcTemplate;
 import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
+import org.wso2.carbon.database.utils.jdbc.exceptions.TransactionException;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthHistory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
@@ -496,17 +497,54 @@ public class UserSessionStore {
     public void storeAppSessionData(String sessionId, String subject, int appID, String inboundAuth) throws
             DataAccessException {
 
-            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-            try {
-                jdbcTemplate.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                template.executeUpdate(SQLQueries.SQL_STORE_IDN_AUTH_SESSION_APP_INFO, preparedStatement -> {
                     preparedStatement.setString(1, sessionId);
                     preparedStatement.setString(2, subject);
                     preparedStatement.setInt(3, appID);
                     preparedStatement.setString(4, inboundAuth);
                 });
-            } catch (DataAccessException e) {
-                throw new DataAccessException("Error while storing application data for session in the database.", e);
-            }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new DataAccessException("Error while storing application data for session in the database.", e);
+        }
+    }
+
+    /**
+     * Method to store app session data if the particular app session is not already exists in the database.
+     *
+     * @param sessionId   Id of the authenticated session.
+     * @param subject     Username in application.
+     * @param appID       Id of the application.
+     * @param inboundAuth Protocol used in the app.
+     * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
+     */
+    public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
+            DataAccessException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            jdbcTemplate.withTransaction(template -> {
+                Integer recordCount = template.fetchSingleRecord(SQLQueries.SQL_CHECK_IDN_AUTH_SESSION_APP_INFO,
+                        (resultSet, rowNumber) -> resultSet.getInt(1),
+                        preparedStatement -> {
+                            preparedStatement.setString(1, sessionId);
+                            preparedStatement.setString(2, subject);
+                            preparedStatement.setInt(3, appID);
+                            preparedStatement.setString(4, inboundAuth);
+                        });
+                if (recordCount == null) {
+                    storeAppSessionData(sessionId, subject, appID, inboundAuth);
+                }
+                return null;
+            });
+        } catch (TransactionException e) {
+            throw new DataAccessException("Error while storing application data of session id: " +
+                    sessionId + ", subject: " + subject + ", app Id: " + appID + ", protocol: " + inboundAuth + ".", e);
+        }
     }
 
     /**
