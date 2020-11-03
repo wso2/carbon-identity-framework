@@ -118,7 +118,8 @@ public class TemplateMgtConstants {
         ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant %s."),
         ERROR_CODE_INVALID_TEMPLATE_ID("TMM_00022", "Invalid template id: %s."),
         ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT("TMM_00023", "Limit value cannot be negative."),
-        ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET("TMM_00024", "Offset value cannot be negative.");
+        ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET("TMM_00024", "Offset value cannot be negative."),
+        ERROR_CODE_DELETE_READONLY_TEMPLATE("TMM_60001", "Cannot delete read-only template: %s");
 
         private final String code;
         private final String message;
