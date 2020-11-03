@@ -516,10 +516,10 @@ public class UserSessionStore {
     /**
      * Method to store app session data if the particular app session is not already exists in the database.
      *
-     * @param sessionId   id of the authenticated session.
-     * @param subject     username in application.
-     * @param appID       id of the application.
-     * @param inboundAuth protocol used in app.
+     * @param sessionId   Id of the authenticated session.
+     * @param subject     Username in application.
+     * @param appID       Id of the application.
+     * @param inboundAuth Protocol used in the app.
      * @throws DataAccessException if an error occurs when storing the authenticated user details to the database.
      */
     public void storeAppSessionDataIfNotExist(String sessionId, String subject, int appID, String inboundAuth) throws
