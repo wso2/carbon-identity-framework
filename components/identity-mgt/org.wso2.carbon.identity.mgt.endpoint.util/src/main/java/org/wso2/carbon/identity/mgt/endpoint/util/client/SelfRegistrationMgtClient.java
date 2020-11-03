@@ -41,6 +41,7 @@ import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.mgt.constants.SelfRegistrationStatusCodes;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
@@ -141,9 +142,9 @@ public class SelfRegistrationMgtClient {
         return getEndpoint(tenantDomain, CONSENT_API_RELATIVE_PATH + PURPOSES_CATEGORIES_ENDPOINT_RELATIVE_PATH);
     }
 
-    private String getUserAPIEndpoint() throws SelfRegistrationMgtClientException {
+    private String getUserAPIEndpoint(String tenantDomain) throws SelfRegistrationMgtClientException {
 
-        return getEndpoint(null, USERNAME_VALIDATE_API_RELATIVE_PATH);
+        return getEndpoint(tenantDomain, USERNAME_VALIDATE_API_RELATIVE_PATH);
     }
 
     private String getEndpoint(String tenantDomain, String context) throws SelfRegistrationMgtClientException {
@@ -255,8 +256,8 @@ public class SelfRegistrationMgtClient {
             }
 
             userObject.put(PROPERTIES, properties);
-
-            HttpPost post = new HttpPost(getUserAPIEndpoint());
+            // Get tenant qualified endpoint.
+            HttpPost post = new HttpPost(getUserAPIEndpoint(user.getTenantDomain()));
             setAuthorizationHeader(post);
 
             post.setEntity(new StringEntity(userObject.toString(), ContentType.create(HTTPConstants
@@ -278,6 +279,20 @@ public class SelfRegistrationMgtClient {
                     }
                     return jsonResponse.getInt("statusCode");
                 } else {
+                    // Handle invalid tenant domain error thrown by the TenantContextRewriteValve.
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                        JSONObject jsonResponse = new JSONObject(
+                                new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                        String content = null;
+                        if (jsonResponse.get("message") != null) {
+                            content = (String) jsonResponse.get("message");
+                        } else if (jsonResponse.get("description") != null) {
+                            content = (String) jsonResponse.get("description");
+                        }
+                        if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
+                            return new Integer(SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
+                        }
+                    }
                     // Logging and throwing since this is a client
                     if (log.isDebugEnabled()) {
                         log.debug("Unexpected response code found: " + response.getStatusLine().getStatusCode()
