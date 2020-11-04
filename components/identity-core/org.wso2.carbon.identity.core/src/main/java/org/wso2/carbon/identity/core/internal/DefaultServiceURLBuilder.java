@@ -468,10 +468,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
             StringBuilder absolutePublicUrl = new StringBuilder();
             if (StringUtils.isBlank(protocol)) {
-                throw new URLBuilderException("Protocol of service URL is not available");
+                throw new URLBuilderException("Protocol of service URL is not available.");
             }
             if (StringUtils.isBlank(proxyHostName)) {
-                throw new URLBuilderException("Hostname of service URL is not available");
+                throw new URLBuilderException("Hostname of service URL is not available.");
             }
             absolutePublicUrl.append(protocol).append("://");
             absolutePublicUrl.append(proxyHostName.toLowerCase());
@@ -487,10 +487,10 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
             StringBuilder absoluteInternalUrl = new StringBuilder();
             if (StringUtils.isBlank(protocol)) {
-                throw new URLBuilderException("Protocol of service URL is not available");
+                throw new URLBuilderException("Protocol of service URL is not available.");
             }
             if (StringUtils.isBlank(internalHostName)) {
-                throw new URLBuilderException("Internal hostname of service URL is not available");
+                throw new URLBuilderException("Internal hostname of service URL is not available.");
             }
             absoluteInternalUrl.append(protocol).append("://");
             absoluteInternalUrl.append(internalHostName.toLowerCase());
