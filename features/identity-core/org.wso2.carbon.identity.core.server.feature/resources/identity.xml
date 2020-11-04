@@ -564,6 +564,11 @@
 
         <PublishPasswordGrantLogin>false</PublishPasswordGrantLogin>
 
+        <!--
+        By enabling this property, application role permission will require to view the OAuth app in DCRM.
+
+        Default value : true
+        -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>true</ApplicationRolePermissionRequiredToView>
         </DCRM>
