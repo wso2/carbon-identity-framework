@@ -611,8 +611,6 @@
   "console.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "console.login_callback_path": "/login",
   "console.logout_callback_path": "/login",
-  "console.self_app_name": "Console",
-  "console.system_app_names": [ "Console", "My Account" ],
   "console.route_paths": {
     "home": "/develop/applications",
     "login": "/login",
@@ -736,6 +734,17 @@
       "internal_idp_delete"
     ]
   },
+  "console.system_applications.enabled": true,
+  "console.system_applications.scopes": {
+    "create": [],
+    "read": [
+      "internal_server_admin"
+    ],
+    "update": [
+      "internal_server_admin"
+    ],
+    "delete": []
+  },
   "console.roles.enabled": true,
   "console.roles.scopes": {
     "create": [
@@ -781,6 +790,8 @@
       "internal_userstore_delete"
     ]
   },
+  "console.self_app_identifier": "Console",
+  "console.system_apps_identifiers": [ "Console", "My Account" ],
   "console.gravatar.configs": {
     "fallback": "404"
   },
