@@ -611,6 +611,8 @@
   "console.documentation.structure_file_url": "https://api.github.com/repos/wso2/docs-is/contents/en/mkdocs.yml",
   "console.login_callback_path": "/login",
   "console.logout_callback_path": "/login",
+  "console.self_app_name": "Console",
+  "console.system_app_names": [ "Console", "My Account" ],
   "console.route_paths": {
     "home": "/develop/applications",
     "login": "/login",
