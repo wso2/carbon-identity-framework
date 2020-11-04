@@ -48,7 +48,10 @@ public class UserSessionDAOImpl implements UserSessionDAO {
 
         try {
             applicationList = jdbcTemplate.executeQuery(SQLQueries.SQL_GET_APPLICATION, (resultSet, rowNumber) ->
-                            new Application(resultSet.getString(1), resultSet.getString(2), resultSet.getString(3)),
+                            new Application(resultSet.getString(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3),
+                                    resultSet.getString(4)),
                     preparedStatement -> preparedStatement.setString(1, sessionId));
 
             jdbcTemplate.executeQuery(SQLQueries.SQL_GET_PROPERTIES_FROM_SESSION_META_DATA, ((resultSet, rowNumber)
