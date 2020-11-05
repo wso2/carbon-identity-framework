@@ -23,6 +23,7 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
  */
 public class Application {
 
+    private String resourceId;
     private String appId;
     private String subject;
     private String appName;
@@ -39,6 +40,14 @@ public class Application {
         this.appName = appName;
     }
 
+    public Application(String subject, String appName, String appId, String resourceId) {
+
+        this.appId = appId;
+        this.subject = subject;
+        this.appName = appName;
+        this.resourceId = resourceId;
+    }
+
     public String getSubject() {
         return subject;
     }
@@ -49,5 +58,10 @@ public class Application {
 
     public String getAppId() {
         return appId;
+    }
+
+    public String getResourceId() {
+
+        return resourceId;
     }
 }

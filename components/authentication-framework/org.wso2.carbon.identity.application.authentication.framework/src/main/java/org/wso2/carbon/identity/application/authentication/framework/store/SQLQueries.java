@@ -104,7 +104,7 @@ public class SQLQueries {
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
 
     // Retrieve data for the Application model.
-    public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME, APP_ID FROM " +
+    public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME , APP_ID, UUID FROM " +
             "IDN_AUTH_SESSION_APP_INFO SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
             "SESSION_ID = ?";
 
