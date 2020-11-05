@@ -1163,8 +1163,8 @@ public class IdentityProviderManager implements IdpManager {
                     } else if ("false".contains(((ExpressionNode) node).getValue())) {
                         ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
                     } else {
-                        String message = "Invalid 'isEnabled' value passed in the filter. It should be 'true' or " +
-                                "'false' isEnabled = " + ((ExpressionNode) node).getValue();
+                        String message = "Invalid value: " + ((ExpressionNode) node).getValue() + "is passed for " +
+                                "'isEnabled' attribute in the filter. It should be 'true' or 'false'";
                         throw IdPManagementUtil
                                 .handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
                                         message);
@@ -1915,7 +1915,7 @@ public class IdentityProviderManager implements IdpManager {
 
                 for (Property property : properties) {
                     if (property != null) {
-                        if (property.getName() != null &&
+                        if (StringUtils.isNotBlank(property.getName()) &&
                                 property.getName().contains(IdPManagementConstants.META_DATA)) {
                             for (MetadataConverter metadataConverter : IdpMgtServiceComponentHolder.getInstance()
                                     .getMetadataConverters()) {
@@ -1931,7 +1931,8 @@ public class IdentityProviderManager implements IdpManager {
                                                         federatedAuthenticatorConfig.getName(), property.getValue());
                                             } catch (IdentityProviderManagementException e) {
                                                 String data =
-                                                        "Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.";
+                                                        "Couldn't save metadata in registry.SAML2SSOMetadataConverter" +
+                                                                " is not set. ";
                                                 throw IdPManagementUtil.handleServerException(
                                                         IdPManagementConstants.ErrorMessage.ERROR_CODE_ADD_IDP, data);
                                             }
@@ -1944,9 +1945,8 @@ public class IdentityProviderManager implements IdpManager {
                                             String spName = "";
 
                                             for (Property value : properties) {
-                                                if (value != null && value.getName() != null &&
-                                                        value.getName()
-                                                                .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                                                if (value != null && IdentityApplicationConstants.Authenticator
+                                                        .SAML2SSO.SP_ENTITY_ID.equals(value.getName())) {
                                                     spName = value.getValue();
                                                 }
                                             }
@@ -1958,17 +1958,16 @@ public class IdentityProviderManager implements IdpManager {
                                                     ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
                                                 for (int y = 0; y < metaFederated.getProperties().length; y++) {
                                                     if (metaFederated.getProperties()[y] != null &&
-                                                            metaFederated.getProperties()[y].getName() != null
-                                                            && metaFederated.getProperties()[y].getName()
-                                                            .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                                                            IdentityApplicationConstants.Authenticator.SAML2SSO
+                                                                    .SP_ENTITY_ID.equals
+                                                                    (metaFederated.getProperties()[y].getName())) {
                                                         metaFederated.getProperties()[y].setValue(spName);
                                                         break;
                                                     }
                                                 }
                                             }
 
-                                            if (metaFederated != null && metaFederated.getProperties() != null &&
-                                                    metaFederated.getProperties().length > 0) {
+                                            if (metaFederated != null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
                                                 federatedAuthenticatorConfig
                                                         .setProperties(metaFederated.getProperties());
                                             } else {
