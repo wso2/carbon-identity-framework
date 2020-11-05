@@ -818,6 +818,7 @@
   "myaccount.session.params.userIdleWarningTimeOut": 580,
   "myaccount.session.params.sessionRefreshTimeOut": 300,
   "myaccount.session.params.checkSessionInterval": 3,
+  "myaccount.personal_info.disabled_features": ["profileInfo.mobileVerification"],
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": true,
   "cors.allowed_origins": [],
