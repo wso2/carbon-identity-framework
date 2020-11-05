@@ -157,7 +157,7 @@
     "POST_ADD_USER"
   ],
   "identity_mgt.events.schemes.identityUserMetadataMgtHandler.module_index": "27",
-  "identity_mgt.events.schemes.identityUserMetadataMgtHandler.properties.enable": true,
+  "identity_mgt.events.schemes.identityUserMetadataMgtHandler.properties.enable": false,
   "identity_mgt.events.schemes.identityUserMetadataMgtHandler.subscriptions": [
     "POST_AUTHENTICATION",
     "POST_UPDATE_CREDENTIAL",
