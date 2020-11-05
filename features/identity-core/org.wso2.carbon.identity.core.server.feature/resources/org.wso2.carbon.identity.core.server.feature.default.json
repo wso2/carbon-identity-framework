@@ -37,7 +37,7 @@
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
   "remotefetch.enable":false,
-  "remotefetch.workingdirectory":"/tmp/",
+  "remotefetch.workingdirectory":"${carbon.home}/tmp/",
 
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
