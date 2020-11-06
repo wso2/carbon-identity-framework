@@ -1129,6 +1129,10 @@
                 </VerificationCode>
              </VerificationOnUpdate>
         </Claim>
+        <!-- When adding a new claim value instead of updating an exiting value, the verification notification can be
+            controlled by sending an additional temporary claim ('verifyEmail'/'verifyMobile') along with the update
+            request. To enable this option, 'CheckForVerifyClaimOnAddition' should be set to true. -->
+        <CheckForVerifyClaimOnAddition>{{identity_mgt.user_claim_update.check_verify_claim_on_addition}}</CheckForVerifyClaimOnAddition>
     </UserClaimUpdate>
 
      <AccountSuspension>
