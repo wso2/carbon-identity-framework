@@ -123,6 +123,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     @Override
     public void deleteResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
 
+        removeResourceFromCache(resourceId, tenantId);
         configurationDAO.deleteResourceById(tenantId, resourceId);
     }
 
@@ -136,6 +137,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     public void deleteResourceByName(int tenantId, String resourceTypeId, String name)
             throws ConfigurationManagementException {
 
+        removeResourceFromCache(tenantId, resourceTypeId, name);
         configurationDAO.deleteResourceByName(tenantId, resourceTypeId, name);
     }
 
@@ -364,6 +366,43 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
         return null;
     }
 
+    private void removeResourceFromCache(String resourceId, int tenantId) throws ConfigurationManagementException {
+
+        Resource resource = getResourceFromCacheById(resourceId, tenantId);
+        if (resource == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("No resource found in the cache with resourceId: " + resourceId);
+            }
+            return;
+        }
+        String resourceName = resource.getResourceName();
+        removeResourceFromCache(tenantId, resourceId, resourceName);
+    }
+
+    private void removeResourceFromCache(int tenantId, String resourceId, String resourceName) {
+
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+            ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resourceId, tenantDomain);
+            ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resourceName, tenantDomain);
+            ResourceCacheEntry resourceCacheEntry = resourceByIdCache.getValueFromCache(resourceByIdCacheKey);
+            if (resourceCacheEntry == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No cache entry found for resource: " + resourceId);
+                }
+                return;
+            }
+            resourceByIdCache.clearCacheEntry(resourceByIdCacheKey);
+            resourceByNameCache.clearCacheEntry(resourceByNameCacheKey);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
     private void addResourceToCache(Resource resource) throws ConfigurationManagementException {
 
         if (resource == null) {
@@ -397,7 +436,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
                         resource.getResourceId(), resource.getTenantDomain());
                 log.debug(message);
             }
-
+            // ResourceCacheEntry====k
             resourceByIdCache.addToCache(resourceByIdCacheKey, resourceCacheEntry);
             resourceByNameCache.addToCache(resourceByNameCacheKey, resourceCacheEntry);
         } finally {
