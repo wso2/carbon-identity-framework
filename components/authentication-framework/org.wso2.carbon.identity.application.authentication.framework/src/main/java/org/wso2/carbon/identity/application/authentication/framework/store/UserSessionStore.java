@@ -405,16 +405,20 @@ public class UserSessionStore {
         }
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
-
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
-                    SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
-                    SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
-            deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
-                    SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
-            IdentityDatabaseUtil.commitTransaction(connection);
+            try {
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_USER_SESSION_MAPPING_TABLE,
+                        SQLQueries.SQL_DELETE_TERMINATED_SESSION_DATA);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_APP_INFO_TABLE,
+                        SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_APP_INFO);
+                deleteSessionDataFromTable(sessionsToRemove, connection, IDN_AUTH_SESSION_META_DATA_TABLE,
+                        SQLQueries.SQL_DELETE_IDN_AUTH_SESSION_META_DATA);
+                IdentityDatabaseUtil.commitTransaction(connection);
+            } catch (SQLException e1) {
+                IdentityDatabaseUtil.rollbackTransaction(connection);
+                log.error("Error while removing the terminated session information from the database.", e1);
+            }
         } catch (SQLException e) {
-            log.error("Error while removing the terminated session information from the database.", e);
+            log.error("Error while obtaining the db connection to remove terminated session information", e);
         }
     }
 
