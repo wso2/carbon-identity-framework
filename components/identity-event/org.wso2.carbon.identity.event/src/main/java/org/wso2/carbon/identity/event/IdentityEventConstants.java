@@ -146,6 +146,14 @@ public class IdentityEventConstants {
         public static final String POST_SELF_SIGNUP_REGISTER = "POST_SELF_SIGNUP_REGISTER";
         public static final String PRE_SELF_SIGNUP_CONFIRM = "PRE_SELF_SIGNUP_CONFIRM";
         public static final String POST_SELF_SIGNUP_CONFIRM = "POST_SELF_SIGNUP_CONFIRM";
+        public static final String PRE_LOCK_ACCOUNT = "PRE_LOCK_ACCOUNT";
+        public static final String POST_LOCK_ACCOUNT = "POST_LOCK_ACCOUNT";
+        public static final String PRE_UNLOCK_ACCOUNT = "PRE_UNLOCK_ACCOUNT";
+        public static final String POST_UNLOCK_ACCOUNT = "POST_UNLOCK_ACCOUNT";
+        public static final String PRE_DISABLE_ACCOUNT = "PRE_DISABLE_ACCOUNT";
+        public static final String POST_DISABLE_ACCOUNT = "POST_DISABLE_ACCOUNT";
+        public static final String PRE_ENABLE_ACCOUNT = "PRE_ENABLE_ACCOUNT";
+        public static final String POST_ENABLE_ACCOUNT = "POST_ENABLE_ACCOUNT";
     }
 
     /**
