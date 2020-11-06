@@ -436,7 +436,6 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
                         resource.getResourceId(), resource.getTenantDomain());
                 log.debug(message);
             }
-            // ResourceCacheEntry====k
             resourceByIdCache.addToCache(resourceByIdCacheKey, resourceCacheEntry);
             resourceByNameCache.addToCache(resourceByNameCacheKey, resourceCacheEntry);
         } finally {
