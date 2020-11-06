@@ -417,7 +417,7 @@ public class UserSessionStore {
                 log.error("Error while removing the terminated session information from the database.", e1);
             }
         } catch (SQLException e) {
-            log.error("Error while removing the terminated session information from the database.", e);
+            log.error("Error while obtaining the db connection to remove terminated session information", e);
         }
     }
 
