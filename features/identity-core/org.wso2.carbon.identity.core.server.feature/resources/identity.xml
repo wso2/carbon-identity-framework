@@ -833,6 +833,8 @@
             <Offline>false</Offline>
             <OTP>false</OTP>
             <RecoveryLink>false</RecoveryLink>
+            <AccountLockNotification>false</AccountLockNotification>
+            <AccountUnlockNotification>false</AccountUnlockNotification>
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
         <NotifyUserExistence>false</NotifyUserExistence>
