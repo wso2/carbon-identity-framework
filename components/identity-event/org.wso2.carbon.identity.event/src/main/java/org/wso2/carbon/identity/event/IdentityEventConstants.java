@@ -141,11 +141,14 @@ public class IdentityEventConstants {
         public static final String POST_GET_ROLE_LIST_OF_USERS_WITH_ID = "POST_GET_ROLE_LIST_OF_USERS_WITH_ID";
         public static final String PRE_SET_CHALLENGE_QUESTION_ANSWERS = "PRE_SET_CHALLENGE_QUESTION_ANSWERS";
         public static final String POST_SET_CHALLENGE_QUESTION_ANSWERS = "POST_SET_CHALLENGE_QUESTION_ANSWERS";
+        public static final String PRE_USER_ACCOUNT_CONFIRMATION = "PRE_USER_ACCOUNT_CONFIRMATION";
         public static final String POST_USER_ACCOUNT_CONFIRMATION = "POST_USER_ACCOUNT_CONFIRMATION";
         public static final String PRE_SELF_SIGNUP_REGISTER = "PRE_SELF_SIGNUP_REGISTER";
         public static final String POST_SELF_SIGNUP_REGISTER = "POST_SELF_SIGNUP_REGISTER";
         public static final String PRE_SELF_SIGNUP_CONFIRM = "PRE_SELF_SIGNUP_CONFIRM";
         public static final String POST_SELF_SIGNUP_CONFIRM = "POST_SELF_SIGNUP_CONFIRM";
+        public static final String PRE_EMAIL_CHANGE_VERIFICATION = "PRE_EMAIL_CHANGE_VERIFICATION";
+        public static final String POST_EMAIL_CHANGE_VERIFICATION = "POST_EMAIL_CHANGE_VERIFICATION";
         public static final String PRE_LOCK_ACCOUNT = "PRE_LOCK_ACCOUNT";
         public static final String POST_LOCK_ACCOUNT = "POST_LOCK_ACCOUNT";
         public static final String PRE_UNLOCK_ACCOUNT = "PRE_UNLOCK_ACCOUNT";
@@ -203,6 +206,7 @@ public class IdentityEventConstants {
         public static final String NEW_ROLES = "NEW_ROLES";
         public static final String PROFILE_NAME = "PROFILE_NAME";
         public static final String VERIFIED_CHANNEL = "VERIFIED_CHANNEL";
+        public static final String VERIFIED_EMAIL = "VERIFIED_EMAIL";
         public static final String RECOVERY_SCENARIO = "RECOVERY_SCENARIO";
 
         public static final String REQUEST = "request";
