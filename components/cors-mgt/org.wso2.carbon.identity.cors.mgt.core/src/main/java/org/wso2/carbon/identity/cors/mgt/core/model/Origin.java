@@ -21,9 +21,6 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.model;
 
-import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
-
 /**
  * Resource request origin (not validated), as defined in The Web Origin Concept (RFC 6454).
  */
@@ -41,10 +38,7 @@ public class Origin {
      */
     public Origin(final String value) {
 
-        if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException(ErrorMessages.ERROR_CODE_NULL_ORIGIN.getMessage());
-        }
-        this.value = value.trim();
+        this.value = value;
     }
 
     /**

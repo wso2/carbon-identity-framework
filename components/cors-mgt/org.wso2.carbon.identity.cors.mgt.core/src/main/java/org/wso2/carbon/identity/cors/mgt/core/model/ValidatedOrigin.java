@@ -21,6 +21,7 @@
 
 package org.wso2.carbon.identity.cors.mgt.core.model;
 
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 
 import java.net.IDN;
@@ -31,6 +32,7 @@ import java.util.Locale;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_INVALID_URI;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_MISSING_HOST;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_MISSING_SCHEME;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_NULL_ORIGIN;
 
 /**
  * Validated resource request origin, as defined in The Web Origin Concept (RFC 6454). Supported schemes are {@code
@@ -62,6 +64,12 @@ public class ValidatedOrigin extends Origin {
     public ValidatedOrigin(final String origin) throws CORSManagementServiceClientException {
 
         super(origin);
+
+        // Check whether the origin is null.
+        if (StringUtils.isBlank(origin)) {
+            throw new CORSManagementServiceClientException(ERROR_CODE_NULL_ORIGIN.getMessage(),
+                    ERROR_CODE_NULL_ORIGIN.getCode());
+        }
 
         // Parse URI value.
         URI uri;
