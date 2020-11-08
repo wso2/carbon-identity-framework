@@ -1324,6 +1324,14 @@
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
 
+        <Resource context="(.*)/api/users/v1/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
             <Scopes>internal_humantask_view</Scopes>
@@ -1593,6 +1601,13 @@
         </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
             <Scopes>internal_identity_mgt_update</Scopes>
             <Scopes>internal_identity_mgt_create</Scopes>
