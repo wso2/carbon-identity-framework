@@ -52,7 +52,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     private final ResourceByNameCache resourceByNameCache;
 
     public CachedBackedConfigurationDAO(ConfigurationDAO configurationDAO) {
-    
+
         this.configurationDAO = configurationDAO;
         this.resourceByIdCache = ResourceByIdCache.getInstance();
         this.resourceByNameCache = ResourceByNameCache.getInstance();
@@ -118,6 +118,10 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     @Override
     public Resource getTenantResourceById(int tenantId, String resourceId) throws ConfigurationManagementException {
 
+        Resource resource = getResourceById(resourceId);
+        if (resource != null) {
+            return resource;
+        }
         return configurationDAO.getTenantResourceById(tenantId, resourceId);
     }
 
@@ -132,6 +136,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     public void replaceResourceWithFiles(Resource resource) throws ConfigurationManagementException {
 
         configurationDAO.replaceResourceWithFiles(resource);
+        deleteResourceFromCache(resource);
     }
 
     @Override
@@ -299,70 +304,32 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
         }
     }
 
-    private Resource getResourceFromCacheById(String resourceId, String tenantDomain)
-            throws ConfigurationManagementException {
+    private Resource getResourceFromCacheById(String resourceId, String tenantDomain) {
 
-        int tenantId;
-        try {
-            tenantId = ConfigurationManagerComponentDataHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        } catch (UserStoreException e) {
-            throw new ConfigurationManagementException("Error when setting tenant domain. ",
-                    ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode(), e);
-        }
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                    .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-
-            ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resourceId, tenantDomain);
-            ResourceCacheEntry resourceCacheEntry = resourceByIdCache.getValueFromCache(resourceByIdCacheKey);
-            if (resourceCacheEntry != null) {
-                if (log.isDebugEnabled()) {
-                    String message = String.format("Entry found from Resource by id cache. Resource id: %s., Tenant " +
-                            "domain %s", resourceId, tenantDomain);
-                    log.debug(message);
-                }
-                return resourceCacheEntry.getResource();
+        ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resourceId, tenantDomain);
+        ResourceCacheEntry resourceCacheEntry = resourceByIdCache.getValueFromCache(resourceByIdCacheKey);
+        if (resourceCacheEntry != null) {
+            if (log.isDebugEnabled()) {
+                String message = String.format("Entry found from Resource by id cache. Resource id: %s., Tenant " +
+                        "domain %s", resourceId, tenantDomain);
+                log.debug(message);
             }
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+            return resourceCacheEntry.getResource();
         }
         return null;
     }
 
-    private Resource getResourceFromCacheByName(String resourceName, String tenantDomain)
-            throws ConfigurationManagementException {
+    private Resource getResourceFromCacheByName(String resourceName, String tenantDomain) {
 
-        int tenantId;
-        try {
-            tenantId = ConfigurationManagerComponentDataHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        } catch (UserStoreException e) {
-            throw new ConfigurationManagementException("Error when setting tenant domain. ",
-                    ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode(), e);
-        }
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                    .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-
-            ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resourceName, tenantDomain);
-            ResourceCacheEntry resourceCacheEntry = resourceByNameCache.getValueFromCache(resourceByNameCacheKey);
-            if (resourceCacheEntry != null) {
-                if (log.isDebugEnabled()) {
-                    String message = String.format("Entry found from Resource by name cache. Resource id: %s., Tenant" +
-                            " domain %s", resourceName, tenantDomain);
-                    log.debug(message);
-                }
-                return resourceCacheEntry.getResource();
+        ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resourceName, tenantDomain);
+        ResourceCacheEntry resourceCacheEntry = resourceByNameCache.getValueFromCache(resourceByNameCacheKey);
+        if (resourceCacheEntry != null) {
+            if (log.isDebugEnabled()) {
+                String message = String.format("Entry found from Resource by name cache. Resource id: %s., Tenant" +
+                        " domain %s", resourceName, tenantDomain);
+                log.debug(message);
             }
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
+            return resourceCacheEntry.getResource();
         }
         return null;
     }
@@ -395,44 +362,25 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
         deleteResourceFromCache(resource);
     }
 
-    private void addResourceToCache(Resource resource) throws ConfigurationManagementException {
+    private void addResourceToCache(Resource resource) {
 
         if (resource == null) {
             return;
         }
+        ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resource.getResourceId(),
+                resource.getTenantDomain());
+        ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resource.getResourceName(),
+                resource.getTenantDomain());
+        ResourceCacheEntry resourceCacheEntry = new ResourceCacheEntry(resource);
 
-        int tenantId;
-        try {
-            tenantId = ConfigurationManagerComponentDataHolder.getInstance().getRealmService()
-                    .getTenantManager().getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-        } catch (UserStoreException e) {
-            throw new ConfigurationManagementException("Error when setting tenant domain. ",
-                    ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode(), e);
+        if (log.isDebugEnabled()) {
+            String message = String.format("Following two cache entries created. 1. Resource by name cache %s, 2." +
+                            " Resource by id cache %s. Tenant domain for all caches: %s", resource.getResourceName(),
+                    resource.getResourceId(), resource.getTenantDomain());
+            log.debug(message);
         }
-
-        try {
-            PrivilegedCarbonContext.startTenantFlow();
-            PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                    .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
-            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-
-            ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resource.getResourceId(),
-                    resource.getTenantDomain());
-            ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resource.getResourceName(),
-                    resource.getTenantDomain());
-            ResourceCacheEntry resourceCacheEntry = new ResourceCacheEntry(resource);
-
-            if (log.isDebugEnabled()) {
-                String message = String.format("Following two cache entries created. 1. Resource by name cache %s, 2." +
-                        " Resource by id cache %s. Tenant domain for all caches: %s", resource.getResourceName(),
-                        resource.getResourceId(), resource.getTenantDomain());
-                log.debug(message);
-            }
-            resourceByIdCache.addToCache(resourceByIdCacheKey, resourceCacheEntry);
-            resourceByNameCache.addToCache(resourceByNameCacheKey, resourceCacheEntry);
-        } finally {
-            PrivilegedCarbonContext.endTenantFlow();
-        }
+        resourceByIdCache.addToCache(resourceByIdCacheKey, resourceCacheEntry);
+        resourceByNameCache.addToCache(resourceByNameCacheKey, resourceCacheEntry);
     }
 
     private void deleteResourceFromCache(Resource resource) throws ConfigurationManagementException {
