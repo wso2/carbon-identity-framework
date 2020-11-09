@@ -328,7 +328,7 @@
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
-  "identity_mgt.user_claim_update.check_verify_claim_on_addition": true,
+  "identity_mgt.user_claim_update.check_verify_claim_on_update": true,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
