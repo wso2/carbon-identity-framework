@@ -573,6 +573,15 @@
     }
   ],
 
+  "system_applications": [
+    {
+      "identifier": "CONSOLE"
+    },
+    {
+      "identifier": "MY_ACCOUNT"
+    }
+  ],
+
   "legacy_feature": [
     {
       "id": "oauth",

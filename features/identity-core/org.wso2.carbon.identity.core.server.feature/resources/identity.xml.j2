@@ -2374,6 +2374,15 @@
     </AllowedUserstores>
     {% endif %}
 
+    <!-- System Applications -->
+    {% if system_applications is defined %}
+    <SystemApplications>
+        {% for application in system_applications %}
+        <ApplicationIdentifier>{{application.identifier}}</ApplicationIdentifier>
+        {% endfor %}
+    </SystemApplications>
+    {% endif %}
+
     <MutualTLS>
         <ClientCertificateHeader>{{oauth.mutualtls.client_certificate_header}}</ClientCertificateHeader>
     </MutualTLS>
