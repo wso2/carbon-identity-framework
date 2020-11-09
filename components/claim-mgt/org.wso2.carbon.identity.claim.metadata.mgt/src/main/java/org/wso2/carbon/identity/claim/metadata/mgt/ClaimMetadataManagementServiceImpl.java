@@ -206,6 +206,10 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
 
         if (localClaim == null || StringUtils.isBlank(localClaim.getClaimURI())) {
             throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_LOCAL_CLAIM_URI);
+        } else if (localClaim.getMappedAttributes().isEmpty()) {
+            throw new ClaimMetadataClientException(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getCode(),
+                    String.format(ERROR_CODE_EMPTY_MAPPED_ATTRIBUTES_IN_LOCAL_CLAIM.getMessage(), localClaim
+                            .getClaimDialectURI(), localClaim.getClaimURI()));
         }
 
         // TODO : validate claim URI already exists?
