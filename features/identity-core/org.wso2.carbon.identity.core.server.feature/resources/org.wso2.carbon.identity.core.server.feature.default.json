@@ -331,6 +331,7 @@
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_claim_update.mobile.enable_verification": false,
   "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
+  "identity_mgt.user_claim_update.use_verify_claim": true,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
@@ -821,6 +822,7 @@
   "myaccount.session.params.userIdleWarningTimeOut": 580,
   "myaccount.session.params.sessionRefreshTimeOut": 300,
   "myaccount.session.params.checkSessionInterval": 3,
+  "myaccount.personal_info.disabled_features": ["profileInfo.mobileVerification"],
   "cors.allow_generic_http_requests": true,
   "cors.allow_any_origin": true,
   "cors.allowed_origins": [],

@@ -1131,6 +1131,10 @@
                 </VerificationCode>
              </VerificationOnUpdate>
         </Claim>
+        <!-- When updating the claim value, the verification notification can be controlled by sending an additional
+        temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
+        'UseVerifyClaim' should be set to true. -->
+        <UseVerifyClaim>{{identity_mgt.user_claim_update.use_verify_claim}}</UseVerifyClaim>
     </UserClaimUpdate>
 
      <AccountSuspension>
