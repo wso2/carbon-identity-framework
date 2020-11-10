@@ -1505,6 +1505,10 @@
             <Permissions>/permission/admin/manage/identity/authentication/session/delete</Permissions>
             <Scopes>internal_session_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/users/v1/me/applications(.*)" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
