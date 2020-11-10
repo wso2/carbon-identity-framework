@@ -150,6 +150,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     public void replaceResource(Resource resource) throws ConfigurationManagementException {
 
         configurationDAO.replaceResource(resource);
+        deleteResourceFromCache(resource);
     }
 
     @Override
@@ -399,6 +400,46 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
 
             resourceByIdCache.addToCache(resourceByIdCacheKey, resourceCacheEntry);
             resourceByNameCache.addToCache(resourceByNameCacheKey, resourceCacheEntry);
+        } finally {
+            PrivilegedCarbonContext.endTenantFlow();
+        }
+    }
+
+    private void deleteResourceFromCache(Resource resource) throws ConfigurationManagementException {
+
+        if (resource == null) {
+            return;
+        }
+
+        int tenantId;
+        try {
+            tenantId = ConfigurationManagerComponentDataHolder.getInstance().getRealmService()
+                    .getTenantManager().getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        } catch (UserStoreException e) {
+            throw new ConfigurationManagementException("Error when setting tenant domain. ",
+                    ConfigurationConstants.ErrorMessages.ERROR_CODE_UNEXPECTED.getCode(), e);
+        }
+
+        try {
+            PrivilegedCarbonContext.startTenantFlow();
+            PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                    .setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
+
+            ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resource.getResourceId(),
+                    resource.getTenantDomain());
+            ResourceByNameCacheKey resourceByNameCacheKey = new ResourceByNameCacheKey(resource.getResourceName(),
+                    resource.getTenantDomain());
+
+            if (log.isDebugEnabled()) {
+                String message = String.format("Following two cache entries deleted. 1. Resource by name cache %s, 2." +
+                                " Resource by id cache %s. Tenant domain for all caches: %s", resource.getResourceName(),
+                        resource.getResourceId(), resource.getTenantDomain());
+                log.debug(message);
+            }
+
+            resourceByIdCache.clearCacheEntry(resourceByIdCacheKey);
+            resourceByNameCache.clearCacheEntry(resourceByNameCacheKey);
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
