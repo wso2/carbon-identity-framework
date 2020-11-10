@@ -1831,4 +1831,10 @@
         <AllowedUserstore>org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager</AllowedUserstore>
     </AllowedUserstores>
 
+    <!-- System Applications -->
+    <SystemApplications>
+        <ApplicationName>Console</ApplicationName>
+        <ApplicationName>My Account</ApplicationName>
+    </SystemApplications>
+
 </Server>

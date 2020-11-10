@@ -574,6 +574,15 @@
     }
   ],
 
+  "system_applications": [
+    {
+      "name": "Console"
+    },
+    {
+      "name": "My Account"
+    }
+  ],
+
   "legacy_feature": [
     {
       "id": "oauth",
