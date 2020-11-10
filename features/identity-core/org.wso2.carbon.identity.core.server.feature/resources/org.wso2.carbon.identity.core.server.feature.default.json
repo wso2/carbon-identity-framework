@@ -575,10 +575,10 @@
 
   "system_applications": [
     {
-      "identifier": "CONSOLE"
+      "name": "Console"
     },
     {
-      "identifier": "MY_ACCOUNT"
+      "name": "My Account"
     }
   ],
 

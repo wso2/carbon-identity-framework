@@ -1829,8 +1829,8 @@
 
     <!-- System Applications -->
     <SystemApplications>
-        <ApplicationIdentifier>CONSOLE</ApplicationIdentifier>
-        <ApplicationIdentifier>MY_ACCOUNT</ApplicationIdentifier>
+        <ApplicationName>Console</ApplicationName>
+        <ApplicationName>My Account</ApplicationName>
     </SystemApplications>
 
 </Server>

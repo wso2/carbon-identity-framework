@@ -2393,7 +2393,7 @@
     {% if system_applications is defined %}
     <SystemApplications>
         {% for application in system_applications %}
-        <ApplicationIdentifier>{{application.identifier}}</ApplicationIdentifier>
+        <ApplicationName>{{application.name}}</ApplicationName>
         {% endfor %}
     </SystemApplications>
     {% endif %}
