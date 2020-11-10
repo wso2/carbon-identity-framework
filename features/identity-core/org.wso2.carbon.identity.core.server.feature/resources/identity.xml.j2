@@ -1493,7 +1493,7 @@
     {% if identity.cookies is defined %}
     <Cookies>
     {% for cookie in identity.cookies %}
-        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" />
+        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" sameSite="{{cookie.sameSite}}" />
     {% endfor %}
     </Cookies>
     {% endif %}
