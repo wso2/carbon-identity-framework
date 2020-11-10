@@ -25,7 +25,6 @@
             <class name="org.wso2.carbon.identity.cors.mgt.core.test.HeaderUtilTests"/>
             <class name="org.wso2.carbon.identity.cors.mgt.core.test.OriginTests"/>
             <class name="org.wso2.carbon.identity.cors.mgt.core.test.SerializationUtilTests"/>
-            <class name="org.wso2.carbon.identity.cors.mgt.core.test.ValidatedOriginTests"/>
         </classes>
     </test>
 </suite>
