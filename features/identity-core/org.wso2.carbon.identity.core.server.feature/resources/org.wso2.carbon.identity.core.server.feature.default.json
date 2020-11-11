@@ -659,6 +659,21 @@
       "internal_application_mgt_delete"
     ]
   },
+  "console.approvals.enabled": true,
+  "console.approvals.scopes": {
+    "create": [
+      "internal_humantask_view"
+    ],
+    "read": [
+      "internal_humantask_view"
+    ],
+    "update": [
+      "internal_humantask_view"
+    ],
+    "delete": [
+      "internal_humantask_view"
+    ]
+  },
   "console.attribute_dialects.enabled": true,
   "console.attribute_dialects.scopes": {
     "create": [
