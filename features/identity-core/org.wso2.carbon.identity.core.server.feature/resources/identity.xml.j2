@@ -123,29 +123,29 @@
 
         <!-- Specify full qualified class name of the class which going to use as private association store -->
         <!--
-		<OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
-	-->
+        <OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
+        -->
 
         <!-- The expiration time (in minutes) for the OpenID association -->
         <!--
-		<OpenIDAssociationExpiryTime>15</OpenIDAssociationExpiryTime>
-	-->
+        <OpenIDAssociationExpiryTime>15</OpenIDAssociationExpiryTime>
+        -->
 
         <!-- Configs specific to PrivateAssociationCryptoStore -->
         <!-- Server secret. This value should be the same in all nodes in the cluster -->
         <!--
-		<OpenIDPrivateAssociationServerKey>qewlj324lmasc</OpenIDPrivateAssociationServerKey>
-	-->
+        <OpenIDPrivateAssociationServerKey>qewlj324lmasc</OpenIDPrivateAssociationServerKey>
+        -->
 
         <!-- Configs specific to PrivateAssociationCryptoStore -->
         <!-- This enable private association cleanup task which cleans expired private associations -->
         <!--
-		<EnableOpenIDAssociationCleanupTask>true</EnableOpenIDAssociationCleanupTask>
-	-->
+        <EnableOpenIDAssociationCleanupTask>true</EnableOpenIDAssociationCleanupTask>
+        -->
         <!-- Time Period (in minutes) that cleanup task would run -->
         <!--
-		<OpenIDAssociationCleanupPeriod>15</OpenIDAssociationCleanupPeriod>
-	-->
+        <OpenIDAssociationCleanupPeriod>15</OpenIDAssociationCleanupPeriod>
+        -->
     </OpenID>
 
 <!--Remote Fetch Core Configuration-->
@@ -467,7 +467,7 @@
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler.class}}">
                 {% if callback_handler.priority is defined %}
-                	<Priority Value="{{callback_handler.priority}}"/>
+                    <Priority Value="{{callback_handler.priority}}"/>
                 {% endif %}
                 {% if callback_handler.properties is defined %}
                   <Properties>
@@ -1079,14 +1079,14 @@
 
     <EmailVerification>
         <Enable>{{identity_mgt.user_onboarding.enable_email_verification}}</Enable>
-	    <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
+        <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
         <LockOnCreation>{{identity_mgt.user_onboarding.lock_on_creation}}</LockOnCreation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_onboarding.notification.manage_internally}}</InternallyManage>
         </Notification>
         <AskPassword>
-	        <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
-	        <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
+            <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
+            <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
         </AskPassword>
     </EmailVerification>
 
@@ -1108,9 +1108,9 @@
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
         </Notification>
         <ReCaptcha>{{identity_mgt.user_self_registration.enable_recaptcha}}</ReCaptcha>
-	    <VerificationCode>
-	        <ExpiryTime>{{identity_mgt.user_self_registration.verification_email_validity}}</ExpiryTime>
-	    </VerificationCode>
+        <VerificationCode>
+            <ExpiryTime>{{identity_mgt.user_self_registration.verification_email_validity}}</ExpiryTime>
+        </VerificationCode>
         <CallbackRegex>{{identity_mgt.user_self_registration.callback_url}}</CallbackRegex>
     </SelfRegistration>
 
@@ -2488,4 +2488,11 @@
     <PasswordUpdate>
         <PreserveLoggedInSession>{{identity_mgt.password_update.preserve_logged_in_session}}</PreserveLoggedInSession>
     </PasswordUpdate>
+
+    <EmailTemplatePlaceholders>
+    {% for key,value in email_templates.placeholders.items() %}
+        <EmailTemplatePlaceholder key="{{key}}">{{value}}</EmailTemplatePlaceholder>
+    {% endfor %}
+    </EmailTemplatePlaceholders>
+
 </Server>
