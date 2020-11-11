@@ -200,6 +200,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @return Issuer Qualifier
      */
     public String getIssuerQualifier() {
+
         return issuerQualifier;
     }
 
@@ -209,6 +210,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @param issuerQualifier
      */
     public void setIssuerQualifier(String issuerQualifier) {
+
         if (StringUtils.isNotBlank(issuerQualifier)) {
             this.issuerQualifier = issuerQualifier;
         }
@@ -636,6 +638,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @return IdP Entity ID Alias
      */
     public String getIdpEntityIDAlias() {
+
         return idpEntityIDAlias;
     }
 
@@ -645,6 +648,7 @@ public class SAMLSSOServiceProviderDO implements Serializable {
      * @param idpEntityIDAlias
      */
     public void setIdpEntityIDAlias(String idpEntityIDAlias) {
+
         this.idpEntityIDAlias = idpEntityIDAlias;
     }
 }
