@@ -35,7 +35,7 @@ import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHold
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
-import org.wso2.carbon.identity.cors.mgt.core.model.ValidatedOrigin;
+import org.wso2.carbon.identity.cors.mgt.core.model.Origin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.ArrayList;
@@ -90,15 +90,18 @@ public class CORSManagementServiceImpl implements CORSManagementService {
         int tenantId = getTenantId(tenantDomain);
         ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
 
-        // Convert Origins to ValidatedOrigins.
-        List<ValidatedOrigin> validatedOrigins = originsToValidatedOrigins(origins);
+        // Convert origin strings to Origin instances.
+        List<Origin> originList = new ArrayList<>();
+        for (String origin : origins) {
+            originList.add(new Origin(origin));
+        }
 
         // Set the CORS origins.
         getCORSOriginDAO().setCORSOrigins(applicationBasicInfo.getApplicationId(),
-                validatedOrigins.stream().map(validatedOrigin -> {
+                originList.stream().map(origin -> {
                     // Create the CORS origin.
                     CORSOrigin corsOrigin = new CORSOrigin();
-                    corsOrigin.setOrigin(validatedOrigin.getValue());
+                    corsOrigin.setOrigin(origin.getValue());
                     return corsOrigin;
                 }).collect(Collectors.toList()), tenantId);
     }
@@ -113,29 +116,32 @@ public class CORSManagementServiceImpl implements CORSManagementService {
         int tenantId = getTenantId(tenantDomain);
         ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
 
-        // Convert Origins to ValidatedOrigins.
-        List<ValidatedOrigin> validatedOrigins = originsToValidatedOrigins(origins);
+        // Convert origin strings to Origin instances.
+        List<Origin> originList = new ArrayList<>();
+        for (String origin : origins) {
+            originList.add(new Origin(origin));
+        }
 
         // Check if the CORS origins are already present.
         List<CORSOrigin> existingCORSOrigins = getCORSOriginDAO().getCORSOriginsByApplicationId(
                 applicationBasicInfo.getApplicationId(), tenantId);
-        for (ValidatedOrigin validatedOrigin : validatedOrigins) {
+        for (Origin origin : originList) {
             if (existingCORSOrigins.stream().map(CORSOrigin::getId).collect(Collectors.toList())
-                    .contains(validatedOrigin.getValue())) {
+                    .contains(origin.getValue())) {
                 // CORS origin is already registered for the application.
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format(ERROR_CODE_ORIGIN_PRESENT.getMessage(), tenantDomain, validatedOrigin));
+                    log.debug(String.format(ERROR_CODE_ORIGIN_PRESENT.getMessage(), tenantDomain, origin));
                 }
-                throw handleClientException(ERROR_CODE_ORIGIN_PRESENT, tenantDomain, validatedOrigin.getValue());
+                throw handleClientException(ERROR_CODE_ORIGIN_PRESENT, tenantDomain, origin.getValue());
             }
         }
 
         // Add the CORS origins.
         getCORSOriginDAO().addCORSOrigins(applicationBasicInfo.getApplicationId(),
-                validatedOrigins.stream().map(validatedOrigin -> {
+                originList.stream().map(origin -> {
                     // Create the CORS origin.
                     CORSOrigin corsOrigin = new CORSOrigin();
-                    corsOrigin.setOrigin(validatedOrigin.getValue());
+                    corsOrigin.setOrigin(origin.getValue());
                     return corsOrigin;
                 }).collect(Collectors.toList()), tenantId
         );
@@ -284,23 +290,5 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             log.error(String.format(ERROR_CODE_VALIDATE_APP_ID.getDescription(), applicationId), e);
         }
         return null;
-    }
-
-    /**
-     * Convert origin strings to ValidatedOrigins.
-     *
-     * @param origins A list of origin strings.
-     * @return A list of {@code ValidatedOrigin}s containing the initial origins.
-     * @throws CORSManagementServiceClientException
-     */
-    private List<ValidatedOrigin> originsToValidatedOrigins(List<String> origins)
-            throws CORSManagementServiceClientException {
-
-        List<ValidatedOrigin> validatedOrigins = new ArrayList<>();
-        for (String origin : origins) {
-            validatedOrigins.add(new ValidatedOrigin(origin));
-        }
-
-        return validatedOrigins;
     }
 }

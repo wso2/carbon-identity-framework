@@ -22,10 +22,20 @@
 package org.wso2.carbon.identity.cors.mgt.core.model;
 
 import org.apache.commons.lang.StringUtils;
-import org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages;
+import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
+
+import java.net.IDN;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Locale;
+
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_INVALID_URI;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_MISSING_HOST;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_MISSING_SCHEME;
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_NULL_ORIGIN;
 
 /**
- * Resource request origin (not validated), as defined in The Web Origin Concept (RFC 6454).
+ * A class which can represent an instance of an origin. 
  */
 public class Origin {
 
@@ -35,16 +45,69 @@ public class Origin {
     private final String value;
 
     /**
+     * The origin scheme.
+     */
+    private String scheme;
+
+    /**
+     * The origin host.
+     */
+    private String host;
+
+    /**
+     * The parsed origin port, -1 for default port.
+     */
+    private int port = -1;
+
+    /**
      * Creates a new origin from the specified URI string. Note that the syntax is not validated.
      *
-     * @param value The URI string for the origin. Must not be {@code null}.
+     * @param origin The URI string for the origin. Must not be {@code null}.
      */
-    public Origin(final String value) {
+    public Origin(final String origin) throws CORSManagementServiceClientException {
 
-        if (StringUtils.isBlank(value)) {
-            throw new IllegalArgumentException(ErrorMessages.ERROR_CODE_NULL_ORIGIN.getMessage());
+        this.value = origin;
+
+        // Check whether the origin is null.
+        if (StringUtils.isBlank(origin)) {
+            throw new CORSManagementServiceClientException(ERROR_CODE_NULL_ORIGIN.getMessage(),
+                    ERROR_CODE_NULL_ORIGIN.getCode());
         }
-        this.value = value.trim();
+
+        // Parse URI value.
+        URI uri;
+        try {
+            uri = new URI(origin);
+        } catch (URISyntaxException e) {
+            throw new CORSManagementServiceClientException(
+                    String.format(ERROR_CODE_INVALID_URI.getMessage(), origin),
+                    ERROR_CODE_INVALID_URI.getCode());
+        }
+
+        scheme = uri.getScheme();
+        host = uri.getHost();
+        port = uri.getPort();
+
+        if (scheme == null) {
+            throw new CORSManagementServiceClientException(
+                    String.format(ERROR_CODE_MISSING_SCHEME.getMessage(), origin),
+                    ERROR_CODE_MISSING_SCHEME.getCode());
+        }
+
+        // Canonicalise scheme and host.
+        scheme = scheme.toLowerCase(Locale.ENGLISH);
+
+        if (host == null) {
+            throw new CORSManagementServiceClientException(
+                    String.format(ERROR_CODE_MISSING_HOST.getMessage(), origin),
+                    ERROR_CODE_MISSING_HOST.getCode());
+        }
+
+        // Apply the IDNA to ASCII algorithm [RFC3490] to /host/.
+        host = IDN.toASCII(host, IDN.ALLOW_UNASSIGNED | IDN.USE_STD3_ASCII_RULES);
+
+        // Convert to lower case.
+        host = host.toLowerCase(Locale.ENGLISH);
     }
 
     /**
@@ -89,5 +152,50 @@ public class Origin {
     public String getValue() {
 
         return value;
+    }
+
+    /**
+     * Returns the scheme.
+     *
+     * @return The scheme.
+     */
+    public String getScheme() {
+
+        return scheme;
+    }
+
+    /**
+     * Returns the host (name or IP address).
+     *
+     * @return The host name or IP address.
+     */
+    public String getHost() {
+
+        return host;
+    }
+
+    /**
+     * Returns the port number.
+     *
+     * @return The port number, -1 for default port.
+     */
+    public int getPort() {
+
+        return port;
+    }
+
+    /**
+     * Returns the suffix which is made up of the host name / IP address
+     * and port (if a non-default port is specified).
+     *
+     * @return The suffix.
+     */
+    public String getSuffix() {
+
+        String suffix = host;
+        if (port != -1) {
+            suffix = suffix + ":" + port;
+        }
+        return suffix;
     }
 }
