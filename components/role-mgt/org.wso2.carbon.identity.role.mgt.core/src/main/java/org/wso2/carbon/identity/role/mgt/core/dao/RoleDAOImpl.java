@@ -335,23 +335,11 @@ public class RoleDAOImpl implements RoleDAO {
 
         List<RoleBasicInfo> roles = new ArrayList<>();
         List<String> roleNames = new ArrayList<>();
-        UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
         try (ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 String roleName = resultSet.getString(1);
-
-                // Skip the Internal/everyone role.
-                if (isInternalEveryoneRole(roleName, userRealm)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Skip the role: " + roleName + " from the list roles results.");
-                    }
-                    continue;
-                }
                 roleNames.add(appendInternalDomain(roleName));
             }
-        } catch (UserStoreException e) {
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Error while getting the realmConfiguration in the tenantDomain: " + tenantDomain, e);
         }
         Map<String, String> roleNamesToIDs = getRoleIDsByNames(roleNames, tenantDomain);
 
