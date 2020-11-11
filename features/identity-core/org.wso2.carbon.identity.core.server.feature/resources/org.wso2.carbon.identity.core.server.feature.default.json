@@ -710,18 +710,14 @@
   },
   "console.general_configurations.enabled": true,
   "console.general_configurations.scopes": {
-    "create": [
-      "internal_identity_mgt_create"
-    ],
+    "create": [],
     "read": [
-      "internal_identity_mgt_view"
+      "internal_idp_view"
     ],
     "update": [
-      "internal_identity_mgt_update"
+      "internal_idp_update"
     ],
-    "delete": [
-      "internal_identity_mgt_delete"
-    ]
+    "delete": []
   },
   "console.groups.enabled": true,
   "console.groups.scopes": {
@@ -751,6 +747,48 @@
     ],
     "delete": [
       "internal_idp_delete"
+    ]
+  },
+  "console.oidc_scopes.enabled": true,
+  "console.oidc_scopes.scopes": {
+    "create": [
+      "internal_application_mgt_create"
+    ],
+    "read": [
+      "internal_application_mgt_view"
+    ],
+    "update": [
+      "internal_application_mgt_update"
+    ],
+    "delete": [
+      "internal_application_mgt_delete"
+    ]
+  },
+  "console.remote_fetch.enabled": true,
+  "console.remote_fetch.scopes": {
+    "create": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+    ],
+    "read": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+    ],
+    "update": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
+    ],
+    "delete": [
+      "internal_identity_mgt_view",
+      "internal_identity_mgt_update",
+      "internal_identity_mgt_create",
+      "internal_identity_mgt_delete"
     ]
   },
   "console.roles.enabled": true,
