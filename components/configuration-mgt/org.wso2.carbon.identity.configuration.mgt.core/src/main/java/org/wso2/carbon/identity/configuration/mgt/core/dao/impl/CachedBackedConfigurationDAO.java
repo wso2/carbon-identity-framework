@@ -302,7 +302,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     private Resource getResourceFromCacheById(String resourceId, String tenantDomain)
             throws ConfigurationManagementException {
 
-       ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resourceId, tenantDomain);
+        ResourceByIdCacheKey resourceByIdCacheKey = new ResourceByIdCacheKey(resourceId, tenantDomain);
         ResourceCacheEntry resourceCacheEntry = resourceByIdCache.getValueFromCache(resourceByIdCacheKey);
         if (resourceCacheEntry != null) {
             if (log.isDebugEnabled()) {
