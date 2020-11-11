@@ -1340,6 +1340,9 @@ public class UserRealmProxy {
 
                 String[] hybridRoles = ((AbstractUserStoreManager) admin).getHybridRoles(modifiedFilter);
 
+                // Filter the internal system roles created to maintain the backward compatibility.
+                hybridRoles = filterInternalSystemRoles(hybridRoles);
+
                 if (hybridRoles != null) {
                     Arrays.sort(hybridRoles);
                 }
@@ -1493,6 +1496,9 @@ public class UserRealmProxy {
                     }
                 }
             }
+
+            // Filter the internal system roles created to maintain the backward compatibility.
+            internalRoles = filterInternalSystemRoles(internalRoles);
 
             List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
 
