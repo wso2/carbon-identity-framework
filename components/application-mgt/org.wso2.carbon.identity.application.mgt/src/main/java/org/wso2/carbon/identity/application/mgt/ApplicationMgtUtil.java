@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.common.model.PermissionsAndRoleConfi
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.SpFileStream;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -685,14 +686,22 @@ public class ApplicationMgtUtil {
                 }
                 boolean isUserExist = realm.getUserStoreManager().isExistingUser(userNameWithDomain);
                 if (!isUserExist) {
-                    throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
-                            "application: " +
-                            serviceProvider.getApplicationName() + " as user is not existing.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Owner does not exist for application: " + serviceProvider.getApplicationName() +
+                                ". Hence making the tenant admin the owner of the application.");
+                    }
+                    // Since the SP owner does not exist, set the tenant admin user as the owner.
+                    User owner = new User();
+                    owner.setUserName(realm.getRealmConfiguration().getAdminUserName());
+                    owner.setUserStoreDomain(realm.getRealmConfiguration().
+                            getUserStoreProperty(UserCoreConstants.RealmConfig.PROPERTY_DOMAIN_NAME));
+                    owner.setTenantDomain(CarbonContext.getThreadLocalCarbonContext().getTenantDomain());
+                    serviceProvider.setOwner(owner);
                 }
             } else {
                 return false;
             }
-        } catch (UserStoreException | IdentityApplicationManagementException e) {
+        } catch (UserStoreException e) {
             throw new IdentityApplicationManagementException("User validation failed for owner update in the " +
                     "application: " +
                     serviceProvider.getApplicationName(), e);
