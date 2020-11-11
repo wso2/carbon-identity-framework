@@ -131,6 +131,7 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     public void replaceResourceWithFiles(Resource resource) throws ConfigurationManagementException {
 
         configurationDAO.replaceResourceWithFiles(resource);
+        deleteResourceFromCache(resource);
     }
 
     @Override
@@ -138,13 +139,14 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
             throws ConfigurationManagementException {
 
         configurationDAO.deleteResourceByName(tenantId, resourceTypeId, name);
+        deleteCacheByResourceByName(name, tenantId);
     }
 
     @Override
     public void addResource(Resource resource) throws ConfigurationManagementException {
 
-        addResourceToCache(resource);
         configurationDAO.addResource(resource);
+        addResourceToCache(resource);
     }
 
     @Override
@@ -373,6 +375,15 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     private void deleteCacheByResourceId(String resourceId, int tenantId) throws ConfigurationManagementException {
 
         Resource resource = getResourceFromCacheById(resourceId, tenantId);
+        if (resource == null) {
+            return;
+        }
+        deleteResourceFromCache(resource);
+    }
+
+    private void deleteCacheByResourceByName(String resourceName, int tenantId) throws ConfigurationManagementException {
+
+        Resource resource = getResourceFromCacheByName(resourceName, tenantId);
         if (resource == null) {
             return;
         }
