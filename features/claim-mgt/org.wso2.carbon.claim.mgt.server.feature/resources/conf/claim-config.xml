@@ -2569,6 +2569,16 @@
 				<SupportedByDefault />
 				<MappedLocalClaim>http://wso2.org/claims/identity/verifyMobile</MappedLocalClaim>
 			</Claim>
+			<Claim>
+				<ClaimURI>urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:country</ClaimURI>
+				<DisplayName>Country</DisplayName>
+				<AttributeID>country</AttributeID>
+				<Description>Country</Description>
+				<Required />
+				<DisplayOrder>1</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/country</MappedLocalClaim>
+			</Claim>
 		</Dialect>
 		<Dialect dialectURI="http://eidas.europa.eu/attributes/naturalperson">
 			<Claim>
