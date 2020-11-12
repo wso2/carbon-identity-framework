@@ -1308,10 +1308,10 @@ public class RoleDAOImpl implements RoleDAO {
                         // Handle multiple matching roles.
                         count++;
                         if (count > 1) {
-                            String errorMessage =
+                            String message =
                                     "Invalid scenario. Multiple roles found for the given role ID: " + roleID + " and "
                                             + "tenantDomain: " + tenantDomain;
-                            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
+                            log.warn(message);
                         }
                         roleName = resultSet.getString(1);
                     }
