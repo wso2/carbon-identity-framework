@@ -63,7 +63,6 @@ public class IdentityCoreConstants {
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_MISMATCHED_ERROR_CODE = "17008";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
-    public static final String USER_ACCOUNT_STATE_WITH_USERNAME = "UserAccountStateWithUsername";
 
     // Pagination constants.
     public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;
