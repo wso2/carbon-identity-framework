@@ -1587,6 +1587,10 @@
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
