@@ -272,7 +272,7 @@ function idpMgtCancel(){
             CARBON.showWarningDialog("Resident IdP Entity ID cannot be empty");
             return false;
         }
-        var isSessionTimeoutValidated = doValidateInput(document.getElementById('sessionIdleTimeout'), "Resident IdP Idle Session Timeout must be numeric value greater than 0");
+        var isSessionTimeoutValidated = doValidateInput(document.getElementById('sessionIdleTimeout'), "Resident IdP Idle Session Timeout must be numeric value greater than 0 and cannot be empty");
         if (!isSessionTimeoutValidated) {
             return false;
         }
