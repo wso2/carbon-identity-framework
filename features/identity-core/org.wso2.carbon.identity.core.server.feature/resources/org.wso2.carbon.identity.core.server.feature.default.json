@@ -836,6 +836,8 @@
       "internal_userstore_delete"
     ]
   },
+  "console.self_app_identifier": "Console",
+  "console.system_apps_identifiers": [ "Console", "My Account" ],
   "console.gravatar.configs": {
     "fallback": "404"
   },
