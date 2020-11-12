@@ -248,7 +248,7 @@ public class EntitlementUtil {
                 log.error("Invalid Namespace in policy");
             }
         } catch (SAXException e) {
-            log.error("XACML policy is not valid according to the schema :" + e.getMessage());
+            log.error("XACML policy is not valid according to the schema :" + e.getMessage(), e);
         } catch (IOException e) {
             //ignore
         } catch (ParserConfigurationException e) {

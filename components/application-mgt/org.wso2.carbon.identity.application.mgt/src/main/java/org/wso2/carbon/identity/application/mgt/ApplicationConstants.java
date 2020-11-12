@@ -72,6 +72,7 @@ public class ApplicationConstants {
 
     public static final String TENANT_DEFAULT_SP_TEMPLATE_NAME = "default";
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String MICROSOFT = "Microsoft";
@@ -90,6 +91,10 @@ public class ApplicationConstants {
     public static final String ZERO_BASED_START_INDEX = "ZERO_BASED_START_INDEX";
     public static final String ONE_BASED_START_INDEX = "ONE_BASED_START_INDEX";
     public static final String END_INDEX = "END_INDEX";
+
+    // System application config elements
+    public static final String SYSTEM_APPLICATIONS_CONFIG_ELEMENT = "SystemApplications";
+    public static final String APPLICATION_NAME_CONFIG_ELEMENT = "ApplicationName";
 
     /**
      * Grouping of constants related to database table names.

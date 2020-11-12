@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -74,6 +75,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
@@ -132,6 +139,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         SequenceConfig seqConfig = context.getSequenceConfig();
         List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
 
+        boolean addOrUpdateNonceCookie = false;
         try {
             UserStorePreferenceOrderSupplier<List<String>> userStorePreferenceOrderSupplier =
                     FrameworkUtils.getUserStorePreferenceOrderSupplier(context, null);
@@ -155,18 +163,51 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // To keep track of whether particular request goes through the step based sequence handler.
                 context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
 
+                // Add or Validate session nonce cookie.
+                if (isNonceCookieEnabled()) {
+                    String nonceCookieName = getNonceCookieName(context);
+                    if (context.isReturning()) {
+                        if (validateNonceCookie(request, context)) {
+                            addOrUpdateNonceCookie = true;
+                        } else {
+                            throw new FrameworkException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
+                                    "matching " +
+                                    "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
+                        }
+                    } else if (context.getProperty(nonceCookieName) == null) {
+                        addOrUpdateNonceCookie = true;
+                    }
+                }
+
                 // call step based sequence handler
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
             }
+        } catch (FrameworkException e) {
+            // Remove nonce cookie after authentication failure.
+            removeNonceCookie(request, response, context);
+            throw e;
         } finally {
             UserCoreUtil.removeUserMgtContextInThreadLocal();
         }
 
         // handle post authentication
-        handlePostAuthentication(request, response, context);
+        try {
+            handlePostAuthentication(request, response, context);
+        } catch (FrameworkException e) {
+            // Remove nonce cookie after post authentication failure.
+            removeNonceCookie(request, response, context);
+            throw e;
+        }
         // if flow completed, send response back
         if (canConcludeFlow(context)) {
+            // Remove nonce cookie after authentication completion.
+            if (addOrUpdateNonceCookie) {
+                removeNonceCookie(request, response, context);
+            }
             concludeFlow(request, response, context);
+        } else if (addOrUpdateNonceCookie) {
+            // Update nonce cookie value.
+            addNonceCookie(request, response, context);
         }
     }
 
@@ -419,6 +460,16 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         log.error("Updating session meta data failed.", e);
                     }
                 }
+                /*
+                 * In the default configuration, the expiry time of the commonAuthCookie is fixed when rememberMe
+                 * option is selected. With this config, the expiry time will increase at every authentication.
+                 */
+                if (sessionContext.isRememberMe() &&
+                        Boolean.parseBoolean(IdentityUtil.getProperty(
+                                IdentityConstants.ServerConfig.EXTEND_REMEMBER_ME_SESSION_ON_AUTH))) {
+                    context.setRememberMe(sessionContext.isRememberMe());
+                    setAuthCookie(request, response, context, commonAuthCookie, applicationTenantDomain);
+                }
 
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
@@ -590,7 +641,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (isFederatedUser(authenticatedIdPData.getUser())) {
+                if (StringUtils.isBlank(FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName))
+                        && isFederatedUser(authenticatedIdPData.getUser())) {
                     userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
                     try {
                         if (userId == null) {
@@ -633,9 +685,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
         try {
             // AppId is the auto generated id for the applications and it should be a positive integer.
-            if (appId > 0 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
-                    appId, inboundAuth)) {
-                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+            if (appId > 0) {
+                UserSessionStore.getInstance().storeAppSessionDataIfNotExist(sessionContextKey, subject, appId, inboundAuth);
             }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);

@@ -156,6 +156,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 
 public class FrameworkUtils {
 
@@ -1864,7 +1865,7 @@ public class FrameworkUtils {
         } catch (UserStoreException e) {
             log.warn("Error while retrieving MultiAttributeSeparator from UserRealm.");
             if (log.isDebugEnabled()) {
-                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm." + e);
+                log.debug("Error while retrieving MultiAttributeSeparator from UserRealm.", e);
             }
         }
 
@@ -2601,7 +2602,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Preprocess user's username considering authentication context.
+     * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
      * @param context  Authentication context.
@@ -2609,14 +2610,23 @@ public class FrameworkUtils {
      */
     public static String preprocessUsername(String username, AuthenticationContext context) {
 
-        if (context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+        boolean isSaaSApp = context.getSequenceConfig().getApplicationConfig().isSaaSApp();
+
+        if (isLegacySaaSAuthenticationEnabled() && isSaaSApp) {
             return username;
         }
+
         if (IdentityUtil.isEmailUsernameEnabled()) {
             if (StringUtils.countMatches(username, "@") == 1) {
                 return username + "@" + context.getTenantDomain();
             }
         } else if (!username.endsWith(context.getTenantDomain())) {
+
+            // If the username is email-type (without enabling email username option) or belongs to a tenant which is
+            // not the app owner.
+            if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
+                return username;
+            }
             return username + "@" + context.getTenantDomain();
         }
         return username;

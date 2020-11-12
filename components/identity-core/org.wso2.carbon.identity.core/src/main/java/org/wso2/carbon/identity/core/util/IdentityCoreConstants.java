@@ -36,6 +36,7 @@ public class IdentityCoreConstants {
     public static final String UTF_8 = "UTF-8";
     public static final String UTC = "UTC";
     public static final int EVENT_LISTENER_ORDER_ID = -1;
+    public static final String ENABLE_LEGACY_SAAS_AUTHENTICATION = "EnableLegacySaaSAuthentication";
 
     public static final String CASE_INSENSITIVE_USERNAME = "CaseInsensitiveUsername";
     public static final String USE_CASE_SENSITIVE_USERNAME_FOR_CACHE_KEYS = "UseCaseSensitiveUsernameForCacheKeys";
@@ -62,6 +63,7 @@ public class IdentityCoreConstants {
     public static final String ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_MISMATCHED_ERROR_CODE = "17008";
 
     public static final String USER_ACCOUNT_STATE = "UserAccountState";
+    public static final String USER_ACCOUNT_STATE_WITH_USERNAME = "UserAccountStateWithUsername";
 
     // Pagination constants.
     public static final int DEFAULT_MAXIMUM_ITEMS_PRE_PAGE = 100;

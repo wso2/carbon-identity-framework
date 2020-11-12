@@ -349,7 +349,9 @@ public class IdPManagementDAO {
         Map<Integer, String> filterAttributeValue = filterQueryBuilder.getFilterAttributeValue();
         int filterAttributeValueSize = filterAttributeValue.entrySet().size();
         String databaseProductName = dbConnection.getMetaData().getDatabaseProductName();
-        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL;
             sqlQuery = appendRequiredAttributes(sqlQuery, requiredAttributes);
             sqlTail = String.format(IdPManagementConstants.SQLQueries.GET_IDP_BY_TENANT_MYSQL_TAIL, sortedOrder);
@@ -1030,8 +1032,30 @@ public class IdPManagementDAO {
             int authnId = getAuthenticatorIdentifier(dbConnection, idpId,
                     newFederatedAuthenticatorConfig.getName());
 
+            List<Property> unUpdatedProperties = new ArrayList<>();
             List<Property> singleValuedProperties = new ArrayList<>();
             List<Property> multiValuedProperties = new ArrayList<>();
+
+            // Checking for old fed auth config properties that are not updated so we can delete them.
+            if (ArrayUtils.isNotEmpty(oldFederatedAuthenticatorConfig.getProperties())) {
+                if (ArrayUtils.isNotEmpty(newFederatedAuthenticatorConfig.getProperties())) {
+                    for (Property propertyOld : oldFederatedAuthenticatorConfig.getProperties()) {
+                        boolean hasProp = false;
+                        for (Property propertyNew : newFederatedAuthenticatorConfig.getProperties()) {
+                            if (StringUtils.equals(propertyOld.getName(), propertyNew.getName())) {
+                                hasProp = true;
+                                break;
+                            }
+                        }
+                        if (!hasProp) {
+                            unUpdatedProperties.add(propertyOld);
+                        }
+                    }
+                } else {
+                    unUpdatedProperties =
+                            new ArrayList<>(Arrays.asList(oldFederatedAuthenticatorConfig.getProperties()));
+                }
+            }
 
             for (Property property : newFederatedAuthenticatorConfig.getProperties()) {
                 if (Pattern.matches(IdPManagementConstants.MULTI_VALUED_PROPERT_IDENTIFIER_PATTERN, property.getName
@@ -1040,6 +1064,10 @@ public class IdPManagementDAO {
                 } else {
                     singleValuedProperties.add(property);
                 }
+            }
+
+            if (CollectionUtils.isNotEmpty(unUpdatedProperties)) {
+                deleteFederatedConfigProperties(dbConnection, authnId, tenantId, unUpdatedProperties);
             }
             if (CollectionUtils.isNotEmpty(singleValuedProperties)) {
                 updateSingleValuedFederatedConfigProperties(dbConnection, authnId, tenantId, singleValuedProperties);
@@ -1192,6 +1220,7 @@ public class IdPManagementDAO {
                     deleteOldValuePrepStmt = dbConnection.prepareStatement(sqlStmt);
                     deleteOldValuePrepStmt.setString(1, property.getName());
                     deleteOldValuePrepStmt.setInt(2, tenantId);
+                    deleteOldValuePrepStmt.setInt(3, authnId);
                     deleteOldValuePrepStmt.executeUpdate();
                 }
             }
@@ -1217,6 +1246,29 @@ public class IdPManagementDAO {
             IdentityDatabaseUtil.closeStatement(addNewPropsPrepStmt);
         }
 
+    }
+
+    private void deleteFederatedConfigProperties(Connection dbConnection, int authnId, int tenantId, List<Property>
+            properties) throws SQLException {
+
+        if (CollectionUtils.isEmpty(properties)) {
+            return;
+        }
+
+        PreparedStatement deletePrepStmt = null;
+        String sqlStmt = IdPManagementConstants.SQLQueries.DELETE_IDP_AUTH_PROP_WITH_KEY_SQL;
+        try {
+            deletePrepStmt = dbConnection.prepareStatement(sqlStmt);
+            for (Property property : properties) {
+                deletePrepStmt.setString(1, property.getName());
+                deletePrepStmt.setInt(2, tenantId);
+                deletePrepStmt.setInt(3, authnId);
+                deletePrepStmt.addBatch();
+            }
+            deletePrepStmt.executeBatch();
+        } finally {
+            IdentityDatabaseUtil.closeStatement(deletePrepStmt);
+        }
     }
 
     /**
@@ -3827,7 +3879,9 @@ public class IdPManagementDAO {
         String sqlQuery;
         PreparedStatement prepStmt;
         String databaseProductName = connection.getMetaData().getDatabaseProductName();
-        if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+        if (databaseProductName.contains("MySQL")
+                || databaseProductName.contains("MariaDB")
+                || databaseProductName.contains("H2")) {
             sqlQuery = IdPManagementConstants.SQLQueries.GET_CONNECTED_APPS_MYSQL;
             prepStmt = connection.prepareStatement(sqlQuery);
             prepStmt.setString(1, id);

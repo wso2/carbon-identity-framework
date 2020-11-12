@@ -42,6 +42,7 @@ import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfi
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -261,5 +262,28 @@ public class UserStoreConfigComponent {
             }
         }
         UserStoreConfigListenersHolder.getInstance().setAllowedUserstores(allowedUserstores);
+    }
+
+    @Reference(
+            name = "config.context.service",
+            service = ConfigurationContextService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetConfigurationContextService"
+    )
+    protected void setConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        UserStoreConfigListenersHolder.getInstance().setConfigurationContextService(configurationContextService);
+        if (log.isDebugEnabled()) {
+            log.debug("ConfigurationContextService Instance was set.");
+        }
+    }
+
+    protected void unsetConfigurationContextService(ConfigurationContextService configurationContextService) {
+
+        UserStoreConfigListenersHolder.getInstance().setConfigurationContextService(null);
+        if (log.isDebugEnabled()) {
+            log.debug("ConfigurationContextService Instance was unset.");
+        }
     }
 }

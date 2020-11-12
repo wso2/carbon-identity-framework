@@ -4,6 +4,12 @@
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
   "identity_data_source.skip_db_schema_creation": false,
+  "database.identity_db.pool_options.maxActive": "50",
+  "database.identity_db.pool_options.maxWait": "60000",
+  "database.identity_db.pool_options.testOnBorrow": "true",
+  "database.identity_db.pool_options.validationInterval": "30000",
+  "database.identity_db.pool_options.defaultAutoCommit": "true",
+  "database.identity_db.jmx_enable": "false",
   "server.clock_skew": "5m",
   "session_data.persistence.enable_persistence": true,
   "session_data.persistence.persistence_pool_size": "0",
@@ -17,8 +23,10 @@
   "session_data.cleanup.clean_logged_out_sessions_at_immediate_cycle": true,
   "session_data.cleanup.enable_pre_session_data_cleanup": true,
   "session_data.cleanup.pre_session_data_cleanup_thread_pool_size": "20",
+  "session.nonce.cookie.enabled": true,
   "session.timeout.idle_session_timeout": "15m",
   "session.timeout.remember_me_session_timeout": "14d",
+  "session.timeout.extend_remember_me_session_timeout_on_auth": true,
   "key_mgt.keystore_dir": "${carbon.home}/conf/keystores",
   "key_mgt.key_manager_type": "SunX509",
   "key_mgt.trust_manager_type": "SunX509",
@@ -29,8 +37,8 @@
 
   "service_provider.sp_name_regex": "^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$",
 
-  "remotefetch.enable":false,
-  "remotefetch.workingdirectory":"/tmp/",
+  "remote_fetch.enable": false,
+  "remote_fetch.working_directory": "${carbon.home}/tmp/",
 
   "oauth.token_cleanup.enable": true,
   "oauth.token_cleanup.retain_access_tokens_for_auditing": true,
@@ -91,7 +99,7 @@
   "oauth.response_type.code_id_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
   "oauth.response_type.code_id_token_token.enable": true,
   "oauth.response_type.code_id_token_token.class": "org.wso2.carbon.identity.oauth2.authz.handlers.HybridResponseTypeHandler",
-  "oauth.response_type.device.enable": true,
+  "oauth.response_type.device.enable": false,
   "oauth.response_type.device.class": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeHandler",
   "oauth.response_type.device.validator": "org.wso2.carbon.identity.oauth2.device.response.DeviceFlowResponseTypeValidator",
   "oauth.response_type.none.enable": true,
@@ -129,7 +137,7 @@
   "oauth.grant_type.account_switch.enable": true,
   "oauth.grant_type.account_switch.grant_handler": "org.wso2.carbon.identity.user.account.association.handler.grant.AccountSwitchGrantHandler",
   "oauth.grant_type.account_switch.grant_validator": "org.wso2.carbon.identity.user.account.association.validator.grant.AccountSwitchGrantValidator",
-  "oauth.grant_type.device_code.enable": true,
+  "oauth.grant_type.device_code.enable": false,
   "oauth.grant_type.device_code.grant_handler": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrant",
   "oauth.grant_type.device_code.grant_validator": "org.wso2.carbon.identity.oauth2.device.grant.DeviceFlowGrantValidator",
 
@@ -202,7 +210,8 @@
   "saml.enable_user_domain_crpto": false,
   "saml.enable_request_validity_period": false,
   "saml.request_validity_period": "5m",
-  "saml.enable_saml_sp_certificate_expiry_validation": false,
+  "saml.metadata.assertion_encrypt_with_app_cert": true,
+  "saml.enable_saml_sp_certificate_expiry_validation": true,
 
   "saml.endpoints.idp_url": "$ref{server.base_path}/samlsso",
   "saml.endpoints.logout": "$ref{server.base_path}/authenticationendpoint/samlsso_logout.do",
@@ -289,6 +298,10 @@
   "identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset": false,
   "identity_mgt.password_reset_by_admin.enable_offline_otp_based_reset": false,
+  "identity_mgt.password_reset_by_admin.enable_account_lock_notification": false,
+  "identity_mgt.password_reset_by_admin.enable_account_unlock_notification": false,
+
+  "identity_mgt.password_update.preserve_logged_in_session": false,
 
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
@@ -309,12 +322,16 @@
   "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel" : true,
   "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
+  "identity_mgt.user_self_registration.notify_account_confirmation": false,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_self_registration.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]",
 
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
+  "identity_mgt.user_claim_update.mobile.enable_verification": false,
+  "identity_mgt.user_claim_update.mobile.verification_sms_otp_validity": "5",
+  "identity_mgt.user_claim_update.use_verify_claim": true,
 
   "identity_mgt_account_suspension.use_identity_claims": true,
 
@@ -339,8 +356,12 @@
   "event.default_listener.governance_identity_store.data_store": "org.wso2.carbon.identity.governance.store.JDBCIdentityDataStore",
   "event.default_listener.application_authentication.priority": "11",
   "event.default_listener.application_authentication.enable": true,
+  "event.default_listener.mutual_tls_authenticator.priority": "158",
+  "event.default_listener.mutual_tls_authenticator.enable": true,
   "event.default_listener.oauth_listener.priority": "12",
   "event.default_listener.oauth_listener.enable": false,
+  "event.default_listener.basic_auth_client_authenticator.priority": "100",
+  "event.default_listener.basic_auth_client_authenticator.enable": true,
   "event.default_listener.user_deletion.priority": "98",
   "event.default_listener.user_deletion.enable": false,
   "event.default_listener.consent_mgt_handler.priority": "110",
@@ -555,6 +576,15 @@
     }
   ],
 
+  "system_applications": [
+    {
+      "name": "Console"
+    },
+    {
+      "name": "My Account"
+    }
+  ],
+
   "legacy_feature": [
     {
       "id": "oauth",
@@ -607,13 +637,14 @@
   "console.ui.app_logo_path": "/assets/images/logo.svg",
   "console.ui.product_name": "Identity Server",
   "console.theme": "default",
-  "console.session.params": {
-    "userIdleTimeOut": 600,
-    "userIdleWarningTimeOut": 580,
-    "sessionRefreshTimeOut": 300,
-    "checkSessionInterval": 3
-  },
+  "console.session.params.userIdleTimeOut": 600,
+  "console.session.params.userIdleWarningTimeOut": 580,
+  "console.session.params.sessionRefreshTimeOut": 300,
+  "console.session.params.checkSessionInterval": 3,
   "console.applications.enabled": true,
+  "console.product_version.configs": {
+    "versionOverride": "BETA"
+  },
   "console.applications.scopes": {
     "create": [
       "internal_application_mgt_create"
@@ -626,6 +657,21 @@
     ],
     "delete": [
       "internal_application_mgt_delete"
+    ]
+  },
+  "console.approvals.enabled": true,
+  "console.approvals.scopes": {
+    "create": [
+      "internal_humantask_view"
+    ],
+    "read": [
+      "internal_humantask_view"
+    ],
+    "update": [
+      "internal_humantask_view"
+    ],
+    "delete": [
+      "internal_humantask_view"
     ]
   },
   "console.attribute_dialects.enabled": true,
@@ -790,7 +836,6 @@
   "myaccount.overview.enabled": true,
   "myaccount.personal_info.enabled": true,
   "myaccount.security.enabled": true,
-
   "myaccount.operations.scopes": {
     "create": [],
     "read": [
@@ -799,14 +844,13 @@
     "update": [],
     "delete": []
   },
-  "myaccount.session.params": {
-    "userIdleTimeOut": 600,
-    "userIdleWarningTimeOut": 580,
-    "sessionRefreshTimeOut": 300,
-    "checkSessionInterval": 3
-  },
+  "myaccount.session.params.userIdleTimeOut": 600,
+  "myaccount.session.params.userIdleWarningTimeOut": 580,
+  "myaccount.session.params.sessionRefreshTimeOut": 300,
+  "myaccount.session.params.checkSessionInterval": 3,
+  "myaccount.personal_info.disabled_features": ["profileInfo.mobileVerification"],
   "cors.allow_generic_http_requests": true,
-  "cors.allow_any_origin": true,
+  "cors.allow_any_origin": false,
   "cors.allowed_origins": [],
   "cors.allow_subdomains": false,
   "cors.supported_methods": [

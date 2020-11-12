@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 public class TemplateMgtConstants {
 
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String POSTGRE_SQL = "PostgreSQL";
     public static final String DB2 = "DB2";
     public static final String H2 = "H2";
@@ -117,7 +118,8 @@ public class TemplateMgtConstants {
         ERROR_CODE_TEMPLATE_NOT_FOUND("TMM_00021", "A template with the given id %s is not found in the tenant %s."),
         ERROR_CODE_INVALID_TEMPLATE_ID("TMM_00022", "Invalid template id: %s."),
         ERROR_CODE_INVALID_ARGUMENTS_FOR_LIMIT("TMM_00023", "Limit value cannot be negative."),
-        ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET("TMM_00024", "Offset value cannot be negative.");
+        ERROR_CODE_INVALID_ARGUMENTS_FOR_OFFSET("TMM_00024", "Offset value cannot be negative."),
+        ERROR_CODE_DELETE_READONLY_TEMPLATE("TMM_60001", "Cannot delete read-only template: %s");
 
         private final String code;
         private final String message;

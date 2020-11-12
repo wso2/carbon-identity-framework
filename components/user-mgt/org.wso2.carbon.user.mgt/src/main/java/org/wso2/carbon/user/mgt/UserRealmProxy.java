@@ -82,7 +82,9 @@ public class UserRealmProxy {
 
     public static final String FALSE = "false";
     public static final String PERMISSION = "/permission";
+    public static final String PERMISSION_TREE = "/permission/";
     public static final String PERMISSION_ADMIN = "/permission/admin";
+    public static final String PERMISSION_PROTECTED = "/permission/protected";
     private UserRealm realm = null;
 
     public UserRealmProxy(UserRealm userRealm) {
@@ -985,10 +987,14 @@ public class UserRealmProxy {
             if (usAdmin instanceof AbstractUserStoreManager) {
                 if ((roleName.contains(UserCoreConstants.DOMAIN_SEPARATOR) && UserMgtConstants.APPLICATION_DOMAIN
                         .equals(roleName.substring(0, roleName.indexOf(UserCoreConstants.DOMAIN_SEPARATOR))))) {
-                    ((AbstractUserStoreManager) usAdmin).addRole(roleName, userList, null, false);
+                    usAdmin.addRole(roleName, userList, null, false);
                 } else {
-                    ((AbstractUserStoreManager) usAdmin).addRole(UserCoreConstants.INTERNAL_DOMAIN
-                            + UserCoreConstants.DOMAIN_SEPARATOR + roleName, userList, null, false);
+                    if (roleName.startsWith(UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR)) {
+                        usAdmin.addRole(roleName, userList, null, false);
+                    } else {
+                        usAdmin.addRole(UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR
+                                + roleName, userList, null, false);
+                    }
                 }
             } else {
                 throw new UserStoreException("Internal role can not be created");
@@ -1334,6 +1340,9 @@ public class UserRealmProxy {
 
                 String[] hybridRoles = ((AbstractUserStoreManager) admin).getHybridRoles(modifiedFilter);
 
+                // Filter the internal system roles created to maintain the backward compatibility.
+                hybridRoles = filterInternalSystemRoles(hybridRoles);
+
                 if (hybridRoles != null) {
                     Arrays.sort(hybridRoles);
                 }
@@ -1487,6 +1496,9 @@ public class UserRealmProxy {
                     }
                 }
             }
+
+            // Filter the internal system roles created to maintain the backward compatibility.
+            internalRoles = filterInternalSystemRoles(internalRoles);
 
             List<FlaggedName> flaggedNames = new ArrayList<FlaggedName>();
 
@@ -2144,8 +2156,10 @@ public class UserRealmProxy {
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
                 Arrays.sort(rawResources);
                 if (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
-                        Arrays.binarySearch(rawResources, "/permission/protected") > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION) > -1) {
+                        Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
+                        Arrays.binarySearch(rawResources, PERMISSION) > -1 ||
+                        Arrays.binarySearch(rawResources, PERMISSION_TREE) > -1) {
+
                     log.warn("An attempt to Assign admin permission for role by user : " +
                             loggedInUserName);
                     throw new UserStoreException("Can not assign Admin for permission role");

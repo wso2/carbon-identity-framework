@@ -58,6 +58,7 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
 
     private static final long serialVersionUID = -4406878411547612129L;
     private static final Log log = LogFactory.getLog(AbstractApplicationAuthenticator.class);
+    public static final String ENABLE_RETRY_FROM_AUTHENTICATOR = "enableRetryFromAuthenticator";
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -138,7 +139,12 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
     protected boolean retryAuthenticationEnabled(AuthenticationContext context) {
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         AuthenticationGraph graph = sequenceConfig.getAuthenticationGraph();
-        if (graph == null || !graph.isEnabled()) {
+        boolean isRetryAuthenticatorEnabled = false;
+        Map<String, String> authParams = context.getAuthenticatorParams(context.getCurrentAuthenticator());
+        if (MapUtils.isNotEmpty(authParams)) {
+            isRetryAuthenticatorEnabled = Boolean.parseBoolean(authParams.get(ENABLE_RETRY_FROM_AUTHENTICATOR));
+        }
+        if (graph == null || !graph.isEnabled() || isRetryAuthenticatorEnabled) {
             return retryAuthenticationEnabled();
         }
         return false;
@@ -190,21 +196,33 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
             if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context,
                         unmodifiableParamMap);
-                // Resetting the authenticator start time to null since the step event is Success and for the next
-                // step event start time will be added in DefaultStepHandler handle method.
+                /*
+                Resetting the authenticator start time to null since the step event is Success and for the next
+                step event start time will be added in DefaultStepHandler handle method.
+                 */
                 context.setAnalyticsData(FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME, null);
 
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context,
                         unmodifiableParamMap);
-                // Resetting the authenticator start time to current time since the step event is failure and retrying
-                // the event duration will be counted as a new step.
+                /*
+                Resetting the authenticator start time to current time since the step event is failure and retrying
+                the event duration will be counted as a new step.
+                 */
                 context.setAnalyticsData(
                         FrameworkConstants.AnalyticsData.CURRENT_AUTHENTICATOR_START_TIME, System.currentTimeMillis());
             }
         }
     }
 
+    /**
+     * Helper delegator to publish the events for Authentication Step Attempt Failure.
+     *
+     * @param request   Incoming Http request to framework for authentication
+     * @param context   Authentication Context
+     * @param user      initiated user
+     * @param errorCode of the exception
+     */
     private void publishAuthenticationStepAttemptFailure(HttpServletRequest request, AuthenticationContext context,
                                                          User user, String errorCode) {
 

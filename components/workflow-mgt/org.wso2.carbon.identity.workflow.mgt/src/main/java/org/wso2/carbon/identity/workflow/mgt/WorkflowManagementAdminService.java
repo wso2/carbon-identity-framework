@@ -111,7 +111,7 @@ public class WorkflowManagementAdminService {
         } catch (InternalWorkflowException e) {
             String errorMsg =
                     "Error occurred while reading workflow object details for given workflow id, " + e.getMessage();
-            log.error(errorMsg);
+            log.error(errorMsg, e);
             throw new WorkflowException(errorMsg, e);
         }
 

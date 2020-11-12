@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.UserS
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.api.UserStoreManager;
@@ -47,6 +48,11 @@ import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.
+        CURRENT_SESSION_IDENTIFIER;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.
+        PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE;
 
 /**
  * This a service class used to manage user sessions.
@@ -64,9 +70,14 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
 
         String userId = resolveUserIdFromUsername(getTenantId(tenantDomain), userStoreDomain, username);
         try {
+            if (log.isDebugEnabled()) {
+                log.debug("Terminating all the active sessions of user: " + username + " of userstore domain: " +
+                        userStoreDomain + " in tenant: " + tenantDomain);
+            }
             terminateSessionsByUserId(userId);
         } catch (SessionManagementException e) {
-            throw new UserSessionException("Error while terminating sessions of user.", e);
+            throw new UserSessionException("Error while terminating sessions of user:" + username +
+                    " of userstore domain: " + userStoreDomain + " in tenant: " + tenantDomain, e);
         }
     }
 
@@ -92,8 +103,8 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     return ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
                 }
                 if (log.isDebugEnabled()) {
-                    log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
-                            "AbstractUserStore manager");
+                    log.debug("Provided user store manager for the user: " + username + " of userstore domain: " +
+                            userStoreDomain + ", is not an instance of the AbstractUserStore manager");
                 }
                 throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
@@ -176,8 +187,27 @@ public class UserSessionManagementServiceImpl implements UserSessionManagementSe
                     null);
         }
         List<String> sessionIdList = getSessionIdListByUserId(userId);
+
+        boolean isSessionPreservingAtPasswordUpdateEnabled =
+                Boolean.parseBoolean(IdentityUtil.getProperty(PRESERVE_LOGGED_IN_SESSION_AT_PASSWORD_UPDATE));
+        String currentSessionId = "";
+        boolean isSessionTerminationSkipped = false;
+        if (isSessionPreservingAtPasswordUpdateEnabled) {
+            if (IdentityUtil.threadLocalProperties.get().get(CURRENT_SESSION_IDENTIFIER) != null) {
+                currentSessionId = (String) IdentityUtil.threadLocalProperties.get().get(CURRENT_SESSION_IDENTIFIER);
+            }
+            // Remove current sessionId from the list so that its termination is bypassed.
+            if (sessionIdList.remove(currentSessionId)) {
+                isSessionTerminationSkipped = true;
+            }
+        }
+
         if (log.isDebugEnabled()) {
-            log.debug("Terminating all the active sessions of user: " + userId + ".");
+            if (isSessionTerminationSkipped) {
+                log.debug("Terminating the active sessions of user: " + userId + "except the current session.");
+            } else {
+                log.debug("Terminating all the active sessions of user: " + userId + ".");
+            }
         }
         terminateSessionsOfUser(sessionIdList);
         if (!sessionIdList.isEmpty()) {

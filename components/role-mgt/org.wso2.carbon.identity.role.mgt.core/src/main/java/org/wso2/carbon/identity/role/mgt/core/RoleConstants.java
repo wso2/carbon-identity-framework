@@ -32,6 +32,7 @@ public class RoleConstants {
     // DB product names.
     public static final String H2 = "H2";
     public static final String MY_SQL = "MySQL";
+    public static final String MARIADB = "MariaDB";
     public static final String ORACLE = "Oracle";
     public static final String MICROSOFT = "Microsoft SQL Server";
     public static final String POSTGRE_SQL = "PostgreSQL";
@@ -55,6 +56,7 @@ public class RoleConstants {
      */
     public static class RoleTableColumns {
 
+        public static final String UM_ID = "UM_ID";
         public static final String UM_ROLE_NAME = "UM_ROLE_NAME";
         public static final String UM_TENANT_ID = "UM_TENANT_ID";
         public static final String NEW_UM_ROLE_NAME = "NEW_UM_ROLE_NAME";

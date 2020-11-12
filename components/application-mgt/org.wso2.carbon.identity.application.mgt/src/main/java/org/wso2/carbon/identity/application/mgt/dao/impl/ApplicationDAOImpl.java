@@ -2018,7 +2018,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String filterResolvedForSQL = resolveSQLFilter(filter);
 
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            if (databaseProductName.contains("MySQL")
+                    || databaseProductName.contains("MariaDB")
+                    || databaseProductName.contains("H2")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
@@ -3395,7 +3397,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            if (databaseProductName.contains("MySQL")
+                    || databaseProductName.contains("MariaDB")
+                    || databaseProductName.contains("H2")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, tenantID);
@@ -4946,7 +4950,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String getDBVendorSpecificDiscoverableAppRetrievalQueryByAppName(String dbVendorType) throws
             IdentityApplicationManagementException {
 
-        if ("MySQL".equals(dbVendorType) || "H2".equals(dbVendorType)) {
+        if ("MySQL".equals(dbVendorType)
+                || "MariaDB".equals(dbVendorType)
+                || "H2".equals(dbVendorType)) {
             return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL;
         } else if ("Oracle".equals(dbVendorType)) {
             return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE;
@@ -4967,7 +4973,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String getDBVendorSpecificDiscoverableAppRetrievalQuery(String dbVendorType) throws
             IdentityApplicationManagementException {
 
-        if ("MySQL".equals(dbVendorType) || "H2".equals(dbVendorType)) {
+        if ("MySQL".equals(dbVendorType)
+                || "MariaDB".equals(dbVendorType)
+                || "H2".equals(dbVendorType)) {
             return LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL;
         } else if ("Oracle".equals(dbVendorType)) {
             return LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE;
