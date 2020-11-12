@@ -121,9 +121,9 @@ public class SQLQueries {
             + ":OFFSET;, :LIMIT;";
 
     public static final String GET_ROLES_BY_TENANT_AND_ROLE_NAME_ORACLE =
-            "SELECT UM_ROLE_NAME FROM (SELECT UM_ROLE_NAME rownum AS "
-                    + "rnum FROM (SELECT UM_ROLE_NAME FROM UM_HYBRID_ROLE ORDER BY UM_ID DESC) WHERE "
-                    + "UM_TENANT_ID=:UM_TENANT_ID; AND UM_ROLE_NAME LIKE :UM_ROLE_NAME; AND rownum <= :END_INDEX;) "
+            "SELECT UM_ROLE_NAME FROM (SELECT UM_ROLE_NAME, rownum AS "
+                    + "rnum FROM (SELECT UM_ROLE_NAME FROM UM_HYBRID_ROLE WHERE UM_TENANT_ID=:UM_TENANT_ID;"
+                    + " ORDER BY UM_ID DESC) WHERE UM_ROLE_NAME LIKE :UM_ROLE_NAME; AND rownum <= :END_INDEX;) "
                     + "WHERE rnum > :ZERO_BASED_START_INDEX;";
 
     public static final String GET_ROLES_BY_TENANT_AND_ROLE_NAME_MSSQL =
