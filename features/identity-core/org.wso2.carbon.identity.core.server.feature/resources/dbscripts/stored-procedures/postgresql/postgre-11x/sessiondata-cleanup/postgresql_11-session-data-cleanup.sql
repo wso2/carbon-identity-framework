@@ -241,7 +241,6 @@ LOOP
             notice := 'BATCH DELETE START ON TABLE '||purgingSessionAppInfoTable||' WITH :'||batchCount;
             RAISE NOTICE '%',notice;
             END IF;
-
             EXECUTE 'DELETE from '||quote_ident(purgingSessionAppInfoTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
             GET diagnostics deleteAppInfoCount := ROW_COUNT;
             COMMIT;
@@ -261,7 +260,6 @@ LOOP
             notice := 'BATCH DELETE START ON TABLE '||purgingSessionMetadataTable||' WITH :'||batchCount;
             RAISE NOTICE '%',notice;
             END IF;
-
             EXECUTE 'DELETE from '||quote_ident(purgingSessionMetadataTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
             GET diagnostics deleteMetadataCount := ROW_COUNT;
             COMMIT;
@@ -416,7 +414,6 @@ LOOP
                 notice := 'BATCH DELETE START ON TABLE '||purgingSessionAppInfoTable||' WITH :'||batchCount;
                 RAISE NOTICE '%',notice;
             END IF;
-
             EXECUTE 'DELETE from '||quote_ident(purgingSessionAppInfoTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
             GET diagnostics deleteAppInfoCount := ROW_COUNT;
             COMMIT;
@@ -436,7 +433,6 @@ LOOP
                 notice := 'BATCH DELETE START ON TABLE '||purgingSessionMetadataTable||' WITH :'||batchCount;
                 RAISE NOTICE '%',notice;
             END IF;
-
             EXECUTE 'DELETE from '||quote_ident(purgingSessionMetadataTable)||' a USING '||purgingBatchTable||' b where a.'||purgeBseColmn||' = b.'||purgeBseColmn||'';
             GET diagnostics deleteMetadataCount := ROW_COUNT;
             COMMIT;

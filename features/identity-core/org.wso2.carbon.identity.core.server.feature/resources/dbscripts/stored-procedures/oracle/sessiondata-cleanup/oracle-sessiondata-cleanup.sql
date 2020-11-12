@@ -142,7 +142,6 @@ BEGIN
                 EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
                 sessionmappingcleanupcount := SQL%rowcount;
                 COMMIT;
-
                 IF ( tracingenabled ) THEN
                     deletedmappingsessions := deletedmappingsessions + sessionmappingcleanupcount;
                     EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED USER-SESSION MAPPINGS COMPLETED WITH '|| sessionmappingcleanupcount||''')';
@@ -157,7 +156,6 @@ BEGIN
                 EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
                 sessionappinfocleanupcount := SQL%rowcount;
                 COMMIT;
-
                 IF ( tracingenabled ) THEN
                     deletedsessionapppinfo := deletedsessionapppinfo + sessionappinfocleanupcount;
                     EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSION APP INFO COMPLETED WITH '|| sessionappinfocleanupcount||''')';
@@ -172,7 +170,6 @@ BEGIN
                 EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
                 sessionmetadatacleanupcount := SQL%rowcount;
                 COMMIT;
-
                 IF ( tracingenabled ) THEN
                     deletedsessionmetadata := deletedsessionmetadata + sessionmetadatacleanupcount;
                     EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSION METADATA COMPLETED WITH '|| sessionmetadatacleanupcount||''')';
@@ -285,7 +282,6 @@ BEGIN
                 EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
                 operationalmappingcleanupcount := SQL%rowcount;
                 COMMIT;
-
                 IF ( tracingenabled ) THEN
                     deletedoperationalsessionmappings := deletedoperationalsessionmappings + operationalmappingcleanupcount;
                     EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED OPERATIONAL USER-SESSION MAPPINGS COMPLETED WITH '|| operationalmappingcleanupcount||''')';
@@ -300,7 +296,6 @@ BEGIN
                 EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
                 operationalappinfocleanupcount := SQL%rowcount;
                 COMMIT;
-
                 IF ( tracingenabled ) THEN
                     deletedoperationalsessionapppinfo := deletedoperationalsessionapppinfo + operationalappinfocleanupcount;
                     EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED OPERATIONAL SESSION APP INFO COMPLETED WITH '|| operationalappinfocleanupcount||''')';
