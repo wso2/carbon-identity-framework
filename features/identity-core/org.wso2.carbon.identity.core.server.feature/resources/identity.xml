@@ -1535,21 +1535,17 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET">
-            <Permissions>/permission/protected/manage/monitor/tenants/view</Permissions>
-            <Scopes>internal_view_tenants</Scopes>
-        </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="POST">
-            <Permissions>/permission/protected/manage/modify/tenants/create</Permissions>
-            <Scopes>internal_create_tenants</Scopes>
+        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST">
+            <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
+            <Scopes>internal_list_tenants</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
-            <Permissions>/permission/protected/manage/modify/tenants/update</Permissions>
-            <Scopes>internal_update_tenants</Scopes>
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
-            <Permissions>/permission/protected/manage/modify/tenants/delete</Permissions>
-            <Scopes>internal_tenant_metadata_delete</Scopes>
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
