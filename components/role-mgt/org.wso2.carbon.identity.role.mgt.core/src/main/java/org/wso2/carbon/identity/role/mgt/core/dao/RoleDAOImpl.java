@@ -369,11 +369,6 @@ public class RoleDAOImpl implements RoleDAO {
         return roleName;
     }
 
-    private boolean isInternalEveryoneRole(String roleName, UserRealm userRealm) throws UserStoreException {
-
-        return UserCoreUtil.isEveryoneRole(appendInternalDomain(roleName), userRealm.getRealmConfiguration());
-    }
-
     private String resolveSQLFilter(String filter) {
 
         // To avoid any issues when the filter string is blank or null, assigning "%" to SQLFilter.
