@@ -563,19 +563,11 @@
   "user_filtering.show_display_name_of_user": false,
   "analytics.publish_password_grant_logins": false,
 
-  "allowed_user_stores": [
-    {
-      "class": "org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager"
-    },
-    {
-      "class": "org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager"
-    },
-    {
-      "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager"
-    },
-    {
-      "class": "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
-    }
+  "user_store_mgt.allowed_user_stores": [
+    "org.wso2.carbon.user.core.jdbc.UniqueIDJDBCUserStoreManager",
+    "org.wso2.carbon.user.core.ldap.UniqueIDActiveDirectoryUserStoreManager",
+    "org.wso2.carbon.user.core.ldap.UniqueIDReadOnlyLDAPUserStoreManager",
+    "org.wso2.carbon.user.core.ldap.UniqueIDReadWriteLDAPUserStoreManager"
   ],
 
   "system_applications.read_only_apps": [
