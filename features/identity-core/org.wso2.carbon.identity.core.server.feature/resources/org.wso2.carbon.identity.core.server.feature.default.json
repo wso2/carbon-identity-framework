@@ -870,6 +870,9 @@
   "myaccount.ui.app_logo_path": "/assets/images/logo.svg",
   "myaccount.ui.product_name": "Identity Server",
   "myaccount.theme": "default",
+  "myaccount.product_version.configs": {
+    "versionOverride": ""
+  },
   "myaccount.authenticator_app_configs": {
     "enabled": true
   },
