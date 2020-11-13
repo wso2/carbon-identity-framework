@@ -1088,9 +1088,13 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         String roleName = appendInternalDomain(getRoleNameByID(roleID, tenantDomain));
-        if (CollectionUtils.isEmpty(permissions)) {
+        /*
+        Permission list can be empty in case we want to remove the permissions.
+        Therefore validating for NULL will be sufficient.
+         */
+        if (permissions == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Permissions list is empty.");
+                log.debug("Permissions list is null. Therefore not proceeding further.");
             }
             return new RoleBasicInfo(roleID, roleName);
         }
