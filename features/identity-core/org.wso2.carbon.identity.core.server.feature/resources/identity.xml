@@ -863,6 +863,7 @@
             <InternallyManage>true</InternallyManage>
         </Notification>
         <ReCaptcha>true</ReCaptcha>
+        <ResendConfirmationReCaptcha>false</ResendConfirmationReCaptcha>
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
