@@ -2423,10 +2423,10 @@
     {% endif %}
 
     <!-- System Applications -->
-    {% if system_applications is defined %}
+    {% if system_applications.read_only_apps is defined %}
     <SystemApplications>
-        {% for application in system_applications %}
-        <ApplicationName>{{application.name}}</ApplicationName>
+        {% for application in system_applications.read_only_apps %}
+        <ApplicationName>{{application}}</ApplicationName>
         {% endfor %}
     </SystemApplications>
     {% endif %}

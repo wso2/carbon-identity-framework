@@ -578,13 +578,9 @@
     }
   ],
 
-  "system_applications": [
-    {
-      "name": "Console"
-    },
-    {
-      "name": "My Account"
-    }
+  "system_applications.read_only_apps": [
+    "Console",
+    "My Account"
   ],
 
   "legacy_feature": [
