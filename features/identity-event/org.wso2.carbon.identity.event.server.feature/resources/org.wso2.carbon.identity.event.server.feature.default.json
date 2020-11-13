@@ -167,5 +167,14 @@
   "identity_mgt.events.schemes.identityOauthEventHandler.subscriptions": [
     "POST_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIM"
+  ],
+  "identity_mgt.events.schemes.userOperationDataDASPublisher.module_index": "29",
+  "identity_mgt.events.schemes.userOperationDataDASPublisher.properties.enable": false,
+  "identity_mgt.events.schemes.userOperationDataDASPublisher.subscriptions": [
+    "POST_ADD_USER",
+    "POST_DELETE_USER",
+    "POST_UPDATE_CREDENTIAL",
+    "POST_UPDATE_CREDENTIAL_BY_ADMIN",
+    "POST_SET_USER_CLAIMS"
   ]
 }
