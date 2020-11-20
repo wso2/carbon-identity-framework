@@ -35,10 +35,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.MisconfigurationException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.*;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ClientException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -168,7 +166,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                             }
 
                         } else {
-                            throw new FrameworkException("Invalid authentication request with sessionDataKey: "
+                            throw new ClientException("Invalid authentication request with sessionDataKey: "
                                     + sessionDataKey);
                         }
                     }
@@ -289,6 +287,11 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     e.getErrorCode());
             FrameworkUtils
                     .sendToRetryPage(request, responseWrapper, "Authentication attempt failed.", e.getErrorCode());
+        } catch (ClientException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid Authentication Request", e);
+            }
+            FrameworkUtils.sendToRetryPage(request, responseWrapper);
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             FrameworkUtils.sendToRetryPage(request, responseWrapper);
