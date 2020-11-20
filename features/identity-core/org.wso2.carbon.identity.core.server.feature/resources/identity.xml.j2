@@ -76,7 +76,7 @@
         <TrustManagerType>{{key_mgt.trust_manager_type}}</TrustManagerType>
     </Security>
 
-    <!-- This configuration is to resolve the internal service URL for internal API calls -->
+    <!-- This configuration is to resolve the internal service URL for internal API calls. -->
     <ServerHostName>{{server.internal_hostname}}</ServerHostName>
 
     <Identity>
@@ -123,35 +123,35 @@
 
         <!-- Specify full qualified class name of the class which going to use as private association store -->
         <!--
-		<OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
-	-->
+        <OpenIDPrivateAssociationStoreClass>org.wso2.carbon.identity.provider.openid.PrivateAssociationCryptoStore</OpenIDPrivateAssociationStoreClass>
+        -->
 
         <!-- The expiration time (in minutes) for the OpenID association -->
         <!--
-		<OpenIDAssociationExpiryTime>15</OpenIDAssociationExpiryTime>
-	-->
+        <OpenIDAssociationExpiryTime>15</OpenIDAssociationExpiryTime>
+        -->
 
         <!-- Configs specific to PrivateAssociationCryptoStore -->
         <!-- Server secret. This value should be the same in all nodes in the cluster -->
         <!--
-		<OpenIDPrivateAssociationServerKey>qewlj324lmasc</OpenIDPrivateAssociationServerKey>
-	-->
+        <OpenIDPrivateAssociationServerKey>qewlj324lmasc</OpenIDPrivateAssociationServerKey>
+        -->
 
         <!-- Configs specific to PrivateAssociationCryptoStore -->
         <!-- This enable private association cleanup task which cleans expired private associations -->
         <!--
-		<EnableOpenIDAssociationCleanupTask>true</EnableOpenIDAssociationCleanupTask>
-	-->
+        <EnableOpenIDAssociationCleanupTask>true</EnableOpenIDAssociationCleanupTask>
+        -->
         <!-- Time Period (in minutes) that cleanup task would run -->
         <!--
-		<OpenIDAssociationCleanupPeriod>15</OpenIDAssociationCleanupPeriod>
-	-->
+        <OpenIDAssociationCleanupPeriod>15</OpenIDAssociationCleanupPeriod>
+        -->
     </OpenID>
 
 <!--Remote Fetch Core Configuration-->
     <RemoteFetch>
-        <FetchEnabled>{{remotefetch.enable}}</FetchEnabled>
-        <WorkingDirectory>{{remotefetch.workingdirectory}}</WorkingDirectory>
+        <FetchEnabled>{{remote_fetch.enable}}</FetchEnabled>
+        <WorkingDirectory>{{remote_fetch.working_directory}}</WorkingDirectory>
     </RemoteFetch>
 
     <OAuth>
@@ -241,6 +241,8 @@
         <TimestampSkew>{{oauth.timestamp_skew}}</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>{{oauth.token_renewal.renew_refresh_token}}</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable Extend renews refresh token expiry time -->
+        <ExtendRenewedRefreshTokenExpiryTime>{{oauth.token_renewal.extend_refresh_token_expiry_time_on_renewal}}</ExtendRenewedRefreshTokenExpiryTime>
         <!-- Process the token before storing it in database, e.g. encrypting -->
         {% if oauth.extensions.token_persistence_processor is defined %}
         <TokenPersistenceProcessor>{{oauth.extensions.token_persistence_processor}}</TokenPersistenceProcessor>
@@ -467,7 +469,7 @@
            {% for callback_handler in oauth.extensions.callback_handlers %}
               <OAuthCallbackHandler Class="{{callback_handler.class}}">
                 {% if callback_handler.priority is defined %}
-                	<Priority Value="{{callback_handler.priority}}"/>
+                    <Priority Value="{{callback_handler.priority}}"/>
                 {% endif %}
                 {% if callback_handler.properties is defined %}
                   <Properties>
@@ -758,6 +760,11 @@
 
         <PublishPasswordGrantLogin>{{analytics.publish_password_grant_logins}}</PublishPasswordGrantLogin>
 
+        <!--
+        By enabling this property, application role permission will require to view the OAuth app in DCRM.
+
+        Default value : true
+        -->
         <DCRM>
             <ApplicationRolePermissionRequiredToView>{{oauth.dcrm.application_role_permission_required_to_view}}</ApplicationRolePermissionRequiredToView>
         </DCRM>
@@ -1052,6 +1059,8 @@
             <Offline>{{identity_mgt.password_reset_by_admin.enable_offline_otp_based_reset}}</Offline>
             <OTP>{{identity_mgt.password_reset_by_admin.enable_emailed_otp_based_reset}}</OTP>
             <RecoveryLink>{{identity_mgt.password_reset_by_admin.enable_emailed_link_based_reset}}</RecoveryLink>
+            <AccountLockNotification>{{identity_mgt.password_reset_by_admin.enable_account_lock_notification}}</AccountLockNotification>
+            <AccountUnlockNotification>{{identity_mgt.password_reset_by_admin.enable_account_unlock_notification}}</AccountUnlockNotification>
         </AdminPasswordReset>
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
@@ -1072,14 +1081,14 @@
 
     <EmailVerification>
         <Enable>{{identity_mgt.user_onboarding.enable_email_verification}}</Enable>
-	    <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
+        <ExpiryTime>{{identity_mgt.user_onboarding.verification_email_validity}}</ExpiryTime>
         <LockOnCreation>{{identity_mgt.user_onboarding.lock_on_creation}}</LockOnCreation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_onboarding.notification.manage_internally}}</InternallyManage>
         </Notification>
         <AskPassword>
-	        <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
-	        <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
+            <ExpiryTime>{{identity_mgt.user_onboarding.ask_password_email_validity}}</ExpiryTime>
+            <PasswordGenerator>{{identity_mgt.user_onboarding.password_generator}}</PasswordGenerator>
         </AskPassword>
     </EmailVerification>
 
@@ -1101,10 +1110,11 @@
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
         </Notification>
         <ReCaptcha>{{identity_mgt.user_self_registration.enable_recaptcha}}</ReCaptcha>
-	    <VerificationCode>
-	        <ExpiryTime>{{identity_mgt.user_self_registration.verification_email_validity}}</ExpiryTime>
-	    </VerificationCode>
+        <VerificationCode>
+            <ExpiryTime>{{identity_mgt.user_self_registration.verification_email_validity}}</ExpiryTime>
+        </VerificationCode>
         <CallbackRegex>{{identity_mgt.user_self_registration.callback_url}}</CallbackRegex>
+        <ResendConfirmationReCaptcha>{{identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha}}</ResendConfirmationReCaptcha>
     </SelfRegistration>
 
     <UserClaimUpdate>
@@ -1124,6 +1134,10 @@
                 </VerificationCode>
              </VerificationOnUpdate>
         </Claim>
+        <!-- When updating the claim value, the verification notification can be controlled by sending an additional
+        temporary claim ('verifyEmail'/'verifyMobile') along with the update request. To enable this option,
+        'UseVerifyClaim' should be set to true. -->
+        <UseVerifyClaim>{{identity_mgt.user_claim_update.use_verify_claim}}</UseVerifyClaim>
     </UserClaimUpdate>
 
      <AccountSuspension>
@@ -1206,6 +1220,12 @@
                        orderId="{{event.default_listener.oauth_listener.priority}}"
                        enable="{{event.default_listener.oauth_listener.enable}}">
             <Property name="Log.Token">false</Property>
+        </EventListener>
+        <EventListener id="mutual_tls_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.MutualTLSClientAuthenticator"
+                       orderId="{{event.default_listener.mutual_tls_authenticator.priority}}"
+                       enable="{{event.default_listener.mutual_tls_authenticator.enable}}">
         </EventListener>
 
         <!-- Basic OAuth client authenticator -->
@@ -1481,10 +1501,12 @@
 
     </CacheConfig>
 
+    <EnableSessionNonceCookie>{{session.nonce.cookie.enabled}}</EnableSessionNonceCookie>
+
     {% if identity.cookies is defined %}
     <Cookies>
     {% for cookie in identity.cookies %}
-        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" />
+        <Cookie name="{{cookie.name}}" domain="{{cookie.domain}}" httpOnly="{{cookie.httpOnly}}" secure="{{cookie.secure}}" sameSite="{{cookie.sameSite}}" />
     {% endfor %}
     </Cookies>
     {% endif %}
@@ -1493,7 +1515,14 @@
     <ResourceAccessControl {% if resource_access_control.default_access_allow is sameas false %} default-access="deny" {% endif %} {% if resource_access_control.disable_scope_validation is sameas true %} disable-scope-validation="true" {% endif %}>
         {% for resource in resource.access_control %}
         <Resource context="{{resource.context}}" secured="{{resource.secure}}"
-                {% if resource.allowed_auth_handlers is defined %} allowed-auth-handlers="{{resource.allowed_auth_handlers|join(', ')}}" {% endif %} http-method="{{resource.http_method}}">
+                {% if resource.allowed_auth_handlers is defined %}
+                allowed-auth-handlers="{{resource.allowed_auth_handlers|join(', ')}}"
+                {% endif %}
+                http-method="{{resource.http_method}}"
+                {% if resource.cross_tenant is defined %}
+                cross-tenant="{{resource.cross_tenant}}"
+                {% endif %}
+                >
             {% for permission in resource.permissions %}
             <Permissions>{{permission}}</Permissions>
             {% endfor %}
@@ -1645,6 +1674,18 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
             <Scopes>internal_manage_pep</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
@@ -1809,6 +1850,14 @@
         </Resource>
         <Resource context="(.*)/api/identity/oauth2/v1.0/(.*)" secured="true" http-method="all"/>
 
+        <Resource context="(.*)/api/users/v1/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/me/authorized-apps(.*)" secured="true" http-method="GET, DELETE">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/me/approval-tasks(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
             <Permissions>/permission/admin/manage/humantask/viewtasks</Permissions>
             <Scopes>internal_humantask_view</Scopes>
@@ -1947,7 +1996,7 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>
@@ -1992,16 +2041,13 @@
             <Permissions>/permission/admin/manage/identity/authentication/session/delete</Permissions>
             <Scopes>internal_session_delete</Scopes>
         </Resource>
-       <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+        <Resource context="(.*)/api/users/v1/me/applications(.*)" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
+       <Resource context="(.*)/api/users/v1/me(.*)" secured="true" http-method="GET, HEAD, POST, PUT, DELETE, PATCH">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
         </Resource>
         <Resource context="(.*)/api/server/v1/identity-providers(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/idpmgt/create</Permissions>
@@ -2051,7 +2097,7 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST">
+        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
@@ -2063,12 +2109,9 @@
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
-            <Permissions>/permission/admin/manage/identity/</Permissions>
-            <Scopes>internal_identity_mgt_view</Scopes>
-            <Scopes>internal_identity_mgt_update</Scopes>
-            <Scopes>internal_identity_mgt_create</Scopes>
-            <Scopes>internal_identity_mgt_delete</Scopes>
+        <Resource context="(.*)/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
         </Resource>
         <Resource context="(.*)/api/users/v2/me/webauthn(.*)" secured="true" http-method="all">
             <Permissions>none</Permissions>
@@ -2089,6 +2132,8 @@
             <Permissions>/permission/admin/manage/identity/media/delete</Permissions>
             <Scopes>internal_media_mgt_delete</Scopes>
         </Resource>
+        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
+
         <Resource context="(.*)/api/server/v1/cors/origins" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
             <Scopes>internal_cors_origins_view</Scopes>
@@ -2097,9 +2142,29 @@
             <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
             <Scopes>internal_cors_origins_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/identity/media/v1.0/me/(.*)" secured="true" http-method="DELETE"/>
+        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity/</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/users/v2/(.*)" secured="true" http-method="all">
+            <Permissions>/permission/admin/manage/identity</Permissions>
+            <Scopes>internal_identity_mgt_view</Scopes>
+            <Scopes>internal_identity_mgt_update</Scopes>
+            <Scopes>internal_identity_mgt_create</Scopes>
+            <Scopes>internal_identity_mgt_delete</Scopes>
+        </Resource>
+
         <Resource context="/carbon(.*)" secured="false" http-method="all"/>
-        <Resource context="/portal(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/myaccount(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/console(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/commonauth(.*)" secured="false" http-method="all"/>
@@ -2129,6 +2194,7 @@
         <Resource context="(.*)/wso2/scim/Groups(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/wso2/scim/Bulk(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/authenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/accountrecoveryendpoint/confirmregistration.do(.*)" secured="false" http-method="GET, POST, HEAD"/>
         <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
         <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -2348,12 +2414,21 @@
     </UserFiltering>
 
     <!-- Allowed Userstores -->
-    {% if allowed_user_stores is defined %}
+    {% if user_store_mgt.allowed_user_stores is defined %}
     <AllowedUserstores>
-        {% for user_store in allowed_user_stores %}
-        <AllowedUserstore>{{user_store.class}}</AllowedUserstore>
+        {% for allowed_user_store in user_store_mgt.allowed_user_stores %}
+        <AllowedUserstore>{{allowed_user_store}}</AllowedUserstore>
         {% endfor %}
     </AllowedUserstores>
+    {% endif %}
+
+    <!-- System Applications -->
+    {% if system_applications.read_only_apps is defined %}
+    <SystemApplications>
+        {% for application in system_applications.read_only_apps %}
+        <ApplicationName>{{application}}</ApplicationName>
+        {% endfor %}
+    </SystemApplications>
     {% endif %}
 
     <MutualTLS>
@@ -2426,4 +2501,11 @@
     <PasswordUpdate>
         <PreserveLoggedInSession>{{identity_mgt.password_update.preserve_logged_in_session}}</PreserveLoggedInSession>
     </PasswordUpdate>
+
+    <EmailTemplatePlaceholders>
+    {% for key,value in email_templates.placeholders.items() %}
+        <EmailTemplatePlaceholder key="{{key}}">{{value}}</EmailTemplatePlaceholder>
+    {% endfor %}
+    </EmailTemplatePlaceholders>
+
 </Server>

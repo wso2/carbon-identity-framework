@@ -47,6 +47,13 @@ public interface ServiceURL {
     int getPort();
 
     /**
+     * Returns the internal transport portL.
+     *
+     * @return value of the port.
+     */
+    int getTransportPort();
+
+    /**
      * Returns the Url path of Service URL.
      *
      * @return String of the url path.

@@ -351,91 +351,55 @@ public class IdentityProviderManager implements IdpManager {
             oidcFedAuthn = new FederatedAuthenticatorConfig();
             oidcFedAuthn.setName(IdentityApplicationConstants.Authenticator.OIDC.NAME);
         }
-        propertiesList = new ArrayList<Property>(Arrays.asList(oidcFedAuthn.getProperties()));
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                OPENID_IDP_ENTITY_ID) == null) {
-            Property idPEntityIdProp = new Property();
-            idPEntityIdProp.setName(OPENID_IDP_ENTITY_ID);
-            idPEntityIdProp.setValue(getOIDCResidentIdPEntityId());
-            propertiesList.add(idPEntityIdProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL) == null) {
-            Property authzUrlProp = new Property();
-            authzUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
-            authzUrlProp.setValue(oauth2AuthzEPUrl);
-            propertiesList.add(authzUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL) == null) {
-            Property tokenUrlProp = new Property();
-            tokenUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
-            tokenUrlProp.setValue(oauth2TokenEPUrl);
-            propertiesList.add(tokenUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL) == null) {
-            Property revokeUrlProp = new Property();
-            revokeUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL);
-            revokeUrlProp.setValue(oauth2RevokeEPUrl);
-            propertiesList.add(revokeUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL) == null) {
-            Property instropsectUrlProp = new Property();
-            instropsectUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL);
-            instropsectUrlProp.setValue(oauth2IntrospectEpUrl);
-            propertiesList.add(instropsectUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL) == null) {
-            Property userInfoUrlProp = new Property();
-            userInfoUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL);
-            userInfoUrlProp.setValue(oauth2UserInfoEPUrl);
-            propertiesList.add(userInfoUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL) == null) {
-            Property checkSessionUrlProp = new Property();
-            checkSessionUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL);
-            checkSessionUrlProp.setValue(oidcCheckSessionEPUrl);
-            propertiesList.add(checkSessionUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL) == null) {
-            Property logoutUrlProp = new Property();
-            logoutUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
-            logoutUrlProp.setValue(oidcLogoutEPUrl);
-            propertiesList.add(logoutUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL) == null) {
-            Property dcrUrlProp = new Property();
-            dcrUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL);
-            dcrUrlProp.setValue(oAuth2DCREPUrl);
-            propertiesList.add(dcrUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL) == null) {
-            Property webFingerUrlProp = new Property();
-            webFingerUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL);
-            webFingerUrlProp.setValue(oIDCWebFingerEPUrl);
-            propertiesList.add(webFingerUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL) == null) {
-            Property jwksUrlProp = new Property();
-            jwksUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL);
-            jwksUrlProp.setValue(oAuth2JWKSPage);
-            propertiesList.add(jwksUrlProp);
-        }
-        if (IdentityApplicationManagementUtil.getProperty(oidcFedAuthn.getProperties(),
-                IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL) == null) {
-            Property discoveryUrlProp = new Property();
-            discoveryUrlProp.setName(IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
-            discoveryUrlProp.setValue(oIDCDiscoveryEPUrl);
-            propertiesList.add(discoveryUrlProp);
-        }
+        propertiesList = new ArrayList<Property>();
+
+        Property idPEntityIdProp = resolveFedAuthnProperty(getOIDCResidentIdPEntityId(), oidcFedAuthn,
+                OPENID_IDP_ENTITY_ID);
+        propertiesList.add(idPEntityIdProp);
+
+        Property authzUrlProp = resolveFedAuthnProperty(oauth2AuthzEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_AUTHZ_URL);
+        propertiesList.add(authzUrlProp);
+
+        Property tokenUrlProp = resolveFedAuthnProperty(oauth2TokenEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_TOKEN_URL);
+        propertiesList.add(tokenUrlProp);
+
+        Property revokeUrlProp = resolveFedAuthnProperty(oauth2RevokeEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_REVOKE_URL);
+        propertiesList.add(revokeUrlProp);
+
+        Property instropsectUrlProp = resolveFedAuthnProperty(oauth2IntrospectEpUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_INTROSPECT_URL);
+        propertiesList.add(instropsectUrlProp);
+
+        Property userInfoUrlProp = resolveFedAuthnProperty(oauth2UserInfoEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_USER_INFO_EP_URL);
+        propertiesList.add(userInfoUrlProp);
+
+        Property checkSessionUrlProp = resolveFedAuthnProperty(oidcCheckSessionEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_CHECK_SESSION_URL);
+        propertiesList.add(checkSessionUrlProp);
+
+        Property logoutUrlProp = resolveFedAuthnProperty(oidcLogoutEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_LOGOUT_URL);
+        propertiesList.add(logoutUrlProp);
+
+        Property dcrUrlProp = resolveFedAuthnProperty(oAuth2DCREPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_DCR_EP_URL);
+        propertiesList.add(dcrUrlProp);
+
+        Property webFingerUrlProp = resolveFedAuthnProperty(oIDCWebFingerEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_WEB_FINGER_EP_URL);
+        propertiesList.add(webFingerUrlProp);
+
+        Property jwksUrlProp = resolveFedAuthnProperty(oAuth2JWKSPage, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OAUTH2_JWKS_EP_URL);
+        propertiesList.add(jwksUrlProp);
+
+        Property discoveryUrlProp = resolveFedAuthnProperty(oIDCDiscoveryEPUrl, oidcFedAuthn,
+                IdentityApplicationConstants.Authenticator.OIDC.OIDC_DISCOVERY_EP_URL);
+        propertiesList.add(discoveryUrlProp);
 
         oidcFedAuthn.setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(oidcFedAuthn);
@@ -638,19 +602,19 @@ public class IdentityProviderManager implements IdpManager {
 
         List<Property> propertiesList = new ArrayList<>();
 
-        Property samlSSOUrlProperty = resolveSAMLProperty(samlSSOUrl, samlFederatedAuthConfig,
+        Property samlSSOUrlProperty = resolveFedAuthnProperty(samlSSOUrl, samlFederatedAuthConfig,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.SSO_URL);
         propertiesList.add(samlSSOUrlProperty);
 
-        Property samlLogoutUrlProperty = resolveSAMLProperty(samlLogoutUrl, samlFederatedAuthConfig,
+        Property samlLogoutUrlProperty = resolveFedAuthnProperty(samlLogoutUrl, samlFederatedAuthConfig,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.LOGOUT_REQ_URL);
         propertiesList.add(samlLogoutUrlProperty);
 
-        Property samlECPUrlProperty = resolveSAMLProperty(samlECPUrl, samlFederatedAuthConfig,
+        Property samlECPUrlProperty = resolveFedAuthnProperty(samlECPUrl, samlFederatedAuthConfig,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.ECP_URL);
         propertiesList.add(samlECPUrlProperty);
 
-        Property samlArtifactUrlProperty = resolveSAMLProperty(samlArtifactUrl, samlFederatedAuthConfig,
+        Property samlArtifactUrlProperty = resolveFedAuthnProperty(samlArtifactUrl, samlFederatedAuthConfig,
                 IdentityApplicationConstants.Authenticator.SAML2SSO.ARTIFACT_RESOLVE_URL);
         propertiesList.add(samlArtifactUrlProperty);
 
@@ -750,20 +714,20 @@ public class IdentityProviderManager implements IdpManager {
         return destinationURLProperty;
     }
 
-    private Property resolveSAMLProperty(String samlEpUrl, FederatedAuthenticatorConfig samlFedAuthConfig,
-                                              String propertyName) {
+    private Property resolveFedAuthnProperty(String epUrl, FederatedAuthenticatorConfig fedAuthnConfig,
+                                             String propertyName) {
 
-        Property samlProperty =
-                IdentityApplicationManagementUtil.getProperty(samlFedAuthConfig.getProperties(), propertyName);
+        Property property =
+                IdentityApplicationManagementUtil.getProperty(fedAuthnConfig.getProperties(), propertyName);
 
-        if (samlProperty == null || IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+        if (property == null || IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
             // In tenant qualified mode we have to always give send the calculated URL and not the value stored in DB.
-            samlProperty = new Property();
-            samlProperty.setName(propertyName);
+            property = new Property();
+            property.setName(propertyName);
             // Set the calculated SAML endpoint URL.
-            samlProperty.setValue(samlEpUrl);
+            property.setValue(epUrl);
         }
-        return samlProperty;
+        return property;
     }
 
     /**
@@ -1163,8 +1127,8 @@ public class IdentityProviderManager implements IdpManager {
                     } else if ("false".contains(((ExpressionNode) node).getValue())) {
                         ((ExpressionNode) node).setValue(IdPManagementConstants.IS_FALSE_VALUE);
                     } else {
-                        String message = "Invalid 'isEnabled' value passed in the filter. It should be 'true' or " +
-                                "'false' isEnabled = " + ((ExpressionNode) node).getValue();
+                        String message = "Invalid value: " + ((ExpressionNode) node).getValue() + "is passed for " +
+                                "'isEnabled' attribute in the filter. It should be 'true' or 'false'";
                         throw IdPManagementUtil
                                 .handleClientException(IdPManagementConstants.ErrorMessage.ERROR_CODE_RETRIEVE_IDP,
                                         message);
@@ -1915,7 +1879,7 @@ public class IdentityProviderManager implements IdpManager {
 
                 for (Property property : properties) {
                     if (property != null) {
-                        if (property.getName() != null &&
+                        if (StringUtils.isNotBlank(property.getName()) &&
                                 property.getName().contains(IdPManagementConstants.META_DATA)) {
                             for (MetadataConverter metadataConverter : IdpMgtServiceComponentHolder.getInstance()
                                     .getMetadataConverters()) {
@@ -1931,7 +1895,8 @@ public class IdentityProviderManager implements IdpManager {
                                                         federatedAuthenticatorConfig.getName(), property.getValue());
                                             } catch (IdentityProviderManagementException e) {
                                                 String data =
-                                                        "Couldn't save metadata in registry.SAML2SSOMetadataConverter is not set.";
+                                                        "Couldn't save metadata in registry.SAML2SSOMetadataConverter" +
+                                                                " is not set. ";
                                                 throw IdPManagementUtil.handleServerException(
                                                         IdPManagementConstants.ErrorMessage.ERROR_CODE_ADD_IDP, data);
                                             }
@@ -1944,9 +1909,8 @@ public class IdentityProviderManager implements IdpManager {
                                             String spName = "";
 
                                             for (Property value : properties) {
-                                                if (value != null && value.getName() != null &&
-                                                        value.getName()
-                                                                .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                                                if (value != null && IdentityApplicationConstants.Authenticator
+                                                        .SAML2SSO.SP_ENTITY_ID.equals(value.getName())) {
                                                     spName = value.getValue();
                                                 }
                                             }
@@ -1958,17 +1922,16 @@ public class IdentityProviderManager implements IdpManager {
                                                     ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
                                                 for (int y = 0; y < metaFederated.getProperties().length; y++) {
                                                     if (metaFederated.getProperties()[y] != null &&
-                                                            metaFederated.getProperties()[y].getName() != null
-                                                            && metaFederated.getProperties()[y].getName()
-                                                            .equals(IdentityApplicationConstants.Authenticator.SAML2SSO.SP_ENTITY_ID)) {
+                                                            IdentityApplicationConstants.Authenticator.SAML2SSO
+                                                                    .SP_ENTITY_ID.equals
+                                                                    (metaFederated.getProperties()[y].getName())) {
                                                         metaFederated.getProperties()[y].setValue(spName);
                                                         break;
                                                     }
                                                 }
                                             }
 
-                                            if (metaFederated != null && metaFederated.getProperties() != null &&
-                                                    metaFederated.getProperties().length > 0) {
+                                            if (metaFederated != null && ArrayUtils.isNotEmpty(metaFederated.getProperties())) {
                                                 federatedAuthenticatorConfig
                                                         .setProperties(metaFederated.getProperties());
                                             } else {

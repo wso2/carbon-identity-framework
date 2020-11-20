@@ -601,10 +601,16 @@ public class DefaultStepHandler implements StepHandler {
             if (errorContext != null) {
                 if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
                         equals(errorContext.getErrorCode())) {
-                    log.error("Authentication failed exception!", e);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Authentication failed exception!", e);
+                    }
+                    log.error("Authentication failed exception! " + e.getMessage());
                 }
             } else {
-                log.error("Authentication failed exception!", e);
+                if (log.isDebugEnabled()) {
+                    log.debug("Authentication failed exception!", e);
+                }
+                log.error("Authentication failed exception! " + e.getMessage());
             }
             handleFailedAuthentication(request, response, context, authenticatorConfig, e.getUser());
         } catch (LogoutFailedException e) {

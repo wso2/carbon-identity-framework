@@ -86,6 +86,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 
 /**
  * Request Coordinator
@@ -294,7 +295,16 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             FrameworkUtils.sendToRetryPage(request, responseWrapper);
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
-            FrameworkUtils.sendToRetryPage(request, responseWrapper);
+            if ((e instanceof FrameworkException)
+                    && (NONCE_ERROR_CODE.equals(((FrameworkException) e).getErrorCode()))) {
+                if (log.isDebugEnabled()) {
+                    log.debug(e.getMessage(), e);
+                }
+                FrameworkUtils.sendToRetryPage(request, response, "suspicious.authentication.attempts",
+                        "suspicious.authentication.attempts.description");
+            } else {
+                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+            }
         } finally {
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.

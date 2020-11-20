@@ -781,4 +781,24 @@ public class IdentityManagementEndpointUtil {
             }
         }
     }
+
+    /**
+     * Get a query parameter value from a URL.
+     *
+     * @param url               URL.
+     * @param queryParameter    Required query parameter name.
+     * @return Query parameter value.
+     * @throws URISyntaxException If url is not in valid syntax.
+     */
+    public static String getQueryParameter(String url, String queryParameter) throws URISyntaxException {
+
+        String queryParams = new URI(url).getQuery();
+        Map<String, String> queryParamMap = new HashMap<>();
+        if (StringUtils.isNotBlank(queryParams)) {
+            queryParamMap = Arrays.stream(queryParams.split(SPLITTING_CHAR))
+                    .map(entry -> entry.split(PADDING_CHAR))
+                    .collect(Collectors.toMap(entry -> entry[0], entry -> entry[1]));
+        }
+        return queryParamMap.get(queryParameter);
+    }
 }

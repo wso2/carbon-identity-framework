@@ -260,7 +260,7 @@ public class SAMLSSOServiceProviderDAO extends AbstractDAO<SAMLSSOServiceProvide
             throw new IdentityException("Issuer cannot be found in the provided arguments.");
         }
 
-        // If an issuer qualifier value is specified, it is appended to the end of the issuer value
+        // If an issuer qualifier value is specified, it is appended to the end of the issuer value.
         if (StringUtils.isNotBlank(serviceProviderDO.getIssuerQualifier())) {
             serviceProviderDO.setIssuer(getIssuerWithQualifier(serviceProviderDO.getIssuer(),
                     serviceProviderDO.getIssuerQualifier()));

@@ -587,11 +587,12 @@ public class ApiClient {
             throw new ApiException(204, "No content Found");
 
         } else if (response.getStatusInfo().getFamily() == Family.SUCCESSFUL) {
-            if (returnType == null) {
-                return null;
-            } else {
-                return response.getEntity(returnType);
+            if (returnType != null) {
+                if (response.hasEntity()) {
+                    return response.getEntity(returnType);
+                }
             }
+            return null;
         } else {
             String message = "error";
             String respBody = null;
