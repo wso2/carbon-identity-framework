@@ -36,7 +36,6 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.exception.*;
-import org.wso2.carbon.identity.application.authentication.framework.exception.ClientException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -214,7 +213,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.error("Same context is currently in used by a different thread. Possible double submit.");
                         if (log.isDebugEnabled()) {
                             log.debug("Same context is currently in used by a different thread. Possible double submit."
-                                    +  "\n" +
+                                    + "\n" +
                                     "Context id: " + context.getContextIdentifier() + "\n" +
                                     "Originating address: " + request.getRemoteAddr() + "\n" +
                                     "Request Headers: " + getHeaderString(request) + "\n" +
@@ -276,7 +275,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
         } catch (MisconfigurationException e) {
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, "misconfiguration.error","something.went.wrong.contact" +
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, "misconfiguration.error", "something.went.wrong.contact" +
                     ".admin");
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
@@ -376,7 +375,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean isIDFAuthenticatorFoundInStep( StepConfig stepConfig) {
+    private boolean isIDFAuthenticatorFoundInStep(StepConfig stepConfig) {
 
         boolean isIDFAuthenticatorInCurrentStep = false;
         if (stepConfig != null) {
@@ -392,6 +391,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * This method is used to identify the Identifier First requests.
+     *
      * @param request HttpServletRequest
      * @return true or false.
      */
@@ -403,6 +403,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Print the request headers as a one string with header names and respective values.
+     *
      * @param request HTTP request to retrieve headers.
      * @return Headers and values as a single string.
      */
@@ -426,9 +427,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @param context
      */
     private void associateTransientRequestData(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) {
+                                               AuthenticationContext context) {
 
-        if(context == null) {
+        if (context == null) {
             return;
         }
         // set current request and response to the authentication context.
@@ -438,6 +439,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Returns true if the request is a CommonAuth logout request.
+     *
      * @param request
      * @return
      */
@@ -455,7 +457,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return
      */
     private AuthenticationRequestCacheEntry getAuthenticationRequest(HttpServletRequest request,
-            String sessionDataKey) {
+                                                                     String sessionDataKey) {
 
         AuthenticationRequestCacheEntry authRequest = getAuthenticationRequestFromRequest(request);
         if (authRequest == null) {
@@ -755,7 +757,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
      * @return true if there is a need to reinitialize.
      */
     private boolean isReinitialize(SequenceConfig previousAuthenticatedSeq, SequenceConfig sequenceConfig,
-            HttpServletRequest request, AuthenticationContext context) {
+                                   HttpServletRequest request, AuthenticationContext context) {
 
         List<String> newAcrList = getAcrRequested(request);
         List<String> previousAcrList = previousAuthenticatedSeq.getRequestedAcr();
@@ -811,7 +813,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
     }
 
     private void refreshAppConfig(SequenceConfig sequenceConfig, String clientId, String clientType,
-            String tenantDomain) throws FrameworkException {
+                                  String tenantDomain) throws FrameworkException {
 
         try {
             ServiceProvider serviceProvider = getServiceProvider(clientType, clientId, tenantDomain);
@@ -927,6 +929,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
     /**
      * Checks whether the given user is disabled and returns true for disabled users
+     *
      * @param userStoreManager
      * @param user
      * @return boolean
