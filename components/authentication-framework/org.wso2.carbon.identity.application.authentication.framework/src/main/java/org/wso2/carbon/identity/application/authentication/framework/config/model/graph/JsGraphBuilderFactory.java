@@ -53,11 +53,10 @@ public class JsGraphBuilderFactory {
 
     public void init() {
 
-        factory = new NashornScriptEngineFactory();
-    }
+    JsGraphBuilder createBuilder(AuthenticationContext context, Map<Integer, StepConfig> stepConfigMapCopy);
 
-    public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
-        throws FrameworkException {
+    JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
+                                     Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
         Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
         Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
