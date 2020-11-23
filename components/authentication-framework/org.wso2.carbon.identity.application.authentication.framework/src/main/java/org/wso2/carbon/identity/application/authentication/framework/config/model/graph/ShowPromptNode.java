@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;

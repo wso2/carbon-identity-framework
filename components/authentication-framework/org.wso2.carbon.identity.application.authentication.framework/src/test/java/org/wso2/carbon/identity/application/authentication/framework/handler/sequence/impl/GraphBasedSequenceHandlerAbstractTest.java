@@ -21,15 +21,19 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
+import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -65,9 +69,13 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected void setupSuite() {
 
         configurationLoader = new UIBasedConfigurationLoader();
-        graphBuilderFactory = new JsGraphBuilderFactory();
+        graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
+//        graphBuilderFactory = new JsNashornGraphBuilderFactory();
 
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
+        org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction selectAcrFromFunction = new org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction();
+        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
+                FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, selectAcrFromFunction);
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
         graphBuilderFactory.init();

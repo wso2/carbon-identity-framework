@@ -16,11 +16,36 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
-public interface JsAuthenticationContext {
+import java.io.Serializable;
 
-    AuthenticationContext getWrapped();
+/**
+ * Represents the abstract class for all context objects
+ */
+public abstract class AbstractJSContextMemberObject implements Serializable {
+
+    private transient AuthenticationContext context;
+
+    /**
+     * Initializes context. Used when deserializing the object.
+     *
+     * @param context authentication context
+     */
+    public void initializeContext(AuthenticationContext context) {
+
+        this.context = context;
+    }
+
+    /**
+     * Get the authentication context this object is initialized with.
+     *
+     * @return authentication context
+     */
+    public AuthenticationContext getContext() {
+
+        return context;
+    }
 }

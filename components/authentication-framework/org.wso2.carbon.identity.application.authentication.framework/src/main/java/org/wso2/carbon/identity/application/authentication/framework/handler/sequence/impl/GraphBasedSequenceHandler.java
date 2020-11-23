@@ -25,6 +25,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -40,10 +41,9 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.JsFailureException;
@@ -114,7 +114,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
         if (!graph.isBuildSuccessful()) {
             throw new FrameworkException(
-                    "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason());
+                    "Error while building graph from Javascript. Nested exception is: " + graph.getErrorReason(),
+                    graph.getError());
         }
 
         boolean isInterrupted = false;
@@ -671,8 +672,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context)));
+        AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
+//        jsBasedEvaluator.evaluate(context, (jsConsumer) -> jsConsumer.call(null, new GraalJsAuthenticationContext(context)));
+        jsBasedEvaluator.evaluate(context, fn);
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -686,9 +688,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = jsGraphBuilder.new JsBasedEvaluator(fn);
-        jsBasedEvaluator.evaluate(context,
-                (jsConsumer) -> jsConsumer.call(null, new JsAuthenticationContext(context), new JsWritableParameters(data)));
+        AuthenticationDecisionEvaluator jsBasedEvaluator = jsGraphBuilder.getScriptEvaluator(fn);
+        jsBasedEvaluator.evaluate(context, fn);
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -702,9 +703,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
-        JsGraphBuilder.JsBasedEvaluator jsBasedEvaluator = graphBuilder.new JsBasedEvaluator(fn);
-        return jsBasedEvaluator.evaluate(context,
-                (jsFunction) -> jsFunction.call(null, stepId, new JsAuthenticationContext(context)));
+        AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
+//        return jsBasedEvaluator.evaluate(context,
+//                (jsFunction) -> jsFunction.call(null, stepId, new GraalJsAuthenticationContext(context)));
+        return jsBasedEvaluator.evaluate(context, fn);
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

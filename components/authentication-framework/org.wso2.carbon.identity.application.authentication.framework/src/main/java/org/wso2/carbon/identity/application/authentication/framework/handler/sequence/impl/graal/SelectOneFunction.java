@@ -16,11 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
-public interface JsAuthenticationContext {
-
-    AuthenticationContext getWrapped();
+@FunctionalInterface
+public interface SelectOneFunction {
+    String evaluate(JsAuthenticationContext context, String[] possibleOutcomesObj);
 }

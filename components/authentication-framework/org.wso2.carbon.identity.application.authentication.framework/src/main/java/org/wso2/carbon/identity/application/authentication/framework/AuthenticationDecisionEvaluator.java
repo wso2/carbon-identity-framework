@@ -18,11 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import jdk.nashorn.api.scripting.JSObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -42,5 +41,5 @@ public interface AuthenticationDecisionEvaluator extends Serializable {
      * @param context
      * @return
      */
-    Object evaluate(AuthenticationContext context, Function<JSObject, Object> jsConsumer);
+    Object evaluate(AuthenticationContext context, SerializableJsFunction fn);
 }
