@@ -78,10 +78,15 @@ public class IdentityProvider implements Serializable {
     private static final String FILE_ELEMENT_PERMISSION_AND_ROLE_CONFIG = "PermissionAndRoleConfig";
     private static final String FILE_ELEMENT_JUST_IN_TIME_PROVISIONING_CONFIG = "JustInTimeProvisioningConfig";
     private static final String FILE_ELEMENT_IMAGE_URL = "ImageUrl";
+    private static final String FILE_ELEMENT_ISSUER = "Issuer";
+    private static final String FILE_ELEMENT_JWKS_ENDPOINT = "JWKSEndpoint";
     private static final String THUMB_PRINT = "thumbPrint";
     private static final String CERT_VALUE = "certValue";
     private static final String JSON_ARRAY_IDENTIFIER = "[";
     private static final String EMPTY_JSON_ARRAY = "[]";
+    private static final String IDP_ISSUER_NAME = "idpIssuerName";
+    private static final String JWKS_URI = "jwksUri";
+    private static final String JWKS_DISPLAYNAME = "Identity Provider's JWKS Endpoint";
 
     @XmlTransient
     private String id;
@@ -157,6 +162,7 @@ public class IdentityProvider implements Serializable {
         Iterator<?> iter = identityProviderOM.getChildElements();
         String defaultAuthenticatorConfigName = null;
         String defaultProvisioningConfigName = null;
+        ArrayList<IdentityProviderProperty> idpProperties = new ArrayList();
 
         while (iter.hasNext()) {
             OMElement element = (OMElement) (iter.next());
@@ -192,6 +198,17 @@ public class IdentityProvider implements Serializable {
                 identityProvider.setHomeRealmId(element.getText());
             } else if (FILE_ELEMENT_PROVISIONING_ROLE.equals(elementName)) {
                 identityProvider.setProvisioningRole(element.getText());
+            } else if (FILE_ELEMENT_ISSUER.equals(elementName)) {
+                IdentityProviderProperty idpIssuer = new IdentityProviderProperty();
+                idpIssuer.setName(IDP_ISSUER_NAME);
+                idpIssuer.setValue(element.getText());
+                idpProperties.add(idpIssuer);
+            } else if (FILE_ELEMENT_JWKS_ENDPOINT.equals(elementName)) {
+                IdentityProviderProperty jwksEndpoint = new IdentityProviderProperty();
+                jwksEndpoint.setName(JWKS_URI);
+                jwksEndpoint.setValue(element.getText());
+                jwksEndpoint.setDisplayName(JWKS_DISPLAYNAME);
+                idpProperties.add(jwksEndpoint);
             } else if (FILE_ELEMENT_FEDERATED_AUTHENTICATOR_CONFIGS.equals(elementName)) {
 
                 Iterator<?> federatedAuthenticatorConfigsIter = element.getChildElements();
@@ -328,6 +345,10 @@ public class IdentityProvider implements Serializable {
             log.warn("No matching provisioning config found with default provisioning config name :  "
                     + defaultProvisioningConfigName + " in identity provider : " + identityProvider.displayName + ".");
             identityProvider = null;
+        }
+
+        if (CollectionUtils.size(idpProperties) > 0) {
+            identityProvider.setIdpProperties(idpProperties.toArray(new IdentityProviderProperty[0]));
         }
 
         return identityProvider;
