@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,12 +49,17 @@ public class JsGraphBuilderFactory {
 
     // Suppress the Nashorn deprecation warnings in jdk 11
     @SuppressWarnings("removal")
-    private NashornScriptEngineFactory factory;
+    //private NashornScriptEngineFactory factory;
+    private GraalJSEngineFactory factory;
 
 
     public void init() {
 
-        factory = new NashornScriptEngineFactory();
+        //factory = new NashornScriptEngineFactory();
+        ClassLoader thread = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+        factory = new GraalJSEngineFactory();
+        Thread.currentThread().setContextClassLoader(thread);
     }
 
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
@@ -82,7 +88,8 @@ public class JsGraphBuilderFactory {
 
     public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
 
-        ScriptEngine engine = factory.getScriptEngine("--no-java");
+        //ScriptEngine engine = factory.getScriptEngine("--no-java");
+        ScriptEngine engine = factory.getScriptEngine();
 
         Bindings bindings = engine.createBindings();
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);

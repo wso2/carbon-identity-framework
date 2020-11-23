@@ -178,6 +178,22 @@
             <artifactId>slf4j-log4j12</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js</artifactId>
+            <version>20.2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.graalvm.js</groupId>
+            <artifactId>js-scriptengine</artifactId>
+            <version>20.2.0</version>
+        </dependency>
+        <dependency>
+        <groupId>org.graalvm.truffle</groupId>
+        <artifactId>truffle-api</artifactId>
+        <version>20.2.0</version>
+    </dependency>
     </dependencies>
 
     <build>
@@ -202,6 +218,7 @@
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Private-Package>org.wso2.carbon.identity.application.authentication.framework.internal,
                         </Private-Package>
+
                         <Import-Package>
                             javax.xml.namespace,
                             javax.xml.stream,
