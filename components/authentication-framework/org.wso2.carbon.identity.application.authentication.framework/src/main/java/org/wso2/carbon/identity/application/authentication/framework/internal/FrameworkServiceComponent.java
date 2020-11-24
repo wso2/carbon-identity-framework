@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.application.authentication.framework.RequestPath
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -256,7 +257,7 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsNashornGraphBuilderFactory jsGraphBuilderFactory = new JsNashornGraphBuilderFactory();
+        JsPolyglotGraphBuilderFactory jsGraphBuilderFactory = new JsPolyglotGraphBuilderFactory();
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
