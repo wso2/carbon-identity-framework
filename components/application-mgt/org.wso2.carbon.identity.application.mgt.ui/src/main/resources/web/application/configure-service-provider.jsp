@@ -1548,6 +1548,29 @@
                                 </div>
                             </td>
                         </tr>
+                        <tr>
+                            <td style="width:15%" class="leftCol-med labelField">
+                                <fmt:message key='config.application.logout.return.url'/>
+                            </td>
+                            <td>
+                                <% boolean logoutReturnUrlDefined = false;
+                                    if (appBean.getServiceProvider().getSpProperties() != null) {
+                                        for (ServiceProviderProperty property : appBean.getServiceProvider().getSpProperties()) {
+                                            if (property.getName() != null && "logoutReturnUrl".equals(property.getName())) {
+                                                logoutReturnUrlDefined = true; %>
+                                <input style="width:50%" type="text" name="logoutReturnUrl" id="logoutReturnUrl"
+                                       value="<%=property.getValue() != null ? Encode.forHtmlContent(property.getValue()) : "" %>"/>
+                                <% }
+                                }
+                                }
+                                    if (!logoutReturnUrlDefined) { %>
+                                <input style="width:50%" type="text" name="logoutReturnUrl" id="logoutReturnUrl" value=".*"/>
+                                <% } %>
+                                <div class="sectionHelp">
+                                    <fmt:message key='help.logout.return.url'/>
+                                </div>
+                            </td>
+                        </tr>
                     </table>
                 </div>
 
