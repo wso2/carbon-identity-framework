@@ -112,6 +112,8 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns.APP_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.ApplicationTableColumns.DESCRIPTION;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_METADATA;
@@ -931,8 +933,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         try (NamedPreparedStatement statement = new NamedPreparedStatement(connection, sql)) {
-            statement.setString(ApplicationTableColumns.APP_NAME, applicationName);
-            statement.setString(ApplicationTableColumns.DESCRIPTION, description);
+            statement.setString(APP_NAME, applicationName);
+            statement.setString(DESCRIPTION, description);
             statement.setString(ApplicationTableColumns.IS_SAAS_APP, isSaasApp ? "1" : "0");
             statement.setString(ApplicationTableColumns.IS_DISCOVERABLE, isDiscoverable ? "1" : "0");
             statement.setString(ApplicationTableColumns.IMAGE_URL, serviceProvider.getImageUrl());
@@ -2072,7 +2074,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
+                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(APP_NAME))) {
                     continue;
                 }
                 appInfo.add(buildApplicationBasicInfo(appNameResultSet));
@@ -2200,8 +2202,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                 serviceProvider = new ServiceProvider();
                 serviceProvider.setApplicationID(rs.getInt(ApplicationTableColumns.ID));
                 serviceProvider.setApplicationResourceId(rs.getString(ApplicationTableColumns.UUID));
-                serviceProvider.setApplicationName(rs.getString(ApplicationTableColumns.APP_NAME));
-                serviceProvider.setDescription(rs.getString(ApplicationTableColumns.DESCRIPTION));
+                serviceProvider.setApplicationName(rs.getString(APP_NAME));
+                serviceProvider.setDescription(rs.getString(DESCRIPTION));
                 serviceProvider.setImageUrl(rs.getString(ApplicationTableColumns.IMAGE_URL));
                 serviceProvider.setAccessUrl(rs.getString(ApplicationTableColumns.ACCESS_URL));
                 serviceProvider.setDiscoverable(getBooleanValue(rs.getString(ApplicationTableColumns.IS_DISCOVERABLE)));
@@ -3238,12 +3240,12 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (appNameResultSet.next()) {
                 ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
+                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(APP_NAME))) {
                     continue;
                 }
-                basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
-                basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
-                basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
+                basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
+                basicInfo.setApplicationName(appNameResultSet.getString(APP_NAME));
+                basicInfo.setDescription(appNameResultSet.getString(DESCRIPTION));
                 appInfo.add(basicInfo);
             }
 
@@ -3350,7 +3352,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
             while (appNameResultSet.next()) {
                 ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
+                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(APP_NAME))) {
                     continue;
                 }
                 basicInfo.setApplicationName(appNameResultSet.getString(1));
@@ -3445,7 +3447,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(2))) {
+                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(APP_NAME))) {
                     continue;
                 }
                 appInfo.add(buildApplicationBasicInfo(appNameResultSet));
@@ -4774,7 +4776,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                          new NamedPreparedStatement(connection,
                                  getDBVendorSpecificDiscoverableAppRetrievalQueryByAppName(databaseVendorType))) {
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
-                statement.setString(ApplicationTableColumns.APP_NAME, filterResolvedForSQL);
+                statement.setString(APP_NAME, filterResolvedForSQL);
                 statement.setInt(ApplicationConstants.OFFSET, offset);
                 statement.setInt(ApplicationConstants.LIMIT, limit);
                 statement.setInt(ApplicationConstants.ZERO_BASED_START_INDEX, offset);
@@ -4815,7 +4817,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             try (NamedPreparedStatement statement =
                          new NamedPreparedStatement(connection, LOAD_DISCOVERABLE_APP_COUNT_BY_APP_NAME_AND_TENANT)) {
                 statement.setInt(ApplicationTableColumns.TENANT_ID, IdentityTenantUtil.getTenantId(tenantDomain));
-                statement.setString(ApplicationTableColumns.APP_NAME, filterResolvedForSQL);
+                statement.setString(APP_NAME, filterResolvedForSQL);
 
                 try (ResultSet resultSet = statement.executeQuery()) {
                     if (resultSet.next()) {
@@ -4998,8 +5000,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
         basicInfo.setApplicationId(appNameResultSet.getInt(ApplicationTableColumns.ID));
-        basicInfo.setApplicationName(appNameResultSet.getString(ApplicationTableColumns.APP_NAME));
-        basicInfo.setDescription(appNameResultSet.getString(ApplicationTableColumns.DESCRIPTION));
+        basicInfo.setApplicationName(appNameResultSet.getString(APP_NAME));
+        basicInfo.setDescription(appNameResultSet.getString(DESCRIPTION));
 
         basicInfo.setApplicationResourceId(appNameResultSet.getString(ApplicationTableColumns.UUID));
         basicInfo.setImageUrl(appNameResultSet.getString(ApplicationTableColumns.IMAGE_URL));
