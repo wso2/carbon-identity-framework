@@ -25,6 +25,7 @@
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="static org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants.*" %>
 <%@ page import="org.wso2.carbon.identity.application.common.model.xsd.SpTemplate" %>
+<%@ page import="org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIUtil" %>
 
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
@@ -205,7 +206,7 @@ window.onload = function() {
                     <tr>
                         <td style="width:15%" class="leftCol-med labelField"><fmt:message key='config.application.info.basic.name'/>:<span class="required">*</span></td>
                         <td>
-                            <input id="spName" name="spName" type="text" value="" white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
+                            <input id="spName" name="spName" type="text" value="" white-list-patterns="<%=Encode.forHtmlContent(ApplicationMgtUIUtil.getSPValidatorJavascriptRegex())%>" autofocus/>
                             <div class="sectionHelp">
                                 <fmt:message key='help.name'/>
                             </div>
