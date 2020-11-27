@@ -940,6 +940,36 @@ public class FrameworkUtils {
     }
 
     /**
+     * Update session context to cache. This will not change the session context validity period when updating the
+     * session context.
+     *
+     * @param key            Session Context Identifier.
+     * @param sessionContext Session Context.
+     */
+    public static void updateSessionContextInCache(String key, SessionContext sessionContext) {
+
+        SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
+        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+
+        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
+        if (seqData != null) {
+            for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
+                if (entry.getValue() != null) {
+                    entry.getValue().getAuthenticatedUser().setUserAttributes(null);
+                    entry.getValue().setAuthenticationGraph(null);
+                }
+            }
+        }
+        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (authenticatedUserObj instanceof AuthenticatedUser) {
+            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
+            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
+        }
+        cacheEntry.setContext(sessionContext);
+        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+    }
+
+    /**
      * @param key
      * @return
      */
