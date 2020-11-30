@@ -67,6 +67,20 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         }
     }
 
+    public void updateToCache(SessionContextCacheKey key, SessionContextCacheEntry entry) {
+
+        super.addToCache(key, entry);
+        Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
+        if (authUser != null && authUser instanceof AuthenticatedUser) {
+            String tenantDomain = ((AuthenticatedUser) authUser).getTenantDomain();
+            int tenantId = IdentityTenantUtil.getTenantId(tenantDomain);
+            SessionDataStore.getInstance()
+                    .updateSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry, tenantId);
+        } else {
+            SessionDataStore.getInstance().updateSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME, entry);
+        }
+    }
+
     public SessionContextCacheEntry getValueFromCache(SessionContextCacheKey key) {
         SessionContextCacheEntry cacheEntry = super.getValueFromCache(key);
 

@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
@@ -361,6 +362,39 @@ public class SessionDataStore {
         } else {
             persistSessionData(key, type, entry, nanoTime, tenantId);
         }
+    }
+
+    /**
+     * Get nano time from entry
+     * @param key
+     * @param type
+     * @param entry
+     * @param tenantId
+     */
+    public void updateSessionData(String key, String type, SessionContextCacheEntry entry, int tenantId) {
+
+        if (!enablePersist) {
+            return;
+        }
+        long nanoTime = TimeUnit.MILLISECONDS.toNanos(entry.getAccessedTime());
+        log.info("nanoTime");
+        log.info(nanoTime);
+        if (maxSessionDataPoolSize > 0 && !isTempCache(type)) {
+            sessionContextQueue.push(new SessionContextDO(key, type, entry, nanoTime, tenantId));
+        } else {
+            persistSessionData(key, type, entry, nanoTime, tenantId);
+        }
+    }
+
+    /**
+     *
+     * @param key
+     * @param type
+     * @param entry
+     */
+    public void updateSessionData(String key, String type, SessionContextCacheEntry entry) {
+
+       updateSessionData(key, type, entry, MultitenantConstants.INVALID_TENANT_ID);
     }
 
     public void clearSessionData(String key, String type) {

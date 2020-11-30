@@ -949,24 +949,9 @@ public class FrameworkUtils {
     public static void updateSessionContextInCache(String key, SessionContext sessionContext) {
 
         SessionContextCacheKey cacheKey = new SessionContextCacheKey(key);
-        SessionContextCacheEntry cacheEntry = new SessionContextCacheEntry();
+        SessionContextCacheEntry entry = SessionContextCache.getInstance().getSessionContextCacheEntry(cacheKey);
 
-        Map<String, SequenceConfig> seqData = sessionContext.getAuthenticatedSequences();
-        if (seqData != null) {
-            for (Entry<String, SequenceConfig> entry : seqData.entrySet()) {
-                if (entry.getValue() != null) {
-                    entry.getValue().getAuthenticatedUser().setUserAttributes(null);
-                    entry.getValue().setAuthenticationGraph(null);
-                }
-            }
-        }
-        Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (authenticatedUserObj instanceof AuthenticatedUser) {
-            AuthenticatedUser authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
-            cacheEntry.setLoggedInUser(authenticatedUser.getAuthenticatedSubjectIdentifier());
-        }
-        cacheEntry.setContext(sessionContext);
-        SessionContextCache.getInstance().addToCache(cacheKey, cacheEntry);
+        SessionContextCache.getInstance().updateToCache(cacheKey, entry);
     }
 
     /**
@@ -1718,6 +1703,15 @@ public class FrameworkUtils {
         return currentStandardNano;
     }
 
+//    public static long getStandardNano(long time) {
+//
+//        long epochTimeReference =
+//                TimeUnit.MILLISECONDS.toNanos(FrameworkServiceDataHolder.getInstance().getUnixTimeReference());
+//        long timeInNano =  TimeUnit.MILLISECONDS.toNanos(time);
+//        long currentStandardNano =
+//         epochTimeReference + (timeInNano - FrameworkServiceDataHolder.getInstance().getNanoTimeReference());
+//        return currentStandardNano;
+//    }
     /**
      * Append a query param to the URL (URL may already contain query params)
      */
