@@ -870,6 +870,11 @@
 	<CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
     </SelfRegistration-->
 
+    <!--<LoginIdentiFires>
+        <Enable>false</Enable>
+        <PrimaryLoginIdentifire>http://wso2.org/claims/userType</PrimaryLoginIdentifire>
+    </LoginIdentiFires>-->
+
     <TenantRegistrationVerification>
         <AskPassword>
             <ExpiryTime>1440</ExpiryTime>
