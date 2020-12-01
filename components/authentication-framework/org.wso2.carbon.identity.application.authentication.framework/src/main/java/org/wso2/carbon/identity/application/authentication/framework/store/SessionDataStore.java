@@ -32,23 +32,22 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import redis.clients.jedis.BinaryJedis;
+import org.apache.commons.lang.SerializationUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+
+import static com.hazelcast.nio.IOUtil.toByteArray;
 
 /**
  * Data will be persisted or stored date will be removed from the store. These two events are considered as STORE operation
@@ -145,6 +144,7 @@ public class SessionDataStore {
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
+    private static BinaryJedis jedis;
 
     static {
         try {
@@ -288,12 +288,23 @@ public class SessionDataStore {
         return instance;
     }
 
+    //Return Jedis object
+    private static BinaryJedis returnjedis() {
+        if (jedis != null)
+            return jedis;
+        return new BinaryJedis("127.0.0.1", 6379);
+    }
+
     public Object getSessionData(String key, String type) {
+
         SessionContextDO sessionContextDO = getSessionContextData(key, type);
         return sessionContextDO != null ? sessionContextDO.getEntry() : null;
     }
 
     public SessionContextDO getSessionContextData(String key, String type) {
+        //modify to get data
+          jedis=returnjedis();
+
         if (!enablePersist) {
             return null;
         }
@@ -329,13 +340,33 @@ public class SessionDataStore {
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             resultSet = preparedStatement.executeQuery();
-            if(resultSet.next()) {
+            //if(resultSet.next()) {
+            byte[] bObject = jedis.get(key.getBytes());
+            if (bObject != null) {
+                HashMap hash = (HashMap) deserialize(bObject);
+                String operation = (String) hash.get("operation");
+                long nanoTime = ((Long) hash.get("nanoTime"));
+
+                if ((OPERATION_STORE.equals(operation))) {
+                    log.info("redis working");
+                    Object blobObject = hash.get("BlobObj");
+                    //Object blobObject = getBlobObject(resultSet.getBinaryStream(2));
+                    return new SessionContextDO(key, type, blobObject, nanoTime);
+
+                }
+
+            } else {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
+
                 if ((OPERATION_STORE.equals(operation))) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
+
                 }
+
             }
+
+           // }
         } catch (ClassNotFoundException | IOException | SQLException |
                 IdentityApplicationManagementException e) {
             log.error("Error while retrieving session data", e);
@@ -487,6 +518,7 @@ public class SessionDataStore {
     }
 
     public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
+
         if (!enablePersist) {
             return;
         }
@@ -520,6 +552,21 @@ public class SessionDataStore {
             preparedStatement.setLong(6, nanoTime + validityPeriodNano);
             preparedStatement.setInt(7, tenantId);
             preparedStatement.executeUpdate();
+
+            //code for redis hashmap
+            Map hm= new HashMap();
+            hm.put("type",type);
+            hm.put("operation",OPERATION_STORE);
+            hm.put("BlobObj",(entry));
+            hm.put("nanoTime",nanoTime);
+            hm.put("time",(nanoTime + validityPeriodNano));
+            hm.put("tenantId",tenantId);
+
+            byte[] obj=serialize((Serializable) hm);
+            jedis=returnjedis();
+            jedis.set(key.getBytes(),obj);
+            //jedis.hmset(key,hm);
+
             IdentityDatabaseUtil.commitTransaction(connection);
         } catch (SQLException | IOException e) {
             IdentityDatabaseUtil.rollbackTransaction(connection);
@@ -528,6 +575,15 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
 
+    }
+    //Serializes an Object to byte array
+    private static byte[] serialize(Serializable obj) {
+        return SerializationUtils.serialize(obj);
+    }
+
+    //Deserializes a byte array back to Object
+    private static Object deserialize(byte[] bytes) {
+        return SerializationUtils.deserialize(bytes);
     }
 
     public void removeSessionData(String key, String type, long nanoTime) {
@@ -611,6 +667,8 @@ public class SessionDataStore {
             oos.close();
             InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
             prepStmt.setBinaryStream(index, inputStream, inputStream.available());
+
+
         } else {
             prepStmt.setBinaryStream(index, null, 0);
         }
