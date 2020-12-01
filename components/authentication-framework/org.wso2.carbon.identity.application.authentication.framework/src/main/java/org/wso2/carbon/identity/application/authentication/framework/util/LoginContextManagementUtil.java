@@ -25,7 +25,16 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationConfig;
+import org.wso2.carbon.identity.application.common.model.InboundAuthenticationRequestConfig;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
@@ -34,7 +43,12 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getConsoleURL;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getMyAccountURL;
 
 /**
  * This class handles the redirect URL retrieval for invalid session index.
@@ -49,11 +63,18 @@ public class LoginContextManagementUtil {
 
         String sessionDataKey = request.getParameter("sessionDataKey");
         String relyingParty = request.getParameter("relyingParty");
+        String applicationName = request.getParameter("application");
+
+        if (StringUtils.isEmpty(applicationName)) {
+            // Try retrieving the application name from the referer
+            applicationName = FrameworkUtils.getServiceProviderNameByReferer(request);
+        }
         String tenantDomain = getTenantDomain(request);
 
         JsonObject result = new JsonObject();
         response.setContentType("application/json");
-        if (StringUtils.isBlank(relyingParty) || StringUtils.isBlank(sessionDataKey)) {
+        if (StringUtils.isBlank(sessionDataKey) || (StringUtils.isBlank (applicationName) && StringUtils.isBlank
+                (relyingParty))) {
             if (log.isDebugEnabled()) {
                 log.debug("Required data to proceed is not available in the request.");
             }
@@ -72,10 +93,12 @@ public class LoginContextManagementUtil {
             result.addProperty("status", "success");
             response.getWriter().write(result.toString());
         } else {
-            String redirectUrl = getRelyingPartyRedirectUrl(relyingParty, tenantDomain);
+
+            String redirectUrl = getRedirectURL(applicationName, relyingParty, tenantDomain);
+
             if (StringUtils.isBlank(redirectUrl)) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Redirect URL is not available for the relaying party - " + relyingParty + " for " +
+                    log.debug("Redirect URL is not available for the relying party - " + relyingParty + " for " +
                             "sessionDataKey: " + sessionDataKey);
                 }
                 // Can't handle
@@ -105,6 +128,10 @@ public class LoginContextManagementUtil {
             tenantDomain = request.getParameter("tenantDomain");
         }
 
+        if (StringUtils.isEmpty(tenantDomain)) {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Service Provider tenant domain: " + tenantDomain);
         }
@@ -112,12 +139,112 @@ public class LoginContextManagementUtil {
     }
 
     /**
+     * @param appName
+     * @param tenantDomain
+     * @return
+     */
+    private static String getRedirectURL(String appName, String relyingParty, String tenantDomain) {
+
+        ServiceProvider sp = null;
+        String redirectUrl = null;
+        if (StringUtils.isNotEmpty(appName)) {
+            try {
+                appName = URLDecoder.decode(appName, "UTF-8");
+                sp = ApplicationManagementService.getInstance().getServiceProvider(appName, tenantDomain);
+                if (sp != null) {
+                    redirectUrl = sp.getAccessUrl();
+                }
+            } catch (IdentityApplicationManagementException e) {
+                log.error("Unable to retrieve an application with name: " + appName, e);
+            } catch (UnsupportedEncodingException e) {
+                log.error("Error while decoding application name: " + appName, e);
+            }
+        }
+
+        if ("My Account".equals(appName)) {
+            redirectUrl = getMyAccountURL(redirectUrl);
+        } else if ("Console".equals(appName)) {
+            redirectUrl = getConsoleURL(redirectUrl);
+        } else if (StringUtils.isEmpty(redirectUrl) && StringUtils.isNotEmpty(relyingParty)) {
+            // If access URL is not configured for the application, retrieve the URL from SP_REDIRECT_URL_RESOURCE_PATH.
+            // Eventually, this step need to be retried.
+            if (log.isDebugEnabled()) {
+                log.debug("Unable to find access URL for the application: " + appName + ". Fallback to " +
+                        "searching the registry for the redirect url for relyingParty: " + relyingParty);
+            }
+            redirectUrl = getRelyingPartyRedirectUrl(relyingParty, tenantDomain);
+
+            // Migrate the redirect URL from SP_REDIRECT_URL_RESOURCE_PATH to the application as access URL.
+            migrateRedirectURLFromRegistryToApplication(relyingParty, tenantDomain, sp, redirectUrl);
+        }
+        return redirectUrl;
+    }
+
+    /**
+     * If the relying party is a valid inbound authenticator configured in the application, then update the
+     * applications access URL with the redirect URL defined in the registry (SP_REDIRECT_URL_RESOURCE_PATH) for
+     * relying party
+     * @param relyingParty
+     * @param tenantDomain
+     * @param sp
+     * @param redirectUrl
+     */
+    private static void migrateRedirectURLFromRegistryToApplication(String relyingParty, String tenantDomain,
+                                                                    ServiceProvider sp, String redirectUrl) {
+
+        if (sp != null && StringUtils.isNotEmpty(redirectUrl)) {
+            InboundAuthenticationConfig inboundAuthenticationConfig = sp.getInboundAuthenticationConfig();
+            InboundAuthenticationRequestConfig[] inboundAuthenticationRequestConfig = inboundAuthenticationConfig
+                    .getInboundAuthenticationRequestConfigs();
+            for (InboundAuthenticationRequestConfig inboundAuth : inboundAuthenticationRequestConfig) {
+                if (relyingParty.equals(inboundAuth.getInboundAuthKey())) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Updating the application: " + sp.getApplicationName() + " access URL with " +
+                                "redirect URL: " + redirectUrl + " configured for relyingParty: " + relyingParty);
+                    }
+                    try {
+                        sp.setAccessUrl(redirectUrl);
+                        ApplicationManagementService.getInstance().updateApplication(sp, tenantDomain, sp.getOwner()
+                                .getUserName());
+                    } catch (IdentityApplicationManagementException e) {
+                        log.error("Unable to update the application: " + sp.getApplicationName() + " with " +
+                                "accessURL:"+ relyingParty, e);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the access URL of the application as the redirect url.
+     * @param appName
+     * @param tenantDomain
+     * @return
+     */
+    public static String getAccessURLFromApplication(String appName, String tenantDomain) {
+
+        ServiceProvider sp;
+        String redirectUrl = null;
+        if (StringUtils.isNotEmpty(appName)) try {
+            sp = ApplicationManagementService.getInstance().getServiceProvider(appName, tenantDomain);
+            if (sp != null) {
+                redirectUrl = sp.getAccessUrl();
+            }
+        } catch (IdentityApplicationManagementException e) {
+            log.error("Unable to retrieve an application with name: " + appName, e);
+        }
+        return redirectUrl;
+    }
+
+    /**
      * Returns the redirect url configured in the registry against relying party.
-     *
+     * This is a deprecated functionality. Use the getAccessURLFromApplication method instead of this method
      * @param relyingParty Name of the relying party
      * @param tenantDomain Tenant Domain.
      * @return Redirect URL.
      */
+    @Deprecated
     public static String getRelyingPartyRedirectUrl(String relyingParty, String tenantDomain) {
         if (log.isDebugEnabled()) {
             log.debug("retrieving configured url against relying party : " + relyingParty + "for tenant domain : " +

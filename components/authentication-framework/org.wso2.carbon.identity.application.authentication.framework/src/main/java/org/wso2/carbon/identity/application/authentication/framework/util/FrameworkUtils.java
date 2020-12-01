@@ -94,8 +94,11 @@ import org.wso2.carbon.identity.application.common.model.IdentityProviderPropert
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -169,7 +172,7 @@ public class FrameworkUtils {
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
 
-    private static final String QUERY_SEPARATOR = "&";
+    public static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
     private static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
@@ -585,7 +588,7 @@ public class FrameworkUtils {
         return redirectURL;
     }
 
-    private static String getServiceProviderNameByReferer(HttpServletRequest request) {
+    public static String getServiceProviderNameByReferer(HttpServletRequest request) {
 
         String serviceProviderName = null;
         String refererHeader = request.getHeader("referer");
@@ -2697,5 +2700,45 @@ public class FrameworkUtils {
 
         // If config is empty or not a boolean value, the property must be set to the default value which is true.
         return !Boolean.FALSE.toString().equalsIgnoreCase(continueOnClaimHandlingErrorValue);
+    }
+
+    /**
+     * Returns the end user portal url.
+     *
+     * @param myAccountUrl configured user portal url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getMyAccountURL(String myAccountUrl) {
+
+        if (StringUtils.isNotBlank(myAccountUrl)) {
+            return myAccountUrl;
+        }
+        try {
+            return ServiceURLBuilder.create().addPath("/myaccount").build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + "/myaccount");
+        }
+    }
+
+    /**
+     * Returns the console url.
+     *
+     * @param consoleUrl configured user portal url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getConsoleURL(String consoleUrl) {
+
+        if (StringUtils.isNotBlank(consoleUrl)) {
+            return consoleUrl;
+        }
+        try {
+            return ServiceURLBuilder.create().addPath("/console").build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + "/console");
+        }
     }
 }
