@@ -340,7 +340,7 @@ public class SessionDataStore {
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             resultSet = preparedStatement.executeQuery();
-            //if(resultSet.next()) {
+
             byte[] bObject = jedis.get(key.getBytes());
             if (bObject != null) {
                 HashMap hash = (HashMap) deserialize(bObject);
@@ -350,15 +350,15 @@ public class SessionDataStore {
                 if ((OPERATION_STORE.equals(operation))) {
                     log.info("redis working");
                     Object blobObject = hash.get("BlobObj");
-                    //Object blobObject = getBlobObject(resultSet.getBinaryStream(2));
                     return new SessionContextDO(key, type, blobObject, nanoTime);
 
                 }
 
-            } else {
+            }
+            else {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
-
+                log.info("h2 is working");
                 if ((OPERATION_STORE.equals(operation))) {
                     return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
 
@@ -366,7 +366,6 @@ public class SessionDataStore {
 
             }
 
-           // }
         } catch (ClassNotFoundException | IOException | SQLException |
                 IdentityApplicationManagementException e) {
             log.error("Error while retrieving session data", e);
