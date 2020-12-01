@@ -1719,6 +1719,16 @@
                 <artifactId>spring-web</artifactId>
                 <version>${springframework.spring-web.version}</version>
             </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${redis.clients.jedis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -1738,6 +1748,8 @@
         <codehaus.jettison.version>1.4.0</codehaus.jettison.version>
         <springframework.spring-web.version>5.1.1.RELEASE</springframework.spring-web.version>
         <jaxrx.jsr311.api.version>1.1.1</jaxrx.jsr311.api.version>
+        <redis.clients.jedis.version>3.3.0</redis.clients.jedis.version>
+        <commons-lang.version>2.6</commons-lang.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
