@@ -198,6 +198,178 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
 
     protected abstract Function<Object, SerializableJsFunction> effectiveFunctionSerializer();
 
+
+    /**
+     * Adds the step given by step ID tp the authentication graph.
+     *
+     * @param stepId Step Id
+     * @param params params
+     */
+    @SuppressWarnings("unchecked")
+    public final void executeStep(int stepId, Object... params) {
+
+        StepConfig stepConfig;
+        stepConfig = stepNamedMap.get(stepId);
+
+        if (stepConfig == null) {
+            log.error("Given Authentication Step :" + stepId + " is not in Environment");
+            return;
+        }
+        StepConfigGraphNode newNode = wrap(stepConfig);
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+        currentNode = newNode;
+        if (params.length > 0) {
+            // if there are any params provided, last one is assumed to be the event listeners
+            if (params[params.length - 1] instanceof Map) {
+                attachEventListeners((Map<String, Object>) params[params.length - 1], currentNode);
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
+        }
+        if (params.length == 2) {
+            // There is an argument with options present
+            if (params[0] instanceof Map) {
+                Map<String, Object> options = (Map<String, Object>) params[0];
+                handleOptions(options, stepConfig);
+            }
+        }
+    }
+
+    /**
+     * Adds the step given by step ID tp the authentication graph.
+     *
+     * @param params params
+     */
+    @SuppressWarnings("unchecked")
+    public void executeStepInAsyncEvent(int stepId, Object... params) {
+
+        AuthenticationContext context = contextForJs.get();
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Execute Step on async event. Step ID : " + stepId);
+        }
+        AuthenticationGraph graph = context.getSequenceConfig().getAuthenticationGraph();
+        if (graph == null) {
+            log.error("The graph happens to be null on the sequence config. Can not execute step : " + stepId);
+            return;
+        }
+
+        StepConfig stepConfig = graph.getStepMap().get(stepId);
+        // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
+        StepConfig clonedStepConfig = new StepConfig(stepConfig);
+        clonedStepConfig
+                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
+        if (log.isDebugEnabled()) {
+            log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
+        }
+        StepConfigGraphNode newNode = wrap(clonedStepConfig);
+        if (currentNode == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Setting a new node at the first time. Node : " + newNode.getName());
+            }
+            dynamicallyBuiltBaseNode.set(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+
+        if (params.length > 0) {
+            // if there is only one param, it is assumed to be the event listeners
+            if (params[params.length - 1] instanceof Map) {
+                attachEventListeners((Map<String, Object>) params[params.length - 1], newNode);
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
+        }
+
+        if (params.length == 2) {
+            // There is an argument with options present
+            if (params[0] instanceof Map) {
+                Map<String, Object> options = (Map<String, Object>) params[0];
+                handleOptions(options, clonedStepConfig);
+            }
+        }
+    }
+
+    /**
+     * Add authentication fail node to the authentication graph in the initial request.
+     *
+     * @param parameterMap Parameters needed to send the error.
+     */
+    public void sendError(String url, Map<String, Object> parameterMap) {
+
+        FailNode newNode = createFailNode(url, parameterMap);
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    /**
+     * Add authentication fail node to the authentication graph during subsequent requests.
+     *
+     * @param parameterMap Parameters needed to send the error.
+     */
+    public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
+
+        FailNode newNode = createFailNode(url, parameterMap);
+
+        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
+        if (currentNode == null) {
+            dynamicallyBuiltBaseNode.set(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+    }
+
+    static FailNode createFailNode(String url, Map<String, Object> parameterMap) {
+
+        FailNode failNode = new FailNode();
+        failNode.setErrorPageUri(url);
+
+        parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
+        return failNode;
+    }
+
+    protected void attachEventListeners(Map<String, Object> eventsMap, AuthGraphNode currentNode) {
+
+        if (eventsMap == null) {
+            return;
+        }
+        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
+        addEventListeners(decisionNode, eventsMap, effectiveFunctionSerializer());
+        if (!decisionNode.getFunctionMap().isEmpty()) {
+            attachToLeaf(currentNode, decisionNode);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void handleOptions(Map<String, Object> options, StepConfig stepConfig) {
+
+        Object authenticationOptionsObj = options.get(FrameworkConstants.JSAttributes.AUTHENTICATION_OPTIONS);
+        if (authenticationOptionsObj instanceof Map) {
+            filterOptions((Map<String, Map<String, String>>) authenticationOptionsObj, stepConfig);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator options not provided or invalid, hence proceeding without filtering");
+            }
+        }
+
+        Object authenticatorParams = options.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS);
+        if (authenticatorParams instanceof Map) {
+            authenticatorParamsOptions((Map<String, Object>) authenticatorParams, stepConfig);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
+            }
+        }
+    }
+
     /**
      * Filter out options in the step config to retain only the options provided in authentication options
      *
@@ -479,6 +651,10 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         });
     }
 
+    protected boolean canInfuse(AuthGraphNode executingNode) {
+
+        return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
+    }
     /**
      * Attach the new node to the destination node.
      * Any immediate branches available in the destination will be re-attached to the new node.
@@ -504,4 +680,41 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         }
 
     }
+
+    /**
+     * Creates the StepConfigGraphNode with given StepConfig.
+     *
+     * @param stepConfig Step Config Object.
+     * @return built and wrapped new StepConfigGraphNode.
+     */
+    protected static StepConfigGraphNode wrap(StepConfig stepConfig) {
+
+        return new StepConfigGraphNode(stepConfig);
+    }
+
+    @FunctionalInterface
+    public interface StepExecutor {
+
+        void executeStep(Integer stepId, Object... parameterMap);
+    }
+
+    @FunctionalInterface
+    public interface PromptExecutor {
+
+        void prompt(String template, Object... parameterMap);
+    }
+
+    @FunctionalInterface
+    public interface RestrictedFunction {
+
+        void exit(Object... arg);
+    }
+
+    @FunctionalInterface
+    public interface LoadExecutor {
+
+        String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
+    }
+
 }
+

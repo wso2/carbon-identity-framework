@@ -44,12 +44,10 @@ import org.wso2.carbon.identity.application.authentication.framework.RequestPath
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.*;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -257,7 +255,7 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsPolyglotGraphBuilderFactory jsGraphBuilderFactory = new JsPolyglotGraphBuilderFactory();
+        JsNashornGraphBuilderFactory jsGraphBuilderFactory = new JsNashornGraphBuilderFactory();
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
