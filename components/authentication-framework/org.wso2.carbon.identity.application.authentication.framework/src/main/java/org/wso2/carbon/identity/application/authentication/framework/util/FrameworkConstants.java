@@ -478,4 +478,11 @@ public abstract class FrameworkConstants {
         public static final String CUSTOM_PARAM_4 = CUSTOM_PARAM_PREFIX + "4";
         public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
     }
+
+    public static class Application {
+        public static final String MY_ACCOUNT_APP = "My Account";
+        public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
+        public static final String CONSOLE_APP = "Console";
+        public static final String CONSOLE_APP_PATH = "/console";
+    }
 }
