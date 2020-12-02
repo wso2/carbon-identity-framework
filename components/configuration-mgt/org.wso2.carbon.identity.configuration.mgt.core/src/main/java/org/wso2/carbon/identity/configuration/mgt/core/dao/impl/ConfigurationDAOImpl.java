@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.io.InputStream;
 import java.sql.Blob;
+import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -1356,20 +1357,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            return jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
-                    (resultSet, rowNumber) -> {
-                        Blob fileBlob = resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE);
-                        if (fileBlob == null) {
-                            return null;
-                        }
-                        return fileBlob.getBinaryStream();
-                    },
+            Blob fileBlob = jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
+                    (resultSet, rowNumber) -> resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE),
                     preparedStatement -> {
                         preparedStatement.setString(1, fileId);
                         preparedStatement.setString(2, resourceName);
                         preparedStatement.setString(3, resourceType);
                     });
-        } catch (DataAccessException e) {
+            return fileBlob != null ? fileBlob.getBinaryStream() : null;
+        } catch (DataAccessException | SQLException e) {
             throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
         }
     }
