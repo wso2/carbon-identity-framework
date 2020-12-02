@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,21 +34,18 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import redis.clients.jedis.BinaryJedis;
-import org.apache.commons.lang.SerializationUtils;
 
-import java.io.*;
+import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
-
-import static com.hazelcast.nio.IOUtil.toByteArray;
 
 /**
  * Data will be persisted or stored date will be removed from the store. These two events are considered as STORE operation
@@ -289,7 +287,8 @@ public class SessionDataStore {
     }
 
     //Return Jedis object
-    private static BinaryJedis returnjedis() {
+    private static BinaryJedis getJedisInstance() {
+
         if (jedis != null)
             return jedis;
         return new BinaryJedis("127.0.0.1", 6379);
@@ -301,78 +300,9 @@ public class SessionDataStore {
         return sessionContextDO != null ? sessionContextDO.getEntry() : null;
     }
 
-    public SessionContextDO getSessionContextData(String key, String type) {
-        //modify to get data
-          jedis=returnjedis();
-
-        if (!enablePersist) {
-            return null;
-        }
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getDBConnection(false);
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
-            return null;
-        }
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            if (StringUtils.isBlank(sqlSelect)) {
-                if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)
-                        || connection.getMetaData().getDriverName().contains(H2_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
-                } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-                } else if (connection.getMetaData().getDriverName().contains(MS_SQL_DATABASE)
-                        || connection.getMetaData().getDriverName().contains(MICROSOFT_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-                } else if (connection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)) {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-                } else if (connection.getMetaData().getDriverName().contains(INFORMIX_DATABASE)) {
-                    // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
-                } else {
-                    sqlSelect = SQL_DESERIALIZE_OBJECT_ORACLE;
-                }
-            }
-            preparedStatement = connection.prepareStatement(getSessionStoreDBQuery(sqlSelect, type));
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            resultSet = preparedStatement.executeQuery();
-
-            byte[] bObject = jedis.get(key.getBytes());
-            if (bObject != null) {
-                HashMap hash = (HashMap) deserialize(bObject);
-                String operation = (String) hash.get("operation");
-                long nanoTime = ((Long) hash.get("nanoTime"));
-
-                if ((OPERATION_STORE.equals(operation))) {
-                    log.info("redis working");
-                    Object blobObject = hash.get("BlobObj");
-                    return new SessionContextDO(key, type, blobObject, nanoTime);
-
-                }
-
-            }
-            else {
-                String operation = resultSet.getString(1);
-                long nanoTime = resultSet.getLong(3);
-                log.info("h2 is working");
-                if ((OPERATION_STORE.equals(operation))) {
-                    return new SessionContextDO(key, type, getBlobObject(resultSet.getBinaryStream(2)), nanoTime);
-
-                }
-
-            }
-
-        } catch (ClassNotFoundException | IOException | SQLException |
-                IdentityApplicationManagementException e) {
-            log.error("Error while retrieving session data", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
-        }
-        return null;
+    //Serializes an Object to byte array.
+    private static byte[] serialize(Serializable obj) {
+        return SerializationUtils.serialize(obj);
     }
 
     public void storeSessionData(String key, String type, Object entry) {
@@ -516,16 +446,38 @@ public class SessionDataStore {
 
     }
 
+    //Deserializes a byte array back to Object.
+    private static Object deserialize(byte[] bytes) {
+        return SerializationUtils.deserialize(bytes);
+    }
+
+    public SessionContextDO getSessionContextData(String key, String type) {
+        //modify to get data
+        jedis = getJedisInstance();
+
+        if (!enablePersist) {
+            return null;
+        }
+        byte[] sessionObject = jedis.get(key.getBytes());
+        if (sessionObject != null) {
+            HashMap hash = (HashMap) deserialize(sessionObject);
+            String operation = (String) hash.get("operation");
+            long nanoTime = ((Long) hash.get("nanoTime"));
+
+            if ((OPERATION_STORE.equals(operation))) {
+                log.info("redis working");
+                Object blobObject = hash.get("BlobObj");
+                return new SessionContextDO(key, type, blobObject, nanoTime);
+
+            }
+        }
+
+        return null;
+    }
+
     public void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId) {
 
         if (!enablePersist) {
-            return;
-        }
-        Connection connection = null;
-        try {
-            connection = IdentityDatabaseUtil.getDBConnection();
-        } catch (IdentityRuntimeException e) {
-            log.error(e.getMessage(), e);
             return;
         }
 
@@ -539,50 +491,20 @@ public class SessionDataStore {
             validityPeriodNano = getCleanupTimeout(type, tenantId);
         }
 
-        PreparedStatement preparedStatement = null;
-        try {
-            String sqlQuery = getSessionStoreDBQuery(sqlInsertSTORE, type);
-            preparedStatement = connection.prepareStatement(sqlQuery);
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, type);
-            preparedStatement.setString(3, OPERATION_STORE);
-            setBlobObject(preparedStatement, entry, 4);
-            preparedStatement.setLong(5, nanoTime);
-            preparedStatement.setLong(6, nanoTime + validityPeriodNano);
-            preparedStatement.setInt(7, tenantId);
-            preparedStatement.executeUpdate();
+        // Code for redis hashmap.
+        Map sessionEntry = new HashMap();
+        sessionEntry.put("type", type);
+        sessionEntry.put("operation", OPERATION_STORE);
+        sessionEntry.put("BlobObj", entry);
+        sessionEntry.put("nanoTime", nanoTime);
+        sessionEntry.put("time", nanoTime + validityPeriodNano);
+        sessionEntry.put("tenantId", tenantId);
 
-            //code for redis hashmap
-            Map hm= new HashMap();
-            hm.put("type",type);
-            hm.put("operation",OPERATION_STORE);
-            hm.put("BlobObj",(entry));
-            hm.put("nanoTime",nanoTime);
-            hm.put("time",(nanoTime + validityPeriodNano));
-            hm.put("tenantId",tenantId);
+        byte[] serializedSessionEntry = serialize((Serializable) sessionEntry);
 
-            byte[] obj=serialize((Serializable) hm);
-            jedis=returnjedis();
-            jedis.set(key.getBytes(),obj);
-            //jedis.hmset(key,hm);
+        jedis = getJedisInstance();
+        jedis.set(key.getBytes(), serializedSessionEntry);
 
-            IdentityDatabaseUtil.commitTransaction(connection);
-        } catch (SQLException | IOException e) {
-            IdentityDatabaseUtil.rollbackTransaction(connection);
-            log.error("Error while storing session data", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
-        }
-
-    }
-    //Serializes an Object to byte array
-    private static byte[] serialize(Serializable obj) {
-        return SerializationUtils.serialize(obj);
-    }
-
-    //Deserializes a byte array back to Object
-    private static Object deserialize(byte[] bytes) {
-        return SerializationUtils.deserialize(bytes);
     }
 
     public void removeSessionData(String key, String type, long nanoTime) {
@@ -656,42 +578,6 @@ public class SessionDataStore {
         }
     }
 
-    private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
-            throws SQLException, IOException {
-        if (value != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(value);
-            oos.flush();
-            oos.close();
-            InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-            prepStmt.setBinaryStream(index, inputStream, inputStream.available());
-
-
-        } else {
-            prepStmt.setBinaryStream(index, null, 0);
-        }
-    }
-
-    private Object getBlobObject(InputStream is)
-            throws IdentityApplicationManagementException, IOException, ClassNotFoundException {
-        if (is != null) {
-            ObjectInput ois = null;
-            try {
-                ois = new ObjectInputStream(is);
-                return ois.readObject();
-            } finally {
-                if (ois != null) {
-                    try {
-                        ois.close();
-                    } catch (IOException e) {
-                        log.error("IOException while trying to close ObjectInputStream.", e);
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
     /**
      * Removes STORE records related to DELETE records in IDN_AUTH_SESSION_STORE table
