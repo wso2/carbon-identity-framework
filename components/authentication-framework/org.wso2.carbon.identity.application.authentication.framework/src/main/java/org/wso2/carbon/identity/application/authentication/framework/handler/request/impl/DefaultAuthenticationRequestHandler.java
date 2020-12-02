@@ -404,6 +404,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
 
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 List<AuthenticationContextProperty> authenticationContextProperties = new ArrayList<>();
 
                 // Authentication context properties from already authenticated IdPs
@@ -499,6 +500,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
