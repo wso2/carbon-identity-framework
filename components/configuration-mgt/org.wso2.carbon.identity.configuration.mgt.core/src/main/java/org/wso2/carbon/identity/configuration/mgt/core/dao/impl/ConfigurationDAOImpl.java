@@ -1534,7 +1534,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                     })),
                     preparedStatement -> {
                         preparedStatement.setString(1, resourceTypeId);
-                        preparedStatement.setString(2, Integer.toString(tenantId));
+                        preparedStatement.setInt(2, tenantId);
                     });
         } catch (DataAccessException e) {
             throw handleServerException(ERROR_CODE_RESOURCES_DOES_NOT_EXISTS, e);
