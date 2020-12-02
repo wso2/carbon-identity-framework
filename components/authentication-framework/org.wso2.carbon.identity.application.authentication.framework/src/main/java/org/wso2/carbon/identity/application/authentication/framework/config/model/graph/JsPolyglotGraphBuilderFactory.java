@@ -50,28 +50,28 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
 
     }
 
-    public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
+    public static void restoreCurrentContext(AuthenticationContext authContext, ScriptContext context)
         throws FrameworkException {
 
-        Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
-        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        Map<String, Object> map = (Map<String, Object>) authContext.getProperty(JS_BINDING_CURRENT_CONTEXT);
+        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), engine);
+                Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), context);
                 if (deserializedValue instanceof AbstractJSObjectWrapper) {
-                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
+                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(authContext);
                 }
                 bindings.put(entry.getKey(), deserializedValue);
             }
         }
     }
 
-    public static void persistCurrentContext(AuthenticationContext context, ScriptEngine engine) {
+    public static void persistCurrentContext(AuthenticationContext authContext, ScriptContext context ) {
 
-        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.forEach((key, value) -> persistableMap.put(key, FrameworkUtils.toJsSerializable(value)));
-        context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
+        authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
     public ScriptEngine createEngine(AuthenticationContext authenticationContext) {

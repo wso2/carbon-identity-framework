@@ -145,6 +145,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
@@ -2284,11 +2285,12 @@ public class FrameworkUtils {
         return value;
     }
 
-    public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
+    public static Object fromJsSerializable(Object value, Object contextOrEngine) throws FrameworkException {
 
         if (value instanceof NashornSerializableJsFunction) {
             NashornSerializableJsFunction serializableJsFunction = (NashornSerializableJsFunction) value;
             try {
+                ScriptEngine engine = (ScriptEngine) contextOrEngine;
                 return engine.eval(serializableJsFunction.getSource());
             } catch (ScriptException e) {
                 throw new FrameworkException("Error in resurrecting a Javascript Function : " + serializableJsFunction);
@@ -2297,7 +2299,7 @@ public class FrameworkUtils {
         } else if (value instanceof Map) {
             Map<String, Object> deserializedMap = new HashMap<>();
             for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
-                Object deserializedObj = fromJsSerializable(entry.getValue(), engine);
+                Object deserializedObj = fromJsSerializable(entry.getValue(), contextOrEngine);
                 deserializedMap.put(entry.getKey(), deserializedObj);
             }
             return deserializedMap;

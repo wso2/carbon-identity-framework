@@ -103,7 +103,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             currentBuilder.set(this);
             engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(), context);
             engine.eval(script, context);
-            JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, engine);
+            JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
 
             Function<Object[], Void> onLoginRequestFn = (Function) context.getBindings(ScriptContext.ENGINE_SCOPE).get(
                     FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
@@ -117,7 +117,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 return this;
             }
             onLoginRequestFn.apply(new Object[]{new GraalJsAuthenticationContext(authenticationContext)});
-            JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, engine);
+            JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
         } catch (ScriptException | PolyglotException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
@@ -178,15 +178,15 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             ScriptEngine scriptEngine = getEngine(authenticationContext);
             try {
                 currentBuilder.set(graphBuilder);
-                JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, scriptEngine);
                 ScriptContext context = JsPolyglotGraphBuilder.this.createContext();
+                JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
 
                 Compilable compilable = (Compilable) scriptEngine;
                 JsPolyglotGraphBuilder.contextForJs.set(authenticationContext);
 
                 result = fn.apply(scriptEngine, new GraalJsAuthenticationContext(authenticationContext));
 
-                JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
+                JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
 
                 AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
                         .getProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE);
