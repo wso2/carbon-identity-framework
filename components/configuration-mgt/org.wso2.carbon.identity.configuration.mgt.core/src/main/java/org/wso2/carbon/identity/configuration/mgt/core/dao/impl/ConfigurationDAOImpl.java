@@ -1327,10 +1327,15 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            boolean isPostgreSQL = isPostgreSQLDB();
             jdbcTemplate.withTransaction(template -> {
                 template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
                     preparedStatement.setString(1, fileId);
-                    preparedStatement.setBlob(2, fileStream);
+                    if (isPostgreSQL) {
+                        preparedStatement.setBinaryStream(2, fileStream);
+                    } else {
+                        preparedStatement.setBlob(2, fileStream);
+                    }
                     preparedStatement.setString(3, resourceId);
                     preparedStatement.setString(4, fileName);
                 });
@@ -1357,13 +1362,14 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            Blob fileBlob = jdbcTemplate.fetchSingleRecord(SQLConstants.GET_FILE_BY_ID_SQL,
-                    (resultSet, rowNumber) -> resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE),
-                    preparedStatement -> {
-                        preparedStatement.setString(1, fileId);
-                        preparedStatement.setString(2, resourceName);
-                        preparedStatement.setString(3, resourceType);
-                    });
+            if (isPostgreSQLDB()) {
+                return jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(), (resultSet, rowNumber) ->
+                                resultSet.getBinaryStream(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
+                        setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
+            }
+            Blob fileBlob = jdbcTemplate.fetchSingleRecord(getFileGetByIdSQL(),
+                    (resultSet, rowNumber) -> resultSet.getBlob(DB_SCHEMA_COLUMN_NAME_VALUE), preparedStatement ->
+                            setPreparedStatementForFileGetById(resourceType, resourceName, fileId, preparedStatement));
             return fileBlob != null ? fileBlob.getBinaryStream() : null;
         } catch (DataAccessException | SQLException e) {
             throw handleServerException(ERROR_CODE_GET_FILE, fileId, e);
@@ -1578,4 +1584,16 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
         }, resource, false);
     }
 
+    private void setPreparedStatementForFileGetById(String resourceType, String resourceName, String fileId,
+                                                    PreparedStatement preparedStatement) throws SQLException {
+
+        preparedStatement.setString(1, fileId);
+        preparedStatement.setString(2, resourceName);
+        preparedStatement.setString(3, resourceType);
+    }
+
+    private String getFileGetByIdSQL() {
+
+        return SQLConstants.GET_FILE_BY_ID_SQL;
+    }
 }
