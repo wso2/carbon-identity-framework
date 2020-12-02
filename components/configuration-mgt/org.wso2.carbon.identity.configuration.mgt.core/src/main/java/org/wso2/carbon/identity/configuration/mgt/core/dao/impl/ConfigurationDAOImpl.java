@@ -45,6 +45,7 @@ import org.wso2.carbon.identity.core.util.LambdaExceptionUtils;
 
 import java.io.InputStream;
 import java.sql.Blob;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
