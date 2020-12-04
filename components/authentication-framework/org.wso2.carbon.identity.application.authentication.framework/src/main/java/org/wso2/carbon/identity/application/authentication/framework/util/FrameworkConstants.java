@@ -480,6 +480,7 @@ public abstract class FrameworkConstants {
     }
 
     public static class Application {
+    
         public static final String MY_ACCOUNT_APP = "My Account";
         public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
         public static final String CONSOLE_APP = "Console";
