@@ -61,11 +61,20 @@ import java.util.concurrent.TimeUnit;
  * And these events are stored with unique sessionId, operation type and operation initiated timestamp.
  * Expired DELETE operations and related STORE operations will be deleted by a OperationCleanUpService task.
  * All expired operations will be deleted by SessionCleanUpService task.
- *
  */
 public class SessionDataStore {
-    private static final Log log = LogFactory.getLog(SessionDataStore.class);
 
+    public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
+    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
+    public static final String OPERATION = "operation";
+    public static final String NANO_TIME = "nanoTime";
+    public static final String BLOB_OBJ = "BlobObj";
+    public static final String TYPE = "type";
+    public static final String TIME = "time";
+    public static final String TENANT_ID = "tenantId";
+    public static final String HOST = "127.0.0.1";
+    public static final int PORT = 6379;
+    private static final Log log = LogFactory.getLog(SessionDataStore.class);
     private static final String OPERATION_DELETE = "DELETE";
     private static final String OPERATION_STORE = "STORE";
     private static final String SQL_INSERT_STORE_OPERATION =
@@ -74,20 +83,18 @@ public class SessionDataStore {
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED, EXPIRY_TIME) VALUES (?,?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID in (" +
-            "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
-
+                    "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
     private static final String SQL_DELETE_TEMP_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE EXPIRY_TIME < ?";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
             "DELETE IDN_AUTH_SESSION_STORE_DELETE FROM IDN_AUTH_SESSION_STORE IDN_AUTH_SESSION_STORE_DELETE WHERE " +
-                    "OPERATION = '"+OPERATION_STORE+"' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
+                    "OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
                     "FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "') " +
                     "IDN_AUTH_SESSION_STORE_SELECT)";
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "' AND  EXPIRY_TIME < ?";
     private static final String SQL_DELETE_TEMP_RECORDS =
             "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE SESSION_ID = ? AND  SESSION_TYPE = ?";
-
     private static final String SQL_DESERIALIZE_OBJECT_MYSQL =
             "SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC LIMIT 1";
@@ -106,7 +113,6 @@ public class SessionDataStore {
     private static final String SQL_DESERIALIZE_OBJECT_ORACLE =
             "SELECT * FROM (SELECT OPERATION, SESSION_OBJECT, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE SESSION_ID =? AND" +
                     " SESSION_TYPE=? ORDER BY TIME_CREATED DESC) WHERE ROWNUM < 2";
-
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MYSQL =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE EXPIRY_TIME < ? LIMIT %d";
     private static final String SQL_DELETE_EXPIRED_DATA_TASK_MSSQL =
@@ -128,30 +134,15 @@ public class SessionDataStore {
     private static final String MICROSOFT_DATABASE = "Microsoft";
     private static final String POSTGRESQL_DATABASE = "PostgreSQL";
     private static final String INFORMIX_DATABASE = "Informix";
-
     private static final int DEFAULT_DELETE_LIMIT = 50000;
-    public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
     private static final String CACHE_MANAGER_NAME = "IdentityApplicationManagementCacheManager";
-    public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
     private static int maxSessionDataPoolSize = 100;
     private static int maxTempDataPoolSize = 50;
-    private static BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
-    private static BlockingDeque<SessionContextDO> tempAuthnContextDataDeleteQueue = new LinkedBlockingDeque();
+    private static final BlockingDeque<SessionContextDO> sessionContextQueue = new LinkedBlockingDeque();
+    private static final BlockingDeque<SessionContextDO> tempAuthnContextDataDeleteQueue = new LinkedBlockingDeque();
     private static volatile SessionDataStore instance;
-    private boolean enablePersist;
-    private String sqlInsertSTORE;
-    private String sqlInsertDELETE;
-    private String sqlDeleteSTORETask;
-    private String sqlDeleteTempDataTask;
-    private String sqlDeleteDELETETask;
-    private String sqlSelect;
-    private String sqlDeleteExpiredDataTask;
-    private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
-    private boolean sessionDataCleanupEnabled = true;
-    private boolean operationDataCleanupEnabled = false;
     private static boolean tempDataCleanupEnabled = false;
     private static BinaryJedis jedis;
-    private boolean enableRedis= false;
 
     static {
         try {
@@ -182,7 +173,7 @@ public class SessionDataStore {
             }
             log.warn("One or more pool size configurations cause NumberFormatException. Default values would be used");
         }
-        if ( maxSessionDataPoolSize > 0) {
+        if (maxSessionDataPoolSize > 0) {
             log.info("Thread pool size for session persistent consumer : " + maxSessionDataPoolSize);
             ExecutorService threadPool = Executors.newFixedThreadPool(maxSessionDataPoolSize);
             for (int i = 0; i < maxSessionDataPoolSize; i++) {
@@ -198,7 +189,21 @@ public class SessionDataStore {
         }
     }
 
+    private boolean enablePersist;
+    private final String sqlInsertSTORE;
+    private final String sqlInsertDELETE;
+    private String sqlDeleteSTORETask;
+    private final String sqlDeleteTempDataTask;
+    private final String sqlDeleteDELETETask;
+    private String sqlSelect;
+    private String sqlDeleteExpiredDataTask;
+    private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
+    private boolean sessionDataCleanupEnabled = true;
+    private boolean operationDataCleanupEnabled = false;
+    private final boolean redisEnabled = true;
+
     private SessionDataStore() {
+
         String enablePersistVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Enable");
         enablePersist = true;
         if (enablePersistVal != null) {
@@ -285,6 +290,7 @@ public class SessionDataStore {
     }
 
     public static SessionDataStore getInstance() {
+
         if (instance == null) {
             synchronized (SessionDataStore.class) {
                 if (instance == null) {
@@ -295,12 +301,24 @@ public class SessionDataStore {
         return instance;
     }
 
-    //Return Jedis object
+    // Return Jedis object.
     private static BinaryJedis getJedisInstance() {
 
         if (jedis != null)
             return jedis;
-        return new BinaryJedis("127.0.0.1", 6379);
+        return new BinaryJedis(HOST, PORT);
+    }
+
+    // Serializes an Object to byte array.
+    private static byte[] serialize(Serializable obj) {
+
+        return SerializationUtils.serialize(obj);
+    }
+
+    // Deserializes a byte array back to Object.
+    private static Object deserialize(byte[] bytes) {
+
+        return SerializationUtils.deserialize(bytes);
     }
 
     public Object getSessionData(String key, String type) {
@@ -309,17 +327,13 @@ public class SessionDataStore {
         return sessionContextDO != null ? sessionContextDO.getEntry() : null;
     }
 
-    //Serializes an Object to byte array.
-    private static byte[] serialize(Serializable obj) {
-        return SerializationUtils.serialize(obj);
-    }
-
     public void storeSessionData(String key, String type, Object entry) {
 
         storeSessionData(key, type, entry, MultitenantConstants.INVALID_TENANT_ID);
     }
 
     public void storeSessionData(String key, String type, Object entry, int tenantId) {
+
         if (!enablePersist) {
             return;
         }
@@ -332,6 +346,7 @@ public class SessionDataStore {
     }
 
     public void clearSessionData(String key, String type) {
+
         if (!enablePersist) {
             return;
         }
@@ -455,34 +470,27 @@ public class SessionDataStore {
 
     }
 
-    //Deserializes a byte array back to Object.
-    private static Object deserialize(byte[] bytes) {
-        return SerializationUtils.deserialize(bytes);
-    }
-
     public SessionContextDO getSessionContextData(String key, String type) {
-        //modify to get data
+        // Modify to get data.
         jedis = getJedisInstance();
 
         if (!enablePersist) {
             return null;
         }
-        if (enableRedis){
+        if (redisEnabled) {
             byte[] sessionObject = jedis.get(key.getBytes());
             if (sessionObject != null) {
                 HashMap hash = (HashMap) deserialize(sessionObject);
-                String operation = (String) hash.get("operation");
-                long nanoTime = ((Long) hash.get("nanoTime"));
+                String operation = (String) hash.get(OPERATION);
+                long nanoTime = ((Long) hash.get(NANO_TIME));
 
                 if ((OPERATION_STORE.equals(operation))) {
-                    Object blobObject = hash.get("BlobObj");
+                    Object blobObject = hash.get(BLOB_OBJ);
                     return new SessionContextDO(key, type, blobObject, nanoTime);
 
                 }
             }
-        }
-
-        else{
+        } else {
             Connection connection = null;
             try {
                 connection = IdentityDatabaseUtil.getDBConnection(false);
@@ -516,7 +524,7 @@ public class SessionDataStore {
                 preparedStatement.setString(1, key);
                 preparedStatement.setString(2, type);
                 resultSet = preparedStatement.executeQuery();
-                if(resultSet.next()) {
+                if (resultSet.next()) {
                     String operation = resultSet.getString(1);
                     long nanoTime = resultSet.getLong(3);
                     if ((OPERATION_STORE.equals(operation))) {
@@ -530,7 +538,6 @@ public class SessionDataStore {
                 IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
             }
             return null;
-
         }
         return null;
     }
@@ -551,23 +558,21 @@ public class SessionDataStore {
             validityPeriodNano = getCleanupTimeout(type, tenantId);
         }
 
-
-        if (enableRedis) {
+        if (redisEnabled) {
             // Code for redis hashmap.
             Map sessionEntry = new HashMap();
-            sessionEntry.put("type", type);
-            sessionEntry.put("operation", OPERATION_STORE);
-            sessionEntry.put("BlobObj", entry);
-            sessionEntry.put("nanoTime", nanoTime);
-            sessionEntry.put("time", nanoTime + validityPeriodNano);
-            sessionEntry.put("tenantId", tenantId);
+            sessionEntry.put(TYPE, type);
+            sessionEntry.put(OPERATION, OPERATION_STORE);
+            sessionEntry.put(BLOB_OBJ, entry);
+            sessionEntry.put(NANO_TIME, nanoTime);
+            sessionEntry.put(TIME, nanoTime + validityPeriodNano);
+            sessionEntry.put(TENANT_ID, tenantId);
 
             byte[] serializedSessionEntry = serialize((Serializable) sessionEntry);
 
             jedis = getJedisInstance();
             jedis.set(key.getBytes(), serializedSessionEntry);
-        }
-        else{
+        } else {
             Connection connection = null;
             try {
                 connection = IdentityDatabaseUtil.getDBConnection();
@@ -597,10 +602,11 @@ public class SessionDataStore {
 
         }
 
-
     }
+
     private Object getBlobObject(InputStream is)
             throws IdentityApplicationManagementException, IOException, ClassNotFoundException {
+
         if (is != null) {
             ObjectInput ois = null;
             try {
@@ -621,6 +627,7 @@ public class SessionDataStore {
 
     private void setBlobObject(PreparedStatement prepStmt, Object value, int index)
             throws SQLException, IOException {
+
         if (value != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -635,6 +642,7 @@ public class SessionDataStore {
     }
 
     public void removeSessionData(String key, String type, long nanoTime) {
+
         if (!enablePersist) {
             return;
         }
@@ -705,11 +713,11 @@ public class SessionDataStore {
         }
     }
 
-
     /**
      * Removes STORE records related to DELETE records in IDN_AUTH_SESSION_STORE table
      */
     private void removeInvalidatedSTOREOperations() {
+
         Connection connection = null;
         PreparedStatement statement = null;
         try {
@@ -766,6 +774,7 @@ public class SessionDataStore {
     }
 
     private long getCleanupTimeout(String type, int tenantId) {
+
         if (isTempCache(type)) {
             return TimeUnit.MINUTES.toNanos(IdentityUtil.getTempDataCleanUpTimeout());
         } else if (tenantId != MultitenantConstants.INVALID_TENANT_ID) {
