@@ -718,6 +718,11 @@ public class FrameworkUtils {
 
         setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE);
     }
+    
+    public static void storeAuthCookieTenant(HttpServletRequest req, HttpServletResponse resp, String id, Integer age, String tenantDomain) {
+
+        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE+"-"+tenantDomain, id, age, SameSiteCookie.NONE);
+    }
 
     /**
      * Stores a cookie to the response taking configurations from identity.xml file.
@@ -788,6 +793,11 @@ public class FrameworkUtils {
     public static Cookie getAuthCookie(HttpServletRequest req) {
 
         return getCookie(req, FrameworkConstants.COMMONAUTH_COOKIE);
+    }
+    
+    public static Cookie getAuthCookieTenant(HttpServletRequest req, String tenantDomain) {
+
+        return getCookie(req, FrameworkConstants.COMMONAUTH_COOKIE+"-"+tenantDomain);
     }
 
     /**

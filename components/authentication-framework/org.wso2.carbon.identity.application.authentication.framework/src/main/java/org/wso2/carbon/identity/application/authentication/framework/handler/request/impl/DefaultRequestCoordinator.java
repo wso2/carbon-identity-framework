@@ -505,7 +505,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     log.debug("relyingParty param is null. This is a possible logout scenario.");
                 }
 
-                Cookie cookie = FrameworkUtils.getAuthCookie(request);
+                // Cookie cookie = FrameworkUtils.getAuthCookie(request);
+                Cookie cookie = FrameworkUtils.getAuthCookieTenant(request,tenantDomain);
 
                 String sessionContextKey = null;
                 if (cookie != null) {
@@ -603,7 +604,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         }
 
-        Cookie cookie = FrameworkUtils.getAuthCookie(request);
+        //Cookie cookie = FrameworkUtils.getAuthCookie(request);
+        Cookie cookie = FrameworkUtils.getAuthCookieTenant(request,context.getTenantDomain());
 
         // if cookie exists user has previously authenticated
         if (cookie != null) {

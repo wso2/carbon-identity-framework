@@ -335,9 +335,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String commonAuthCookie = null;
             String sessionContextKey = null;
             // Force authentication requires the creation of a new session. Therefore skip using the existing session
-            if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
+            //if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
+            if (FrameworkUtils.getAuthCookieTenant(request, context.getTenantDomain()) != null && !context.isForceAuthenticate()) {
 
-                commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+                //commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+            	commonAuthCookie = FrameworkUtils.getAuthCookieTenant(request, context.getTenantDomain()).getValue();
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
@@ -711,7 +713,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             authCookieAge = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
         }
 
-        FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge);
+        //FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge);
+        FrameworkUtils.storeAuthCookieTenant(request, response, sessionKey, authCookieAge, tenantDomain);
+        
     }
 
     private String getAuthenticatedUserTenantDomain(AuthenticationContext context,
