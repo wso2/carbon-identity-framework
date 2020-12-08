@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import redis.clients.jedis.BinaryJedis;
+import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -209,7 +210,7 @@ public class SessionDataStore {
     private int deleteChunkSize = DEFAULT_DELETE_LIMIT;
     private boolean sessionDataCleanupEnabled = true;
     private boolean operationDataCleanupEnabled = false;
-    private boolean redisEnabled = true;
+    private boolean redisEnabled = false;
 
     private SessionDataStore() {
 
@@ -220,8 +221,7 @@ public class SessionDataStore {
         }
 
         String redisEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.RedisEnable");
-        if (redisEnabledVal != null) {
-            log.info("checking");
+        if (StringUtils.isNotBlank(redisEnabledVal)) {
             redisEnabled = Boolean.parseBoolean(redisEnabledVal);
         }
 
@@ -318,11 +318,12 @@ public class SessionDataStore {
     }
 
     // Return Jedis object.
-    private static BinaryJedis getJedisInstance() {
+    private static synchronized BinaryJedis getJedisInstance() {
 
-        if (jedis != null)
-            return jedis;
-        return new BinaryJedis(HOST, PORT);
+        if (jedis == null) {
+                    jedis = new BinaryJedis(HOST,PORT);
+                }
+        return jedis;
     }
 
     // Serializes an Object to byte array.
