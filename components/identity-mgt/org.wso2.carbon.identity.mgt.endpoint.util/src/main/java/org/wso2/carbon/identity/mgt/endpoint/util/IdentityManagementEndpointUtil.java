@@ -467,12 +467,34 @@ public class IdentityManagementEndpointUtil {
      */
     public static String encodeURL(String callbackUrl) throws MalformedURLException {
 
-        URL url = new URL(callbackUrl);
-        StringBuilder encodedCallbackUrl = new StringBuilder(
-                new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
+        if (StringUtils.isBlank(callbackUrl)) {
+            return callbackUrl;
+        }
 
-        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
+        StringBuilder encodedCallbackUrl;
+        String query;
 
+        try {
+            URL url = new URL(callbackUrl);
+            encodedCallbackUrl = new StringBuilder(
+                    new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
+            query = url.getQuery();
+        } catch (MalformedURLException e) {
+            /* Handle unknown protocol error which occurs in scenarios where custom URL schemes are used in the
+            callbackUrl. */
+            callbackUrl = callbackUrl.trim().replace(" ", "%20");
+            try {
+                URI uri = new URI(callbackUrl);
+                encodedCallbackUrl = new StringBuilder(
+                        new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
+                query = uri.getQuery();
+            } catch (URISyntaxException ex) {
+                log.error("Error while constructing the URI.", e);
+                throw new MalformedURLException(ex.getMessage());
+            }
+        }
+
+        Map<String, String> encodedQueryMap = getEncodedQueryParamMap(query);
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
             encodedCallbackUrl.append("?");
             encodedCallbackUrl.append(encodedQueryMap.keySet().stream().map(key -> key + PADDING_CHAR
