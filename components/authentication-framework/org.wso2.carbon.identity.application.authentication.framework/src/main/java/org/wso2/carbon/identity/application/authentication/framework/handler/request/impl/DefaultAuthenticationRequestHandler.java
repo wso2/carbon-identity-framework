@@ -533,8 +533,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // store the saml index with the session context key for the single logout.
             if (context.getAuthenticationStepHistory() != null) {
                 for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
-                    if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName()) &&
-                            StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
+                    if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
                             UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey,
