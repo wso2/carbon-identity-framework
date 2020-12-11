@@ -16,24 +16,11 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
+package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal;
 
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
-/**
- * Translate the authentication graph config to runtime model.
- * This is not thread safe. Should be discarded after each build.
- */
-public interface JsGraphBuilder {
-
-    /**
-     * Creates the graph with the given Script and step map.
-     *
-     * @param script the Dynamic authentication script.
-     */
-    JsGraphBuilder createWith(String script);
-
-    AuthenticationGraph build();
-
-    AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction fn);
+@FunctionalInterface
+public interface SelectOneFunction {
+    String evaluate(JsAuthenticationContext context, String[] possibleOutcomesObj);
 }

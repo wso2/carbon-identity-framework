@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
+import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
@@ -28,7 +31,7 @@ import java.util.Optional;
 /**
  * Returns when context.steps[<step_number] is called
  */
-public class JsSteps extends AbstractJSContextMemberObject {
+public class JsSteps extends AbstractJSContextMemberObject implements ProxyArray {
 
     private static final Log LOG = LogFactory.getLog(JsSteps.class);
 
@@ -72,5 +75,30 @@ public class JsSteps extends AbstractJSContextMemberObject {
         Optional<StepConfig> optionalStepConfig = getContext().getSequenceConfig().getStepMap().values().stream()
                 .filter(stepConfig -> stepConfig.getOrder() == step).findFirst();
         return optionalStepConfig.map(StepConfig::getAuthenticatedIdP).orElse(null);
+    }
+
+    @Override
+    public Object get(long index) {
+
+        if (getContext() == null) {
+            return null;
+        } else {
+            return new JsStep(getContext(), (int)index, getAuthenticatedIdPOfStep((int)index));
+        }
+    }
+
+    @Override
+    public void set(long index, Value value) {
+        //Steps can n ot be set withs script
+    }
+
+    @Override
+    public long getSize() {
+
+        if (getContext() == null) {
+            return 0;
+        } else {
+            return getContext().getSequenceConfig().getStepMap().size();
+        }
     }
 }

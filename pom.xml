@@ -1719,6 +1719,29 @@
                 <artifactId>spring-web</artifactId>
                 <version>${springframework.spring-web.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.graalvm.sdk</groupId>
+                <artifactId>graal-sdk</artifactId>
+                <version>${graalvm.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js</artifactId>
+                <version>${graalvm.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.truffle</groupId>
+                <artifactId>truffle-api</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.js</groupId>
+                <artifactId>js-scriptengine</artifactId>
+                <version>${graalvm.version}</version>
+            </dependency>
         </dependencies>
 
     </dependencyManagement>
@@ -2017,6 +2040,7 @@
         <antlr.version>4.5</antlr.version>
         <snakeyaml.version>1.11</snakeyaml.version>
         <h2database.version>1.4.199</h2database.version>
+        <graalvm.version>19.3.0.2</graalvm.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>

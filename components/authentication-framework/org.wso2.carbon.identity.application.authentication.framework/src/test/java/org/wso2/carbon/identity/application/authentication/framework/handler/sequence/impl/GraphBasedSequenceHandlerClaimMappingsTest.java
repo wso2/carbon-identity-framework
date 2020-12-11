@@ -20,14 +20,18 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.Map;
@@ -47,6 +51,8 @@ import static org.testng.Assert.assertEquals;
  * Tests the claim handling in the Javascript.
  */
 @Test
+@WithH2Database(jndiName = "jdbc/WSO2IdentityDB", files = {"dbScripts/h2.sql"})
+@WithCarbonHome
 public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     public void testHandleClaimHandling() throws Exception {
@@ -87,7 +93,12 @@ public class GraphBasedSequenceHandlerClaimMappingsTest extends GraphBasedSequen
             return null;
         }).when(mockUserStoreManager).setUserClaimValues(anyString(), anyMap(), anyString());
 
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
+
         graphBasedSequenceHandler.handle(req, resp, context);
+        PrivilegedCarbonContext.endTenantFlow();
 
         FrameworkServiceDataHolder.getInstance().setRealmService(currentRealmService);
         assertEquals(claimValue[0], "Test User by Javascript");

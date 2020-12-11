@@ -53,7 +53,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -2246,7 +2246,7 @@ public class FrameworkUtils {
         } else if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
             if (scriptObjectMirror.isFunction()) {
-                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
+                return NashornSerializableJsFunction.toSerializableForm(scriptObjectMirror);
             } else if (scriptObjectMirror.isArray()) {
                 List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
                 scriptObjectMirror.values().forEach(v -> {
@@ -2286,8 +2286,8 @@ public class FrameworkUtils {
 
     public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
 
-        if (value instanceof SerializableJsFunction) {
-            SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
+        if (value instanceof NashornSerializableJsFunction) {
+            NashornSerializableJsFunction serializableJsFunction = (NashornSerializableJsFunction) value;
             try {
                 return engine.eval(serializableJsFunction.getSource());
             } catch (ScriptException e) {
