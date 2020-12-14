@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -48,6 +50,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -136,6 +139,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                    /*
+                    Since the user is exist following code is get all active claims of user and crosschecking against
+                    tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
+                    will be deleted.
+                    */
+                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+                    if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
+                        Claim[] userActiveClaims =
+                                userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
+                        for (Claim claim : userActiveClaims) {
+                            if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Claim from external attributes " + claim.getClaimUri() +
+                                            " has null value But user has not null claim value for Claim " +
+                                            claim.getClaimUri() + ". Hence user claim value will be deleted.");
+                                }
+                                userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
+                                        claim.getClaimUri(), null);
+                            }
+                        }
+                    }
                 }
                 String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
                         .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
@@ -316,6 +340,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
         }
         return userClaims;
+    }
+
+    /**
+     * This method is used to get null value claims passed from idp to be deleted from current user active claims.
+     *
+     * @param attributes User attributes.
+     * @return toBeDeletedClaims
+     */
+    private List<String> prepareToBeDeletedClaimMappings(Map<String, String> attributes) {
+
+        List<String> toBeDeletedUserClaims = new ArrayList<>();
+        if (MapUtils.isNotEmpty(attributes)) {
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                String claimURI = entry.getKey();
+                String claimValue = entry.getValue();
+                if (StringUtils.isNotBlank(claimURI) && StringUtils.isBlank(claimValue)) {
+                    toBeDeletedUserClaims.add(claimURI);
+                }
+            }
+        }
+        return toBeDeletedUserClaims;
     }
 
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)
