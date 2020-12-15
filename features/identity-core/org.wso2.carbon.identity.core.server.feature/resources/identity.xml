@@ -1748,6 +1748,11 @@
         <OverwriteDispatch>
             <Context>/myaccount/</Context>
             <Context>/console/</Context>
+            <IgnorePath>/libs/</IgnorePath>
+            <IgnorePath>/resources/</IgnorePath>
+            <IgnorePath>/static/</IgnorePath>
+            <IgnorePath>/deployment.config.json</IgnorePath>
+            <IgnorePath>/rpIFrame.html</IgnorePath>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 

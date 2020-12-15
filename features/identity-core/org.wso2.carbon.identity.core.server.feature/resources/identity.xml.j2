@@ -2299,6 +2299,9 @@
             {% for context in tenant_context.rewrite.overwrite.custom_dispatch %}
             <Context>{{context}}</Context>
             {% endfor %}
+            {% for path in tenant_context.rewrite.overwrite.ignore_dispatch_path %}
+            <IgnorePath>{{path}}</IgnorePath>
+            {% endfor %}
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 

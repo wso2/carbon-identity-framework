@@ -523,6 +523,13 @@
     "/myaccount/",
     "/console/"
   ],
+  "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
+    "/libs/",
+    "/resources/",
+    "/static/",
+    "/deployment.config.json",
+    "/rpIFrame.html"
+  ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
     "localhost"
