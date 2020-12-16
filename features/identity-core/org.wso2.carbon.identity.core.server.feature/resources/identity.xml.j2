@@ -2104,19 +2104,19 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+        <Resource context="/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
          </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
+        <Resource context="/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
@@ -2153,7 +2153,7 @@
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
             <Scopes>internal_identity_mgt_update</Scopes>
