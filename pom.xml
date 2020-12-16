@@ -2040,7 +2040,7 @@
         <antlr.version>4.5</antlr.version>
         <snakeyaml.version>1.11</snakeyaml.version>
         <h2database.version>1.4.199</h2database.version>
-        <graalvm.version>19.3.0.2</graalvm.version>
+        <graalvm.version>20.2.0</graalvm.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>

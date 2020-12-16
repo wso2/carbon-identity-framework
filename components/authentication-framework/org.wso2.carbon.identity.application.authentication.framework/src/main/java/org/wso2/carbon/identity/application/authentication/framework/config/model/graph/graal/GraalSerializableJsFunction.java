@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 
 import java.util.function.Function;
@@ -30,13 +32,15 @@ import javax.script.ScriptEngine;
  */
 public class GraalSerializableJsFunction implements SerializableJsFunction<GraalJsAuthenticationContext> {
 
-    private transient Function realFunction;
-    private Object guestObject;
+    private static final long serialVersionUID = -7605388897997019588L;
+    public String source;
+    public boolean isFunction;
     private String name;
 
-    public GraalSerializableJsFunction(Function realFunction) {
+    public GraalSerializableJsFunction(String source, boolean isFunction) {
 
-        this.realFunction = realFunction;
+        this.source = source;
+        this.isFunction = isFunction;
     }
 
     /**
@@ -51,8 +55,19 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Graal
             return null;
         }
         if (functionObject instanceof Function) {
-            Function scriptFunction = (Function) functionObject;
-            return serializePolygot(scriptFunction);
+            try{
+                Context context = Context.getCurrent();
+                Value functionAsValue = context.asValue(functionObject);
+                if (functionAsValue.canExecute()){
+                    String source = (String) functionAsValue.getSourceLocation().getCharacters();
+                    return serializePolygot(source, true);
+                }
+                else {
+                    return null;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return null;
 
@@ -61,9 +76,10 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Graal
     @Override
     public Object apply(ScriptEngine scriptEngine, GraalJsAuthenticationContext jsAuthenticationContext) {
 
-        if(realFunction != null) {
-            return realFunction.apply(new Object[]{jsAuthenticationContext});
-        }
+//        if(realFunction != null) {
+//            return realFunction.apply(new Object[]{jsAuthenticationContext});
+//        }
+
         Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
         Object value = bindings.get(name);
         if(value instanceof Function) {
@@ -72,10 +88,21 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Graal
         return null;
     }
 
+    public String getSource() {
+
+        return source;
+    }
+
+    public void setSource(String source) {
+
+        this.source = source;
+    }
+
     public String getName() {
 
         return name;
     }
+
 
     @Override
     public void setName(String name) {
@@ -83,8 +110,8 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Graal
         this.name = name;
     }
 
-    private static GraalSerializableJsFunction serializePolygot(Function realFunction) {
+    private static GraalSerializableJsFunction serializePolygot(String source, boolean isFunction) {
 
-        return new GraalSerializableJsFunction(realFunction);
+        return new GraalSerializableJsFunction(source, isFunction);
     }
 }

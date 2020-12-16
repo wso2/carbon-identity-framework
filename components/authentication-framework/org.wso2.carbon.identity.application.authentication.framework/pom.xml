@@ -198,6 +198,15 @@
             <artifactId>slf4j-log4j12</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.orbit.org.truffle-api</groupId>
+            <artifactId>truffle-api</artifactId>
+            <version>20.2.0-wso2v1</version>
+        </dependency>
     </dependencies>
 
     <build>

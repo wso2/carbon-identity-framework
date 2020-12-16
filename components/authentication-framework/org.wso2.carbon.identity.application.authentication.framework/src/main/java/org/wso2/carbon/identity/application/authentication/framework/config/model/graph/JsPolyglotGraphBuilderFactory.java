@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.script.Bindings;
@@ -50,27 +51,35 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
 
     }
 
-    public static void restoreCurrentContext(AuthenticationContext authContext, ScriptContext context)
-        throws FrameworkException {
+    public static void restoreCurrentContext(AuthenticationContext authContext, Context context)
+            throws FrameworkException, IOException {
 
         Map<String, Object> map = (Map<String, Object>) authContext.getProperty(JS_BINDING_CURRENT_CONTEXT);
-        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+        Value bindings = context.getBindings("js");
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), context);
-                if (deserializedValue instanceof AbstractJSObjectWrapper) {
-                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(authContext);
-                }
-                bindings.put(entry.getKey(), deserializedValue);
+                Object deserializedValue = FrameworkUtils.fromJsSerializableGraal(entry.getValue(), context);
+//                if (deserializedValue instanceof AbstractJSObjectWrapper) {
+//                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(authContext);
+//                }
+                bindings.putMember(entry.getKey(), deserializedValue);
+//                context.eval(Source.newBuilder("js", "var " + entry.getKey() + " = "+entry.getValue(), "src.js").build());
             }
         }
     }
 
-    public static void persistCurrentContext(AuthenticationContext authContext, ScriptContext context ) {
+    public static void persistCurrentContext(AuthenticationContext authContext, Context context ) {
 
-        Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+        Value engineBindings = context.getBindings("js");
         Map<String, Object> persistableMap = new HashMap<>();
-        engineBindings.forEach((key, value) -> persistableMap.put(key, FrameworkUtils.toJsSerializable(value)));
+        engineBindings.getMemberKeys().forEach((key) ->
+                {
+                    Value keybinding = engineBindings.getMember(key);
+                    if (!keybinding.isHostObject()) {
+                        persistableMap.put(key, FrameworkUtils.toJsSerializableGraal(keybinding));
+                    }
+                });
+
         authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 

@@ -38,7 +38,7 @@ import javax.script.ScriptException;
 public class NashornSerializableJsFunction implements SerializableJsFunction<NashornJsAuthenticationContext> {
 
     private static final long serialVersionUID = -7605388897997019588L;
-    private String source;
+    public String source;
     private boolean isFunction;
     private String name;
 

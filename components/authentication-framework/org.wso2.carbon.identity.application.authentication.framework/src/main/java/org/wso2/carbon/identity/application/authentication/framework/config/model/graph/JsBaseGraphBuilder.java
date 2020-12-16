@@ -18,6 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import com.oracle.truffle.polyglot.*;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.*;
+
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -84,7 +88,6 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     }
 
     public static void clearCurrentBuilder() {
-
         currentBuilder.remove();
     }
 
@@ -622,6 +625,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         eventsMap.forEach((key, value) -> {
             System.out.println("Fn " + key + " " + value);
             SerializableJsFunction jsFunction = serializerFunction.apply(value);
+
             jsFunction.setName(key);
             if (jsFunction != null) {
                 decisionNode.addFunction(key, jsFunction);

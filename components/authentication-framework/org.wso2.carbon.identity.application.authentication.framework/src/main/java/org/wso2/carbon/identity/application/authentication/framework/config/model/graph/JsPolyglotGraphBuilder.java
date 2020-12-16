@@ -20,7 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
@@ -30,21 +32,19 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.script.Bindings;
-import javax.script.Compilable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 
 /**
@@ -97,17 +97,40 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     @Override
     public JsPolyglotGraphBuilder createWith(String script) {
 
-        ScriptContext context = this.createContextInitial();
+        Context context = Context.newBuilder("js").allowHostAccess(true).build();
+        Value bindings = context.getBindings("js");
 
+        JsLogger jsLogger = new JsLogger();
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
+                this::sendError);
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
+                (PromptExecutor) this::addShowPrompt);
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
+                (LoadExecutor) this::loadLocalLibrary);
+        bindings.putMember("exit", (RestrictedFunction) this::exitFunction);
+        bindings.putMember("quit", (RestrictedFunction) this::quitFunction);
+        JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
+        if (jsFunctionRegistrar != null) {
+            Map<String, Object> functionMap = jsFunctionRegistrar
+                    .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
+            functionMap.forEach(bindings::putMember);
+        }
+        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+                (SelectOneFunction) selectAcrFromFunction::evaluate);
         try {
             currentBuilder.set(this);
-            engine.eval(FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(), context);
-            engine.eval(script, context);
-            JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
+            context.eval(Source.newBuilder("js",
+                    FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(),
+                    "src.js").build());
+            context.eval(Source.newBuilder("js",
+                    script,
+                    "src.js").build());
 
-            Function<Object[], Void> onLoginRequestFn = (Function) context.getBindings(ScriptContext.ENGINE_SCOPE).get(
-                    FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
-
+            Value onLoginRequestFn = bindings.getMember(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
             if (onLoginRequestFn == null) {
                 log.error(
                         "Could not find the entry function " + FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " \n" + script);
@@ -116,9 +139,9 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                         .JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
                 return this;
             }
-            onLoginRequestFn.apply(new Object[]{new GraalJsAuthenticationContext(authenticationContext)});
+            onLoginRequestFn.executeVoid(new GraalJsAuthenticationContext(authenticationContext));
             JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
-        } catch (ScriptException | PolyglotException e) {
+        } catch (PolyglotException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
                     .JS_FUNC_ON_LOGIN_REQUEST + " reason, " + e.getMessage());
@@ -126,15 +149,20 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
-        } catch (FrameworkException e) {
-            result.setBuildSuccessful(false);
-            result.setErrorReason("Error in restoring javascript context. " + FrameworkConstants.JSAttributes
-                    .JS_FUNC_ON_LOGIN_REQUEST + " reason, " + e.getMessage());
-            result.setError(e);
-            if (log.isDebugEnabled()) {
-                log.debug("Error in restoring the Javascript context.", e);
-            }
+        }
+//        catch (FrameworkException e) {
+//            result.setBuildSuccessful(false);
+//            result.setErrorReason("Error in restoring javascript context. " + FrameworkConstants.JSAttributes
+//                    .JS_FUNC_ON_LOGIN_REQUEST + " reason, " + e.getMessage());
+//            result.setError(e);
+//            if (log.isDebugEnabled()) {
+//                log.debug("Error in restoring the Javascript context.", e);
+//            }
+//        }
+        catch (IOException e) {
+            e.printStackTrace();
         } finally {
+            context.close();
             clearCurrentBuilder();
         }
         return this;
@@ -143,7 +171,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     @Override
     protected Function<Object, SerializableJsFunction> effectiveFunctionSerializer() {
 
-        return v -> GraalSerializableJsFunction.toSerializableForm(v);
+        return GraalSerializableJsFunction::toSerializableForm;
     }
 
     public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction fn) {
@@ -176,16 +204,42 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 return null;
             }
             ScriptEngine scriptEngine = getEngine(authenticationContext);
+            Context context = Context.newBuilder("js").allowHostAccess(true).build();
+            Value bindings = context.getBindings("js");
+
+            JsLogger jsLogger = new JsLogger();
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) graphBuilder::executeStepInAsyncEvent);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
+                    JsPolyglotGraphBuilder::sendErrorAsync);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
+                    (PromptExecutor) graphBuilder::addShowPrompt);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
+                    (LoadExecutor) graphBuilder::loadLocalLibrary);
+            bindings.putMember("exit", (RestrictedFunction) graphBuilder::exitFunction);
+            bindings.putMember("quit", (RestrictedFunction) graphBuilder::quitFunction);
+            JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
+            if (jsFunctionRegistrar != null) {
+                Map<String, Object> functionMap = jsFunctionRegistrar
+                        .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
+                functionMap.forEach(bindings::putMember);
+            }
+
             try {
                 currentBuilder.set(graphBuilder);
-                ScriptContext context = JsPolyglotGraphBuilder.this.createContext();
+//                ScriptContext scriptcontext = JsPolyglotGraphBuilder.this.createContext();
                 JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
-
-                Compilable compilable = (Compilable) scriptEngine;
+//                Compilable compilable = (Compilable) scriptEngine;
                 JsPolyglotGraphBuilder.contextForJs.set(authenticationContext);
 
-                result = fn.apply(scriptEngine, new GraalJsAuthenticationContext(authenticationContext));
-
+                GraalSerializableJsFunction curr = (GraalSerializableJsFunction) fn;
+                String sourceFn = curr.source;
+                //TODO: Optimize getting curfunc
+                context.eval(Source.newBuilder("js",
+                        " var curfunc = "+ sourceFn,
+                        "src.js").build());
+                result = context.getBindings("js").getMember("curfunc").execute(new GraalJsAuthenticationContext(authenticationContext));
                 JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
 
                 AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
@@ -204,6 +258,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 FailNode failNode = new FailNode();
                 attachToLeaf(executingNode, failNode);
             } finally {
+                context.close();
                 contextForJs.remove();
                 dynamicallyBuiltBaseNode.remove();
                 clearCurrentBuilder();
@@ -214,131 +269,6 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
 
 
     }
-
-    private ScriptContext createContextInitial() {
-
-        ScriptContext context = new SimpleScriptContext();
-        context.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-
-        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        bindings.put("polyglot.js.allowHostAccess", true); //
-        bindings.put("polyglot.js.allowHostClassLoading", true);
-
-        JsLogger jsLogger = new JsLogger();
-        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
-
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                new ExecuteStepProxy());
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                this::sendError);
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
-                (PromptExecutor) this::addShowPrompt);
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
-                (LoadExecutor) this::loadLocalLibrary);
-        bindings.put("exit", (RestrictedFunction) this::exitFunction);
-        bindings.put("quit", (RestrictedFunction) this::quitFunction);
-        JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
-        if (jsFunctionRegistrar != null) {
-            Map<String, Object> functionMap = jsFunctionRegistrar
-                    .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
-            functionMap.forEach(bindings::put);
-        }
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                (SelectOneFunction) selectAcrFromFunction::evaluate);
-
-        return context;
-    }
-
-    private ScriptContext createContext() {
-
-        ScriptContext context = new SimpleScriptContext();
-        context.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-
-        Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
-        bindings.put("polyglot.js.allowHostAccess", true); //
-        bindings.put("polyglot.js.allowHostClassLoading", true);
-
-        JsLogger jsLogger = new JsLogger();
-        bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
-
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
-                new executeStepAsyncProxy());
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                JsPolyglotGraphBuilder::sendErrorAsync);
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
-                (PromptExecutor) this::addShowPrompt);
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
-                (LoadExecutor) this::loadLocalLibrary);
-        bindings.put("exit", (RestrictedFunction) this::exitFunction);
-        bindings.put("quit", (RestrictedFunction) this::quitFunction);
-        JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
-        if (jsFunctionRegistrar != null) {
-            Map<String, Object> functionMap = jsFunctionRegistrar
-                    .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
-            functionMap.forEach(bindings::put);
-        }
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                (SelectOneFunction) selectAcrFromFunction::evaluate);
-
-        return context;
-    }
-
-
-
-    class ExecuteStepProxy implements ProxyExecutable {
-
-        @Override
-        public Object execute(Value... arguments) {
-
-            System.out.println("Execute Step");
-            if (arguments == null || arguments.length <= 0) {
-                System.out.println("executeStep(n) should have at least the step ID");
-                return null;
-            }
-
-            int stepId = arguments[0].asInt();
-            if (arguments.length == 1) {
-                JsPolyglotGraphBuilder.this.executeStep(stepId);
-            } else if (arguments.length == 2) {
-                Map eventHandlerMap = arguments[1].as(Map.class);
-                JsPolyglotGraphBuilder.this.executeStep(stepId, eventHandlerMap);
-            } else if (arguments.length == 3) {
-                Map eventHandlerMap = arguments[2].as(Map.class);
-                Map optionsMap = arguments[1].as(Map.class);
-                JsPolyglotGraphBuilder.this.executeStep(stepId, optionsMap, eventHandlerMap);
-            }
-
-            return null;
-        }
-    }
-
-    class executeStepAsyncProxy implements ProxyExecutable{
-        @Override
-        public Object execute(Value... arguments) {
-            System.out.println("Execute Step");
-            if (arguments == null || arguments.length <= 0) {
-                System.out.println("executeStep(n) should have at least the step ID");
-                return null;
-            }
-
-            int stepId = arguments[0].asInt();
-            if (arguments.length == 1) {
-                JsPolyglotGraphBuilder.this.executeStepInAsyncEvent(stepId);
-            } else if (arguments.length == 2) {
-                Map eventHandlerMap = arguments[1].as(Map.class);
-                JsPolyglotGraphBuilder.this.executeStepInAsyncEvent(stepId, eventHandlerMap);
-            } else if (arguments.length == 3) {
-                Map eventHandlerMap = arguments[2].as(Map.class);
-                Map optionsMap = arguments[1].as(Map.class);
-                JsPolyglotGraphBuilder.this.executeStepInAsyncEvent(stepId, optionsMap, eventHandlerMap);
-            }
-
-            return null;
-        }
-    }
-
 
     private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
 
