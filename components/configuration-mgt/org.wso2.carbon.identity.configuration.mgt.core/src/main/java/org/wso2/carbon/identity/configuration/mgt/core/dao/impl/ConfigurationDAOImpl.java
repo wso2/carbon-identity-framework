@@ -1509,6 +1509,9 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
+            String resourceTypeName = jdbcTemplate.fetchSingleRecord(SQLConstants.GET_RESOURCE_TYPE_BY_ID_SQL,
+                    (resultSet, rowNumber) -> resultSet.getString(DB_SCHEMA_COLUMN_NAME_NAME),
+                    preparedStatement -> preparedStatement.setString(1, resourceTypeId));
             return jdbcTemplate.executeQuery(GET_RESOURCES_BY_RESOURCE_TYPE_ID_SQL,
                     (LambdaExceptionUtils.rethrowRowMapper((resultSet, rowNumber) -> {
                         String resourceId = resultSet.getString(DB_SCHEMA_COLUMN_NAME_ID);
@@ -1528,7 +1531,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                         resource.setLastModified(resourceLastModified);
                         resource.setHasFile(Boolean.valueOf(resourceHasFile));
                         resource.setTenantDomain(IdentityTenantUtil.getTenantDomain(tenantId));
-                        resource.setFiles(getFilesByResourceType(resourceTypeId, tenantId));
+                        resource.setFiles(getFiles(resourceId, resourceTypeName, resourceName));
                         resource.setAttributes(getAttributesByResourceId(resourceId));
                         return resource;
                     })),
