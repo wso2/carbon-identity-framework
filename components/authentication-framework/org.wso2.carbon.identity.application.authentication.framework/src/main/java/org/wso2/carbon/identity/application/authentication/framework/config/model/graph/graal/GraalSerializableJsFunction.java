@@ -19,9 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
 
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
+import java.io.IOException;
 import java.util.function.Function;
 import javax.script.Bindings;
 import javax.script.ScriptContext;
@@ -30,7 +33,7 @@ import javax.script.ScriptEngine;
 /**
  * Implements serializable function which is a graal object.
  */
-public class GraalSerializableJsFunction implements SerializableJsFunction<GraalJsAuthenticationContext> {
+public class GraalSerializableJsFunction implements SerializableJsFunction<Context, GraalJsAuthenticationContext> {
 
     private static final long serialVersionUID = -7605388897997019588L;
     public String source;
@@ -73,18 +76,19 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Graal
 
     }
 
-    @Override
-    public Object apply(ScriptEngine scriptEngine, GraalJsAuthenticationContext jsAuthenticationContext) {
+    public Object apply(Context polyglotContext, GraalJsAuthenticationContext jsAuthenticationContext) {
 
-//        if(realFunction != null) {
-//            return realFunction.apply(new Object[]{jsAuthenticationContext});
-//        }
-
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE);
-        Object value = bindings.get(name);
-        if(value instanceof Function) {
-            return ((Function) value).apply(new Object[]{jsAuthenticationContext});
+        if(isFunction) {
+            try {
+                polyglotContext.eval(Source.newBuilder("js",
+                        " var curfunc = " + getSource(),
+                        "src.js").build());
+                return polyglotContext.getBindings("js").getMember("curfunc").execute(jsAuthenticationContext);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+
         return null;
     }
 
@@ -102,7 +106,6 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Graal
 
         return name;
     }
-
 
     @Override
     public void setName(String name) {

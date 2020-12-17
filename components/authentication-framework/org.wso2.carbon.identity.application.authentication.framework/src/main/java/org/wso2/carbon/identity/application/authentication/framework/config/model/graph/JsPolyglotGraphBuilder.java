@@ -24,13 +24,11 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectOneFunction;
@@ -42,10 +40,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.SimpleScriptContext;
 
 /**
  * Translate the authentication graph config to runtime model.
@@ -54,19 +49,20 @@ import javax.script.SimpleScriptContext;
 public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsPolyglotGraphBuilder.class);
+    protected Context context;
 
     /**
      * Constructs the builder with the given authentication context.
      *
      * @param authenticationContext current authentication context.
      * @param stepConfigMap         The Step map from the service provider configuration.
-     * @param scriptEngine          Script engine.
+     * @param context               Polyglot Context.
      */
     public JsPolyglotGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
-                                  ScriptEngine scriptEngine) {
+                                  Context context) {
 
         this.authenticationContext = authenticationContext;
-        this.engine = scriptEngine;
+        this.context = context;
         stepNamedMap = stepConfigMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
@@ -76,14 +72,14 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
      *
      * @param authenticationContext current authentication context.
      * @param stepConfigMap         The Step map from the service provider configuration.
-     * @param scriptEngine          Script engine.
+     * @param context               polyglot context.
      * @param currentNode           Current authentication graph node.
      */
     public JsPolyglotGraphBuilder(AuthenticationContext authenticationContext, Map<Integer, StepConfig> stepConfigMap,
-                                  ScriptEngine scriptEngine, AuthGraphNode currentNode) {
+                                  Context context, AuthGraphNode currentNode) {
 
         this.authenticationContext = authenticationContext;
-        this.engine = scriptEngine;
+        this.context = context;
         this.currentNode = currentNode;
         stepNamedMap = stepConfigMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -97,11 +93,8 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     @Override
     public JsPolyglotGraphBuilder createWith(String script) {
 
-        Context context = Context.newBuilder("js").allowHostAccess(true).build();
+        currentBuilder.set(this);
         Value bindings = context.getBindings("js");
-
-        JsLogger jsLogger = new JsLogger();
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
 
         bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
         bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
@@ -150,15 +143,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 log.debug("Error in executing the Javascript.", e);
             }
         }
-//        catch (FrameworkException e) {
-//            result.setBuildSuccessful(false);
-//            result.setErrorReason("Error in restoring javascript context. " + FrameworkConstants.JSAttributes
-//                    .JS_FUNC_ON_LOGIN_REQUEST + " reason, " + e.getMessage());
-//            result.setError(e);
-//            if (log.isDebugEnabled()) {
-//                log.debug("Error in restoring the Javascript context.", e);
-//            }
-//        }
+
         catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -203,12 +188,9 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             if (jsFunction == null) {
                 return null;
             }
-            ScriptEngine scriptEngine = getEngine(authenticationContext);
-            Context context = Context.newBuilder("js").allowHostAccess(true).build();
+            Context context = getContext(authenticationContext);
             Value bindings = context.getBindings("js");
 
-            JsLogger jsLogger = new JsLogger();
-            bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
 
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) graphBuilder::executeStepInAsyncEvent);
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
@@ -228,18 +210,11 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
 
             try {
                 currentBuilder.set(graphBuilder);
-//                ScriptContext scriptcontext = JsPolyglotGraphBuilder.this.createContext();
                 JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
-//                Compilable compilable = (Compilable) scriptEngine;
                 JsPolyglotGraphBuilder.contextForJs.set(authenticationContext);
 
                 GraalSerializableJsFunction curr = (GraalSerializableJsFunction) fn;
-                String sourceFn = curr.source;
-                //TODO: Optimize getting curfunc
-                context.eval(Source.newBuilder("js",
-                        " var curfunc = "+ sourceFn,
-                        "src.js").build());
-                result = context.getBindings("js").getMember("curfunc").execute(new GraalJsAuthenticationContext(authenticationContext));
+                result = fn.apply(context, new GraalJsAuthenticationContext(authenticationContext));
                 JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
 
                 AuthGraphNode executingNode = (AuthGraphNode) authenticationContext
@@ -270,8 +245,8 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
 
     }
 
-    private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
+    private Context getContext(AuthenticationContext authenticationContext) {
 
-        return this.engine;
+        return this.context;
     }
 }

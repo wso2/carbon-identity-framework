@@ -49,6 +49,7 @@ import javax.script.ScriptException;
 public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsNashornGraphBuilder.class);
+    protected ScriptEngine engine;
 
     /**
      * Constructs the builder with the given authentication context.
@@ -239,11 +240,12 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
 
             return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
         }
+    }
 
-        private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
+    private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
+        return  this.engine;
+//            return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
+//                    .createEngine(authenticationContext);
 
-            return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
-                    .createEngine(authenticationContext);
-        }
     }
 }

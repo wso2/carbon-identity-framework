@@ -18,11 +18,11 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.graalvm.polyglot.Context;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Map;
-import javax.script.ScriptEngine;
 
 /**
  * Factory to create a Javascript based sequence builder.
@@ -37,5 +37,5 @@ public interface JsGraphBuilderFactory {
     JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
-    ScriptEngine createEngine(AuthenticationContext authenticationContext);
+    Object createEngine(AuthenticationContext authenticationContext);
 }

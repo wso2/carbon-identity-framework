@@ -35,7 +35,7 @@ import javax.script.ScriptException;
  *  Javascript function wrapper. This allows serialization of a javascript defined function.
  *
  */
-public class NashornSerializableJsFunction implements SerializableJsFunction<NashornJsAuthenticationContext> {
+public class NashornSerializableJsFunction implements SerializableJsFunction<ScriptEngine, NashornJsAuthenticationContext> {
 
     private static final long serialVersionUID = -7605388897997019588L;
     public String source;

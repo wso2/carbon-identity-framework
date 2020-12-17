@@ -62,7 +62,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     protected AuthenticationGraph result = new AuthenticationGraph();
     protected AuthGraphNode currentNode = null;
     protected AuthenticationContext authenticationContext;
-    protected ScriptEngine engine;
+
     protected static ThreadLocal<AuthenticationContext> contextForJs = new ThreadLocal<>();
     protected static ThreadLocal<AuthGraphNode> dynamicallyBuiltBaseNode = new ThreadLocal<>();
     protected static ThreadLocal<JsGraphBuilder> currentBuilder = new ThreadLocal<>();
@@ -211,8 +211,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     @SuppressWarnings("unchecked")
     public final void executeStep(int stepId, Object... params) {
 
-        StepConfig stepConfig;
-        stepConfig = stepNamedMap.get(stepId);
+        StepConfig stepConfig = stepNamedMap.get(stepId);
 
         if (stepConfig == null) {
             log.error("Given Authentication Step :" + stepId + " is not in Environment");
@@ -243,7 +242,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     }
 
     /**
-     * Adds the step given by step ID tp the authentication graph.
+     * Adds the step given by step ID to the authentication graph.
      *
      * @param params params
      */

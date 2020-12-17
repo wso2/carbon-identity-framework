@@ -22,19 +22,18 @@ import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
 import org.graalvm.polyglot.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.management.ExecutionListener;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
+import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
 
 /**
  * Factory to create a Javascript based sequence builder.
@@ -45,10 +44,10 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
     private static final Log LOG = LogFactory.getLog(JsPolyglotGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
 
-    private ScriptEngine engine;
+    private GraalJSEngineFactory factory;
 
     public void init() {
-
+        factory = new GraalJSEngineFactory();
     }
 
     public static void restoreCurrentContext(AuthenticationContext authContext, Context context)
@@ -63,7 +62,6 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
 //                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(authContext);
 //                }
                 bindings.putMember(entry.getKey(), deserializedValue);
-//                context.eval(Source.newBuilder("js", "var " + entry.getKey() + " = "+entry.getValue(), "src.js").build());
             }
         }
     }
@@ -83,20 +81,18 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
         authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
-    public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
+    public Context createEngine(AuthenticationContext authenticationContext) {
+        Context context = Context.create("js");
 
-        GraalJSEngineFactory jsEngineFactory = new GraalJSEngineFactory();
+        Value bindings = context.getBindings("js");
+        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
+//        todo move to functions registry
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+                (SelectOneFunction) selectAcrFromFunction::evaluate);
 
-        Engine graalEngine = jsEngineFactory.getPolyglotEngine();
-        ExecutionListener listener = ExecutionListener.newBuilder()
-                    .onEnter((e) -> System.out.println(e.getLocation().getStartLine()+" : "+
-                            e.getLocation().getCharacters()))
-                    .statements(true)
-                    .attach(graalEngine);
-
-        engine = jsEngineFactory.getScriptEngine();
-
-        return engine;
+        JsLogger jsLogger = new JsLogger();
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        return context;
     }
 
     public JsPolyglotGraphBuilder createBuilder(AuthenticationContext authenticationContext,
