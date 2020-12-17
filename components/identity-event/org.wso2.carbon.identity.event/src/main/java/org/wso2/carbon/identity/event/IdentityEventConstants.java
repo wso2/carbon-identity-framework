@@ -157,6 +157,16 @@ public class IdentityEventConstants {
         public static final String POST_DISABLE_ACCOUNT = "POST_DISABLE_ACCOUNT";
         public static final String PRE_ENABLE_ACCOUNT = "PRE_ENABLE_ACCOUNT";
         public static final String POST_ENABLE_ACCOUNT = "POST_ENABLE_ACCOUNT";
+        public static final String PRE_ADD_USER_WITH_ASK_PASSWORD = "PRE_ADD_USER_WITH_ASK_PASSWORD";
+        public static final String POST_ADD_USER_WITH_ASK_PASSWORD = "POST_ADD_USER_WITH_ASK_PASSWORD";
+        public static final String PRE_FORCE_PASSWORD_RESET_BY_ADMIN = "PRE_FORCE_PASSWORD_RESET_BY_ADMIN";
+        public static final String POST_FORCE_PASSWORD_RESET_BY_ADMIN = "POST_FORCE_PASSWORD_RESET_BY_ADMIN";
+        public static final String PRE_VERIFY_EMAIL_CLAIM = "PRE_VERIFY_EMAIL_CLAIM";
+        public static final String POST_VERIFY_EMAIL_CLAIM = "POST_VERIFY_EMAIL_CLAIM";
+        public static final String POST_GENERATE_EMAIL_OTP = "POST_GENERATE_EMAIL_OTP";
+        public static final String POST_VALIDATE_EMAIL_OTP = "POST_VALIDATE_EMAIL_OTP";
+        public static final String POST_GENERATE_SMS_OTP = "POST_GENERATE_SMS_OTP";
+        public static final String POST_VALIDATE_SMS_OTP = "POST_VALIDATE_SMS_OTP";
     }
 
     /**
@@ -234,6 +244,20 @@ public class IdentityEventConstants {
         public static final String SELF_SIGNUP_CONFIRM_TIME = "selfsignup-confirm-time";
         public static final String LAST_PASSWORD_UPDATE_TIME = "lastPasswordUpdateTime";
         public static final String LAST_LOGIN_TIME = "lastLoginTime";
+        public static final String UPDATED_LOCKED_STATUS = "updatedLockStatus";
+        public static final String UPDATED_DISABLED_STATUS = "updatedDisableStatus";
+        public static final String CORRELATION_ID = "correlation-id";
+        public static final String APPLICATION_NAME = "application-name";
+        public static final String USER_AGENT = "user-agent";
+        public static final String RESEND_CODE = "resend-code";
+        public static final String GENERATED_OTP = "generated-otp";
+        public static final String USER_INPUT_OTP = "user-input-otp";
+        public static final String CLIENT_IP = "client-ip";
+        public static final String OTP_GENERATED_TIME = "otp-generated-time";
+        public static final String OTP_EXPIRY_TIME = "otp-expiry-time";
+        public static final String OTP_USED_TIME = "otp-used-time";
+        public static final String OTP_STATUS = "otp-status";
+
     }
 
     public class ErrorMessage {
