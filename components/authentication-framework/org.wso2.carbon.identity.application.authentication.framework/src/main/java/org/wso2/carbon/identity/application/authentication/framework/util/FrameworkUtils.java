@@ -2607,6 +2607,47 @@ public class FrameworkUtils {
     }
 
     /**
+     * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
+     * update the userid claim in read/write userstores.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param username         username.
+     * @return user id of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserIdFromUsername(UserStoreManager userStoreManager, String username) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+
+                /*
+                If the user id is not present in the userstore, we need to add it to the userstore. But if the
+                userstore is read-only, we cannot add the id and empty user id will returned.
+                */
+                if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
+                    userId = addUserId(username, userStoreManager);
+                }
+                return userId;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                        "AbstractUserStore manager");
+            }
+            throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving Id for the user: " + username, e);
+            }
+            throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+        } catch (UserStoreException e) {
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
+                    "the user: " + username, e);
+        }
+    }
+
+    /**
      * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
