@@ -642,8 +642,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (StringUtils.isBlank(FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName))
-                        && isFederatedUser(authenticatedIdPData.getUser())) {
+                if (isFederatedUser(authenticatedIdPData.getUser())) {
                     userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
                     try {
                         if (userId == null) {
