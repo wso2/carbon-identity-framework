@@ -120,6 +120,20 @@ public interface ConfigurationManager {
     Resource addResource(String resourceTypeName, ResourceAdd resourceAdd) throws ConfigurationManagementException;
 
     /**
+     * This API is used to create the given resource including a file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceAdd      Request to create the {@link Resource}.
+     * @param resourceAdd      Name of the {@link ResourceFile}
+     * @param fileName         {@link InputStream} representing the file.
+     * @return 201 created. Returns {@link Resource} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
+                                 InputStream fileStream)
+            throws ConfigurationManagementException;
+
+    /**
      * This API is used to replace the given resource or create if not exists.
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
@@ -128,6 +142,20 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     Resource replaceResource(String resourceTypeName, ResourceAdd resourceAdd) throws ConfigurationManagementException;
+
+    /**
+     * This API is used to replace the given resource inclduing the file.
+     *
+     * @param resourceTypeName Name of the {@link ResourceType}.
+     * @param resourceAdd      Request to create the {@link Resource}.
+     * @param fileName         {@link InputStream} representing the file.
+     * @param fileStream       {@link InputStream} representing the file.
+     * @return 201 created. Returns {@link Resource} created.
+     * @throws ConfigurationManagementException Resource management exception.
+     */
+    Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
+                                     InputStream fileStream)
+            throws ConfigurationManagementException;
 
     /**
      * This API is used to retrieve the given resource.

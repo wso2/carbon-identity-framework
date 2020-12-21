@@ -244,6 +244,27 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         return resource;
     }
 
+    @Override
+    public Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
+                                        InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+        validateResourceCreateWithFileRequest(resourceTypeName, resourceAdd, fileName, fileStream);
+        Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
+        resource.setHasFile(true);
+        String resourceId = generateUniqueID();
+        if (log.isDebugEnabled()) {
+            log.debug("Resource id generated: " + resourceId);
+        }
+        resource.setResourceId(resourceId);
+        this.getConfigurationDAO().addResourceWithFile(resource, fileName, fileStream);
+        if (log.isDebugEnabled()) {
+            log.debug(resourceAdd.getName() + " resource created successfully.");
+        }
+        return resource;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -257,6 +278,29 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().replaceResource(resource);
+        if (log.isDebugEnabled()) {
+            log.debug(resourceAdd.getName() + " resource created successfully.");
+        }
+        return resource;
+    }
+
+    @Override
+    public Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
+                                            InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        checkFeatureStatus();
+        validateResourceReplaceWithFileRequest(resourceTypeName, resourceAdd, fileName, fileStream);
+        String resourceId = generateResourceId(resourceTypeName, resourceAdd.getName());
+        Resource resource = generateResourceFromRequest(resourceTypeName, resourceAdd);
+        resource.setResourceId(resourceId);
+        List<ResourceFile> resourceFiles = new ArrayList<>();
+        ResourceFile resourceFile = new ResourceFile(generateUniqueID(), fileName);
+        resourceFile.setInputStream(fileStream);
+        resourceFiles.add(resourceFile);
+        resource.setFiles(resourceFiles);
+        resource.setHasFile(true);
+        this.getConfigurationDAO().replaceResourceWithFiles(resource);
         if (log.isDebugEnabled()) {
             log.debug(resourceAdd.getName() + " resource created successfully.");
         }
@@ -531,6 +575,22 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
+    private void validateResourceCreateWithFileRequest(String resourceTypeName, ResourceAdd resourceAdd,
+                                                       String fileName, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        validateResourceCreateRequest(resourceTypeName, resourceAdd);
+        if (StringUtils.isEmpty(resourceAdd.getName())) {
+            String fileIdentifiers =
+                    "Resource type: " + resourceTypeName + ", resourceName: " + resourceAdd.getName() + ". " +
+                            "FileName: " + fileName;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
+        }
+        if (fileStream == null) {
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream is invalid.");
+        }
+    }
+
     private boolean isResourceAddParameterValid(ResourceAdd resourceAdd) {
 
         if (StringUtils.isEmpty(resourceAdd.getName())) {
@@ -591,6 +651,22 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
         if (StringUtils.isEmpty(resourceTypeName) || !isResourceAddParameterValid(resourceAdd)) {
             throw handleClientException(ERROR_CODE_RESOURCE_REPLACE_REQUEST_INVALID, null);
+        }
+    }
+
+    private void validateResourceReplaceWithFileRequest(String resourceTypeName, ResourceAdd resourceAdd,
+                                                        String fileName, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        validateResourceReplaceRequest(resourceTypeName, resourceAdd);
+        if (StringUtils.isEmpty(resourceAdd.getName())) {
+            String fileIdentifiers =
+                    "Resource type: " + resourceTypeName + ", resourceName: " + resourceAdd.getName() + ". " +
+                            "FileName: " + fileName;
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
+        }
+        if (fileStream == null) {
+            throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream is invalid.");
         }
     }
 

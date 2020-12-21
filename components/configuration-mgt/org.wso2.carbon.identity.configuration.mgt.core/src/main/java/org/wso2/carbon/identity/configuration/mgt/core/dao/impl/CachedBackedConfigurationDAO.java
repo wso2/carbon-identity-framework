@@ -150,6 +150,14 @@ public class CachedBackedConfigurationDAO implements ConfigurationDAO {
     }
 
     @Override
+    public void addResourceWithFile(Resource resource, String fileName, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        configurationDAO.addResourceWithFile(resource, fileName, fileStream);
+        addResourceToCache(resource);
+    }
+
+    @Override
     public void replaceResource(Resource resource) throws ConfigurationManagementException {
 
         configurationDAO.replaceResource(resource);

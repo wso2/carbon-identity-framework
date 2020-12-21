@@ -589,12 +589,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement -> preparedStatement.setString(1, resource.getResourceId())
                     ));
                     for (ResourceFile file : resource.getFiles()) {
-                        template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
-                            preparedStatement.setString(1, file.getId());
-                            preparedStatement.setBlob(2, file.getInputStream());
-                            preparedStatement.setString(3, resource.getResourceId());
-                            preparedStatement.setString(4, file.getName());
-                        });
+                        insertResourceFile(template, resource, file.getId(), file.getName(), file.getInputStream());
                     }
                 }
                 updateResourceMetadata(template, resource, isAttributeExists, isFileExists, currentTime);
@@ -681,6 +676,63 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 // Insert attributes.
                 if (isAttributeExists) {
                     insertResourceAttributes(template, resource);
+                }
+                return null;
+            });
+            resource.setLastModified(currentTime.toInstant().toString());
+            if (useCreatedTimeField()) {
+                resource.setCreatedTime(currentTime.toInstant().toString());
+            }
+        } catch (TransactionException e) {
+            throw handleServerException(ERROR_CODE_ADD_RESOURCE, resource.getResourceName(), e);
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void addResourceWithFile(Resource resource, String fileName, InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
+        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
+            jdbcTemplate.withTransaction(template -> {
+                boolean isAttributeExists = resource.getAttributes() != null;
+                boolean isFileExists = resource.isHasFile();
+                // Insert resource metadata.
+                template.executeInsert(
+                        useCreatedTimeField() ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
+                        preparedStatement -> {
+                            int initialParameterIndex = 1;
+                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
+                            preparedStatement.setInt(++initialParameterIndex,
+                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
+                                            .getTenantId());
+                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
+                            if (useCreatedTimeField()) {
+                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            }
+                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
+                            if (isOracleOrMssql) {
+                                preparedStatement.setInt(++initialParameterIndex, isFileExists ? 1 : 0);
+                                preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
+                            } else {
+                                preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
+                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
+                            }
+                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
+                        }, resource, false);
+
+                // Insert attributes.
+                if (isAttributeExists) {
+                    insertResourceAttributes(template, resource);
+                }
+                // Insert file.
+                if (isFileExists) {
+                    insertResourceFile(template, resource, generateUniqueID(), fileName, fileStream);
                 }
                 return null;
             });
@@ -1586,6 +1638,27 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 preparedStatement.setString(++attributeUpdateParameterIndex, attribute.getValue());
             }
         }, resource, false);
+    }
+
+    private void insertResourceFile(Template<?> template, Resource resource, String fileId, String fileName,
+                                    InputStream fileStream)
+            throws ConfigurationManagementServerException {
+
+        try {
+            boolean isPostgreSQL = isPostgreSQLDB();
+            template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                preparedStatement.setString(1, fileId);
+                if (isPostgreSQL) {
+                    preparedStatement.setBinaryStream(2, fileStream);
+                } else {
+                    preparedStatement.setBlob(2, fileStream);
+                }
+                preparedStatement.setString(3, resource.getResourceId());
+                preparedStatement.setString(4, fileName);
+            });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
     }
 
     private void setPreparedStatementForFileGetById(String resourceType, String resourceName, String fileId,
