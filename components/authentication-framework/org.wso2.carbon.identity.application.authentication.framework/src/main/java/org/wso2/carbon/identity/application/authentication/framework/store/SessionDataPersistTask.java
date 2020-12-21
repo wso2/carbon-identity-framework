@@ -24,7 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import java.util.concurrent.BlockingDeque;
 
 /**
- * Task to persist and remove session data
+ * Task to persist and remove session data.
  */
 public class SessionDataPersistTask implements Runnable {
 
