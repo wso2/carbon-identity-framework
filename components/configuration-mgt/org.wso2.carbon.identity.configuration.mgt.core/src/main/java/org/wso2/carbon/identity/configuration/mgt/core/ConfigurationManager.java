@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.configuration.mgt.core;
 
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.configuration.mgt.core.exception.ConfigurationManagementException;
+import org.wso2.carbon.identity.configuration.mgt.core.exception.NotImplementedException;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Attribute;
 import org.wso2.carbon.identity.configuration.mgt.core.model.Resource;
 import org.wso2.carbon.identity.configuration.mgt.core.model.ResourceAdd;
@@ -129,9 +130,12 @@ public interface ConfigurationManager {
      * @return 201 created. Returns {@link Resource} created.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                 InputStream fileStream)
-            throws ConfigurationManagementException;
+    default Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
+                                         InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to replace the given resource or create if not exists.
@@ -153,9 +157,12 @@ public interface ConfigurationManager {
      * @return 201 created. Returns {@link Resource} created.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                     InputStream fileStream)
-            throws ConfigurationManagementException;
+    default Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
+                                             InputStream fileStream)
+            throws ConfigurationManagementException {
+
+        throw new NotImplementedException("This functionality is not implemented.");
+    }
 
     /**
      * This API is used to retrieve the given resource.
