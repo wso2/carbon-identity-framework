@@ -2224,6 +2224,7 @@
         <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/saml/slo(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/extend-session(.*)" secured="false" http-method="all"/>
         <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -2527,4 +2528,10 @@
     {% endfor %}
     </EmailTemplatePlaceholders>
 
+    <!-- Configuration for enabling the Session Extender endpoint. -->
+    {% if session_extending_endpoint is defined %}
+    <SessionExtendingEndpoint>
+        <Enabled>{{session_extending_endpoint.enabled}}</Enabled>
+    </SessionExtendingEndpoint>
+    {% endif %}
 </Server>

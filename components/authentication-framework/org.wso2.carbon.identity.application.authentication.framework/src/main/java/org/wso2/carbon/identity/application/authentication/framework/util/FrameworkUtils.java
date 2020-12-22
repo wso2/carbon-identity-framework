@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -27,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.log4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -180,6 +182,7 @@ public class FrameworkUtils {
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
+    public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
     private FrameworkUtils() {
     }
@@ -2783,5 +2786,66 @@ public class FrameworkUtils {
             throw new IdentityRuntimeException(
                     "Error while building url for context: " + CONSOLE_APP_PATH);
         }
+    }
+
+    /**
+     * Updates the last accessed time of the session in the UserSessionStore.
+     *
+     * @param sessionContextKey     Session context cache entry identifier.
+     * @param lastAccessedTime    New value of the last accessed time of the session.
+     */
+    public static void updateSessionLastAccessTimeMetadata(String sessionContextKey, Long lastAccessedTime) {
+
+        if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+            try {
+                UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
+                        .LAST_ACCESS_TIME, Long.toString(lastAccessedTime));
+            } catch (UserSessionException e) {
+                log.error("Updating session meta data failed.", e);
+            }
+        }
+    }
+
+    /**
+     * Returns the hash value of the cookie.
+     *
+     * @param cookie    Cookie to be hashed.
+     * @return          Hash value of cookie.
+     */
+    public static String getHashOfCookie(Cookie cookie) {
+
+        if (cookie != null) {
+            String cookieValue = cookie.getValue();
+            if (cookieValue != null) {
+                return DigestUtils.sha256Hex(cookieValue);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get correlation id of current thread.
+     *
+     * @return correlation-id.
+     */
+    public static String getCorrelation() {
+
+        String ref;
+        if (isCorrelationIDPresent()) {
+            ref = MDC.get(CORRELATION_ID_MDC).toString();
+        } else {
+            ref = UUID.randomUUID().toString();
+        }
+        return ref;
+    }
+
+    /**
+     * Check whether correlation id present in the log MDC.
+     *
+     * @return True if correlation id present in the log MDC.
+     */
+    public static boolean isCorrelationIDPresent() {
+
+        return MDC.get(CORRELATION_ID_MDC) != null;
     }
 }
