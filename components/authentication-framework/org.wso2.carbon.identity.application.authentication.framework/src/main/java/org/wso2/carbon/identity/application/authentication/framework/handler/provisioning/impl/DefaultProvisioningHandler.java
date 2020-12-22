@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
 import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
@@ -69,6 +70,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
     private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
+    private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
     private SecureRandom random = new SecureRandom();
 
@@ -93,7 +95,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                          realmService, tenantDomain);
+                    realmService, tenantDomain);
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
             String userStoreDomain;
@@ -122,7 +124,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
 
             // If internal roles exists convert internal role domain names to pre defined camel case domain names.
-            List<String> rolesToAdd  = convertInternalRoleDomainsToCamelCase(roles);
+            List<String> rolesToAdd = convertInternalRoleDomainsToCamelCase(roles);
 
             String idp = attributes.remove(FrameworkConstants.IDP_ID);
             String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
@@ -155,9 +157,32 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
-                userStoreManager.addUser(username, password, null, userClaims, null);
+                boolean userWorkflowEngaged = false;
+                try {
+                    userStoreManager.addUser(username, password, null, userClaims, null);
+                } catch (UserStoreException e) {
+                    // Add user operation will fail if a user operation workflow is already defined for the same user.
+                    if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
+                        userWorkflowEngaged = true;
+                        if (log.isDebugEnabled()) {
+                            log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
+                                    " and there is a workflow already defined for the same user");
+                        }
+                    } else {
+                        throw e;
+                    }
+                }
+                if (userWorkflowEngaged ||
+                        !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User is not found in the userstore. Most probably the local user creation is not " +
+                                "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
+                                " the user account association and role and permission update are skipped.");
+                    }
+                    return;
+                }
 
-                // Associate User
+                // Associate user only if the user is existing in the userstore.
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
 
                 if (log.isDebugEnabled()) {
@@ -320,9 +345,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         // If the any of above value is invalid, keep it empty to use primary userstore
         if (userStoreDomain != null
-            && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
+                && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
             throw new FrameworkException("Specified user store domain " + userStoreDomain
-                                         + " is not valid.");
+                    + " is not valid.");
         }
 
         return userStoreDomain;
