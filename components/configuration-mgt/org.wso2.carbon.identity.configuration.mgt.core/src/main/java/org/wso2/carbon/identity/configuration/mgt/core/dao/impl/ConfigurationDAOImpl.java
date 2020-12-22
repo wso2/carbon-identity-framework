@@ -643,65 +643,8 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
+                boolean isFileExists = resource.getFiles() != null && !resource.getFiles().isEmpty();
 
-                // Insert resource metadata.
-                template.executeInsert(
-                        useCreatedTimeField() ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
-                        preparedStatement -> {
-                            int initialParameterIndex = 1;
-                            preparedStatement.setString(initialParameterIndex, resource.getResourceId());
-                            preparedStatement.setInt(++initialParameterIndex,
-                                    PrivilegedCarbonContext.getThreadLocalCarbonContext()
-                                            .getTenantId());
-                            preparedStatement.setString(++initialParameterIndex, resource.getResourceName());
-                            if (useCreatedTimeField()) {
-                                preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            }
-                            preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            /*
-                            Resource files are uploaded using a separate endpoint. Therefore resource creation does
-                            not create files. It is allowed to create a resource without files or attributes in order
-                            to allow file upload after resource creation.
-                            */
-                            if (isOracleOrMssql) {
-                                preparedStatement.setInt(++initialParameterIndex, 0);
-                                preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
-                            } else {
-                                preparedStatement.setBoolean(++initialParameterIndex, false);
-                                preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
-                            }
-                            preparedStatement.setString(++initialParameterIndex, resourceTypeId);
-                        }, resource, false);
-
-                // Insert attributes.
-                if (isAttributeExists) {
-                    insertResourceAttributes(template, resource);
-                }
-                return null;
-            });
-            resource.setLastModified(currentTime.toInstant().toString());
-            if (useCreatedTimeField()) {
-                resource.setCreatedTime(currentTime.toInstant().toString());
-            }
-        } catch (TransactionException e) {
-            throw handleServerException(ERROR_CODE_ADD_RESOURCE, resource.getResourceName(), e);
-        } catch (DataAccessException e) {
-            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public void addResourceWithFile(Resource resource, String fileName, InputStream fileStream)
-            throws ConfigurationManagementException {
-
-        String resourceTypeId = getResourceTypeByName(resource.getResourceType()).getId();
-        Timestamp currentTime = new java.sql.Timestamp(new Date().getTime());
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
-            jdbcTemplate.withTransaction(template -> {
-                boolean isAttributeExists = resource.getAttributes() != null;
-                boolean isFileExists = resource.isHasFile();
                 // Insert resource metadata.
                 template.executeInsert(
                         useCreatedTimeField() ? INSERT_RESOURCE_SQL : INSERT_RESOURCE_SQL_WITHOUT_CREATED_TIME,
@@ -730,9 +673,12 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 if (isAttributeExists) {
                     insertResourceAttributes(template, resource);
                 }
-                // Insert file.
+                // Insert files.
                 if (isFileExists) {
-                    insertResourceFile(template, resource, generateUniqueID(), fileName, fileStream);
+                    for (ResourceFile file : resource.getFiles()) {
+                        insertResourceFile(template, resource, file.getId(), file.getName(),
+                                file.getInputStream());
+                    }
                 }
                 return null;
             });

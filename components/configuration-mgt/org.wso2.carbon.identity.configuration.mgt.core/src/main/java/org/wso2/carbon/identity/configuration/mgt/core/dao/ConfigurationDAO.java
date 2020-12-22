@@ -116,17 +116,6 @@ public interface ConfigurationDAO {
     void addResource(Resource resource) throws ConfigurationManagementException;
 
     /**
-     * Add {@link Resource} with file.
-     *
-     * @param resource   {@link Resource} to be added.
-     * @param fileName   Name of the {@link ResourceFile}
-     * @param fileStream {@link InputStream} representing the file.
-     * @throws ConfigurationManagementException Configuration Management Exception.
-     */
-    void addResourceWithFile(Resource resource, String fileName, InputStream fileStream)
-            throws ConfigurationManagementException;
-
-    /**
      * Replace {@link Resource} or create not exists.
      *
      * @param resource {@link Resource} to be added.

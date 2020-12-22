@@ -124,14 +124,11 @@ public interface ConfigurationManager {
      * This API is used to create the given resource including a file.
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
-     * @param resourceAdd      Request to create the {@link Resource}.
-     * @param resourceAdd      Name of the {@link ResourceFile}
-     * @param fileName         {@link InputStream} representing the file.
+     * @param resource         The {@link Resource}.
      * @return 201 created. Returns {@link Resource} created.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    default Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                         InputStream fileStream) throws ConfigurationManagementException {
+    default Resource addResource(String resourceTypeName, Resource resource) throws ConfigurationManagementException {
 
         throw new NotImplementedException("This functionality is not implemented.");
     }
@@ -150,14 +147,12 @@ public interface ConfigurationManager {
      * This API is used to replace the given resource inclduing the file.
      *
      * @param resourceTypeName Name of the {@link ResourceType}.
-     * @param resourceAdd      Request to create the {@link Resource}.
-     * @param fileName         {@link InputStream} representing the file.
-     * @param fileStream       {@link InputStream} representing the file.
+     * @param resource         The  {@link Resource}.
      * @return 201 created. Returns {@link Resource} created.
      * @throws ConfigurationManagementException Resource management exception.
      */
-    default Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                             InputStream fileStream) throws ConfigurationManagementException {
+    default Resource replaceResource(String resourceTypeName, Resource resource)
+            throws ConfigurationManagementException {
 
         throw new NotImplementedException("This functionality is not implemented.");
     }
