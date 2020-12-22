@@ -39,6 +39,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_UNLOCK_TIME_CLAIM = "http://wso2.org/claims/identity/unlockTime";
     public static final String USERNAME_CLAIM = "http://wso2.org/claims/username";
     public static final String UNFILTERED_LOCAL_CLAIM_VALUES = "UNFILTERED_LOCAL_CLAIM_VALUES";
+    public static final String UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES = "UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES";
     public static final String UNFILTERED_IDP_CLAIM_VALUES = "UNFILTERED_IDP_CLAIM_VALUES";
     public static final String UNFILTERED_SP_CLAIM_VALUES = "UNFILTERED_SP_CLAIM_VALUES";
     public static final String SP_TO_CARBON_CLAIM_MAPPING = "SP_TO_CARBON_CLAIM_MAPPING";

@@ -507,6 +507,12 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             serviceProvider.setClaimDialect(ApplicationConstants.LOCAL_IDP_DEFAULT_CLAIM_DIALECT);
             serviceProvider.setTenantDomain(context.getTenantDomain());
             IdentityApplicationManagementUtil.setThreadLocalProvisioningServiceProvider(serviceProvider);
+            Map<String, String> localUnfilteredClaimsForNullValues =
+                    (Map<String, String>) context
+                            .getProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES);
+            if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
+                extAttributesValueMap.putAll(localUnfilteredClaimsForNullValues);
+            }
 
             FrameworkUtils.getProvisioningHandler().handle(mappedRoles, subjectIdentifier,
                     extAttributesValueMap, userStoreDomain, context.getTenantDomain());
