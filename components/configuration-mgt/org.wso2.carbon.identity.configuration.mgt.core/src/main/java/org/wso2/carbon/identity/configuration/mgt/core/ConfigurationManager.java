@@ -131,8 +131,7 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     default Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                         InputStream fileStream)
-            throws ConfigurationManagementException {
+                                         InputStream fileStream) throws ConfigurationManagementException {
 
         throw new NotImplementedException("This functionality is not implemented.");
     }
@@ -158,8 +157,7 @@ public interface ConfigurationManager {
      * @throws ConfigurationManagementException Resource management exception.
      */
     default Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                             InputStream fileStream)
-            throws ConfigurationManagementException {
+                                             InputStream fileStream) throws ConfigurationManagementException {
 
         throw new NotImplementedException("This functionality is not implemented.");
     }

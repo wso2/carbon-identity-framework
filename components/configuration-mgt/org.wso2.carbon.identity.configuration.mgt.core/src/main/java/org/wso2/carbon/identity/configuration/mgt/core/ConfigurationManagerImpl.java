@@ -246,8 +246,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
     @Override
     public Resource addResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                        InputStream fileStream)
-            throws ConfigurationManagementException {
+                                        InputStream fileStream) throws ConfigurationManagementException {
 
         checkFeatureStatus();
         validateResourceCreateWithFileRequest(resourceTypeName, resourceAdd, fileName, fileStream);
@@ -286,8 +285,7 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
 
     @Override
     public Resource replaceResourceWithFile(String resourceTypeName, ResourceAdd resourceAdd, String fileName,
-                                            InputStream fileStream)
-            throws ConfigurationManagementException {
+                                            InputStream fileStream) throws ConfigurationManagementException {
 
         checkFeatureStatus();
         validateResourceReplaceWithFileRequest(resourceTypeName, resourceAdd, fileName, fileStream);
