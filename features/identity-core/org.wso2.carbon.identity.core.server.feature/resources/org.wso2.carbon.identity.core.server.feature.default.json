@@ -349,6 +349,8 @@
   "event.default_listener.identity_mgt.enable": false,
   "event.default_listener.scim.priority": "90",
   "event.default_listener.scim.enable": false,
+  "event.default_listener.scim_tenant_mgt.priority": "-1",
+  "event.default_listener.scim_tenant_mgt.enable": true,
   "event.default_listener.scim2.priority": "93",
   "event.default_listener.scim2.enable": true,
   "event.default_listener.governance_identity_mgt.priority": "95",

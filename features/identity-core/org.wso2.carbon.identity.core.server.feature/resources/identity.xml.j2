@@ -1195,6 +1195,11 @@
                        name="org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
                        orderId="{{event.default_listener.scim.priority}}"
                        enable="{{event.default_listener.scim.enable}}"/>
+        <EventListener id="scim"
+                       type="org.wso2.carbon.stratos.common.listeners.TenantMgtListener"
+                       name="org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener"
+                       orderId="{{event.default_listener.scim_tenant_mgt.priority}}"
+                       enable="{{event.default_listener.scim_tenant_mgt.enable}}"/>
         <EventListener id="scim2"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.scim2.common.listener.SCIMUserOperationListener"
