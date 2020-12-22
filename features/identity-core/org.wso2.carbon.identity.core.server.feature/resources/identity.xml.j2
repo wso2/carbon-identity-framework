@@ -2528,10 +2528,4 @@
     {% endfor %}
     </EmailTemplatePlaceholders>
 
-    <!-- Configuration for enabling the Session Extender endpoint. -->
-    {% if session_extending_endpoint is defined %}
-    <SessionExtendingEndpoint>
-        <Enabled>{{session_extending_endpoint.enabled}}</Enabled>
-    </SessionExtendingEndpoint>
-    {% endif %}
 </Server>

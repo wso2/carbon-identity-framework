@@ -39,9 +39,11 @@ public final class SessionExtenderTestConstants {
 
     public static final String EXCEPTION_DESCRIPTION = "Unexpected server error.";
 
+    public static final String TRACE_ID = "faaabef8-df76-408a-aa54-808858c250be";
+
     public static final String ERROR_RESPONSE_BODY =
             new JSONObject().put("code", EXCEPTION_ERROR_CODE).put("message", EXCEPTION_MESSAGE).
-                    put("description", EXCEPTION_DESCRIPTION).toString();
+                    put("description", EXCEPTION_DESCRIPTION).put("traceId", TRACE_ID).toString();
 
     public static final String TENANT_DOMAIN = "carbon.super";
 }

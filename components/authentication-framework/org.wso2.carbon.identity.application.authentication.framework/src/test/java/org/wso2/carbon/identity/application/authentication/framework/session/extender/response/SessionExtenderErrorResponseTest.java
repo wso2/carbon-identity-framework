@@ -26,14 +26,18 @@ import static org.testng.Assert.assertNotNull;
 /**
  * Unit test cases for SessionExtenderResponse.
  */
-public class SessionExtenderResponseTest extends PowerMockTestCase {
+public class SessionExtenderErrorResponseTest extends PowerMockTestCase {
 
     @Test
-    public void buildTestResponse() {
+    public void buildTestErrorResponse() {
 
-        SessionExtenderResponse.SessionExtenderResponseBuilder builder =
-                new SessionExtenderResponse.SessionExtenderResponseBuilder();
-        SessionExtenderResponse response = builder.build();
-        assertNotNull(response.getTraceId(), "Error creating successful response.");
+        SessionExtenderErrorResponse.SessionExtenderErrorResponseBuilder builder =
+                new SessionExtenderErrorResponse.SessionExtenderErrorResponseBuilder();
+        builder.setErrorCode("Sample error code");
+        builder.setErrorMessage("Sample error message");
+        builder.setErrorDescription("Sample description.");
+        builder.setTraceId("1234-5678");
+        SessionExtenderErrorResponse response = builder.build();
+        assertNotNull(response.getResponse(), "Error creating failure response.");
     }
 }

@@ -293,8 +293,6 @@ public class IdentityConstants {
         public static final String ENABLE_FEDERATED_USER_ASSOCIATION = "EnableFederatedUserAssociation";
         public static final String ENABLE_FEDERATED_USER_ASSOCIATION_DEFAULT = "false";
 
-        // Session Extension configs.
-        public static final String ENABLE_SESSION_EXTENDER_ENDPOINT = "SessionExtendingEndpoint.Enabled";
     }
 
     /**

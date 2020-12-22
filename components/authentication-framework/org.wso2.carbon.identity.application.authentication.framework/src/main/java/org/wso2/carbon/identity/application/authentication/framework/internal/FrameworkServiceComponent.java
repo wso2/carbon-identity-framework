@@ -207,18 +207,12 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
+        bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
+                new SessionExtenderRequestFactory(), null);
+        bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
+                new SessionExtenderResponseFactory(), null);
+        bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
 
-        if (Boolean.parseBoolean(IdentityUtil.getProperty(
-                IdentityConstants.ServerConfig.ENABLE_SESSION_EXTENDER_ENDPOINT))) {
-            if (log.isDebugEnabled()) {
-                log.debug("Session Extender endpoint enabled.");
-            }
-            bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
-                    new SessionExtenderRequestFactory(), null);
-            bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
-                    new SessionExtenderResponseFactory(), null);
-            bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
-        }
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {

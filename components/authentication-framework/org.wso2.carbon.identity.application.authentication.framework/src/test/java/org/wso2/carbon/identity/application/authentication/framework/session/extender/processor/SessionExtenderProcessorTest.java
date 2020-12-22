@@ -39,7 +39,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.IDP_SESSION_KEY;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.TENANT_DOMAIN;
@@ -94,6 +94,6 @@ public class SessionExtenderProcessorTest extends PowerMockTestCase {
                 (SessionExtenderResponse.SessionExtenderResponseBuilder) sessionExtenderProcessor
                         .process(sessionExtenderRequest);
         SessionExtenderResponse response = responseBuilder.build();
-        assertNull(response.getResponse(), "Error creating successful response.");
+        assertNotNull(response.getTraceId(), "Error creating successful response.");
     }
 }

@@ -28,12 +28,15 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderServerException;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.ERROR_RESPONSE_BODY;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_MESSAGE;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.TRACE_ID;
 
 /**
  * Unit test cases for SessionExtenderResponseFactory.
@@ -74,11 +77,13 @@ public class SessionExtenderResponseFactoryTest extends PowerMockTestCase {
     public void testCreate() {
 
         SessionExtenderResponse sessionExtenderResponse = mock(SessionExtenderResponse.class);
+        when(sessionExtenderResponse.getTraceId()).thenReturn(TRACE_ID);
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderResponseFactory.create(sessionExtenderResponse);
         HttpIdentityResponse response = responseBuilder.build();
         assertNull(response.getBody());
+        assertNotNull(response.getHeaders().get("Trace-ID"));
     }
 
     @DataProvider(name = "handleExceptionProvider")

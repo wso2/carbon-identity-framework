@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.session.ext
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
 
 import java.util.Enumeration;
+import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,12 +42,14 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.SESSION_ID_PARAM_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.ERROR_RESPONSE_BODY;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_DESCRIPTION;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_MESSAGE;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.IDP_SESSION_KEY;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.SESSION_COOKIE_NAME;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.SESSION_COOKIE_VALUE;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.SESSION_EXTENDER_ENDPOINT_URL;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.TRACE_ID;
 
 /**
  * Unit test cases for SessionExtenderRequestFactory.
@@ -137,9 +140,11 @@ public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
     @Test
     public void testHandleException() {
 
-        FrameworkClientException exception = mock(FrameworkClientException.class);
+        SessionExtenderClientException exception = mock(SessionExtenderClientException.class);
         when(exception.getErrorCode()).thenReturn(EXCEPTION_ERROR_CODE);
-        when(exception.getMessage()).thenReturn(EXCEPTION_MESSAGE);
+        when(exception.getErrorMessage()).thenReturn(EXCEPTION_MESSAGE);
+        when(exception.getDescription()).thenReturn(EXCEPTION_DESCRIPTION);
+        when(UUID.randomUUID().toString()).thenReturn(TRACE_ID);
 
         HttpIdentityResponse.HttpIdentityResponseBuilder responseBuilder =
                 sessionExtenderRequestFactory.handleException(exception, mockedHttpRequest, mockedHttpResponse);
