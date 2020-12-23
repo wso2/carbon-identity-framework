@@ -589,12 +589,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                             preparedStatement -> preparedStatement.setString(1, resource.getResourceId())
                     ));
                     for (ResourceFile file : resource.getFiles()) {
-                        template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
-                            preparedStatement.setString(1, file.getId());
-                            preparedStatement.setBlob(2, file.getInputStream());
-                            preparedStatement.setString(3, resource.getResourceId());
-                            preparedStatement.setString(4, file.getName());
-                        });
+                        insertResourceFile(template, resource, file.getId(), file.getName(), file.getInputStream());
                     }
                 }
                 updateResourceMetadata(template, resource, isAttributeExists, isFileExists, currentTime);
@@ -648,6 +643,7 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
             boolean isOracleOrMssql = isOracleDB() || isMSSqlDB();
             jdbcTemplate.withTransaction(template -> {
                 boolean isAttributeExists = resource.getAttributes() != null;
+                boolean isFileExists = resource.getFiles() != null && !resource.getFiles().isEmpty();
 
                 // Insert resource metadata.
                 template.executeInsert(
@@ -663,16 +659,11 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                                 preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
                             }
                             preparedStatement.setTimestamp(++initialParameterIndex, currentTime, calendar);
-                            /*
-                            Resource files are uploaded using a separate endpoint. Therefore resource creation does
-                            not create files. It is allowed to create a resource without files or attributes in order
-                            to allow file upload after resource creation.
-                            */
                             if (isOracleOrMssql) {
-                                preparedStatement.setInt(++initialParameterIndex, 0);
+                                preparedStatement.setInt(++initialParameterIndex, isFileExists ? 1 : 0);
                                 preparedStatement.setInt(++initialParameterIndex, isAttributeExists ? 1 : 0);
                             } else {
-                                preparedStatement.setBoolean(++initialParameterIndex, false);
+                                preparedStatement.setBoolean(++initialParameterIndex, isFileExists);
                                 preparedStatement.setBoolean(++initialParameterIndex, isAttributeExists);
                             }
                             preparedStatement.setString(++initialParameterIndex, resourceTypeId);
@@ -681,6 +672,13 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 // Insert attributes.
                 if (isAttributeExists) {
                     insertResourceAttributes(template, resource);
+                }
+                // Insert files.
+                if (isFileExists) {
+                    for (ResourceFile file : resource.getFiles()) {
+                        insertResourceFile(template, resource, file.getId(), file.getName(),
+                                file.getInputStream());
+                    }
                 }
                 return null;
             });
@@ -1586,6 +1584,27 @@ public class ConfigurationDAOImpl implements ConfigurationDAO {
                 preparedStatement.setString(++attributeUpdateParameterIndex, attribute.getValue());
             }
         }, resource, false);
+    }
+
+    private void insertResourceFile(Template<?> template, Resource resource, String fileId, String fileName,
+                                    InputStream fileStream)
+            throws ConfigurationManagementServerException {
+
+        try {
+            boolean isPostgreSQL = isPostgreSQLDB();
+            template.executeUpdate(SQLConstants.INSERT_FILE_SQL, preparedStatement -> {
+                preparedStatement.setString(1, fileId);
+                if (isPostgreSQL) {
+                    preparedStatement.setBinaryStream(2, fileStream);
+                } else {
+                    preparedStatement.setBlob(2, fileStream);
+                }
+                preparedStatement.setString(3, resource.getResourceId());
+                preparedStatement.setString(4, fileName);
+            });
+        } catch (DataAccessException e) {
+            throw handleServerException(ERROR_CODE_CHECK_DB_METADATA, e.getMessage(), e);
+        }
     }
 
     private void setPreparedStatementForFileGetById(String resourceType, String resourceName, String fileId,
