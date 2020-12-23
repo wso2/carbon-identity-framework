@@ -136,10 +136,28 @@ BEGIN
             COMMIT;
             END IF;
 
+            -- Create a temporary table with sessionIDs that need to be deleted from IDN_AUTH_USER_SESSION_MAPPING, IDN_AUTH_SESSION_APP_INFO, IDN_AUTH_SESSION_META_DATA tables.
+           SELECT COUNT(1) INTO rowcount FROM all_tables WHERE owner = current_schema AND table_name = 'EXPIRED_SESSION_BATCH';
+
+           IF ( rowcount = 1 ) THEN
+               EXECUTE IMMEDIATE 'DROP TABLE EXPIRED_SESSION_BATCH';
+               COMMIT;
+           END IF;
+
+           EXECUTE IMMEDIATE 'CREATE TABLE EXPIRED_SESSION_BATCH (SESSION_ID varchar(100),CONSTRAINT BATCH_EXP_SESSION_TOK_PRI PRIMARY KEY (SESSION_ID)) NOLOGGING';
+           COMMIT;
+
+            -- Get sessionIDs of sessions that do not have any non-expired entry.
+           EXECUTE IMMEDIATE 'INSERT INTO EXPIRED_SESSION_BATCH SELECT DISTINCT SESSION_ID FROM TEMP_SESSION_BATCH WHERE SESSION_ID NOT IN (SELECT DISTINCT SESSION_ID FROM IDN_AUTH_SESSION_STORE)';
+           rowcount := SQL%rowcount;
+           COMMIT;
+
+           IF (rowcount > 0) THEN
+
             -- Deleting user-session mappings from 'IDN_AUTH_USER_SESSION_MAPPING' table
             SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_USER_SESSION_MAPPING');
             IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM EXPIRED_SESSION_BATCH)';
                 sessionmappingcleanupcount := SQL%rowcount;
                 COMMIT;
                 IF ( tracingenabled ) THEN
@@ -153,7 +171,7 @@ BEGIN
             -- Deleting session app info from 'IDN_AUTH_SESSION_APP_INFO' table
             SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_SESSION_APP_INFO');
             IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (SELECT SESSION_ID FROM EXPIRED_SESSION_BATCH)';
                 sessionappinfocleanupcount := SQL%rowcount;
                 COMMIT;
                 IF ( tracingenabled ) THEN
@@ -167,7 +185,7 @@ BEGIN
             -- Deleting session metadata from 'IDN_AUTH_SESSION_META_DATA' table
             SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_SESSION_META_DATA');
             IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM EXPIRED_SESSION_BATCH)';
                 sessionmetadatacleanupcount := SQL%rowcount;
                 COMMIT;
                 IF ( tracingenabled ) THEN
@@ -177,6 +195,7 @@ BEGIN
                 END IF;
             END if;
             -- End of deleting session metadata from 'IDN_AUTH_SESSION_META_DATA' table
+            END IF;
 
             EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE ROW_ID IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
 --            EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM JOIN TEMP_SESSION_BATCH)';
