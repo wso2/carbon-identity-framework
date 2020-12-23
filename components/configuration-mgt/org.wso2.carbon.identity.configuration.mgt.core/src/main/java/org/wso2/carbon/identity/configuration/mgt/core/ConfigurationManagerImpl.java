@@ -242,9 +242,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().addResource(resource);
-        if (log.isDebugEnabled()) {
-            log.debug(resource.getResourceName() + " resource created successfully.");
-        }
         log.info("Resource: " + resource.getResourceName() + " added successfully");
         return resource;
     }
@@ -274,9 +271,6 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         String resourceId = generateResourceId(resourceTypeName, resource.getResourceName());
         resource.setResourceId(resourceId);
         this.getConfigurationDAO().replaceResourceWithFiles(resource);
-        if (log.isDebugEnabled()) {
-            log.debug(resource.getResourceName() + " resource created successfully.");
-        }
         log.info(resource.getResourceName() + " resource created successfully.");
         return resource;
     }
@@ -531,6 +525,14 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
+    /**
+     * Validate that resource type and resource name are non-empty. Validate file name and streams are non-empty
+     * if the resource has files. Set resource type and tenant domain if they are not set to the resource object.
+     *
+     * @param resourceTypeName Type of the resource.
+     * @param resource         The resource to be added.
+     * @throws ConfigurationManagementException If resource validation fails.
+     */
     private void validateResourceCreateRequest(String resourceTypeName, Resource resource)
             throws ConfigurationManagementException {
 
@@ -552,7 +554,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
                     throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
                 }
                 if (file.getInputStream() == null) {
-                    throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream is invalid.");
+                    throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED,
+                            "File stream is invalid or empty.");
                 }
             }
         }
@@ -625,6 +628,15 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
         }
     }
 
+    /**
+     * Validate that resource type is non-empty. Validate the resource existence.
+     * Validate file name and streams are non-empty if the resource has files.
+     * Set resource type and tenant domain if they are not set to the resource object.
+     *
+     * @param resourceTypeName Type of the resource to be replaced.
+     * @param resource         The resource to be replaced.
+     * @throws ConfigurationManagementException If resource validation fails.
+     */
     private void validateResourceReplaceRequest(String resourceTypeName, Resource resource)
             throws ConfigurationManagementException {
 
@@ -646,7 +658,8 @@ public class ConfigurationManagerImpl implements ConfigurationManager {
                     throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, fileIdentifiers);
                 }
                 if (file.getInputStream() == null) {
-                    throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED, "fileStream is invalid.");
+                    throw handleClientException(ERROR_CODE_FILE_IDENTIFIERS_REQUIRED,
+                            "File stream is invalid or empty.");
                 }
             }
         }
