@@ -34,6 +34,6 @@ public class SessionExtenderResponseTest extends PowerMockTestCase {
         SessionExtenderResponse.SessionExtenderResponseBuilder builder =
                 new SessionExtenderResponse.SessionExtenderResponseBuilder();
         SessionExtenderResponse response = builder.build();
-        assertNotNull(response.getTraceId(), "Error creating successful response.");
+        assertNotNull(response.getTraceId(), "Response did not contain the traceId.");
     }
 }
