@@ -21,7 +21,13 @@ package org.wso2.carbon.identity.application.authentication.framework.session.ex
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.ERROR_RESPONSE_BODY;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_DESCRIPTION;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_ERROR_CODE;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.EXCEPTION_MESSAGE;
+import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderTestConstants.TRACE_ID;
 
 /**
  * Unit test cases for SessionExtenderResponse.
@@ -33,11 +39,12 @@ public class SessionExtenderErrorResponseTest extends PowerMockTestCase {
 
         SessionExtenderErrorResponse.SessionExtenderErrorResponseBuilder builder =
                 new SessionExtenderErrorResponse.SessionExtenderErrorResponseBuilder();
-        builder.setErrorCode("Sample error code");
-        builder.setErrorMessage("Sample error message");
-        builder.setErrorDescription("Sample description.");
-        builder.setTraceId("1234-5678");
+        builder.setErrorCode(EXCEPTION_ERROR_CODE);
+        builder.setErrorMessage(EXCEPTION_MESSAGE);
+        builder.setErrorDescription(EXCEPTION_DESCRIPTION);
+        builder.setTraceId(TRACE_ID);
         SessionExtenderErrorResponse response = builder.build();
         assertNotNull(response.getResponse(), "Error creating failure response.");
+        assertEquals(response.getResponse(), ERROR_RESPONSE_BODY, "Incorrect error response.");
     }
 }
