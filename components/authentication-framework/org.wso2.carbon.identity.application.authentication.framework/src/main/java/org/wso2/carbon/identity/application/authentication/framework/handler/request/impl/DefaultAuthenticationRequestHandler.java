@@ -453,14 +453,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             authenticationContextProperties);
                 }
 
-                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
-                    try {
-                        UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
-                                .LAST_ACCESS_TIME, Long.toString(updatedSessionTime));
-                    } catch (UserSessionException e) {
-                        log.error("Updating session meta data failed.", e);
-                    }
-                }
+                FrameworkUtils.updateSessionLastAccessTimeMetadata(sessionContextKey, updatedSessionTime);
+
                 /*
                  * In the default configuration, the expiry time of the commonAuthCookie is fixed when rememberMe
                  * option is selected. With this config, the expiry time will increase at every authentication.
