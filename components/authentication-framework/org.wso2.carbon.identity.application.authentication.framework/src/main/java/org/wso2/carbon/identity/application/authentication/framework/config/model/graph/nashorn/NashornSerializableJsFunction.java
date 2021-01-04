@@ -22,7 +22,10 @@ import jdk.nashorn.api.scripting.JSObject;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import jdk.nashorn.api.scripting.ScriptUtils;
 import jdk.nashorn.internal.runtime.ScriptFunction;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.NashornJsAuthenticationContext;
 
 import java.util.function.Function;
@@ -37,8 +40,9 @@ import javax.script.ScriptException;
  */
 public class NashornSerializableJsFunction implements SerializableJsFunction<ScriptEngine, NashornJsAuthenticationContext> {
 
+    private static final Log log = LogFactory.getLog(NashornSerializableJsFunction.class);
     private static final long serialVersionUID = -7605388897997019588L;
-    public String source;
+    private String source;
     private boolean isFunction;
     private String name;
 
@@ -62,7 +66,7 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
                 return scriptObjectMirror.call(null, jsAuthenticationContext);
             }
         } catch (ScriptException e) {
-            e.printStackTrace();
+            log.error("Error when executing function,",e);
         }
         return null;
     }

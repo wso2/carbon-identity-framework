@@ -39,7 +39,7 @@ import java.util.Map;
  * Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of Nashorn engine and any related expnsive objects.
  */
-public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
+public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory <Context>{
 
     private static final Log LOG = LogFactory.getLog(JsPolyglotGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
@@ -51,16 +51,13 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
     }
 
     public static void restoreCurrentContext(AuthenticationContext authContext, Context context)
-            throws FrameworkException, IOException {
+            throws FrameworkException {
 
         Map<String, Object> map = (Map<String, Object>) authContext.getProperty(JS_BINDING_CURRENT_CONTEXT);
         Value bindings = context.getBindings("js");
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 Object deserializedValue = FrameworkUtils.fromJsSerializableGraal(entry.getValue(), context);
-//                if (deserializedValue instanceof AbstractJSObjectWrapper) {
-//                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(authContext);
-//                }
                 bindings.putMember(entry.getKey(), deserializedValue);
             }
         }

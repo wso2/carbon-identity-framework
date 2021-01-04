@@ -22,12 +22,9 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsStep;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsSteps;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -83,7 +80,7 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 StepConfig stepConfig = getCurrentSubjectIdentifierStep();
                 if (stepConfig != null) {
-                    return new JsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
+                    return new GraalJsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
                             stepConfig.getOrder(), stepConfig.getAuthenticatedIdP());
                 } else {
                     return null;
@@ -136,7 +133,11 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
 
     @Override
     public void putMember(String key, Value value) {
-
+        switch (key) {
+            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
+                getWrapped().setSelectedAcr(String.valueOf(value));
+                break;
+        }
     }
 
     @Override
@@ -159,11 +160,11 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
     }
 
-    private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
+    private GraalJsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
         Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
-            return new JsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
+            return new GraalJsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
         } else {
             return null;
         }

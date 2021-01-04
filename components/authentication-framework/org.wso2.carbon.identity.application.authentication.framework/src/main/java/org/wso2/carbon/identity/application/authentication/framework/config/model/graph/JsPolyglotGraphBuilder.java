@@ -93,28 +93,28 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     @Override
     public JsPolyglotGraphBuilder createWith(String script) {
 
-        currentBuilder.set(this);
-        Value bindings = context.getBindings("js");
-
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
-                this::sendError);
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
-                (PromptExecutor) this::addShowPrompt);
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
-                (LoadExecutor) this::loadLocalLibrary);
-        bindings.putMember("exit", (RestrictedFunction) this::exitFunction);
-        bindings.putMember("quit", (RestrictedFunction) this::quitFunction);
-        JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
-        if (jsFunctionRegistrar != null) {
-            Map<String, Object> functionMap = jsFunctionRegistrar
-                    .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
-            functionMap.forEach(bindings::putMember);
-        }
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                (SelectOneFunction) selectAcrFromFunction::evaluate);
         try {
+            currentBuilder.set(this);
+            Value bindings = context.getBindings("js");
+
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
+                    this::sendError);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
+                    (PromptExecutor) this::addShowPrompt);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB,
+                    (LoadExecutor) this::loadLocalLibrary);
+            bindings.putMember("exit", (RestrictedFunction) this::exitFunction);
+            bindings.putMember("quit", (RestrictedFunction) this::quitFunction);
+            JsFunctionRegistry jsFunctionRegistrar = FrameworkServiceDataHolder.getInstance().getJsFunctionRegistry();
+            if (jsFunctionRegistrar != null) {
+                Map<String, Object> functionMap = jsFunctionRegistrar
+                        .getSubsystemFunctionsMap(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER);
+                functionMap.forEach(bindings::putMember);
+            }
+            SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
+                    (SelectOneFunction) selectAcrFromFunction::evaluate);
             currentBuilder.set(this);
             context.eval(Source.newBuilder("js",
                     FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(),
@@ -145,7 +145,12 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
         }
 
         catch (IOException e) {
-            e.printStackTrace();
+            result.setBuildSuccessful(false);
+            result.setErrorReason("Error in building  the Javascript source" + e.getMessage());
+            result.setError(e);
+            if (log.isDebugEnabled()) {
+                log.debug("Error in building the Javascript source", e);
+            }
         } finally {
             context.close();
             clearCurrentBuilder();
@@ -224,7 +229,6 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 }
 
             } catch (Throwable e) {
-                e.printStackTrace();
                 //We need to catch all the javascript errors here, then log and handle.
                 log.error("Error in executing the javascript for service provider : " + authenticationContext
                         .getServiceProviderName() + ", Javascript Fragment : \n" + fn.toString(), e);

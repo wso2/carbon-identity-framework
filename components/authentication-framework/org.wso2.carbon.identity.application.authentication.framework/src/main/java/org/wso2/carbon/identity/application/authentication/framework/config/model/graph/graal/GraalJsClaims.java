@@ -61,7 +61,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
-    private transient AuthenticatedUser authenticatedUser;
+    protected transient AuthenticatedUser authenticatedUser;
     private transient Map<String, String> localClaimUriToValueReadCache = new HashMap<>();
 
     /**
@@ -306,7 +306,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
      * @return <code>true</code> if the IdP is federated and it has a claim for user with given URI.
      * <code>false</code> otherwise
      */
-    private boolean hasFederatedClaim(String claimUri) {
+    protected boolean hasFederatedClaim(String claimUri) {
 
         if (isFederatedIdP()) {
             Map<ClaimMapping, String> attributesMap = authenticatedUser.getUserAttributes();
@@ -323,7 +323,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
      * @param claimUri The local claim URI
      * @return Claim value of the user authenticated by the indicated IdP
      */
-    private boolean hasLocalClaim(String claimUri) {
+    protected boolean hasLocalClaim(String claimUri) {
         String value = localClaimUriToValueReadCache.get(claimUri);
         if(value != null) {
             return true;
@@ -343,7 +343,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
      * @return Claim value if the Idp is a federated Idp, and has a claim by given url for the user.
      * <code>null</code> otherwise.
      */
-    private String getFederatedClaim(String claimUri) {
+    protected String getFederatedClaim(String claimUri) {
 
         // If the idp is local, return null
         if (isFederatedIdP()) {
@@ -361,7 +361,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
      * @param claimUri Local claim URI
      * @return Local user's claim value if the Idp is local, Mapped remote claim if the Idp is federated.
      */
-    private String getLocalClaim(String claimUri) {
+    protected String getLocalClaim(String claimUri) {
 
         if (isFederatedIdP()) {
             return getLocalMappedClaim(claimUri);
@@ -377,7 +377,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
      *
      * @return true if the idp is federated
      */
-    private boolean isFederatedIdP() {
+    protected boolean isFederatedIdP() {
 
         return StringUtils.isNotBlank(idp) && !FrameworkConstants.LOCAL.equals(idp);
     }

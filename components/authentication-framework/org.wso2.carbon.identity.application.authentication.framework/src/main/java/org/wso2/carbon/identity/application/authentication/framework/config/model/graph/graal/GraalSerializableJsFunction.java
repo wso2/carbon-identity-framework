@@ -18,9 +18,13 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 
@@ -35,15 +39,21 @@ import javax.script.ScriptEngine;
  */
 public class GraalSerializableJsFunction implements SerializableJsFunction<Context, GraalJsAuthenticationContext> {
 
+    private static final Log log = LogFactory.getLog(GraalSerializableJsFunction.class);
     private static final long serialVersionUID = -7605388897997019588L;
-    public String source;
-    public boolean isFunction;
+    private String source;
+    private boolean isPolyglotFunction = false;
+    private boolean isHostFunction = false;
     private String name;
 
-    public GraalSerializableJsFunction(String source, boolean isFunction) {
+    public GraalSerializableJsFunction(String source, String functionType) {
 
         this.source = source;
-        this.isFunction = isFunction;
+        if (functionType =="polyglotFunction") {
+            this.isPolyglotFunction = true;
+        }else{
+            this.isHostFunction = true;
+        }
     }
 
     /**
@@ -58,18 +68,20 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
             return null;
         }
         if (functionObject instanceof Function) {
-            try{
-                Context context = Context.getCurrent();
-                Value functionAsValue = context.asValue(functionObject);
-                if (functionAsValue.canExecute()){
-                    String source = (String) functionAsValue.getSourceLocation().getCharacters();
-                    return serializePolygot(source, true);
-                }
-                else {
-                    return null;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            try {
+                    Context context = Context.getCurrent();
+                    Value functionAsValue = context.asValue(functionObject);
+                    if (functionAsValue.canExecute()) {
+                        if (functionAsValue.isHostObject()) {
+                            return serializePolyglot(null, "hostFunction");
+                        }
+                        String source = (String) functionAsValue.getSourceLocation().getCharacters();
+                        return serializePolyglot(source, "polyglotFunction");
+                    } else {
+                        return null;
+                    }
+            } catch (PolyglotException e) {
+                log.error("Error when serializing JavaScript Function: ", e);
             }
         }
         return null;
@@ -78,14 +90,16 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
 
     public Object apply(Context polyglotContext, GraalJsAuthenticationContext jsAuthenticationContext) {
 
-        if(isFunction) {
+        if(isPolyglotFunction) {
             try {
                 polyglotContext.eval(Source.newBuilder("js",
-                        " var curfunc = " + getSource(),
+                        " var curFunc = " + getSource(),
                         "src.js").build());
-                return polyglotContext.getBindings("js").getMember("curfunc").execute(jsAuthenticationContext);
+                return polyglotContext.getBindings("js").getMember("curFunc").execute(jsAuthenticationContext);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Error when building the from function source", e);
+            } catch (PolyglotException e) {
+                log.error("Error when executing function", e);
             }
         }
 
@@ -113,8 +127,8 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
         this.name = name;
     }
 
-    private static GraalSerializableJsFunction serializePolygot(String source, boolean isFunction) {
+    private static GraalSerializableJsFunction serializePolyglot(String source, String functionType) {
 
-        return new GraalSerializableJsFunction(source, isFunction);
+        return new GraalSerializableJsFunction(source, functionType);
     }
 }

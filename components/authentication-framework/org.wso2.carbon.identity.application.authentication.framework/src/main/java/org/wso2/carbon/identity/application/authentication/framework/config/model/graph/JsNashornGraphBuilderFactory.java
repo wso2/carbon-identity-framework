@@ -42,7 +42,7 @@ import javax.script.ScriptEngine;
  * Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of Nashorn engine and any related expnsive objects.
  */
-public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory {
+public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory <ScriptEngine>{
 
     private static final Log LOG = LogFactory.getLog(JsNashornGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";

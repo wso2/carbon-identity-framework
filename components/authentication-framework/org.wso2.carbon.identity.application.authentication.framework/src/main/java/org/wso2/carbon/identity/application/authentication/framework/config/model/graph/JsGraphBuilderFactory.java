@@ -28,7 +28,7 @@ import java.util.Map;
  * Factory to create a Javascript based sequence builder.
  * This factory is there to reuse of Nashorn engine and any related expnsive objects.
  */
-public interface JsGraphBuilderFactory {
+public interface JsGraphBuilderFactory <T> {
 
     void init();
 
@@ -37,5 +37,5 @@ public interface JsGraphBuilderFactory {
     JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
-    Object createEngine(AuthenticationContext authenticationContext);
+    T createEngine(AuthenticationContext authenticationContext);
 }

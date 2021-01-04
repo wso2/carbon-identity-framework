@@ -55,4 +55,5 @@ public abstract class AbstractJSObjectWrapper<T> extends AbstractJSContextMember
         }
         return false;
     }
+
 }

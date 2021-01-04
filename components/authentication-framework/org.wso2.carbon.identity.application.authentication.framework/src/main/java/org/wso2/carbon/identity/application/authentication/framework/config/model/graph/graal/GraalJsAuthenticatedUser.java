@@ -127,8 +127,15 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
+            case FrameworkConstants.JSAttributes.JS_CLAIMS:
+                if (StringUtils.isNotBlank(idp)) {
+                    return new GraalJsRuntimeClaims(getContext(), step, idp);
+                } else {
+                    // Represent step independent user
+                    return new GraalJsRuntimeClaims(getContext(), getWrapped());
+                }
             default:
-                return null;
+                return super.getMember(name);
         }
     }
 
@@ -169,12 +176,12 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
                 return idp != null;
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 return idp != null && !FrameworkConstants.LOCAL.equals(idp);
+            case FrameworkConstants.JSAttributes.JS_CLAIMS:
+                return idp != null || getWrapped()!=null;
             default:
-                return false;
+                return super.hasMember(name);
         }
     }
-
-
 
     private String[] getLocalRoles() {
 
