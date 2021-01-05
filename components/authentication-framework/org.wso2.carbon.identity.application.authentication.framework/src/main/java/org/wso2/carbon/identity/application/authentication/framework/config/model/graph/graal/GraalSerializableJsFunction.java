@@ -67,10 +67,14 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
         if (functionObject == null) {
             return null;
         }
-        if (functionObject instanceof Function) {
             try {
+                Value functionAsValue;
+                if (functionObject instanceof Function){
                     Context context = Context.getCurrent();
-                    Value functionAsValue = context.asValue(functionObject);
+                    functionAsValue = context.asValue(functionObject);}
+                else {
+                    functionAsValue = (Value) functionObject;
+                }
                     if (functionAsValue.canExecute()) {
                         if (functionAsValue.isHostObject()) {
                             return serializePolyglot(null, "hostFunction");
@@ -83,7 +87,6 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
             } catch (PolyglotException e) {
                 log.error("Error when serializing JavaScript Function: ", e);
             }
-        }
         return null;
 
     }
