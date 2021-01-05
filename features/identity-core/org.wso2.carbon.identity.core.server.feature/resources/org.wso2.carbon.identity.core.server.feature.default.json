@@ -304,6 +304,9 @@
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
 
+  "identity_mgt.login_identifiers.enable" : false,
+  "identity_mgt.login_identifiers.primary_claim" : "http://wso2.org/claims/username",
+
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 

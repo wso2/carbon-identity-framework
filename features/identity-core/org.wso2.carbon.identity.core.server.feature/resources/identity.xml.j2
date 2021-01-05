@@ -1120,6 +1120,11 @@
         <ResendConfirmationReCaptcha>{{identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha}}</ResendConfirmationReCaptcha>
     </SelfRegistration>
 
+    <LoginIdentifiers>
+        <Enable>{{identity_mgt.login_identifiers.enable}}</Enable>
+        <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
+    </LoginIdentifiers>
+
     <UserClaimUpdate>
         <Claim uri = "http://wso2.org/claims/emailaddress">
             <VerificationOnUpdate>
