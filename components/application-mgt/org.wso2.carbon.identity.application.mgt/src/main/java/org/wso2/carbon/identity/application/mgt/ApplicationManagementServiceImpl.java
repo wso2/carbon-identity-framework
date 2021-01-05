@@ -190,7 +190,30 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
-
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = this.getAllLocalAuthenticators(tenantDomain);
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
+            continue;
+        }
+        AuthenticationStep[] authSteps =
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+        if (authSteps == null || authSteps.length == 0) {
+            continue;
+        }
+        for (AuthenticationStep authStep : authSteps) {
+            if (authStep.getLocalAuthenticatorConfigs() != null
+                    && authStep.getLocalAuthenticatorConfigs().length > 0) {
+                LocalAuthenticatorConfig localAuthenticatorConfig = authStep.getLocalAuthenticatorConfigs();
+                if (localAuthenticatorConfig.getName() != null && localAuthenticatorConfigs != null &&
+                        localAuthenticatorConfig.getDisplayName() == null) {
+                    for (LocalAuthenticatorConfig config : localAuthenticatorConfigs) {
+                        if (config.getName().equals(localAuthenticatorConfig.getName())) {
+                            localAuthenticatorConfig.setDisplayName(config.getDisplayName());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
             updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
