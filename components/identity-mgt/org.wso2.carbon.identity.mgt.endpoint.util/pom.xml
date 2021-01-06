@@ -186,6 +186,10 @@
                     <groupId>javassist</groupId>
                     <artifactId>javassist</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>jboss</groupId>
+                    <artifactId>javassist</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
