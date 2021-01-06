@@ -136,8 +136,8 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     /**
      * Delete Applications by tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
      */
     public abstract void deleteApplications(int tenantId) throws IdentityApplicationManagementException;
 
