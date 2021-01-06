@@ -509,7 +509,10 @@
     "/console/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
-    "/lsp/"
+    "/lsp/",
+    "/emailotpauthenticationendpoint/",
+    "/smsotpauthenticationendpoint/",
+    "/totpauthenticationendpoint/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
