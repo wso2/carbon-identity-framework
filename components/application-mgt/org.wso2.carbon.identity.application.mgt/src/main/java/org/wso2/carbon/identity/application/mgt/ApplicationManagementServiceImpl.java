@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -190,7 +191,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
-
+        setDisplayNamesOfLocalAuthenticators(serviceProvider, tenantDomain);
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
             updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
@@ -2193,7 +2194,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
 
         updatedApp.setApplicationResourceId(resourceId);
-
+        setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
         for (ApplicationResourceManagementListener listener : listeners) {
@@ -2511,6 +2512,42 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private Collection<ApplicationMgtListener> getApplicationMgtListeners() {
 
         return ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+    }
+
+    /**
+     * Set displayName of configured localAuthenticators in the service provider, if displayName is null.
+     *
+     * @param serviceProvider Service provider.
+     * @param tenantDomain    Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occur while retrieving local authenticator configs.
+     */
+    private void setDisplayNamesOfLocalAuthenticators(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // Set displayName of local authenticators if displayNames are null.
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = getAllLocalAuthenticators(tenantDomain);
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null || localAuthenticatorConfigs == null) {
+            return;
+        }
+        AuthenticationStep[] authSteps =
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+        if (CollectionUtils.isEmpty(Arrays.asList(authSteps))) {
+            return;
+        }
+        for (AuthenticationStep authStep : authSteps) {
+            if (CollectionUtils.isEmpty(Arrays.asList(authStep.getLocalAuthenticatorConfigs()))) {
+                return;
+            }
+            for (LocalAuthenticatorConfig localAuthenticator : authStep.getLocalAuthenticatorConfigs()) {
+                if (localAuthenticator.getDisplayName() == null) {
+                    Arrays.stream(localAuthenticatorConfigs).forEach(config -> {
+                        if (StringUtils.equals(localAuthenticator.getName(), config.getName())) {
+                            localAuthenticator.setDisplayName(config.getDisplayName());
+                        }
+                    });
+                }
+            }
+        }
     }
 }
 
