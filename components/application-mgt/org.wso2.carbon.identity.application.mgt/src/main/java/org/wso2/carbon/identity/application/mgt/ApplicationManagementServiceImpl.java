@@ -2517,7 +2517,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Set displayName of configured localAuthenticators in the service provider, if displayName is null.
      *
-     * @param serviceProvider Service provider,
+     * @param serviceProvider Service provider.
      * @param tenantDomain    Tenant domain.
      * @throws IdentityApplicationManagementException If an error occur while retrieving local authenticator configs.
      */
