@@ -1120,6 +1120,22 @@
         <ResendConfirmationReCaptcha>{{identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha}}</ResendConfirmationReCaptcha>
     </SelfRegistration>
 
+    <LiteRegistration>
+            <Enable>{{identity_mgt.lite_user_registration.enable}}</Enable>
+            <LockOnCreation>{{identity_mgt.lite_user_registration.lock_on_creation}}</LockOnCreation>
+            <Notification>
+                <InternallyManage>{{identity_mgt.lite_user_registration.notification.manage_internally}}</InternallyManage>
+            </Notification>
+            <ReCaptcha>{{identity_mgt.lite_user_registration.enable_recaptcha.enable}}</ReCaptcha>
+            <VerificationCode>
+                <ExpiryTime>{{identity_mgt.lite_user_registration.verification_email_validity}}</ExpiryTime>
+                <SMSOTP>
+                    <ExpiryTime>{{identity_mgt.lite_user_registration.verification_sms_validity}}</ExpiryTime>
+                </SMSOTP>
+            </VerificationCode>
+            <CallbackRegex>{{identity_mgt.lite_user_registration.callback_url}}</CallbackRegex>
+    </LiteRegistration>
+
     <LoginIdentifiers>
         <Enable>{{identity_mgt.login_identifiers.enable}}</Enable>
         <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
