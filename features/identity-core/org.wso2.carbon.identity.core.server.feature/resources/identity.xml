@@ -876,6 +876,11 @@
         </AskPassword>
     </TenantRegistrationVerification>
 
+    <!--<LoginIdentifiers>
+        <Enable>false</Enable>
+        <PrimaryLoginIdentifier>http://wso2.org/claims/userType</PrimaryLoginIdentifier>
+    </LoginIdentifiers>-->
+
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
     </AccountSuspension>
