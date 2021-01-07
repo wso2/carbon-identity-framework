@@ -23,7 +23,6 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -68,7 +67,7 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
             case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
                 return getLastLoginFailedUserFromWrappedContext();
             case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return new JsServletRequest((TransientObjectWrapper) getWrapped()
+                return new GraalJsServletRequest((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
                 return new JsServletResponse((TransientObjectWrapper) getWrapped()
