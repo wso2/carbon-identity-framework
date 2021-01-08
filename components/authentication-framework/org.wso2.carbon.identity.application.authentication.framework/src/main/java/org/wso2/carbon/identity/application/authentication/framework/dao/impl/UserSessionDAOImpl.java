@@ -28,9 +28,18 @@ import org.wso2.carbon.identity.application.authentication.framework.model.UserS
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IDP_NAME;
 
 /**
  * Default implementation of {@link UserSessionDAO}. This handles {@link UserSession} related DB operations.
@@ -88,5 +97,26 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
         return null;
+    }
+
+    public Map<String, String> getSessionDetails(String oidcSId) throws SessionManagementServerException {
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
+             PreparedStatement preparedStatement =
+                     connection.prepareStatement(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID)) {
+            preparedStatement.setString(1, oidcSId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                Map<String, String> sessionDetails = new HashMap<>();
+                if (resultSet.next()) {
+                    sessionDetails.put(SESSION_ID, resultSet.getString("SESSION_ID"));
+                    sessionDetails.put(IDP_NAME, resultSet.getString("IDP_NAME"));
+                }
+                return sessionDetails;
+            }
+        } catch (SQLException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
+        }
     }
 }

@@ -22,6 +22,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.s
         .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 
+import java.util.Map;
+
 /**
  * Perform operations for {@link UserSession}.
  */
@@ -29,4 +31,5 @@ public interface UserSessionDAO {
 
     UserSession getSession(String sessionId) throws SessionManagementServerException;
 
+    Map<String, String> getSessionDetails(String oidcSId) throws SessionManagementServerException;
 }
