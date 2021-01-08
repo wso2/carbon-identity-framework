@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.dao;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
+import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 
 /**
@@ -29,4 +30,12 @@ public interface UserSessionDAO {
 
     UserSession getSession(String sessionId) throws SessionManagementServerException;
 
+    /**
+     * Get federated authentication session mapping info during the federated idp init logout
+     *
+     * @param fedIdpSessionId
+     * @return A map containing federated authentication session details
+     * @throws SessionManagementServerException
+     */
+    FederatedUserSession getFederatedAuthSessionDetails(String fedIdpSessionId) throws SessionManagementServerException;
 }

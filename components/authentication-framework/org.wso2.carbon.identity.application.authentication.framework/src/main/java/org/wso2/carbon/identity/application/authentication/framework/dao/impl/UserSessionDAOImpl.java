@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.UserSes
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
@@ -88,5 +89,35 @@ public class UserSessionDAOImpl implements UserSessionDAO {
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
         }
         return null;
+    }
+
+    /**
+     * Get federated authentication session mapping info during the federated idp init logout
+     *
+     * @param fedIdpSessionId
+     * @return A FederatedUserSession containing federated authentication session details
+     * @throws SessionManagementServerException
+     */
+    public FederatedUserSession getFederatedAuthSessionDetails(String fedIdpSessionId)
+            throws SessionManagementServerException {
+
+        FederatedUserSession federatedUserSession;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            federatedUserSession = jdbcTemplate
+                    .fetchSingleRecord(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
+                            (resultSet, rowNumber) -> new FederatedUserSession(
+                                    resultSet.getString(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3),
+                                    resultSet.getString(4),
+                                    resultSet.getString(5)),
+                            preparedStatement -> preparedStatement.setString(1, fedIdpSessionId));
+            return federatedUserSession;
+        } catch (DataAccessException e) {
+            throw new SessionManagementServerException(
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
+                    SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
+        }
     }
 }
