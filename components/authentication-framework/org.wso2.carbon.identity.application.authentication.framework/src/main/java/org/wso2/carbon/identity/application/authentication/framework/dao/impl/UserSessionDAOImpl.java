@@ -99,12 +99,12 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return null;
     }
 
-    public Map<String, String> getSessionDetails(String oidcSId) throws SessionManagementServerException {
+    public Map<String, String> getSessionDetails(String fedIdpSessionId) throws SessionManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement =
                      connection.prepareStatement(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID)) {
-            preparedStatement.setString(1, oidcSId);
+            preparedStatement.setString(1, fedIdpSessionId);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 Map<String, String> sessionDetails = new HashMap<>();
                 if (resultSet.next()) {
