@@ -778,6 +778,14 @@
             Supported versions : IS 5.9.0 onwards
         -->
         <!--<ReturnUpdatedGroupInPatchResponse>true</ReturnUpdatedGroupInPatchResponse>-->
+
+        <!--
+            If you set the property value to true, the response of the users endpoint would not contain duplicate user entries.
+
+            Default value : false
+            Supported versions : IS 5.10.0 onwards
+        -->
+        <!--<RemoveDuplicateUsersInUsersResponse>{{scim2.remove_duplicate_users_in_users_response}}</RemoveDuplicateUsersInUsersResponse>-->
     </SCIM2>
 
     <!--Recovery>
