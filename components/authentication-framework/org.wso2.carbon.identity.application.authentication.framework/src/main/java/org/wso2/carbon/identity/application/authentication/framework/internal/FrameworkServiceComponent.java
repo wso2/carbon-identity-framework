@@ -41,9 +41,11 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -213,6 +215,11 @@ public class FrameworkServiceComponent {
                 new SessionExtenderResponseFactory(), null);
         bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
 
+        ServerSessionManagementService serverSessionManagementService = new ServerSessionManagementServiceImpl();
+        bundleContext.registerService(ServerSessionManagementService.class.getName(),
+                serverSessionManagementService, null);
+        dataHolder.setServerSessionManagementService(serverSessionManagementService);
+
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -319,6 +326,7 @@ public class FrameworkServiceComponent {
                 .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
+
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
