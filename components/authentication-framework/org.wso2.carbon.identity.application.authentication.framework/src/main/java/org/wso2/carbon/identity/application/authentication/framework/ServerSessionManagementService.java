@@ -41,10 +41,4 @@ public interface ServerSessionManagementService {
      */
     boolean removeMySession(String username, String tenantDomain, String sessionId);
 
-    /**
-     * @param sessionContext
-     * @param sessionId
-     */
-    void terminateSession(SessionContext sessionContext, String sessionId);
-
 }
