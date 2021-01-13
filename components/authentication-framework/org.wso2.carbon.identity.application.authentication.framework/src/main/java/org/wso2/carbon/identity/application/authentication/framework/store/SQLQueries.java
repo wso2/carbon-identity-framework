@@ -120,7 +120,8 @@ public class SQLQueries {
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
-    public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID = "SELECT * FROM" +
+    // Get federated authentication session details using the IDP session id
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID = "SELECT * FROM " +
             "AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
 
     // Remove federated authentication session details of a given session context key.

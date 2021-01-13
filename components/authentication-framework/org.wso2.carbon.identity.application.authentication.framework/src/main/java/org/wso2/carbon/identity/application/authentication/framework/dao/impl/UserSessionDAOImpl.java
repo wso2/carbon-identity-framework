@@ -99,6 +99,12 @@ public class UserSessionDAOImpl implements UserSessionDAO {
         return null;
     }
 
+    /**
+     *
+     * @param fedIdpSessionId
+     * @return A map containing federated authentication session details
+     * @throws SessionManagementServerException
+     */
     public Map<String, String> getSessionDetails(String fedIdpSessionId) throws SessionManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
