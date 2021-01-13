@@ -138,7 +138,6 @@ BEGIN
             END IF;
 
             EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE ROW_ID IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
---            EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM JOIN TEMP_SESSION_BATCH)';
             COMMIT;
 
             IF ( tracingenabled ) THEN
@@ -172,7 +171,6 @@ BEGIN
     COMMIT;
     END IF;
 
-    -- If IDN_AUTH_USER_SESSION_MAPPING table does not exists, no need to create a temp table with expired sessions.
     SELECT COUNT(*) INTO rowcount from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_USER_SESSION_MAPPING');
     IF (rowcount = 1) THEN
 
