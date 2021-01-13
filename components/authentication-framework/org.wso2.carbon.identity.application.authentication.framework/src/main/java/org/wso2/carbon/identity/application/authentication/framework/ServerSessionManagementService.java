@@ -39,7 +39,6 @@ public interface ServerSessionManagementService {
      * @param sessionId
      * @return true if the termination is success
      */
-    @Deprecated
     boolean removeMySession(String username, String tenantDomain, String sessionId);
 
     /**
