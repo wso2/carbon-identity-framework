@@ -76,8 +76,7 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
         return true;
     }
 
-    @Override
-    public void terminateSession(SessionContext sessionContext, String sessionId) {
+    private void terminateSession(SessionContext sessionContext, String sessionId) {
 
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null && FrameworkServiceDataHolder
                 .getInstance().getAuthnDataPublisherProxy().isEnabled(null) && sessionContext != null) {
