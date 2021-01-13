@@ -2474,6 +2474,11 @@
         {% for allowed_user_store in user_store_mgt.allowed_user_stores %}
         <AllowedUserstore>{{allowed_user_store}}</AllowedUserstore>
         {% endfor %}
+        {% if user_store_mgt.custom_user_stores is defined %}
+        {% for custom_user_store in user_store_mgt.custom_user_stores %}
+        <AllowedUserstore>{{custom_user_store}}</AllowedUserstore>
+        {% endfor %}
+        {% endif %}
     </AllowedUserstores>
     {% endif %}
 
