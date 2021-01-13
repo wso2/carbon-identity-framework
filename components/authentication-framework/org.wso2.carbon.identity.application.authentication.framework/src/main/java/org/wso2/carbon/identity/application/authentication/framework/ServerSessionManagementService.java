@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework;
 
-import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
-
 /**
  * Defines the session management service operations.
  */
@@ -32,13 +30,5 @@ public interface ServerSessionManagementService {
      * @return true if the termination is success
      */
     boolean removeSession(String sessionId);
-
-    /**
-     * Terminate session of the current user
-     *
-     * @param sessionId
-     * @return true if the termination is success
-     */
-    boolean removeMySession(String username, String tenantDomain, String sessionId);
 
 }
