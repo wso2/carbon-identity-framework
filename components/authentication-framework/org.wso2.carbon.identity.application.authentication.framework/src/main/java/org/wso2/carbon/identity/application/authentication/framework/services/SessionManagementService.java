@@ -51,6 +51,7 @@ public class SessionManagementService extends AbstractAdmin {
      * @param sessionId
      * @return
      */
+    @Deprecated
     public boolean removeMySession(String sessionId) {
 
         if (StringUtils.isBlank(sessionId)) {
