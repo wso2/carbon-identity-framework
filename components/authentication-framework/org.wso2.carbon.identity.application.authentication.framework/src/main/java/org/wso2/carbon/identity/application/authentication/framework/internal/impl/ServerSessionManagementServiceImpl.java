@@ -21,7 +21,6 @@ package org.wso2.carbon.identity.application.authentication.framework.internal.i
 import org.apache.commons.lang.StringUtils;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
@@ -46,36 +45,12 @@ public class ServerSessionManagementServiceImpl implements ServerSessionManageme
         return true;
     }
 
-    @Override
-    public boolean removeMySession(String username, String tenantDomain, String sessionId) {
-
-        if (StringUtils.isBlank(sessionId)) {
-            return false;
-        }
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
-
-        // Extract the user store domain if there is any or set to 'PRIMARY'.
-        String userStoreDomain = "PRIMARY";
-        String[] usernameTokens = username.split("/");
-        if (usernameTokens.length > 1) {
-            userStoreDomain = usernameTokens[0];
-            username = usernameTokens[1];
-        }
-
-        AuthenticatedUser authenticatedUser = (AuthenticatedUser) sessionContext
-                .getProperty(FrameworkConstants.AUTHENTICATED_USER);
-        if (username.equals(authenticatedUser.getUserName())
-                && userStoreDomain.equals(authenticatedUser.getUserStoreDomain())
-                && tenantDomain.equals(authenticatedUser.getTenantDomain())) {
-            terminateSession(sessionContext, sessionId);
-        } else { // TODO : Handle federated scenario.
-            log.warn(String.format("Trying to terminate a session which does not belong to logged in user (%s). " +
-                    "This might be an attempt for a security breach", username));
-            return false;
-        }
-        return true;
-    }
-
+    /**
+     * Terminate the session by sessionId
+     *
+     * @param sessionContext
+     * @param sessionId
+     */
     private void terminateSession(SessionContext sessionContext, String sessionId) {
 
         if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null && FrameworkServiceDataHolder
