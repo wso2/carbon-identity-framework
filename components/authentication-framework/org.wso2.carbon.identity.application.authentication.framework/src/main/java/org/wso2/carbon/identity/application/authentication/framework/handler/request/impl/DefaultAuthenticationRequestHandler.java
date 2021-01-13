@@ -404,6 +404,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
 
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 List<AuthenticationContextProperty> authenticationContextProperties = new ArrayList<>();
 
                 // Authentication context properties from already authenticated IdPs
@@ -452,14 +453,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             authenticationContextProperties);
                 }
 
-                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
-                    try {
-                        UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
-                                .LAST_ACCESS_TIME, Long.toString(updatedSessionTime));
-                    } catch (UserSessionException e) {
-                        log.error("Updating session meta data failed.", e);
-                    }
-                }
+                FrameworkUtils.updateSessionLastAccessTimeMetadata(sessionContextKey, updatedSessionTime);
+
                 /*
                  * In the default configuration, the expiry time of the commonAuthCookie is fixed when rememberMe
                  * option is selected. With this config, the expiry time will increase at every authentication.
@@ -499,6 +494,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -531,8 +527,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // store the saml index with the session context key for the single logout.
             if (context.getAuthenticationStepHistory() != null) {
                 for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
-                    if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName()) &&
-                            StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
+                    if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
                             UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey,
@@ -641,8 +636,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
-                if (StringUtils.isBlank(FrameworkUtils.resolveUserIdFromUsername(tenantId, userStoreDomain, userName))
-                        && isFederatedUser(authenticatedIdPData.getUser())) {
+                if (isFederatedUser(authenticatedIdPData.getUser())) {
                     userId = UserSessionStore.getInstance().getUserId(userName, tenantId, userStoreDomain, idpId);
                     try {
                         if (userId == null) {

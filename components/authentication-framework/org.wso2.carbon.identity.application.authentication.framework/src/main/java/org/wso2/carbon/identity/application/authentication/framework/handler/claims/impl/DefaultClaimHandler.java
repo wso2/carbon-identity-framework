@@ -168,6 +168,7 @@ public class DefaultClaimHandler implements ClaimHandler {
         Map<String, String> localUnfilteredClaims = new HashMap<>();
         Map<String, String> spUnfilteredClaims = new HashMap<>();
         Map<String, String> spFilteredClaims = new HashMap<>();
+        Map<String, String> localUnfilteredClaimsForNullValues = new HashMap<>();
 
 
         // claim mapping from local IDP to remote IDP : local-claim-uri / idp-claim-uri
@@ -190,7 +191,17 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         // Loop remote claims and map to local claims
-        mapRemoteClaimsToLocalClaims(remoteClaims, localUnfilteredClaims, localToIdPClaimMap, defaultValuesForClaims);
+        mapRemoteClaimsToLocalClaims(remoteClaims, localUnfilteredClaims, localToIdPClaimMap, defaultValuesForClaims,
+                localUnfilteredClaimsForNullValues);
+
+        if (MapUtils.isNotEmpty(localUnfilteredClaimsForNullValues)) {
+            /*
+             Set all locally mapped unfiltered null remote claims as a property.
+             This property will used to retrieve unfiltered null value claims.
+             */
+            context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIMS_FOR_NULL_VALUES,
+                    localUnfilteredClaimsForNullValues);
+        }
 
         // set all locally mapped unfiltered remote claims as a property
         context.setProperty(FrameworkConstants.UNFILTERED_LOCAL_CLAIM_VALUES, localUnfilteredClaims);
@@ -326,7 +337,8 @@ public class DefaultClaimHandler implements ClaimHandler {
     private void mapRemoteClaimsToLocalClaims(Map<String, String> remoteClaims,
                                               Map<String, String> localUnfilteredClaims,
                                               Map<String, String> localToIdPClaimMap,
-                                              Map<String, String> defaultValuesForClaims) {
+                                              Map<String, String> defaultValuesForClaims,
+                                              Map<String, String> localUnfilteredClaimsForNullValues) {
         for (Entry<String, String> entry : localToIdPClaimMap.entrySet()) {
             String localClaimURI = entry.getKey();
             String claimValue = remoteClaims.get(localToIdPClaimMap.get(localClaimURI));
@@ -335,6 +347,11 @@ public class DefaultClaimHandler implements ClaimHandler {
             }
             if (!StringUtils.isEmpty(claimValue)) {
                 localUnfilteredClaims.put(localClaimURI, claimValue);
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Claim " + localClaimURI + " has null value or blank.");
+                }
+                localUnfilteredClaimsForNullValues.put(localClaimURI, claimValue);
             }
         }
     }

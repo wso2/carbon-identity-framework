@@ -225,6 +225,8 @@
         <TimestampSkew>0</TimestampSkew>
         <!-- Enable renewal of refresh token for refresh_token grant -->
         <RenewRefreshTokenForRefreshGrant>true</RenewRefreshTokenForRefreshGrant>
+        <!-- Enable Extend renews refresh token expiry time -->
+        <ExtendRenewedRefreshTokenExpiryTime>true</ExtendRenewedRefreshTokenExpiryTime>
         <!-- Process the token before storing it in database, e.g. encrypting -->
         <TokenPersistenceProcessor>org.wso2.carbon.identity.oauth.tokenprocessor.PlainTextPersistenceProcessor</TokenPersistenceProcessor>
         <!-- This should be true if the oauth keys (consumer secret, access token, refresh token and authorization code) need to be hashed,
@@ -776,6 +778,14 @@
             Supported versions : IS 5.9.0 onwards
         -->
         <!--<ReturnUpdatedGroupInPatchResponse>true</ReturnUpdatedGroupInPatchResponse>-->
+
+        <!--
+            If you set the property value to true, the response of the users endpoint would not contain duplicate user entries.
+
+            Default value : false
+            Supported versions : IS 5.10.0 onwards
+        -->
+        <!--<RemoveDuplicateUsersInUsersResponse>{{scim2.remove_duplicate_users_in_users_response}}</RemoveDuplicateUsersInUsersResponse>-->
     </SCIM2>
 
     <!--Recovery>
@@ -861,6 +871,7 @@
             <InternallyManage>true</InternallyManage>
         </Notification>
         <ReCaptcha>true</ReCaptcha>
+        <ResendConfirmationReCaptcha>false</ResendConfirmationReCaptcha>
 	<VerificationCode>
 	    <ExpiryTime>1440</ExpiryTime>
 	</VerificationCode>
@@ -872,6 +883,11 @@
             <ExpiryTime>1440</ExpiryTime>
         </AskPassword>
     </TenantRegistrationVerification>
+
+    <!--<LoginIdentifiers>
+        <Enable>false</Enable>
+        <PrimaryLoginIdentifier>http://wso2.org/claims/userType</PrimaryLoginIdentifier>
+    </LoginIdentifiers>-->
 
     <AccountSuspension>
         <UseIdentityClaims>true</UseIdentityClaims>
@@ -936,6 +952,12 @@
                        name="org.wso2.carbon.identity.data.publisher.oauth.listener.OAuthTokenIssuanceLogPublisher"
                        orderId="12" enable="false">
             <Property name="Log.Token">false</Property>
+        </EventListener>
+        <EventListener id="mutual_tls_authenticator"
+                       type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
+                       name="org.wso2.carbon.identity.oauth2.token.handler.clientauth.mutualtls.MutualTLSClientAuthenticator"
+                       orderId="158"
+                       enable="true">
         </EventListener>
 
         <!-- Basic client authenticator -->
@@ -1110,6 +1132,23 @@
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
 
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
+
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents" secured="true" http-method="all"/>
         <Resource context="(.*)/api/identity/consent-mgt/v1.0/consents/receipts/(.*)" secured="true" http-method="all"/>
 
@@ -1183,6 +1222,18 @@
         <Resource context="(.*)/api/identity/entitlement/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/pep</Permissions>
             <Scopes>internal_manage_pep</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Users/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/usermgt/list</Permissions>
+            <Scopes>internal_user_mgt_list</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Groups/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/scim2/Roles/.search" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/rolemgt/view</Permissions>
+            <Scopes>internal_role_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/scim2/Users(.*)" secured="true" http-method="POST">
             <Permissions>/permission/admin/manage/identity/usermgt/create</Permissions>
@@ -1460,7 +1511,11 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/identity-governance/(.*)" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
         </Resource>
@@ -1561,11 +1616,19 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
+        <Resource context="/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
+            <Scopes>internal_list_tenants</Scopes>
+        </Resource>
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/protected/manage/modify/tenants</Permissions>
+            <Scopes>internal_modify_tenants</Scopes>
+        </Resource>
+        <Resource context="/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
@@ -1597,7 +1660,10 @@
             <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
             <Scopes>internal_cors_origins_view</Scopes>
         </Resource>
-
+        <Resource context="(.*)/api/server/v1/configs" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/users/v1/(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
@@ -1605,7 +1671,7 @@
             <Scopes>internal_identity_mgt_create</Scopes>
             <Scopes>internal_identity_mgt_delete</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
             <Scopes>internal_identity_mgt_update</Scopes>
@@ -1720,6 +1786,11 @@
         <OverwriteDispatch>
             <Context>/myaccount/</Context>
             <Context>/console/</Context>
+            <IgnorePath>/libs/</IgnorePath>
+            <IgnorePath>/resources/</IgnorePath>
+            <IgnorePath>/static/</IgnorePath>
+            <IgnorePath>/deployment.config.json</IgnorePath>
+            <IgnorePath>/rpIFrame.html</IgnorePath>
         </OverwriteDispatch>
     </TenantContextsToRewrite>
 

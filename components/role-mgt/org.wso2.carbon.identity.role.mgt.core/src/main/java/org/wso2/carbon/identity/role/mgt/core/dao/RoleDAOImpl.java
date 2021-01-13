@@ -335,23 +335,11 @@ public class RoleDAOImpl implements RoleDAO {
 
         List<RoleBasicInfo> roles = new ArrayList<>();
         List<String> roleNames = new ArrayList<>();
-        UserRealm userRealm = CarbonContext.getThreadLocalCarbonContext().getUserRealm();
         try (ResultSet resultSet = statement.executeQuery()) {
             while (resultSet.next()) {
                 String roleName = resultSet.getString(1);
-
-                // Skip the Internal/everyone role.
-                if (isInternalEveryoneRole(roleName, userRealm)) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Skip the role: " + roleName + " from the list roles results.");
-                    }
-                    continue;
-                }
                 roleNames.add(appendInternalDomain(roleName));
             }
-        } catch (UserStoreException e) {
-            throw new IdentityRoleManagementServerException(UNEXPECTED_SERVER_ERROR.getCode(),
-                    "Error while getting the realmConfiguration in the tenantDomain: " + tenantDomain, e);
         }
         Map<String, String> roleNamesToIDs = getRoleIDsByNames(roleNames, tenantDomain);
 
@@ -379,11 +367,6 @@ public class RoleDAOImpl implements RoleDAO {
             return UserCoreConstants.INTERNAL_DOMAIN + UserCoreConstants.DOMAIN_SEPARATOR + roleName;
         }
         return roleName;
-    }
-
-    private boolean isInternalEveryoneRole(String roleName, UserRealm userRealm) throws UserStoreException {
-
-        return UserCoreUtil.isEveryoneRole(appendInternalDomain(roleName), userRealm.getRealmConfiguration());
     }
 
     private String resolveSQLFilter(String filter) {
@@ -1105,9 +1088,13 @@ public class RoleDAOImpl implements RoleDAO {
             throws IdentityRoleManagementException {
 
         String roleName = appendInternalDomain(getRoleNameByID(roleID, tenantDomain));
-        if (CollectionUtils.isEmpty(permissions)) {
+        /*
+        Permission list can be empty in case we want to remove the permissions.
+        Therefore validating for NULL will be sufficient.
+         */
+        if (permissions == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Permissions list is empty.");
+                log.debug("Permissions list is null. Therefore not proceeding further.");
             }
             return new RoleBasicInfo(roleID, roleName);
         }
@@ -1325,10 +1312,10 @@ public class RoleDAOImpl implements RoleDAO {
                         // Handle multiple matching roles.
                         count++;
                         if (count > 1) {
-                            String errorMessage =
+                            String message =
                                     "Invalid scenario. Multiple roles found for the given role ID: " + roleID + " and "
                                             + "tenantDomain: " + tenantDomain;
-                            throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(), errorMessage);
+                            log.warn(message);
                         }
                         roleName = resultSet.getString(1);
                     }
