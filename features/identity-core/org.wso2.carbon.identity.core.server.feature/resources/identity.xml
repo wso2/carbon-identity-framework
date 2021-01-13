@@ -1751,6 +1751,7 @@
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)/(.*)/(.*)" secured="true" http-method="GET, DELETE"/>
         <Resource context="(.*)/iwa-kerberos(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/identity/media/v1.0/public/(.*)" secured="false" http-method="GET"/>
+        <Resource context="(.*)/oidc/slo(.*)" secured="false" http-method="POST"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>
