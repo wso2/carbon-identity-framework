@@ -281,7 +281,7 @@
   "identity_mgt.password_reset_email.notify_on_reset":false,
 
   "identity_mgt.lite_user_registration.enable": false,
-  "identity_mgt.lite_user_registration.lock_on_creation": false,
+  "identity_mgt.lite_user_registration.lock_on_creation": true,
   "identity_mgt.lite_user_registration.notification.manage_internally": true,
   "identity_mgt.lite_user_registration.recaptcha.enable": true,
   "identity_mgt.lite_user_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
