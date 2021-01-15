@@ -73,6 +73,8 @@ public class ApplicationBean {
     public static final String LOCAL_IDP = "wso2carbon-local-idp";
     public static final String DUMB = "dumb";
 
+    private static final String LOGOUT_RETURN_URL = "logoutReturnUrl";
+
     private ServiceProvider serviceProvider;
     private IdentityProvider[] federatedIdentityProviders;
     private Map<String, IdentityProvider> federatedIdentityProvidersMap = new HashMap<>();
@@ -1141,6 +1143,27 @@ public class ApplicationBean {
 
         String imageUrl = request.getParameter("imageURL");
         serviceProvider.setImageUrl(imageUrl);
+
+        String logoutReturnUrl = request.getParameter(LOGOUT_RETURN_URL);
+        if (StringUtils.isNotBlank(logoutReturnUrl)) {
+            boolean logoutReturnUrlDefined = false;
+            if (serviceProvider.getSpProperties() != null) {
+                for (ServiceProviderProperty property : serviceProvider.getSpProperties()) {
+                    if (property.getName() != null && LOGOUT_RETURN_URL.equals(property.getName())) {
+                        property.setValue(logoutReturnUrl);
+                        logoutReturnUrlDefined = true;
+                        break;
+                    }
+                }
+            }
+            if (!logoutReturnUrlDefined) {
+                ServiceProviderProperty property = new ServiceProviderProperty();
+                property.setName(LOGOUT_RETURN_URL);
+                property.setDisplayName("Logout Return URL");
+                property.setValue(logoutReturnUrl);
+                serviceProvider.addSpProperties(property);
+            }
+        }
 
         if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null) {
             // create fresh one.
