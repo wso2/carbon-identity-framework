@@ -280,7 +280,7 @@
   "identity_mgt.resend_notification.resend_code_validity": "1m",
   "identity_mgt.password_reset_email.notify_on_reset":false,
 
-  "identity_mgt.lite_user_registration.enable": true,
+  "identity_mgt.lite_user_registration.enable": false,
   "identity_mgt.lite_user_registration.lock_on_creation": false,
   "identity_mgt.lite_user_registration.notification.manage_internally": true,
   "identity_mgt.lite_user_registration.enable_recaptcha.enable": true,
