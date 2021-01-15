@@ -48,4 +48,16 @@ module.name.{{index}}={{custom_event.name}}
 {% for property_name,property_value in custom_event.properties.items()%}
 {{custom_event.name}}.{{property_name}}={{property_value}}
 {% endfor %}
+{% if count.append(1) %}{% endif %}
+{% endfor %}
+
+# grpc handler configuration.
+
+{% set custom_count = count|length %}
+{% for grpc_handler in grpc %}
+{% set index = custom_count + loop.index %}
+module.name.{{index}}={{grpc_handler.name}}
+{% for handler in grpc_handler.handlers.toList()%}
+{{grpc_handler.name}}.handler.{{loop.index}}={{handler}}
+{% endfor %}
 {% endfor %}
