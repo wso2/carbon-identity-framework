@@ -100,6 +100,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     }
 
     /**
+     *Get federated authentication session mapping info during the federated idp init logout
      *
      * @param fedIdpSessionId
      * @return A map containing federated authentication session details
