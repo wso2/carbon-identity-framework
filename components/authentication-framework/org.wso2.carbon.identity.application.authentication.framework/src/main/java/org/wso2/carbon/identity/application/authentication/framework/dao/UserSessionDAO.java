@@ -31,5 +31,12 @@ public interface UserSessionDAO {
 
     UserSession getSession(String sessionId) throws SessionManagementServerException;
 
-    Map<String, String> getSessionDetails(String oidcSId) throws SessionManagementServerException;
+    /**
+     * Get federated authentication session mapping info during the federated idp init logout
+     *
+     * @param fedIdpSessionId
+     * @return A map containing federated authentication session details
+     * @throws SessionManagementServerException
+     */
+    Map<String, String> getSessionDetails(String fedIdpSessionId) throws SessionManagementServerException;
 }
