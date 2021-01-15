@@ -651,7 +651,7 @@
   "console.ui.app_title": "Console | WSO2 Identity Server",
   "console.ui.app_name": "Console",
   "console.ui.app_logo_path": "/assets/images/logo-full.svg",
-  "console.ui.product_name": "Identity Server",
+  "console.ui.product_name": "WSO2 Identity Server",
   "console.theme": "default",
   "console.session.params.userIdleTimeOut": 600,
   "console.session.params.userIdleWarningTimeOut": 580,
