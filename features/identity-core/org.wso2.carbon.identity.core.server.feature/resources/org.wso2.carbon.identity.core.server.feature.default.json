@@ -281,6 +281,14 @@
   "identity_mgt.resend_notification.resend_code_validity": "1m",
   "identity_mgt.password_reset_email.notify_on_reset":false,
 
+  "identity_mgt.lite_user_registration.enable": false,
+  "identity_mgt.lite_user_registration.lock_on_creation": true,
+  "identity_mgt.lite_user_registration.notification.manage_internally": true,
+  "identity_mgt.lite_user_registration.recaptcha.enable": true,
+  "identity_mgt.lite_user_registration.verification_email_validity": "1440m",
+  "identity_mgt.lite_user_registration.verification_sms_validity": "1m",
+  "identity_mgt.lite_user_registration.callback_url": ".*",
+
   "identity_mgt.password_reset_challenge_questions.enable_password_reset_challenge_questions": false,
   "identity_mgt.password_reset_challenge_questions.notify_on_initiation": false,
   "identity_mgt.password_reset_challenge_questions.min_required_answers": "2",
