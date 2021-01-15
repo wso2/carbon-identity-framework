@@ -285,7 +285,7 @@
   "identity_mgt.lite_user_registration.notification.manage_internally": true,
   "identity_mgt.lite_user_registration.recaptcha.enable": true,
   "identity_mgt.lite_user_registration.verification_email_validity": "1440m",
-  "identity_mgt.lite_user_registration.verification_sms_validity": "1",
+  "identity_mgt.lite_user_registration.verification_sms_validity": "1m",
   "identity_mgt.lite_user_registration.callback_url": ".*",
 
   "identity_mgt.password_reset_challenge_questions.enable_password_reset_challenge_questions": false,
