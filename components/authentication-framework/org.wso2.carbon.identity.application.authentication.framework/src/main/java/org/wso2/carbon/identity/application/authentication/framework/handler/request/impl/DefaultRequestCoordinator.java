@@ -80,11 +80,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
@@ -227,12 +225,28 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     }
                 }
 
-                if (isIdentifierFirstRequest(request)) {
-                    StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-                    boolean isIDFAuthenticatorInCurrentStep = isIDFAuthenticatorFoundInStep(stepConfig);
-                    //Current step cannot handle the IDF request. This is probably user has clicked on the back button.
-                    if (!isIDFAuthenticatorInCurrentStep) {
-                        handleIdentifierRequestInPreviousSteps(context);
+
+                if (isRestartRequest(request)) {
+                    if (isCompletedStepsAreFlowHandlersOnly(context)) {
+                        // If the incoming request is restart and all the completed steps have only flow handlers as the
+                        // authenticated authenticator, then we reset the current step to 1.
+                        if (log.isDebugEnabled()) {
+                            log.debug("Restarting the authentication flow from step 1 for  " +
+                                    context.getContextIdentifier());
+                        }
+                        context.setCurrentStep(1);
+                        context.setProperty(BACK_TO_FIRST_STEP, true);
+                        // IDF should be the first step.
+                        context.getCurrentAuthenticatedIdPs().clear();
+                    } else {
+                        // If the incoming request is restart and the completed steps have authenticators as the
+                        // authenticated authenticator, then we redirect to retry page.
+                        String msg = "Restarting the authentication flow failed because there is/are authenticator/s " +
+                                "available in the completed steps for  " + context.getContextIdentifier();
+                        if (log.isDebugEnabled()) {
+                            log.debug(msg);
+                        }
+                        throw new MisconfigurationException(msg);
                     }
                 }
 
@@ -347,55 +361,26 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void handleIdentifierRequestInPreviousSteps(AuthenticationContext context) {
+    private boolean isRestartRequest(HttpServletRequest request) {
 
-        boolean isIDFAuthenticatorFound = false;
-        int currentStep = context.getCurrentStep();
-
-        if (log.isDebugEnabled()) {
-            log.debug("Started to handle the IDF request as previous steps since the current steps cannot handle the" +
-                    " IDF request");
-        }
-        while (currentStep > 1 && !isIDFAuthenticatorFound) {
-            currentStep = currentStep - 1;
-            isIDFAuthenticatorFound = isIDFAuthenticatorFoundInStep(context.getSequenceConfig().getStepMap().get(currentStep));
-        }
-
-        if (isIDFAuthenticatorFound) {
-            context.setCurrentStep(currentStep);
-            context.setProperty(BACK_TO_PREVIOUS_STEP, true);
-            //IDF should be the first step.
-            context.getCurrentAuthenticatedIdPs().clear();
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("IDF requests cannot handle in any of the previous steps.");
-            }
-        }
+        String authType = request.getParameter(RESTART_FLOW);
+        return Boolean.parseBoolean(authType);
     }
 
-    private boolean isIDFAuthenticatorFoundInStep( StepConfig stepConfig) {
+    private boolean isCompletedStepsAreFlowHandlersOnly(AuthenticationContext context) {
 
-        boolean isIDFAuthenticatorInCurrentStep = false;
-        if (stepConfig != null) {
-            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
-            for (AuthenticatorConfig config : authenticatorList) {
-                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
-                    isIDFAuthenticatorInCurrentStep = true;
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        for (int i = context.getCurrentStep() - 1; i >= 0; i--) {
+            StepConfig stepConfig = stepMap.get(i);
+            if (stepConfig != null) {
+                AuthenticatorConfig authenticatedAuthenticator = stepConfig.getAuthenticatedAutenticator();
+                if (!(authenticatedAuthenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
+                    return false;
+
                 }
             }
         }
-        return isIDFAuthenticatorInCurrentStep;
-    }
-
-    /**
-     * This method is used to identify the Identifier First requests.
-     * @param request HttpServletRequest
-     * @return true or false.
-     */
-    private boolean isIdentifierFirstRequest(HttpServletRequest request) {
-
-        String authType = request.getParameter(AUTH_TYPE);
-        return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
+        return true;
     }
 
     /**
