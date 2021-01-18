@@ -26,6 +26,7 @@ CREATE OR REPLACE PROCEDURE wso2_session_cleanup_sp IS
     sessionmetadatacleanupcount      INT := 0;
     operationalmetadatacleanupcount  INT := 0;
     operationcleanupcount            INT := 0;
+    expiredsessioncount              INT := 0;
 
 -- ------------------------------------------
 -- CONFIGURABLE VARIABLES
@@ -136,50 +137,7 @@ BEGIN
             COMMIT;
             END IF;
 
-            -- Deleting user-session mappings from 'IDN_AUTH_USER_SESSION_MAPPING' table
-            SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_USER_SESSION_MAPPING');
-            IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
-                sessionmappingcleanupcount := SQL%rowcount;
-                COMMIT;
-                IF ( tracingenabled ) THEN
-                    deletedmappingsessions := deletedmappingsessions + sessionmappingcleanupcount;
-                    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED USER-SESSION MAPPINGS COMPLETED WITH '|| sessionmappingcleanupcount||''')';
-                    COMMIT;
-                END IF;
-            END if;
-            -- End of deleting user-session mappings from 'IDN_AUTH_USER_SESSION_MAPPING' table
-
-            -- Deleting session app info from 'IDN_AUTH_SESSION_APP_INFO' table
-            SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_SESSION_APP_INFO');
-            IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
-                sessionappinfocleanupcount := SQL%rowcount;
-                COMMIT;
-                IF ( tracingenabled ) THEN
-                    deletedsessionapppinfo := deletedsessionapppinfo + sessionappinfocleanupcount;
-                    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSION APP INFO COMPLETED WITH '|| sessionappinfocleanupcount||''')';
-                    COMMIT;
-                END IF;
-            END if;
-            -- End of deleting session app info from 'IDN_AUTH_SESSION_APP_INFO' table
-
-            -- Deleting session metadata from 'IDN_AUTH_SESSION_META_DATA' table
-            SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_SESSION_META_DATA');
-            IF (ROWCOUNT = 1) then
-                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_SESSION_BATCH)';
-                sessionmetadatacleanupcount := SQL%rowcount;
-                COMMIT;
-                IF ( tracingenabled ) THEN
-                    deletedsessionmetadata := deletedsessionmetadata + sessionmetadatacleanupcount;
-                    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSION METADATA COMPLETED WITH '|| sessionmetadatacleanupcount||''')';
-                    COMMIT;
-                END IF;
-            END if;
-            -- End of deleting session metadata from 'IDN_AUTH_SESSION_META_DATA' table
-
             EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE ROW_ID IN (SELECT ROW_ID FROM TEMP_SESSION_BATCH)';
---            EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_STORE_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM JOIN TEMP_SESSION_BATCH)';
             COMMIT;
 
             IF ( tracingenabled ) THEN
@@ -200,12 +158,153 @@ BEGIN
 
     IF ( tracingenabled ) THEN
         EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''SESSION_CLEANUP_TASK COMPLETED REMOVING '||deletedsessions||' SESSIONS'')';
+        COMMIT;
+    END IF;
+
+-- --------------------------------------------
+-- REMOVE USER SESSION DATA FROM IDN_AUTH_USER_SESSION_MAPPING, IDN_AUTH_SESSION_APP_INFO, IDN_AUTH_SESSION_META_DATA TABLES
+-- --------------------------------------------
+
+    IF ( tracingenabled ) THEN
+    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),'' '')';
+    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''USER_SESSION_TABLES_CLEANUP_TASK STARTED .... !'')';
+    COMMIT;
+    END IF;
+
+    SELECT COUNT(*) INTO rowcount from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_USER_SESSION_MAPPING');
+    IF (rowcount = 1) THEN
+
+        SELECT COUNT(1) INTO rowcount FROM all_tables WHERE owner = current_schema AND table_name = 'IDN_AUTH_EXPIRED_SESSION_TMP';
+        IF ( rowcount = 1 ) THEN
+            EXECUTE IMMEDIATE 'DROP TABLE IDN_AUTH_EXPIRED_SESSION_TMP';
+            COMMIT;
+        END IF;
+
+        EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_EXPIRED_SESSION_TMP (SESSION_ID varchar(100),CONSTRAINT IDN_AUTH_EXP_SESS_PRI PRIMARY KEY (SESSION_ID)) NOLOGGING';
+        EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_EXPIRED_SESSION_TMP SELECT IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID FROM IDN_AUTH_USER_SESSION_MAPPING LEFT OUTER JOIN IDN_AUTH_SESSION_STORE ON IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID = IDN_AUTH_SESSION_STORE.SESSION_ID WHERE IDN_AUTH_SESSION_STORE.SESSION_ID IS NULL';
+        expiredsessioncount := SQL%rowcount;
+        COMMIT;
+
+        IF ( tracingenabled ) THEN
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''TEMPORARY IDN_AUTH_EXPIRED_SESSION_TMP TABLE CREATED WITH '||expiredsessioncount||''')';
+            COMMIT;
+        END IF;
+
+        IF (expiredsessioncount > 0) THEN
+        LOOP
+
+            SELECT COUNT(1) INTO rowcount FROM all_tables WHERE owner = current_schema AND table_name = 'IDN_AUTH_USER_SESSION_TMP';
+            IF ( rowcount = 1 ) THEN
+                EXECUTE IMMEDIATE 'DROP TABLE IDN_AUTH_USER_SESSION_TMP';
+                COMMIT;
+            END IF;
+
+            EXECUTE IMMEDIATE 'CREATE TABLE IDN_AUTH_USER_SESSION_TMP (SESSION_ID varchar(100),CONSTRAINT CHNK_IDN_USER_SESS_PRI PRIMARY KEY (SESSION_ID)) NOLOGGING';
+            EXECUTE IMMEDIATE 'INSERT INTO IDN_AUTH_USER_SESSION_TMP SELECT SESSION_ID FROM IDN_AUTH_EXPIRED_SESSION_TMP WHERE rownum <= :chunkLimit'
+            USING chunklimit;
+            rowcount := SQL%rowcount;
+            COMMIT;
+
+            EXIT WHEN rowcount <= checkcount;
+
+            IF ( tracingenabled ) THEN
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),'' '')';
+            EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''TEMPORARY IDN_AUTH_USER_SESSION_TMP CHUNK TABLE CREATED WITH '||rowcount||''')';
+            COMMIT;
+            END IF;
+
+            LOOP
+                SELECT COUNT(1) INTO rowcount FROM all_tables WHERE owner = current_schema AND table_name = 'TEMP_USER_SESSION_BATCH';
+
+                IF ( rowcount = 1 ) THEN
+                    EXECUTE IMMEDIATE 'DROP TABLE TEMP_USER_SESSION_BATCH';
+                    COMMIT;
+                END IF;
+
+                EXECUTE IMMEDIATE 'CREATE TABLE TEMP_USER_SESSION_BATCH (SESSION_ID varchar(100),CONSTRAINT BATCH_IDN_USER_SESS_PRI PRIMARY KEY (SESSION_ID)) NOLOGGING';
+                COMMIT;
+
+                EXECUTE IMMEDIATE 'INSERT INTO TEMP_USER_SESSION_BATCH SELECT SESSION_ID FROM IDN_AUTH_USER_SESSION_TMP WHERE rownum <= :batchSize'
+                USING batchsize;
+                rowcount := SQL%rowcount;
+                COMMIT;
+
+                EXIT WHEN rowcount = 0;
+
+                IF ( tracingenabled ) THEN
+                EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''TEMPORARY TEMP_USER_SESSION_BATCH TABLE CREATED WITH '|| rowcount||''')';
+                COMMIT;
+                END IF;
+
+                -- Deleting user-session mappings from 'IDN_AUTH_USER_SESSION_MAPPING' table
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_USER_SESSION_BATCH)';
+                sessionmappingcleanupcount := SQL%rowcount;
+                COMMIT;
+                IF ( tracingenabled ) THEN
+                    deletedmappingsessions := deletedmappingsessions + sessionmappingcleanupcount;
+                    EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED USER-SESSION MAPPINGS COMPLETED WITH '|| sessionmappingcleanupcount||''')';
+                    COMMIT;
+                END IF;
+                -- End of deleting user-session mappings from 'IDN_AUTH_USER_SESSION_MAPPING' table
+
+                -- Deleting session app info from 'IDN_AUTH_SESSION_APP_INFO' table
+                SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_SESSION_APP_INFO');
+                IF (ROWCOUNT = 1) then
+                    EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_APP_INFO WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_USER_SESSION_BATCH)';
+                    sessionappinfocleanupcount := SQL%rowcount;
+                    COMMIT;
+                    IF ( tracingenabled ) THEN
+                        deletedsessionapppinfo := deletedsessionapppinfo + sessionappinfocleanupcount;
+                        EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSION APP INFO COMPLETED WITH '|| sessionappinfocleanupcount||''')';
+                        COMMIT;
+                    END IF;
+                END if;
+                -- End of deleting session app info from 'IDN_AUTH_SESSION_APP_INFO' table
+
+                -- Deleting session metadata from 'IDN_AUTH_SESSION_META_DATA' table
+                SELECT COUNT(*) INTO ROWCOUNT from ALL_TABLES where OWNER = CURRENT_SCHEMA AND table_name = upper('IDN_AUTH_SESSION_META_DATA');
+                IF (ROWCOUNT = 1) then
+                    EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_SESSION_META_DATA WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_USER_SESSION_BATCH)';
+                    sessionmetadatacleanupcount := SQL%rowcount;
+                    COMMIT;
+                    IF ( tracingenabled ) THEN
+                        deletedsessionmetadata := deletedsessionmetadata + sessionmetadatacleanupcount;
+                        EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''DELETED SESSION METADATA COMPLETED WITH '|| sessionmetadatacleanupcount||''')';
+                        COMMIT;
+                    END IF;
+                END if;
+                -- End of deleting session metadata from 'IDN_AUTH_SESSION_META_DATA' table
+
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_USER_SESSION_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_USER_SESSION_BATCH)';
+                COMMIT;
+
+                IF ( tracingenabled ) THEN
+                EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''REMOVED THE BATCH FROM TABLE IDN_AUTH_USER_SESSION_TMP'')';
+                COMMIT;
+                END IF;
+
+                EXECUTE IMMEDIATE 'DELETE FROM IDN_AUTH_EXPIRED_SESSION_TMP WHERE SESSION_ID IN (SELECT SESSION_ID FROM TEMP_USER_SESSION_BATCH)';
+                COMMIT;
+
+                IF ( tracingenabled ) THEN
+                EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''REMOVED THE BATCH FROM TABLE IDN_AUTH_EXPIRED_SESSION_TMP'')';
+                COMMIT;
+                END IF;
+
+                dbms_lock.sleep(sleeptime);
+            END LOOP;
+
+        END LOOP;
+
+        END IF;
+    END IF;
+
+    IF ( tracingenabled ) THEN
         EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''SESSION_CLEANUP_TASK COMPLETED REMOVING '||deletedmappingsessions||' USER-SESSION MAPPINGS'')';
         EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''SESSION_CLEANUP_TASK COMPLETED REMOVING '||deletedsessionapppinfo||' SESSION APP INFO ENTRIES'')';
         EXECUTE IMMEDIATE 'INSERT INTO LOG_WSO2_SESSION_CLEANUP_SP (TIMESTAMP,LOG) VALUES (TO_CHAR( SYSTIMESTAMP, ''DD.MM.YYYY HH24:MI:SS:FF4''),''SESSION_CLEANUP_TASK COMPLETED REMOVING '||deletedsessionmetadata||' SESSION METADATA ENTRIES'')';
         COMMIT;
     END IF;
-
 
 -- --------------------------------------------
 -- REMOVE OPERATIONAL DATA
