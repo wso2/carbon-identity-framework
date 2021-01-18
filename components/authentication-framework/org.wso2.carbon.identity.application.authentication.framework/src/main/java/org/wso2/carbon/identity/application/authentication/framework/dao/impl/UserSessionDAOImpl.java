@@ -106,7 +106,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
      * @return A map containing federated authentication session details
      * @throws SessionManagementServerException
      */
-    public Map<String, String> getSessionDetails(String fedIdpSessionId) throws SessionManagementServerException {
+    public Map<String, String> getFederatedAuthSessionDetails(String fedIdpSessionId) throws SessionManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement =
