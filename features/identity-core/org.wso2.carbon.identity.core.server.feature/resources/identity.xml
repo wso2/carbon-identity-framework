@@ -1660,7 +1660,7 @@
             <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
             <Scopes>internal_cors_origins_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/configs" secured="true" http-method="GET">
+        <Resource context="(.*)/api/server/v1/configs/(.*)" secured="true" http-method="GET">
             <Permissions>none</Permissions>
             <Scopes>internal_login</Scopes>
         </Resource>
