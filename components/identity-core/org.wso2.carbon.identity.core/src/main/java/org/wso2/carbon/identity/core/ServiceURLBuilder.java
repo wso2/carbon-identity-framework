@@ -79,4 +79,8 @@ public interface ServiceURLBuilder {
      * @throws URLBuilderException If error occurred while constructing the URL.
      */
     ServiceURL build() throws URLBuilderException;
+
+    default ServiceURLBuilder setTenant(String tenant) {
+        return this;
+    }
 }

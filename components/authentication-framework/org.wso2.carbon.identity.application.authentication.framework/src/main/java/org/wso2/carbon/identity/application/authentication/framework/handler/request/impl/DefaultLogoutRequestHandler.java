@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
@@ -141,7 +142,11 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // remove the SessionContext from the cache
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
         // remove the cookie
-        FrameworkUtils.removeAuthCookie(request, response);
+        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+            FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
+        } else {
+            FrameworkUtils.removeAuthCookie(request, response);
+        }
         if (context.isPreviousSessionFound()) {
             // if this is the start of the logout sequence
             if (context.getCurrentStep() == 0) {

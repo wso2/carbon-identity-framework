@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -102,6 +103,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * AuthenticatorStateInfoDTO and set all the required state info in it.
      */
     private AuthenticatorStateInfo stateInfo;
+
+    private String userTenantDomainHint;
+
+    private String loginTenantDomain;
 
     private List<String> executedPostAuthHandlers = new ArrayList<>();
 
@@ -635,7 +640,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * Get the Runtime claims map.
      *
-     * @return  Map of Claim URI and value
+     * @return Map of Claim URI and value
      */
     public Map<String, String> getRuntimeClaims() {
 
@@ -644,5 +649,36 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             return (Map<String, String>) parameter;
         }
         return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves the potential tenant domain of the user who is going to login. This will return the first non-empty
+     * value of userTenantDomainHint, loginTenantDomain or tenant domain in the respective order
+     *
+     * @return The most possible tenant domain of the user who will be logging in
+     */
+    public String getUserTenantDomain() {
+        if (StringUtils.isNotBlank(userTenantDomainHint)) {
+            return userTenantDomainHint;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    public void setUserTenantDomainHint(String userTenantDomainHint) {
+        this.userTenantDomainHint = userTenantDomainHint;
+    }
+
+    public String getLoginTenantDomain() {
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    public void setLoginTenantDomain(String loginTenantDomain) {
+        this.loginTenantDomain = loginTenantDomain;
     }
 }
