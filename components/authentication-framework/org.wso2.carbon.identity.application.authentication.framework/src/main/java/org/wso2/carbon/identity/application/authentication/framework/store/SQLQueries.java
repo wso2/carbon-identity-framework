@@ -121,8 +121,9 @@ public class SQLQueries {
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
     // Get federated authentication session details using the IDP session id
-    public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID = "SELECT SESSION_ID, IDP_NAME FROM " +
-            "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
+            "SELECT IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE " +
+                    "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
 
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
