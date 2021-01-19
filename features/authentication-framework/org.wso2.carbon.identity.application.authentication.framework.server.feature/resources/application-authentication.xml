@@ -186,9 +186,9 @@
             <Parameter name="useEventHandlerBasedEmailSender">true</Parameter>
             <Parameter name="usecase">local</Parameter>
             <Parameter name="secondaryUserstore">primary</Parameter>
-            <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
-            <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
-            <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointURL">authenticationendpoint/totp.do</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointErrorPage">authenticationendpoint/totp_error.do</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">authenticationendpoint/totp_enroll.do</Parameter>
             <Parameter name="Issuer">WSO2</Parameter>
             <Parameter name="UseCommonIssuer">true</Parameter>
         </AuthenticatorConfig>
