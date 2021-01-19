@@ -164,9 +164,9 @@
   "authentication.authenticator.totp.parameters.enrolUserInAuthenticationFlow": true,
   "authentication.authenticator.totp.parameters.usecase": "local",
   "authentication.authenticator.totp.parameters.secondaryUserstore": "primary",
-  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL": "totpauthenticationendpoint/totp.jsp",
-  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "totpauthenticationendpoint/totpError.jsp",
-  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "totpauthenticationendpoint/enableTOTP.jsp",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointURL": "authenticationendpoint/totp.do",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage": "authenticationendpoint/totp_error.do",
+  "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "authenticationendpoint/totp_enroll.do",
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
