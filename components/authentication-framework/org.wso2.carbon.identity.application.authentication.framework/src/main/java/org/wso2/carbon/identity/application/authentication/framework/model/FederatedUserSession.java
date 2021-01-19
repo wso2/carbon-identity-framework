@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 /**
- * FederatedUserSession is the class that represents a session object of a federated user
+ * Represents a session of a federated user
  *
  * IdPSessionId
  * SessionId
