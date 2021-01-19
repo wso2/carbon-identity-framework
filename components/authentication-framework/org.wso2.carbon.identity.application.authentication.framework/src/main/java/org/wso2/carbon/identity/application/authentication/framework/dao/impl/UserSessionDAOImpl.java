@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.application.authentication.framework.dao.UserSes
 import org.wso2.carbon.identity.application.authentication.framework.exception.session.mgt
         .SessionManagementServerException;
 import org.wso2.carbon.identity.application.authentication.framework.model.Application;
+import org.wso2.carbon.identity.application.authentication.framework.model.FederatedUserSession;
 import org.wso2.carbon.identity.application.authentication.framework.model.UserSession;
 import org.wso2.carbon.identity.application.authentication.framework.store.SQLQueries;
 import org.wso2.carbon.identity.application.authentication.framework.util.JdbcUtils;
@@ -36,10 +37,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
-import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.IDP_NAME;
 
 /**
  * Default implementation of {@link UserSessionDAO}. This handles {@link UserSession} related DB operations.
@@ -103,22 +100,26 @@ public class UserSessionDAOImpl implements UserSessionDAO {
      *Get federated authentication session mapping info during the federated idp init logout
      *
      * @param fedIdpSessionId
-     * @return A map containing federated authentication session details
+     * @return A FederatedUserSession containing federated authentication session details
      * @throws SessionManagementServerException
      */
-    public Map<String, String> getFederatedAuthSessionDetails(String fedIdpSessionId) throws SessionManagementServerException {
+    public FederatedUserSession getFederatedAuthSessionDetails(String fedIdpSessionId)
+            throws SessionManagementServerException {
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
              PreparedStatement preparedStatement =
                      connection.prepareStatement(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID)) {
             preparedStatement.setString(1, fedIdpSessionId);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                Map<String, String> sessionDetails = new HashMap<>();
+                FederatedUserSession federatedUserSession = new FederatedUserSession();
                 if (resultSet.next()) {
-                    sessionDetails.put(SESSION_ID, resultSet.getString("SESSION_ID"));
-                    sessionDetails.put(IDP_NAME, resultSet.getString("IDP_NAME"));
+                    federatedUserSession.setIdPSessionId(fedIdpSessionId);
+                    federatedUserSession.setSessionId(resultSet.getString("SESSION_ID"));
+                    federatedUserSession.setIdPName(resultSet.getString("IDP_NAME"));
+                    federatedUserSession.setAuthenticatorName(resultSet.getString("AUTHENTICATOR_ID"));
+                    federatedUserSession.setProtocolType(resultSet.getString("PROTOCOL_TYPE"));
                 }
-                return sessionDetails;
+                return federatedUserSession;
             }
         } catch (SQLException e) {
             throw new SessionManagementServerException(
