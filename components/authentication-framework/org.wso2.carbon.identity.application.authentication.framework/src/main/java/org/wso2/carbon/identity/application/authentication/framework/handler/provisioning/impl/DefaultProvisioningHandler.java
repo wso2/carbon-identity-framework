@@ -161,11 +161,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
                 }
             } else {
-                boolean isUserProvidedPassword = false;
                 String password = generatePassword();
                 String passwordFromUser = userClaims.get(FrameworkConstants.PASSWORD);
                 if (StringUtils.isNotEmpty(passwordFromUser)) {
-                    isUserProvidedPassword = true;
                     password = passwordFromUser;
                 }
 
@@ -178,10 +176,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 boolean userWorkflowEngaged = false;
                 try {
-                    // This thread local is set to skip the password pattern validation if it is a generated one.
-                    if (!isUserProvidedPassword) {
-                        UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
-                    }
+                    /*
+                    This thread local is set to skip the password pattern validation even if the password
+                    is generated, or user entered one. If it is required to check password pattern validation,
+                    need to write a provisioning handler extending the "DefaultProvisioningHandler".
+                     */
+                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
                     userStoreManager.addUser(username, password, null, userClaims, null);
                 } catch (UserStoreException e) {
                     // Add user operation will fail if a user operation workflow is already defined for the same user.
@@ -195,9 +195,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                         throw e;
                     }
                 } finally {
-                    if (!isUserProvidedPassword) {
-                        UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
-                    }
+                    UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 }
 
                 if (userWorkflowEngaged ||
