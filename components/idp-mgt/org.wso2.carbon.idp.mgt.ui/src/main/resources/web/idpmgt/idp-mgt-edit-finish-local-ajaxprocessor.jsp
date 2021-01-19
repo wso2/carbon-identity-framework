@@ -53,7 +53,7 @@
             }
         }
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[paramNamesList.size() + 2];
+        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[paramNamesList.size() + 3];
 
         for (int i = 0; i < paramNamesList.size(); i++) {
             IdentityProviderProperty prop = new IdentityProviderProperty();
@@ -154,8 +154,14 @@
         IdentityProviderProperty propertyRememberMeTimeout = new IdentityProviderProperty();
         propertyRememberMeTimeout.setName(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT);
         propertyRememberMeTimeout.setValue(request.getParameter("rememberMeTimeout"));
+
+        IdentityProviderProperty propertySigningKeyAlias = new IdentityProviderProperty();
+        propertySigningKeyAlias.setName(IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+        propertySigningKeyAlias.setValue(request.getParameter("signingKeyAlias"));
+
         idpProperties[paramNamesList.size()] = propertySessionIdelTimeout;
         idpProperties[paramNamesList.size() + 1] = propertyRememberMeTimeout;
+        idpProperties[paramNamesList.size() + 2] = propertySigningKeyAlias;
         identityProvider.setIdpProperties(idpProperties);
 
         client.updateResidentIdP(identityProvider);

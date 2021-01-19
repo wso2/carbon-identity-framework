@@ -19,6 +19,8 @@
 package org.wso2.carbon.security;
 
 import org.apache.axis2.context.ConfigurationContext;
+import org.wso2.carbon.idp.mgt.IdentityProviderManager;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -38,6 +40,8 @@ public class SecurityServiceHolder {
     private static ConfigurationContextService ccService;
 
     private static TenantRegistryLoader tenantRegistryLoader;
+
+    private static IdpManager identityProviderManager;
 
     private static Map<String, Resource> policyResourceMap = new HashMap<>();
 
@@ -100,4 +104,11 @@ public class SecurityServiceHolder {
         return policyResourceMap;
     }
 
+    public static IdpManager getIdentityProviderService() {
+        return identityProviderManager;
+    }
+
+    public static void setIdentityProviderService(IdpManager identityProviderManager) {
+        SecurityServiceHolder.identityProviderManager = identityProviderManager;
+    }
 }

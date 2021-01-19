@@ -31,6 +31,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.idp.mgt.IdpManager;
 import org.wso2.carbon.registry.core.Collection;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.Resource;
@@ -190,6 +191,34 @@ public class SecurityMgtServiceComponent {
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
         /* reference IdentityCoreInitializedEvent service to guarantee that this component will wait until identity core
          is started */
+    }
+
+    /**
+     * Set Identity Provider Manager service.
+     *
+     * @param idpManager IdpManager service
+     */
+    @Reference(name = "IdentityProviderManager", service = org.wso2.carbon.idp.mgt.IdpManager.class, cardinality =
+            ReferenceCardinality.MANDATORY, policy = ReferencePolicy.DYNAMIC, unbind = "unsetIdpManager")
+    protected void setIdpManager(IdpManager idpManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityProviderManager is set in the SecurityMgtServiceComponent");
+        }
+        SecurityServiceHolder.setIdentityProviderService(idpManager);
+    }
+
+    /**
+     * Unet Identity Provider Manager service.
+     *
+     * @param idpManager IdpManager service
+     */
+    protected void unsetIdpManager(IdpManager idpManager) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("IdentityProviderManager is unset in the SecurityMgtServiceComponent");
+        }
+        SecurityServiceHolder.setIdentityProviderService(null);
     }
 
     public static RegistryService getRegistryService(){

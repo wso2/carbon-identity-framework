@@ -25,6 +25,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
@@ -87,12 +88,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.xml.stream.XMLStreamException;
 
+import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+
 public class IdentityProviderManager implements IdpManager {
 
     private static final Log log = LogFactory.getLog(IdentityProviderManager.class);
     private static final String OPENID_IDP_ENTITY_ID = "IdPEntityId";
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
+    private static final String DEFAULT_KEY_ALIAS_CONFIG = "Security.KeyStore.KeyAlias";
 
     private IdentityProviderManager() {
 
@@ -463,7 +467,8 @@ public class IdentityProviderManager implements IdpManager {
                 .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(stsFedAuthn);
 
-        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<IdentityProviderProperty>();
+        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>(Arrays.asList(identityProvider
+                .getIdpProperties()));
 
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
@@ -540,6 +545,21 @@ public class IdentityProviderManager implements IdpManager {
         scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         identityProvider.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
 
+        IdentityProviderProperty singingKeyAliasProperty =
+                IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+          IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+        if (singingKeyAliasProperty == null) {
+            singingKeyAliasProperty = new IdentityProviderProperty();
+            singingKeyAliasProperty.setName(IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+            String keyAlias = tenantDomain;
+            if (SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+                keyAlias = ServerConfiguration.getInstance().getFirstProperty(DEFAULT_KEY_ALIAS_CONFIG);
+            }
+            singingKeyAliasProperty.setValue(keyAlias);
+            identityProviderProperties.add(singingKeyAliasProperty);
+            identityProvider.setIdpProperties(identityProviderProperties.toArray(new IdentityProviderProperty[0]));
+        }
+
         return identityProvider;
     }
 
@@ -574,7 +594,7 @@ public class IdentityProviderManager implements IdpManager {
 
     private boolean isNotSuperTenant(String tenantDomain) {
 
-        return !StringUtils.equals(tenantDomain, MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        return !StringUtils.equals(tenantDomain, SUPER_TENANT_DOMAIN_NAME);
     }
 
     private FederatedAuthenticatorConfig buildSAMLProperties(IdentityProvider identityProvider, String tenantDomain)
@@ -850,7 +870,7 @@ public class IdentityProviderManager implements IdpManager {
         identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
                 .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[2];
+        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[3];
 
         IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
         String rememberMeTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);
@@ -872,8 +892,17 @@ public class IdentityProviderManager implements IdpManager {
         sessionIdletimeOutProperty.setName(IdentityApplicationConstants.SESSION_IDLE_TIME_OUT);
         sessionIdletimeOutProperty.setValue(idleTimeout);
 
+        IdentityProviderProperty signingKeyAliasProperty = new IdentityProviderProperty();
+        signingKeyAliasProperty.setName(IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+        String keyAlias = tenantDomain;
+        if (SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            keyAlias = ServerConfiguration.getInstance().getFirstProperty(DEFAULT_KEY_ALIAS_CONFIG);
+        }
+        signingKeyAliasProperty.setValue(keyAlias);
+
         idpProperties[0] = rememberMeTimeoutProperty;
         idpProperties[1] = sessionIdletimeOutProperty;
+        idpProperties[2] = signingKeyAliasProperty;
         identityProvider.setIdpProperties(idpProperties);
 
         dao.addIdP(identityProvider, IdentityTenantUtil.getTenantId(tenantDomain), tenantDomain);
@@ -944,6 +973,11 @@ public class IdentityProviderManager implements IdpManager {
                         Integer.parseInt(idpProp.getValue().trim()) <= 0) {
                     throw new IdentityProviderManagementException(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT
                             + " of ResidentIdP should be a numeric value greater than 0 ");
+                }
+            } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.SIGNING_KEY_ALIAS)) {
+                if (StringUtils.isBlank(idpProp.getValue())) {
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.SIGNING_KEY_ALIAS
+                            + " of ResidentIdP should not be null or empty ");
                 }
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_VALIDITY_PERIOD)) {
@@ -2568,7 +2602,7 @@ public class IdentityProviderManager implements IdpManager {
 
         try {
             if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled() && StringUtils.isNotBlank(tenantDomain) &&
-                    !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
+                    !SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 resolvedUrl = getTenantUrl(resolvedUrl, tenantDomain);
             }
         } catch (URISyntaxException e) {

@@ -16,43 +16,75 @@
 
 package org.wso2.carbon.security.keystore;
 
+import org.apache.axiom.om.util.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.RegistryType;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.SecurityConstants;
+import org.wso2.carbon.security.SecurityServiceHolder;
 import org.wso2.carbon.security.keystore.service.CertData;
 import org.wso2.carbon.security.keystore.service.CertDataDetail;
+import org.wso2.carbon.security.keystore.service.KeyData;
 import org.wso2.carbon.security.keystore.service.KeyStoreData;
+import org.wso2.carbon.security.util.KeyStoreMgtUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
+import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_ADD_CERTIFICATE;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_ADD_PRIVATE_KEY;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_ALIAS_EXISTS;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_AN_ENTRY_FOR_THE_GIVEN_ALIAS_EXISTS;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_BAD_VALUE_FOR_FILTER;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_CANNOT_DELETE_TENANT_CERT;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_CERTIFICATE_EXISTS;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_DELETE_CERTIFICATE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_EMPTY_ALIAS;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_GET_ALL_PRIVATE_KEYS;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_GET_PRIVATE_KEY;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_INVALID_CERTIFICATE;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_NO_PRIVATE_KEY_FOR_THE_GIVEN_ALIAS;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_ONLY_ONE_PRIVATE_KEY_EXISTS;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_RETRIEVE_CLIENT_TRUSTSTORE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_RETRIEVE_CLIENT_TRUSTSTORE_CERTIFICATE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_RETRIEVE_KEYSTORE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_RETRIEVE_KEYSTORE_INFORMATION;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_ADDING_KEYS_FOR_SUPER_TENANT;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_DELETION_OF_SIGNING_KEY;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_FILTER_OPERATION;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_GETTING_KEYS_FOR_SUPER_TENANT;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_VALIDATE_CERTIFICATE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.FILTER_FIELD_ALIAS;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.FILTER_OPERATION_CONTAINS;
@@ -65,6 +97,12 @@ import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.SE
  * This class is used to manage the keystore certificates.
  */
 public class KeyStoreManagementServiceImpl implements KeyStoreManagementService {
+
+    private static final Log log = LogFactory.getLog(KeyStoreManagementServiceImpl.class);
+    private static final String CERT_PEM_START = "-----(BEGIN CERTIFICATE)-----";
+    private static final String CERT_PEM_END = "-----(END CERTIFICATE)-----";
+    private static final Pattern PATTERN = Pattern.compile(CERT_PEM_START + "([^-]+)" + CERT_PEM_END);
+    private static final String[] SUPPORTED_FINGER_PRINTS_ALG = {"MD5", "SHA1", "SHA-256"};
 
     @Override
     public List<String> getKeyStoreCertificateAliases(String tenantDomain, String filter)
@@ -186,9 +224,260 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
                 throw handleClientException(ERROR_CODE_CANNOT_DELETE_TENANT_CERT, alias);
             }
             getKeyStoreAdmin(tenantDomain).removeCertFromStore(alias, getKeyStoreName(tenantDomain));
+            KeyStoreAdmin keyStoreAdmin = getKeyStoreAdmin(tenantDomain);
+            String keystoreName = getKeyStoreName(tenantDomain);
+            if (!isPrivateKey(keyStoreAdmin, keystoreName, alias)) {
+                keyStoreAdmin.removeCertFromStore(alias, keystoreName);
+            }
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
+        }
+    }
+
+    public void addPrivateKey(String alias, String privateKeyContent, String certificateChain, String tenantDomain) throws KeyStoreManagementException {
+
+        if (tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
+            log.error("Adding private key for super tenant is not supported");
+            throw handleClientException(ERROR_CODE_UNSUPPORTED_ADDING_KEYS_FOR_SUPER_TENANT, alias);
+        }
+        String keyStoreName = getKeyStoreName(tenantDomain);
+        KeyStore keyStore;
+        KeyStoreManager keyStoreManager;
+        try {
+            keyStoreManager = getKeyStoreManager(tenantDomain);
+            keyStore = keyStoreManager.getKeyStore(keyStoreName);
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_ADD_PRIVATE_KEY, alias, e);
+        }
+        boolean isKeyStoreContainsAlias = false;
+        try {
+            isKeyStoreContainsAlias = keyStore.containsAlias(alias);
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_ADD_PRIVATE_KEY, alias, e);
+        }
+        if (isKeyStoreContainsAlias) {
+            if (log.isDebugEnabled()) {
+                log.debug("Keystore of the tenant: " + tenantDomain + "already contains an entry with the " +
+                        "alias:" + " " + alias);
+            }
+            throw handleClientException(ERROR_CODE_AN_ENTRY_FOR_THE_GIVEN_ALIAS_EXISTS, alias);
+        }
+        try {
+            String password = keyStoreManager.getKeyStorePassword(keyStoreName);
+            Key privateKey = KeyStoreMgtUtil.extractPrivateKey(privateKeyContent);
+            Certificate[] x509CertificateChain = extractCertificateChain(certificateChain);
+            keyStore.setKeyEntry(alias, privateKey, password.toCharArray(), x509CertificateChain);
+            updateKeyStore(keyStore, tenantDomain, password);
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_ADD_PRIVATE_KEY, alias, e);
+        }
+    }
+
+    public KeyData getPrivateKeyData(String alias, String tenantDomain) throws KeyStoreManagementException {
+
+        KeyData data = null;
+        KeyStoreAdmin keyStoreAdmin = getKeyStoreAdmin(tenantDomain);
+        String keystoreName = getKeyStoreName(tenantDomain);
+        KeyStore keyStore;
+        try {
+            keyStore = keyStoreAdmin.getKeyStore(keystoreName);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting private key for the alias: " + alias);
+            }
+            throw handleServerException(ERROR_CODE_GET_PRIVATE_KEY, alias, e);
+        }
+        try {
+            if (!keyStore.isKeyEntry(alias)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("The alias: " + alias + " does not have any private key");
+                }
+                throw handleClientException(ERROR_CODE_NO_PRIVATE_KEY_FOR_THE_GIVEN_ALIAS, alias);
+            }
+        } catch (KeyStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while deleting private key for the alias: " + alias);
+            }
+            throw handleServerException(ERROR_CODE_GET_PRIVATE_KEY, alias, e);
+        }
+        try {
+            data = getPrivateKeyInfo(alias, keyStore);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting private key for the alias: " + alias);
+            }
+            throw handleServerException(ERROR_CODE_GET_PRIVATE_KEY, alias, e);
+        }
+        return data;
+    }
+
+    public List<KeyData> getAllPrivateKeys(String filter, String tenantDomain) throws KeyStoreManagementException {
+
+        List<KeyData> keyDataList = new ArrayList<>();
+        try {
+            KeyStoreManager keyStoreManager = getKeyStoreManager(tenantDomain);
+            String keystoreName = getKeyStoreName(tenantDomain);
+            KeyStore keyStore = keyStoreManager.getKeyStore(keystoreName);
+            List<String> privateKeyAliasList = getPrivateKeyAliasList(keyStore);
+            List<String> filteredAlias = filterAlias(privateKeyAliasList, filter);
+            for (String alias : filteredAlias) {
+                KeyData certData = getPrivateKeyInfo(alias, keyStore);
+                // Obtain private key data.
+                keyDataList.add(certData);
+            }
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error while getting all private keys for the tenant: " + tenantDomain);
+            }
+            throw handleServerException(ERROR_CODE_GET_ALL_PRIVATE_KEYS, tenantDomain, e);
+        }
+        return keyDataList;
+    }
+
+    public void deletePrivateKey(String alias, String tenantDomain) throws KeyStoreManagementException {
+
+        if (tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
+            log.error("Delete a private key for super tenant is not supported");
+            return;
+        }
+        KeyStoreAdmin keyStoreAdmin = getKeyStoreAdmin(tenantDomain);
+        String keystoreName = getKeyStoreName(tenantDomain);
+        boolean isPrivateKey = isPrivateKey(keyStoreAdmin, keystoreName, alias);
+        KeyStore keyStore;
+        if (!isPrivateKey) {
+            if (log.isDebugEnabled()) {
+                log.debug("The alias: " + alias + " does not have any private key");
+            }
+            throw handleClientException(ERROR_CODE_NO_PRIVATE_KEY_FOR_THE_GIVEN_ALIAS, alias);
+        }
+        try {
+            keyStore = keyStoreAdmin.getKeyStore(keystoreName);
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
+        }
+        if (!isAnotherKeyExists(keyStore, alias)) {
+            // Can't delete if this is the only private key in the keystore.
+            if (log.isDebugEnabled()) {
+                log.debug("Can't delete the private key with the alias: " + alias + " as there are no " + "any " +
+                        "other private keys exists in the keystore");
+            }
+            throw handleClientException(ERROR_CODE_ONLY_ONE_PRIVATE_KEY_EXISTS, alias);
+        }
+        if (isSigningKey(alias, tenantDomain)) {
+            //Can't delete if this keys is used as signing key in the keystore
+            throw handleClientException(ERROR_CODE_UNSUPPORTED_DELETION_OF_SIGNING_KEY, alias);
+        }
+        try {
+            keyStoreAdmin.removeCertFromStore(alias, keystoreName);
         } catch (SecurityConfigException e) {
             throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
         }
+    }
+
+    private boolean isSigningKey(String alias, String tenant) throws KeyStoreManagementServerException {
+
+        IdentityProvider residentIdP = null;
+        try {
+            residentIdP = SecurityServiceHolder.getIdentityProviderService().getResidentIdP(tenant);
+        } catch (IdentityProviderManagementException e) {
+            throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
+        }
+        IdentityProviderProperty signingKeyAliasProp =
+                IdentityApplicationManagementUtil.getProperty(residentIdP.getIdpProperties(),
+                        IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+        boolean isSigningKey = true;
+        if (signingKeyAliasProp != null && !StringUtils.equalsIgnoreCase(alias, signingKeyAliasProp.getValue())) {
+            isSigningKey = false;
+        }
+        return isSigningKey;
+    }
+
+    private Certificate[] extractCertificateChain(String certificateChain) throws CertificateException {
+
+        Matcher m = PATTERN.matcher(certificateChain);
+        List<String> tokens = new LinkedList<String>();
+        while(m.find())
+        {
+            String token = m.group( 0 ); //group 0 is always the entire match
+            tokens.add(token);
+        }
+        List<Certificate> certificateList = new ArrayList<>();
+        for(String certificate: tokens) {
+            Certificate cert = IdentityUtil.convertPEMEncodedContentToCertificate(certificate);
+            certificateList.add(cert);
+        }
+        Certificate[] certificatesArray = new Certificate[certificateList.size()];
+        return certificateList.toArray(certificatesArray);
+    }
+
+    private List<String> getPrivateKeyAliasList(KeyStore keyStore) throws Exception {
+
+        List<String> privateKeyAliasList = new ArrayList<>();
+        Enumeration<String> aliases = keyStore.aliases();
+        while (aliases.hasMoreElements()) {
+            String alias = aliases.nextElement();
+            if (keyStore.isKeyEntry(alias)) {
+                privateKeyAliasList.add(alias);
+            }
+        }
+        return privateKeyAliasList;
+    }
+    private boolean isPrivateKey(KeyStoreAdmin keyStoreAdmin, String keystoreName, String alias) throws
+            KeyStoreManagementServerException {
+        try {
+            KeyStore keyStore = keyStoreAdmin.getKeyStore(keystoreName);
+            return keyStore.isKeyEntry(alias);
+        } catch (Exception e) {
+            throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
+        }
+    }
+
+    private boolean isAnotherKeyExists(KeyStore keyStore, String alias) throws KeyStoreManagementServerException {
+        boolean anotherPrivateKeyExists = false;
+        Enumeration<String> aliases;
+        try {
+            aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String someAlias = aliases.nextElement();
+                if (!someAlias.equals(alias) && keyStore.isKeyEntry(someAlias)) {
+                    anotherPrivateKeyExists = true;
+                }
+            }
+        } catch (KeyStoreException e) {
+            throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
+        }
+        return anotherPrivateKeyExists;
+    }
+
+    private KeyData getPrivateKeyInfo(String alias, KeyStore keyStore) throws Exception {
+
+        Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
+        return fillCertData(alias, cert, formatter);
+    }
+
+    private KeyData fillCertData(String alias, X509Certificate cert, Format formatter) throws Exception {
+
+        KeyData keyData = new KeyData();
+        keyData.setAlias(alias);
+        keyData.setSubjectDN(cert.getSubjectDN().getName());
+        keyData.setIssuerDN(cert.getIssuerDN().getName());
+        keyData.setSerialNumber(cert.getSerialNumber());
+        keyData.setVersion(cert.getVersion());
+        keyData.setNotAfter(formatter.format(cert.getNotAfter()));
+        keyData.setNotBefore(formatter.format(cert.getNotBefore()));
+        keyData.setPublicKey(Base64.encode(cert.getPublicKey().getEncoded()));
+        keyData.setSignatureAlgName(cert.getSigAlgName());
+        Map<String, String> fingerprints = new HashMap<>();
+        for (String alg: SUPPORTED_FINGER_PRINTS_ALG){
+            String fingerprint = KeyStoreMgtUtil.getCertFingerPrint(alg, cert);
+            if(StringUtils.isNotBlank(fingerprint)){
+                fingerprints.put(alg, fingerprint);
+            }
+        }
+        keyData.setFingerprint(fingerprints);
+        KeyStoreMgtUtil.getCertFingerPrint("SHA1", cert);
+        return keyData;
     }
 
     private String getKeyStoreName(String tenantDomain) throws KeyStoreManagementException {
@@ -331,5 +620,41 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
             message = error.getMessage();
         }
         return message;
+    }
+
+    /**
+     * Update the keystore in the registry.
+     *
+     * @param keyStore     Keystore of the tenant
+     * @param tenantDomain Tenant domain.
+     * @param password     Password of the keystore
+     * @throws KeyStoreManagementServerException Throws KeyStoreManagementServerException.
+     */
+    private void updateKeyStore(KeyStore keyStore, String tenantDomain, String password) throws
+            KeyStoreManagementServerException {
+
+        try {
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            keyStore.store(outputStream, password.toCharArray());
+            outputStream.flush();
+            outputStream.close();
+            String keyStoreName = getKeyStoreName(tenantDomain);
+            KeyStoreManager keyStoreManager = getKeyStoreManager(tenantDomain);
+            keyStoreManager.updateKeyStore(keyStoreName, keyStore);
+        } catch (Exception e) {
+            String msg = "Error when adding keystore private key to be stored in registry";
+            log.error(msg, e);
+            throw new KeyStoreManagementServerException(msg, msg, e);
+        }
+    }
+
+    private KeyStoreManager getKeyStoreManager(String tenantDomain) {
+
+        int tenantId = getTenantId(tenantDomain);
+        return KeyStoreManager.getInstance(tenantId);
+    }
+
+    private int getTenantId(String tenantDomain){
+        return IdentityTenantUtil.getTenantId(tenantDomain);
     }
 }

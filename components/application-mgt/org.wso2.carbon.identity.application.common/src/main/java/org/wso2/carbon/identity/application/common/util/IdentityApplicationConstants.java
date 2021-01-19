@@ -66,6 +66,7 @@ public class IdentityApplicationConstants {
     public static final String YAHOO_OIDC_USERINFO_URL = "https://api.login.yahoo.com/openid/v1/userinfo";
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
+    public static final String SIGNING_KEY_ALIAS = "SigningKeyAlias";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
     public static final String SESSION_IDLE_TIME_OUT_DEFAULT = "15";
     public static final String REMEMBER_ME_TIME_OUT_DEFAULT = "20160";

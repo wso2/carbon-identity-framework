@@ -101,6 +101,7 @@
     String stsUrl = null;
     String sessionIdleTimeout = null;
     String rememberMeTimeout = null;
+    String signingKeyAlias = null;
     String oidcWebFingerEndpoint = null;
     String oauth2DcrEndpoint = null;
     String oauth2JwksEndpoint = null;
@@ -222,6 +223,10 @@
                 sessionIdleTimeout = property.getValue();
             } else if (property.getName().equals(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT)) {
                 rememberMeTimeout = property.getValue();
+            }else if(property.getName().equals("SigningKeyAlias")){
+                if(property.getValue() != null) {
+                    signingKeyAlias = property.getValue();
+                }
             }
         }
     }
@@ -485,6 +490,15 @@ function removeDefaultAuthSeq() {
                                 <input id="rememberMeTimeout" name="rememberMeTimeout" type="text" white-list-patterns="^0*[1-9][0-9]*$" value="<%=Encode.forHtmlAttribute(rememberMeTimeout)%>" autofocus/>
                                 <div class="sectionHelp">
                                     <fmt:message key='remember.me.timeout.help'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="leftCol-med labelField"><fmt:message key='signing.key.alias'/><font color="red">*</font>:</td>
+                            <td>
+                                <input id="signingKeyAlias" name="signingKeyAlias" type="text" value="<%=Encode.forHtmlAttribute(signingKeyAlias)%>" autofocus/>
+                                <div class="sectionHelp">
+                                    <fmt:message key='signing.key.alias.help'/>
                                 </div>
                             </td>
                         </tr>

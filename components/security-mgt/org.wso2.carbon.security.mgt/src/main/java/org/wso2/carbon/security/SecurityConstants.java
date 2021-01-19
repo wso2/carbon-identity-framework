@@ -156,6 +156,15 @@ public class SecurityConstants {
                     "Unable to delete certificate with alias: %s"),
             ERROR_CODE_VALIDATE_CERTIFICATE("KSS-65008", "Error occurred while validating the " +
                     "certificate."),
+            // Private key related server errors.
+            ERROR_CODE_GET_PRIVATE_KEY("KSS-65009",
+                    "Error occured while getting private key with alias: %s"),
+            ERROR_CODE_GET_ALL_PRIVATE_KEYS("KSS-65010",
+                    "Error occurred while getting all private key with for the tenant: %s"),
+            ERROR_CODE_ADD_PRIVATE_KEY("KSS-65011",
+                    "Error occurred while adding private key with alias: %s"),
+            ERROR_CODE_DELETE_PRIVATE_KEY("KSS-65012",
+                    "Error occurred while deleting the private key with alias: %s"),
             /**
              * Client error.
              */
@@ -169,7 +178,20 @@ public class SecurityConstants {
                     "Unsupported filter operation %s."),
             ERROR_CODE_EMPTY_ALIAS("KSS-60005", "Alias value can not be null."),
             ERROR_CODE_INVALID_CERTIFICATE("KSS-60006", "Provided certificate is invalid."),
-            ERROR_CODE_CANNOT_DELETE_TENANT_CERT("KSS-60007", "Not allowed to delete the tenant certificate %s.");
+            ERROR_CODE_CANNOT_DELETE_TENANT_CERT("KSS-60007", "Not allowed to delete the tenant certificate %s."),
+            // Private key related client errors.
+            ERROR_CODE_NO_PRIVATE_KEY_FOR_THE_GIVEN_ALIAS("KSS-60008", "No any private keys exists for the alias %s."),
+            ERROR_CODE_AN_ENTRY_FOR_THE_GIVEN_ALIAS_EXISTS("KSS-60009", "Keystore already contains " +
+                    "an entry with the alias: %s."),
+            ERROR_CODE_ONLY_ONE_PRIVATE_KEY_EXISTS("KSS-600010", "This alias %s is the only private key " +
+                    "exists in the keystore"),
+            ERROR_CODE_UNSUPPORTED_DELETION_OF_SIGNING_KEY("KSS-60011", "This alias %s is used as signing key " +
+                    "in the keystore"),
+            // Unsupported super tenant operations related to private keys.
+            ERROR_CODE_UNSUPPORTED_DELETION_FOR_SUPER_TENANT("KSS-60012", "Deleting the alias %s from " +
+                    "super tenant keystore is not supported"),
+            ERROR_CODE_UNSUPPORTED_ADDING_KEYS_FOR_SUPER_TENANT("KSS-60013", "Adding keys for super " +
+                    "tenant keystore is not supported");
 
             private final String code;
             private final String message;
