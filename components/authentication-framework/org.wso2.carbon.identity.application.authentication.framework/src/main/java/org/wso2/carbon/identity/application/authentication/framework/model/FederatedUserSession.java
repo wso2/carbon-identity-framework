@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 /**
- * FederatedUserSession is the class that represents a session object of a federated user
+ * Represents a session of a federated user
  *
  * IdPSessionId
  * SessionId
@@ -29,15 +29,25 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
  */
 public class FederatedUserSession {
 
-    public FederatedUserSession() {
-
-    }
-
     private String IdPSessionId;
     private String SessionId;
     private String IdPName;
     private String AuthenticatorName;
     private String ProtocolType;
+
+    public FederatedUserSession() {
+
+    }
+
+    public FederatedUserSession(String idPSessionId, String sessionId, String idPName, String authenticatorName,
+                                String protocolType) {
+
+        IdPSessionId = idPSessionId;
+        SessionId = sessionId;
+        IdPName = idPName;
+        AuthenticatorName = authenticatorName;
+        ProtocolType = protocolType;
+    }
 
     public String getIdPSessionId() {
 

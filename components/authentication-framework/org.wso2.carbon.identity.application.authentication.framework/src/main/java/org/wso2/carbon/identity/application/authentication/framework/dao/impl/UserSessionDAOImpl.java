@@ -97,7 +97,7 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     }
 
     /**
-     *Get federated authentication session mapping info during the federated idp init logout
+     * Get federated authentication session mapping info during the federated idp init logout
      *
      * @param fedIdpSessionId
      * @return A FederatedUserSession containing federated authentication session details
@@ -106,22 +106,20 @@ public class UserSessionDAOImpl implements UserSessionDAO {
     public FederatedUserSession getFederatedAuthSessionDetails(String fedIdpSessionId)
             throws SessionManagementServerException {
 
-        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false);
-             PreparedStatement preparedStatement =
-                     connection.prepareStatement(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID)) {
-            preparedStatement.setString(1, fedIdpSessionId);
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                FederatedUserSession federatedUserSession = new FederatedUserSession();
-                if (resultSet.next()) {
-                    federatedUserSession.setIdPSessionId(fedIdpSessionId);
-                    federatedUserSession.setSessionId(resultSet.getString("SESSION_ID"));
-                    federatedUserSession.setIdPName(resultSet.getString("IDP_NAME"));
-                    federatedUserSession.setAuthenticatorName(resultSet.getString("AUTHENTICATOR_ID"));
-                    federatedUserSession.setProtocolType(resultSet.getString("PROTOCOL_TYPE"));
-                }
-                return federatedUserSession;
-            }
-        } catch (SQLException e) {
+        FederatedUserSession federatedUserSession;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            federatedUserSession = jdbcTemplate
+                    .fetchSingleRecord(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
+                            (resultSet, rowNumber) -> new FederatedUserSession(
+                                    resultSet.getString(1),
+                                    resultSet.getString(2),
+                                    resultSet.getString(3),
+                                    resultSet.getString(4),
+                                    resultSet.getString(5)),
+                            preparedStatement -> preparedStatement.setString(1, fedIdpSessionId));
+            return federatedUserSession;
+        } catch (DataAccessException e) {
             throw new SessionManagementServerException(
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION,
                     SessionMgtConstants.ErrorMessages.ERROR_CODE_UNABLE_TO_GET_SESSION.getDescription(), e);
