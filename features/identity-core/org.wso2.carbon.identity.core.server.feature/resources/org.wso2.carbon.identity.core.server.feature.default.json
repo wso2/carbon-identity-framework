@@ -868,6 +868,7 @@
   "console.gravatar.configs": {
     "fallback": "404"
   },
+  "console.list_all_attribute_dialects": false,
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
