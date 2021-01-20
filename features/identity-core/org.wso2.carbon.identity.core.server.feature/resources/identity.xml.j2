@@ -93,6 +93,9 @@
     <!--This configuration is used to define the Service Provider name regex in DCR and IdentityApplicationManagementService-->
     <ServiceProviders>
         <SPNameRegex>{{service_provider.sp_name_regex}}</SPNameRegex>
+        {% if service_provider.sp_name_java_script_regex is defined %}
+        <SPNameJavascriptRegex>{{service_provider.sp_name_java_script_regex}}</SPNameJavascriptRegex>
+        {% endif %}
         {% if service_provider.fetch_chunk_size is defined %}
         <FetchChunkSize>{{service_provider.fetch_chunk_size}}</FetchChunkSize>
         {% endif %}
@@ -993,6 +996,14 @@
             Supported versions : IS 5.9.0 onwards
         -->
         <ReturnUpdatedGroupInPatchResponse>{{scim2.return_updated_group_in_group_patch_response}}</ReturnUpdatedGroupInPatchResponse>
+
+        <!--
+            If you set the property value to true, the response of the users endpoint would not contain duplicate user entries.
+
+            Default value : false
+            Supported versions : IS 5.10.0 onwards
+        -->
+        <RemoveDuplicateUsersInUsersResponse>{{scim2.remove_duplicate_users_in_users_response}}</RemoveDuplicateUsersInUsersResponse>
     </SCIM2>
 
       <Recovery>
@@ -1117,6 +1128,27 @@
         <ResendConfirmationReCaptcha>{{identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha}}</ResendConfirmationReCaptcha>
     </SelfRegistration>
 
+    <LiteRegistration>
+            <Enable>{{identity_mgt.lite_user_registration.enable}}</Enable>
+            <LockOnCreation>{{identity_mgt.lite_user_registration.lock_on_creation}}</LockOnCreation>
+            <Notification>
+                <InternallyManage>{{identity_mgt.lite_user_registration.notification.manage_internally}}</InternallyManage>
+            </Notification>
+            <ReCaptcha>{{identity_mgt.lite_user_registration.recaptcha.enable}}</ReCaptcha>
+            <VerificationCode>
+                <ExpiryTime>{{identity_mgt.lite_user_registration.verification_email_validity}}</ExpiryTime>
+                <SMSOTP>
+                    <ExpiryTime>{{identity_mgt.lite_user_registration.verification_sms_validity}}</ExpiryTime>
+                </SMSOTP>
+            </VerificationCode>
+            <CallbackRegex>{{identity_mgt.lite_user_registration.callback_url}}</CallbackRegex>
+    </LiteRegistration>
+
+    <LoginIdentifiers>
+        <Enable>{{identity_mgt.login_identifiers.enable}}</Enable>
+        <PrimaryLoginIdentifier>{{identity_mgt.login_identifiers.primary_claim}}</PrimaryLoginIdentifier>
+    </LoginIdentifiers>
+
     <UserClaimUpdate>
         <Claim uri = "http://wso2.org/claims/emailaddress">
             <VerificationOnUpdate>
@@ -1192,11 +1224,21 @@
                        name="org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
                        orderId="{{event.default_listener.scim.priority}}"
                        enable="{{event.default_listener.scim.enable}}"/>
+        <EventListener id="scim"
+                       type="org.wso2.carbon.stratos.common.listeners.TenantMgtListener"
+                       name="org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener"
+                       orderId="{{event.default_listener.scim_tenant_mgt.priority}}"
+                       enable="{{event.default_listener.scim_tenant_mgt.enable}}"/>
         <EventListener id="scim2"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.scim2.common.listener.SCIMUserOperationListener"
                        orderId="{{event.default_listener.scim2.priority}}"
                        enable="{{event.default_listener.scim2.enable}}"/>
+        <EventListener id="scim2"
+                       type="org.wso2.carbon.stratos.common.listeners.TenantMgtListener"
+                       name="org.wso2.carbon.identity.scim2.common.listener.SCIMTenantMgtListener"
+                       orderId="{{event.default_listener.scim2_tenant_mgt.priority}}"
+                       enable="{{event.default_listener.scim2_tenant_mgt.enable}}"/>
         <EventListener id="governance_identity_mgt"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.identity.governance.listener.IdentityMgtEventListener"
@@ -1593,6 +1635,23 @@
             <Scopes>internal_config_mgt_view</Scopes>
         </Resource>
         <Resource context="(.*)/api/identity/config-mgt/v1.0/resource/(.*)" secured="true" http-method="DELETE">
+            <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
+            <Scopes>internal_config_mgt_delete</Scopes>
+        </Resource>
+
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="POST">
+            <Permissions>/permission/admin/manage/identity/configmgt/add</Permissions>
+            <Scopes>internal_config_mgt_add</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="PUT">
+            <Permissions>/permission/admin/manage/identity/configmgt/update</Permissions>
+            <Scopes>internal_config_mgt_update</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="GET">
+            <Permissions>/permission/admin/manage/identity/configmgt/view</Permissions>
+            <Scopes>internal_config_mgt_view</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/notification-senders/(.*)" secured="true" http-method="DELETE">
             <Permissions>/permission/admin/manage/identity/configmgt/delete</Permissions>
             <Scopes>internal_config_mgt_delete</Scopes>
         </Resource>
@@ -1996,6 +2055,10 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
+        <Resource context="(.*)/api/server/v1/identity-governance/preferences" secured="true" http-method="POST">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
         <Resource context="(.*)/api/server/v1/identity-governance(.*)" secured="true" http-method="GET">
             <Permissions>/permission/admin/manage/identity/idpmgt/view</Permissions>
             <Scopes>internal_idp_view</Scopes>
@@ -2097,19 +2160,19 @@
             <Permissions>/permission/admin/manage/identity/applicationmgt/view</Permissions>
             <Scopes>internal_application_mgt_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="GET, POST, HEAD">
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
+        <Resource context="/api/server/v1/channel-verified-tenants(.*)" secured="true" http-method="POST">
             <Permissions>/permission/protected/manage/monitor/tenants/list</Permissions>
             <Scopes>internal_list_tenants</Scopes>
          </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
+        <Resource context="/api/server/v1/tenants(.*)" secured="true" http-method="PUT">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
+        <Resource context="/api/server/v1/tenants(.*)/metadata" secured="true" http-method="DELETE">
             <Permissions>/permission/protected/manage/modify/tenants</Permissions>
             <Scopes>internal_modify_tenants</Scopes>
         </Resource>
@@ -2142,7 +2205,11 @@
             <Permissions>/permission/admin/manage/identity/cors/origins/view</Permissions>
             <Scopes>internal_cors_origins_view</Scopes>
         </Resource>
-        <Resource context="(.*)/api/server/v1/(.*)" secured="true" http-method="all">
+        <Resource context="(.*)/api/server/v1/configs/(.*)" secured="true" http-method="GET">
+            <Permissions>none</Permissions>
+            <Scopes>internal_login</Scopes>
+        </Resource>
+        <Resource context="(.*)/api/server/v1/(?!(tenants|channel-verified-tenants))(.*)" secured="true" http-method="all">
             <Permissions>/permission/admin/manage/identity/</Permissions>
             <Scopes>internal_identity_mgt_view</Scopes>
             <Scopes>internal_identity_mgt_update</Scopes>
@@ -2197,17 +2264,18 @@
         <Resource context="(.*)/accountrecoveryendpoint/confirmregistration.do(.*)" secured="false" http-method="GET, POST, HEAD"/>
         <Resource context="(.*)/accountrecoveryendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/api/health-check/v1(.*)" secured="false" http-method="all"/>
-        <Resource context="/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/emailotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/mex(.*)" secured="false" http-method="all"/>
         <Resource context="/mexut(.*)" secured="false" http-method="all"/>
-        <Resource context="/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
-        <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/smsotpauthenticationendpoint(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
         <Resource context="/x509-certificate-servlet(.*)" secured="false" http-method="all"/>
         <Resource context="/mepinauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/cas(.*)" secured="false" http-method="all"/>
         <Resource context="(.*)/identity/saml/slo(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/extend-session(.*)" secured="false" http-method="all"/>
         <Resource context="/mobileconnectauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/inweboauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/token2authenticationendpoint(.*)" secured="false" http-method="all"/>
@@ -2291,6 +2359,9 @@
             {% endfor %}
             {% for context in tenant_context.rewrite.overwrite.custom_dispatch %}
             <Context>{{context}}</Context>
+            {% endfor %}
+            {% for path in tenant_context.rewrite.overwrite.ignore_dispatch_path %}
+            <IgnorePath>{{path}}</IgnorePath>
             {% endfor %}
         </OverwriteDispatch>
     </TenantContextsToRewrite>
@@ -2419,6 +2490,11 @@
         {% for allowed_user_store in user_store_mgt.allowed_user_stores %}
         <AllowedUserstore>{{allowed_user_store}}</AllowedUserstore>
         {% endfor %}
+        {% if user_store_mgt.custom_user_stores is defined %}
+        {% for custom_user_store in user_store_mgt.custom_user_stores %}
+        <AllowedUserstore>{{custom_user_store}}</AllowedUserstore>
+        {% endfor %}
+        {% endif %}
     </AllowedUserstores>
     {% endif %}
 
@@ -2508,4 +2584,10 @@
     {% endfor %}
     </EmailTemplatePlaceholders>
 
+    <CommonAuthCallerPath>
+        <EnableValidation>{{common_auth_caller_path.enable_common_auth_caller_path_validation}}</EnableValidation>
+        {% if common_auth_caller_path.default_url is defined %}
+        <DefaultUrl>{{common_auth_caller_path.default_url}}</DefaultUrl>
+        {% endif %}
+    </CommonAuthCallerPath>
 </Server>

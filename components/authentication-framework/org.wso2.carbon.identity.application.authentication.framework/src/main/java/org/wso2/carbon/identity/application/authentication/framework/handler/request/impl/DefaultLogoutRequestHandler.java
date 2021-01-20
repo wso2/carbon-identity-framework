@@ -46,6 +46,11 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Commo
 import org.wso2.carbon.identity.application.authentication.framework.store.UserSessionStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.application.common.model.ServiceProviderProperty;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import java.io.IOException;
@@ -65,6 +70,9 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
     private static final Log log = LogFactory.getLog(DefaultLogoutRequestHandler.class);
     private static volatile DefaultLogoutRequestHandler instance;
     private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    private static final String LOGOUT_RETURN_URL_SP_PROPERTY = "logoutReturnUrl";
+    private static final String ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG = "EnableValidatingCommonAuthCallerPath";
+    private static final String DEFAULT_LOGOUT_URL_CONFIG = "DefaultLogoutUrl";
 
     public static DefaultLogoutRequestHandler getInstance() {
 
@@ -215,6 +223,14 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
 
         String redirectURL;
 
+        if (isLoggedOut && !isValidCallerPath(context)) {
+            if (log.isDebugEnabled()) {
+                log.debug("The commonAuthCallerPath param specified in the request does not satisfy the logout return" +
+                        " url specified. Therefore directing to the default logout return url.");
+            }
+            context.setCallerPath(getDefaultLogoutReturnUrl());
+        }
+
         if(context.getCallerSessionKey() != null) {
             request.setAttribute(FrameworkConstants.SESSION_DATA_KEY, context.getCallerSessionKey());
 
@@ -315,5 +331,66 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
                 UserSessionStore.getInstance().removeTerminatedSessionRecords(terminatedSessionId);
             }
         }
+    }
+
+    private boolean isValidCallerPath(AuthenticationContext context) {
+
+        String urlRegex = "^((https?)://|(www)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$";
+        if (!context.getCallerPath().matches(urlRegex)) {
+            return true;
+        }
+
+        // This is an external redirection.
+        if (StringUtils.isNotBlank(context.getRelyingParty())) {
+            try {
+                String configuredReturnUrl = getRegisteredLogoutReturnUrl(context.getRelyingParty(), context
+                        .getRequestType(), context.getTenantDomain());
+                return context.getCallerPath().matches(configuredReturnUrl);
+            } catch (IdentityApplicationManagementException e) {
+                return false;
+            }
+        } else {
+            String enableValidatingLogoutReturnUrl = IdentityUtil.getProperty
+                    (ENABLE_VALIDATING_LOGOUT_RETURN_URL_CONFIG);
+            return !Boolean.valueOf(enableValidatingLogoutReturnUrl);
+        }
+    }
+
+    private String getRegisteredLogoutReturnUrl(String relyingParty, String requestType, String tenantDomain) throws
+            IdentityApplicationManagementException {
+
+        if (FrameworkConstants.OIDC.equals(requestType)) {
+            requestType = FrameworkConstants.OAUTH2;
+        }
+        String configuredReturnUrl = ".*";
+        ApplicationManagementService appMgtService = ApplicationManagementService.getInstance();
+        ServiceProvider serviceProvider = appMgtService.getServiceProviderByClientId(relyingParty, requestType,
+                tenantDomain);
+        if (serviceProvider != null && serviceProvider.getSpProperties() != null) {
+            for (ServiceProviderProperty spProperty : serviceProvider.getSpProperties()) {
+                if (LOGOUT_RETURN_URL_SP_PROPERTY.equals(spProperty.getName())) {
+                    configuredReturnUrl = spProperty.getValue();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Logout caller path validation is configured for service provider of " +
+                                relyingParty);
+                    }
+                    break;
+                }
+            }
+        }
+        return configuredReturnUrl;
+    }
+
+    private String getDefaultLogoutReturnUrl() {
+
+        String defaultLogoutUrl = IdentityUtil.getProperty(DEFAULT_LOGOUT_URL_CONFIG);
+        if (StringUtils.isBlank(defaultLogoutUrl)) {
+            if(log.isDebugEnabled()){
+                log.debug("The default logout URL is not set in the identity.xml file. Therefore directing to the " +
+                        "default logout page of the server.");
+            }
+            defaultLogoutUrl = "/authenticationendpoint/samlsso_logout.do";
+        }
+        return defaultLogoutUrl;
     }
 }

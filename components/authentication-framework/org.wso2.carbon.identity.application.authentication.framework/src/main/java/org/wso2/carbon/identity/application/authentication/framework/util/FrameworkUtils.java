@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.util;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -29,6 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.log4j.MDC;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -97,8 +99,11 @@ import org.wso2.carbon.identity.application.common.model.IdentityProviderPropert
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.model.CookieBuilder;
 import org.wso2.carbon.identity.core.model.IdentityCookieConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
@@ -145,6 +150,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.CONTEXT_PROP_INVALID_EMAIL_USERNAME;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Config.USER_SESSION_MAPPING_ENABLED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
@@ -163,12 +170,13 @@ public class FrameworkUtils {
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
 
-    private static final String QUERY_SEPARATOR = "&";
+    public static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
-    private static final String REQUEST_PARAM_APPLICATION = "application";
+    public static final String REQUEST_PARAM_APPLICATION = "application";
     private static final String ALREADY_WRITTEN_PROPERTY = "AlreadyWritten";
 
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
+    public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
     private FrameworkUtils() {
     }
@@ -2706,6 +2714,47 @@ public class FrameworkUtils {
     }
 
     /**
+     * Retrieves the unique user id of the given username. If the unique user id is not available, generate an id and
+     * update the userid claim in read/write userstores.
+     *
+     * @param userStoreManager userStoreManager related to user.
+     * @param username         username.
+     * @return user id of the user.
+     * @throws UserSessionException
+     */
+    public static String resolveUserIdFromUsername(UserStoreManager userStoreManager, String username) throws
+            UserSessionException {
+
+        try {
+            if (userStoreManager instanceof AbstractUserStoreManager) {
+                String userId = ((AbstractUserStoreManager) userStoreManager).getUserIDFromUserName(username);
+
+                /*
+                If the user id is not present in the userstore, we need to add it to the userstore. But if the
+                userstore is read-only, we cannot add the id and empty user id will returned.
+                */
+                if (StringUtils.isBlank(userId) && !userStoreManager.isReadOnly()) {
+                    userId = addUserId(username, userStoreManager);
+                }
+                return userId;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Provided user store manager for the user: " + username + ", is not an instance of the " +
+                        "AbstractUserStore manager");
+            }
+            throw new UserSessionException("Unable to get the unique id of the user: " + username + ".");
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            if (log.isDebugEnabled()) {
+                log.debug("Error occurred while resolving Id for the user: " + username, e);
+            }
+            throw new UserSessionException("Error occurred while resolving Id for the user: " + username, e);
+        } catch (UserStoreException e) {
+            throw new UserSessionException("Error occurred while retrieving the userstore manager to resolve Id for " +
+                    "the user: " + username, e);
+        }
+    }
+
+    /**
      * Pre-process user's username considering authentication context.
      *
      * @param username Username of the user.
@@ -2801,5 +2850,106 @@ public class FrameworkUtils {
 
         // If config is empty or not a boolean value, the property must be set to the default value which is true.
         return !Boolean.FALSE.toString().equalsIgnoreCase(continueOnClaimHandlingErrorValue);
+    }
+
+    /**
+     * Returns the end user portal url.
+     *
+     * @param myAccountUrl end user portal url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getMyAccountURL(String myAccountUrl) {
+
+        if (StringUtils.isNotBlank(myAccountUrl)) {
+            return myAccountUrl;
+        }
+        try {
+            return ServiceURLBuilder.create().addPath(MY_ACCOUNT_APP_PATH).build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + MY_ACCOUNT_APP_PATH);
+        }
+    }
+
+    /**
+     * Returns the console url.
+     *
+     * @param consoleUrl  console url
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getConsoleURL(String consoleUrl) {
+
+        if (StringUtils.isNotBlank(consoleUrl)) {
+            return consoleUrl;
+        }
+        try {
+            return ServiceURLBuilder.create().addPath(CONSOLE_APP_PATH).build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + CONSOLE_APP_PATH);
+        }
+    }
+
+    /**
+     * Updates the last accessed time of the session in the UserSessionStore.
+     *
+     * @param sessionContextKey     Session context cache entry identifier.
+     * @param lastAccessedTime    New value of the last accessed time of the session.
+     */
+    public static void updateSessionLastAccessTimeMetadata(String sessionContextKey, Long lastAccessedTime) {
+
+        if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
+            try {
+                UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
+                        .LAST_ACCESS_TIME, Long.toString(lastAccessedTime));
+            } catch (UserSessionException e) {
+                log.error("Updating session meta data failed.", e);
+            }
+        }
+    }
+
+    /**
+     * Returns the hash value of the cookie.
+     *
+     * @param cookie    Cookie to be hashed.
+     * @return          Hash value of cookie.
+     */
+    public static String getHashOfCookie(Cookie cookie) {
+
+        if (cookie != null) {
+            String cookieValue = cookie.getValue();
+            if (cookieValue != null) {
+                return DigestUtils.sha256Hex(cookieValue);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get correlation id of current thread.
+     *
+     * @return correlation-id.
+     */
+    public static String getCorrelation() {
+
+        String ref;
+        if (isCorrelationIDPresent()) {
+            ref = MDC.get(CORRELATION_ID_MDC).toString();
+        } else {
+            ref = UUID.randomUUID().toString();
+        }
+        return ref;
+    }
+
+    /**
+     * Check whether correlation id present in the log MDC.
+     *
+     * @return True if correlation id present in the log MDC.
+     */
+    public static boolean isCorrelationIDPresent() {
+
+        return MDC.get(CORRELATION_ID_MDC) != null;
     }
 }

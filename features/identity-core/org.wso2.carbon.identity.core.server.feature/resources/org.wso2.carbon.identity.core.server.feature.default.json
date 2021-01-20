@@ -260,6 +260,7 @@
   "scim2.mandate_domain_for_uesrnames_and_group_names_in_response": false,
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
   "scim2.return_updated_group_in_group_patch_response": true,
+  "scim2.remove_duplicate_users_in_users_response": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
@@ -279,6 +280,14 @@
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
   "identity_mgt.resend_notification.resend_code_validity": "1m",
   "identity_mgt.password_reset_email.notify_on_reset":false,
+
+  "identity_mgt.lite_user_registration.enable": false,
+  "identity_mgt.lite_user_registration.lock_on_creation": true,
+  "identity_mgt.lite_user_registration.notification.manage_internally": true,
+  "identity_mgt.lite_user_registration.recaptcha.enable": true,
+  "identity_mgt.lite_user_registration.verification_email_validity": "1440m",
+  "identity_mgt.lite_user_registration.verification_sms_validity": "1m",
+  "identity_mgt.lite_user_registration.callback_url": ".*",
 
   "identity_mgt.password_reset_challenge_questions.enable_password_reset_challenge_questions": false,
   "identity_mgt.password_reset_challenge_questions.notify_on_initiation": false,
@@ -303,6 +312,9 @@
   "identity_mgt.password_reset_by_admin.enable_account_unlock_notification": false,
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
+
+  "identity_mgt.login_identifiers.enable" : false,
+  "identity_mgt.login_identifiers.primary_claim" : "http://wso2.org/claims/username",
 
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
@@ -349,6 +361,10 @@
   "event.default_listener.identity_mgt.enable": false,
   "event.default_listener.scim.priority": "90",
   "event.default_listener.scim.enable": false,
+  "event.default_listener.scim_tenant_mgt.priority": "-1",
+  "event.default_listener.scim_tenant_mgt.enable": true,
+  "event.default_listener.scim2_tenant_mgt.priority": "-1",
+  "event.default_listener.scim2_tenant_mgt.enable": true,
   "event.default_listener.scim2.priority": "93",
   "event.default_listener.scim2.enable": true,
   "event.default_listener.governance_identity_mgt.priority": "95",
@@ -507,7 +523,10 @@
     "/console/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
-    "/lsp/"
+    "/lsp/",
+    "/emailotpauthenticationendpoint/",
+    "/smsotpauthenticationendpoint/",
+    "/totpauthenticationendpoint/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -522,6 +541,13 @@
   "tenant_context.rewrite.overwrite.dispatch": [
     "/myaccount/",
     "/console/"
+  ],
+  "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
+    "/libs/",
+    "/resources/",
+    "/static/",
+    "/deployment.config.json",
+    "/rpIFrame.html"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
@@ -898,5 +924,6 @@
   "cors.supports_credentials": true,
   "cors.max_age": -1,
   "cors.tag_requests": false,
-  "audit.log.contextual_param.params": []
+  "audit.log.contextual_param.params": [],
+  "common_auth_caller_path.enable_common_auth_caller_path_validation": true
 }

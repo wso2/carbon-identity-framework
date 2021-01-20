@@ -578,8 +578,7 @@ public class DefaultStepHandler implements StepHandler {
                     idpSessionIndex = idpSessionIndexParamValue.toString();
                 }
             }
-            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)
-                    && FED_AUTH_NAME.equals(context.getCurrentAuthenticator())) {
+            if (StringUtils.isNotBlank(context.getCurrentAuthenticator()) && StringUtils.isNotBlank(idpSessionIndex)) {
                 authHistory.setIdpSessionIndex(idpSessionIndex);
                 authHistory.setRequestType(context.getRequestType());
             }

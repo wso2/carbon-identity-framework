@@ -954,10 +954,14 @@ public class UserRealmProxy {
                 throw new UserAdminException("Read only user store or Role creation is disabled");
             }
         } catch (UserStoreException e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Failed to add the role: %s, to the user store", roleName), e);
+            }
             throw new UserAdminException(e.getMessage(), e);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Failed to add the role: %s", roleName), e);
+            }
             throw new UserAdminException(e.getMessage(), e);
         }
     }

@@ -40,6 +40,7 @@ import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfi
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
 import org.wso2.carbon.user.api.Property;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
@@ -721,6 +722,11 @@ public class SecondaryUserStoreConfigurationUtil {
         List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
                 .getUserStoreConfigListeners();
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore pre update listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
             userStoreConfigListener.onUserStoreNamePreUpdate(CarbonContext.getThreadLocalCarbonContext().getTenantId
                     (), previousDomainName, domainName);
         }
@@ -736,6 +742,11 @@ public class SecondaryUserStoreConfigurationUtil {
         List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
                 .getUserStoreConfigListeners();
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore pre delete listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
             userStoreConfigListener.onUserStorePreDelete(CarbonContext.getThreadLocalCarbonContext().getTenantId
                     (), domainName);
         }
@@ -756,6 +767,11 @@ public class SecondaryUserStoreConfigurationUtil {
                 .getUserStoreConfigListeners();
 
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore pre state change listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
             userStoreConfigListener.onUserStorePreStateChange(isDisable ? UserStoreState.DISABLED
                     : UserStoreState.ENABLED, tenantId, domainName);
         }
@@ -774,7 +790,103 @@ public class SecondaryUserStoreConfigurationUtil {
                 .getUserStoreConfigListeners();
 
         for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore pre add listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
             userStoreConfigListener.onUserStorePreAdd(tenantId, domainName);
+        }
+    }
+
+    /**
+     * Trigger the listeners after a userstore is retrieved.
+     *
+     * @param userStoreDTO Retrieved userstore configuration.
+     * @throws UserStoreException throws when an error occurred when triggering listeners.
+     */
+    public static void triggerListenersOnUserStorePostGet(UserStoreDTO userStoreDTO) throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore post get listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
+            userStoreConfigListener.onUserStorePostGet(tenantId, userStoreDTO);
+        }
+    }
+
+    /**
+     * Trigger the listeners after all userstores are retrieved.
+     *
+     * @param userStoreDTOS Array of userstore configurations.
+     * @throws UserStoreException throws when an error occurred when triggering listeners.
+     */
+    public static void triggerListenersOnUserStoresPostGet(UserStoreDTO[] userStoreDTOS) throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstores post get listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
+            userStoreConfigListener.onUserStoresPostGet(tenantId, userStoreDTOS);
+        }
+    }
+
+    /**
+     * Trigger the listeners before a userstore is added.
+     *
+     * @param userStoreDTO Userstore configuration to be added.
+     * @throws UserStoreException throws when an error occurred when triggering listeners.
+     */
+    public static void triggerListenersOnUserStorePreAdd(UserStoreDTO userStoreDTO) throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore pre add listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
+            userStoreConfigListener.onUserStorePreAdd(tenantId, userStoreDTO);
+        }
+    }
+
+    /**
+     * Trigger the listeners before a userstore is updated.
+     *
+     * @param userStoreDTO Userstore configuration to be updated.
+     * @param isStateChange Boolean flag denoting whether the
+     *                      update is a userstore state change.
+     * @throws UserStoreException throws when an error occurred when triggering listeners.
+     */
+    public static void triggerListenersOnUserStorePreUpdate(UserStoreDTO userStoreDTO, boolean isStateChange)
+            throws UserStoreException {
+
+        int tenantId = CarbonContext.getThreadLocalCarbonContext().getTenantId();
+        List<UserStoreConfigListener> userStoreConfigListeners = UserStoreConfigListenersHolder.getInstance()
+                .getUserStoreConfigListeners();
+
+        for (UserStoreConfigListener userStoreConfigListener : userStoreConfigListeners) {
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Triggering userstore pre update listener: %s for tenant: %s",
+                        userStoreConfigListener.getClass().getName(),
+                        CarbonContext.getThreadLocalCarbonContext().getTenantDomain()));
+            }
+            userStoreConfigListener.onUserStorePreUpdate(tenantId, userStoreDTO, isStateChange);
         }
     }
 
@@ -789,5 +901,22 @@ public class SecondaryUserStoreConfigurationUtil {
         // disabled as the feature has on going improvements.
         // https://github.com/wso2/product-is/issues/5673
         return false;
+    }
+
+    /**
+     * Wrap UserStoreClientException in a IdentityUserStoreClientException.
+     *
+     * @param defaultMessage Default error message.
+     * @param e UserStoreClientException.
+     * @return new IdentityUserStoreClientException.
+     */
+    public static IdentityUserStoreClientException buildIdentityUserStoreClientException(String defaultMessage,
+                                                                                         UserStoreClientException e) {
+
+        String errorMessage = defaultMessage;
+        if (e.getMessage() != null) {
+            errorMessage = e.getMessage();
+        }
+        return new IdentityUserStoreClientException(errorMessage, e);
     }
 }

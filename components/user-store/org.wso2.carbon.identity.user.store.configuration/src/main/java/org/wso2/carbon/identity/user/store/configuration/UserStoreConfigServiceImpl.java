@@ -32,6 +32,7 @@ import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.ndatasource.core.DataSourceManager;
 import org.wso2.carbon.ndatasource.core.services.WSDataSourceMetaInfo;
 import org.wso2.carbon.ndatasource.rdbms.RDBMSConfiguration;
+import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.jdbc.JDBCRealmConstants;
 import org.wso2.carbon.user.core.tracker.UserStoreManagerRegistry;
@@ -47,6 +48,12 @@ import java.util.Set;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePostGet;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreUpdate;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStoresPostGet;
 
 /**
  * Implementation class for UserStoreConfigService.
@@ -64,6 +71,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
         loadTenant();
         try {
+            triggerListenersOnUserStorePreAdd(userStoreDTO);
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotBlank(userStoreDTO.getRepositoryClass())) {
                 AbstractUserStoreDAOFactory userStoreDAOFactory = UserStoreConfigListenersHolder.
@@ -78,6 +86,9 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 }
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().addUserStore(userStoreDTO);
             }
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
+                    + " cannot be added.", e);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage, e);
@@ -89,6 +100,7 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
 
         loadTenant();
         try {
+            triggerListenersOnUserStorePreUpdate(userStoreDTO, isStateChange);
             if (SecondaryUserStoreConfigurationUtil.isUserStoreRepositorySeparationEnabled() &&
                     StringUtils.isNotEmpty(userStoreDTO.getRepositoryClass())) {
 
@@ -112,6 +124,9 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
                 SecondaryUserStoreConfigurationUtil.getFileBasedUserStoreDAOFactory().updateUserStore(userStoreDTO,
                         false);
             }
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + userStoreDTO.getDomainId()
+                    + " cannot be updated.", e);
         } catch (UserStoreException e) {
             String errorMessage = e.getMessage();
             throw new IdentityUserStoreMgtException(errorMessage, e);
@@ -225,6 +240,15 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
         if (userStoreDTOS != null) {
             for (UserStoreDTO userStoreDTO : userStoreDTOS) {
                 if (userStoreDTO.getDomainId().equals(domain)) {
+                    // Trigger post get listeners.
+                    try {
+                        triggerListenersOnUserStorePostGet(userStoreDTO);
+                    } catch (UserStoreClientException e) {
+                        throw buildIdentityUserStoreClientException("Userstore " + domain + " cannot be retrieved.", e);
+                    } catch (UserStoreException e) {
+                        throw new IdentityUserStoreMgtException("Error occurred while triggering userstore post get " +
+                                "listener. " + e.getMessage(), e);
+                    }
                     return userStoreDTO;
                 }
             }
@@ -248,7 +272,18 @@ public class UserStoreConfigServiceImpl implements UserStoreConfigService {
             UserStoreDTO[] allUserStores = entry.getValue().getInstance().getUserStores();
             userStoreDTOList.addAll(Arrays.asList(allUserStores));
         }
-        return userStoreDTOList.toArray(new UserStoreDTO[0]);
+        UserStoreDTO[] userStoreDTOS = userStoreDTOList.toArray(new UserStoreDTO[0]);
+
+        // Trigger post get listeners.
+        try {
+            triggerListenersOnUserStoresPostGet(userStoreDTOS);
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstores cannot be retrieved.", e);
+        } catch (UserStoreException e) {
+            throw new IdentityUserStoreMgtException("Error occurred while triggering userstores post get listener.", e);
+        }
+
+        return userStoreDTOS;
     }
 
     @Override
