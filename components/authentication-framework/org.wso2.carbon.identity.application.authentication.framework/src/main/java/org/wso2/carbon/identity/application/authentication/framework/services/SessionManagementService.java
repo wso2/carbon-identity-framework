@@ -22,7 +22,7 @@ import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.core.AbstractAdmin;
-import org.wso2.carbon.identity.application.authentication.framework.cache.SessionContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -38,10 +38,9 @@ public class SessionManagementService extends AbstractAdmin {
         if (StringUtils.isBlank(sessionId)) {
             return false;
         }
-        // Retrieve session information from cache in order to publish event
-        SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(sessionId);
-        terminateSession(sessionContext, sessionId);
-        return true;
+        ServerSessionManagementService serverSessionManagementService =
+                FrameworkServiceDataHolder.getInstance().getServerSessionManagementService();
+        return serverSessionManagementService.removeSession(sessionId);
     }
 
     /**
@@ -74,29 +73,14 @@ public class SessionManagementService extends AbstractAdmin {
         if (username.equals(authenticatedUser.getUserName())
                 && userStoreDomain.equals(authenticatedUser.getUserStoreDomain())
                 && carbonContext.getTenantDomain().equals(authenticatedUser.getTenantDomain())) {
-            terminateSession(sessionContext, sessionId);
+            ServerSessionManagementService serverSessionManagementService =
+                    FrameworkServiceDataHolder.getInstance().getServerSessionManagementService();
+            serverSessionManagementService.removeSession(sessionId);
         } else { // TODO : Handle federated scenario.
             log.warn(String.format("Trying to terminate a session which does not belong to logged in user (%s). " +
                     "This might be an attempt for a security breach", username));
             return false;
         }
         return true;
-    }
-
-    // TODO : Session ID should be a property of the SessionContext.
-    private void terminateSession(SessionContext sessionContext, String sessionId) {
-
-        if (FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy() != null && FrameworkServiceDataHolder
-                .getInstance().getAuthnDataPublisherProxy().isEnabled(null) && sessionContext != null) {
-
-            Object authenticatedUserObj = sessionContext.getProperty(FrameworkConstants.AUTHENTICATED_USER);
-            AuthenticatedUser authenticatedUser = new AuthenticatedUser();
-            if (authenticatedUserObj != null) {
-                authenticatedUser = (AuthenticatedUser) authenticatedUserObj;
-            }
-            FrameworkUtils.publishSessionEvent(sessionId, null, null, sessionContext, authenticatedUser,
-                    FrameworkConstants.AnalyticsAttributes.SESSION_TERMINATE);
-        }
-        SessionContextCache.getInstance().clearCacheEntry(sessionId);
     }
 }
