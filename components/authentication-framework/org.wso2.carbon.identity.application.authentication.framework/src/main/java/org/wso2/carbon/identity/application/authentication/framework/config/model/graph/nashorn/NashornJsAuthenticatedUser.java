@@ -1,31 +1,12 @@
-/*
- * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyArray;
-import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsClaims;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -50,9 +31,9 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
  *
  * @see AuthenticatedUser
  */
-public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> implements ProxyObject, JsAuthenticatedUser {
+public class NashornJsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> implements JsAuthenticatedUser {
 
-    private static final Log LOG = LogFactory.getLog(GraalJsAuthenticatedUser.class);
+    private static final Log LOG = LogFactory.getLog(JsAuthenticatedUser.class);
     private int step;
     private String idp;
 
@@ -64,7 +45,7 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
      * @param step        Authentication step
      * @param idp         Authenticated Idp
      */
-    public GraalJsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser, int step, String idp) {
+    public NashornJsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser, int step, String idp) {
 
         this(wrappedUser, step, idp);
         initializeContext(context);
@@ -77,7 +58,7 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
      * @param step        Authentication step
      * @param idp         Authenticated Idp
      */
-    public GraalJsAuthenticatedUser(AuthenticatedUser wrappedUser, int step, String idp) {
+    public NashornJsAuthenticatedUser(AuthenticatedUser wrappedUser, int step, String idp) {
 
         super(wrappedUser);
         this.step = step;
@@ -89,12 +70,12 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
      *
      * @param wrappedUser Authenticated user
      */
-    public GraalJsAuthenticatedUser(AuthenticatedUser wrappedUser) {
+    public NashornJsAuthenticatedUser(AuthenticatedUser wrappedUser) {
 
         super(wrappedUser);
     }
 
-    public GraalJsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser) {
+    public NashornJsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser) {
 
         this(wrappedUser);
         initializeContext(context);
@@ -114,26 +95,26 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new GraalJsClaims(getContext(), step, idp, false);
+                    return new JsClaims(getContext(), step, idp, false);
                 } else {
                     // Represent step independent user
-                    return new GraalJsClaims(getContext(), getWrapped(), false);
+                    return new JsClaims(getContext(), getWrapped(), false);
                 }
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new GraalJsClaims(getContext(), step, idp, true);
+                    return new JsClaims(getContext(), step, idp, true);
                 } else {
                     // Represent step independent user
-                    return new GraalJsClaims(getContext(), getWrapped(), true);
+                    return new JsClaims(getContext(), getWrapped(), true);
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
             case FrameworkConstants.JSAttributes.JS_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new GraalJsRuntimeClaims(getContext(), step, idp);
+                    return new JsRuntimeClaims(getContext(), step, idp);
                 } else {
                     // Represent step independent user
-                    return new GraalJsRuntimeClaims(getContext(), getWrapped());
+                    return new JsRuntimeClaims(getContext(), getWrapped());
                 }
             default:
                 return super.getMember(name);
@@ -141,23 +122,20 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
     }
 
     @Override
-    public Object getMemberKeys() {
-
-        return  ProxyArray.fromArray(new String[]{ FrameworkConstants.JSAttributes.JS_USERNAME});
-    }
-
-    public void putMember(String name, Value value) {
+    public void setMember(String name, Object value) {
 
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_USERNAME:
-                getWrapped().setUserName(value.asString());
+                getWrapped().setUserName((String) value);
                 break;
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
-                getWrapped().setUserStoreDomain(value.asString());
+                getWrapped().setUserStoreDomain((String) value);
                 break;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                getWrapped().setTenantDomain(value.asString());
+                getWrapped().setTenantDomain((String) value);
                 break;
+            default:
+                super.setMember(name, value);
         }
     }
 
@@ -177,8 +155,6 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
                 return idp != null;
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 return idp != null && !FrameworkConstants.LOCAL.equals(idp);
-            case FrameworkConstants.JSAttributes.JS_CLAIMS:
-                return idp != null || getWrapped()!=null;
             default:
                 return super.hasMember(name);
         }
@@ -192,7 +168,7 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
 
             try {
                 String usernameWithDomain = UserCoreUtil.addDomainToName(getWrapped().getUserName(), getWrapped()
-                    .getUserStoreDomain());
+                        .getUserStoreDomain());
                 UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
                 return userRealm.getUserStoreManager().getRoleListOfUser(usernameWithDomain);
             } catch (UserStoreException e) {
@@ -202,3 +178,4 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
         return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 }
+

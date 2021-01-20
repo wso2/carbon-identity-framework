@@ -155,6 +155,32 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     }
 
     /**
+     * @param templateId Identifier of the template.
+     * @param parameters Parameters.
+     * @param handlers   Handlers to run before and after the prompt.
+     * @param callbacks  Callbacks to run after the prompt.
+     */
+    @SuppressWarnings("unchecked")
+    public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
+                                 Map<String, Object> callbacks) {
+
+        ShowPromptNode newNode = new ShowPromptNode();
+        newNode.setTemplateId(templateId);
+        newNode.setParameters(parameters);
+
+        JsBaseGraphBuilder currentBuilder = getCurrentBuilder();
+        if (currentBuilder.currentNode == null) {
+            currentBuilder.result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentBuilder.currentNode, newNode);
+        }
+
+        currentBuilder.currentNode = newNode;
+        addEventListeners(newNode, callbacks, currentBuilder.effectiveFunctionSerializer());
+        addHandlers(newNode, handlers, currentBuilder.effectiveFunctionSerializer());
+    }
+
+    /**
      * Adds a function to show a prompt in Javascript code.
      *
      * @param parameterMap parameterMap

@@ -23,7 +23,6 @@ import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -70,7 +69,7 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
                 return new GraalJsServletRequest((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return new JsServletResponse((TransientObjectWrapper) getWrapped()
+                return new GraalJsServletResponse((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
             case FrameworkConstants.JSAttributes.JS_STEPS:
                 return new GraalJsSteps(getWrapped());

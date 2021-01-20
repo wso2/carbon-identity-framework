@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import jdk.nashorn.api.scripting.AbstractJSObject;
 
@@ -28,12 +28,12 @@ import java.util.Map;
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsHeaders extends AbstractJSObject {
+public class NashornJsHeaders extends AbstractJSObject {
 
     private Map wrapped;
     private HttpServletResponse response;
 
-    public JsHeaders(Map wrapped, HttpServletResponse response) {
+    public NashornJsHeaders(Map wrapped, HttpServletResponse response) {
 
         this.wrapped = wrapped;
         this.response = response;

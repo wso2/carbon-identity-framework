@@ -2,7 +2,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsHeaders;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -12,7 +12,7 @@ import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> implements ProxyObject {
+public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> implements ProxyObject, JsServletResponse {
 
     public GraalJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
@@ -31,7 +31,7 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
                         headers.put(element, getResponse().getHeader(element));
                     }
                 }
-                return new JsHeaders(headers, getResponse());
+                return new GraalJsHeaders(headers, getResponse());
             default:
                 return super.getMember(name);
         }
@@ -64,13 +64,14 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
 
     }
 
-    private HttpServletResponse getResponse() {
+    public HttpServletResponse getResponse() {
 
         TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();
     }
 
     public void addCookie(Cookie cookie) {
+        System.out.println("Let's add the cookie");
         getResponse().addCookie(cookie);
     }
 }

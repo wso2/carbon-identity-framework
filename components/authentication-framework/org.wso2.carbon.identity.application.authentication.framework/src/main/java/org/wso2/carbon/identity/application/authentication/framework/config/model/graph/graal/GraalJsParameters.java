@@ -4,10 +4,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 
 import java.util.Map;
 
-public class GraalJsParameters extends AbstractJSObjectWrapper<Map> implements ProxyObject {
+public class GraalJsParameters extends AbstractJSObjectWrapper<Map> implements ProxyObject, JsParameters {
 
     private static final Log LOG = LogFactory.getLog(GraalJsParameters.class);
 

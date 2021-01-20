@@ -21,9 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.Context;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;

@@ -25,8 +25,6 @@ import jdk.nashorn.internal.runtime.ScriptFunction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.NashornJsAuthenticationContext;
 
 import java.util.function.Function;
 import javax.script.Compilable;

@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import jdk.nashorn.api.scripting.AbstractJSObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;

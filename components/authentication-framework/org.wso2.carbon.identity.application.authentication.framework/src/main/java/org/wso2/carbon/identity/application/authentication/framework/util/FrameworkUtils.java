@@ -2300,8 +2300,10 @@ public class FrameworkUtils {
             Value valueObj = (Value) value;
             if (valueObj.canExecute()){
                 return GraalSerializableJsFunction.toSerializableForm(valueObj);
+            }else if (valueObj.isProxyObject()){
+                return valueObj.asProxyObject();
             }else if (valueObj.isNumber()){
-                return valueObj.asDouble();
+                return valueObj.asInt();
             }else if (valueObj.isString()){
                 return valueObj.toString();
             }else if (valueObj.isDate()){

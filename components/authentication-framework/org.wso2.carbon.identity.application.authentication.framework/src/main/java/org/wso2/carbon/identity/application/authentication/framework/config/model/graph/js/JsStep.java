@@ -21,6 +21,8 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSContextMemberObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -59,7 +61,7 @@ public class JsStep extends AbstractJSContextMemberObject {
 
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return new JsAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
+                return new NashornJsAuthenticatedUser(getContext(), getSubject(), step, authenticatedIdp);
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
                 return authenticatedIdp;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:

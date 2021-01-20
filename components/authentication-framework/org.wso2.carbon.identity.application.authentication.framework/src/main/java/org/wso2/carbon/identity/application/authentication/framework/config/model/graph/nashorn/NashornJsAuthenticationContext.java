@@ -16,9 +16,12 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsStep;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsSteps;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -62,10 +65,10 @@ public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<Auth
             case FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER:
                 return getLastLoginFailedUserFromWrappedContext();
             case FrameworkConstants.JSAttributes.JS_REQUEST:
-                return new JsServletRequest((TransientObjectWrapper) getWrapped()
+                return new NashornJsServletRequest((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_REQUEST));
             case FrameworkConstants.JSAttributes.JS_RESPONSE:
-                return new JsServletResponse((TransientObjectWrapper) getWrapped()
+                return new NashornJsServletResponse((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
             case FrameworkConstants.JSAttributes.JS_STEPS:
                 return new JsSteps(getWrapped());
@@ -74,7 +77,7 @@ public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<Auth
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 StepConfig stepConfig = getCurrentSubjectIdentifierStep();
                 if (stepConfig != null) {
-                    return new JsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
+                    return new NashornJsAuthenticatedUser(this.getContext(), stepConfig.getAuthenticatedUser(),
                             stepConfig.getOrder(), stepConfig.getAuthenticatedIdP());
                 } else {
                     return null;
@@ -139,11 +142,11 @@ public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<Auth
         return transientObjectWrapper != null && transientObjectWrapper.getWrapped() != null;
     }
 
-    private JsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
+    private NashornJsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
         Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
-            return new JsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
+            return new NashornJsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
         } else {
             return null;
         }

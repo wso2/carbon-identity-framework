@@ -56,6 +56,12 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
         }
     }
 
+    public GraalSerializableJsFunction(String source, boolean isFunction) {
+
+        this.source = source;
+        this.isPolyglotFunction = true;
+    }
+
     /**
      * This will return the converted NashornSerializableJsFunction if the given  ScriptObjectMirror is a function.
      *

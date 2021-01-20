@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperBuilderUtil;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
@@ -89,7 +90,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
             throws FrameworkException {
-
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }

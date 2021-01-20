@@ -79,7 +79,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory <Con
     }
 
     public Context createEngine(AuthenticationContext authenticationContext) {
-        Context context = Context.newBuilder("js").allowHostAccess(true).build();
+        Context context = Context.newBuilder("js").allowAllAccess(true).build();
 
         Value bindings = context.getBindings("js");
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();

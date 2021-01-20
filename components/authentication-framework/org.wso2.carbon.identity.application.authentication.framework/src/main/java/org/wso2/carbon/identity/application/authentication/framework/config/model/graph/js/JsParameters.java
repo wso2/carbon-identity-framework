@@ -29,33 +29,6 @@ import java.util.Map;
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class JsParameters extends AbstractJSObjectWrapper<Map> {
-
-    private static final Log LOG = LogFactory.getLog(JsParameters.class);
-
-    public JsParameters(Map wrapped) {
-        super(wrapped);
-    }
-
-    @Override
-    public Object getMember(String name) {
-        return getWrapped().get(name);
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-        return getWrapped().get(name) != null;
-    }
-
-    @Override
-    public void removeMember(String name) {
-
-        LOG.warn("Unsupported operation. Parameters are read only. Can't remove parameter " + name);
-    }
-
-    @Override
-    public void setMember(String name, Object value) {
-
-        LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + name + " to value: " + value);
-    }
+public interface JsParameters {
+    Map getWrapped();
 }

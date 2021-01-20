@@ -1,9 +1,23 @@
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
+/*
+ * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyObject;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
+
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -26,15 +40,13 @@ import javax.servlet.http.HttpServletRequest;
  * <p>
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HTTPServletRequest.
  */
+public class NashornJsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>> implements JsServletRequest {
 
-public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>> implements ProxyObject, JsServletRequest {
-
-    private static final Log LOG = LogFactory.getLog(GraalJsServletRequest.class);
-
-    public GraalJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
+    public NashornJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
         super(wrapped);
     }
+
     @Override
     public Object getMember(String name) {
 
@@ -48,29 +60,23 @@ public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObje
                         headers.put(headerName, getRequest().getHeader(headerName));
                     }
                 }
-                return new GraalJsWritableParameters(headers);
+                return new NashornJsWritableParameters(headers);
             case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return new GraalJsParameters(getRequest().getParameterMap());
+                return new NashornJsParameters(getRequest().getParameterMap());
             case FrameworkConstants.JSAttributes.JS_COOKIES:
                 Map cookies = new HashMap();
                 Cookie[] cookieArr = getRequest().getCookies();
                 if (cookieArr != null) {
                     for (Cookie cookie : cookieArr) {
-                        cookies.put(cookie.getName(), new GraalJsCookie(cookie));
+                        cookies.put(cookie.getName(), new NashornJsCookie(cookie));
                     }
                 }
-                return new GraalJsWritableParameters(cookies);
+                return new NashornJsWritableParameters(cookies);
             case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
                 return IdentityUtil.getClientIpAddress(getRequest());
             default:
                 return super.getMember(name);
         }
-    }
-
-    @Override
-    public Object getMemberKeys() {
-
-        return null;
     }
 
     @Override
@@ -88,25 +94,13 @@ public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObje
                 return getRequest().getParameterMap() != null;
             case FrameworkConstants.JSAttributes.JS_COOKIES:
                 return getRequest().getCookies() != null;
-            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
-                return true;
             default:
                 return super.hasMember(name);
         }
     }
 
-    @Override
-    public void putMember(String key, Value value) {
-        LOG.warn("Unsupported operation. Servlet Request is read only. Can't remove parameter " + key);
-    }
-
-    @Override
-    public boolean removeMember(String key) {
-
-        return false;
-    }
-
     private HttpServletRequest getRequest() {
+
         TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();
     }

@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Optional;
