@@ -675,6 +675,7 @@
       "internal_application_mgt_delete"
     ]
   },
+  "console.applications.ui.certificate_alias_enabled": false,
   "console.approvals.enabled": true,
   "console.approvals.scopes": {
     "create": [
