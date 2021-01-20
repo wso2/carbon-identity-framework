@@ -191,6 +191,7 @@
             <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">authenticationendpoint/totp_enroll.do</Parameter>
             <Parameter name="Issuer">WSO2</Parameter>
             <Parameter name="UseCommonIssuer">true</Parameter>
+            <Parameter name="AllowSendingVerificationCodeByEmail">false</Parameter>
         </AuthenticatorConfig>
     </AuthenticatorConfigs>
 
