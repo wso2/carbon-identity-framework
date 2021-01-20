@@ -780,60 +780,93 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     public IdentityProvider[] getAllIdentityProviders(String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        List<IdentityProvider> fedIdpList;
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
-            List<IdentityProvider> fedIdpList = idpdao.getAllIdentityProviders();
-            if (fedIdpList != null) {
-                return fedIdpList.toArray(new IdentityProvider[fedIdpList.size()]);
-            }
-            return new IdentityProvider[0];
+            fedIdpList = idpdao.getAllIdentityProviders();
         } catch (Exception e) {
             String error = "Error occurred while retrieving all Identity Providers" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
         }
+
+        // Invoking the listeners
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.doPostGetAllIdentityProviders(tenantDomain, fedIdpList);
+            }
+        }
+
+        if (fedIdpList != null) {
+            return fedIdpList.toArray(new IdentityProvider[fedIdpList.size()]);
+        }
+        return new IdentityProvider[0];
     }
 
     @Override
     public LocalAuthenticatorConfig[] getAllLocalAuthenticators(String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        List<LocalAuthenticatorConfig> localAuthenticators;
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
-            List<LocalAuthenticatorConfig> localAuthenticators = idpdao.getAllLocalAuthenticators();
-            if (localAuthenticators != null) {
-                return localAuthenticators.toArray(new LocalAuthenticatorConfig[localAuthenticators.size()]);
-            }
-            return new LocalAuthenticatorConfig[0];
+            localAuthenticators = idpdao.getAllLocalAuthenticators();
         } catch (Exception e) {
             String error = "Error occurred while retrieving all Local Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
         }
+
+        // Invoking the listeners
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.doPostGetAllLocalAuthenticators(tenantDomain, localAuthenticators);
+            }
+        }
+
+        if (localAuthenticators != null) {
+            return localAuthenticators.toArray(new LocalAuthenticatorConfig[localAuthenticators.size()]);
+        }
+        return new LocalAuthenticatorConfig[0];
     }
 
     @Override
     public RequestPathAuthenticatorConfig[] getAllRequestPathAuthenticators(String tenantDomain)
             throws IdentityApplicationManagementException {
 
+        List<RequestPathAuthenticatorConfig> reqPathAuthenticators;
         try {
             startTenantFlow(tenantDomain);
             IdentityProviderDAO idpdao = ApplicationMgtSystemConfig.getInstance().getIdentityProviderDAO();
-            List<RequestPathAuthenticatorConfig> reqPathAuthenticators = idpdao.getAllRequestPathAuthenticators();
-            if (reqPathAuthenticators != null) {
-                return reqPathAuthenticators.toArray(new RequestPathAuthenticatorConfig[reqPathAuthenticators.size()]);
-            }
-            return new RequestPathAuthenticatorConfig[0];
+            reqPathAuthenticators = idpdao.getAllRequestPathAuthenticators();
         } catch (Exception e) {
             String error = "Error occurred while retrieving all Request Path Authenticators" + ". " + e.getMessage();
             throw new IdentityApplicationManagementException(error, e);
         } finally {
             endTenantFlow();
         }
+
+        // Invoking the listeners
+        Collection<ApplicationMgtListener> listeners =
+                ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+        for (ApplicationMgtListener listener : listeners) {
+            if (listener.isEnable()) {
+                listener.doPostGetAllRequestPathAuthenticators(tenantDomain, reqPathAuthenticators);
+            }
+        }
+
+        if (reqPathAuthenticators != null) {
+            return reqPathAuthenticators.toArray(new RequestPathAuthenticatorConfig[reqPathAuthenticators.size()]);
+        }
+        return new RequestPathAuthenticatorConfig[0];
     }
 
     @Override

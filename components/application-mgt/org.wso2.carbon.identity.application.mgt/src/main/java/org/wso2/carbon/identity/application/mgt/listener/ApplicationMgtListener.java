@@ -19,8 +19,13 @@
 package org.wso2.carbon.identity.application.mgt.listener;
 
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
+import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
+
+import java.util.List;
 
 /**
  * Definition for the listeners which listens to Application/Service Provider CRUD events.
@@ -386,5 +391,37 @@ public interface ApplicationMgtListener {
             throws IdentityApplicationManagementException {
 
         return true;
+    }
+
+    /**
+     * Define any additional actions to the get all local authenticator method.
+     *
+     * @param tenantDomain The requested tenant domain.
+     * @param localAuthenticators   The local authenticators to be returned by the service.
+     */
+    default void doPostGetAllLocalAuthenticators(String tenantDomain,
+                                                    List<LocalAuthenticatorConfig> localAuthenticators) {
+        return;
+    }
+
+    /**
+     * Define any additional actions to the get all identity providers method.
+     *
+     * @param tenantDomain The requested tenant domain.
+     * @param fedIdpList   The identity providers to be returned by the service.
+     */
+    default void doPostGetAllIdentityProviders(String tenantDomain, List<IdentityProvider> fedIdpList) {
+        return;
+    }
+
+    /**
+     * Define any additional actions to the get all request path authenticator method.
+     *
+     * @param tenantDomain The requested tenant domain.
+     * @param reqPathAuthenticators   The request path authenticators to be returned by the service.
+     */
+    default void doPostGetAllRequestPathAuthenticators(String tenantDomain,
+                                                List<RequestPathAuthenticatorConfig> reqPathAuthenticators) {
+        return;
     }
 }
