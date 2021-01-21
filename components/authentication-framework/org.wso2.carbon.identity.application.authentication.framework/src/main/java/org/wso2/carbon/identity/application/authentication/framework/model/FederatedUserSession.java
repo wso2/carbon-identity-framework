@@ -29,11 +29,11 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
  */
 public class FederatedUserSession {
 
-    private String IdPSessionId;
-    private String SessionId;
-    private String IdPName;
-    private String AuthenticatorName;
-    private String ProtocolType;
+    private String idPSessionId;
+    private String sessionId;
+    private String idPName;
+    private String authenticatorName;
+    private String protocolType;
 
     public FederatedUserSession() {
 
@@ -42,60 +42,60 @@ public class FederatedUserSession {
     public FederatedUserSession(String idPSessionId, String sessionId, String idPName, String authenticatorName,
                                 String protocolType) {
 
-        IdPSessionId = idPSessionId;
-        SessionId = sessionId;
-        IdPName = idPName;
-        AuthenticatorName = authenticatorName;
-        ProtocolType = protocolType;
+        this.idPSessionId = idPSessionId;
+        this.sessionId = sessionId;
+        this.idPName = idPName;
+        this.authenticatorName = authenticatorName;
+        this.protocolType = protocolType;
     }
 
     public String getIdPSessionId() {
 
-        return IdPSessionId;
+        return idPSessionId;
     }
 
     public void setIdPSessionId(String idPSessionId) {
 
-        this.IdPSessionId = idPSessionId;
+        this.idPSessionId = idPSessionId;
     }
 
     public String getSessionId() {
 
-        return SessionId;
+        return sessionId;
     }
 
     public void setSessionId(String sessionId) {
 
-        this.SessionId = sessionId;
+        this.sessionId = sessionId;
     }
 
     public String getIdPName() {
 
-        return IdPName;
+        return idPName;
     }
 
     public void setIdPName(String idPName) {
 
-        this.IdPName = idPName;
+        this.idPName = idPName;
     }
 
     public String getAuthenticatorName() {
 
-        return AuthenticatorName;
+        return authenticatorName;
     }
 
     public void setAuthenticatorName(String authenticatorName) {
 
-        this.AuthenticatorName = authenticatorName;
+        this.authenticatorName = authenticatorName;
     }
 
     public String getProtocolType() {
 
-        return ProtocolType;
+        return protocolType;
     }
 
     public void setProtocolType(String protocolType) {
 
-        this.ProtocolType = protocolType;
+        this.protocolType = protocolType;
     }
 }
