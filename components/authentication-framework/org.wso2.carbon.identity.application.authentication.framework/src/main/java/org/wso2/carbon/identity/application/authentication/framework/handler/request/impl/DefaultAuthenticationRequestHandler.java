@@ -766,8 +766,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             authCookieAge = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
         }
         String path = null;
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-            path = "/t/" + context.getLoginTenantDomain() + "/";
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
         }
         FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);
     }

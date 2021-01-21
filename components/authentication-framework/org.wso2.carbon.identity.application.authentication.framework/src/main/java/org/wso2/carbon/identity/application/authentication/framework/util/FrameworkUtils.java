@@ -184,7 +184,6 @@ public class FrameworkUtils {
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
 
     public static final String ROOT_DOMAIN = "/";
-    public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
     private FrameworkUtils() {
     }
@@ -662,7 +661,7 @@ public class FrameworkUtils {
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String tenantDomain) {
 
-        String path = TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        String path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
         removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
     }
 
@@ -2714,7 +2713,7 @@ public class FrameworkUtils {
             // not the app owner.
             if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
                 return username;
-            } //todo get domain from param t
+            }
             return username + "@" + context.getUserTenantDomain();
         }
         return username;

@@ -479,8 +479,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // tenant domain
         String tenantDomain = getTenantDomain(request);
 
-        String loginDomain = request.getParameter("t");
-        String userDomain = request.getParameter("o");
+        String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+        String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
 
         // Store the request data sent by the caller
         AuthenticationContext context = new AuthenticationContext();
@@ -491,10 +491,10 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         context.setLoginTenantDomain(loginDomain);
         context.setUserTenantDomainHint(userDomain);
 
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             String loginTenantDomain = context.getLoginTenantDomain();
-            if (!callerPath.startsWith("/t/" + loginTenantDomain)) {
-                callerPath = "/t/" + loginTenantDomain + callerPath;
+            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/")) {
+                callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
             }
         }
         context.setCallerPath(callerPath);

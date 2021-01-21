@@ -53,7 +53,6 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
 
     private String fragment;
     private String[] urlPaths;
-    private String tenant;
     private Map<String, String> parameters = new HashMap<>();
     private Map<String, String> fragmentParams = new HashMap<>();
 
@@ -67,12 +66,6 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
     public ServiceURLBuilder addPath(String... paths) {
 
         this.urlPaths = paths;
-        return this;
-    }
-
-    @Override
-    public ServiceURLBuilder setTenant(String tenant) {
-        this.tenant = tenant;
         return this;
     }
 
@@ -91,14 +84,12 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         String internalHostName = fetchInternalHostName();
         int proxyPort = fetchPort();
         int transportPort = fetchTransportPort();
-        if (StringUtils.isBlank(tenant)) {
-            tenant = resolveTenantDomain();
-        }
+        String tenantDomain = resolveTenantDomain();
         String proxyContextPath = ServerConfiguration.getInstance().getFirstProperty(PROXY_CONTEXT_PATH);
         String resolvedFragment = buildFragment(fragment, fragmentParams);
-        String urlPath = getResolvedUrlPath(tenant);
+        String urlPath = getResolvedUrlPath(tenantDomain);
 
-        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, proxyPort, transportPort, tenant,
+        return new ServiceURLImpl(protocol, proxyHostName, internalHostName, proxyPort, transportPort, tenantDomain,
                 proxyContextPath, urlPath, parameters, resolvedFragment);
     }
 

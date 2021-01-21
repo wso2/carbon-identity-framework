@@ -137,6 +137,8 @@ public abstract class FrameworkConstants {
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
 
+    public static final String TENANT_CONTEXT_PREFIX = "/t/";
+
     private FrameworkConstants() {
 
     }
@@ -273,6 +275,8 @@ public abstract class FrameworkConstants {
         public static final String IDF = "idf";
         public static final String IDENTIFIER_CONSENT = "identifier_consent";
         public static final String RESTART_FLOW = "restart_flow";
+        public static final String LOGIN_TENANT_DOMAIN = "t";
+        public static final String USER_TENANT_DOMAIN_HINT = "ut";
 
         private RequestParams() {
         }

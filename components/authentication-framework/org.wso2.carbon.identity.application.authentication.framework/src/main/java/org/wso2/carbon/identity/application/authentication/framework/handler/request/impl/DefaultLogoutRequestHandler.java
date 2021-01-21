@@ -142,7 +142,7 @@ public class DefaultLogoutRequestHandler implements LogoutRequestHandler {
         // remove the SessionContext from the cache
         FrameworkUtils.removeSessionContextFromCache(context.getSessionIdentifier());
         // remove the cookie
-        if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
             FrameworkUtils.removeAuthCookie(request, response, context.getLoginTenantDomain());
         } else {
             FrameworkUtils.removeAuthCookie(request, response);
