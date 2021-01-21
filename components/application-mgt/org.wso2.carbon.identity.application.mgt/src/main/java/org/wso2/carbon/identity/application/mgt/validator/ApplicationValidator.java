@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import java.util.List;
 
 /**
- * Validator for the application which will be triggered in application related  operations.
+ * Validator for the application which will be triggered in application related operations.
  */
 public interface ApplicationValidator {
 
