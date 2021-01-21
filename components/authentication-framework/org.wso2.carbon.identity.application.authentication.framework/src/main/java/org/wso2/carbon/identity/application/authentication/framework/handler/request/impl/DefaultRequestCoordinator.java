@@ -479,13 +479,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // tenant domain
         String tenantDomain = getTenantDomain(request);
 
+        String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+        String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
+
         // Store the request data sent by the caller
         AuthenticationContext context = new AuthenticationContext();
         context.setCallerSessionKey(callerSessionDataKey);
-        context.setCallerPath(callerPath);
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
         context.setTenantDomain(tenantDomain);
+        context.setLoginTenantDomain(loginDomain);
+        context.setUserTenantDomainHint(userDomain);
+
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String loginTenantDomain = context.getLoginTenantDomain();
+            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/")) {
+                callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+            }
+        }
+        context.setCallerPath(callerPath);
 
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();

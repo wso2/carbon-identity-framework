@@ -126,6 +126,11 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -149,12 +154,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -183,6 +182,8 @@ public class FrameworkUtils {
 
     private static final String CONTINUE_ON_CLAIM_HANDLING_ERROR = "ContinueOnClaimHandlingError";
     public static final String CORRELATION_ID_MDC = "Correlation-ID";
+
+    public static final String ROOT_DOMAIN = "/";
 
     private FrameworkUtils() {
     }
@@ -642,7 +643,8 @@ public class FrameworkUtils {
 
     /**
      * Removes commonAuthCookie.
-     * @param req Incoming HttpServletRequest.
+     *
+     * @param req  Incoming HttpServletRequest.
      * @param resp HttpServlet response which the cookie must be written.
      */
     public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp) {
@@ -651,9 +653,23 @@ public class FrameworkUtils {
     }
 
     /**
+     * Remove the auth cookie in the tenanted path
+     *
+     * @param req    HTTP request
+     * @param resp   HTTP response
+     * @param tenantDomain Tenant domain
+     */
+    public static void removeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String tenantDomain) {
+
+        String path = FrameworkConstants.TENANT_CONTEXT_PREFIX + tenantDomain + "/";
+        removeCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, SameSiteCookie.NONE, path);
+    }
+
+    /**
      * Removes a cookie which is already stored.
-     * @param req Incoming HttpServletRequest.
-     * @param resp HttpServletResponse which should be stored.
+     *
+     * @param req        Incoming HttpServletRequest.
+     * @param resp       HttpServletResponse which should be stored.
      * @param cookieName Name of the cookie which should be removed.
      */
     public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName) {
@@ -670,11 +686,11 @@ public class FrameworkUtils {
                             (cookieName);
 
                     if (cookieConfig != null) {
-                        updateCookieConfig(cookieBuilder, cookieConfig, 0);
+                        updateCookieConfig(cookieBuilder, cookieConfig, 0, ROOT_DOMAIN);
                     } else {
                         cookieBuilder.setHttpOnly(true);
                         cookieBuilder.setSecure(true);
-                        cookieBuilder.setPath("/");
+                        cookieBuilder.setPath(ROOT_DOMAIN);
                     }
 
                     cookieBuilder.setMaxAge(0);
@@ -696,6 +712,13 @@ public class FrameworkUtils {
     public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName,
                                     SameSiteCookie sameSiteCookie) {
 
+        removeCookie(req, resp, cookieName, sameSiteCookie, ROOT_DOMAIN);
+    }
+
+
+    public static void removeCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName,
+                                    SameSiteCookie sameSiteCookie, String path) {
+
         Cookie[] cookies = req.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -704,11 +727,11 @@ public class FrameworkUtils {
                             cookie.getValue());
                     IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
                     if (cookieConfig != null) {
-                        updateCookieConfig(cookieBuilder, cookieConfig, 0);
+                        updateCookieConfig(cookieBuilder, cookieConfig, 0, path);
                     } else {
                         cookieBuilder.setHttpOnly(true);
                         cookieBuilder.setSecure(true);
-                        cookieBuilder.setPath("/");
+                        cookieBuilder.setPath(StringUtils.isNotBlank(path) ? path : ROOT_DOMAIN);
                         cookieBuilder.setSameSite(sameSiteCookie);
                     }
                     cookieBuilder.setMaxAge(0);
@@ -724,8 +747,9 @@ public class FrameworkUtils {
      * @param resp
      * @param id
      */
+    @Deprecated
     public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id) {
-        storeAuthCookie(req, resp, id, null);
+        storeAuthCookie(req, resp, id, null, ROOT_DOMAIN);
     }
 
     /**
@@ -739,13 +763,20 @@ public class FrameworkUtils {
         setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE);
     }
 
+    public static void storeAuthCookie(HttpServletRequest req, HttpServletResponse resp, String id, Integer age,
+                                       String path) {
+
+        setCookie(req, resp, FrameworkConstants.COMMONAUTH_COOKIE, id, age, SameSiteCookie.NONE, path);
+    }
+
     /**
      * Stores a cookie to the response taking configurations from identity.xml file.
-     * @param req Incoming HttpSerletRequest.
-     * @param resp Outgoing HttpServletResponse.
+     *
+     * @param req        Incoming HttpSerletRequest.
+     * @param resp       Outgoing HttpServletResponse.
      * @param cookieName Name of the cookie to be stored.
-     * @param id Cookie id.
-     * @param age Max age of the cookie.
+     * @param id         Cookie id.
+     * @param age        Max age of the cookie.
      */
     public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
                                  Integer age) {
@@ -756,12 +787,12 @@ public class FrameworkUtils {
 
         if (cookieConfig != null) {
 
-            updateCookieConfig(cookieBuilder, cookieConfig, age);
+            updateCookieConfig(cookieBuilder, cookieConfig, age, null);
         } else {
 
             cookieBuilder.setSecure(true);
             cookieBuilder.setHttpOnly(true);
-            cookieBuilder.setPath("/");
+            cookieBuilder.setPath(ROOT_DOMAIN);
 
             if (age != null) {
                 cookieBuilder.setMaxAge(age);
@@ -784,14 +815,20 @@ public class FrameworkUtils {
     public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
                                  Integer age, SameSiteCookie setSameSite) {
 
+        setCookie(req, resp, cookieName, id, age, setSameSite, null);
+    }
+
+    public static void setCookie(HttpServletRequest req, HttpServletResponse resp, String cookieName, String id,
+                                 Integer age, SameSiteCookie setSameSite, String path) {
+
         CookieBuilder cookieBuilder = new CookieBuilder(cookieName, id);
         IdentityCookieConfig cookieConfig = IdentityUtil.getIdentityCookieConfig(cookieName);
         if (cookieConfig != null) {
-            updateCookieConfig(cookieBuilder, cookieConfig, age);
+            updateCookieConfig(cookieBuilder, cookieConfig, age, path);
         } else {
             cookieBuilder.setSecure(true);
             cookieBuilder.setHttpOnly(true);
-            cookieBuilder.setPath("/");
+            cookieBuilder.setPath(StringUtils.isNotBlank(path) ? path : ROOT_DOMAIN);
             cookieBuilder.setSameSite(setSameSite);
             if (age != null) {
                 cookieBuilder.setMaxAge(age);
@@ -801,7 +838,6 @@ public class FrameworkUtils {
     }
 
     /**
-     *
      * @param req Incoming HttpServletRequest.
      * @return CommonAuthID cookie.
      */
@@ -1831,7 +1867,7 @@ public class FrameworkUtils {
     }
 
     private static void updateCookieConfig(CookieBuilder cookieBuilder, IdentityCookieConfig
-            cookieConfig, Integer age) {
+            cookieConfig, Integer age, String path) {
 
         if (cookieConfig.getDomain() != null) {
             cookieBuilder.setDomain(cookieConfig.getDomain());
@@ -1839,6 +1875,8 @@ public class FrameworkUtils {
 
         if (cookieConfig.getPath() != null) {
             cookieBuilder.setPath(cookieConfig.getPath());
+        } else if (StringUtils.isNotBlank(path)) {
+            cookieBuilder.setPath(path);
         }
 
         if (cookieConfig.getComment() != null) {
@@ -2667,16 +2705,16 @@ public class FrameworkUtils {
 
         if (IdentityUtil.isEmailUsernameEnabled()) {
             if (StringUtils.countMatches(username, "@") == 1) {
-                return username + "@" + context.getTenantDomain();
+                return username + "@" + context.getUserTenantDomain();
             }
-        } else if (!username.endsWith(context.getTenantDomain())) {
+        } else if (!username.endsWith(context.getUserTenantDomain())) {
 
             // If the username is email-type (without enabling email username option) or belongs to a tenant which is
             // not the app owner.
             if (isSaaSApp && StringUtils.countMatches(username, "@") >= 1) {
                 return username;
             }
-            return username + "@" + context.getTenantDomain();
+            return username + "@" + context.getUserTenantDomain();
         }
         return username;
     }

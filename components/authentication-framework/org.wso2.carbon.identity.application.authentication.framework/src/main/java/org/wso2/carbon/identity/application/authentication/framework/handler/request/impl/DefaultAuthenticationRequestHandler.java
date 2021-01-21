@@ -52,6 +52,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -61,6 +62,10 @@ import org.wso2.carbon.user.core.model.UserMgtContext;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URLEncoder;
@@ -71,17 +76,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -377,10 +377,14 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String commonAuthCookie = null;
             String sessionContextKey = null;
             String analyticsSessionAction = null;
-            // Force authentication requires the creation of a new session. Therefore skip using the existing session
-            if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
 
-                commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+            //When getting the cookie, it will not give the path. When paths are tenant qualified, it will only give
+            // the cookies matching that path.
+            Cookie authCookie = FrameworkUtils.getAuthCookie(request);
+            // Force authentication requires the creation of a new session. Therefore skip using the existing session
+            if (authCookie != null && !context.isForceAuthenticate()) {
+
+                commonAuthCookie = authCookie.getValue();
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
@@ -761,8 +765,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (context.isRememberMe()) {
             authCookieAge = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
         }
-
-        FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge);
+        String path = null;
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+        }
+        FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);
     }
 
     private String getAuthenticatedUserTenantDomain(AuthenticationContext context,
