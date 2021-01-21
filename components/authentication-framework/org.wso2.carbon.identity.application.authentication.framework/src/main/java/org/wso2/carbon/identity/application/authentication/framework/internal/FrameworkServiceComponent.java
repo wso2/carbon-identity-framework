@@ -214,8 +214,12 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
                 new SessionExtenderResponseFactory(), null);
         bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
+
+        ServerSessionManagementService serverSessionManagementService = new ServerSessionManagementServiceImpl();
         bundleContext.registerService(ServerSessionManagementService.class.getName(),
-                new ServerSessionManagementServiceImpl(), null);
+                serverSessionManagementService, null);
+        dataHolder.setServerSessionManagementService(serverSessionManagementService);
+
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -322,10 +326,6 @@ public class FrameworkServiceComponent {
                 .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
-
-        //Set ServerSessionManagementService to the data holder
-        ServerSessionManagementService serverSessionManagementService = new ServerSessionManagementServiceImpl();
-        dataHolder.setServerSessionManagementService(serverSessionManagementService);
 
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
