@@ -266,7 +266,6 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
         JsPolyglotGraphBuilderFactory jsGraphBuilderFactory = new JsPolyglotGraphBuilderFactory();
-//        JsWrapperBuilder jsWrapperBuilder = new GraalJsWrapperBuilder();
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);

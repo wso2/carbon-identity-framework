@@ -132,7 +132,8 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
                 log.debug("Error in executing the Javascript.", e);
             }
         } finally {
-            clearCurrentBuilder();
+            currentBuilder.remove();
+//            clearCurrentBuilder();
         }
         return this;
     }

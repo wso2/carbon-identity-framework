@@ -31,7 +31,7 @@ public class JsWrapperBuilderUtil {
         }
     }
 
-    public static JsWrapperBuilder getInstance(){
+    public static JsWrapperBuilder getInstance() {
         if (jsWrapperBuilderUtil == null){
             jsWrapperBuilderUtil = new JsWrapperBuilderUtil();
         }
