@@ -35,9 +35,6 @@ public class SessionManagementService extends AbstractAdmin {
 
     public boolean removeSession(String sessionId) {
 
-        if (StringUtils.isBlank(sessionId)) {
-            return false;
-        }
         ServerSessionManagementService serverSessionManagementService =
                 FrameworkServiceDataHolder.getInstance().getServerSessionManagementService();
         return serverSessionManagementService.removeSession(sessionId);
