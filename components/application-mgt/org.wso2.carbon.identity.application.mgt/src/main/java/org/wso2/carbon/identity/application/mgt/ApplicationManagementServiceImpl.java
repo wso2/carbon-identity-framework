@@ -68,6 +68,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerS
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -137,7 +138,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
-    private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
+    private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -1338,7 +1339,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+            applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
@@ -1371,7 +1372,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 validateSPTemplateExists(spTemplate, tenantDomain);
 
                 ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
-                applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
+                applicationValidatorManager.validateSPConfigurations(updatedSP, tenantDomain,
                         CarbonContext.getThreadLocalCarbonContext().getUsername());
                 Collection<ApplicationMgtListener> listeners =
                         getApplicationMgtListeners();
@@ -1440,7 +1441,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateUnsupportedTemplateConfigs(serviceProvider);
 
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+            applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
@@ -2330,7 +2331,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                    String username) throws IdentityApplicationManagementException {
 
         try {
-            applicationMgtValidator.validateSPConfigurations(application, tenantDomain, username);
+            applicationValidatorManager.validateSPConfigurations(application, tenantDomain, username);
         } catch (IdentityApplicationManagementValidationException e) {
             String message = "Invalid application configuration for application: '" +
                     application.getApplicationName() + "' of tenantDomain: " + tenantDomain + ".";
