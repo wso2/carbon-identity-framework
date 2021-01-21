@@ -226,7 +226,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
 
 
-                if (isRestartRequest(request)) {
+                if (isBackToFirstStepRequest(request)) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -361,7 +361,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private boolean isRestartRequest(HttpServletRequest request) {
+    private boolean isBackToFirstStepRequest(HttpServletRequest request) {
 
         String authType = request.getParameter(RESTART_FLOW);
         return Boolean.parseBoolean(authType);
