@@ -87,6 +87,7 @@ public class IdentityProvider implements Serializable {
     private static final String IDP_ISSUER_NAME = "idpIssuerName";
     private static final String JWKS_URI = "jwksUri";
     private static final String JWKS_DISPLAYNAME = "Identity Provider's JWKS Endpoint";
+    private static final String TEMPLATE_ID = "TemplateId";
 
     @XmlTransient
     private String id;
@@ -156,7 +157,12 @@ public class IdentityProvider implements Serializable {
     @XmlTransient
     private String resourceId;
 
+    @IgnoreNullElement
+    @XmlElement(name = "TemplateId")
+    private String templateId;
+
     public static IdentityProvider build(OMElement identityProviderOM) {
+
         IdentityProvider identityProvider = new IdentityProvider();
 
         Iterator<?> iter = identityProviderOM.getChildElements();
@@ -310,6 +316,8 @@ public class IdentityProvider implements Serializable {
                         .build(element));
             } else if (FILE_ELEMENT_IMAGE_URL.equals(elementName)) {
                 identityProvider.setImageUrl(element.getText());
+            } else if (TEMPLATE_ID.equals(elementName)) {
+                identityProvider.setTemplateId(element.getText());
             }
 
         }
@@ -881,5 +889,15 @@ public class IdentityProvider implements Serializable {
     public void setImageUrl(String imageUrl) {
 
         this.imageUrl = imageUrl;
+    }
+
+    public String getTemplateId() {
+
+        return templateId;
+    }
+
+    public void setTemplateId(String templateId) {
+
+        this.templateId = templateId;
     }
 }

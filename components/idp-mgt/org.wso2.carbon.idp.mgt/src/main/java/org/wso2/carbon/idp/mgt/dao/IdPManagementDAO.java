@@ -76,6 +76,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
+
 /**
  * This class is used to access the data storage to retrieve and store identity provider configurations.
  */
@@ -2013,12 +2015,31 @@ public class IdPManagementDAO {
                 }
             });
         }
+        String templateId = getTemplateId(identityProviderProperties);
+        if (StringUtils.isNotEmpty(templateId)) {
+            federatedIdp.setTemplateId(templateId);
+        }
         identityProviderProperties.removeIf(identityProviderProperty -> (
                 identityProviderProperty.getName().equals(IdPManagementConstants.MODIFY_USERNAME_ENABLED)
                         || identityProviderProperty.getName()
                         .equals(IdPManagementConstants.PASSWORD_PROVISIONING_ENABLED) || identityProviderProperty
                         .getName().equals(IdPManagementConstants.PROMPT_CONSENT_ENABLED)));
         return identityProviderProperties;
+    }
+
+    /**
+     * Get template id from IDP meta data.
+     *
+     * @param propertyList IDP meta data.
+     * @return Template id.
+     */
+    private String getTemplateId(List<IdentityProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> TEMPLATE_ID_IDP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(IdentityProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
     }
 
     /**
