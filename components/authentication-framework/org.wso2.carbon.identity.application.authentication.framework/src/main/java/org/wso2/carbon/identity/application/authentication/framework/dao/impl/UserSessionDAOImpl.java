@@ -107,11 +107,11 @@ public class UserSessionDAOImpl implements UserSessionDAO {
             federatedUserSession = jdbcTemplate
                     .fetchSingleRecord(SQLQueries.SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID,
                             (resultSet, rowNumber) -> new FederatedUserSession(
-                                    resultSet.getString(1),
-                                    resultSet.getString(2),
-                                    resultSet.getString(3),
-                                    resultSet.getString(4),
-                                    resultSet.getString(5)),
+                                    resultSet.getString(SessionMgtConstants.FEDERATED_IDP_SESSION_ID),
+                                    resultSet.getString(SessionMgtConstants.FEDERATED_SESSION_ID),
+                                    resultSet.getString(SessionMgtConstants.FEDERATED_IDP_NAME),
+                                    resultSet.getString(SessionMgtConstants.FEDERATED_AUTHENTICATOR_ID),
+                                    resultSet.getString(SessionMgtConstants.FEDERATED_PROTOCOL_TYPE)),
                             preparedStatement -> preparedStatement.setString(1, fedIdpSessionId));
             return federatedUserSession;
         } catch (DataAccessException e) {
