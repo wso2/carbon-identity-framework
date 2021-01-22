@@ -85,6 +85,7 @@ public class IdPManagementConstants {
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
 
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
+    public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
 
     public static class SQLQueries {
 
