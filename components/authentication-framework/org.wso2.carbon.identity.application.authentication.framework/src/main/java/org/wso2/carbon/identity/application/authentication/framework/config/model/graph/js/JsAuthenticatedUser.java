@@ -146,9 +146,6 @@ public class JsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUs
             case FrameworkConstants.JSAttributes.JS_USER_STORE_DOMAIN:
                 getWrapped().setUserStoreDomain((String) value);
                 break;
-            case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
-                getWrapped().setTenantDomain((String) value);
-                break;
             default:
                 super.setMember(name, value);
         }
