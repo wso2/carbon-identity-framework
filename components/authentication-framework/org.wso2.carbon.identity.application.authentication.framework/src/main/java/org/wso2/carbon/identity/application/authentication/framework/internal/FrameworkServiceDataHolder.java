@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -83,6 +84,7 @@ public class FrameworkServiceDataHolder {
     private String requireCode = "";
     private boolean userSessionMappingEnabled;
     private FederatedAssociationManager federatedAssociationManager;
+    private ServerSessionManagementService serverSessionManagementService;
 
     private FrameworkServiceDataHolder() {
 
@@ -503,5 +505,16 @@ public class FrameworkServiceDataHolder {
     public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
 
         this.federatedAssociationManager = federatedAssociationManager;
+    }
+
+    public ServerSessionManagementService getServerSessionManagementService() {
+
+        return serverSessionManagementService;
+    }
+
+    public void setServerSessionManagementService(
+            ServerSessionManagementService sessionManagementService) {
+
+        this.serverSessionManagementService = sessionManagementService;
     }
 }
