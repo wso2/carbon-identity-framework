@@ -420,7 +420,7 @@ public abstract class AbstractApplicationMgtListener implements ApplicationMgtLi
     public boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        return true;
+        return doPostDeleteApplication(serviceProvider.getApplicationName(), tenantDomain, userName);
     }
 
     public boolean isEnable() {
