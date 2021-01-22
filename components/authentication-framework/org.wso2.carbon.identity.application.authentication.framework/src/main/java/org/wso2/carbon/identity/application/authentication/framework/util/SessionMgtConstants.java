@@ -28,7 +28,7 @@ public class SessionMgtConstants {
     public static final String IP_ADDRESS = "IP";
     public static final String LOGIN_TIME = "Login Time";
 
-    //Federated authentication session details column names
+    // Federated authentication session details column names
     public static final String FEDERATED_IDP_SESSION_ID = "IDP_SESSION_ID";
     public static final String FEDERATED_SESSION_ID = "SESSION_ID";
     public static final String FEDERATED_IDP_NAME = "IDP_NAME";
