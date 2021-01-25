@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.model;
 
 /**
- * Represents a session of a federated user
+ * Represents a session of a federated user.
  */
 public class FederatedUserSession {
 

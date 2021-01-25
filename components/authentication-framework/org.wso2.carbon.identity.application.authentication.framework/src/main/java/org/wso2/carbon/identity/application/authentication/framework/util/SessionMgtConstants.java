@@ -28,7 +28,7 @@ public class SessionMgtConstants {
     public static final String IP_ADDRESS = "IP";
     public static final String LOGIN_TIME = "Login Time";
 
-    // Federated authentication session details column names
+    // Federated authentication session details column names.
     public static final String FEDERATED_IDP_SESSION_ID = "IDP_SESSION_ID";
     public static final String FEDERATED_SESSION_ID = "SESSION_ID";
     public static final String FEDERATED_IDP_NAME = "IDP_NAME";
@@ -46,6 +46,9 @@ public class SessionMgtConstants {
         ERROR_CODE_UNABLE_TO_AUTHORIZE_USER("USM-15006",
                 "Unable to validate user",
                 "Server encountered an error while authorizing user, %s."),
+        ERROR_CODE_UNABLE_TO_GET_FED_USER_SESSION("USM-15007",
+                "Unable to retrieve federated authentication session information",
+                "Server encountered an error while retrieving federated authentication session information."),
         ERROR_CODE_FORBIDDEN_ACTION("USM-10007",
                 "Action forbidden",
                 "User is not authorized to terminate this session."),

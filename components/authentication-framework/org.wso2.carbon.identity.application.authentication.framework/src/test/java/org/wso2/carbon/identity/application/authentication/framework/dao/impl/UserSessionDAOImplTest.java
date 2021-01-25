@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.wso2.carbon.identity.application.authentication.framework.dao.impl;
 
 import org.apache.commons.dbcp.BasicDataSource;
@@ -38,12 +56,14 @@ public class UserSessionDAOImplTest {
     private static final String DB_NAME = "testOIDCSLO";
     private static String SESSION_CONTEXT_KEY = "02278824dfe9862d265e389365c0a71c365401672491b78c6ee7dd6fc44d8af4";
     private static String IDP_SESSION_INDEX = "15043ffc-877d-4205-af41-9b107f7da38c";
+    private static String IDP_NAME = "Federated-IdP";
+    private static String AUTHENTICATOR_ID = "OpenIDConnectAuthenticator";
+    private static String PROTOCOL_TYPE = "oidc";
 
     @BeforeMethod
     public void init() {
 
         userSessionDAO = new UserSessionDAOImpl();
-
     }
 
     private void initiateH2Base(String databaseName, String scriptPath) throws Exception {
@@ -86,10 +106,6 @@ public class UserSessionDAOImplTest {
 
         initiateH2Base(DB_NAME, getFilePath("h2.sql"));
 
-        String IDP_NAME = "Federated-IdP";
-        String AUTHENTICATOR_ID = "OpenIDConnectAuthenticator";
-        String PROTOCOL_TYPE = "oidc";
-
         try (Connection connection1 = getConnection(DB_NAME)) {
             prepareConnection(connection1, false);
 
@@ -107,15 +123,14 @@ public class UserSessionDAOImplTest {
             prepareConnection(connection1, false);
             String query = "SELECT * FROM IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID=?";
             PreparedStatement statement2 = connection1.prepareStatement(query);
-            statement2.setString(1, "15043ffc-877d-4205-af41-9b107f7da38c");
+            statement2.setString(1, IDP_SESSION_INDEX);
             ResultSet resultSet = statement2.executeQuery();
             String result = null;
             if (resultSet.next()) {
                 result = resultSet.getString("SESSION_ID");
             }
-            assertEquals(SESSION_CONTEXT_KEY, result, "Failed to handle for valid input");
+            assertEquals(SESSION_CONTEXT_KEY, result, "Failed to retrieve session details for IDP_SESSION_ID");
         }
-
     }
 
     @Test
@@ -128,5 +143,8 @@ public class UserSessionDAOImplTest {
         when(dataSource.getConnection()).thenReturn(getConnection(DB_NAME));
         FederatedUserSession federatedUserSession = userSessionDAO.getFederatedAuthSessionDetails(IDP_SESSION_INDEX);
         assertEquals(federatedUserSession.getSessionId(), SESSION_CONTEXT_KEY);
+        assertEquals(federatedUserSession.getIdpName(), IDP_NAME);
+        assertEquals(federatedUserSession.getAuthenticatorName(), AUTHENTICATOR_ID);
+        assertEquals(federatedUserSession.getProtocolType(), PROTOCOL_TYPE);
     }
 }
