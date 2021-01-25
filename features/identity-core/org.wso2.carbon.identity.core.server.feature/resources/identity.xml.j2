@@ -1126,6 +1126,10 @@
         </VerificationCode>
         <CallbackRegex>{{identity_mgt.user_self_registration.callback_url}}</CallbackRegex>
         <ResendConfirmationReCaptcha>{{identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha}}</ResendConfirmationReCaptcha>
+        <AutoLogin>
+            <Enable>{{identity_mgt.user_self_registration.auto_login.enable}}</Enable>
+            <AliasName>{{identity_mgt.user_self_registration.auto_login.alias_name}}</AliasName>
+        </AutoLogin>
     </SelfRegistration>
 
     <LiteRegistration>
