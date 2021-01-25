@@ -23,9 +23,9 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
  */
 public class FederatedUserSession {
 
-    private String idPSessionId;
+    private String idpSessionId;
     private String sessionId;
-    private String idPName;
+    private String idpName;
     private String authenticatorName;
     private String protocolType;
 
@@ -33,24 +33,24 @@ public class FederatedUserSession {
 
     }
 
-    public FederatedUserSession(String idPSessionId, String sessionId, String idPName, String authenticatorName,
+    public FederatedUserSession(String idpSessionId, String sessionId, String idpName, String authenticatorName,
                                 String protocolType) {
 
-        this.idPSessionId = idPSessionId;
+        this.idpSessionId = idpSessionId;
         this.sessionId = sessionId;
-        this.idPName = idPName;
+        this.idpName = idpName;
         this.authenticatorName = authenticatorName;
         this.protocolType = protocolType;
     }
 
-    public String getIdPSessionId() {
+    public String getIdpSessionId() {
 
-        return idPSessionId;
+        return idpSessionId;
     }
 
-    public void setIdPSessionId(String idPSessionId) {
+    public void setIdpSessionId(String idpSessionId) {
 
-        this.idPSessionId = idPSessionId;
+        this.idpSessionId = idpSessionId;
     }
 
     public String getSessionId() {
@@ -63,14 +63,14 @@ public class FederatedUserSession {
         this.sessionId = sessionId;
     }
 
-    public String getIdPName() {
+    public String getIdpName() {
 
-        return idPName;
+        return idpName;
     }
 
-    public void setIdPName(String idPName) {
+    public void setIdpName(String idpName) {
 
-        this.idPName = idPName;
+        this.idpName = idpName;
     }
 
     public String getAuthenticatorName() {
