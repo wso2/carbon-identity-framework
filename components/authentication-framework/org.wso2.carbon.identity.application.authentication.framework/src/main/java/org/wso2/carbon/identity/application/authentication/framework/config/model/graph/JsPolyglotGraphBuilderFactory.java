@@ -19,9 +19,10 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
-import org.graalvm.polyglot.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -31,15 +32,14 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expnsive objects.
+ * This factory is there to reuse of Nashorn engine and any related expensive objects.
  */
-public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory <Context>{
+public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Context> {
 
     private static final Log LOG = LogFactory.getLog(JsPolyglotGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
@@ -47,6 +47,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory <Con
     private GraalJSEngineFactory factory;
 
     public void init() {
+
         factory = new GraalJSEngineFactory();
     }
 
@@ -63,22 +64,22 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory <Con
         }
     }
 
-    public static void persistCurrentContext(AuthenticationContext authContext, Context context ) {
+    public static void persistCurrentContext(AuthenticationContext authContext, Context context) {
 
         Value engineBindings = context.getBindings("js");
         Map<String, Object> persistableMap = new HashMap<>();
-        engineBindings.getMemberKeys().forEach((key) ->
-                {
-                    Value keybinding = engineBindings.getMember(key);
-                    if (!keybinding.isHostObject()) {
-                        persistableMap.put(key, FrameworkUtils.toJsSerializableGraal(keybinding));
-                    }
-                });
+        engineBindings.getMemberKeys().forEach((key) -> {
+            Value keybinding = engineBindings.getMember(key);
+            if (!keybinding.isHostObject()) {
+                persistableMap.put(key, FrameworkUtils.toJsSerializableGraal(keybinding));
+            }
+        });
 
         authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
     public Context createEngine(AuthenticationContext authenticationContext) {
+
         Context context = Context.newBuilder("js").allowAllAccess(true).build();
 
         Value bindings = context.getBindings("js");

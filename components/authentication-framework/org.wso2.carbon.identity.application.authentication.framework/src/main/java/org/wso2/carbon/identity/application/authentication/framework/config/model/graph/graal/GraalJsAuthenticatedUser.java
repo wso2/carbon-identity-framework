@@ -50,7 +50,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
  *
  * @see AuthenticatedUser
  */
-public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> implements ProxyObject, JsAuthenticatedUser {
+public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser>
+        implements ProxyObject, JsAuthenticatedUser {
 
     private static final Log LOG = LogFactory.getLog(GraalJsAuthenticatedUser.class);
     private int step;
@@ -64,7 +65,8 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
      * @param step        Authentication step
      * @param idp         Authenticated Idp
      */
-    public GraalJsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser, int step, String idp) {
+    public GraalJsAuthenticatedUser(AuthenticationContext context,
+                                    AuthenticatedUser wrappedUser, int step, String idp) {
 
         this(wrappedUser, step, idp);
         initializeContext(context);
@@ -178,7 +180,7 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 return idp != null && !FrameworkConstants.LOCAL.equals(idp);
             case FrameworkConstants.JSAttributes.JS_CLAIMS:
-                return idp != null || getWrapped()!=null;
+                return idp != null || getWrapped() != null;
             default:
                 return super.hasMember(name);
         }

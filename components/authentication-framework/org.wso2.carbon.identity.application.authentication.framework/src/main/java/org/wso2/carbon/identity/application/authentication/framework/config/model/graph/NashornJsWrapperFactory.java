@@ -16,46 +16,46 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class NashornJsWrapperBuilder implements JsWrapperBuilderUtil.JsWrapperBuilder {
+public class NashornJsWrapperFactory implements JsWrapperFactorySingleton.JsWrapperFactory {
 
     @Override
-    public NashornJsAuthenticatedUser buildJsAuthenticatedUser(AuthenticatedUser authenticatedUser) {
+    public NashornJsAuthenticatedUser createJsAuthenticatedUser(AuthenticatedUser authenticatedUser) {
 
         return new NashornJsAuthenticatedUser(authenticatedUser);
     }
 
     @Override
-    public NashornJsAuthenticationContext buildJsAuthenticationContext(AuthenticationContext authenticationContext) {
+    public NashornJsAuthenticationContext createJsAuthenticationContext(AuthenticationContext authenticationContext) {
 
         return new NashornJsAuthenticationContext(authenticationContext);
     }
 
     @Override
-    public NashornJsCookie buildJsCookie(Cookie cookie) {
+    public NashornJsCookie createJsCookie(Cookie cookie) {
 
         return new NashornJsCookie(cookie);
     }
 
     @Override
-    public NashornJsParameters buildJsParameters(Map parameters) {
+    public NashornJsParameters createJsParameters(Map parameters) {
 
         return new NashornJsParameters(parameters);
     }
 
     @Override
-    public NashornJsServletRequest buildJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
+    public NashornJsServletRequest createJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
         return new NashornJsServletRequest(wrapped);
     }
 
     @Override
-    public NashornJsServletResponse buildJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
+    public NashornJsServletResponse createJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         return new NashornJsServletResponse(wrapped);
     }
 
     @Override
-    public GraalSerializableJsFunction buildSerializableFunction(String source, boolean isFunction) {
+    public GraalSerializableJsFunction createSerializableFunction(String source, boolean isFunction) {
 
         return new GraalSerializableJsFunction(source, isFunction);
     }

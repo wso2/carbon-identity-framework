@@ -18,10 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import com.oracle.truffle.polyglot.*;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.*;
-
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -48,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import javax.script.ScriptEngine;
 
 /**
  * Common methods for Authentication graph (sequence) builder with different script languages.
@@ -146,7 +141,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         if (parameters.length > 0) {
             if (parameters[parameters.length - 1] instanceof Map) {
                 addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1],
-                     effectiveFunctionSerializer() );
+                     effectiveFunctionSerializer());
             } else {
                 log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
             }
@@ -398,7 +393,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         }
     }
 
-    /**
+    /**.
      * Filter out options in the step config to retain only the options provided in authentication options
      *
      * @param authenticationOptions Authentication options to keep
@@ -443,7 +438,8 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
                         }
                         removeOption = true;
                     } else if (!authenticators.isEmpty()) {
-                        // Both idp and authenticator present, but authenticator is given by display name due to the fact
+                        // Both idp and authenticator present,
+                        // but authenticator is given by display name due to the fact
                         // that it is the one available at UI. Should translate the display name to actual name, and
                         // keep/remove option
                         removeOption = true;
@@ -470,7 +466,8 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
                                 }
                             }
                         } else {
-                            for (FederatedAuthenticatorConfig federatedAuthConfig : idp.getFederatedAuthenticatorConfigs()) {
+                            for (FederatedAuthenticatorConfig federatedAuthConfig : idp
+                                    .getFederatedAuthenticatorConfigs()) {
                                 if (authenticatorConfig.getName().equals(federatedAuthConfig.getName()) &&
                                         authenticators.contains(federatedAuthConfig.getDisplayName())) {
                                     removeOption = false;
@@ -650,9 +647,8 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         eventsMap.forEach((key, value) -> {
             System.out.println("Fn " + key + " " + value);
             SerializableJsFunction jsFunction = serializerFunction.apply(value);
-
-            jsFunction.setName(key);
             if (jsFunction != null) {
+                jsFunction.setName(key);
                 decisionNode.addFunction(key, jsFunction);
             } else {
                 log.error("Event handler : " + key + " is not a function : " + value);

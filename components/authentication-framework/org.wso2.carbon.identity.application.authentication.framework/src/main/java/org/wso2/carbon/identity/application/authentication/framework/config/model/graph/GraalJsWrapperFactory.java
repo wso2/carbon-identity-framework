@@ -16,46 +16,46 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class GraalJsWrapperBuilder implements JsWrapperBuilderUtil.JsWrapperBuilder {
+public class GraalJsWrapperFactory implements JsWrapperFactorySingleton.JsWrapperFactory {
 
     @Override
-    public GraalJsAuthenticatedUser buildJsAuthenticatedUser(AuthenticatedUser authenticatedUser) {
+    public GraalJsAuthenticatedUser createJsAuthenticatedUser(AuthenticatedUser authenticatedUser) {
 
         return new GraalJsAuthenticatedUser(authenticatedUser);
     }
 
     @Override
-    public GraalJsAuthenticationContext buildJsAuthenticationContext(AuthenticationContext authenticationContext) {
+    public GraalJsAuthenticationContext createJsAuthenticationContext(AuthenticationContext authenticationContext) {
 
         return new GraalJsAuthenticationContext(authenticationContext);
     }
 
     @Override
-    public GraalJsCookie buildJsCookie(Cookie cookie) {
+    public GraalJsCookie createJsCookie(Cookie cookie) {
 
         return new GraalJsCookie(cookie);
     }
 
     @Override
-    public GraalJsParameters buildJsParameters(Map parameters) {
+    public GraalJsParameters createJsParameters(Map parameters) {
 
         return new GraalJsParameters(parameters);
     }
 
     @Override
-    public GraalJsServletRequest buildJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
+    public GraalJsServletRequest createJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
         return new GraalJsServletRequest(wrapped);
     }
 
     @Override
-    public GraalJsServletResponse buildJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
+    public GraalJsServletResponse createJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
         return new GraalJsServletResponse(wrapped);
     }
 
     @Override
-    public GraalSerializableJsFunction buildSerializableFunction(String source, boolean isFunction) {
+    public GraalSerializableJsFunction createSerializableFunction(String source, boolean isFunction) {
 
         return new GraalSerializableJsFunction(source, isFunction);
     }

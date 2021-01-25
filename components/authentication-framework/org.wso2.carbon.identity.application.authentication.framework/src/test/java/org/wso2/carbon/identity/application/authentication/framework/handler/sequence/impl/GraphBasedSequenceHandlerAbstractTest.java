@@ -69,8 +69,8 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected void setupSuite() {
 
         configurationLoader = new UIBasedConfigurationLoader();
-        graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
-//        graphBuilderFactory = new JsNashornGraphBuilderFactory();
+//        graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
+        graphBuilderFactory = new JsNashornGraphBuilderFactory();
 
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
         org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction selectAcrFromFunction = new org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction();

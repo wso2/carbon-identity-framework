@@ -36,7 +36,8 @@ import javax.script.ScriptException;
  *  Javascript function wrapper. This allows serialization of a javascript defined function.
  *
  */
-public class NashornSerializableJsFunction implements SerializableJsFunction<ScriptEngine, NashornJsAuthenticationContext> {
+public class NashornSerializableJsFunction implements SerializableJsFunction<ScriptEngine,
+        NashornJsAuthenticationContext> {
 
     private static final Log log = LogFactory.getLog(NashornSerializableJsFunction.class);
     private static final long serialVersionUID = -7605388897997019588L;
@@ -58,13 +59,13 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
             JSObject jsObject = (JSObject) compiledScript.eval();
             if (jsObject instanceof ScriptObjectMirror) {
                 ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) jsObject;
-                if(!scriptObjectMirror.isFunction()) {
+                if (!scriptObjectMirror.isFunction()) {
                     //TODO: throw exception
                 }
                 return scriptObjectMirror.call(null, jsAuthenticationContext);
             }
         } catch (ScriptException e) {
-            log.error("Error when executing function,",e);
+            log.error("Error when executing function,", e);
         }
         return null;
     }
@@ -96,10 +97,10 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
      */
     public static NashornSerializableJsFunction toSerializableForm(Object functionObject) {
 
-        if(functionObject == null) {
+        if (functionObject == null) {
             return null;
         }
-        if(functionObject instanceof ScriptObjectMirror) {
+        if (functionObject instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) functionObject;
             return  serializeNashorn(scriptObjectMirror);
         }
@@ -122,7 +123,7 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
         return new NashornSerializableJsFunction("", true);
     }
 
-    /**
+    /**.
      * Serialize Nashorn javascript funmction
      * @param scriptObjectMirror
      * @return
