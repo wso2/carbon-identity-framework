@@ -327,9 +327,11 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                         // if we found the mapped subject - then we do not need to worry about
                         // finding attributes.
 
-                        // if no requested claims are selected, send all local mapped claim values or idp claim values
-                        if (context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings() == null ||
-                                context.getSequenceConfig().getApplicationConfig().getRequestedClaimMappings().isEmpty()) {
+                        // if no requested claims are selected and sp claim dialect is not a standard dialect,
+                        // send all local mapped claim values or idp claim values
+                        ApplicationConfig appConfig = context.getSequenceConfig().getApplicationConfig();
+                        if (MapUtils.isEmpty(appConfig.getRequestedClaimMappings()) &&
+                                !isSPStandardClaimDialect(context.getRequestType(), appConfig)) {
 
                             if (MapUtils.isNotEmpty(localClaimValues)) {
                                 mappedAttrs = localClaimValues;
@@ -385,6 +387,18 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
     protected String getServiceProviderMappedUserRoles(SequenceConfig sequenceConfig,
                                                        List<String> locallyMappedUserRoles) throws FrameworkException {
         return DefaultSequenceHandlerUtils.getServiceProviderMappedUserRoles(sequenceConfig, locallyMappedUserRoles);
+    }
+
+    private boolean isSPStandardClaimDialect(String clientType, ApplicationConfig appConfig) {
+
+        if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType) ||
+                FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType) ||
+                FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType) ||
+                FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void handleRoleMapping(AuthenticationContext context, SequenceConfig sequenceConfig, Map<String, String>
