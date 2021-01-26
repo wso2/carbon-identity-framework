@@ -391,14 +391,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
     private boolean isSPStandardClaimDialect(String clientType, ApplicationConfig appConfig) {
 
-        if (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType) ||
+        return (FrameworkConstants.RequestType.CLAIM_TYPE_OIDC.equals(clientType) ||
                 FrameworkConstants.RequestType.CLAIM_TYPE_STS.equals(clientType) ||
                 FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(clientType) ||
-                FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType)) {
-            return true;
-        } else {
-            return false;
-        }
+                FrameworkConstants.RequestType.CLAIM_TYPE_SCIM.equals(clientType));
     }
 
     private void handleRoleMapping(AuthenticationContext context, SequenceConfig sequenceConfig, Map<String, String>
