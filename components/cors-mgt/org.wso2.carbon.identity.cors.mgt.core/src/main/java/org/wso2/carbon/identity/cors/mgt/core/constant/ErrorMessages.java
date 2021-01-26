@@ -147,7 +147,14 @@ public enum ErrorMessages {
      */
     ERROR_CODE_BAD_HEADER("60009",
             "Bad header name.",
-            "%s is an invalid header name.");
+            "%s is an invalid header name."),
+
+    /**
+     * Duplicate origin input.
+     */
+    ERROR_CODE_DUPLICATE_ORIGINS("60010",
+                                      "Duplicate origins found in the origin list.",
+                                      "Duplicate origin values are found in the request.");
 
     /**
      * The error prefix.
