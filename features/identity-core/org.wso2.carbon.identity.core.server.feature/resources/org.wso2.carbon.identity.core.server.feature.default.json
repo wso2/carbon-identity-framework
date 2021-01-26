@@ -166,7 +166,7 @@
   "oauth.prompt_login_consent": "$ref{oauth.prompt_consent}",
   "oauth.prompt_logout_consent": "$ref{oauth.prompt_consent}",
   "oauth.oidc.extensions.id_token_builder": "org.wso2.carbon.identity.openidconnect.DefaultIDTokenBuilder",
-  "oauth.oidc.claims.enable_oidc_dialect": false,
+  "oauth.oidc.claims.enable_oidc_dialect": true,
   "oauth.oidc.claims.enable_unmapped_user_attributes": false,
 
   "oauth.oidc.id_token.signature_algorithm": "SHA256withRSA",
