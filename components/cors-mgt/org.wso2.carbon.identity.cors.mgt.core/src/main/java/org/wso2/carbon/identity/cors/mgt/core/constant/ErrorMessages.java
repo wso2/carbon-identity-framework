@@ -153,8 +153,8 @@ public enum ErrorMessages {
      * Duplicate origin input.
      */
     ERROR_CODE_DUPLICATE_ORIGINS("60010",
-                                      "Duplicate origins found in the origin list.",
-                                      "Duplicate origin values are found in the request.");
+                                      "Found duplicate origins.",
+                                      "Duplicate entries are found in the allowed origins list.");
 
     /**
      * The error prefix.

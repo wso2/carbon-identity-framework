@@ -37,9 +37,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_DUPLICATE_ORIGINS;
-import static org.wso2.carbon.identity.cors.mgt.core.internal.util.ErrorUtils.handleClientException;
-
 /**
  * Utility class for CORS configuration operations.
  */
