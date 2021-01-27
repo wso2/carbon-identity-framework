@@ -32,17 +32,18 @@ import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
+import org.wso2.carbon.identity.cors.mgt.core.internal.util.CORSConfigurationUtils;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSApplication;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSConfiguration;
 import org.wso2.carbon.identity.cors.mgt.core.model.CORSOrigin;
 import org.wso2.carbon.identity.cors.mgt.core.model.Origin;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_DUPLICATE_ORIGINS;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_NOT_PRESENT;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_ORIGIN_PRESENT;
 import static org.wso2.carbon.identity.cors.mgt.core.constant.ErrorMessages.ERROR_CODE_VALIDATE_APP_ID;
@@ -90,11 +91,12 @@ public class CORSManagementServiceImpl implements CORSManagementService {
         int tenantId = getTenantId(tenantDomain);
         ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
 
-        // Convert origin strings to Origin instances.
-        List<Origin> originList = new ArrayList<>();
-        for (String origin : origins) {
-            originList.add(new Origin(origin));
+        // Check for duplicate entries.
+        if (CORSConfigurationUtils.hasDuplicates(origins)) {
+            throw handleClientException(ERROR_CODE_DUPLICATE_ORIGINS);
         }
+
+        List<Origin> originList = CORSConfigurationUtils.createOriginList(origins);
 
         // Set the CORS origins.
         getCORSOriginDAO().setCORSOrigins(applicationBasicInfo.getApplicationId(),
@@ -115,12 +117,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
 
         int tenantId = getTenantId(tenantDomain);
         ApplicationBasicInfo applicationBasicInfo = getApplicationBasicInfo(applicationId, tenantDomain);
-
-        // Convert origin strings to Origin instances.
-        List<Origin> originList = new ArrayList<>();
-        for (String origin : origins) {
-            originList.add(new Origin(origin));
-        }
+        List<Origin> originList = CORSConfigurationUtils.createOriginList(origins);
 
         // Check if the CORS origins are already present.
         List<CORSOrigin> existingCORSOrigins = getCORSOriginDAO().getCORSOriginsByApplicationId(
