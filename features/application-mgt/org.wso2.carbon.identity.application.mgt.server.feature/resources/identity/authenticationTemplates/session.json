@@ -22,12 +22,6 @@
         "BasicAuthenticator"
       ],
       "federated": []
-    },
-    "2": {
-      "local": [
-        "SessionExecutor"
-      ],
-      "federated": []
     }
   },
   "helpLink": "https://docs.wso2.com/display/IS570/Configuring+Role-Based+Adaptive+Authentication",
