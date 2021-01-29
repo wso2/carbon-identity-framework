@@ -58,6 +58,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -317,6 +318,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 FrameworkUtils.sendToRetryPage(request, responseWrapper);
             }
         } finally {
+            UserCoreUtil.setDomainInThreadLocal(null);
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
