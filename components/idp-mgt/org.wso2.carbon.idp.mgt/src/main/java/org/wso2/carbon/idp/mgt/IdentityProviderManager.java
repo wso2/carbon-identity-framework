@@ -250,6 +250,18 @@ public class IdentityProviderManager implements IdpManager {
             throw new IdentityProviderManagementException(message);
         }
 
+        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>(Arrays.asList(identityProvider
+                .getIdpProperties()));
+        /*
+        Get signing key alias property from resident idp properties.
+        If not found, set it as tenant default signing key alias.
+         */
+        IdentityProviderProperty singingKeyAliasProperty  = getSigningKeyAliasProperty(identityProvider);
+        if(singingKeyAliasProperty == null){
+            singingKeyAliasProperty = setAndReturnSingingKeyAliasPropertyIfNotFound(identityProvider, tenantDomain,
+                    identityProviderProperties);
+        }
+
         int tenantId = -1;
         try {
             tenantId = IdPManagementServiceComponent.getRealmService().getTenantManager().getTenantId(tenantDomain);
@@ -258,19 +270,21 @@ public class IdentityProviderManager implements IdpManager {
                     "Exception occurred while retrieving Tenant ID from Tenant Domain " + tenantDomain, e);
         }
         X509Certificate cert = null;
+
         try {
             IdentityTenantUtil.initializeRegistry(tenantId);
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext carbonContext = PrivilegedCarbonContext.getThreadLocalCarbonContext();
             carbonContext.setTenantDomain(tenantDomain, true);
             KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(tenantId);
+            String signingKeyAlias = singingKeyAliasProperty.getValue();
             if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(tenantDomain)) {
                 // derive key store name
                 String ksName = tenantDomain.trim().replace(".", "-");
                 // derive JKS name
                 String jksName = ksName + ".jks";
                 KeyStore keyStore = keyStoreManager.getKeyStore(jksName);
-                cert = (X509Certificate) keyStore.getCertificate(tenantDomain);
+                cert = (X509Certificate) keyStore.getCertificate(signingKeyAlias);
             } else {
                 cert = keyStoreManager.getDefaultPrimaryCertificate();
             }
@@ -468,9 +482,6 @@ public class IdentityProviderManager implements IdpManager {
                 .setProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         fedAuthnCofigs.add(stsFedAuthn);
 
-        List<IdentityProviderProperty> identityProviderProperties = new ArrayList<>(Arrays.asList(identityProvider
-                .getIdpProperties()));
-
         FederatedAuthenticatorConfig sessionTimeoutConfig = new FederatedAuthenticatorConfig();
         sessionTimeoutConfig.setName(IdentityApplicationConstants.NAME);
 
@@ -545,29 +556,28 @@ public class IdentityProviderManager implements IdpManager {
         }
         scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         identityProvider.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
-        // Get signing key alias property from resident idp properties. If not found, set it as
-        // tenant default signing key alias.
-        setSingingKeyAliasProperty(identityProvider, tenantDomain, identityProviderProperties);
         return identityProvider;
     }
 
-    private void setSingingKeyAliasProperty(IdentityProvider identityProvider, String tenantDomain,
-                                            List<IdentityProviderProperty> identityProviderProperties) {
+    private IdentityProviderProperty setAndReturnSingingKeyAliasPropertyIfNotFound(IdentityProvider identityProvider, String tenantDomain,
+                                                                                   List<IdentityProviderProperty> identityProviderProperties) {
 
-        IdentityProviderProperty singingKeyAliasProperty =
-         IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
-          IdentityApplicationConstants.SIGNING_KEY_ALIAS);
-        if (singingKeyAliasProperty == null) {
-            singingKeyAliasProperty = new IdentityProviderProperty();
-            singingKeyAliasProperty.setName(IdentityApplicationConstants.SIGNING_KEY_ALIAS);
-            String keyAlias = tenantDomain;
-            if (SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-                keyAlias = ServerConfiguration.getInstance().getFirstProperty(DEFAULT_KEY_ALIAS_CONFIG);
-            }
-            singingKeyAliasProperty.setValue(keyAlias);
-            identityProviderProperties.add(singingKeyAliasProperty);
-            identityProvider.setIdpProperties(identityProviderProperties.toArray(new IdentityProviderProperty[0]));
+        IdentityProviderProperty singingKeyAliasProperty = new IdentityProviderProperty();
+        singingKeyAliasProperty.setName(IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+        String keyAlias = tenantDomain;
+        if (SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            keyAlias = ServerConfiguration.getInstance().getFirstProperty(DEFAULT_KEY_ALIAS_CONFIG);
         }
+        singingKeyAliasProperty.setValue(keyAlias);
+        identityProviderProperties.add(singingKeyAliasProperty);
+        identityProvider.setIdpProperties(identityProviderProperties.toArray(new IdentityProviderProperty[0]));
+        return singingKeyAliasProperty;
+    }
+
+    private IdentityProviderProperty getSigningKeyAliasProperty(IdentityProvider identityProvider){
+
+        return IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+                IdentityApplicationConstants.SIGNING_KEY_ALIAS);
     }
 
     private String buildSAMLUrl(String urlFromConfigFile, String tenantDomain, String defaultContext,
