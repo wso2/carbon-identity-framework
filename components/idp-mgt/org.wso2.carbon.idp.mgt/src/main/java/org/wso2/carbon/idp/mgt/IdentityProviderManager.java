@@ -97,6 +97,7 @@ public class IdentityProviderManager implements IdpManager {
     private static CacheBackedIdPMgtDAO dao = new CacheBackedIdPMgtDAO(new IdPManagementDAO());
     private static volatile IdentityProviderManager instance = new IdentityProviderManager();
     private static final String DEFAULT_KEY_ALIAS_CONFIG = "Security.KeyStore.KeyAlias";
+    private static final int RESIDNET_IDP_PROPERTIES_SIZE = 3;
 
     private IdentityProviderManager() {
 
@@ -544,9 +545,17 @@ public class IdentityProviderManager implements IdpManager {
         }
         scimProvConn.setProvisioningProperties(propertiesList.toArray(new Property[propertiesList.size()]));
         identityProvider.setProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{scimProvConn});
+        // Get signing key alias property from resident idp properties. If not found, set it as
+        // tenant default signing key alias.
+        setSingingKeyAliasProperty(identityProvider, tenantDomain, identityProviderProperties);
+        return identityProvider;
+    }
+
+    private void setSingingKeyAliasProperty(IdentityProvider identityProvider, String tenantDomain,
+                                            List<IdentityProviderProperty> identityProviderProperties) {
 
         IdentityProviderProperty singingKeyAliasProperty =
-                IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
+         IdentityApplicationManagementUtil.getProperty(identityProvider.getIdpProperties(),
           IdentityApplicationConstants.SIGNING_KEY_ALIAS);
         if (singingKeyAliasProperty == null) {
             singingKeyAliasProperty = new IdentityProviderProperty();
@@ -559,8 +568,6 @@ public class IdentityProviderManager implements IdpManager {
             identityProviderProperties.add(singingKeyAliasProperty);
             identityProvider.setIdpProperties(identityProviderProperties.toArray(new IdentityProviderProperty[0]));
         }
-
-        return identityProvider;
     }
 
     private String buildSAMLUrl(String urlFromConfigFile, String tenantDomain, String defaultContext,
@@ -870,7 +877,7 @@ public class IdentityProviderManager implements IdpManager {
         identityProvider.setFederatedAuthenticatorConfigs(IdentityApplicationManagementUtil
                 .concatArrays(identityProvider.getFederatedAuthenticatorConfigs(), federatedAuthenticatorConfigs));
 
-        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[3];
+        IdentityProviderProperty[] idpProperties = new IdentityProviderProperty[RESIDNET_IDP_PROPERTIES_SIZE];
 
         IdentityProviderProperty rememberMeTimeoutProperty = new IdentityProviderProperty();
         String rememberMeTimeout = IdentityUtil.getProperty(IdentityConstants.ServerConfig.REMEMBER_ME_TIME_OUT);

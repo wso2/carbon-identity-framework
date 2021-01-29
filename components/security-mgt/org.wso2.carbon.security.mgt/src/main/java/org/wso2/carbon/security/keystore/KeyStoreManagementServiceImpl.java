@@ -26,17 +26,12 @@ import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.RegistryType;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
-import org.wso2.carbon.identity.application.common.model.IdentityProvider;
-import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.security.SecurityConfigException;
 import org.wso2.carbon.security.SecurityConstants;
-import org.wso2.carbon.security.SecurityServiceHolder;
 import org.wso2.carbon.security.keystore.service.CertData;
 import org.wso2.carbon.security.keystore.service.CertDataDetail;
 import org.wso2.carbon.security.keystore.service.KeyData;
@@ -84,6 +79,7 @@ import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.Er
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_ADDING_KEYS_FOR_SUPER_TENANT;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_DELETION_OF_SIGNING_KEY;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UNSUPPORTED_FILTER_OPERATION;
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_UPDATE_KEYSTORE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_VALIDATE_CERTIFICATE;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.FILTER_FIELD_ALIAS;
 import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.FILTER_OPERATION_CONTAINS;
@@ -100,8 +96,13 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
     private static final Log log = LogFactory.getLog(KeyStoreManagementServiceImpl.class);
     private static final String CERT_PEM_START = "-----(BEGIN CERTIFICATE)-----";
     private static final String CERT_PEM_END = "-----(END CERTIFICATE)-----";
-    private static final Pattern PATTERN = Pattern.compile(CERT_PEM_START + "([^-]+)" + CERT_PEM_END);
     private static final String[] SUPPORTED_FINGER_PRINTS_ALG = {"MD5", "SHA1", "SHA-256"};
+    private final Pattern pattern;
+
+    public KeyStoreManagementServiceImpl() {
+
+        this.pattern = Pattern.compile(CERT_PEM_START + "([^-]+)" + CERT_PEM_END);
+    }
 
     @Override
     public List<String> getKeyStoreCertificateAliases(String tenantDomain, String filter)
@@ -233,6 +234,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         }
     }
 
+    @Override
     public void addPrivateKey(String alias, String privateKeyContent, String certificateChain, String tenantDomain) throws KeyStoreManagementException {
 
         if (tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
@@ -248,7 +250,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         } catch (Exception e) {
             throw handleServerException(ERROR_CODE_ADD_PRIVATE_KEY, alias, e);
         }
-        boolean isKeyStoreContainsAlias = false;
+        boolean isKeyStoreContainsAlias;
         try {
             isKeyStoreContainsAlias = keyStore.containsAlias(alias);
         } catch (Exception e) {
@@ -256,22 +258,23 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         }
         if (isKeyStoreContainsAlias) {
             if (log.isDebugEnabled()) {
-                log.debug("Keystore of the tenant: " + tenantDomain + "already contains an entry with the " +
-                        "alias:" + " " + alias);
+                log.debug("Keystore of the tenant: " + tenantDomain + " already contains an entry with the alias: "
+                        + alias);
             }
             throw handleClientException(ERROR_CODE_AN_ENTRY_FOR_THE_GIVEN_ALIAS_EXISTS, alias);
         }
         try {
-            String password = keyStoreManager.getKeyStorePassword(keyStoreName);
+            char[] password = keyStoreManager.getKeyStorePassword(keyStoreName).toCharArray();
             Key privateKey = KeyStoreMgtUtil.extractPrivateKey(privateKeyContent);
             Certificate[] x509CertificateChain = extractCertificateChain(certificateChain);
-            keyStore.setKeyEntry(alias, privateKey, password.toCharArray(), x509CertificateChain);
+            keyStore.setKeyEntry(alias, privateKey, password, x509CertificateChain);
             updateKeyStore(keyStore, tenantDomain, password);
         } catch (Exception e) {
             throw handleServerException(ERROR_CODE_ADD_PRIVATE_KEY, alias, e);
         }
     }
 
+    @Override
     public KeyData getPrivateKeyData(String alias, String tenantDomain) throws KeyStoreManagementException {
 
         KeyData data = null;
@@ -310,6 +313,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         return data;
     }
 
+    @Override
     public List<KeyData> getAllPrivateKeys(String filter, String tenantDomain) throws KeyStoreManagementException {
 
         List<KeyData> keyDataList = new ArrayList<>();
@@ -333,6 +337,7 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         return keyDataList;
     }
 
+    @Override
     public void deletePrivateKey(String alias, String tenantDomain) throws KeyStoreManagementException {
 
         if (tenantDomain.equals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
@@ -373,27 +378,25 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
         }
     }
 
+    /**
+     * Check whether the key alias sent for deletion is the key configured as signing key alias in the tenant.
+     *
+     * @param alias  Alias of the key.
+     * @param tenant Tenant domain.
+     * @return True if the key is configured as signing key alias.
+     * @throws KeyStoreManagementServerException Throws KeyStoreManagementServerException.
+     */
     private boolean isSigningKey(String alias, String tenant) throws KeyStoreManagementServerException {
-
-        IdentityProvider residentIdP = null;
         try {
-            residentIdP = SecurityServiceHolder.getIdentityProviderService().getResidentIdP(tenant);
+            return KeyStoreMgtUtil.isSigningKeyAlias(alias, tenant);
         } catch (IdentityProviderManagementException e) {
             throw handleServerException(ERROR_CODE_DELETE_CERTIFICATE, alias, e);
         }
-        IdentityProviderProperty signingKeyAliasProp =
-                IdentityApplicationManagementUtil.getProperty(residentIdP.getIdpProperties(),
-                        IdentityApplicationConstants.SIGNING_KEY_ALIAS);
-        boolean isSigningKey = true;
-        if (signingKeyAliasProp != null && !StringUtils.equalsIgnoreCase(alias, signingKeyAliasProp.getValue())) {
-            isSigningKey = false;
-        }
-        return isSigningKey;
     }
 
     private Certificate[] extractCertificateChain(String certificateChain) throws CertificateException {
 
-        Matcher m = PATTERN.matcher(certificateChain);
+        Matcher m = pattern.matcher(certificateChain);
         List<String> tokens = new LinkedList<String>();
         while(m.find())
         {
@@ -629,21 +632,19 @@ public class KeyStoreManagementServiceImpl implements KeyStoreManagementService 
      * @param password     Password of the keystore
      * @throws KeyStoreManagementServerException Throws KeyStoreManagementServerException.
      */
-    private void updateKeyStore(KeyStore keyStore, String tenantDomain, String password) throws
+    private void updateKeyStore(KeyStore keyStore, String tenantDomain, char[] password) throws
             KeyStoreManagementServerException {
 
         try {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            keyStore.store(outputStream, password.toCharArray());
+            keyStore.store(outputStream, password);
             outputStream.flush();
             outputStream.close();
             String keyStoreName = getKeyStoreName(tenantDomain);
             KeyStoreManager keyStoreManager = getKeyStoreManager(tenantDomain);
             keyStoreManager.updateKeyStore(keyStoreName, keyStore);
         } catch (Exception e) {
-            String msg = "Error when adding keystore private key to be stored in registry";
-            log.error(msg, e);
-            throw new KeyStoreManagementServerException(msg, msg, e);
+            throw handleServerException(ERROR_CODE_UPDATE_KEYSTORE, tenantDomain, e);
         }
     }
 

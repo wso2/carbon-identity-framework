@@ -20,9 +20,17 @@ package org.wso2.carbon.security.util;
 
 import org.apache.axiom.om.util.Base64;
 import org.apache.axis2.context.ConfigurationContext;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.IdentityProvider;
+import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
+import org.wso2.carbon.security.SecurityServiceHolder;
+import org.wso2.carbon.security.keystore.KeyStoreManagementServerException;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.WSO2Constants;
 
@@ -39,6 +47,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Hashtable;
 import java.util.Map;
+
+import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_DELETE_CERTIFICATE;
 
 public class KeyStoreMgtUtil {
 
@@ -118,6 +128,59 @@ public class KeyStoreMgtUtil {
         return false;
     }
 
+    /**
+     * Returns true if the alias is the signing key alias.
+     *
+     * @param alias  Alias of a private key.
+     * @param tenant Tenant.
+     * @return Returns true if the given alias is the signing key alias, else return false.
+     * @throws KeyStoreManagementServerException KeyStoreManagementServerException
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    public static boolean isSigningKeyAlias(String alias, String tenant) throws KeyStoreManagementServerException,
+            IdentityProviderManagementException {
+
+        String signingKeyAlias = getSigningKey(tenant);
+        boolean isSigningKey = false;
+        if (StringUtils.equalsIgnoreCase(alias, signingKeyAlias)) {
+            isSigningKey = true;
+        }
+        return isSigningKey;
+    }
+
+    /**
+     * Get the alias of the private key used for signing in the respective tenant.
+     *
+     * @param tenant Tenant domain.
+     * @return The alias of the private key used for signing in the respective tenant.
+     * @throws KeyStoreManagementServerException   KeyStoreManagementServerException.
+     * @throws IdentityProviderManagementException IdentityProviderManagementException.
+     */
+    public static String getSigningKey(String tenant) throws KeyStoreManagementServerException,
+            IdentityProviderManagementException {
+
+        String signingKeyAlias = null;
+        if (StringUtils.isBlank(tenant)) {
+            return signingKeyAlias;
+        }
+        IdentityProvider residentIdP = null;
+        residentIdP = SecurityServiceHolder.getIdentityProviderService().getResidentIdP(tenant);
+        IdentityProviderProperty signingKeyAliasProp =
+                IdentityApplicationManagementUtil.getProperty(residentIdP.getIdpProperties(),
+                        IdentityApplicationConstants.SIGNING_KEY_ALIAS);
+        if (signingKeyAliasProp != null) {
+            signingKeyAlias = signingKeyAliasProp.getValue();
+        }
+        return signingKeyAlias;
+    }
+
+    /**
+     * Extracts private key from string content.
+     * @param privateKeyContent PrivateKeyContent.
+     * @return Private Key.
+     * @throws NoSuchAlgorithmException NoSuchAlgorithmException.
+     * @throws InvalidKeySpecException InvalidKeySpecException.
+     */
     public static Key extractPrivateKey(String privateKeyContent) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(Base64.decode(privateKeyContent));

@@ -165,6 +165,8 @@ public class SecurityConstants {
                     "Error occurred while adding private key with alias: %s"),
             ERROR_CODE_DELETE_PRIVATE_KEY("KSS-65012",
                     "Error occurred while deleting the private key with alias: %s"),
+            ERROR_CODE_UPDATE_KEYSTORE("KSS-65013",
+                    "Error occurred while while adding private key to the keystore of tenant: %s"),
             /**
              * Client error.
              */

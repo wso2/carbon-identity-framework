@@ -38,6 +38,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.ResourceBundle" %>
+<%@ page
+        import="static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.SIGNING_KEY_ALIAS" %>
 <%@ page trimDirectiveWhitespaces="true" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="carbon" uri="http://wso2.org/projects/carbon/taglibs/carbontags.jar"%>
@@ -223,8 +225,8 @@
                 sessionIdleTimeout = property.getValue();
             } else if (property.getName().equals(IdentityApplicationConstants.REMEMBER_ME_TIME_OUT)) {
                 rememberMeTimeout = property.getValue();
-            }else if(property.getName().equals("SigningKeyAlias")){
-                if(property.getValue() != null) {
+            } else if (property.getName().equals(SIGNING_KEY_ALIAS)) {
+                if (property.getValue() != null) {
                     signingKeyAlias = property.getValue();
                 }
             }

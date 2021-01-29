@@ -28,6 +28,7 @@ import org.wso2.carbon.core.RegistryResources;
 import org.wso2.carbon.core.util.CryptoUtil;
 import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.core.util.KeyStoreUtil;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.Association;
 import org.wso2.carbon.registry.core.Collection;
@@ -539,7 +540,8 @@ public class KeyStoreAdmin {
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 // There be only one entry in WSAS related keystores
-                if (keyStore.isKeyEntry(alias)) {
+                if (keyStore.isKeyEntry(alias) && KeyStoreMgtUtil.isSigningKeyAlias(alias, IdentityTenantUtil
+                        .getTenantDomain(tenantId))) {
                     X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
                     keyStoreData.setKey(fillCertData(cert, alias, formatter));
                     PrivateKey key = (PrivateKey) keyStore.getKey(alias, privateKeyPassword
