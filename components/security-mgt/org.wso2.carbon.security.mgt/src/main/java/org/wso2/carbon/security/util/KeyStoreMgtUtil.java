@@ -23,6 +23,8 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.core.util.KeyStoreManager;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.IdentityProviderProperty;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
@@ -30,7 +32,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.security.SecurityServiceHolder;
-import org.wso2.carbon.security.keystore.KeyStoreManagementServerException;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.carbon.utils.WSO2Constants;
 
@@ -39,20 +41,24 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.security.Key;
 import java.security.KeyFactory;
+import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Hashtable;
 import java.util.Map;
 
-import static org.wso2.carbon.security.SecurityConstants.KeyStoreMgtConstants.ErrorMessage.ERROR_CODE_DELETE_CERTIFICATE;
-
 public class KeyStoreMgtUtil {
 
     private static final Log log = LogFactory.getLog(KeyStoreMgtUtil.class);
+    private static final String SECURITY_KEY_STORE_PW = "Security.KeyStore.Password";
+    private static final String SECURITY_KEY_STORE_ALIAS = "Security.KeyStore.KeyAlias";
 
     private KeyStoreMgtUtil(){}
 
@@ -134,13 +140,11 @@ public class KeyStoreMgtUtil {
      * @param alias  Alias of a private key.
      * @param tenant Tenant.
      * @return Returns true if the given alias is the signing key alias, else return false.
-     * @throws KeyStoreManagementServerException KeyStoreManagementServerException
      * @throws IdentityProviderManagementException IdentityProviderManagementException.
      */
-    public static boolean isSigningKeyAlias(String alias, String tenant) throws KeyStoreManagementServerException,
-            IdentityProviderManagementException {
+    public static boolean isSigningKeyAlias(String alias, String tenant) throws IdentityProviderManagementException {
 
-        String signingKeyAlias = getSigningKey(tenant);
+        String signingKeyAlias = getSigningKeyAlias(tenant);
         boolean isSigningKey = false;
         if (StringUtils.equalsIgnoreCase(alias, signingKeyAlias)) {
             isSigningKey = true;
@@ -151,27 +155,72 @@ public class KeyStoreMgtUtil {
     /**
      * Get the alias of the private key used for signing in the respective tenant.
      *
-     * @param tenant Tenant domain.
+     * @param tenantDomain Tenant domain.
      * @return The alias of the private key used for signing in the respective tenant.
-     * @throws KeyStoreManagementServerException   KeyStoreManagementServerException.
      * @throws IdentityProviderManagementException IdentityProviderManagementException.
      */
-    public static String getSigningKey(String tenant) throws KeyStoreManagementServerException,
-            IdentityProviderManagementException {
+    public static String getSigningKeyAlias(String tenantDomain) throws IdentityProviderManagementException {
 
         String signingKeyAlias = null;
-        if (StringUtils.isBlank(tenant)) {
+        if (StringUtils.isBlank(tenantDomain)) {
             return signingKeyAlias;
         }
         IdentityProvider residentIdP = null;
-        residentIdP = SecurityServiceHolder.getIdentityProviderService().getResidentIdP(tenant);
+        residentIdP = SecurityServiceHolder.getIdentityProviderService().getResidentIdP(tenantDomain);
         IdentityProviderProperty signingKeyAliasProp =
                 IdentityApplicationManagementUtil.getProperty(residentIdP.getIdpProperties(),
                         IdentityApplicationConstants.SIGNING_KEY_ALIAS);
         if (signingKeyAliasProp != null) {
             signingKeyAlias = signingKeyAliasProp.getValue();
+        } else {
+            if (StringUtils.equalsIgnoreCase(tenantDomain, MultitenantConstants.IS_SUPER_TENANT)) {
+                signingKeyAlias = CarbonUtils.getServerConfiguration().getFirstProperty(SECURITY_KEY_STORE_ALIAS);
+            }
         }
         return signingKeyAlias;
+    }
+
+    /**
+     * Get the default private key of super tenant.
+     *
+     * @return Private Key of super tenant.
+     * @throws Exception Exception
+     */
+    public static PrivateKey getDefaultPrivateKey() throws Exception {
+
+        KeyStore primaryKeystore =
+                KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID).getPrimaryKeyStore();
+        String alias = getSigningKeyAlias(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        char[] password = CarbonUtils.getServerConfiguration().getFirstProperty(SECURITY_KEY_STORE_PW).toCharArray();
+        return (PrivateKey) primaryKeystore.getKey(alias, password);
+    }
+
+    /**
+     * Return the public key of the super tenant.
+     *
+     * @return PublicKey of super tenant.
+     * @throws Exception Exception.
+     */
+    public static PublicKey getDefaultPublicKey() throws Exception {
+
+        KeyStore primaryKeystore =
+                KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID).getPrimaryKeyStore();
+        String alias = getSigningKeyAlias(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        return primaryKeystore.getCertificate(alias).getPublicKey();
+    }
+
+    /**
+     * Return the certificate associated with the default public key of the super tenant keystore.
+     *
+     * @return The certificate of the super tenant keystore.
+     * @throws Exception Exception.
+     */
+    public static X509Certificate getDefaultPrimaryCertificate() throws Exception {
+
+        KeyStore primaryKeystore =
+                KeyStoreManager.getInstance(MultitenantConstants.SUPER_TENANT_ID).getPrimaryKeyStore();
+        String alias = getSigningKeyAlias(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        return (X509Certificate) primaryKeystore.getCertificate(alias);
     }
 
     /**
