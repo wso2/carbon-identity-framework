@@ -694,6 +694,7 @@
     ]
   },
   "console.attribute_dialects.enabled": true,
+  "console.ui.isDefaultDialectEditingEnabled": false,
   "console.attribute_dialects.scopes": {
     "create": [
       "internal_claim_meta_create"
