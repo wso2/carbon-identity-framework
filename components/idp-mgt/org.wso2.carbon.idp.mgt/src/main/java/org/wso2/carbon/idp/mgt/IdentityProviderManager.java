@@ -993,8 +993,13 @@ public class IdentityProviderManager implements IdpManager {
                 }
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.SIGNING_KEY_ALIAS)) {
                 if (StringUtils.isBlank(idpProp.getValue())) {
-                    throw new IdentityProviderManagementException(IdentityApplicationConstants.SIGNING_KEY_ALIAS
-                            + " of ResidentIdP should not be null or empty ");
+                    throw new IdentityProviderManagementException(IdentityApplicationConstants.SIGNING_KEY_ALIAS + " "
+                            + "of ResidentIdP should not be null or empty ");
+                }
+                if (!isPrivateKeyAliasExists(tenantDomain, idpProp.getValue())) {
+                    String errorMsg = "Could not find the alias: " + idpProp.getValue() + " in the keystore of the " +
+                            "tenant: " + tenantDomain;
+                    throw new IdentityProviderManagementException(errorMsg);
                 }
             } else if (StringUtils.equals(idpProp.getName(), IdentityApplicationConstants.Authenticator.SAML2SSO.
                     SAML_METADATA_VALIDITY_PERIOD)) {
@@ -1046,6 +1051,28 @@ public class IdentityProviderManager implements IdpManager {
                 return;
             }
         }
+    }
+
+    private boolean isPrivateKeyAliasExists(String tenantDomain, String alias) throws
+            IdentityProviderManagementException {
+
+        boolean isExists = false;
+        try {
+            KeyStore ks;
+            KeyStoreManager keyStoreManager = KeyStoreManager.getInstance(IdentityTenantUtil.getTenantId(tenantDomain));
+            if (StringUtils.equals(tenantDomain, SUPER_TENANT_DOMAIN_NAME)) {
+                ks = keyStoreManager.getPrimaryKeyStore();
+            } else {
+                ks = keyStoreManager.getKeyStore((tenantDomain.trim().replace(".", "-") + ".jks"));
+            }
+            if (ks.isKeyEntry(alias)) {
+                isExists =true;
+            }
+
+        } catch (Exception e) {
+            throw new IdentityProviderManagementException("Error occurred while updating signing key alias", e);
+        }
+        return isExists;
     }
 
     /**
