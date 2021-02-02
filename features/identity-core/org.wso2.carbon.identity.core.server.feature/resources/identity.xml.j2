@@ -1030,6 +1030,20 @@
                 <smsOtp>
                     <Regex>{{identity_mgt.password_reset_sms.sms_otp_regex}}</Regex>
                 </smsOtp>
+                <!-- Email channel specific properties can be added here. -->
+                <Email>
+                <!--
+                    This property was introduced to keep the email confirmation code tolerance time period value of the
+                    password recovery scenario. This can be configured in minutes and must be lower that confirmation
+                    code expiry time. If the following requests to a corresponding user for password recovery or
+                    resend confirmation code within this configured value, the existing confirmation code will be
+                    send again in the email. If this was not configured, a default value of zero (0) will be set
+                    from internally.
+                -->
+                {% if identity_mgt.password_reset_email.confirmation_code_tolerance_period is defined %}
+                    <ConfirmationCodeTolerancePeriod>{{identity_mgt.password_reset_email.confirmation_code_tolerance_period}}</ConfirmationCodeTolerancePeriod>
+                {% endif %}
+                </Email>
             </Password>
             <Username>
                 <Enable>{{identity_mgt.username_recovery.email.enable_username_recovery}}</Enable>
