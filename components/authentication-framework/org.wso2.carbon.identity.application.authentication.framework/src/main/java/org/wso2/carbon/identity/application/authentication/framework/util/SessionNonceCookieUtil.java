@@ -18,6 +18,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.wso2.carbon.core.SameSiteCookie;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
@@ -63,7 +64,7 @@ public class SessionNonceCookieUtil {
         if (isNonceCookieEnabled()) {
             String nonceId = UUIDGenerator.generateUUID();
             String cookieName = getNonceCookieName(context);
-            FrameworkUtils.setCookie(request, response, cookieName, nonceId, null);
+            FrameworkUtils.setCookie(request, response, cookieName, nonceId, null, SameSiteCookie.NONE);
             context.setProperty(cookieName, nonceId);
         }
     }
