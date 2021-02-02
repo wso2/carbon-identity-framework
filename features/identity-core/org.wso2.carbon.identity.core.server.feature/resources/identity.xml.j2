@@ -2499,6 +2499,10 @@
                 <Origin>{{origin}}</Origin>
             {% endfor %}
         </FIDO2TrustedOrigins>
+
+        <!-- Time allocated for the users to authenticate -->
+        <UserResponseTimeout>{{fido.user_response_timeout}}</UserResponseTimeout>
+        <Extensions>{{fido.extensions}}</Extensions>
     </FIDO>
 
     <MaximumItemsPerPage>{{pagination.max_items_per_page}}</MaximumItemsPerPage>

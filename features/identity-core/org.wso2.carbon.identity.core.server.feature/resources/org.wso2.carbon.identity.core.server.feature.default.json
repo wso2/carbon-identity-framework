@@ -585,6 +585,9 @@
   "fido.trusted.origins": [
     "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
   ],
+  "fido.user_response_timeout":"300000",
+  "fido.extensions":"{}",
+
   "pagination.max_items_per_page": "100",
   "pagination.default_items_per_page": "15",
 
