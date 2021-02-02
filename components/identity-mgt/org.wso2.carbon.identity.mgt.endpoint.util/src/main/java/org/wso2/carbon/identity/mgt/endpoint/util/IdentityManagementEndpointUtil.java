@@ -697,7 +697,8 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isBlank(serverUrl)) {
                 if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                    basePath = ServiceURLBuilder.create().addPath(context).build().getAbsoluteInternalURL();
+                    basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
+                            .getAbsoluteInternalURL();
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
                     if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME

@@ -37,7 +37,9 @@ import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Client which retrieves application data required by endpoints.
@@ -63,7 +65,9 @@ public class ApplicationDataRetrievalClient {
             throws ApplicationDataRetrievalClientException {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
-            HttpGet request = new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER + applicationName);
+            HttpGet request =
+                    new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER + URLEncoder.encode(applicationName,
+                            StandardCharsets.UTF_8.name()));
             setAuthorizationHeader(request);
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
