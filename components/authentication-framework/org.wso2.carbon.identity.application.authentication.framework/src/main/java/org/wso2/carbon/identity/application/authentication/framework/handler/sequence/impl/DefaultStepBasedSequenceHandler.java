@@ -340,6 +340,10 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                             }
                         }
                         authenticatedUserAttributes = FrameworkUtils.buildClaimMappings(mappedAttrs);
+                        if (isSPStandardClaimDialect(context.getRequestType(), appConfig) &&
+                                authenticatedUserAttributes.isEmpty()) {
+                            sequenceConfig.getAuthenticatedUser().setUserAttributes(authenticatedUserAttributes);
+                        }
                     }
 
                 }
