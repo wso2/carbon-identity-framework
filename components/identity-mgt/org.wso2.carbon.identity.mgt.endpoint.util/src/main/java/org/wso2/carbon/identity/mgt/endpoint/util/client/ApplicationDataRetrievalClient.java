@@ -32,14 +32,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.owasp.encoder.Encode;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementServiceUtil;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * Client which retrieves application data required by endpoints.
@@ -66,8 +65,8 @@ public class ApplicationDataRetrievalClient {
 
         try (CloseableHttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build()) {
             HttpGet request =
-                    new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER + URLEncoder.encode(applicationName,
-                            StandardCharsets.UTF_8.name()));
+                    new HttpGet(getApplicationsEndpoint(tenant) + APP_FILTER +
+                            Encode.forUriComponent(applicationName));
             setAuthorizationHeader(request);
 
             try (CloseableHttpResponse response = httpclient.execute(request)) {
