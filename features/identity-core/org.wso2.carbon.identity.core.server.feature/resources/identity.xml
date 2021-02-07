@@ -595,7 +595,14 @@
 
         Default value: true
         -->
-        <EnableJWTTokenValidationDuringIntrospection>{{oauth.enable_jwt_token_validation_during_introspection}}</EnableJWTTokenValidationDuringIntrospection>
+        <EnableJWTTokenValidationDuringIntrospection>true</EnableJWTTokenValidationDuringIntrospection>
+
+        <!--
+        By enabling this config, any unregistered scopes(excluding internal scopes and allowed scopes)
+        passed in a OAuth based authz request will be dropped.
+        Default value : false
+        -->
+        <!--<DropUnregisteredScopes>true</DropUnregisteredScopes>-->
     </OAuth>
 
     <MultifactorAuthentication>
