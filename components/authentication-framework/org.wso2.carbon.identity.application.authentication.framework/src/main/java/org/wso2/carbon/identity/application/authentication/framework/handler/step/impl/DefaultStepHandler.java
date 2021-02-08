@@ -129,8 +129,7 @@ public class DefaultStepHandler implements StepHandler {
         // check passive authentication
         if (context.isPassiveAuthenticate()) {
             if (authenticatedStepIdps.isEmpty()) {
-
-                if (isOnlyFlowHandlersInStep(stepConfig)) {
+                if (authenticatedIdPs.keySet().size() > 0 && isOnlyFlowHandlersInStep(stepConfig)) {
                     // During Passive authentication, if the authenticatedStepIdps empty and contain only flow handlers.
                     // Then considering as authenticated.
                     String authenticatedIdP = authenticatedIdPs.keySet().iterator().next();
