@@ -91,25 +91,37 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     }
 
     /**
-     * {@inheritDoc}
+     * Set the CORS origins of an application. This will replace the existing CORS origin list of that application.
+     *
+     * @param applicationId The application ID.
+     * @param corsOrigins   The CORS origins to be set, associated with the application.
+     * @param tenantId      The tenant ID.
+     * @throws CORSManagementServiceServerException
      */
     @Override
     public void setCORSOrigins(int applicationId, List<CORSOrigin> corsOrigins, int tenantId)
             throws CORSManagementServiceServerException {
 
-        clearCaches(applicationId, tenantId);
         corsOriginDAO.setCORSOrigins(applicationId, corsOrigins, tenantId);
+        clearCaches(applicationId, tenantId);
+        addCORSOriginsToCache(corsOrigins.toArray(new CORSOrigin[0]), applicationId, tenantId);
     }
 
     /**
-     * {@inheritDoc}
+     * Add the CORS origins of an application. This will append the new origins to the existing CORS origin list
+     * of that application.
+     *
+     * @param applicationId The application ID.
+     * @param corsOrigins   The CORS origins to be add, associated with the application.
+     * @param tenantId      The tenant ID.
+     * @throws CORSManagementServiceServerException
      */
     @Override
     public void addCORSOrigins(int applicationId, List<CORSOrigin> corsOrigins, int tenantId)
             throws CORSManagementServiceServerException {
 
-        clearCaches(applicationId, tenantId);
         corsOriginDAO.addCORSOrigins(applicationId, corsOrigins, tenantId);
+        clearCaches(applicationId, tenantId);
     }
 
     /**
@@ -119,8 +131,8 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     public void deleteCORSOrigins(int applicationId, List<String> corsOriginIds, int tenantId)
             throws CORSManagementServiceServerException {
 
-        clearCaches(applicationId, tenantId);
         corsOriginDAO.deleteCORSOrigins(applicationId, corsOriginIds, tenantId);
+        clearCaches(applicationId, tenantId);
     }
 
     /**

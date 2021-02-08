@@ -75,8 +75,9 @@ public class CacheBackedCORSConfigurationDAO extends CORSConfigurationDAOImpl {
     public void setCORSConfigurationByTenantDomain(CORSConfiguration corsConfiguration, String tenantDomain)
             throws CORSManagementServiceServerException {
 
-        clearCaches(tenantDomain);
         corsConfigurationDAO.setCORSConfigurationByTenantDomain(corsConfiguration, tenantDomain);
+        clearCaches(tenantDomain);
+        addCORSConfigurationToCache(corsConfiguration, tenantDomain);
     }
 
     /**
