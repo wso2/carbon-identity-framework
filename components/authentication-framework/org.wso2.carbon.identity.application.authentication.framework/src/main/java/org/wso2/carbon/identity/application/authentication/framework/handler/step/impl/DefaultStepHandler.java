@@ -62,6 +62,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESIDENT_IDP;
 
 public class DefaultStepHandler implements StepHandler {
 
@@ -132,7 +133,10 @@ public class DefaultStepHandler implements StepHandler {
                 if (authenticatedIdPs.keySet().size() > 0 && isOnlyFlowHandlersInStep(stepConfig)) {
                     // During Passive authentication, if the authenticatedStepIdps empty and contain only flow handlers.
                     // Then considering as authenticated.
-                    String authenticatedIdP = authenticatedIdPs.keySet().iterator().next();
+                    String authenticatedIdP = RESIDENT_IDP;
+                    if (authenticatedIdPs.get(authenticatedIdP) == null) {
+                        authenticatedIdP = authenticatedIdPs.keySet().iterator().next();
+                    }
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             stepConfig.getAuthenticatorList().get(0));
