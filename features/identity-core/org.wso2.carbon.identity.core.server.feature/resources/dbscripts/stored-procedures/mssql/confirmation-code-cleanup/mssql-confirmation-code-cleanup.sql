@@ -11,7 +11,8 @@ BEGIN
     DECLARE @rowCount INT
     DECLARE @enableLog BIT
     DECLARE @backupTables BIT
-    DECLARE @codeCleanupTime bigint;
+    DECLARE @cleanUpCodesTimeLimit INT
+    DECLARE @cleanUpDateTimeLimit DATETIME
 
     -- ------------------------------------------
     -- CONFIGURABLE VARIABLES
@@ -19,13 +20,13 @@ BEGIN
     SET @batchSize    = 10000 -- SET BATCH SIZE FOR AVOID TABLE LOCKS [DEFAULT : 10000]
     SET @chunkSize    = 500000 -- CHUNK WISE DELETE FOR LARGE TABLES [DEFAULT : 500000]
     SET @enableLog    = 0 -- ENABLE LOGGING [DEFAULT : 0]
-    SET @backupTables = 0 -- SET IF RECOVERY DATA TABLE NEEDS TO BACKUP BEFORE DELETE [DEFAULT : 0], WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
-    -- Confirmation codes older than 20160 minutes(14 days) will be removed.
-    SET @codeCleanupTime = cast((DATEDIFF_BIG(millisecond, '1970-01-01 00:00:00', GETUTCDATE()) - (1209600000))AS DECIMAL) * 1000000
+    SET @backupTables = 0 -- SET IF RECOVERY DATA TABLE NEEDS TO BACKED-UP BEFORE DELETE [DEFAULT : 0]. WILL DROP THE PREVIOUS BACKUP TABLES IN NEXT ITERATION
+    SET @cleanUpCodesTimeLimit = 720  -- SET SAFE PERIOD OF HOURS FOR CODE DELETE [DEFAULT : 720 hrs (30 days)]. CODES OLDER THAN THE NUMBER OF HOURS DEFINED HERE WILL BE DELETED.
 
     SET @rowCount = 0
     SET @batchCount = 1
     SET @chunkCount = 1
+    SET @cleanUpDateTimeLimit = DATEADD(HOUR, -(@cleanUpCodesTimeLimit), GetUTCDate())
 
     IF (@enableLog = 1)
     BEGIN
@@ -62,8 +63,14 @@ BEGIN
         -- CREATE CHUNK TABLE
         DROP TABLE IF EXISTS IDN_RECOVERY_DATA_CHUNK_TMP
         CREATE TABLE IDN_RECOVERY_DATA_CHUNK_TMP(CODE VARCHAR (255))
-        INSERT INTO IDN_RECOVERY_DATA_CHUNK_TMP(CODE) SELECT TOP (@chunkSize) CODE FROM IDN_RECOVERY_DATA where TIME_CREATED < @codeCleanupTime;
+        INSERT INTO IDN_RECOVERY_DATA_CHUNK_TMP(CODE) SELECT TOP (@chunkSize) CODE FROM IDN_RECOVERY_DATA where (@cleanUpDateTimeLimit > TIME_CREATED);
         SET @chunkCount = @@ROWCOUNT
+
+        IF (@chunkCount = 0)
+        BEGIN
+            BREAK;
+        END
+
         CREATE INDEX IDN_RECOVERY_DATA_CHUNK_TMP_INDX on IDN_RECOVERY_DATA_CHUNK_TMP (CODE)
         IF (@enableLog = 1)
         BEGIN
@@ -79,6 +86,12 @@ BEGIN
             CREATE TABLE IDN_RECOVERY_DATA_BATCH_TMP(CODE VARCHAR (255))
             INSERT INTO IDN_RECOVERY_DATA_BATCH_TMP(CODE) SELECT TOP (@batchSize) CODE FROM IDN_RECOVERY_DATA_CHUNK_TMP
             SET @batchCount = @@ROWCOUNT
+
+            IF (@batchCount = 0)
+            BEGIN
+                BREAK;
+            END
+
             CREATE INDEX IDN_RECOVERY_DATA_BATCH_TMP on IDN_RECOVERY_DATA_BATCH_TMP (CODE)
             IF (@enableLog = 1)
             BEGIN
