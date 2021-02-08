@@ -813,6 +813,9 @@
         -->
         <DropUnregisteredScopes>{{oauth.drop_unregistered_scopes}}</DropUnregisteredScopes>
         {% endif %}
+        {% if oauth.client_id_validation_regex is defined %}
+        <ClientIdValidationRegex>{{oauth.client_id_validation_regex}}</ClientIdValidationRegex>
+        {% endif %}
     </OAuth>
 
     <MultifactorAuthentication>
