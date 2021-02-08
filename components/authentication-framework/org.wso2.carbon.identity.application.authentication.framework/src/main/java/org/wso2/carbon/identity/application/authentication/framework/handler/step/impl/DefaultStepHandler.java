@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
@@ -127,9 +128,18 @@ public class DefaultStepHandler implements StepHandler {
 
         // check passive authentication
         if (context.isPassiveAuthenticate()) {
-
             if (authenticatedStepIdps.isEmpty()) {
-                context.setRequestAuthenticated(false);
+
+                if (isOnlyFlowHandlersInStep(stepConfig)) {
+                    // During Passive authentication, if the authenticatedStepIdps empty and contain only flow handlers.
+                    // Then considering as authenticated.
+                    String authenticatedIdP = authenticatedIdPs.keySet().iterator().next();
+                    AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
+                    populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
+                            stepConfig.getAuthenticatorList().get(0));
+                } else {
+                    context.setRequestAuthenticated(false);
+                }
             } else {
                 String authenticatedIdP = authenticatedStepIdps.entrySet().iterator().next().getKey();
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
@@ -309,6 +319,17 @@ public class DefaultStepHandler implements StepHandler {
                 }
             }
         }
+    }
+
+    private boolean isOnlyFlowHandlersInStep(StepConfig stepConfig) {
+
+        List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+        for (AuthenticatorConfig authenticatorConfig : authenticatorList) {
+            if (!(authenticatorConfig.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     protected void handleHomeRealmDiscovery(HttpServletRequest request,
