@@ -2626,4 +2626,16 @@
         <DefaultUrl>{{common_auth_caller_path.default_url}}</DefaultUrl>
         {% endif %}
     </CommonAuthCallerPath>
+
+    <!-- Cookies to invalidate during authentication flow failures. -->
+    <CookiesToInvalidate>
+        	<Cookie name="commonAuthId"/>
+        	<Cookie name="opbs"/>
+        	<Cookie name="pastr"/>
+        	<Cookie name="sessionNonceCookie"/>
+        	<Cookie name="ALOR"/>
+        	{% for cookie in cookies_to_invalidate.cookie_names %}
+        	<Cookie name="{{cookie}}"/>
+        	{% endfor %}
+    </CookiesToInvalidate>
 </Server>

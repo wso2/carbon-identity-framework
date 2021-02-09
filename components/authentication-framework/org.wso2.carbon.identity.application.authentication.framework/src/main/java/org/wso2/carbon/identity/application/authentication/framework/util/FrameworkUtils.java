@@ -535,9 +535,7 @@ public class FrameworkUtils {
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         // TODO read the URL from framework config file rather than carbon.xml
-        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-        response.sendRedirect(getRedirectURL(ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL(),
-                request));
+        sendToRetryPage(request, response, null, null);
     }
 
 
@@ -547,13 +545,23 @@ public class FrameworkUtils {
         try {
             URIBuilder uriBuilder = new URIBuilder(
                     ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL());
-            uriBuilder.addParameter("status", status);
-            uriBuilder.addParameter("statusMsg", statusMsg);
+            if (status != null && statusMsg != null) {
+                uriBuilder.addParameter("status", status);
+                uriBuilder.addParameter("statusMsg", statusMsg);
+            }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
         } catch (URISyntaxException e) {
             log.error("Error building redirect url for failure", e);
             FrameworkUtils.sendToRetryPage(request, response);
+        } finally {
+            List<String> cookiesToInvalidateConfig = IdentityUtil.getCookiesToInvalidateConfigurationHolder();
+            if (ArrayUtils.isNotEmpty(request.getCookies())) {
+                Arrays.stream(request.getCookies())
+                        .filter(cookie -> cookiesToInvalidateConfig.stream()
+                                .anyMatch(cookieToInvalidate -> cookie.getName().contains(cookieToInvalidate)))
+                        .forEach(cookie -> removeCookie(request, response, cookie.getName()));
+            }
         }
     }
     /**
