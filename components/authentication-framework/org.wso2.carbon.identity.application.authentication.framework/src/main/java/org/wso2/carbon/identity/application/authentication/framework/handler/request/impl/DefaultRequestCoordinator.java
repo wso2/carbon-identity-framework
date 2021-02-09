@@ -179,7 +179,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Session data key is null in the request and not a logout request.");
                     }
 
-                    FrameworkUtils.sendToRetryPage(request, response);
+                    FrameworkUtils.sendToRetryPage(request, response, null, null, context);
                 }
 
                 // if there is a cache entry, wrap the original request with params in cache entry
@@ -221,7 +221,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                     "Request Headers: " + getHeaderString(request) + "\n" +
                                     "Thread Id: " + Thread.currentThread().getId());
                         }
-                        FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                        FrameworkUtils.sendToRetryPage(request, responseWrapper, null, null, context);
                         return;
                     }
                 }
@@ -281,7 +281,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, null, null, context);
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {
@@ -293,8 +293,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
         } catch (MisconfigurationException e) {
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, "misconfiguration.error","something.went.wrong.contact" +
-                    ".admin");
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, "misconfiguration.error",
+                    "something.went.wrong.contact.admin", context);
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
@@ -304,7 +304,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
             FrameworkUtils
-                    .sendToRetryPage(request, responseWrapper, "Authentication attempt failed.", e.getErrorCode());
+                    .sendToRetryPage(request, responseWrapper, "Authentication attempt failed.",
+                            e.getErrorCode(), context);
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             if ((e instanceof FrameworkException)
@@ -313,9 +314,9 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     log.debug(e.getMessage(), e);
                 }
                 FrameworkUtils.sendToRetryPage(request, response, "suspicious.authentication.attempts",
-                        "suspicious.authentication.attempts.description");
+                        "suspicious.authentication.attempts.description", context);
             } else {
-                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, null, null, context);
             }
         } finally {
             UserCoreUtil.setDomainInThreadLocal(null);

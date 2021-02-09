@@ -174,6 +174,7 @@ public class FrameworkUtils {
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
+    private static final String USER_TENANT_PARAM = "ut";
 
     public static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
@@ -531,16 +532,44 @@ public class FrameworkUtils {
      * @param request
      * @param response
      * @throws IOException
+     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, String, String, AuthenticationContext)}.
      */
+    @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         // TODO read the URL from framework config file rather than carbon.xml
         sendToRetryPage(request, response, null, null);
     }
 
-
+    /**
+     * Send user to retry page during an authentication flow failure.
+     *
+     * @param request       Http servlet request.
+     * @param response      Http servlet response.
+     * @param status        Failure status.
+     * @param statusMsg     Failure status message.
+     * @throws IOException
+     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, String, String, AuthenticationContext)}.
+     */
+    @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
                                        String statusMsg) throws IOException {
+
+        sendToRetryPage(request, response, status, statusMsg, null);
+    }
+
+    /**
+     * Send user to retry page during an authentication flow failure.
+     *
+     * @param request       Http servlet request.
+     * @param response      Http servlet response.
+     * @param status        Failure status.
+     * @param statusMsg     Failure status message.
+     * @param context       Authentication Context.
+     * @throws IOException
+     */
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
+                                       String statusMsg, AuthenticationContext context) throws IOException{
 
         try {
             URIBuilder uriBuilder = new URIBuilder(
@@ -550,7 +579,16 @@ public class FrameworkUtils {
                 uriBuilder.addParameter("statusMsg", statusMsg);
             }
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-            response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
+            if (context != null) {
+                if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+                    uriBuilder.addParameter(USER_TENANT_PARAM, context.getUserTenantDomain());
+                }
+                uriBuilder.addParameter(REQUEST_PARAM_SP, context.getServiceProviderName());
+                uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
+                response.sendRedirect(uriBuilder.build().toString());
+            } else {
+                response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
+            }
         } catch (URISyntaxException e) {
             log.error("Error building redirect url for failure", e);
             FrameworkUtils.sendToRetryPage(request, response);
@@ -564,6 +602,7 @@ public class FrameworkUtils {
             }
         }
     }
+
     /**
      * This method is used to append sp name and sp tenant domain as parameter to a given url. Those information will
      * be fetched from request parameters or referer.
