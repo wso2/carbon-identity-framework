@@ -122,12 +122,15 @@ public class CORSManagementServiceImpl implements CORSManagementService {
         // Check if the CORS origins are already present.
         List<CORSOrigin> existingCORSOrigins = getCORSOriginDAO().getCORSOriginsByApplicationId(
                 applicationBasicInfo.getApplicationId(), tenantId);
+
+        List<String> corsOriginIdList = existingCORSOrigins.stream().map(CORSOrigin::getId)
+                .collect(Collectors.toList());
         for (Origin origin : originList) {
-            if (existingCORSOrigins.stream().map(CORSOrigin::getId).collect(Collectors.toList())
-                    .contains(origin.getValue())) {
+            if (corsOriginIdList.contains(origin.getValue())) {
                 // CORS origin is already registered for the application.
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format(ERROR_CODE_ORIGIN_PRESENT.getMessage(), tenantDomain, origin));
+                    log.debug(String.format("Duplicate addition of existing CORS Origin (%s) for the " +
+                            "application id: %s, tenant domain: %s", origin, applicationId, tenantDomain));
                 }
                 throw handleClientException(ERROR_CODE_ORIGIN_PRESENT, tenantDomain, origin.getValue());
             }
@@ -161,7 +164,8 @@ public class CORSManagementServiceImpl implements CORSManagementService {
             if (!existingCORSOrigins.stream().map(CORSOrigin::getId).collect(Collectors.toList()).contains(originId)) {
                 // CORS origin is not registered for the application.
                 if (log.isDebugEnabled()) {
-                    log.debug(String.format(ERROR_CODE_ORIGIN_NOT_PRESENT.getMessage(), tenantDomain, originId));
+                    log.debug(String.format("Application %s of the tenant %s doesn't have a CORS Origin with " +
+                            "the ID of %s.", applicationId, tenantDomain, originId));
                 }
                 throw handleClientException(ERROR_CODE_ORIGIN_NOT_PRESENT, tenantDomain, originId);
             }
@@ -285,7 +289,7 @@ public class CORSManagementServiceImpl implements CORSManagementService {
         } catch (IdentityApplicationManagementException e) {
             // Something else happened.
             log.error(String.format(ERROR_CODE_VALIDATE_APP_ID.getDescription(), applicationId), e);
+            throw handleClientException(ERROR_CODE_VALIDATE_APP_ID, applicationId);
         }
-        return null;
     }
 }

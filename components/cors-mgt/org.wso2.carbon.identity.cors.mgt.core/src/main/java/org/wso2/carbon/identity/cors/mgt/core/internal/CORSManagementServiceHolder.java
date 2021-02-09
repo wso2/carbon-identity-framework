@@ -25,6 +25,8 @@ import org.wso2.carbon.identity.cors.mgt.core.dao.CORSConfigurationDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSConfigurationDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
+import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CacheBackedCORSConfigurationDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CacheBackedCORSOriginDAO;
 
 /**
  * Service holder class for CORS-Service.
@@ -33,8 +35,9 @@ public class CORSManagementServiceHolder {
 
     private static final Log log = LogFactory.getLog(CORSManagementServiceHolder.class);
 
-    private CORSOriginDAO corsOriginDAO = new CORSOriginDAOImpl();
-    private CORSConfigurationDAO corsConfigurationDAO = new CORSConfigurationDAOImpl();
+    private CORSOriginDAO corsOriginDAO = new CacheBackedCORSOriginDAO(new CORSOriginDAOImpl());
+    private CORSConfigurationDAO corsConfigurationDAO =
+            new CacheBackedCORSConfigurationDAO(new CORSConfigurationDAOImpl());
     private ConfigurationManager configurationManager;
 
     private CORSManagementServiceHolder() {
