@@ -215,15 +215,18 @@ public class IdentityConfigParser {
     private void buildCookiesToInvalidateConfig() {
 
         OMElement cookiesToInvalidate = this.getConfigElement(IdentityConstants.COOKIES_TO_INVALIDATE_CONFIG);
-        Iterator<OMElement> cookies = cookiesToInvalidate.getChildrenWithName(
-                new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.COOKIE));
+        Iterator<OMElement> cookies = null;
+        if (cookiesToInvalidate != null) {
+            cookies = cookiesToInvalidate.getChildrenWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.COOKIE));
+        }
         if (cookies != null) {
             while (cookies.hasNext()) {
                 OMElement cookie = cookies.next();
                 String cookieName = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_NAME));
 
                 if (StringUtils.isBlank(cookieName)) {
-                    throw IdentityRuntimeException.error("Cookie name not defined correctly");
+                    throw IdentityRuntimeException.error("Invalid configuration. Cookie name is not defined correctly.");
                 }
 
                 cookiesToInvalidateConfigurationHolder.add(cookieName);

@@ -162,6 +162,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT;
 import static org.wso2.carbon.identity.core.util.IdentityTenantUtil.isLegacySaaSAuthenticationEnabled;
 
 public class FrameworkUtils {
@@ -174,7 +175,6 @@ public class FrameworkUtils {
     private static final String EMAIL = "email";
     private static List<String> cacheDisabledAuthenticators = Arrays
             .asList(FrameworkConstants.RequestType.CLAIM_TYPE_SAML_SSO, FrameworkConstants.OAUTH2);
-    private static final String USER_TENANT_PARAM = "ut";
 
     public static final String QUERY_SEPARATOR = "&";
     private static final String EQUAL = "=";
@@ -532,7 +532,7 @@ public class FrameworkUtils {
      * @param request
      * @param response
      * @throws IOException
-     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, String, String, AuthenticationContext)}.
+     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext)}.
      */
     @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response)
@@ -549,13 +549,13 @@ public class FrameworkUtils {
      * @param status        Failure status.
      * @param statusMsg     Failure status message.
      * @throws IOException
-     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, String, String, AuthenticationContext)}.
+     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext, String, String)}.
      */
     @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
                                        String statusMsg) throws IOException {
 
-        sendToRetryPage(request, response, status, statusMsg, null);
+        sendToRetryPage(request, response, null, status, statusMsg);
     }
 
     /**
@@ -563,13 +563,28 @@ public class FrameworkUtils {
      *
      * @param request       Http servlet request.
      * @param response      Http servlet response.
-     * @param status        Failure status.
-     * @param statusMsg     Failure status message.
      * @param context       Authentication Context.
      * @throws IOException
      */
-    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
-                                       String statusMsg, AuthenticationContext context) throws IOException{
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context) throws IOException {
+
+        sendToRetryPage(request, response, context, null, null);
+    }
+
+    /**
+     * Send user to retry page during an authentication flow failure.
+     *
+     * @param request       Http servlet request.
+     * @param response      Http servlet response.
+     * @param context       Authentication Context.
+     * @param status        Failure status.
+     * @param statusMsg     Failure status message.
+     * @throws IOException
+     */
+    public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response,
+                                       AuthenticationContext context, String status,
+                                       String statusMsg) throws IOException{
 
         try {
             URIBuilder uriBuilder = new URIBuilder(
@@ -581,10 +596,12 @@ public class FrameworkUtils {
             request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
             if (context != null) {
                 if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
-                    uriBuilder.addParameter(USER_TENANT_PARAM, context.getUserTenantDomain());
+                    uriBuilder.addParameter(USER_TENANT_DOMAIN_HINT, context.getUserTenantDomain());
                 }
                 uriBuilder.addParameter(REQUEST_PARAM_SP, context.getServiceProviderName());
-                uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
+                if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    uriBuilder.addParameter(TENANT_DOMAIN, context.getTenantDomain());
+                }
                 response.sendRedirect(uriBuilder.build().toString());
             } else {
                 response.sendRedirect(getRedirectURL(uriBuilder.build().toString(), request));
