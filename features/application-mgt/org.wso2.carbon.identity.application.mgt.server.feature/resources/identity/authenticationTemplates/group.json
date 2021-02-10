@@ -1,0 +1,54 @@
+{
+  "category": "user_based",
+  "name": "Group-Based",
+  "title": "Group-Based 2FA Template",
+  "summary": "Prompts 2FA to the users who belongs to any of the given set of groups.",
+  "preRequisites": [
+    "Change the groupList parameter to an array of groups of which users need to enforce 2FA.",
+    "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
+  ],
+  "parametersDescription": {
+    "groupsToStepUp": "An array of groups of which users need to enforce 2FA."
+  },
+  "defaultStepsDescription": {
+    "Step 1": "Basic (Password) authenticator.",
+    "Step 2": "Either of TOTP or FIDO"
+  },
+  "authenticationSteps":2,
+  "defaultAuthenticators": {
+    "1": {
+      "local": [
+        "BasicAuthenticator"
+      ],
+      "federated": []
+    },
+    "2": {
+      "local": [
+        "totp",
+        "FIDOAuthenticator"
+      ],
+      "federated": []
+    }
+  },
+  "code": [
+    "// This script will step up authentication for any user belong",
+    "// to one of the given groups.",
+    "// If the user has any of the below groups, authentication will be stepped up",
+    "var groupsToStepUp = ['manager','employee'];",
+    "",
+    "var onLoginRequest = function(context) {",
+    "    executeStep(1, {",
+    "        onSuccess: function (context) {",
+    "            // Extracting authenticated subject from the first step.",
+    "            var user = context.currentKnownSubject;",
+    "            // Checking if the user is assigned to one of the given groups.",
+    "            var hasGroup = hasAnyOfTheGroups(user, groupsToStepUp);",
+    "            if (hasGroup) {",
+    "                Log.info(user.username + ' Has one of groups: ' + groupsToStepUp.toString());",
+    "                executeStep(2);",
+    "            }",
+    "        }",
+    "    });",
+    "};"
+  ]
+}
