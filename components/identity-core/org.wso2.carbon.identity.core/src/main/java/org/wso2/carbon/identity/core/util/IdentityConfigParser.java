@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Stack;
@@ -58,6 +59,7 @@ public class IdentityConfigParser {
     private static Map<String, IdentityCookieConfig> identityCookieConfigurationHolder = new HashMap<>();
     private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
+    private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
     public final static String IS_DISTRIBUTED_CACHE = "isDistributed";
     public static final String IS_TEMPORARY = "isTemporary";
     private static final String SERVICE_PROVIDER_CACHE = "ServiceProviderCache";
@@ -111,6 +113,11 @@ public class IdentityConfigParser {
     public static Map<String, ReverseProxyConfig> getReverseProxyConfigurationHolder() {
 
         return reverseProxyConfigurationHolder;
+    }
+
+    public List<String> getCookiesToInvalidateConfigurationHolder() {
+
+        return cookiesToInvalidateConfigurationHolder;
     }
 
     /**
@@ -190,6 +197,7 @@ public class IdentityConfigParser {
             buildCookieConfig();
             buildLegacyFeatureConfig();
             buildReverseProxyConfig();
+            buildCookiesToInvalidateConfig();
 
         } catch ( IOException | XMLStreamException e ) {
             throw IdentityRuntimeException.error("Error occurred while building configuration from identity.xml", e);
@@ -200,6 +208,28 @@ public class IdentityConfigParser {
                 }
             } catch ( IOException e ) {
                 log.error("Error closing the input stream for identity.xml", e);
+            }
+        }
+    }
+
+    private void buildCookiesToInvalidateConfig() {
+
+        OMElement cookiesToInvalidate = this.getConfigElement(IdentityConstants.COOKIES_TO_INVALIDATE_CONFIG);
+        Iterator<OMElement> cookies = null;
+        if (cookiesToInvalidate != null) {
+            cookies = cookiesToInvalidate.getChildrenWithName(
+                    new QName(IdentityCoreConstants.IDENTITY_DEFAULT_NAMESPACE, IdentityConstants.COOKIE));
+        }
+        if (cookies != null) {
+            while (cookies.hasNext()) {
+                OMElement cookie = cookies.next();
+                String cookieName = cookie.getAttributeValue(new QName(IdentityConstants.COOKIE_NAME));
+
+                if (StringUtils.isBlank(cookieName)) {
+                    throw IdentityRuntimeException.error("Invalid configuration. Cookie name is not defined correctly.");
+                }
+
+                cookiesToInvalidateConfigurationHolder.add(cookieName);
             }
         }
     }

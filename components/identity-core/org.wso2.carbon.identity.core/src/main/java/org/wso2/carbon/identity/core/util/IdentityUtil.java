@@ -70,6 +70,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -119,6 +120,7 @@ public class IdentityUtil {
     private static Map<String, IdentityCookieConfig> identityCookiesConfigurationHolder = new HashMap<>();
     private static Map<String, LegacyFeatureConfig> legacyFeatureConfigurationHolder = new HashMap<>();
     private static Map<String, ReverseProxyConfig> reverseProxyConfigurationHolder = new HashMap<>();
+    private static List<String> cookiesToInvalidateConfigurationHolder = new ArrayList<>();
     private static Document importerDoc = null;
     private static ThreadLocal<IdentityErrorMsgContext> IdentityError = new ThreadLocal<IdentityErrorMsgContext>();
     private static final int ENTITY_EXPANSION_LIMIT = 0;
@@ -218,6 +220,11 @@ public class IdentityUtil {
         return identityCookiesConfigurationHolder;
     }
 
+    public static List<String> getCookiesToInvalidateConfigurationHolder() {
+
+        return cookiesToInvalidateConfigurationHolder;
+    }
+
     /**
      * This method can use to check whether the legacy feature for the given legacy feature id is enabled or not
      *
@@ -289,6 +296,8 @@ public class IdentityUtil {
         identityCookiesConfigurationHolder = IdentityConfigParser.getIdentityCookieConfigurationHolder();
         legacyFeatureConfigurationHolder = IdentityConfigParser.getLegacyFeatureConfigurationHolder();
         reverseProxyConfigurationHolder = IdentityConfigParser.getInstance().getReverseProxyConfigurationHolder();
+        cookiesToInvalidateConfigurationHolder =
+                IdentityConfigParser.getInstance().getCookiesToInvalidateConfigurationHolder();
     }
 
     public static String getPPIDDisplayValue(String value) throws Exception {
