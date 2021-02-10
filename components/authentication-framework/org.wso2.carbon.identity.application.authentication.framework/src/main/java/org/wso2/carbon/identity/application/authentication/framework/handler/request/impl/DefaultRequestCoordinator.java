@@ -83,6 +83,9 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
@@ -227,7 +230,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
 
 
-                if (isBackToFirstStepRequest(request)) {
+                /*
+                If
+                 Request specify to restart the flow again from first step by passing `restart_flow`.
+                 OR
+                 Identifier first request received and current step does not contains any flow handler.
+                    (To handle browser back with only with identifier-first and basic)
+                */
+                if (isBackToFirstStepRequest(request) ||
+                        (isIdentifierFirstRequest(request) && !isIDFAuthenticatorInCurrentStep(context))) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -361,6 +372,26 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         } else if (responseWrapper.isWrappedByFramework()) {
             responseWrapper.write();
         }
+    }
+
+    private boolean isIdentifierFirstRequest(HttpServletRequest request) {
+
+        String authType = request.getParameter(AUTH_TYPE);
+        return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
+    }
+
+    private boolean isIDFAuthenticatorInCurrentStep(AuthenticationContext context) {
+
+        StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+        if (stepConfig != null) {
+            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+            for (AuthenticatorConfig config : authenticatorList) {
+                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean isBackToFirstStepRequest(HttpServletRequest request) {
