@@ -178,7 +178,7 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
                         context.getSequenceConfig().getApplicationConfig().getApplicationName());
                 if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
-                    uriBuilder.addParameter(POST_AUTH_MISSING_CLAIMS_ERROR,
+                    uriBuilder.addParameter("errorMessage",
                             context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR).toString());
                     context.removeProperty(POST_AUTH_MISSING_CLAIMS_ERROR);
                 }
