@@ -102,9 +102,8 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     public void setCORSOrigins(int applicationId, List<CORSOrigin> corsOrigins, int tenantId)
             throws CORSManagementServiceServerException {
 
-        corsOriginDAO.setCORSOrigins(applicationId, corsOrigins, tenantId);
         clearCaches(applicationId, tenantId);
-        addCORSOriginsToCache(corsOrigins.toArray(new CORSOrigin[0]), applicationId, tenantId);
+        corsOriginDAO.setCORSOrigins(applicationId, corsOrigins, tenantId);
     }
 
     /**
@@ -120,8 +119,8 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     public void addCORSOrigins(int applicationId, List<CORSOrigin> corsOrigins, int tenantId)
             throws CORSManagementServiceServerException {
 
-        corsOriginDAO.addCORSOrigins(applicationId, corsOrigins, tenantId);
         clearCaches(applicationId, tenantId);
+        corsOriginDAO.addCORSOrigins(applicationId, corsOrigins, tenantId);
     }
 
     /**
@@ -131,8 +130,8 @@ public class CacheBackedCORSOriginDAO extends CORSOriginDAOImpl {
     public void deleteCORSOrigins(int applicationId, List<String> corsOriginIds, int tenantId)
             throws CORSManagementServiceServerException {
 
-        corsOriginDAO.deleteCORSOrigins(applicationId, corsOriginIds, tenantId);
         clearCaches(applicationId, tenantId);
+        corsOriginDAO.deleteCORSOrigins(applicationId, corsOriginIds, tenantId);
     }
 
     /**
