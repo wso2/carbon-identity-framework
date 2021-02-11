@@ -2,13 +2,13 @@
   "category": "user_based",
   "name": "Group-Based",
   "title": "Group-Based 2FA Template",
-  "summary": "Prompts 2FA to the users who belongs to any of the given set of groups.",
+  "summary": "Prompts 2FA to the users who belong to any of the given sets of groups.",
   "preRequisites": [
-    "Change the groupList parameter to an array of groups of which users need to enforce 2FA.",
+    "Change the groupList parameter to an array of groups for which users need to enforce 2FA.",
     "Modify the 1st and 2nd factor authentication option(s) from defaults as required."
   ],
   "parametersDescription": {
-    "groupsToStepUp": "An array of groups of which users need to enforce 2FA."
+    "groupsToStepUp": "An array of groups for which users need to enforce 2FA."
   },
   "defaultStepsDescription": {
     "Step 1": "Basic (Password) authenticator.",
@@ -31,9 +31,9 @@
     }
   },
   "code": [
-    "// This script will step up authentication for any user belong",
+    "// This script will step up authentication for any user who belongs",
     "// to one of the given groups.",
-    "// If the user is a member in the following groups, authentication will be stepped up",
+    "// If the user is a member of the following groups, authentication will be stepped up",
     "var groupsToStepUp = ['manager','employee'];",
     "",
     "var onLoginRequest = function(context) {",
