@@ -920,6 +920,9 @@
   "cors.supported_methods": [
     "GET",
     "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
     "HEAD",
     "OPTIONS"
   ],
