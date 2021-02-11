@@ -81,7 +81,7 @@
     "                        onSuccess: function (context) {",
     "                            setCookie(context.response, cookieName, subject.identifier, {",
     "                                'sign': true,",
-    "                                'max-age': deviceRememberPeriod",
+    "                                'max-age': deviceRememberPeriod,",
     "                                'sameSite': 'LAX'",
     "                            });",
     "                        }",
