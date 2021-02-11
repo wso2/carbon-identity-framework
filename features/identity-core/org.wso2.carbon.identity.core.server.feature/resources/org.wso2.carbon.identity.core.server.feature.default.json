@@ -617,9 +617,7 @@
 
   "continue_on_claim_handling_error": true,
 
-  "console.applications.account_app.configs": {
-    "path": "/myaccount/overview"
-  },
+  "console.applications.account_app.configs.path": "/myaccount/overview",
   "console.app_base_name": "console",
   "console.client_id": "CONSOLE",
   "console.debug.enable": false,
