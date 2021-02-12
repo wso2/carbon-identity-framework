@@ -32,7 +32,7 @@
   "authentication.authenticator.totp.parameters.totp_authentication_endpoint_error_page":   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointErrorPage",
   "authentication.authenticator.totp.parameters.totp_authentication_endpoint_enable_totp_page": "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage",
   "authentication.authenticator.totp.parameters.allow_sending_verification_code_by_email": "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail",
-  "authentication.authenticator.totp.parameters.hide_user_store_from_display_name": "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl",
+  "authentication.authenticator.totp.parameters.hide_user_store_from_display_name_in_qr_url": "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl",
 
   "authentication.authenticator.email_otp.parameters.email_otp_login_page":   "authentication.authenticator.email_otp.parameters.EMAILOTPAuthenticationEndpointURL",
   "authentication.authenticator.email_otp.parameters.email_otp_error_page":   "authentication.authenticator.email_otp.parameters.EmailOTPAuthenticationEndpointErrorPage",
