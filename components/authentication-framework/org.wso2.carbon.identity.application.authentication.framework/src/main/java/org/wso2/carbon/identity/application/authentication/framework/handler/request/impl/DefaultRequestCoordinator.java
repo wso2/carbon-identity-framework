@@ -762,6 +762,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
 
                 context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
+                context.setProperty(FrameworkConstants.RUNTIME_CLAIMS,
+                        sessionContext.getProperty(FrameworkConstants.RUNTIME_CLAIMS));
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");

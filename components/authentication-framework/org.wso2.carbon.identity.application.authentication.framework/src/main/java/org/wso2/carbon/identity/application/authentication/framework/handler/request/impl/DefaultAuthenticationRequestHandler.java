@@ -470,6 +470,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     setAuthCookie(request, response, context, commonAuthCookie, applicationTenantDomain);
                 }
 
+                if (context.getRuntimeClaims().size() > 0) {
+                    sessionContext.addProperty(FrameworkConstants.RUNTIME_CLAIMS, context.getRuntimeClaims());
+                }
+
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
@@ -503,6 +507,10 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
                 populateAuthenticationContextHistory(authenticationResult, context, sessionContext);
+
+                if (context.getRuntimeClaims().size() > 0) {
+                    sessionContext.addProperty(FrameworkConstants.RUNTIME_CLAIMS, context.getRuntimeClaims());
+                }
 
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
