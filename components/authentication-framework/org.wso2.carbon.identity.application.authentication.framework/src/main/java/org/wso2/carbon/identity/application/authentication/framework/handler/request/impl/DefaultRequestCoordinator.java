@@ -238,7 +238,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                     (To handle browser back with only with identifier-first and basic)
                 */
                 if (isBackToFirstStepRequest(request) ||
-                        (isIdentifierFirstRequest(request) && !isIDFAuthenticatorInCurrentStep(context))) {
+                        (isIdentifierFirstRequest(request) && !isFlowHandlerInCurrentStepCanHandleRequest(context, request))) {
                     if (isCompletedStepsAreFlowHandlersOnly(context)) {
                         // If the incoming request is restart and all the completed steps have only flow handlers as the
                         // authenticated authenticator, then we reset the current step to 1.
@@ -380,13 +380,15 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
     }
 
-    private boolean isIDFAuthenticatorInCurrentStep(AuthenticationContext context) {
+    private boolean isFlowHandlerInCurrentStepCanHandleRequest(AuthenticationContext context,
+                                                               HttpServletRequest request) {
 
         StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
         if (stepConfig != null) {
             List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
             for (AuthenticatorConfig config : authenticatorList) {
-                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
+                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler &&
+                        config.getApplicationAuthenticator().canHandle(request)) {
                     return true;
                 }
             }
