@@ -173,6 +173,7 @@
   "authentication.authenticator.totp.parameters.TOTPAuthenticationEndpointEnableTOTPPage": "authenticationendpoint/totp_enroll.do",
   "authentication.authenticator.totp.parameters.redirectToMultiOptionPageOnFailure": false,
   "authentication.authenticator.totp.parameters.AllowSendingVerificationCodeByEmail": false,
+  "authentication.authenticator.totp.parameters.HideUserStoreFromDisplayInQRUrl": false,
 
   "authentication.authenticator.x509_certificate.name": "x509CertificateAuthenticator",
   "authentication.authenticator.x509_certificate.enable": true,

@@ -193,6 +193,7 @@
             <Parameter name="Issuer">WSO2</Parameter>
             <Parameter name="UseCommonIssuer">true</Parameter>
             <Parameter name="AllowSendingVerificationCodeByEmail">false</Parameter>
+            <Parameter name="HideUserStoreFromDisplayInQRUrl">false</Parameter>
         </AuthenticatorConfig>
     </AuthenticatorConfigs>
 
