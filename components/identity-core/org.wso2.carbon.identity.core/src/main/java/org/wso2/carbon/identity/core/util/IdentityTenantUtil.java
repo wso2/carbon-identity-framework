@@ -341,6 +341,16 @@ public class IdentityTenantUtil {
         return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANT_QUALIFIED_URLS));
     }
 
+
+    /**
+     * Checks if the tenanted session support is enabled.
+     * @return true if tenanted session support is enabled, false otherwise
+     */
+    public static boolean isTenantedSessionsEnabled() {
+
+        return Boolean.parseBoolean(IdentityUtil.getProperty(IdentityCoreConstants.ENABLE_TENANTED_SESSIONS));
+    }
+
     /**
      *
      * Checks whether legacy SaaS authentication is enabled.

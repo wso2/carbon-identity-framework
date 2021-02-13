@@ -137,9 +137,10 @@
                        <Parameter name="redirectToMultiOptionPageOnFailure">false</Parameter>
                 </AuthenticatorConfig>
         <AuthenticatorConfig name="EmailOTP" enabled="true">
-            <Parameter name="EMAILOTPAuthenticationEndpointURL">emailotpauthenticationendpoint/emailotp.jsp</Parameter>
-            <Parameter name="EmailOTPAuthenticationEndpointErrorPage">emailotpauthenticationendpoint/emailotpError.jsp</Parameter>
-            <Parameter name="EmailAddressRequestPage">emailotpauthenticationendpoint/emailAddress.jsp</Parameter>
+            <Parameter name="EMAILOTPAuthenticationEndpointURL">authenticationendpoint/email_otp.do</Parameter>
+            <Parameter name="EmailOTPAuthenticationEndpointErrorPage">authenticationendpoint/email_otp_error.do</Parameter>
+            <Parameter name="EmailAddressRequestPage">authenticationendpoint/email_capture.do</Parameter>
+            <Parameter name="useEventHandlerBasedEmailSender">true</Parameter>
             <Parameter name="GmailClientId">gmailClientIdValue</Parameter>
             <Parameter name="GmailClientSecret">gmailClientSecretValue</Parameter>
             <Parameter name="GmailRefreshToken">gmailRefreshTokenValue</Parameter>
@@ -186,11 +187,13 @@
             <Parameter name="useEventHandlerBasedEmailSender">true</Parameter>
             <Parameter name="usecase">local</Parameter>
             <Parameter name="secondaryUserstore">primary</Parameter>
-            <Parameter name="TOTPAuthenticationEndpointURL">totpauthenticationendpoint/totp.jsp</Parameter>
-            <Parameter name="TOTPAuthenticationEndpointErrorPage">totpauthenticationendpoint/totpError.jsp</Parameter>
-            <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">totpauthenticationendpoint/enableTOTP.jsp</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointURL">authenticationendpoint/totp.do</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointErrorPage">authenticationendpoint/totp_error.do</Parameter>
+            <Parameter name="TOTPAuthenticationEndpointEnableTOTPPage">authenticationendpoint/totp_enroll.do</Parameter>
             <Parameter name="Issuer">WSO2</Parameter>
             <Parameter name="UseCommonIssuer">true</Parameter>
+            <Parameter name="AllowSendingVerificationCodeByEmail">false</Parameter>
+            <Parameter name="HideUserStoreFromDisplayInQRUrl">false</Parameter>
         </AuthenticatorConfig>
     </AuthenticatorConfigs>
 

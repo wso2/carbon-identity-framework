@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -299,6 +300,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                                AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
             throws SSOConsentServiceException {
 
+        processConsent(consentApprovedClaimIds, serviceProvider, authenticatedUser, consentClaimsData, false);
+    }
+
+    @Override
+    public void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
+                               AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData,
+                               boolean overrideExistingConsent)
+            throws SSOConsentServiceException {
+
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
             String message = "Consent management for SSO is disabled.";
             throw new SSOConsentDisabledException(message, message);
@@ -308,8 +318,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         }
         UserConsent userConsent = processUserConsent(consentApprovedClaimIds, consentClaimsData);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        List<ClaimMetaData> claimsWithConsent = getAllUserApprovedClaims(serviceProvider, authenticatedUser,
-                userConsent);
+        List<ClaimMetaData> claimsWithConsent = ListUtils.EMPTY_LIST;
+        if (!overrideExistingConsent) {
+            claimsWithConsent = getAllUserApprovedClaims(serviceProvider, authenticatedUser,
+                    userConsent);
+        } else {
+            claimsWithConsent = userConsent.getApprovedClaims();
+        }
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subjectTenantDomain = authenticatedUser.getTenantDomain();
 

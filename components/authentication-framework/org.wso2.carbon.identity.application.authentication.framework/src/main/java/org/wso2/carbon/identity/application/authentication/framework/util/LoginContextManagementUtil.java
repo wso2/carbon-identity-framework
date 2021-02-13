@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
@@ -90,7 +91,7 @@ public class LoginContextManagementUtil {
                 log.debug("Retrieving redirect url for the requested application:" + applicationName
                         + " relying party: " + relyingParty +  " for sessionDataKey: " +  sessionDataKey);
             }
-            String redirectUrl = getRedirectURL(applicationName, relyingParty, tenantDomain);
+            String redirectUrl = getRedirectURL(applicationName, relyingParty, tenantDomain, request);
             if (StringUtils.isBlank(redirectUrl)) {
                 if (log.isDebugEnabled()) {
                     log.debug("Unable to obtain a redirect URL for the application: " + applicationName + "or " +
@@ -136,11 +137,13 @@ public class LoginContextManagementUtil {
      * @param tenantDomain
      * @return
      */
-    private static String getRedirectURL(String appName, String relyingParty, String tenantDomain) {
+    private static String getRedirectURL(String appName, String relyingParty, String tenantDomain,
+                                         HttpServletRequest request) {
 
         String redirectUrl = null;
         if (StringUtils.isNotEmpty(appName)) {
-            return getAccessURLFromApplication(appName, tenantDomain);
+            String accessURLFromApplication = getAccessURLFromApplication(appName, tenantDomain);
+            return replaceURLPlaceholders(accessURLFromApplication, request);
         } else if (StringUtils.isNotEmpty(relyingParty)) {
             // If application is not sent in the request, retrieve the URL via the relying party configuration
             // for the backward compatibility
@@ -165,7 +168,12 @@ public class LoginContextManagementUtil {
         String accessURL = null;
         try {
             appName = URLDecoder.decode(appName, "UTF-8");
-            sp = ApplicationManagementService.getInstance().getServiceProvider(appName, tenantDomain);
+            if (MY_ACCOUNT_APP.equals(appName) || CONSOLE_APP.equals(appName)) {
+                sp = ApplicationManagementService.getInstance().getServiceProvider(appName,
+                        MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            } else {
+                sp = ApplicationManagementService.getInstance().getServiceProvider(appName, tenantDomain);
+            }
             if (sp != null) {
                 accessURL = sp.getAccessUrl();
             }
@@ -174,6 +182,7 @@ public class LoginContextManagementUtil {
         } catch (UnsupportedEncodingException e) {
             log.error("Error while decoding application name: " + appName, e);
         }
+
         if (MY_ACCOUNT_APP.equals(appName)) {
             accessURL = getMyAccountURL(accessURL);
         } else if (CONSOLE_APP.equals(appName)) {
@@ -185,6 +194,31 @@ public class LoginContextManagementUtil {
                     + tenantDomain);
         }
         return accessURL;
+    }
+
+    /**
+     * Resolve the placeholders in the access URL
+     *
+     * @param accessURL Access URL.
+     * @param request   Servlet Request.
+     * @return Resolved access URL.
+     */
+    private static String replaceURLPlaceholders(String accessURL, HttpServletRequest request) {
+        if (StringUtils.isBlank(accessURL)) {
+            return accessURL;
+        }
+        if (!accessURL.contains("${UserTenantHint}")) {
+            return accessURL;
+        }
+        String userTenantHint = request.getParameter("ut");
+        if (StringUtils.isBlank(userTenantHint)) {
+            userTenantHint = request.getParameter("t");
+        }
+        if (StringUtils.isBlank(userTenantHint)) {
+            userTenantHint = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        return accessURL.replaceAll(Pattern.quote("${UserTenantHint}"), userTenantHint)
+                .replaceAll(Pattern.quote("/t/carbon.super/"), "/");
     }
 
     /**

@@ -167,6 +167,7 @@ public class IdentityEventConstants {
         public static final String POST_VALIDATE_EMAIL_OTP = "POST_VALIDATE_EMAIL_OTP";
         public static final String POST_GENERATE_SMS_OTP = "POST_GENERATE_SMS_OTP";
         public static final String POST_VALIDATE_SMS_OTP = "POST_VALIDATE_SMS_OTP";
+        public static final String SESSION_EXTENSION = "SESSION_EXTENSION";
     }
 
     /**
@@ -181,7 +182,8 @@ public class IdentityEventConstants {
         SESSION_CREATE,
         SESSION_UPDATE,
         SESSION_TERMINATE,
-        SESSION_EXPIRE
+        SESSION_EXPIRE,
+        SESSION_EXTEND
     }
 
     public class EventProperty {
@@ -257,7 +259,8 @@ public class IdentityEventConstants {
         public static final String OTP_EXPIRY_TIME = "otp-expiry-time";
         public static final String OTP_USED_TIME = "otp-used-time";
         public static final String OTP_STATUS = "otp-status";
-
+        public static final String TRACE_ID = "traceId";
+        public static final String SESSION_CONTEXT_ID = "sessionContextId";
     }
 
     public class ErrorMessage {

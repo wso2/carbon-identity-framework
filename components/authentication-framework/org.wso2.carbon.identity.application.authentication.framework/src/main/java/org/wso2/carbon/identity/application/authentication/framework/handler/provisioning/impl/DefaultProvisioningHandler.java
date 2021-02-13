@@ -26,22 +26,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -63,10 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
-        .InternalRoleDomains.APPLICATION_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
-        .InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
@@ -183,6 +176,12 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 userClaims.remove(FrameworkConstants.PASSWORD);
                 boolean userWorkflowEngaged = false;
                 try {
+                    /*
+                    This thread local is set to skip the password pattern validation even if the password
+                    is generated, or user entered one. If it is required to check password pattern validation,
+                    need to write a provisioning handler extending the "DefaultProvisioningHandler".
+                     */
+                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
                     userStoreManager.addUser(username, password, null, userClaims, null);
                 } catch (UserStoreException e) {
                     // Add user operation will fail if a user operation workflow is already defined for the same user.
@@ -195,7 +194,10 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     } else {
                         throw e;
                     }
+                } finally {
+                    UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
                 }
+
                 if (userWorkflowEngaged ||
                         !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
                     if (log.isDebugEnabled()) {

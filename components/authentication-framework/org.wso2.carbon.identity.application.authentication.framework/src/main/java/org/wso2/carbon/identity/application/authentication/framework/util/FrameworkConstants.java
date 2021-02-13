@@ -97,6 +97,7 @@ public abstract class FrameworkConstants {
     public static final String CHANGING_USERNAME_ALLOWED = "changingUserNameAllowed";
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MISSING_CLAIMS_DISPLAY_NAME = "missingClaimsDisplayName";
+    public static final String POST_AUTH_MISSING_CLAIMS_ERROR = "postAuthMissingClaimsError";
 
     public static final String REQUEST_PARAM_SP = "sp";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
@@ -126,7 +127,7 @@ public abstract class FrameworkConstants {
     public static final String ACCOUNT_LOCKED_MSG = "ACCOUNT IS LOCKED";
     public static final String ERROR_MSG = "This account is locked due to exceeding maximum number of failed attempts.";
     public static final String USER_TENANT_DOMAIN_MISMATCH = "UserTenantDomainMismatch";
-    public static final String BACK_TO_PREVIOUS_STEP = "BACK_TO_PREVIOUS_STEP";
+    public static final String BACK_TO_FIRST_STEP = "BACK_TO_FIRST_STEP";
 
     public static final String AUTH_MECHANISM = "AuthMechanism";
     public static final String PASSWORD_PROPERTY = "PASSWORD_PROPERTY";
@@ -136,6 +137,8 @@ public abstract class FrameworkConstants {
 
     // Current session thread local identifier.
     public static final String CURRENT_SESSION_IDENTIFIER = "currentSessionIdentifier";
+
+    public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
     private FrameworkConstants() {
 
@@ -272,6 +275,9 @@ public abstract class FrameworkConstants {
         public static final String AUTH_TYPE = "authType";
         public static final String IDF = "idf";
         public static final String IDENTIFIER_CONSENT = "identifier_consent";
+        public static final String RESTART_FLOW = "restart_flow";
+        public static final String LOGIN_TENANT_DOMAIN = "t";
+        public static final String USER_TENANT_DOMAIN_HINT = "ut";
 
         private RequestParams() {
         }

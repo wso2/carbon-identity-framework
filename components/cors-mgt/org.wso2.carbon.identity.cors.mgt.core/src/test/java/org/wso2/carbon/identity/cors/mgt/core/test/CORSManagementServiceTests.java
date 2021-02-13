@@ -36,6 +36,8 @@ import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleApp1;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleApp2;
 import org.wso2.carbon.identity.cors.mgt.core.constant.TestConstants.SampleTenant;
+import org.wso2.carbon.identity.cors.mgt.core.dao.CORSOriginDAO;
+import org.wso2.carbon.identity.cors.mgt.core.dao.impl.CORSOriginDAOImpl;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceClientException;
 import org.wso2.carbon.identity.cors.mgt.core.exception.CORSManagementServiceException;
 import org.wso2.carbon.identity.cors.mgt.core.internal.CORSManagementServiceHolder;
@@ -83,6 +85,7 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
     private ConfigurationManager configurationManager;
     private Connection connection;
     private CORSManagementService corsManagementService;
+    private CORSOriginDAO corsOriginDAO;
 
     @BeforeMethod
     public void setUp() throws Exception {
@@ -100,6 +103,10 @@ public class CORSManagementServiceTests extends PowerMockTestCase {
 
         corsManagementService = new CORSManagementServiceImpl();
         CORSManagementServiceHolder.getInstance().setConfigurationManager(configurationManager);
+
+        // Skip caches for testing.
+        corsOriginDAO = new CORSOriginDAOImpl();
+        CORSManagementServiceHolder.getInstance().setCorsOriginDAO(corsOriginDAO);
     }
 
     @AfterMethod

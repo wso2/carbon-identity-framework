@@ -58,6 +58,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -80,11 +81,12 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_LOCKED_CLAIM_URI;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ACCOUNT_UNLOCK_TIME_CLAIM;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AnalyticsAttributes.SESSION_ID;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.REQUEST_PARAM_SP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.AUTH_TYPE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDENTIFIER_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.IDF;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.RESTART_FLOW;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
@@ -180,7 +182,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         log.debug("Session data key is null in the request and not a logout request.");
                     }
 
-                    FrameworkUtils.sendToRetryPage(request, response);
+                    FrameworkUtils.sendToRetryPage(request, response, context);
                 }
 
                 // if there is a cache entry, wrap the original request with params in cache entry
@@ -222,17 +224,41 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                                     "Request Headers: " + getHeaderString(request) + "\n" +
                                     "Thread Id: " + Thread.currentThread().getId());
                         }
-                        FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                        FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
                         return;
                     }
                 }
 
-                if (isIdentifierFirstRequest(request)) {
-                    StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-                    boolean isIDFAuthenticatorInCurrentStep = isIDFAuthenticatorFoundInStep(stepConfig);
-                    //Current step cannot handle the IDF request. This is probably user has clicked on the back button.
-                    if (!isIDFAuthenticatorInCurrentStep) {
-                        handleIdentifierRequestInPreviousSteps(context);
+
+                /*
+                If
+                 Request specify to restart the flow again from first step by passing `restart_flow`.
+                 OR
+                 Identifier first request received and current step does not contains any flow handler.
+                    (To handle browser back with only with identifier-first and basic)
+                */
+                if (isBackToFirstStepRequest(request) ||
+                        (isIdentifierFirstRequest(request) && !isFlowHandlerInCurrentStepCanHandleRequest(context, request))) {
+                    if (isCompletedStepsAreFlowHandlersOnly(context)) {
+                        // If the incoming request is restart and all the completed steps have only flow handlers as the
+                        // authenticated authenticator, then we reset the current step to 1.
+                        if (log.isDebugEnabled()) {
+                            log.debug("Restarting the authentication flow from step 1 for  " +
+                                    context.getContextIdentifier());
+                        }
+                        context.setCurrentStep(1);
+                        context.setProperty(BACK_TO_FIRST_STEP, true);
+                        // IDF should be the first step.
+                        context.getCurrentAuthenticatedIdPs().clear();
+                    } else {
+                        // If the incoming request is restart and the completed steps have authenticators as the
+                        // authenticated authenticator, then we redirect to retry page.
+                        String msg = "Restarting the authentication flow failed because there is/are authenticator/s " +
+                                "available in the completed steps for  " + context.getContextIdentifier();
+                        if (log.isDebugEnabled()) {
+                            log.debug(msg);
+                        }
+                        throw new MisconfigurationException(msg);
                     }
                 }
 
@@ -266,7 +292,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                         ":" + request.getRequestURI() + ", User-Agent: " + userAgent + " , Referer: " + referer;
 
                 log.error("Context does not exist. Probably due to invalidated cache. " + message);
-                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } catch (JsFailureException e) {
             if (log.isDebugEnabled()) {
@@ -278,8 +304,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 log.debug("User will be redirected to retry page or the error page provided by script.");
             }
         } catch (MisconfigurationException e) {
-            FrameworkUtils.sendToRetryPage(request, responseWrapper, "misconfiguration.error","something.went.wrong.contact" +
-                    ".admin");
+            FrameworkUtils.sendToRetryPage(request, responseWrapper, context, "misconfiguration.error",
+                    "something.went.wrong.contact.admin");
         } catch (PostAuthenticationFailedException e) {
             if (log.isDebugEnabled()) {
                 log.debug("Error occurred while evaluating post authentication", e);
@@ -289,7 +315,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             publishAuthenticationFailure(request, context, context.getSequenceConfig().getAuthenticatedUser(),
                     e.getErrorCode());
             FrameworkUtils
-                    .sendToRetryPage(request, responseWrapper, "Authentication attempt failed.", e.getErrorCode());
+                    .sendToRetryPage(request, responseWrapper, context, "Authentication attempt failed.",
+                            e.getErrorCode());
         } catch (Throwable e) {
             log.error("Exception in Authentication Framework", e);
             if ((e instanceof FrameworkException)
@@ -297,12 +324,13 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 if (log.isDebugEnabled()) {
                     log.debug(e.getMessage(), e);
                 }
-                FrameworkUtils.sendToRetryPage(request, response, "suspicious.authentication.attempts",
+                FrameworkUtils.sendToRetryPage(request, response, context, "suspicious.authentication.attempts",
                         "suspicious.authentication.attempts.description");
             } else {
-                FrameworkUtils.sendToRetryPage(request, responseWrapper);
+                FrameworkUtils.sendToRetryPage(request, responseWrapper, context);
             }
         } finally {
+            UserCoreUtil.setDomainInThreadLocal(null);
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);
@@ -347,55 +375,48 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         }
     }
 
-    private void handleIdentifierRequestInPreviousSteps(AuthenticationContext context) {
-
-        boolean isIDFAuthenticatorFound = false;
-        int currentStep = context.getCurrentStep();
-
-        if (log.isDebugEnabled()) {
-            log.debug("Started to handle the IDF request as previous steps since the current steps cannot handle the" +
-                    " IDF request");
-        }
-        while (currentStep > 1 && !isIDFAuthenticatorFound) {
-            currentStep = currentStep - 1;
-            isIDFAuthenticatorFound = isIDFAuthenticatorFoundInStep(context.getSequenceConfig().getStepMap().get(currentStep));
-        }
-
-        if (isIDFAuthenticatorFound) {
-            context.setCurrentStep(currentStep);
-            context.setProperty(BACK_TO_PREVIOUS_STEP, true);
-            //IDF should be the first step.
-            context.getCurrentAuthenticatedIdPs().clear();
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("IDF requests cannot handle in any of the previous steps.");
-            }
-        }
-    }
-
-    private boolean isIDFAuthenticatorFoundInStep( StepConfig stepConfig) {
-
-        boolean isIDFAuthenticatorInCurrentStep = false;
-        if (stepConfig != null) {
-            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
-            for (AuthenticatorConfig config : authenticatorList) {
-                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
-                    isIDFAuthenticatorInCurrentStep = true;
-                }
-            }
-        }
-        return isIDFAuthenticatorInCurrentStep;
-    }
-
-    /**
-     * This method is used to identify the Identifier First requests.
-     * @param request HttpServletRequest
-     * @return true or false.
-     */
     private boolean isIdentifierFirstRequest(HttpServletRequest request) {
 
         String authType = request.getParameter(AUTH_TYPE);
         return IDF.equals(authType) || request.getParameter(IDENTIFIER_CONSENT) != null;
+    }
+
+    private boolean isFlowHandlerInCurrentStepCanHandleRequest(AuthenticationContext context,
+                                                               HttpServletRequest request) {
+
+        StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+        if (stepConfig != null) {
+            List<AuthenticatorConfig> authenticatorList = stepConfig.getAuthenticatorList();
+            for (AuthenticatorConfig config : authenticatorList) {
+                if (config.getApplicationAuthenticator() instanceof AuthenticationFlowHandler &&
+                        config.getApplicationAuthenticator().canHandle(request)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isBackToFirstStepRequest(HttpServletRequest request) {
+
+        String authType = request.getParameter(RESTART_FLOW);
+        return Boolean.parseBoolean(authType);
+    }
+
+    private boolean isCompletedStepsAreFlowHandlersOnly(AuthenticationContext context) {
+
+        Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
+        for (int i = context.getCurrentStep() - 1; i >= 0; i--) {
+            StepConfig stepConfig = stepMap.get(i);
+            if (stepConfig != null) {
+                AuthenticatorConfig authenticatedAuthenticator = stepConfig.getAuthenticatedAutenticator();
+                if (!(authenticatedAuthenticator.getApplicationAuthenticator() instanceof AuthenticationFlowHandler)) {
+                    return false;
+
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -494,13 +515,25 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
         // tenant domain
         String tenantDomain = getTenantDomain(request);
 
+        String loginDomain = request.getParameter(FrameworkConstants.RequestParams.LOGIN_TENANT_DOMAIN);
+        String userDomain = request.getParameter(FrameworkConstants.RequestParams.USER_TENANT_DOMAIN_HINT);
+
         // Store the request data sent by the caller
         AuthenticationContext context = new AuthenticationContext();
         context.setCallerSessionKey(callerSessionDataKey);
-        context.setCallerPath(callerPath);
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
         context.setTenantDomain(tenantDomain);
+        context.setLoginTenantDomain(loginDomain);
+        context.setUserTenantDomainHint(userDomain);
+
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            String loginTenantDomain = context.getLoginTenantDomain();
+            if (!callerPath.startsWith(FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + "/")) {
+                callerPath = FrameworkConstants.TENANT_CONTEXT_PREFIX + loginTenantDomain + callerPath;
+            }
+        }
+        context.setCallerPath(callerPath);
 
         // generate a new key to hold the context data object
         String contextId = UUIDGenerator.generateUUID();
@@ -729,6 +762,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
                 }
 
                 context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
+                context.setProperty(FrameworkConstants.RUNTIME_CLAIMS,
+                        sessionContext.getProperty(FrameworkConstants.RUNTIME_CLAIMS));
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
