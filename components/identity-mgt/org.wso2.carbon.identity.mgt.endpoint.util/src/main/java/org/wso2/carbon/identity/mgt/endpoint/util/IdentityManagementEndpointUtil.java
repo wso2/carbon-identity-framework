@@ -182,7 +182,7 @@ public class IdentityManagementEndpointUtil {
                     String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
                             My_ACCOUNT_APPLICATION_NAME);
                     if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
-                        return replaceURLPlaceholders(myAccountAccessUrl, tenantDomain);
+                        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
                     }
                 } catch (ApplicationDataRetrievalClientException e) {
                     // Falling back to building the url.
@@ -196,18 +196,25 @@ public class IdentityManagementEndpointUtil {
         }
     }
 
-    private static String replaceURLPlaceholders(String accessURL, String tenantDomain) {
+    /**
+     * Replace the ${UserTenantHint} placeholder in the url with the tenant domain.
+     *
+     * @param url           Url with the placeholder.
+     * @param tenantDomain  Tenant Domain.
+     * @return              Processed url.
+     */
+    public static String replaceUserTenantHintPlaceholder(String url, String tenantDomain) {
 
-        if (StringUtils.isBlank(accessURL)) {
-            return accessURL;
+        if (StringUtils.isBlank(url)) {
+            return url;
         }
-        if (!accessURL.contains(USER_TENANT_HINT_PLACE_HOLDER)) {
-            return accessURL;
+        if (!url.contains(USER_TENANT_HINT_PLACE_HOLDER)) {
+            return url;
         }
         if (StringUtils.isBlank(tenantDomain)) {
             tenantDomain = SUPER_TENANT;
         }
-        return accessURL.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
+        return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
                 .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
     }
 
