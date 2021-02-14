@@ -208,7 +208,7 @@ public class IdentityManagementEndpointUtil {
             tenantDomain = SUPER_TENANT;
         }
         return accessURL.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
-                .replaceAll(Pattern.quote("/t/" + SUPER_TENANT + "/"), "/");
+                .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
     }
 
     /**
