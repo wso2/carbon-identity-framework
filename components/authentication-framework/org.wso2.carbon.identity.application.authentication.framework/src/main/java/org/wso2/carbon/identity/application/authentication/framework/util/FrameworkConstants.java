@@ -508,15 +508,22 @@ public abstract class FrameworkConstants {
         public static boolean DEFAULT_ENABLE_PERSIST = true;
 
         // Identity file configuration constants.
-        public static final String REDIS_GET_POOL_SIZE = "JDBCPersistenceManager.SessionDataPersist.PoolSize";
-        public static final String TEMP_DATA_CLEANUP_ENABLE = "JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
-        public static final String REDIS_POOL_MAX_TOTAL = "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxTotal";
-        public static final String REDIS_POOL_MAX_IDLE = "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxIdle";
-        public static final String REDIS_POOL_MIN_IDLE = "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MinIdle";
-        public static final String REDIS_POOL_MAX_WAIT = "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxWaitMills";
-        public static final String PERSIST_ENABLE = "JDBCPersistenceManager.SessionDataPersist.Enable";
-        public static final String DATA_CLEANUP_ENABLE = "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
-
+        public static final String REDIS_GET_POOL_SIZE =
+                "JDBCPersistenceManager.SessionDataPersist.PoolSize";
+        public static final String TEMP_DATA_CLEANUP_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
+        public static final String REDIS_POOL_MAX_TOTAL =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxTotal";
+        public static final String REDIS_POOL_MAX_IDLE =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxIdle";
+        public static final String REDIS_POOL_MIN_IDLE =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MinIdle";
+        public static final String REDIS_POOL_MAX_WAIT =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxWaitMills";
+        public static final String PERSIST_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.Enable";
+        public static final String DATA_CLEANUP_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
     }
 
 }

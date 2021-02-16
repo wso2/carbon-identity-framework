@@ -244,9 +244,11 @@ public class RDBMSSessionDataStore extends SessionDataStore {
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable");
+        String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enab" +
+                "le");
 
-        String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataCleanUp.Enable");
+        String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataC" +
+                "leanUp.Enable");
 
         if (StringUtils.isNotBlank(isCleanUpEnabledVal)) {
             sessionDataCleanupEnabled = Boolean.parseBoolean(isCleanUpEnabledVal);
@@ -419,7 +421,7 @@ public class RDBMSSessionDataStore extends SessionDataStore {
 
     @Override
     /**
-     * Cleans the session data and operation data (if enabled) from the DB
+     * Cleans the session data and operation data (if enabled) from the DB.
      */
     public void removeTempAuthnContextData(String key, String type) {
 
@@ -449,7 +451,7 @@ public class RDBMSSessionDataStore extends SessionDataStore {
     }
 
     /**
-     * Cleans the session data and operation data (if enabled) from the DB
+     * Cleans the session data and operation data (if enabled) from the DB.
      */
     @Override
     public void removeExpiredSessionData() {
@@ -474,7 +476,7 @@ public class RDBMSSessionDataStore extends SessionDataStore {
     }
 
     /**
-     * Gets the DB specific query for the session data removal, this may be overridden by the configuration
+     * Gets the DB specific query for the session data removal, this may be overridden by the configuration.
      * "JDBCPersistenceManager.SessionDataPersist.SQL.DeleteExpiredDataTask"
      *
      * @return
@@ -546,7 +548,7 @@ public class RDBMSSessionDataStore extends SessionDataStore {
     }
 
     /**
-     * Removes STORE records related to DELETE records in IDN_AUTH_SESSION_STORE table
+     * Removes STORE records related to DELETE records in IDN_AUTH_SESSION_STORE table.
      */
     private void removeInvalidatedSTOREOperations() {
 
@@ -626,10 +628,10 @@ public class RDBMSSessionDataStore extends SessionDataStore {
     @Override
     /**
      * @deprecated This is now run as a part of the {@link #removeExpiredSessionData()} due to a possible deadlock as
-     * mentioned in IDENTITY-5131
+     * mentioned in IDENTITY-5131.
      */
     public void removeExpiredOperationData() {
-        // Empty method
+        // Empty method.
 
     }
 

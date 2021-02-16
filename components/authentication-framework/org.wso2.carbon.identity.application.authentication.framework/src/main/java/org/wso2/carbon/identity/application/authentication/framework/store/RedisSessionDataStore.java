@@ -52,12 +52,18 @@ public class RedisSessionDataStore extends SessionDataStore {
 
     {
         try {
-            maxSessionDataPoolSize = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_GET_POOL_SIZE, FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
-            tempDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.TEMP_DATA_CLEANUP_ENABLE, FrameworkConstants.SessionDataStoreConstants.DEFAULT_TEMPDATA_CLEANUP_ENABLED);
-            maxTotal = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_TOTAL, FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_TOTAL);
-            maxIdle = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_IDLE, FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_IDLE);
-            minIdle = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MIN_IDLE, FrameworkConstants.SessionDataStoreConstants.DEFAULT_MIN_IDLE);
-            maxWaitMillis = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_WAIT, FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_WAIT_MILLIS);
+            maxSessionDataPoolSize = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_GET_POOL_SIZE,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
+            tempDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.TEMP_DATA_CLEANUP_ENABLE,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_TEMPDATA_CLEANUP_ENABLED);
+            maxTotal = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_TOTAL,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_TOTAL);
+            maxIdle = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_IDLE,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_IDLE);
+            minIdle = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MIN_IDLE,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MIN_IDLE);
+            maxWaitMillis = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_WAIT,
+                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_WAIT_MILLIS);
 
         } catch (NumberFormatException e) {
             if (log.isDebugEnabled()) {
@@ -73,16 +79,17 @@ public class RedisSessionDataStore extends SessionDataStore {
                 threadPool.execute(new SessionDataPersistTask(super.getSessionContextQueue()));
             }
         }
-
     }
 
     RedisSessionDataStore() {
 
-        enablePersist = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.PERSIST_ENABLE, FrameworkConstants.SessionDataStoreConstants.DEFAULT_ENABLE_PERSIST);
+        enablePersist = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.PERSIST_ENABLE,
+                FrameworkConstants.SessionDataStoreConstants.DEFAULT_ENABLE_PERSIST);
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        sessionDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.DATA_CLEANUP_ENABLE, FrameworkConstants.SessionDataStoreConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
+        sessionDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.DATA_CLEANUP_ENABLE,
+                FrameworkConstants.SessionDataStoreConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
     }
 
     // Serializes an Object to byte array.
@@ -103,7 +110,8 @@ public class RedisSessionDataStore extends SessionDataStore {
             if (pool == null) {
                 synchronized (RedisSessionDataStore.class) {
                     if (pool == null) {
-                        pool = new JedisPool(getPoolConfig(), FrameworkConstants.SessionDataStoreConstants.HOST, FrameworkConstants.SessionDataStoreConstants.PORT);
+                        pool = new JedisPool(getPoolConfig(), FrameworkConstants.SessionDataStoreConstants.HOST,
+                                FrameworkConstants.SessionDataStoreConstants.PORT);
                     }
                 }
             }
@@ -133,7 +141,7 @@ public class RedisSessionDataStore extends SessionDataStore {
      * {@inheritDoc}
      */
     public void removeTempAuthnContextData(String key, String type) {
-        // Empty method
+        // Empty method.
     }
 
     @Override
@@ -141,7 +149,7 @@ public class RedisSessionDataStore extends SessionDataStore {
      * {@inheritDoc}
      */
     public void removeExpiredSessionData() {
-        // Empty method
+        // Empty method.
     }
 
     @Override
@@ -157,7 +165,8 @@ public class RedisSessionDataStore extends SessionDataStore {
         String redisKey = key + FrameworkConstants.SessionDataStoreConstants.DIVIDER + type;
         boolean tempStore = getSessionStoreType(type);
         if (tempStore) {
-            redisKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER + FrameworkConstants.SessionDataStoreConstants.TEMPSTORE;
+            redisKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER +
+                    FrameworkConstants.SessionDataStoreConstants.TEMPSTORE;
         }
 
         try {
@@ -165,7 +174,8 @@ public class RedisSessionDataStore extends SessionDataStore {
             if (jedis.exists(redisKey)) {
                 jedis.del(redisKey);
             }
-            String objectKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER + FrameworkConstants.SessionDataStoreConstants.OBJECT;
+            String objectKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER +
+                    FrameworkConstants.SessionDataStoreConstants.OBJECT;
             if (jedis.exists(objectKey)) {
                 jedis.del(objectKey);
             }
@@ -179,10 +189,10 @@ public class RedisSessionDataStore extends SessionDataStore {
     @Override
     /**
      * @deprecated This is now run as a part of the {@link #removeExpiredSessionData()} due to a possible deadlock as
-     * mentioned in IDENTITY-5131
+     * mentioned in IDENTITY-5131.
      */
     public void removeExpiredOperationData() {
-        // Empty method
+        // Empty method.
     }
 
     @Override
@@ -198,13 +208,15 @@ public class RedisSessionDataStore extends SessionDataStore {
         }
         boolean tempStore = getSessionStoreType(type);
         if (tempStore) {
-            redisKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER + FrameworkConstants.SessionDataStoreConstants.TEMPSTORE;
+            redisKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER +
+                    FrameworkConstants.SessionDataStoreConstants.TEMPSTORE;
         }
         try {
             jedis = getJedisInstance().getResource();
             if (jedis.exists(redisKey)) {
                 long nanoTime = Long.parseLong(jedis.hget(redisKey, FrameworkConstants.SessionDataStoreConstants.NANO_TIME));
-                String objectKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER + FrameworkConstants.SessionDataStoreConstants.OBJECT;
+                String objectKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER +
+                        FrameworkConstants.SessionDataStoreConstants.OBJECT;
                 Object blobObject = deserialize(jedis.get(objectKey.getBytes()));
                 jedis.close();
                 return new SessionContextDO(key, type, blobObject, nanoTime);
@@ -238,16 +250,19 @@ public class RedisSessionDataStore extends SessionDataStore {
             validityPeriodNano = getCleanupTimeout(type, tenantId);
         }
         if (tempStore) {
-            redisKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER + FrameworkConstants.SessionDataStoreConstants.TEMPSTORE;
+            redisKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER +
+                    FrameworkConstants.SessionDataStoreConstants.TEMPSTORE;
         }
         try {
             Jedis jedis;
             jedis = getJedisInstance().getResource();
             addRedisHash(jedis, redisKey, FrameworkConstants.SessionDataStoreConstants.NANO_TIME, String.valueOf(nanoTime));
-            addRedisHash(jedis, redisKey, FrameworkConstants.SessionDataStoreConstants.EXPIRY_TIME, String.valueOf(nanoTime + validityPeriodNano));
+            addRedisHash(jedis, redisKey, FrameworkConstants.SessionDataStoreConstants.EXPIRY_TIME,
+                    String.valueOf(nanoTime + validityPeriodNano));
             addRedisHash(jedis, redisKey, FrameworkConstants.SessionDataStoreConstants.TENANT_ID, String.valueOf(tenantId));
 
-            objectKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER + FrameworkConstants.SessionDataStoreConstants.OBJECT;
+            objectKey = redisKey + FrameworkConstants.SessionDataStoreConstants.DIVIDER +
+                    FrameworkConstants.SessionDataStoreConstants.OBJECT;
             byte[] serializedSessionObject = serialize((Serializable) entry);
             jedis.set(objectKey.getBytes(), serializedSessionObject);
 

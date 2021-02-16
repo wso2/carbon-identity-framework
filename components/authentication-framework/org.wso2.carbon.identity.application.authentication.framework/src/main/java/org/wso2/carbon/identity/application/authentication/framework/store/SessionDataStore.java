@@ -60,7 +60,7 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * Returning instance of one of the implementation of SessionDataStore
+     * Returning instance of one of the implementation of SessionDataStore.
      *
      * @return {@link RDBMSSessionDataStore} or {@link RedisSessionDataStore}
      */
@@ -92,9 +92,9 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * Abstract method for saving or updating session data abstract method
+     * Abstract method for saving or updating session data abstract method.
      *
-     * @param key      session id
+     * @param key      Session id
      * @param type     Session type
      * @param entry    Session object
      * @param nanoTime Session created time
@@ -104,18 +104,18 @@ public abstract class SessionDataStore {
     public abstract void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId);
 
     /**
-     * Abstract method for getting session context data object
+     * Abstract method for getting session context data object.
      *
-     * @param key  session id
+     * @param key  Session id
      * @param type Session type
      * @return {@link SessionContextDO}
      */
     public abstract SessionContextDO getSessionContextData(String key, String type);
 
     /**
-     * Abstract method for Removing the session data
+     * Abstract method for Removing the session data.
      *
-     * @param key      session id
+     * @param key      Session id
      * @param type     Session type
      * @param nanoTime Session created time
      * @return
@@ -124,21 +124,21 @@ public abstract class SessionDataStore {
 
     /**
      * @deprecated This is now run as a part of the {@link #removeExpiredSessionData()} due to a possible deadlock as
-     * mentioned in IDENTITY-5131
+     * mentioned in IDENTITY-5131.
      */
     public abstract void removeExpiredOperationData();
 
     /**
      * Abstract method for removes temporary authn context data from the server if temporary data cleanup is enabled.
      *
-     * @param key  session id
+     * @param key  Session id
      * @param type Session type
      * @return
      */
     public abstract void removeTempAuthnContextData(String key, String type);
 
     /**
-     * Cleans the session data and operation data (if enabled) from the DB
+     * Cleans the session data and operation data (if enabled) from the DB.
      *
      * @param
      * @return
@@ -146,7 +146,7 @@ public abstract class SessionDataStore {
     public abstract void removeExpiredSessionData();
 
     /**
-     * @param key  session id
+     * @param key  Session id
      * @param type Session type
      * @return null or {@link SessionContextDO}
      */
@@ -157,9 +157,9 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * Storing or updating  SessionData when there is no tenantId
+     * Storing or updating  SessionData when there is no tenantId.
      *
-     * @param key   session id
+     * @param key   Session id
      * @param type  Session type
      * @param entry Session object
      */
@@ -169,9 +169,9 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * Storing or updating sessiondata main method by calling persistSessionData method when there is a tenantId
+     * Storing or updating sessiondata main method by calling persistSessionData method when there is a tenantId.
      *
-     * @param key      session id
+     * @param key      Session id
      * @param type     Session type
      * @param entry    Session object
      * @param tenantId Tenant id
@@ -202,9 +202,9 @@ public abstract class SessionDataStore {
     }
 
     /**
-     * Clearing session data main method by calling removeSessionData
+     * Clearing session data main method by calling removeSessionData.
      *
-     * @param key  session id
+     * @param key  Session id
      * @param type Session type
      */
     public void clearSessionData(String key, String type) {
@@ -222,9 +222,6 @@ public abstract class SessionDataStore {
 
     /**
      * Method to stop running tasks, when the component is deactivated.
-     *
-     * @param
-     * @return
      */
     public void stopService() {
 

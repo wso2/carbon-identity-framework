@@ -51,7 +51,6 @@ public class DataStoreBaseTest extends PowerMockIdentityBaseTest {
         }
         throw new IllegalArgumentException("DB Script file name cannot be empty.");
     }
-
     public static BasicDataSource getDatasource(String datasourceName) {
 
         if (dataSourceMap.get(datasourceName) != null) {
