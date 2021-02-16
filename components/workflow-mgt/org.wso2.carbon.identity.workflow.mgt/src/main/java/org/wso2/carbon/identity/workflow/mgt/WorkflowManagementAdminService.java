@@ -330,7 +330,7 @@ public class WorkflowManagementAdminService {
     /**
      * Remove workflows by a given tenant id.
      *
-     * @param tenantId Id of workflow to remove
+     * @param tenantId The id of the tenant to remove the workflows.
      * @throws WorkflowException
      */
     public void removeWorkflows(int tenantId) throws WorkflowException {

@@ -731,8 +731,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Delete Applications by tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
      */
     @Override
     public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
@@ -744,7 +744,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         appDAO.deleteApplications(tenantId);
 
-        // Clear cache entries of each deleted SP
+        // Clear cache entries of each deleted SP.
         if (log.isDebugEnabled()) {
             log.debug("Clearing the cache entries of all SP applications of the tenant: " + tenantDomain);
         }
