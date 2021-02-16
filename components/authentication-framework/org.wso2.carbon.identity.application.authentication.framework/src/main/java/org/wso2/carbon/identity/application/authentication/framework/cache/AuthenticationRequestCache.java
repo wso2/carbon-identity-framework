@@ -35,8 +35,8 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 public class AuthenticationRequestCache extends
         BaseCache<AuthenticationRequestCacheKey, AuthenticationRequestCacheEntry> {
 
-    private static final String AUTHENTICATION_REQUEST_CACHE_NAME = "AuthenticationRequestCache";
     private static Log log = LogFactory.getLog(AuthenticationRequestCache.class);
+    private static final String AUTHENTICATION_REQUEST_CACHE_NAME = "AuthenticationRequestCache";
     private static volatile AuthenticationRequestCache instance;
     private boolean isTemporarySessionDataPersistEnabled = false;
 
@@ -44,7 +44,6 @@ public class AuthenticationRequestCache extends
      * Private constructor which will not allow to create objects of this class from outside
      */
     private AuthenticationRequestCache() {
-
         super(AUTHENTICATION_REQUEST_CACHE_NAME, true);
         if (IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.Temporary") != null) {
             isTemporarySessionDataPersistEnabled = Boolean.parseBoolean(
@@ -58,7 +57,6 @@ public class AuthenticationRequestCache extends
      * @return AuthenticationRequestCache
      */
     public static AuthenticationRequestCache getInstance() {
-
         if (instance == null) {
             synchronized (AuthenticationRequestCache.class) {
                 if (instance == null) {
@@ -76,7 +74,6 @@ public class AuthenticationRequestCache extends
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry) {
-
         super.addToCache(key, entry);
         if (isTemporarySessionDataPersistEnabled) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
@@ -96,7 +93,6 @@ public class AuthenticationRequestCache extends
      * @return Cached entry.
      */
     public AuthenticationRequestCacheEntry getValueFromCache(AuthenticationRequestCacheKey key) {
-
         AuthenticationRequestCacheEntry entry = super.getValueFromCache(key);
         if (entry == null && isTemporarySessionDataPersistEnabled) {
             entry = (AuthenticationRequestCacheEntry) SessionDataStore.getInstance().
@@ -111,7 +107,6 @@ public class AuthenticationRequestCache extends
      * @param key Key to clear cache.
      */
     public void clearCacheEntry(AuthenticationRequestCacheKey key) {
-
         super.clearCacheEntry(key);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().clearSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);
