@@ -244,11 +244,11 @@ public class RDBMSSessionDataStore extends SessionDataStore {
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enab" +
-                "le");
+        String isCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp" +
+                ".Enable");
 
-        String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.OperationDataC" +
-                "leanUp.Enable");
+        String isOperationCleanUpEnabledVal = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist" +
+                ".OperationDataCleanUp.Enable");
 
         if (StringUtils.isNotBlank(isCleanUpEnabledVal)) {
             sessionDataCleanupEnabled = Boolean.parseBoolean(isCleanUpEnabledVal);

@@ -94,11 +94,11 @@ public abstract class SessionDataStore {
     /**
      * Abstract method for saving or updating session data abstract method.
      *
-     * @param key      Session id
-     * @param type     Session type
-     * @param entry    Session object
-     * @param nanoTime Session created time
-     * @param tenantId Tenant id
+     * @param key      Session id.
+     * @param type     Session type.
+     * @param entry    Session object.
+     * @param nanoTime Session created time.
+     * @param tenantId Tenant id.
      * @return
      */
     public abstract void persistSessionData(String key, String type, Object entry, long nanoTime, int tenantId);
@@ -106,8 +106,8 @@ public abstract class SessionDataStore {
     /**
      * Abstract method for getting session context data object.
      *
-     * @param key  Session id
-     * @param type Session type
+     * @param key  Session id.
+     * @param type Session type.
      * @return {@link SessionContextDO}
      */
     public abstract SessionContextDO getSessionContextData(String key, String type);
@@ -115,9 +115,9 @@ public abstract class SessionDataStore {
     /**
      * Abstract method for Removing the session data.
      *
-     * @param key      Session id
-     * @param type     Session type
-     * @param nanoTime Session created time
+     * @param key      Session id.
+     * @param type     Session type.
+     * @param nanoTime Session created time.
      * @return
      */
     public abstract void removeSessionData(String key, String type, long nanoTime);
@@ -131,8 +131,8 @@ public abstract class SessionDataStore {
     /**
      * Abstract method for removes temporary authn context data from the server if temporary data cleanup is enabled.
      *
-     * @param key  Session id
-     * @param type Session type
+     * @param key  Session id.
+     * @param type Session type.
      * @return
      */
     public abstract void removeTempAuthnContextData(String key, String type);
@@ -146,8 +146,8 @@ public abstract class SessionDataStore {
     public abstract void removeExpiredSessionData();
 
     /**
-     * @param key  Session id
-     * @param type Session type
+     * @param key  Session id.
+     * @param type Session type.
      * @return null or {@link SessionContextDO}
      */
     public Object getSessionData(String key, String type) {
@@ -159,9 +159,9 @@ public abstract class SessionDataStore {
     /**
      * Storing or updating  SessionData when there is no tenantId.
      *
-     * @param key   Session id
-     * @param type  Session type
-     * @param entry Session object
+     * @param key   Session id.
+     * @param type  Session type.
+     * @param entry Session object.
      */
     public void storeSessionData(String key, String type, Object entry) {
 
@@ -171,10 +171,10 @@ public abstract class SessionDataStore {
     /**
      * Storing or updating sessiondata main method by calling persistSessionData method when there is a tenantId.
      *
-     * @param key      Session id
-     * @param type     Session type
-     * @param entry    Session object
-     * @param tenantId Tenant id
+     * @param key      Session id.
+     * @param type     Session type.
+     * @param entry    Session object.
+     * @param tenantId Tenant id.
      */
     public void storeSessionData(String key, String type, Object entry, int tenantId) {
 
@@ -204,8 +204,8 @@ public abstract class SessionDataStore {
     /**
      * Clearing session data main method by calling removeSessionData.
      *
-     * @param key  Session id
-     * @param type Session type
+     * @param key  Session id.
+     * @param type Session type.
      */
     public void clearSessionData(String key, String type) {
 

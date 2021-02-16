@@ -306,5 +306,4 @@ public class RedisSessionDataStore extends SessionDataStore {
 
         jedis.hset(key, field, value);
     }
-
 }
