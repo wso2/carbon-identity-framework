@@ -30,13 +30,14 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP;
@@ -218,7 +219,7 @@ public class LoginContextManagementUtil {
             userTenantHint = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
         return accessURL.replaceAll(Pattern.quote("${UserTenantHint}"), userTenantHint)
-                .replaceAll(Pattern.quote("/t/carbon.super/"), "/");
+                .replaceAll(Pattern.quote("/t/carbon.super"), "");
     }
 
     /**
