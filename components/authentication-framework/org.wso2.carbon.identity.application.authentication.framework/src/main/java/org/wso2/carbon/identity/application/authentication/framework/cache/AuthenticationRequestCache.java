@@ -74,7 +74,7 @@ public class AuthenticationRequestCache extends
      * @param entry Actual object where cache entry is placed.
      */
     public void addToCache(AuthenticationRequestCacheKey key, AuthenticationRequestCacheEntry entry) {
-        super.addToCache(key, entry);
+        super.addToCache(key,entry);
         if (isTemporarySessionDataPersistEnabled) {
             int tenantId = MultitenantConstants.INVALID_TENANT_ID;
             String tenantDomain = entry.getAuthenticationRequest().getTenantDomain();
@@ -106,7 +106,7 @@ public class AuthenticationRequestCache extends
      *
      * @param key Key to clear cache.
      */
-    public void clearCacheEntry(AuthenticationRequestCacheKey key) {
+    public void clearCacheEntry(AuthenticationRequestCacheKey key){
         super.clearCacheEntry(key);
         if (isTemporarySessionDataPersistEnabled) {
             SessionDataStore.getInstance().clearSessionData(key.getResultId(), AUTHENTICATION_REQUEST_CACHE_NAME);
