@@ -478,4 +478,52 @@ public abstract class FrameworkConstants {
         public static final String CUSTOM_PARAM_4 = CUSTOM_PARAM_PREFIX + "4";
         public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
     }
+
+    public static class SessionDataStoreConstants{
+
+        // Redis Constants.
+        public static final String NANO_TIME = "nanoTime";
+        public static final String TYPE = "type";
+        public static final String EXPIRY_TIME = "expireTime";
+        public static final String TENANT_ID = "tenantId";
+        public static final String HOST = "127.0.0.1";
+        public static final int PORT = 6379;
+        public static final String OBJECT = "object";
+        public static final String DIVIDER = ":";
+        public static final String TEMPSTORE = "temp";
+
+        // Redis pool configuration constants.
+        public static int DEFAULT_MAX_TOTAL = 1000;
+        public static int DEFAULT_MAX_IDLE = 1000;
+        public static int DEFAULT_MIN_IDLE = 100;
+        public static int DEFAULT_MAX_WAIT_MILLIS = 20000;
+        public static final boolean TEST_ON_BORROW = true;
+        public static final boolean BLOCK_WHEN_EXHAUSTED = true;
+        public static final boolean TEST_ON_RETURN = true;
+
+        // General Persist layer constants.
+        public static boolean DEFAULT_TEMPDATA_CLEANUP_ENABLED = false;
+        public static int DEFAULT_MAX_SESSION_DATA_POOLSIZE = 100;
+        public static boolean DEFAULT_SESSION_DATA_CLEANUP_ENABLED = true;
+        public static boolean DEFAULT_ENABLE_PERSIST = true;
+
+        // Identity file configuration constants.
+        public static final String REDIS_GET_POOL_SIZE =
+                "JDBCPersistenceManager.SessionDataPersist.PoolSize";
+        public static final String TEMP_DATA_CLEANUP_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
+        public static final String REDIS_POOL_MAX_TOTAL =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxTotal";
+        public static final String REDIS_POOL_MAX_IDLE =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxIdle";
+        public static final String REDIS_POOL_MIN_IDLE =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MinIdle";
+        public static final String REDIS_POOL_MAX_WAIT =
+                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxWaitMills";
+        public static final String PERSIST_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.Enable";
+        public static final String DATA_CLEANUP_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
+    }
+
 }
