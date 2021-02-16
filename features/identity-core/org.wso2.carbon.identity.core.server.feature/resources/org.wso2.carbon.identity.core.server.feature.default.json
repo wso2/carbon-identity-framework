@@ -621,16 +621,12 @@
   "console.app_base_name": "console",
   "console.client_id": "CONSOLE",
   "console.debug.enable": false,
-  "console.applications.admin_app.configs": {
-    "basePath": "/manage",
-    "displayName": "Manage",
-    "path": "/manage/users"
-  },
-  "console.applications.developer_app.configs": {
-    "basePath": "/develop",
-    "displayName": "Develop",
-    "path": "/develop/applications"
-  },
+  "console.applications.admin_app.configs.basePath": "/manage",
+  "console.applications.admin_app.configs.displayName": "Manage",
+  "console.applications.admin_app.configs.path": "/manage/users",
+  "console.applications.developer_app.configs.basePath": "/develop",
+  "console.applications.developer_app.configs.displayName": "Develop",
+  "console.applications.developer_app.configs.path": "/develop/applications",
   "console.documentation.base_url": "https://api.github.com",
   "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "console.documentation.github_options": {
