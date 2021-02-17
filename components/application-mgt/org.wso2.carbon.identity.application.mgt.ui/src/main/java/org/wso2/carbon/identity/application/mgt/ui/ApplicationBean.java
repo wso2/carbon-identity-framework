@@ -50,12 +50,7 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -88,7 +83,7 @@ public class ApplicationBean {
     private String oauthAppName;
     private String oauthConsumerSecret;
     private String attrConsumServiceIndex;
-    private String wstrustEp;
+    private List<String> wstrustEp = new ArrayList<String>(0);
     private String passivests;
     private String passiveSTSWReply;
     private String openid;
@@ -123,7 +118,7 @@ public class ApplicationBean {
         samlIssuer = null;
         kerberosServiceName = null;
         oauthAppName = null;
-        wstrustEp = null;
+        wstrustEp = new ArrayList<String>(0);
         passivests = null;
         passiveSTSWReply = null;
         openid = null;
@@ -817,20 +812,21 @@ public class ApplicationBean {
     /**
      * @return
      */
-    public String getWstrustSP() {
-        if (wstrustEp != null) {
+    public List<String> getWstrustSP() {
+        if (wstrustEp != null && !CollectionUtils.isEmpty(wstrustEp)) {
             return wstrustEp;
         }
+        else {
+            wstrustEp = new ArrayList<String>(0);
+        }
 
-        InboundAuthenticationRequestConfig[] authRequest = serviceProvider
+        InboundAuthenticationRequestConfig[] authRequests = serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
-        if (authRequest != null) {
-            for (int i = 0; i < authRequest.length; i++) {
-                if ("wstrust".equalsIgnoreCase(authRequest[i].getInboundAuthType())) {
-                    wstrustEp = authRequest[i].getInboundAuthKey();
-                    break;
-                }
-            }
+        if (authRequests != null) {
+            Arrays.stream(authRequests).filter(authRequest ->
+                    (authRequest.getInboundAuthType() != null && !authRequest.getInboundAuthType().isEmpty()
+                            && "wstrust".equalsIgnoreCase(authRequest.getInboundAuthType())))
+                    .forEach(authRequest -> wstrustEp.add(authRequest.getInboundAuthKey()));
         }
 
         return wstrustEp;
@@ -1268,11 +1264,13 @@ public class ApplicationBean {
             authRequestList.add(opicAuthenticationRequest);
         }
 
-        if (wstrustEp != null) {
-            InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
-            opicAuthenticationRequest.setInboundAuthKey(wstrustEp);
-            opicAuthenticationRequest.setInboundAuthType("wstrust");
-            authRequestList.add(opicAuthenticationRequest);
+        if (wstrustEp != null && !CollectionUtils.isEmpty(wstrustEp)) {
+            wstrustEp.forEach(entry -> {
+                InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
+                opicAuthenticationRequest.setInboundAuthKey(entry);
+                opicAuthenticationRequest.setInboundAuthType("wstrust");
+                authRequestList.add(opicAuthenticationRequest);
+            });
         }
 
         String passiveSTSRealm = request.getParameter("passiveSTSRealm");
@@ -1528,10 +1526,10 @@ public class ApplicationBean {
     }
 
     /**
-     * @param wstrustEp
+     * @param wstrustEps
      */
-    public void setWstrustEp(String wstrustEp) {
-        this.wstrustEp = wstrustEp;
+    public void setWstrustEp(List<String> wstrustEps) {
+        this.wstrustEp = wstrustEps;
     }
 
     /**
@@ -1553,6 +1551,57 @@ public class ApplicationBean {
      */
     public void setOpenid(String openid) {
         this.openid = openid;
+    }
+
+    /**
+     * @param wstrustEp
+     */
+    public void addWstrustEp(String wstrustEp) {
+        if (wstrustEp != null && !wstrustEp.isEmpty()) {
+            if (this.wstrustEp == null){
+                this.wstrustEp = new ArrayList<String>(0);
+            }
+            this.wstrustEp.add(wstrustEp);
+        }
+    }
+
+    /**
+     * @param wstrustEp
+     */
+    public void removeWstrustEp(String wstrustEp) {
+        if (wstrustEp != null && !wstrustEp.isEmpty()) {
+            if (this.wstrustEp != null && !this.wstrustEp.isEmpty()) {
+                if (this.wstrustEp.stream().anyMatch(entry -> wstrustEp.equalsIgnoreCase(entry))) {
+                    this.wstrustEp.remove(wstrustEp);
+
+                    InboundAuthenticationRequestConfig[] authRequestConfigs = serviceProvider
+                            .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+
+                    if (authRequestConfigs != null && authRequestConfigs.length > 0) {
+                        List<InboundAuthenticationRequestConfig> tempAuthRequest =
+                                new ArrayList<InboundAuthenticationRequestConfig>();
+                        for (InboundAuthenticationRequestConfig authRequestConfig : authRequestConfigs) {
+                            if ("wstrust".equalsIgnoreCase(authRequestConfig.getInboundAuthType()) &&
+                                wstrustEp.equalsIgnoreCase(authRequestConfig.getInboundAuthKey())) {
+                                continue;
+                            }
+                            tempAuthRequest.add(authRequestConfig);
+                        }
+                        if (CollectionUtils.isNotEmpty(tempAuthRequest)) {
+                            serviceProvider
+                                    .getInboundAuthenticationConfig()
+                                    .setInboundAuthenticationRequestConfigs(
+                                            tempAuthRequest
+                                                    .toArray(new InboundAuthenticationRequestConfig[tempAuthRequest
+                                                            .size()]));
+                        } else {
+                            serviceProvider.getInboundAuthenticationConfig()
+                                    .setInboundAuthenticationRequestConfigs(null);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

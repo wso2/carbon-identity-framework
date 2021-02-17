@@ -235,19 +235,22 @@
 
     oauthapp = appBean.getOIDCClientId();
 
-    String wsTrust = request.getParameter("serviceName");
+    String wsTrustEndpoint = request.getParameter("serviceName");
+    String wsTrustObsoleteEndpoint = request.getParameter("obsoleteServiceName");
 
-    if (wsTrust != null && "update".equals(action)) {
-        appBean.setWstrustEp(wsTrust);
+    if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "update".equals(action)) {
+        if (wsTrustObsoleteEndpoint != null && !wsTrustObsoleteEndpoint.isEmpty())
+            appBean.removeWstrustEp(wsTrustObsoleteEndpoint);
+        appBean.addWstrustEp(wsTrustEndpoint);
         isNeedToUpdate = true;
     }
 
-    if (wsTrust != null && "delete".equals(action)) {
-        appBean.deleteWstrustEp();
+    if (wsTrustEndpoint != null && !wsTrustEndpoint.isEmpty() && "delete".equals(action)) {
+        appBean.removeWstrustEp(wsTrustEndpoint);
         isNeedToUpdate = true;
     }
 
-    wsTrust = appBean.getWstrustSP();
+    List<String> wsTrust = appBean.getWstrustSP();
 
     String display = request.getParameter("display");
 
@@ -2349,7 +2352,7 @@
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#"><fmt:message key="title.config.sts.config"/></a>
-                                    <% if (appBean.getWstrustSP() != null) { %>
+                                    <% if (appBean.getWstrustSP() != null && !appBean.getWstrustSP().isEmpty()) { %>
                                     <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
                                     <%} %>
                                 </h2>
@@ -2365,7 +2368,7 @@
                                             <tr>
                                                 <td>
                                                     <%
-                                                        if (appBean.getWstrustSP() == null) {
+                                                        if (appBean.getWstrustSP() == null || appBean.getWstrustSP().isEmpty()) {
                                                     %>
                                                     <a id="sts_link" class="icon-link" onclick="onSTSClick()">
                                                         <fmt:message key='auth.configure'/></a>
@@ -2382,25 +2385,32 @@
                                                         </tr>
                                                         </thead>
                                                         <tbody>
+                                                        <%
+                                                            for (String wsTrustURI : appBean.getWstrustSP()) {
+                                                        %>
                                                         <tr>
-                                                            <td><%=Encode.forHtmlContent(appBean.getWstrustSP())%>
+                                                            <td>
+                                                                <%=Encode.forHtmlContent(wsTrustURI)%>
                                                             </td>
                                                             <td style="white-space: nowrap;">
                                                                 <a title="Edit Audience"
-                                                                   onclick="updateBeanAndRedirect('../generic-sts/sts.jsp?spName=<%=Encode.forUriComponent(spName)%>&&spAudience=<%=Encode.forUriComponent(appBean.getWstrustSP())%>&spAction=spEdit');"
+                                                                   onclick="updateBeanAndRedirect('../generic-sts/sts.jsp?spName=<%=Encode.forUriComponent(spName)%>&spAudience=<%=Encode.forUriComponent(wsTrustURI)%>&spAction=spEdit');"
                                                                    class="icon-link"
                                                                    style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                                 <a title="Delete Audience"
                                                                    onclick="updateBeanAndPost('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
-                                                                       'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(appBean.getWstrustSP())%>',
-                                                                       'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(appBean.getWstrustSP())%>');"
+                                                                       'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(wsTrustURI)%>',
+                                                                       'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(wsTrustURI)%>');"
                                                                    class="icon-link"
                                                                    style="background-image: url(images/delete.gif)">
                                                                     Delete </a>
                                                             </td>
                                                         </tr>
+                                                        <% } %>
                                                         </tbody>
                                                     </table>
+                                                    <a id="sts_link" class="icon-link" style="background-image:url(images/add.gif);" onclick="onSTSClick()">
+                                                        <fmt:message key='auth.add.audience'/></a>
                                                     <%
                                                         }
                                                     %>
