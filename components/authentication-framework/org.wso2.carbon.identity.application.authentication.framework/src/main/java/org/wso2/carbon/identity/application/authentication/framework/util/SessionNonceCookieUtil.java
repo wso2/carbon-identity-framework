@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 
+import java.util.concurrent.TimeUnit;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -62,10 +63,13 @@ public class SessionNonceCookieUtil {
                                       AuthenticationContext context) {
 
         if (isNonceCookieEnabled()) {
-            removeExistingNonceCookies(request, response);
             String nonceId = UUIDGenerator.generateUUID();
             String cookieName = getNonceCookieName(context);
-            FrameworkUtils.setCookie(request, response, cookieName, nonceId, null, SameSiteCookie.NONE);
+            // Multiplying the TempDataCleanUpTimeout by 2, because the task runs in every TempDataCleanUpTimeout
+            // and cleans authentication context data older than TempDataCleanUpTimeout. This to cover the worst case.
+            long tempCleanupTimeout = TimeUnit.MINUTES.toSeconds(IdentityUtil.getTempDataCleanUpTimeout()) * 2;
+            FrameworkUtils.setCookie(request, response, cookieName, nonceId,
+                                                 Math.toIntExact(tempCleanupTimeout), SameSiteCookie.NONE);
             context.setProperty(cookieName, nonceId);
         }
     }
@@ -115,26 +119,6 @@ public class SessionNonceCookieUtil {
             String cookieName = getNonceCookieName(context);
             FrameworkUtils.removeCookie(request, response, cookieName);
             context.removeProperty(cookieName);
-        }
-    }
-
-    /**
-     * Clear all existing session cookies in the browser.
-     *
-     * @param request HttpServletRequest
-     * @param response HttpServletResponse
-     */
-    private static void removeExistingNonceCookies(HttpServletRequest request, HttpServletResponse response) {
-
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) {
-            return;
-        }
-        for (Cookie cookie : cookies) {
-            String cookieName = cookie.getName();
-            if (StringUtils.isNotEmpty(cookieName) && cookieName.startsWith(NONCE_COOKIE)) {
-                FrameworkUtils.removeCookie(request, response, cookieName);
-            }
         }
     }
 
