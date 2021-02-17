@@ -221,6 +221,13 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 List<String> currentRolesList = Arrays.asList(userStoreManager.getRoleListOfUser(username));
                 Collection<String> deletingRoles = retrieveRolesToBeDeleted(realm, currentRolesList, rolesToAdd);
                 rolesToAdd.removeAll(currentRolesList);
+                List<String> nonExistingUnmappedIdpRoles = new ArrayList<>();
+                for (String role : rolesToAdd) {
+                    if (!userStoreManager.isExistingRole(role)) {
+                        nonExistingUnmappedIdpRoles.add(role);
+                    }
+                }
+                rolesToAdd.removeAll(nonExistingUnmappedIdpRoles);
 
                 // TODO : Does it need to check this?
                 // Check for case whether superadmin login

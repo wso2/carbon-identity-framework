@@ -1222,6 +1222,19 @@
         <ReturnOnlyMappedLocalRoles>{{sp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
     </SPRoleManagement>
 
+    <!--
+        This configuration is used to filter the federated IDP configured role mappings. If the property value is,
+        true : If IDP role mapping available, it will return the configured role mappings .
+        false : If there is no IDP role mapping and If the remote role and local role names are matching it will allow
+        to returns all the unmapped roles.
+    -->
+
+    {% if idp_role_management.return_only_mapped_local_roles is defined %}
+        <FederatedRoleManagement>
+            <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
+        </FederatedRoleManagement>
+    {% endif %}
+
     <EnableAskPasswordAdminUI>{{identity_mgt.user_onboarding.ask_password_from_user}}</EnableAskPasswordAdminUI>
 
     <EnableRecoveryEndpoint>{{identity_mgt.endpoint.enable_recovery_endpoint}}</EnableRecoveryEndpoint>
