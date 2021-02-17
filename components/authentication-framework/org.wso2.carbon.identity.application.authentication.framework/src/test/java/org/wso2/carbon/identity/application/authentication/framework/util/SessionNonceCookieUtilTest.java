@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,8 +43,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 @PrepareForTest({IdentityUtil.class})
 public class SessionNonceCookieUtilTest {
 
-    private static final String OLD_SESSION_DATA_KEY_VALUE = "oldSessionDataKeyValue";
-    private static final String NEW_SESSION_DATA_KEY_VALUE = "newSessionDataKeyValue";
+    private static final String SESSION_DATA_KEY_VALUE = "SessionDataKeyValue";
     @Mock
     private HttpServletRequest request;
 
@@ -61,14 +61,15 @@ public class SessionNonceCookieUtilTest {
 
         mockStatic(IdentityUtil.class);
         Mockito.when(IdentityUtil.getProperty(NONCE_COOKIE_CONFIG)).thenReturn("true");
+        Mockito.when(IdentityUtil.getTempDataCleanUpTimeout()).thenReturn(Long.parseLong("40"));
         assertTrue(SessionNonceCookieUtil.isNonceCookieEnabled());
 
         // Creating old session nonce and authentication cookie.
         Cookie[] cookies = new Cookie[2];
         cookies[0] = new Cookie(FrameworkConstants.COMMONAUTH_COOKIE, "commonAuthIdValue");
-        cookies[1] = new Cookie(NONCE_COOKIE + "-" + OLD_SESSION_DATA_KEY_VALUE, "oldSessionNonceValue");
+        cookies[1] = new Cookie(NONCE_COOKIE + "-" + SESSION_DATA_KEY_VALUE, "sessionNonceValue");
         Mockito.when(request.getCookies()).thenReturn(cookies);
-        Mockito.when(context.getContextIdentifier()).thenReturn(OLD_SESSION_DATA_KEY_VALUE);
+        Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
 
         // Validating old session nonce cookie.
         Mockito.when(context.getProperty(cookies[1].getName())).thenReturn(cookies[1].getValue());
@@ -76,20 +77,15 @@ public class SessionNonceCookieUtilTest {
         assertTrue(validateNonceCookie);
 
         // Stimulate the flow where a new authentication flow is created when there is existing session nonce cookie.
-        Mockito.when(context.getContextIdentifier()).thenReturn(NEW_SESSION_DATA_KEY_VALUE);
+        Mockito.when(context.getContextIdentifier()).thenReturn(SESSION_DATA_KEY_VALUE);
         SessionNonceCookieUtil.addNonceCookie(request, response, context);
 
-        Mockito.verify(response, times(2)).addCookie(cookieCaptor.capture());
+        Mockito.verify(response, times(1)).addCookie(cookieCaptor.capture());
         List<Cookie> capturedCookies = cookieCaptor.getAllValues();
 
         // First, the old cookie has to be cleared with max age 0.
         Cookie removedOldSessionNonce = capturedCookies.get(0);
-        assertEquals(removedOldSessionNonce.getName(), NONCE_COOKIE + "-" + OLD_SESSION_DATA_KEY_VALUE);
-        assertEquals(removedOldSessionNonce.getMaxAge(), 0);
-
-        // Then, the new cookie has to be set with max age -1.
-        Cookie addedNewSessionNonce = capturedCookies.get(1);
-        assertEquals(addedNewSessionNonce.getName(), NONCE_COOKIE + "-" + NEW_SESSION_DATA_KEY_VALUE);
-        assertEquals(-1, addedNewSessionNonce.getMaxAge());
+        assertEquals(removedOldSessionNonce.getName(), NONCE_COOKIE + "-" + SESSION_DATA_KEY_VALUE);
+        assertEquals(removedOldSessionNonce.getMaxAge(), TimeUnit.MINUTES.toSeconds(40) * 2);
     }
 }
