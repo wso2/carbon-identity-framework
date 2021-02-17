@@ -870,6 +870,8 @@
     <Consent>
         <!--Specify whether consent management should be enable during SSO.-->
         <EnableSSOConsentManagement>{{authentication.consent.prompt}}</EnableSSOConsentManagement>
+        <!--Add config to prompt consent for subject claim uri if configured as a requested claim.-->
+        <PromptSubjectClaimRequestedConsent>{{authentication.consent.subject.prompt}}</PromptSubjectClaimRequestedConsent>
     </Consent>
 
     <SecurityTokenService>

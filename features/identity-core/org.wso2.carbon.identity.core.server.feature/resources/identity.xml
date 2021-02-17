@@ -659,6 +659,8 @@
     <Consent>
         <!--Specify whether consent management should be enable during SSO.-->
         <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
+        <!--Add config to prompt consent for subject claim uri if configured as a requested claim.-->
+        <PromptSubjectClaimRequestedConsent>false</PromptSubjectClaimRequestedConsent>
     </Consent>
 
     <SecurityTokenService>
