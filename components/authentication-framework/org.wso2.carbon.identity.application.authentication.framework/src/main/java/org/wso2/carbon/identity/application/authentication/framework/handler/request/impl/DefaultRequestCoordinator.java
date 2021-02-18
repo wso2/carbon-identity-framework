@@ -331,6 +331,7 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
             }
         } finally {
             UserCoreUtil.setDomainInThreadLocal(null);
+            FrameworkUtils.removeALORCookie(request, response);
             if (context != null) {
                 // Mark this context left the thread. Now another thread can use this context.
                 context.setActiveInAThread(false);

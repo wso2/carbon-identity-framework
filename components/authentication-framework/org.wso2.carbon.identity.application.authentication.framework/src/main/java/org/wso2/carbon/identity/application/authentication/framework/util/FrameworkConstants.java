@@ -493,4 +493,11 @@ public abstract class FrameworkConstants {
         public static final String CONSOLE_APP = "Console";
         public static final String CONSOLE_APP_PATH = "/console";
     }
+
+    public static class AutoLoginConstant {
+
+        public static final String COOKIE_NAME = "ALOR";
+        public static final String CONTENT = "content";
+        public static final String DOMAIN = "domain";
+    }
 }
