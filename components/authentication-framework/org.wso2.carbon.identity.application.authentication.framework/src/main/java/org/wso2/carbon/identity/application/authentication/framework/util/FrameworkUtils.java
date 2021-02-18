@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.MDC;
+import org.json.JSONObject;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -126,11 +127,6 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -143,6 +139,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -154,6 +151,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import javax.script.ScriptEngine;
+import javax.script.ScriptException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.CONSOLE_APP_PATH;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.Application.MY_ACCOUNT_APP_PATH;
@@ -2949,5 +2952,44 @@ public class FrameworkUtils {
     public static boolean isCorrelationIDPresent() {
 
         return MDC.get(CORRELATION_ID_MDC) != null;
+    }
+
+    /**
+     * Remove the ALOR cookie used by the auto login flow in the first time authentication framework receives
+     * the request. Regardless of the authentication state, this cookie will be cleared to make sure it won't be reused.
+     *
+     * @param request HttpServletRequest
+     * @param response  HttpServletRequest.
+     */
+    public static void removeALORCookie(HttpServletRequest request, HttpServletResponse response) {
+
+        if (request == null || request.getCookies() == null || request.getCookies().length == 0) {
+            return;
+        }
+
+        Arrays.stream(request.getCookies())
+                .filter(cookie -> FrameworkConstants.AutoLoginConstant.COOKIE_NAME.equals(cookie.getName()))
+                .findFirst()
+                .ifPresent((cookie -> {
+                    try {
+                        String decodedValue = new String(Base64.getDecoder().decode(cookie.getValue()));
+                        JSONObject cookieValueJSON = new JSONObject(decodedValue);
+                        String content = (String) cookieValueJSON.get(FrameworkConstants.AutoLoginConstant.CONTENT);
+                        JSONObject contentJSON = new JSONObject(content);
+                        String domainInCookie = (String) contentJSON.get(FrameworkConstants.AutoLoginConstant.DOMAIN);
+                        if (StringUtils.isNotEmpty(domainInCookie)) {
+                            cookie.setDomain(domainInCookie);
+                        }
+                    } catch (Exception e) {
+                        // Resolving the domain from the cookie failed. But we will try to to delete the cookie.
+                        if (log.isDebugEnabled()) {
+                            log.debug("Resolving the domain from the ALOR cookie failed.");
+                        }
+                    }
+                    cookie.setMaxAge(0);
+                    cookie.setValue("");
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }));
     }
 }
