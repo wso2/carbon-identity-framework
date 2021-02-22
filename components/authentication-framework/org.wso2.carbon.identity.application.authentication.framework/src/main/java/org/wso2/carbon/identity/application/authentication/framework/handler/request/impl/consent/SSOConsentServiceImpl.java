@@ -247,7 +247,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             List<String> claimsWithConsent = getClaimsFromConsentMetaData(receiptConsentMetaData);
             mandatoryClaims.removeAll(claimsWithConsent);
             // Only request consent for mandatory claims without consent when a receipt already exist for the user.
-            requestedClaims.clear();
+            requestedClaims.removeAll(claimsWithConsent);
         }
         ConsentClaimsData consentClaimsData = getConsentRequiredClaimData(mandatoryClaims, requestedClaims,
                 spTenantDomain);
@@ -356,7 +356,8 @@ public class SSOConsentServiceImpl implements SSOConsentService {
             claimsWithConsent = getAllUserApprovedClaims(serviceProvider, authenticatedUser,
                     userConsent);
         } else {
-            claimsWithConsent = userConsent.getApprovedClaims();
+            claimsWithConsent.addAll(userConsent.getApprovedClaims());
+            claimsWithConsent.addAll(userConsent.getDisapprovedClaims());
         }
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subjectTenantDomain = authenticatedUser.getTenantDomain();
@@ -698,6 +699,7 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         List<ClaimMetaData> claimsWithConsent = new ArrayList<>();
         claimsWithConsent.addAll(userConsent.getApprovedClaims());
+        claimsWithConsent.addAll(userConsent.getDisapprovedClaims());
 
         String spName = serviceProvider.getApplicationName();
 

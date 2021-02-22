@@ -31,7 +31,7 @@
         response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
         return;
     }
-    
+
     String appid = request.getParameter("spName");
     String description = request.getParameter("sp-description");
     String templateName = request.getParameter("sp-template");

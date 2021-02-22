@@ -37,7 +37,7 @@
     }
     String content = request.getParameter("sp-file-content");
     String fileName = request.getParameter("sp-file-name");
-    
+
     if (StringUtils.isNotEmpty(content)) {
         try {
             String cookie = (String) session.getAttribute(ServerConstants.ADMIN_SERVICE_COOKIE);
