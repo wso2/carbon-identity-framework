@@ -120,7 +120,15 @@
 				<DisplayName>Role</DisplayName>
 				<AttributeID>role</AttributeID>
 				<Description>Role</Description>
-	            		<SupportedByDefault />
+				<SupportedByDefault/>
+				<ReadOnly />
+			</Claim>
+			<Claim>
+				<ClaimURI>http://wso2.org/claims/roles</ClaimURI>
+				<DisplayName>Roles</DisplayName>
+				<AttributeID>roles</AttributeID>
+				<Description>Roles</Description>
+				<SupportedByDefault/>
 				<ReadOnly />
 			</Claim>
 			<Claim>
