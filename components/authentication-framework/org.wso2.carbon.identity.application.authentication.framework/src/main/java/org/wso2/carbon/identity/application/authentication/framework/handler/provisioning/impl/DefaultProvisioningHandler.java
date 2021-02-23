@@ -18,27 +18,25 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.CarbonException;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.util.AnonymousSessionUtil;
 import org.wso2.carbon.core.util.PermissionUpdateUtil;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.ProvisioningHandler;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
-import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileAdmin;
-import org.wso2.carbon.identity.user.profile.mgt.UserProfileException;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.constant.FederatedAssociationConstants;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
@@ -47,6 +45,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -59,16 +58,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
-        .InternalRoleDomains.APPLICATION_DOMAIN;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
-        .InternalRoleDomains.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USERNAME_CLAIM;
 
 public class DefaultProvisioningHandler implements ProvisioningHandler {
 
     private static final Log log = LogFactory.getLog(DefaultProvisioningHandler.class);
     private static final String ALREADY_ASSOCIATED_MESSAGE = "UserAlreadyAssociated";
+    private static final String USER_WORKFLOW_ENGAGED_ERROR_CODE = "WFM-10001";
     private static volatile DefaultProvisioningHandler instance;
     private SecureRandom random = new SecureRandom();
 
@@ -93,7 +91,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         try {
             int tenantId = realmService.getTenantManager().getTenantId(tenantDomain);
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(registryService,
-                                                                          realmService, tenantDomain);
+                    realmService, tenantDomain);
             String username = MultitenantUtils.getTenantAwareUsername(subject);
 
             String userStoreDomain;
@@ -122,7 +120,7 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
             }
 
             // If internal roles exists convert internal role domain names to pre defined camel case domain names.
-            List<String> rolesToAdd  = convertInternalRoleDomainsToCamelCase(roles);
+            List<String> rolesToAdd = convertInternalRoleDomainsToCamelCase(roles);
 
             String idp = attributes.remove(FrameworkConstants.IDP_ID);
             String subjectVal = attributes.remove(FrameworkConstants.ASSOCIATED_ID);
@@ -134,6 +132,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                     userClaims.remove(FrameworkConstants.PASSWORD);
                     userClaims.remove(USERNAME_CLAIM);
                     userStoreManager.setUserClaimValues(UserCoreUtil.removeDomainFromName(username), userClaims, null);
+                    /*
+                    Since the user is exist following code is get all active claims of user and crosschecking against
+                    tobeDeleted claims (claims came from federated idp as null). If there is a match those claims
+                    will be deleted.
+                    */
+                    List<String> toBeDeletedUserClaims = prepareToBeDeletedClaimMappings(attributes);
+                    if (CollectionUtils.isNotEmpty(toBeDeletedUserClaims)) {
+                        Claim[] userActiveClaims =
+                                userStoreManager.getUserClaimValues(UserCoreUtil.removeDomainFromName(username), null);
+                        for (Claim claim : userActiveClaims) {
+                            if (toBeDeletedUserClaims.contains(claim.getClaimUri())) {
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Claim from external attributes " + claim.getClaimUri() +
+                                            " has null value But user has not null claim value for Claim " +
+                                            claim.getClaimUri() + ". Hence user claim value will be deleted.");
+                                }
+                                userStoreManager.deleteUserClaimValue(UserCoreUtil.removeDomainFromName(username),
+                                        claim.getClaimUri(), null);
+                            }
+                        }
+                    }
                 }
                 String associatedUserName = FrameworkUtils.getFederatedAssociationManager()
                         .getUserForFederatedAssociation(tenantDomain, idp, subjectVal);
@@ -155,9 +174,41 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
                 }
 
                 userClaims.remove(FrameworkConstants.PASSWORD);
-                userStoreManager.addUser(username, password, null, userClaims, null);
+                boolean userWorkflowEngaged = false;
+                try {
+                    /*
+                    This thread local is set to skip the password pattern validation even if the password
+                    is generated, or user entered one. If it is required to check password pattern validation,
+                    need to write a provisioning handler extending the "DefaultProvisioningHandler".
+                     */
+                    UserCoreUtil.setSkipPasswordPatternValidationThreadLocal(true);
+                    userStoreManager.addUser(username, password, null, userClaims, null);
+                } catch (UserStoreException e) {
+                    // Add user operation will fail if a user operation workflow is already defined for the same user.
+                    if (USER_WORKFLOW_ENGAGED_ERROR_CODE.equals(e.getErrorCode())) {
+                        userWorkflowEngaged = true;
+                        if (log.isDebugEnabled()) {
+                            log.debug("Failed to add the user while JIT provisioning since user workflows are engaged" +
+                                    " and there is a workflow already defined for the same user");
+                        }
+                    } else {
+                        throw e;
+                    }
+                } finally {
+                    UserCoreUtil.removeSkipPasswordPatternValidationThreadLocal();
+                }
 
-                // Associate User
+                if (userWorkflowEngaged ||
+                        !userStoreManager.isExistingUser(UserCoreUtil.addDomainToName(username, userStoreDomain))) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("User is not found in the userstore. Most probably the local user creation is not " +
+                                "complete while JIT provisioning due to user operation workflow engagement. Therefore" +
+                                " the user account association and role and permission update are skipped.");
+                    }
+                    return;
+                }
+
+                // Associate user only if the user is existing in the userstore.
                 associateUser(username, userStoreDomain, tenantDomain, subjectVal, idp);
 
                 if (log.isDebugEnabled()) {
@@ -293,6 +344,27 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
         return userClaims;
     }
 
+    /**
+     * This method is used to get null value claims passed from idp to be deleted from current user active claims.
+     *
+     * @param attributes User attributes.
+     * @return toBeDeletedClaims
+     */
+    private List<String> prepareToBeDeletedClaimMappings(Map<String, String> attributes) {
+
+        List<String> toBeDeletedUserClaims = new ArrayList<>();
+        if (MapUtils.isNotEmpty(attributes)) {
+            for (Map.Entry<String, String> entry : attributes.entrySet()) {
+                String claimURI = entry.getKey();
+                String claimValue = entry.getValue();
+                if (StringUtils.isNotBlank(claimURI) && StringUtils.isBlank(claimValue)) {
+                    toBeDeletedUserClaims.add(claimURI);
+                }
+            }
+        }
+        return toBeDeletedUserClaims;
+    }
+
     private UserStoreManager getUserStoreManager(UserRealm realm, String userStoreDomain)
             throws UserStoreException, FrameworkException {
         UserStoreManager userStoreManager;
@@ -320,9 +392,9 @@ public class DefaultProvisioningHandler implements ProvisioningHandler {
 
         // If the any of above value is invalid, keep it empty to use primary userstore
         if (userStoreDomain != null
-            && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
+                && realm.getUserStoreManager().getSecondaryUserStoreManager(userStoreDomain) == null) {
             throw new FrameworkException("Specified user store domain " + userStoreDomain
-                                         + " is not valid.");
+                    + " is not valid.");
         }
 
         return userStoreDomain;

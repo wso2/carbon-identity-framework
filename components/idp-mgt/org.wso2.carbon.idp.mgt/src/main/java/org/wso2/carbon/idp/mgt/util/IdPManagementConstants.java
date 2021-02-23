@@ -83,6 +83,10 @@ public class IdPManagementConstants {
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
+
+    public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
+    public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +

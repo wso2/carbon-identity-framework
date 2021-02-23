@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.mgt.ui.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ui.ApplicationBean;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,6 +39,8 @@ public class ApplicationMgtUIUtil {
     private static final String SP_UNIQUE_ID_MAP = "spUniqueIdMap";
     public static final String JWKS_URI = IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
     public static final String JWKS_DISPLAYNAME = "JWKS Endpoint";
+    public static final String APP_NAME_JAVASCRIPT_VALIDATING_REGEX = "^[a-zA-Z0-9\\s.+_-]*$";
+    private static final String SERVICE_PROVIDERS_NAME_JAVASCRIPT_REGEX = "ServiceProviders.SPNameJavascriptRegex";
 
     /**
      * Get related application bean from the session.
@@ -116,4 +119,17 @@ public class ApplicationMgtUIUtil {
         }
     }
 
+    /**
+     * Return the Service Provider javascript validation regex if configured in the deployment.toml.
+     *
+     * @return regex.
+     */
+    public static String getSPValidatorJavascriptRegex() {
+
+        String spValidatorJavascriptRegex = IdentityUtil.getProperty(SERVICE_PROVIDERS_NAME_JAVASCRIPT_REGEX);
+        if (StringUtils.isBlank(spValidatorJavascriptRegex)) {
+            spValidatorJavascriptRegex = APP_NAME_JAVASCRIPT_VALIDATING_REGEX;
+        }
+        return spValidatorJavascriptRegex;
+    }
 }

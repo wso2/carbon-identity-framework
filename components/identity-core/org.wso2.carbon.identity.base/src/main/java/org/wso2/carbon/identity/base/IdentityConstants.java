@@ -123,6 +123,7 @@ public class IdentityConstants {
     public final static String COOKIE_SECURE = "secure";
     public final static String COOKIE_HTTP_ONLY = "httpOnly";
     public final static String COOKIE_SAME_SITE = "sameSite";
+    public final static String COOKIES_TO_INVALIDATE_CONFIG = "CookiesToInvalidate";
 
     // HTTP headers which may contain IP address of the client in the order of priority
     public static final String[] HEADERS_WITH_IP = {

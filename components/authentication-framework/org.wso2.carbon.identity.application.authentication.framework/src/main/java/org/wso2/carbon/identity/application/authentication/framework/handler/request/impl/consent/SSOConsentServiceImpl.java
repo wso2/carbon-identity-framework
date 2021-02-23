@@ -17,6 +17,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -51,6 +52,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
@@ -81,6 +83,7 @@ import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMe
 import static org.wso2.carbon.consent.mgt.core.constant.ConsentConstants.ErrorMessages.ERROR_CODE_PURPOSE_NAME_INVALID;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_ELEM_ENABLE_SSO_CONSENT_MANAGEMENT;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_SEPARATOR;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL;
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.consent.constant.SSOConsentConstants.CONSENT_VALIDITY_TYPE_VALID_UNTIL_INDEFINITE;
@@ -175,6 +178,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         String subjectClaimUri = getSubjectClaimUri(serviceProvider);
 
+        boolean subjectClaimUriRequested = false;
+        boolean subjectClaimUriMandatory = false;
+        boolean promptSubjectClaimRequestedConsent = true;
+
+        if (StringUtils.isNotBlank(IdentityUtil.getProperty(CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT))) {
+            promptSubjectClaimRequestedConsent =
+                    Boolean.parseBoolean(IdentityUtil.getProperty(CONFIG_PROMPT_SUBJECT_CLAIM_REQUESTED_CONSENT));
+        }
+
         if (isPassThroughScenario(claimMappings, userAttributes)) {
             for (Map.Entry<ClaimMapping, String> userAttribute : userAttributes.entrySet()) {
                 String remoteClaimUri = userAttribute.getKey().getRemoteClaim().getClaimUri();
@@ -191,10 +203,24 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 if (isCustomClaimMapping) {
                     if (subjectClaimUri.equals(claimMapping.getRemoteClaim().getClaimUri())) {
                         subjectClaimUri = claimMapping.getLocalClaim().getClaimUri();
+                        if (promptSubjectClaimRequestedConsent) {
+                            if (claimMapping.isMandatory()) {
+                                subjectClaimUriMandatory = true;
+                            } else if (claimMapping.isRequested()) {
+                                subjectClaimUriRequested = true;
+                            }
+                        }
                         continue;
                     }
                 } else {
                     if (subjectClaimUri.equals(claimMapping.getLocalClaim().getClaimUri())) {
+                        if (promptSubjectClaimRequestedConsent) {
+                            if (claimMapping.isMandatory()) {
+                                subjectClaimUriMandatory = true;
+                            } else if (claimMapping.isRequested()) {
+                                subjectClaimUriRequested = true;
+                            }
+                        }
                         continue;
                     }
                 }
@@ -203,6 +229,14 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                 } else if (claimMapping.isRequested()) {
                     requestedClaims.add(claimMapping.getLocalClaim().getClaimUri());
                 }
+            }
+        }
+
+        if (promptSubjectClaimRequestedConsent) {
+            if (subjectClaimUriMandatory) {
+                mandatoryClaims.add(subjectClaimUri);
+            } else if (subjectClaimUriRequested) {
+                requestedClaims.add(subjectClaimUri);
             }
         }
 
@@ -299,6 +333,15 @@ public class SSOConsentServiceImpl implements SSOConsentService {
                                AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData)
             throws SSOConsentServiceException {
 
+        processConsent(consentApprovedClaimIds, serviceProvider, authenticatedUser, consentClaimsData, false);
+    }
+
+    @Override
+    public void processConsent(List<Integer> consentApprovedClaimIds, ServiceProvider serviceProvider,
+                               AuthenticatedUser authenticatedUser, ConsentClaimsData consentClaimsData,
+                               boolean overrideExistingConsent)
+            throws SSOConsentServiceException {
+
         if (!isSSOConsentManagementEnabled(serviceProvider)) {
             String message = "Consent management for SSO is disabled.";
             throw new SSOConsentDisabledException(message, message);
@@ -308,8 +351,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
         }
         UserConsent userConsent = processUserConsent(consentApprovedClaimIds, consentClaimsData);
         String subject = buildSubjectWithUserStoreDomain(authenticatedUser);
-        List<ClaimMetaData> claimsWithConsent = getAllUserApprovedClaims(serviceProvider, authenticatedUser,
-                userConsent);
+        List<ClaimMetaData> claimsWithConsent = ListUtils.EMPTY_LIST;
+        if (!overrideExistingConsent) {
+            claimsWithConsent = getAllUserApprovedClaims(serviceProvider, authenticatedUser,
+                    userConsent);
+        } else {
+            claimsWithConsent = userConsent.getApprovedClaims();
+        }
         String spTenantDomain = getSPTenantDomain(serviceProvider);
         String subjectTenantDomain = authenticatedUser.getTenantDomain();
 

@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.mgt;
 
 import org.apache.axiom.om.OMElement;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -67,6 +68,7 @@ import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerS
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -136,7 +138,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
     private static final Log log = LogFactory.getLog(ApplicationManagementServiceImpl.class);
     private static volatile ApplicationManagementServiceImpl appMgtService;
-    private ApplicationMgtValidator applicationMgtValidator = new ApplicationMgtValidator();
+    private ApplicationValidatorManager applicationValidatorManager = new ApplicationValidatorManager();
 
     /**
      * Private constructor which will not allow to create objects of this class from outside
@@ -190,7 +192,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
 
         int appId = doAddApplication(serviceProvider, tenantDomain, username, appDAO::createApplication);
         serviceProvider.setApplicationID(appId);
-
+        setDisplayNamesOfLocalAuthenticators(serviceProvider, tenantDomain);
         SpTemplate spTemplate = this.getApplicationTemplate(templateName, tenantDomain);
         if (spTemplate != null) {
             updateSpFromTemplate(serviceProvider, tenantDomain, spTemplate);
@@ -729,8 +731,8 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     /**
      * Delete Applications by tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
      */
     @Override
     public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
@@ -742,7 +744,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         ApplicationDAO appDAO = ApplicationMgtSystemConfig.getInstance().getApplicationDAO();
         appDAO.deleteApplications(tenantId);
 
-        // Clear cache entries of each deleted SP
+        // Clear cache entries of each deleted SP.
         if (log.isDebugEnabled()) {
             log.debug("Clearing the cache entries of all SP applications of the tenant: " + tenantDomain);
         }
@@ -1337,7 +1339,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateSPTemplateExists(spTemplate, tenantDomain);
             validateUnsupportedTemplateConfigs(serviceProvider);
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+            applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
@@ -1370,7 +1372,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 validateSPTemplateExists(spTemplate, tenantDomain);
 
                 ServiceProvider updatedSP = removeUnsupportedTemplateConfigs(serviceProvider);
-                applicationMgtValidator.validateSPConfigurations(updatedSP, tenantDomain,
+                applicationValidatorManager.validateSPConfigurations(updatedSP, tenantDomain,
                         CarbonContext.getThreadLocalCarbonContext().getUsername());
                 Collection<ApplicationMgtListener> listeners =
                         getApplicationMgtListeners();
@@ -1439,7 +1441,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
             ServiceProvider serviceProvider = unmarshalSPTemplate(spTemplate.getContent());
             validateUnsupportedTemplateConfigs(serviceProvider);
 
-            applicationMgtValidator.validateSPConfigurations(serviceProvider, tenantDomain,
+            applicationValidatorManager.validateSPConfigurations(serviceProvider, tenantDomain,
                     CarbonContext.getThreadLocalCarbonContext().getUsername());
 
             Collection<ApplicationMgtListener> listeners =
@@ -2193,7 +2195,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         validateApplicationConfigurations(updatedApp, tenantDomain, username);
 
         updatedApp.setApplicationResourceId(resourceId);
-
+        setDisplayNamesOfLocalAuthenticators(updatedApp, tenantDomain);
         Collection<ApplicationResourceManagementListener> listeners =
                 ApplicationMgtListenerServiceComponent.getApplicationResourceMgtListeners();
         for (ApplicationResourceManagementListener listener : listeners) {
@@ -2329,7 +2331,7 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                                                    String username) throws IdentityApplicationManagementException {
 
         try {
-            applicationMgtValidator.validateSPConfigurations(application, tenantDomain, username);
+            applicationValidatorManager.validateSPConfigurations(application, tenantDomain, username);
         } catch (IdentityApplicationManagementValidationException e) {
             String message = "Invalid application configuration for application: '" +
                     application.getApplicationName() + "' of tenantDomain: " + tenantDomain + ".";
@@ -2511,6 +2513,42 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private Collection<ApplicationMgtListener> getApplicationMgtListeners() {
 
         return ApplicationMgtListenerServiceComponent.getApplicationMgtListeners();
+    }
+
+    /**
+     * Set displayName of configured localAuthenticators in the service provider, if displayName is null.
+     *
+     * @param serviceProvider Service provider.
+     * @param tenantDomain    Tenant domain.
+     * @throws IdentityApplicationManagementException If an error occur while retrieving local authenticator configs.
+     */
+    private void setDisplayNamesOfLocalAuthenticators(ServiceProvider serviceProvider, String tenantDomain)
+            throws IdentityApplicationManagementException {
+
+        // Set displayName of local authenticators if displayNames are null.
+        LocalAuthenticatorConfig[] localAuthenticatorConfigs = getAllLocalAuthenticators(tenantDomain);
+        if (serviceProvider.getLocalAndOutBoundAuthenticationConfig() == null || localAuthenticatorConfigs == null) {
+            return;
+        }
+        AuthenticationStep[] authSteps =
+                serviceProvider.getLocalAndOutBoundAuthenticationConfig().getAuthenticationSteps();
+        if (CollectionUtils.isEmpty(Arrays.asList(authSteps))) {
+            return;
+        }
+        for (AuthenticationStep authStep : authSteps) {
+            if (CollectionUtils.isEmpty(Arrays.asList(authStep.getLocalAuthenticatorConfigs()))) {
+                return;
+            }
+            for (LocalAuthenticatorConfig localAuthenticator : authStep.getLocalAuthenticatorConfigs()) {
+                if (localAuthenticator.getDisplayName() == null) {
+                    Arrays.stream(localAuthenticatorConfigs).forEach(config -> {
+                        if (StringUtils.equals(localAuthenticator.getName(), config.getName())) {
+                            localAuthenticator.setDisplayName(config.getDisplayName());
+                        }
+                    });
+                }
+            }
+        }
     }
 }
 

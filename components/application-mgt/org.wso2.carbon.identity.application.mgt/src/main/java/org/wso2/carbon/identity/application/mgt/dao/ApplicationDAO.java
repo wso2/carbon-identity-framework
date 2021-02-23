@@ -75,8 +75,8 @@ public interface ApplicationDAO {
     /**
      * Delete applications of a given tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
      */
     default void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
 

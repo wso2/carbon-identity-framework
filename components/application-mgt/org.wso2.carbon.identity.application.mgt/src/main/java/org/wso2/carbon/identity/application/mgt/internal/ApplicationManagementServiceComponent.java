@@ -51,6 +51,8 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtAuditLogg
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
+import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
+import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -101,6 +103,11 @@ public class ApplicationManagementServiceComponent {
 
             bundleContext.registerService(DiscoverableApplicationManager.class.getName(),
                     new DiscoverableApplicationManagerImpl(), null);
+
+            // Register the ApplicationValidator.
+            context.getBundleContext().registerService(ApplicationValidator.class,
+                    new DefaultApplicationValidator(), null);
+
             buildFileBasedSPList();
             loadAuthenticationTemplates();
 

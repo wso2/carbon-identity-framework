@@ -155,8 +155,8 @@ public interface ClaimMetadataManagementService {
     /**
      * Remove all claims of a given tenant.
      *
-     * @param tenantId Id of the tenant
-     * @throws ClaimMetadataException
+     * @param tenantId The id of the tenant.
+     * @throws ClaimMetadataException throws when an error occurs in removing claims.
      */
     default void removeAllClaims(int tenantId) throws ClaimMetadataException {
 

@@ -1,5 +1,6 @@
 {
   "authentication.consent.prompt": true,
+  "authentication.consent.subject.prompt": true,
   "authentication.map_federated_users_to_local": false,
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
@@ -166,7 +167,7 @@
   "oauth.prompt_login_consent": "$ref{oauth.prompt_consent}",
   "oauth.prompt_logout_consent": "$ref{oauth.prompt_consent}",
   "oauth.oidc.extensions.id_token_builder": "org.wso2.carbon.identity.openidconnect.DefaultIDTokenBuilder",
-  "oauth.oidc.claims.enable_oidc_dialect": false,
+  "oauth.oidc.claims.enable_oidc_dialect": true,
   "oauth.oidc.claims.enable_unmapped_user_attributes": false,
 
   "oauth.oidc.id_token.signature_algorithm": "SHA256withRSA",
@@ -260,6 +261,7 @@
   "scim2.mandate_domain_for_uesrnames_and_group_names_in_response": false,
   "scim2.mandate_domain_for_group_names_in_groups_response": false,
   "scim2.return_updated_group_in_group_patch_response": true,
+  "scim2.remove_duplicate_users_in_users_response": false,
 
   "identity_mgt.recovery.notification.manage_internally": true,
   "identity_mgt.recovery.callback_url": ".*",
@@ -279,6 +281,14 @@
   "identity_mgt.notification_channel_recovery.recovery_code_validity": "1m",
   "identity_mgt.resend_notification.resend_code_validity": "1m",
   "identity_mgt.password_reset_email.notify_on_reset":false,
+
+  "identity_mgt.lite_user_registration.enable": false,
+  "identity_mgt.lite_user_registration.lock_on_creation": true,
+  "identity_mgt.lite_user_registration.notification.manage_internally": true,
+  "identity_mgt.lite_user_registration.recaptcha.enable": true,
+  "identity_mgt.lite_user_registration.verification_email_validity": "1440m",
+  "identity_mgt.lite_user_registration.verification_sms_validity": "1m",
+  "identity_mgt.lite_user_registration.callback_url": ".*",
 
   "identity_mgt.password_reset_challenge_questions.enable_password_reset_challenge_questions": false,
   "identity_mgt.password_reset_challenge_questions.notify_on_initiation": false,
@@ -304,6 +314,9 @@
 
   "identity_mgt.password_update.preserve_logged_in_session": false,
 
+  "identity_mgt.login_identifiers.enable" : false,
+  "identity_mgt.login_identifiers.primary_claim" : "http://wso2.org/claims/username",
+
   "identity_mgt.username_recovery.email.enable_username_recovery": false,
   "identity_mgt.username_recovery.email.enable_recaptcha": false,
 
@@ -328,6 +341,8 @@
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
   "identity_mgt.user_self_registration.callback_url": "[${carbon.protocol}://${carbon.host}:${carbon.management.port}].*[/authenticationendpoint/login.do]",
   "identity_mgt.user_self_registration.enable_resend_confirmation_recaptcha": false,
+  "identity_mgt.user_self_registration.auto_login.enable": false,
+  "identity_mgt.user_self_registration.auto_login.alias_name": "wso2carbon",
 
   "identity_mgt.user_claim_update.email.enable_verification": false,
   "identity_mgt.user_claim_update.email.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -349,6 +364,10 @@
   "event.default_listener.identity_mgt.enable": false,
   "event.default_listener.scim.priority": "90",
   "event.default_listener.scim.enable": false,
+  "event.default_listener.scim_tenant_mgt.priority": "-1",
+  "event.default_listener.scim_tenant_mgt.enable": true,
+  "event.default_listener.scim2_tenant_mgt.priority": "-1",
+  "event.default_listener.scim2_tenant_mgt.enable": true,
   "event.default_listener.scim2.priority": "93",
   "event.default_listener.scim2.enable": true,
   "event.default_listener.governance_identity_mgt.priority": "95",
@@ -507,7 +526,10 @@
     "/console/",
     "/authenticationendpoint/",
     "/accountrecoveryendpoint/",
-    "/lsp/"
+    "/lsp/",
+    "/emailotpauthenticationendpoint/",
+    "/smsotpauthenticationendpoint/",
+    "/totpauthenticationendpoint/"
   ],
   "tenant_context.rewrite.servlets": [
     "/identity/(.*)",
@@ -522,6 +544,13 @@
   "tenant_context.rewrite.overwrite.dispatch": [
     "/myaccount/",
     "/console/"
+  ],
+  "tenant_context.rewrite.overwrite.ignore_dispatch_path": [
+    "/libs/",
+    "/resources/",
+    "/static/",
+    "/deployment.config.json",
+    "/rpIFrame.html"
   ],
   "intermediate_cert_validation.enable":false,
   "intermediate_cert_validation.cert_cns": [
@@ -589,22 +618,16 @@
 
   "continue_on_claim_handling_error": true,
 
-  "console.applications.account_app.configs": {
-    "path": "/myaccount/overview"
-  },
+  "console.applications.account_app.configs.path": "/myaccount/overview",
   "console.app_base_name": "console",
   "console.client_id": "CONSOLE",
   "console.debug.enable": false,
-  "console.applications.admin_app.configs": {
-    "basePath": "/manage",
-    "displayName": "Manage",
-    "path": "/manage/users"
-  },
-  "console.applications.developer_app.configs": {
-    "basePath": "/develop",
-    "displayName": "Develop",
-    "path": "/develop/applications"
-  },
+  "console.applications.admin_app.configs.basePath": "/manage",
+  "console.applications.admin_app.configs.displayName": "Manage",
+  "console.applications.admin_app.configs.path": "/manage/users",
+  "console.applications.developer_app.configs.basePath": "/develop",
+  "console.applications.developer_app.configs.displayName": "Develop",
+  "console.applications.developer_app.configs.path": "/develop/applications",
   "console.documentation.base_url": "https://api.github.com",
   "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "console.documentation.github_options": {
@@ -649,6 +672,7 @@
       "internal_application_mgt_delete"
     ]
   },
+  "console.applications.ui.certificate_alias_enabled": false,
   "console.approvals.enabled": true,
   "console.approvals.scopes": {
     "create": [
@@ -665,6 +689,7 @@
     ]
   },
   "console.attribute_dialects.enabled": true,
+  "console.ui.is_default_dialect_editing_enabled": false,
   "console.attribute_dialects.scopes": {
     "create": [
       "internal_claim_meta_create"
@@ -842,6 +867,7 @@
   "console.gravatar.configs": {
     "fallback": "404"
   },
+  "console.list_all_attribute_dialects": false,
 
   "myaccount.app_base_name": "myaccount",
   "myaccount.client_id": "MY_ACCOUNT",
@@ -889,6 +915,9 @@
   "cors.supported_methods": [
     "GET",
     "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
     "HEAD",
     "OPTIONS"
   ],
@@ -898,5 +927,6 @@
   "cors.supports_credentials": true,
   "cors.max_age": -1,
   "cors.tag_requests": false,
-  "audit.log.contextual_param.params": []
+  "audit.log.contextual_param.params": [],
+  "common_auth_caller_path.enable_common_auth_caller_path_validation": true
 }

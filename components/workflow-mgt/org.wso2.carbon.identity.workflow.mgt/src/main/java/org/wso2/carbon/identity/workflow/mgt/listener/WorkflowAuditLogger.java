@@ -80,7 +80,7 @@ public class WorkflowAuditLogger extends AbstractWorkflowListener {
     /**
      * Trigger after deleting workflows by tenant id.
      *
-     * @param tenantId Id of the tenant
+     * @param tenantId The id of the tenant.
      * @throws WorkflowException
      */
     @Override

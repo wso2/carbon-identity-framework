@@ -28,6 +28,11 @@ public class WorkflowException extends IdentityException {
         super(message);
     }
 
+    public WorkflowException(String message, String errorCode) {
+
+        super(errorCode, message);
+    }
+
     public WorkflowException(String message, Throwable e) {
         super(message, e);
     }
