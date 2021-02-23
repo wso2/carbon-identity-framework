@@ -18,10 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -150,9 +150,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
@@ -198,7 +200,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To add authentication request cache entry to cache
+     * To add authentication request cache entry to cache.
      *
      * @param key          cache entry key
      * @param authReqEntry AuthenticationReqCache Entry.
@@ -209,7 +211,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache request from cache
+     * To get authentication cache request from cache.
      *
      * @param key Key of the cache entry
      * @return
@@ -217,7 +219,8 @@ public class FrameworkUtils {
     public static AuthenticationRequestCacheEntry getAuthenticationRequestFromCache(String key) {
 
         AuthenticationRequestCacheKey cacheKey = new AuthenticationRequestCacheKey(key);
-        AuthenticationRequestCacheEntry authRequest = AuthenticationRequestCache.getInstance().getValueFromCache(cacheKey);
+        AuthenticationRequestCacheEntry authRequest = AuthenticationRequestCache
+                .getInstance().getValueFromCache(cacheKey);
         return authRequest;
     }
 
@@ -235,7 +238,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Builds the wrapper, wrapping incoming request and information take from cache entry
+     * Builds the wrapper, wrapping incoming request and information take from cache entry.
      *
      * @param request    Original request coming to authentication framework
      * @param cacheEntry Cache entry from the cache, which is added from calling servlets
@@ -553,7 +556,8 @@ public class FrameworkUtils {
      * @param status        Failure status.
      * @param statusMsg     Failure status message.
      * @throws IOException
-     * @deprecated use {@link #sendToRetryPage(HttpServletRequest, HttpServletResponse, AuthenticationContext, String, String)}.
+     * @deprecated use {@link #sendToRetryPage(HttpServletRequest,
+     * HttpServletResponse, AuthenticationContext, String, String)}.
      */
     @Deprecated
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response, String status,
@@ -588,7 +592,7 @@ public class FrameworkUtils {
      */
     public static void sendToRetryPage(HttpServletRequest request, HttpServletResponse response,
                                        AuthenticationContext context, String status,
-                                       String statusMsg) throws IOException{
+                                       String statusMsg) throws IOException {
 
         try {
             URIBuilder uriBuilder = new URIBuilder(
@@ -721,7 +725,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Remove the auth cookie in the tenanted path
+     * Remove the auth cookie in the tenanted path.
      *
      * @param req    HTTP request
      * @param resp   HTTP response
@@ -963,7 +967,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * To get authentication cache result from cache
+     * To get authentication cache result from cache.
      * @param key
      * @return
      */
@@ -1360,8 +1364,8 @@ public class FrameworkUtils {
         return idps;
     }
 
-    public static Map<String, AuthenticatorConfig> getAuthenticatedStepIdPs(StepConfig stepConfig,
-                                                                            Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+    public static Map<String, AuthenticatorConfig>
+    getAuthenticatedStepIdPs(StepConfig stepConfig, Map<String, AuthenticatedIdPData> authenticatedIdPs) {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Finding already authenticated IdPs of the step {order:%d}",
@@ -1477,7 +1481,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * when getting query params through this, only configured params will be appended as query params
+     * when getting query params through this, only configured params will be appended as query params.
      * The required params can be configured from application-authenticators.xml
      *
      * @param request
@@ -1613,7 +1617,8 @@ public class FrameworkUtils {
 
         // If the host name is not white listed then the query params will not be removed from the redirect url.
         List<String> filteringEnabledHosts = FileBasedConfigurationBuilder.getInstance().getFilteringEnabledHostNames();
-        if (CollectionUtils.isNotEmpty(filteringEnabledHosts) && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
+        if (CollectionUtils.isNotEmpty(filteringEnabledHosts)
+                && !filteringEnabledHosts.contains(uriBuilder.getHost())) {
             return redirectUrl;
         }
 
@@ -1699,8 +1704,8 @@ public class FrameworkUtils {
             }
         } else if (authenticatedSubject.indexOf(CarbonConstants.DOMAIN_SEPARATOR) == 0) {
             throw new IllegalArgumentException("Invalid argument. authenticatedSubject : "
-                                               + authenticatedSubject + " begins with \'" + CarbonConstants.DOMAIN_SEPARATOR
-                                               + "\'");
+                                               + authenticatedSubject + " begins with \'"
+                    + CarbonConstants.DOMAIN_SEPARATOR + "\'");
         }
         return authenticatedSubject;
     }
@@ -1754,7 +1759,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Starts the tenant flow for the given tenant domain
+     * Starts the tenant flow for the given tenant domain.
      *
      * @param tenantDomain tenant domain
      */
@@ -1781,14 +1786,14 @@ public class FrameworkUtils {
     }
 
     /**
-     * Ends the tenant flow
+     * Ends the tenant flow.
      */
     public static void endTenantFlow() {
         PrivilegedCarbonContext.endTenantFlow();
     }
 
     /**
-     * create a nano time stamp relative to Unix Epoch
+     * create a nano time stamp relative to Unix Epoch.
      */
     public static long getCurrentStandardNano() {
 
@@ -1801,7 +1806,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param to the URL (URL may already contain query params)
+     * Append a query param to the URL (URL may already contain query params).
      */
     public static String appendQueryParamsStringToUrl(String url, String queryParamString) {
         String queryAppendedUrl = url;
@@ -1827,7 +1832,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -1859,7 +1864,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Append a query param map to the URL (URL may already contain query params)
+     * Append a query param map to the URL (URL may already contain query params).
      *
      * @param url         URL string to append the params.
      * @param queryParams Map of query params to be append.
@@ -2030,7 +2035,8 @@ public class FrameworkUtils {
                 federatedIDPRoleClaimAttributeSeparator = IdentityUtil.getProperty(FrameworkConstants
                         .FEDERATED_IDP_ROLE_CLAIM_VALUE_SEPARATOR);
                 if (log.isDebugEnabled()) {
-                    log.debug("The IDP side role claim value separator is configured as : " + federatedIDPRoleClaimAttributeSeparator);
+                    log.debug("The IDP side role claim value separator is configured as : " +
+                            federatedIDPRoleClaimAttributeSeparator);
                 }
             } else {
                 federatedIDPRoleClaimAttributeSeparator = FrameworkUtils.getMultiAttributeSeparator();
@@ -2097,7 +2103,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the mapped URI for the IDP role mapping
+     * Get the mapped URI for the IDP role mapping.
      * @param idpRoleClaimUri pass the IdpClaimUri created in getIdpRoleClaimUri method
      * @param stepConfig Relevant stepConfig
      * @param context Relevant authentication context
@@ -2398,7 +2404,7 @@ public class FrameworkUtils {
         return value;
     }
 
-    public static Object toJsSerializableGraal (Object value){
+    public static Object toJsSerializableGraal (Object value) {
         if (value instanceof Serializable) {
             if (value instanceof HashMap) {
                 Map<String, Object> map = new HashMap<>();
@@ -2407,24 +2413,24 @@ public class FrameworkUtils {
             } else {
                 return value;
             }
-        } else if (value instanceof Value){
+        } else if (value instanceof Value) {
             Value valueObj = (Value) value;
-            if (valueObj.canExecute()){
+            if (valueObj.canExecute()) {
                 return GraalSerializableJsFunction.toSerializableForm(valueObj);
-            }else if (valueObj.isProxyObject()){
+            } else if (valueObj.isProxyObject()) {
                 return valueObj.asProxyObject();
-            }else if (valueObj.isNumber()){
+            } else if (valueObj.isNumber()) {
                 return valueObj.asInt();
-            }else if (valueObj.isString()){
+            } else if (valueObj.isString()) {
                 return valueObj.toString();
-            }else if (valueObj.isDate()){
+            } else if (valueObj.isDate()) {
                 return valueObj.asDate();
-            }else if (valueObj.isBoolean()){
+            } else if (valueObj.isBoolean()) {
                 return valueObj.asBoolean();
-            }else if (valueObj.hasArrayElements()){
+            } else if (valueObj.hasArrayElements()) {
                 int arraySize = (int) valueObj.getArraySize();
                 List<Serializable> arrayItems = new ArrayList<>(arraySize);
-                for (int key=0; key<arraySize;key++){
+                for (int key = 0; key < arraySize; key++) {
                     Object serializedObj = toJsSerializableGraal(valueObj.getArrayElement(key));
                     if (serializedObj instanceof Serializable) {
                         arrayItems.add((Serializable) serializedObj);
@@ -2437,7 +2443,7 @@ public class FrameworkUtils {
                     }
                 }
                 return arrayItems;
-            }else if (valueObj.hasMembers()){
+            } else if (valueObj.hasMembers()) {
                 Map<String, Serializable> serializedMap = new HashMap<>();
                 valueObj.getMemberKeys().forEach((key) -> {
                     Object serializedObj = toJsSerializable(valueObj.getMember(key));
@@ -2446,30 +2452,28 @@ public class FrameworkUtils {
                         if (log.isDebugEnabled()) {
                             log.debug("Serialized the value for key : " + key);
                         }
+                    } else {
+                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted."
+                                , key));
                     }
-                    else {
-                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", key));
-                    }
-
                 });
                 return serializedMap;
-            }else if (valueObj.isDuration()){
+            } else if (valueObj.isDuration()) {
                 return valueObj.asDuration();
-            }else if (valueObj.isTime()){
+            } else if (valueObj.isTime()) {
                 return valueObj.asTime();
-            }else if (valueObj.isTimeZone()){
+            } else if (valueObj.isTimeZone()) {
                 return valueObj.asTimeZone();
-            }else if (valueObj.isNull()){
+            } else if (valueObj.isNull()) {
                 return null;
-            }
-            else {
+            } else {
                 return Collections.EMPTY_MAP;
             }
         }
         return value;
     }
 
-    public static Object fromJsSerializable(Object value, Object contextOrEngine) throws FrameworkException {
+    public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
 
         if (value instanceof NashornSerializableJsFunction) {
             NashornSerializableJsFunction serializableJsFunction = (NashornSerializableJsFunction) value;
@@ -2490,28 +2494,28 @@ public class FrameworkUtils {
         return value;
     }
 
-    public static Object fromJsSerializableGraal (Object value, Context context){
+    public static Object fromJsSerializableGraal (Object value, Context context) {
         if (value instanceof GraalSerializableJsFunction) {
             GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;
             try {
-                context.eval("js","var tempFunc = "+ serializableJsFunction.getSource());
+                context.eval("js", "var tempFunc = " + serializableJsFunction.getSource());
                 return context.getBindings("js").getMember("tempFunc");
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("could not recreate JS Object", e);
             }
-        }else if (value instanceof Map){
-            Value deserializedValue = context.eval("js","[]");
+        } else if (value instanceof Map) {
+            Value deserializedValue = context.eval("js", "[]");
             for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
                 Object deserializedObj = fromJsSerializableGraal(entry.getValue(), context);
                 deserializedValue.putMember(entry.getKey(), deserializedObj);
             }
             return deserializedValue;
-        }else if (value instanceof List){
-            Value deserializedValue = context.eval("js","[]");
+        } else if (value instanceof List) {
+            Value deserializedValue = context.eval("js", "[]");
             List valueList = (List) value;
             int listSize = valueList.size();
-            for (int index = 0; index <listSize; index++){
-                Object deserializedObject = fromJsSerializableGraal(valueList.get(index),context);
+            for (int index = 0; index < listSize; index++) {
+                Object deserializedObject = fromJsSerializableGraal(valueList.get(index), context);
                 deserializedValue.setArrayElement(index, deserializedObject);
             }
             return deserializedValue;
@@ -2520,7 +2524,7 @@ public class FrameworkUtils {
     }
 
     /**
-     * Get the configurations of a tenant from cache or database
+     * Get the configurations of a tenant from cache or database.
      *
      * @param tenantDomain Domain name of the tenant
      * @return Configurations belong to the tenant
@@ -2690,7 +2694,7 @@ public class FrameworkUtils {
             }
 
             String schemaPattern = null;
-            if (metaData.getDriverName().contains("Oracle")){
+            if (metaData.getDriverName().contains("Oracle")) {
                 if (log.isDebugEnabled()) {
                     log.debug("DB type detected as Oracle. Setting schemaPattern to " + metaData.getUserName());
                 }
