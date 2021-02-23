@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.wso2.carbon.identity.framework</groupId>
         <artifactId>identity-mgt</artifactId>
-        <version>5.18.188-SNAPSHOT</version>
+        <version>5.19.39-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -283,6 +283,7 @@
 
                             org.apache.http; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
+                            org.apache.http.client.methods; version="${httpcomponents-httpclient.imp.pkg.version.range}",
                             org.apache.http.entity; version="${httpcore.version.osgi.import.range}",
                             org.apache.http.impl.client; version="${httpcomponents-httpclient.imp.pkg.version.range}",
 

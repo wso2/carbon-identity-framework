@@ -39,6 +39,8 @@ import org.wso2.carbon.identity.core.ServiceURLBuilder;
 import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Error;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError;
@@ -63,9 +65,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
+
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.My_ACCOUNT_APPLICATION_NAME;
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.SUPER_TENANT;
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.USER_TENANT_HINT_PLACE_HOLDER;
 
 /**
  * This class defines utility methods used within this web application.
@@ -151,18 +157,65 @@ public class IdentityManagementEndpointUtil {
      * @param userPortalUrl configured user portal url
      * @return configured url or the default url if configured url is empty
      */
+    @Deprecated
     public static final String getUserPortalUrl(String userPortalUrl) {
+
+        return getUserPortalUrl(userPortalUrl, null);
+    }
+
+    /**
+     * Returns the My Account access url for the specific tenant.
+     *
+     * @param userPortalUrl configured user portal url
+     * @param tenantDomain tenant domain of the user
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getUserPortalUrl(String userPortalUrl, String tenantDomain) {
 
         if (StringUtils.isNotBlank(userPortalUrl)) {
             return userPortalUrl;
         }
         try {
+            if (StringUtils.isNotEmpty(tenantDomain)) {
+                ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+                try {
+                    String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
+                            My_ACCOUNT_APPLICATION_NAME);
+                    if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
+                        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
+                    }
+                } catch (ApplicationDataRetrievalClientException e) {
+                    // Falling back to building the url.
+                }
+            }
             return ServiceURLBuilder.create().addPath(IdentityManagementEndpointConstants.USER_PORTAL_URL).build()
                     .getAbsolutePublicURL();
         } catch (URLBuilderException e) {
             throw new IdentityRuntimeException(
                     "Error while building url for context: " + IdentityManagementEndpointConstants.USER_PORTAL_URL);
         }
+    }
+
+    /**
+     * Replace the ${UserTenantHint} placeholder in the url with the tenant domain.
+     *
+     * @param url           Url with the placeholder.
+     * @param tenantDomain  Tenant Domain.
+     * @return              Processed url.
+     */
+    public static String replaceUserTenantHintPlaceholder(String url, String tenantDomain) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(USER_TENANT_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = SUPER_TENANT;
+        }
+        return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
+                .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
     }
 
     /**
@@ -697,7 +750,8 @@ public class IdentityManagementEndpointUtil {
         try {
             if (StringUtils.isBlank(serverUrl)) {
                 if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
-                    basePath = ServiceURLBuilder.create().addPath(context).build().getAbsoluteInternalURL();
+                    basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
+                            .getAbsoluteInternalURL();
                 } else {
                     serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
                     if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME

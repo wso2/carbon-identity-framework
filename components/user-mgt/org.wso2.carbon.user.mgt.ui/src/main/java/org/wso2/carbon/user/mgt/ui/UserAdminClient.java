@@ -317,7 +317,9 @@ public class UserAdminClient  {
             errorMessage = e.getMessage();
         }
 
-        log.error(errorMessage, e);
+        if (log.isDebugEnabled()) {
+            log.debug("Failed to proceed. " + errorMessage, e);
+        }
         throw new AxisFault(errorMessage, e);
 
     }

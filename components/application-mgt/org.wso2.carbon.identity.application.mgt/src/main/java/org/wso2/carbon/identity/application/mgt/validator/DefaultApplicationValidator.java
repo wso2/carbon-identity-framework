@@ -17,7 +17,7 @@
  *
  */
 
-package org.wso2.carbon.identity.application.mgt;
+package org.wso2.carbon.identity.application.mgt.validator;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -26,7 +26,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementValidationException;
 import org.wso2.carbon.identity.application.common.model.AuthenticationStep;
 import org.wso2.carbon.identity.application.common.model.ClaimConfig;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -43,6 +42,7 @@ import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticato
 import org.wso2.carbon.identity.application.common.model.RoleMapping;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.application.mgt.dao.ApplicationDAO;
 import org.wso2.carbon.identity.application.mgt.dao.impl.ApplicationDAOImpl;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServiceImpl;
@@ -63,9 +63,9 @@ import java.util.stream.Collectors;
 /**
  * Validator class to be used to validate the consistency of the Application/Service Provider, before it is persisted.
  */
-public class ApplicationMgtValidator {
+public class DefaultApplicationValidator implements ApplicationValidator {
 
-    private static Log log = LogFactory.getLog(ApplicationMgtValidator.class);
+    private static Log log = LogFactory.getLog(DefaultApplicationValidator.class);
 
     private static final String AUTHENTICATOR_NOT_AVAILABLE = "Authenticator %s is not available in the server.";
     private static final String AUTHENTICATOR_NOT_CONFIGURED =
@@ -82,8 +82,15 @@ public class ApplicationMgtValidator {
     private static final String ROLE_NOT_AVAILABLE = "Local Role %s is not available in the server.";
     public static final String IS_HANDLER = "IS_HANDLER";
 
-    public void validateSPConfigurations(ServiceProvider serviceProvider, String tenantDomain,
-                                         String userName) throws IdentityApplicationManagementException {
+    @Override
+    public int getOrderId() {
+
+        return 0;
+    }
+
+    @Override
+    public List<String> validateApplication(ServiceProvider serviceProvider, String tenantDomain,
+                                            String username) throws IdentityApplicationManagementException {
 
         List<String> validationErrors = new ArrayList<>();
         validateDiscoverabilityConfigs(validationErrors, serviceProvider);
@@ -101,10 +108,7 @@ public class ApplicationMgtValidator {
                 tenantDomain, serviceProvider.getApplicationName());
         validateRoleConfigs(validationErrors, serviceProvider.getPermissionAndRoleConfig(), tenantDomain);
 
-        if (!validationErrors.isEmpty()) {
-            String code = IdentityApplicationConstants.Error.INVALID_REQUEST.getCode();
-            throw new IdentityApplicationManagementValidationException(code, validationErrors.toArray(new String[0]));
-        }
+        return validationErrors;
     }
 
     private void validateDiscoverabilityConfigs(List<String> validationErrors,
