@@ -6,7 +6,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import javax.servlet.http.Cookie;
 
 /**
- * Javascript wrapper for Java level Cookie.
+ * Javascript wrapper for Java level Cookie for Nashorn Execution.
  * This provides controlled access to Cookie object via provided javascript native syntax.
  * e.g
  * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain

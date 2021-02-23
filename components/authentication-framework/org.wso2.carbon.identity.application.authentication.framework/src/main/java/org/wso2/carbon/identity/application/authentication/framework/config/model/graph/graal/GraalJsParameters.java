@@ -8,6 +8,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 
 import java.util.Map;
 
+/**
+ * Javascript wrapper for Java level HashMap of HTTP headers/cookies for GraalJs Execution.
+ * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
+ * syntax.
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
+ */
 public class GraalJsParameters extends AbstractJSObjectWrapper<Map> implements ProxyObject, JsParameters {
 
     private static final Log LOG = LogFactory.getLog(GraalJsParameters.class);
@@ -20,7 +26,11 @@ public class GraalJsParameters extends AbstractJSObjectWrapper<Map> implements P
     @Override
     public Object getMember(String name) {
 
-        return getWrapped().get(name);
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return new GraalJsParameters((Map) member);
+        }
+        return member;
     }
 
     @Override

@@ -219,7 +219,7 @@
                 <version>${carbon.kernel.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon</groupId>
+                <groupId>org.wso2.carbon </groupId>
                 <artifactId>org.wso2.carbon.core.common</artifactId>
                 <version>${carbon.kernel.version}</version>
             </dependency>
@@ -1724,13 +1724,11 @@
                 <groupId>org.graalvm.sdk</groupId>
                 <artifactId>graal-sdk</artifactId>
                 <version>${graalvm.version}</version>
-                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.js</groupId>
                 <artifactId>js</artifactId>
                 <version>${graalvm.version}</version>
-                <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>org.graalvm.truffle</groupId>
@@ -1738,10 +1736,16 @@
                 <version>${graalvm.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.graalvm.js</groupId>
-                <artifactId>js-scriptengine</artifactId>
+                <groupId>com.ibm.icu</groupId>
+                <artifactId>icu4j</artifactId>
+                <version>${icu.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.graalvm.regex</groupId>
+                <artifactId>regex</artifactId>
                 <version>${graalvm.version}</version>
             </dependency>
+
         </dependencies>
 
     </dependencyManagement>
@@ -2041,6 +2045,8 @@
         <snakeyaml.version>1.11</snakeyaml.version>
         <h2database.version>1.4.199</h2database.version>
         <graalvm.version>20.2.0</graalvm.version>
+        <!-- ICU version must be reflecting graalvm version -->
+        <icu.version>68.1</icu.version>
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>

@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represents a authentication step.
+ * Represents a authentication step for GraalJs Execution.
  */
 public class GraalJsStep extends AbstractJSContextMemberObject implements ProxyObject {
 
@@ -82,8 +82,8 @@ public class GraalJsStep extends AbstractJSContextMemberObject implements ProxyO
 
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT:
-                return true;
             case FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP:
+            case FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS:
                 return true;
             default:
                 return false;

@@ -30,7 +30,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Javascript wrapper for Java level HTTPServletRequest.
+ * Javascript wrapper for Java level HTTPServletRequest for Nashorn Execution.
  * This provides controlled access to HTTPServletRequest object via provided javascript native syntax.
  * e.g
  * var redirect_uri = context.request.params.redirect_uri
@@ -38,9 +38,11 @@ import javax.servlet.http.HttpServletRequest;
  * instead of
  * var userName = context.getRequest().getParameter("redirect_uri)
  * <p>
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HTTPServletRequest.
+ * Also it prevents writing an arbitrary values to the respective fields,
+ * keeping consistency on runtime HTTPServletRequest.
  */
-public class NashornJsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>> implements JsServletRequest {
+public class NashornJsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>>
+        implements JsServletRequest {
 
     public NashornJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 

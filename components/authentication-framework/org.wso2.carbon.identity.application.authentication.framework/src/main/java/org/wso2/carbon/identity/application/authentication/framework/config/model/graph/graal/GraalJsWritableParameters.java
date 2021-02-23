@@ -5,8 +5,10 @@ import org.graalvm.polyglot.Value;
 
 import java.util.List;
 import java.util.Map;
-import java.lang.String;
 
+/**
+ * Javascript wrapper for Java level HashMap of HTTP headers/cookies for Nashorn Execution.
+ */
 public class GraalJsWritableParameters extends GraalJsParameters {
 
 
@@ -15,11 +17,19 @@ public class GraalJsWritableParameters extends GraalJsParameters {
     }
 
     @Override
+    public Object getMember(String name) {
+
+        Object member = getWrapped().get(name);
+        if (member instanceof Map) {
+            return new GraalJsWritableParameters((Map) member);
+        }
+        return member;
+    }
+
+    @Override
     public boolean removeMember(String name) {
 
-        if (getWrapped().containsKey(name)) {
-            getWrapped().remove(name);
-        }
+        getWrapped().remove(name);
         return false;
     }
 

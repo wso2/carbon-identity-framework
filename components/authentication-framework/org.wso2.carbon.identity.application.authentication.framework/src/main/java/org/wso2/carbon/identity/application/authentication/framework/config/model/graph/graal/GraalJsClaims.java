@@ -34,16 +34,13 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
-import org.wso2.carbon.identity.core.IdentityClaimManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -53,7 +50,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represent the user's claim. Can be either remote or local.
+ * Represent the user's claim for GraalJs Execution. Can be either remote or local.
  */
 public class GraalJsClaims extends AbstractJSContextMemberObject implements ProxyObject {
 
@@ -65,7 +62,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     private transient Map<String, String> localClaimUriToValueReadCache = new HashMap<>();
 
     /**
-     * Constructor to get the user authenticated in step 'n'
+     * Constructor to get the user authenticated in step 'n'.
      *
      * @param step                 The authentication step
      * @param idp                  The authenticated IdP
@@ -146,7 +143,8 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
         this.authenticatedUser = authenticatedUser;
     }
 
-    public GraalJsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public GraalJsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser,
+                         boolean isRemoteClaimRequest) {
 
         this(authenticatedUser, isRemoteClaimRequest);
         initializeContext(context);
@@ -214,7 +212,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     }
 
     /**
-     * Sets the remote claim value that is mapped to the give local claim
+     * Sets the remote claim value that is mapped to the give local claim.
      *
      * @param localClaimURI Local claim URI
      * @param claimValue    Value to be set
@@ -230,7 +228,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     }
 
     /**
-     * Sets a local claim directly at the userstore for the given user by given claim uri
+     * Sets a local claim directly at the userstore for the given user by given claim uri.
      *
      * @param claimUri   Local claim URI
      * @param claimValue Claim value
@@ -255,7 +253,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     }
 
     /**
-     * Gets the remote claim that is mapped to the given local claim
+     * Gets the remote claim that is mapped to the given local claim.
      *
      * @param localClaim      local claim URI
      * @param remoteClaimsMap Remote claim URI - value map
@@ -325,7 +323,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
      */
     protected boolean hasLocalClaim(String claimUri) {
         String value = localClaimUriToValueReadCache.get(claimUri);
-        if(value != null) {
+        if (value != null) {
             return true;
         }
         value = getLocalClaim(claimUri);
@@ -373,7 +371,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     }
 
     /**
-     * Check if step's IdP is a federated IDP
+     * Check if step's IdP is a federated IDP.
      *
      * @return true if the idp is federated
      */
@@ -398,7 +396,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     }
 
     /**
-     * Gets the mapped remote claim value for the given local claim URI
+     * Gets the mapped remote claim value for the given local claim URI.
      *
      * @param claimUri Local claim URI
      * @return Mapped remote claim value from IdP
@@ -424,7 +422,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     private String getLocalUserClaim(String claimUri) {
 
         String value = localClaimUriToValueReadCache.get(claimUri);
-        if(value != null) {
+        if (value != null) {
             return value;
         }
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());

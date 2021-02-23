@@ -9,6 +9,13 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import javax.servlet.http.Cookie;
 
+/**
+ * Javascript wrapper for Java level Cookie for GraalJs Execution.
+ * This provides controlled access to Cookie object via provided javascript native syntax.
+ * e.g
+ * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
+ */
 public class GraalJsCookie extends AbstractJSObjectWrapper<Cookie> implements ProxyObject, JsCookie {
 
     private static final Log LOG = LogFactory.getLog(GraalJsCookie.class);

@@ -18,13 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.util.Map;
 
 /**
- * Javascript wrapper for Java level HashMap of HTTP headers/cookies.
+ * Interface for Javascript wrapper for Java level HashMap of HTTP headers/cookies.
  * This provides controlled access to HTTPServletRequest object's headers and cookies via provided javascript native
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.

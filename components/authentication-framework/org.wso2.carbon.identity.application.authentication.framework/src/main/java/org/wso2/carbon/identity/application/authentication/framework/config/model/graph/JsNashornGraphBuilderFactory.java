@@ -22,8 +22,8 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
@@ -38,10 +38,10 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 
 /**
- * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expnsive objects.
+ * Factory to create a Javascript based sequence builder with Nashorn.
+ * This factory is there to reuse of Nashorn engine and any related expensive objects.
  */
-public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory <ScriptEngine>{
+public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<ScriptEngine> {
 
     private static final Log LOG = LogFactory.getLog(JsNashornGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";

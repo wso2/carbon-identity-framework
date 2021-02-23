@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
@@ -37,18 +36,15 @@ import java.util.Map;
 
 /**
  * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expensive objects.
+ * This factory is there to reuse of Graaljs polyglot Context and any related expensive objects.
  */
 public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Context> {
 
     private static final Log LOG = LogFactory.getLog(JsPolyglotGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
 
-    private GraalJSEngineFactory factory;
-
     public void init() {
 
-        factory = new GraalJSEngineFactory();
     }
 
     public static void restoreCurrentContext(AuthenticationContext authContext, Context context)

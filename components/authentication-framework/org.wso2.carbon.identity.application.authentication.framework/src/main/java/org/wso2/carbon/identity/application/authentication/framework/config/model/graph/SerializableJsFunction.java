@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import java.io.Serializable;
 
 /**
@@ -27,10 +26,12 @@ import java.io.Serializable;
  * submits a form in the browser.
  * The request may come to different node.
  * The current authentication context holds this function in serialized form.
+ *
+ * @param <T> Script Engine
  */
-public interface SerializableJsFunction<T,U extends JsAuthenticationContext> extends Serializable {
+public interface SerializableJsFunction<T> extends Serializable {
 
-    Object apply(T scriptEngine, U jsAuthenticationContext) ;
+    Object apply(T scriptEngine, Object... params);
 
     void setName(String name);
 

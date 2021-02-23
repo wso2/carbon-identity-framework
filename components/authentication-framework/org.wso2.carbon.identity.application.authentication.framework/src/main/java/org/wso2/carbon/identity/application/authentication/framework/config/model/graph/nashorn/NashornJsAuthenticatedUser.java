@@ -5,8 +5,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsClaims;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsRuntimeClaims;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -18,7 +16,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 /**
- * Javascript wrapper for Java level AuthenticatedUser.
+ * Javascript wrapper for Java level AuthenticatedUser for Nashorn.
  * This provides controlled access to AuthenticatedUser object via provided javascript native syntax.
  * e.g
  * var userName = context.lastAuthenticatedUser.username
@@ -31,7 +29,8 @@ import org.wso2.carbon.user.core.util.UserCoreUtil;
  *
  * @see AuthenticatedUser
  */
-public class NashornJsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser> implements JsAuthenticatedUser {
+public class NashornJsAuthenticatedUser extends AbstractJSObjectWrapper<AuthenticatedUser>
+        implements JsAuthenticatedUser {
 
     private static final Log LOG = LogFactory.getLog(JsAuthenticatedUser.class);
     private int step;
@@ -45,7 +44,8 @@ public class NashornJsAuthenticatedUser extends AbstractJSObjectWrapper<Authenti
      * @param step        Authentication step
      * @param idp         Authenticated Idp
      */
-    public NashornJsAuthenticatedUser(AuthenticationContext context, AuthenticatedUser wrappedUser, int step, String idp) {
+    public NashornJsAuthenticatedUser(AuthenticationContext context,
+                                      AuthenticatedUser wrappedUser, int step, String idp) {
 
         this(wrappedUser, step, idp);
         initializeContext(context);
@@ -95,26 +95,26 @@ public class NashornJsAuthenticatedUser extends AbstractJSObjectWrapper<Authenti
                 return getWrapped().getTenantDomain();
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new JsClaims(getContext(), step, idp, false);
+                    return new NashornJsClaims(getContext(), step, idp, false);
                 } else {
                     // Represent step independent user
-                    return new JsClaims(getContext(), getWrapped(), false);
+                    return new NashornJsClaims(getContext(), getWrapped(), false);
                 }
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new JsClaims(getContext(), step, idp, true);
+                    return new NashornJsClaims(getContext(), step, idp, true);
                 } else {
                     // Represent step independent user
-                    return new JsClaims(getContext(), getWrapped(), true);
+                    return new NashornJsClaims(getContext(), getWrapped(), true);
                 }
             case FrameworkConstants.JSAttributes.JS_LOCAL_ROLES:
                 return getLocalRoles();
             case FrameworkConstants.JSAttributes.JS_CLAIMS:
                 if (StringUtils.isNotBlank(idp)) {
-                    return new JsRuntimeClaims(getContext(), step, idp);
+                    return new NashornJsRuntimeClaims(getContext(), step, idp);
                 } else {
                     // Represent step independent user
-                    return new JsRuntimeClaims(getContext(), getWrapped());
+                    return new NashornJsRuntimeClaims(getContext(), getWrapped());
                 }
             default:
                 return super.getMember(name);

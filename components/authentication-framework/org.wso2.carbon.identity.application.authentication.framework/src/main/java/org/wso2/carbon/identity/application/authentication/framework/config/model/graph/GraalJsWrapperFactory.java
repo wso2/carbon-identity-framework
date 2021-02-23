@@ -6,6 +6,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -16,7 +17,10 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class GraalJsWrapperFactory implements JsWrapperFactorySingleton.JsWrapperFactory {
+/**
+ * Factory to create a Javascript Object Wrappers for GraalJs execution.
+ */
+public class GraalJsWrapperFactory implements JsWrapperFactory {
 
     @Override
     public GraalJsAuthenticatedUser createJsAuthenticatedUser(AuthenticatedUser authenticatedUser) {
@@ -40,6 +44,12 @@ public class GraalJsWrapperFactory implements JsWrapperFactorySingleton.JsWrappe
     public GraalJsParameters createJsParameters(Map parameters) {
 
         return new GraalJsParameters(parameters);
+    }
+
+    @Override
+    public GraalJsWritableParameters createJsWritableParameters(Map data) {
+
+        return new GraalJsWritableParameters(data);
     }
 
     @Override

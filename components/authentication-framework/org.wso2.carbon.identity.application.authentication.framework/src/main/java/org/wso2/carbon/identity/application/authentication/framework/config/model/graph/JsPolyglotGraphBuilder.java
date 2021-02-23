@@ -27,8 +27,8 @@ import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectOneFunction;
@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.script.ScriptEngine;
 
 /**
  * Translate the authentication graph config to runtime model.
@@ -126,7 +125,8 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             Value onLoginRequestFn = bindings.getMember(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
             if (onLoginRequestFn == null) {
                 log.error(
-                        "Could not find the entry function " + FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " \n" + script);
+                        "Could not find the entry function "
+                                + FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST + " \n" + script);
                 result.setBuildSuccessful(false);
                 result.setErrorReason("Error in executing the Javascript. " + FrameworkConstants.JSAttributes
                         .JS_FUNC_ON_LOGIN_REQUEST + " function is not defined.");
@@ -142,9 +142,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             if (log.isDebugEnabled()) {
                 log.debug("Error in executing the Javascript.", e);
             }
-        }
-
-        catch (IOException e) {
+        } catch (IOException e) {
             result.setBuildSuccessful(false);
             result.setErrorReason("Error in building  the Javascript source" + e.getMessage());
             result.setError(e);
@@ -186,7 +184,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
         }
 
         @Override
-        public Object evaluate(AuthenticationContext authenticationContext, SerializableJsFunction fn) {
+        public Object evaluate(SerializableJsFunction fn, Object... params) {
 
             JsPolyglotGraphBuilder graphBuilder = JsPolyglotGraphBuilder.this;
             Object result = null;
@@ -197,7 +195,8 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             Value bindings = context.getBindings("js");
 
 
-            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) graphBuilder::executeStepInAsyncEvent);
+            bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP
+                    , (StepExecutor) graphBuilder::executeStepInAsyncEvent);
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
                     JsPolyglotGraphBuilder::sendErrorAsync);
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT,
@@ -218,8 +217,8 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
                 JsPolyglotGraphBuilder.contextForJs.set(authenticationContext);
 
-                GraalSerializableJsFunction curr = (GraalSerializableJsFunction) fn;
-                result = fn.apply(context, new GraalJsAuthenticationContext(authenticationContext));
+                result = fn.apply(context, params);
+
                 JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
 
                 AuthGraphNode executingNode = (AuthGraphNode) authenticationContext

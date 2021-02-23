@@ -17,14 +17,13 @@
  */
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
-
 import jdk.nashorn.api.scripting.AbstractJSObject;
-
-import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+
 
 /**
- * Javascript wrapper for Java level HashMap of HTTP headers.
+ * Javascript wrapper for Java level HashMap of HTTP headers for Nashorn Execution.
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */

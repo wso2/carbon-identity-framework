@@ -80,7 +80,7 @@ public class JsPolyglotGraphBuilderTest extends AbstractFrameworkTest {
         Map<Integer, StepConfig> stepConfigMap = new HashMap<>();
         stepConfigMap.put(1, new StepConfig());
         JsPolyglotGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-        jsGraphBuilder.executeStep(2, null, null);
+        jsGraphBuilder.executeStep(2 );
 
         AuthenticationGraph graph = jsGraphBuilder.build();
         assertNull(graph.getStartNode());
@@ -95,8 +95,8 @@ public class JsPolyglotGraphBuilderTest extends AbstractFrameworkTest {
         stepConfigMap.put(1, new StepConfig());
         stepConfigMap.put(2, new StepConfig());
         JsPolyglotGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, stepConfigMap);
-        jsGraphBuilder.executeStep(1, null, null);
-        jsGraphBuilder.executeStep(2, null, null);
+        jsGraphBuilder.executeStep(1);
+        jsGraphBuilder.executeStep(2);
 
         AuthenticationGraph graph = jsGraphBuilder.build();
         assertNotNull(graph.getStartNode());

@@ -1,68 +1,46 @@
-/*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- * WSO2 Inc. licenses this file to you under the Apache License,
- * Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.graalvm.polyglot.Context;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-@Test
-public class NashornJsAuthenticationContextTest {
+public class PolyglotJsAuthenticationContextTest {
 
     public static final String TEST_IDP = "testIdP";
-    private ScriptEngine scriptEngine;
+    private  Context context;
 
     @BeforeClass
     public void setUp() {
 
-        scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
+        context = Context.newBuilder("js").allowAllAccess(true).build();
     }
 
     @Test
-    public void testClaimAssignment() throws ScriptException {
+    public void testClaimAssignment() throws IOException {
 
         ClaimMapping claimMapping1 = ClaimMapping.build("", "", "", false);
 
         ClaimMapping claimMapping2 = ClaimMapping.build("Test.Remote.Claim.Url.2", "Test.Remote.Claim.Url.2", "",
-            false);
+                false);
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         authenticatedUser.getUserAttributes().put(claimMapping1, "TestClaimVal1");
@@ -70,18 +48,27 @@ public class NashornJsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
-        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        bindings.put("context", jsAuthenticationContext);
+        GraalJsAuthenticationContext jsAuthenticationContext = new GraalJsAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings("js");
+        bindings.putMember("context", jsAuthenticationContext);
 
-        Object result = scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']");
-        assertNull(result);
-        result = scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']");
-        assertEquals(result, "TestClaimVal2");
+        Value result = context.eval(Source.newBuilder("js",
+                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.1']",
+                "src.js").build());
+        assertTrue(result.isNull());
 
-        scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2'] = 'Modified2'");
-        result = scriptEngine.eval("context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']");
-        assertEquals(result, "Modified2");
+        result = context.eval(Source.newBuilder("js",
+                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
+                "src.js").build());
+        assertEquals(result.asString(), "TestClaimVal2");
+
+        context.eval(Source.newBuilder("js",
+                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2'] = 'Modified2'",
+                "src.js").build());
+        result = context.eval(Source.newBuilder("js",
+                "context.steps[1].subject.remoteClaims['Test.Remote.Claim.Url.2']",
+                "src.js").build());
+        assertEquals(result.asString(), "Modified2");
 
     }
 
@@ -107,17 +94,19 @@ public class NashornJsAuthenticationContextTest {
     }
 
     @Test
-    public void testRemoteAddition() throws ScriptException {
+    public void testRemoteAddition() throws IOException {
 
         AuthenticatedUser authenticatedUser = new AuthenticatedUser();
         AuthenticationContext authenticationContext = new AuthenticationContext();
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
-        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        bindings.put("context", jsAuthenticationContext);
+        GraalJsAuthenticationContext jsAuthenticationContext = new GraalJsAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings("js");
+        bindings.putMember("context", jsAuthenticationContext);
 
-        scriptEngine.eval("context.steps[1].subject.remoteClaims['testClaim']='testValue'");
+        context.eval(Source.newBuilder("js",
+                "context.steps[1].subject.remoteClaims['testClaim']='testValue'",
+                "src.js").build());
 
         ClaimMapping claimMapping = ClaimMapping.build("testClaim", "testClaim", "", false);
         String claimCreatedByJs = authenticatedUser.getUserAttributes().get(claimMapping);
@@ -132,14 +121,16 @@ public class NashornJsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setServiceProviderName(SERVICE_PROVIDER_NAME);
 
-        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        bindings.put("context", jsAuthenticationContext);
+        GraalJsAuthenticationContext jsAuthenticationContext = new GraalJsAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings("js");
+        bindings.putMember("context", jsAuthenticationContext);
 
-        Object result = scriptEngine.eval("context.serviceProviderName");
-        assertNotNull(result);
-        assertEquals(result, SERVICE_PROVIDER_NAME, "Service Provider name set in AuthenticationContext is not " +
-            "accessible from JSAuthenticationContext");
+        Value result = context.eval(Source.newBuilder("js",
+                "context.serviceProviderName",
+                "src.js").build());
+        assertFalse(result.isNull());
+        assertEquals(result.asString(), SERVICE_PROVIDER_NAME, "Service Provider name set in AuthenticationContext is not " +
+                "accessible from JSAuthenticationContext");
     }
 
 
@@ -158,22 +149,30 @@ public class NashornJsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, lastAttemptedUser);
 
-        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        bindings.put("context", jsAuthenticationContext);
+        GraalJsAuthenticationContext jsAuthenticationContext = new GraalJsAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings("js");
+        bindings.putMember("context", jsAuthenticationContext);
 
-        Object result = scriptEngine.eval("context.lastLoginFailedUser");
-        assertNotNull(result);
-        assertTrue(result instanceof NashornJsAuthenticatedUser);
+        Value result = context.eval(Source.newBuilder("js",
+                "context.lastLoginFailedUser",
+                "src.js").build());
+        assertFalse(result.isNull());
+        assertTrue(result.asProxyObject() instanceof JsAuthenticatedUser);
 
-        String username = (String) scriptEngine.eval("context.lastLoginFailedUser.username");
-        assertEquals(username, LAST_ATTEMPTED_USER_USERNAME);
+        Value username = context.eval(Source.newBuilder("js",
+                "context.lastLoginFailedUser.username",
+                "src.js").build());
+        assertEquals(username.asString(), LAST_ATTEMPTED_USER_USERNAME);
 
-        String tenantDomain = (String) scriptEngine.eval("context.lastLoginFailedUser.tenantDomain");
-        assertEquals(tenantDomain, LAST_ATTEMPTED_USER_TENANT_DOMAIN);
+        Value tenantDomain = context.eval(Source.newBuilder("js",
+                "context.lastLoginFailedUser.tenantDomain",
+                "src.js").build());
+        assertEquals(tenantDomain.asString(), LAST_ATTEMPTED_USER_TENANT_DOMAIN);
 
-        String userStoreDomain = (String) scriptEngine.eval("context.lastLoginFailedUser.userStoreDomain");
-        assertEquals(userStoreDomain, LAST_ATTEMPTED_USER_USERSTORE_DOMAIN.toUpperCase());
+        Value userStoreDomain = context.eval(Source.newBuilder("js",
+                "context.lastLoginFailedUser.userStoreDomain",
+                "src.js").build());
+        assertEquals(userStoreDomain.asString(), LAST_ATTEMPTED_USER_USERSTORE_DOMAIN.toUpperCase());
     }
 
     @Test
@@ -182,11 +181,14 @@ public class NashornJsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, null);
 
-        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
-        Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
-        bindings.put("context", jsAuthenticationContext);
+        GraalJsAuthenticationContext jsAuthenticationContext = new GraalJsAuthenticationContext(authenticationContext);
+        Value bindings = context.getBindings("js");
+        bindings.putMember("context", jsAuthenticationContext);
 
-        Object result = scriptEngine.eval("context.lastLoginFailedUser");
-        assertNull(result);
+        Value result = context.eval(Source.newBuilder("js",
+                "context.lastLoginFailedUser",
+                "src.js").build());
+        assertTrue(result.isNull());
     }
+
 }

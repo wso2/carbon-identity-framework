@@ -11,8 +11,20 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-
-public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> implements ProxyObject, JsServletResponse {
+/**
+ * Javascript wrapper for Java level HttpServletResponse for GraalJs Execution.
+ * This provides controlled access to HttpServletResponse object via provided javascript native syntax.
+ * e.g
+ * response.headers.["Set-Cookie"] = ['crsftoken=xxxxxssometokenxxxxx']
+ * <p>
+ * instead of
+ * context.getResponse().addCookie(cookie);
+ * <p>
+ * Also it prevents writing an arbitrary values to the respective fields,
+ * keeping consistency on runtime HttpServletResponse.
+ */
+public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>>
+        implements ProxyObject, JsServletResponse {
 
     public GraalJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
@@ -53,7 +65,7 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
 
         switch (name) {
             case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return getResponse().getHeaderNames() != null;
+                return true;
             default:
                 return super.hasMember(name);
         }
@@ -71,7 +83,6 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
     }
 
     public void addCookie(Cookie cookie) {
-        System.out.println("Let's add the cookie");
         getResponse().addCookie(cookie);
     }
 }

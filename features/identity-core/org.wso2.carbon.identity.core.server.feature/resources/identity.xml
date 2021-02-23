@@ -1809,6 +1809,9 @@
     </JWTValidatorConfigs>
 
     <AdaptiveAuth>
+        <!--Config for Script Engine Selection, Supported Values: nashorn, graaljs-->
+        <ScriptEngine>nashorn</ScriptEngine>
+
         <!--Default configs for event publisher-->
         <EventPublisher>
             <ReceiverURL>https://localhost:8280/</ReceiverURL>

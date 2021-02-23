@@ -29,7 +29,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Javascript wrapper for Java level HttpServletResponse.
+ * Javascript wrapper for Java level HttpServletResponse for Nashorn Execution.
  * This provides controlled access to HttpServletResponse object via provided javascript native syntax.
  * e.g
  * response.headers.["Set-Cookie"] = ['crsftoken=xxxxxssometokenxxxxx']
@@ -37,9 +37,11 @@ import javax.servlet.http.HttpServletResponse;
  * instead of
  * context.getResponse().addCookie(cookie);
  * <p>
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HttpServletResponse.
+ * Also it prevents writing an arbitrary values to the respective fields,
+ * keeping consistency on runtime HttpServletResponse.
  */
-public class NashornJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>> implements JsServletResponse {
+public class NashornJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>>
+        implements JsServletResponse {
 
     public NashornJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 

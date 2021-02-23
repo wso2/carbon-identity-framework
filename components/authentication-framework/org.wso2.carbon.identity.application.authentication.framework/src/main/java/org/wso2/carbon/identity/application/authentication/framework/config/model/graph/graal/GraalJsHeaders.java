@@ -6,6 +6,11 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Javascript wrapper for Java level HashMap of HTTP headers for GraalJs Execution.
+ * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
+ * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
+ */
 public class GraalJsHeaders implements ProxyObject {
 
     private Map wrapped;

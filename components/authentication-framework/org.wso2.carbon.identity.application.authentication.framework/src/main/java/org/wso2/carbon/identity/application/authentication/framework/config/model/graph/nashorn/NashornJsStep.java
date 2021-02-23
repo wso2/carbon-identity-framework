@@ -16,13 +16,11 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSContextMemberObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -35,22 +33,22 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represents a authentication step.
+ * Represents a authentication step for Nashorn Execution.
  */
-public class JsStep extends AbstractJSContextMemberObject {
+public class NashornJsStep extends AbstractJSContextMemberObject {
 
-    private static final Log LOG = LogFactory.getLog(JsSteps.class);
+    private static final Log LOG = LogFactory.getLog(NashornJsSteps.class);
 
     private int step;
     private String authenticatedIdp;
 
-    public JsStep(int step, String authenticatedIdp) {
+    public NashornJsStep(int step, String authenticatedIdp) {
 
         this.step = step;
         this.authenticatedIdp = authenticatedIdp;
     }
 
-    public JsStep(AuthenticationContext context, int step, String authenticatedIdp) {
+    public NashornJsStep(AuthenticationContext context, int step, String authenticatedIdp) {
 
         this(step, authenticatedIdp);
         initializeContext(context);

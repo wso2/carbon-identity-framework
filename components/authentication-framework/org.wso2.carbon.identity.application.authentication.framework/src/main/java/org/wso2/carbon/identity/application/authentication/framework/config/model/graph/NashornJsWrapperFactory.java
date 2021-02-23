@@ -7,6 +7,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -16,7 +17,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-public class NashornJsWrapperFactory implements JsWrapperFactorySingleton.JsWrapperFactory {
+public class NashornJsWrapperFactory implements JsWrapperFactory {
 
     @Override
     public NashornJsAuthenticatedUser createJsAuthenticatedUser(AuthenticatedUser authenticatedUser) {
@@ -40,6 +41,12 @@ public class NashornJsWrapperFactory implements JsWrapperFactorySingleton.JsWrap
     public NashornJsParameters createJsParameters(Map parameters) {
 
         return new NashornJsParameters(parameters);
+    }
+
+    @Override
+    public NashornJsWritableParameters createJsWritableParameters(Map data) {
+
+        return new NashornJsWritableParameters(data);
     }
 
     @Override

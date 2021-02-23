@@ -18,17 +18,18 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.graalvm.polyglot.Context;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Map;
 
 /**
- * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expnsive objects.
+ * Interface for Factory to create a Javascript based sequence builder.
+ * This factory is there to reuse of script engine and any related expensive objects.
+ *
+ * @param <T> scriptEngine
  */
-public interface JsGraphBuilderFactory <T> {
+public interface JsGraphBuilderFactory<T> {
 
 
     void init();

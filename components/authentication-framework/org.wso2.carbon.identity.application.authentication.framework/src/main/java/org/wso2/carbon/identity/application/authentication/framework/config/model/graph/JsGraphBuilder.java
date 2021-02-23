@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 
 /**
+ * Interface for Sequence Graph Builder.
  * Translate the authentication graph config to runtime model.
  * This is not thread safe. Should be discarded after each build.
  */

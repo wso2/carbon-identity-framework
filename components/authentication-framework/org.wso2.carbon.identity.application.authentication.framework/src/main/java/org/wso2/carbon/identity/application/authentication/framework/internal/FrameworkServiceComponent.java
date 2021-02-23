@@ -86,7 +86,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -265,7 +264,8 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsNashornGraphBuilderFactory jsGraphBuilderFactory = new JsNashornGraphBuilderFactory();
+        JsGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactory();
+        assert jsGraphBuilderFactory != null;
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
@@ -766,6 +766,17 @@ public class FrameworkServiceComponent {
         }
         return authConfig;
     }
+
+    private JsGraphBuilderFactory createJsGraphBuilderFactory() {
+        String scriptEngineName = IdentityUtil.getProperty("AdaptiveAuth.ScriptEngine");
+        if (scriptEngineName != null) {
+            if ("graaljs".equals(scriptEngineName)) {
+                return new JsPolyglotGraphBuilderFactory();
+            }
+            return new JsNashornGraphBuilderFactory();
+        }
+        return null;
+    };
 
 
 }

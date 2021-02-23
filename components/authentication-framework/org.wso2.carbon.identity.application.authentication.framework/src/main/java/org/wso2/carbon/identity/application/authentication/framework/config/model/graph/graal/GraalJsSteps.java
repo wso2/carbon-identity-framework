@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import java.util.Optional;
 
 /**
- * Returns when context.steps[<step_number] is called
+ * Returns when context.steps[<step_number/>] is called.
  */
 public class GraalJsSteps extends AbstractJSContextMemberObject implements ProxyArray {
 
@@ -61,7 +61,7 @@ public class GraalJsSteps extends AbstractJSContextMemberObject implements Proxy
         if (getContext() == null) {
             return null;
         } else {
-            return new GraalJsStep(getContext(), (int)index, getAuthenticatedIdPOfStep((int)index));
+            return new GraalJsStep(getContext(), (int) index, getAuthenticatedIdPOfStep((int) index));
         }
     }
 

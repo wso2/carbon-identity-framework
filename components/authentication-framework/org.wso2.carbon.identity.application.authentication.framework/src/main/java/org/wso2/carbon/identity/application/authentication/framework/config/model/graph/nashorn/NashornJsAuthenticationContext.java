@@ -20,8 +20,6 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsStep;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsSteps;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -31,7 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Javascript wrapper for Java level AuthenticationContext.
+ * Javascript wrapper for Java level AuthenticationContext for Nashorn.
  * This provides controlled access to AuthenticationContext object via provided javascript native syntax.
  * e.g
  * var requestedAcr = context.requestedAcr
@@ -44,7 +42,8 @@ import java.util.Optional;
  *
  * @see AuthenticationContext
  */
-public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext> implements JsAuthenticationContext {
+public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<AuthenticationContext>
+        implements JsAuthenticationContext {
 
     public NashornJsAuthenticationContext(AuthenticationContext wrapped) {
 
@@ -71,9 +70,10 @@ public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<Auth
                 return new NashornJsServletResponse((TransientObjectWrapper) getWrapped()
                         .getParameter(FrameworkConstants.RequestAttribute.HTTP_RESPONSE));
             case FrameworkConstants.JSAttributes.JS_STEPS:
-                return new JsSteps(getWrapped());
+                return new NashornJsSteps(getWrapped());
             case FrameworkConstants.JSAttributes.JS_CURRENT_STEP:
-                return new JsStep(getContext(), getContext().getCurrentStep(), getAuthenticatedIdPOfCurrentStep());
+                return new NashornJsStep(getContext(), getContext().getCurrentStep(),
+                        getAuthenticatedIdPOfCurrentStep());
             case FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT:
                 StepConfig stepConfig = getCurrentSubjectIdentifierStep();
                 if (stepConfig != null) {
@@ -144,7 +144,8 @@ public class NashornJsAuthenticationContext extends AbstractJSObjectWrapper<Auth
 
     private NashornJsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
-        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
+        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants
+                .JSAttributes.JS_LAST_LOGIN_FAILED_USER);
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
             return new NashornJsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
         } else {

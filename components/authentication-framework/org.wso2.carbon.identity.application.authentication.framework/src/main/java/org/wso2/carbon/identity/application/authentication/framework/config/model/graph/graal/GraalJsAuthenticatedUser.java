@@ -37,7 +37,7 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
 /**
- * Javascript wrapper for Java level AuthenticatedUser.
+ * Javascript wrapper for Java level AuthenticatedUser for GraalJs Execution.
  * This provides controlled access to AuthenticatedUser object via provided javascript native syntax.
  * e.g
  * var userName = context.lastAuthenticatedUser.username
@@ -175,12 +175,11 @@ public class GraalJsAuthenticatedUser extends AbstractJSObjectWrapper<Authentica
                 return getWrapped().getUserStoreDomain() != null;
             case FrameworkConstants.JSAttributes.JS_TENANT_DOMAIN:
                 return getWrapped().getTenantDomain() != null;
+            // idp check is performed in getMember() method for following cases
             case FrameworkConstants.JSAttributes.JS_LOCAL_CLAIMS:
-                return idp != null;
             case FrameworkConstants.JSAttributes.JS_REMOTE_CLAIMS:
-                return idp != null && !FrameworkConstants.LOCAL.equals(idp);
             case FrameworkConstants.JSAttributes.JS_CLAIMS:
-                return idp != null || getWrapped() != null;
+                return true;
             default:
                 return super.hasMember(name);
         }

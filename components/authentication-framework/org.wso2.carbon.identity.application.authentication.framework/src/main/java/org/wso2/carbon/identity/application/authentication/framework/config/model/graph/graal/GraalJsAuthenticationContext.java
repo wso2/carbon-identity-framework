@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Javascript wrapper for Java level AuthenticationContext.
+ * Javascript wrapper for Java level AuthenticationContext for GraalJs Execution.
  * This provides controlled access to AuthenticationContext object via provided javascript native syntax.
  * e.g
  * var requestedAcr = context.requestedAcr
@@ -160,7 +160,8 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
 
     private GraalJsAuthenticatedUser getLastLoginFailedUserFromWrappedContext() {
 
-        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER);
+        Object lastLoginFailedUser = getWrapped().getProperty(FrameworkConstants.JSAttributes
+                .JS_LAST_LOGIN_FAILED_USER);
         if (lastLoginFailedUser instanceof AuthenticatedUser) {
             return new GraalJsAuthenticatedUser(getWrapped(), (AuthenticatedUser) lastLoginFailedUser);
         } else {

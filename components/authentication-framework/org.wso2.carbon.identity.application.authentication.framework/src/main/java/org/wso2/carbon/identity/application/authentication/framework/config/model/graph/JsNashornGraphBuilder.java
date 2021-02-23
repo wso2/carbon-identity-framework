@@ -132,8 +132,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
                 log.debug("Error in executing the Javascript.", e);
             }
         } finally {
-            currentBuilder.remove();
-//            clearCurrentBuilder();
+            clearCurrentBuilder();
         }
         return this;
     }
@@ -173,7 +172,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
         }
 
         @Override
-        public Object evaluate(AuthenticationContext authenticationContext, SerializableJsFunction fn) {
+        public Object evaluate(SerializableJsFunction fn, Object... params) {
 
             JsNashornGraphBuilder graphBuilder = JsNashornGraphBuilder.this;
             Object result = null;
@@ -206,7 +205,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
                     JsNashornGraphBuilder.contextForJs.set(authenticationContext);
 
 
-                    result = fn.apply(scriptEngine, new NashornJsAuthenticationContext(authenticationContext));
+                    result = fn.apply(scriptEngine, params);
 
                     JsNashornGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 

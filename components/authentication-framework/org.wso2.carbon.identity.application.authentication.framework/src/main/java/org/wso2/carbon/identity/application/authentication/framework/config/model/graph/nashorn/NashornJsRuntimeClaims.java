@@ -16,23 +16,23 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 /**
- * Represent the user's runtime claims.
+ * Represent the user's runtime claims for Nashorn Execution.
  */
-public class JsRuntimeClaims extends JsClaims {
+public class NashornJsRuntimeClaims extends NashornJsClaims {
 
-    public JsRuntimeClaims(AuthenticationContext context, int step, String idp) {
+    public NashornJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
         super(context, step, idp, false);
     }
 
-    public JsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
+    public NashornJsRuntimeClaims(AuthenticationContext context, AuthenticatedUser user) {
 
         super(context, user, false);
     }

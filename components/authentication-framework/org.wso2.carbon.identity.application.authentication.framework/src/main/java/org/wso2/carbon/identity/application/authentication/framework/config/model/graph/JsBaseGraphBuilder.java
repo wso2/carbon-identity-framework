@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * Common methods for Authentication graph (sequence) builder with different script languages.
+ * Common methods for Authentication graph (sequence) builder with different script engines.
  *
  */
 public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
@@ -645,8 +645,8 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
             return;
         }
         eventsMap.forEach((key, value) -> {
-            System.out.println("Fn " + key + " " + value);
-            SerializableJsFunction jsFunction = serializerFunction.apply(value);
+            SerializableJsFunction jsFunction;
+            jsFunction = serializerFunction.apply(value);
             if (jsFunction != null) {
                 jsFunction.setName(key);
                 decisionNode.addFunction(key, jsFunction);

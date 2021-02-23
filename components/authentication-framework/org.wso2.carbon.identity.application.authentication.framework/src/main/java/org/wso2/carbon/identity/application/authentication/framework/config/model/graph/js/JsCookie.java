@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import javax.servlet.http.Cookie;
 
 /**
- * Javascript wrapper for Java level Cookie.
+ * Interface for Javascript wrapper for Java level Cookie.
  * This provides controlled access to Cookie object via provided javascript native syntax.
  * e.g
  * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain

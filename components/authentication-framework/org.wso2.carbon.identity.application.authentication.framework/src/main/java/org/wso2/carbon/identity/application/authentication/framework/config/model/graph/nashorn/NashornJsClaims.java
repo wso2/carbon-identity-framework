@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -52,30 +51,30 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represent the user's claim. Can be either remote or local.
+ * Represent the user's claim in Nashorn execution. Can be either remote or local.
  */
-public class JsClaims extends AbstractJSContextMemberObject {
+public class NashornJsClaims extends AbstractJSContextMemberObject {
 
-    private static final Log LOG = LogFactory.getLog(JsClaims.class);
+    private static final Log LOG = LogFactory.getLog(NashornJsClaims.class);
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
     protected transient AuthenticatedUser authenticatedUser;
 
     /**
-     * Constructor to get the user authenticated in step 'n'
+     * Constructor to get the user authenticated in step 'n'.
      *
      * @param step                 The authentication step
      * @param idp                  The authenticated IdP
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
+    public NashornJsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
 
         this(step, idp, isRemoteClaimRequest);
         initializeContext(context);
     }
 
-    public JsClaims(int step, String idp, boolean isRemoteClaimRequest) {
+    public NashornJsClaims(int step, String idp, boolean isRemoteClaimRequest) {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.idp = idp;
@@ -138,13 +137,14 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param authenticatedUser    Authenticated user
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public NashornJsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.authenticatedUser = authenticatedUser;
     }
 
-    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public NashornJsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser,
+                           boolean isRemoteClaimRequest) {
 
         this(authenticatedUser, isRemoteClaimRequest);
         initializeContext(context);
@@ -209,7 +209,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Sets the remote claim value that is mapped to the give local claim
+     * Sets the remote claim value that is mapped to the give local claim.
      *
      * @param localClaimURI Local claim URI
      * @param claimValue    Value to be set
@@ -225,7 +225,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Sets a local claim directly at the userstore for the given user by given claim uri
+     * Sets a local claim directly at the userstore for the given user by given claim uri.
      *
      * @param claimUri   Local claim URI
      * @param claimValue Claim value
@@ -248,7 +248,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Gets the remote claim that is mapped to the given local claim
+     * Gets the remote claim that is mapped to the given local claim.
      *
      * @param localClaim      local claim URI
      * @param remoteClaimsMap Remote claim URI - value map
@@ -374,7 +374,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Check if step's IdP is a federated IDP
+     * Check if step's IdP is a federated IDP.
      *
      * @return true if the idp is federated
      */
@@ -399,7 +399,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Gets the mapped remote claim value for the given local claim URI
+     * Gets the mapped remote claim value for the given local claim URI.
      *
      * @param claimUri Local claim URI
      * @return Mapped remote claim value from IdP

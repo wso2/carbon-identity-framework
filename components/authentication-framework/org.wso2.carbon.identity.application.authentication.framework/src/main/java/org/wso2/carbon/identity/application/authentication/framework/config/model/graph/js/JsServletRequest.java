@@ -4,6 +4,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Tra
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * Interface for JavaScript Servlet Request Wrapper.
+ */
 public interface JsServletRequest {
     TransientObjectWrapper<HttpServletRequest> getWrapped();
 }

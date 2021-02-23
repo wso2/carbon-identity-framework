@@ -36,8 +36,7 @@ import javax.script.ScriptException;
  *  Javascript function wrapper. This allows serialization of a javascript defined function.
  *
  */
-public class NashornSerializableJsFunction implements SerializableJsFunction<ScriptEngine,
-        NashornJsAuthenticationContext> {
+public class NashornSerializableJsFunction implements SerializableJsFunction<ScriptEngine> {
 
     private static final Log log = LogFactory.getLog(NashornSerializableJsFunction.class);
     private static final long serialVersionUID = -7605388897997019588L;
@@ -52,7 +51,7 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
     }
 
     @Override
-    public Object apply(ScriptEngine scriptEngine, NashornJsAuthenticationContext jsAuthenticationContext) {
+    public Object apply(ScriptEngine scriptEngine, Object... params) {
         Compilable compilable = (Compilable) scriptEngine;
         try {
             CompiledScript compiledScript = compilable.compile(this.getSource());
@@ -62,7 +61,7 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
                 if (!scriptObjectMirror.isFunction()) {
                     //TODO: throw exception
                 }
-                return scriptObjectMirror.call(null, jsAuthenticationContext);
+                return scriptObjectMirror.call(null, params);
             }
         } catch (ScriptException e) {
             log.error("Error when executing function,", e);

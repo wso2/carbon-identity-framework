@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
+/**
+ * Interface for JavaScript Authenticated User Wrapper.
+ */
 public interface JsAuthenticatedUser  {
     AuthenticatedUser getWrapped();
 }

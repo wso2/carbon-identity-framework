@@ -23,7 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import java.io.Serializable;
 
 /**
- * Represents the abstract class for all context objects
+ * Represents the abstract class for all context objects for GraalJs Execution.
  */
 public abstract class AbstractJSContextMemberObject implements Serializable {
 

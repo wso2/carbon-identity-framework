@@ -17,11 +17,8 @@
  */
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
-
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSContextMemberObject;
-
 /**
- * Abstract wrapper class for objects used inside the javascript.
+ * Abstract wrapper class for objects used inside the javascript for Nashorn.
  *
  * @param <T> Wrapped object type
  */

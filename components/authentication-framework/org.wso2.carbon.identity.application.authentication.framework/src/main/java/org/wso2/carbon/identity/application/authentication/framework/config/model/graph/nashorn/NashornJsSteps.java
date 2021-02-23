@@ -16,30 +16,29 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyArray;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSContextMemberObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Optional;
 
 /**
- * Returns when context.steps[<step_number] is called
+ * Returns when context.steps[<step_number/>] is called.
  */
-public class JsSteps extends AbstractJSContextMemberObject implements ProxyArray {
+public class NashornJsSteps extends AbstractJSContextMemberObject implements ProxyArray {
 
-    private static final Log LOG = LogFactory.getLog(JsSteps.class);
+    private static final Log LOG = LogFactory.getLog(NashornJsSteps.class);
 
-    public JsSteps() {
+    public NashornJsSteps() {
 
     }
 
-    public JsSteps(AuthenticationContext context) {
+    public NashornJsSteps(AuthenticationContext context) {
 
         initializeContext(context);
     }
@@ -60,7 +59,7 @@ public class JsSteps extends AbstractJSContextMemberObject implements ProxyArray
         if (getContext() == null) {
             return super.getSlot(step);
         } else {
-            return new JsStep(getContext(), step, getAuthenticatedIdPOfStep(step));
+            return new NashornJsStep(getContext(), step, getAuthenticatedIdPOfStep(step));
         }
     }
 
@@ -83,7 +82,7 @@ public class JsSteps extends AbstractJSContextMemberObject implements ProxyArray
         if (getContext() == null) {
             return null;
         } else {
-            return new JsStep(getContext(), (int)index, getAuthenticatedIdPOfStep((int)index));
+            return new NashornJsStep(getContext(), (int) index, getAuthenticatedIdPOfStep((int) index));
         }
     }
 

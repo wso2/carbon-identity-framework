@@ -6,7 +6,10 @@ import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
-public class GraalJsRuntimeClaims extends GraalJsClaims implements ProxyObject{
+/**
+ * Represent the user's runtime claims for GraalJs Execution.
+ */
+public class GraalJsRuntimeClaims extends GraalJsClaims implements ProxyObject {
 
     public GraalJsRuntimeClaims(AuthenticationContext context, int step, String idp) {
 
