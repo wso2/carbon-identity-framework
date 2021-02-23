@@ -28,6 +28,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client.api;
 import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiClient;
@@ -230,5 +231,65 @@ public class SelfRegisterApi {
         GenericType<String> localVarReturnType = new GenericType<String>() {
         };
         apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+    }
+
+    /**
+     * This API is used to validate code of self reigstered users
+     *
+     * @param code Code retried after user self registration and optional property parameters (required)
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     */
+    public User validateCodeUserPostCall(CodeValidationRequest code) throws ApiException {
+        Object localVarPostBody = code;
+
+        // verify the required parameter 'code' is set
+        if (code == null) {
+            throw new ApiException(400, "Missing the required parameter 'code' when calling validateCodePost(Async)");
+        }
+
+        String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        List<Property> properties = code.getProperties();
+        for (Property property : properties) {
+            if (StringUtils.isNotEmpty(property.getKey()) && MultitenantConstants.TENANT_DOMAIN
+                    .equals(property.getKey())) {
+                tenantDomain = property.getValue();
+            }
+        }
+
+        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
+            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
+                    IdentityManagementEndpointConstants.UserInfoRecovery.USER_API_RELATIVE_PATH);
+        }
+
+        apiClient.setBasePath(basePath);
+
+        // create path and map variables
+        String localVarPath = "/validate-code".replaceAll("\\{format\\}", "json");
+
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+        if (localVarAccept != null) localVarHeaderParams.put("Accept", localVarAccept);
+
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+        localVarHeaderParams.put("Content-Type", localVarContentType);
+
+
+        String[] localVarAuthNames = new String[]{};
+        GenericType<User> localVarReturnType = new GenericType<User>() {
+        };
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody,
+                localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType,
+                localVarAuthNames, localVarReturnType);
     }
 }
