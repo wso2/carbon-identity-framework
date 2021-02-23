@@ -240,7 +240,9 @@ public class UserSessionStore {
      * @param idPName name of the identity provider
      * @return id of the identity provider
      * @throws UserSessionException if an error occurs when retrieving the identity provider id list from the database
+     * @deprecated instead use {@link #getIdPId(String, int)}.
      */
+    @Deprecated
     public int getIdPId(String idPName) throws UserSessionException {
 
         int idPId = -1;
@@ -272,9 +274,7 @@ public class UserSessionStore {
      * @param tenantId  Tenant ID.
      * @return          IDP ID.
      * @throws UserSessionException
-     * @deprecated instead use {@link #getIdPId(String, int)}.
      */
-    @Deprecated
     public int getIdPId(String idpName, int tenantId) throws UserSessionException {
 
         int idPId = -1;
