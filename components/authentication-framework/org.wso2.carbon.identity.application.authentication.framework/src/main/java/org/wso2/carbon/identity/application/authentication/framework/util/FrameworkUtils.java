@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -56,7 +58,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -147,11 +150,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.servlet.http.Cookie;
@@ -2359,7 +2360,7 @@ public class FrameworkUtils {
         } else if (value instanceof ScriptObjectMirror) {
             ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) value;
             if (scriptObjectMirror.isFunction()) {
-                return SerializableJsFunction.toSerializableForm(scriptObjectMirror);
+                return NashornSerializableJsFunction.toSerializableForm(scriptObjectMirror);
             } else if (scriptObjectMirror.isArray()) {
                 List<Serializable> arrayItems = new ArrayList<>(scriptObjectMirror.size());
                 scriptObjectMirror.values().forEach(v -> {
@@ -2397,10 +2398,81 @@ public class FrameworkUtils {
         return value;
     }
 
-    public static Object fromJsSerializable(Object value, ScriptEngine engine) throws FrameworkException {
+    public static Object toJsSerializableGraal (Object value){
+        if (value instanceof Serializable) {
+            if (value instanceof HashMap) {
+                Map<String, Object> map = new HashMap<>();
+                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
+                return map;
+            } else {
+                return value;
+            }
+        } else if (value instanceof Value){
+            Value valueObj = (Value) value;
+            if (valueObj.canExecute()){
+                return GraalSerializableJsFunction.toSerializableForm(valueObj);
+            }else if (valueObj.isProxyObject()){
+                return valueObj.asProxyObject();
+            }else if (valueObj.isNumber()){
+                return valueObj.asInt();
+            }else if (valueObj.isString()){
+                return valueObj.toString();
+            }else if (valueObj.isDate()){
+                return valueObj.asDate();
+            }else if (valueObj.isBoolean()){
+                return valueObj.asBoolean();
+            }else if (valueObj.hasArrayElements()){
+                int arraySize = (int) valueObj.getArraySize();
+                List<Serializable> arrayItems = new ArrayList<>(arraySize);
+                for (int key=0; key<arraySize;key++){
+                    Object serializedObj = toJsSerializableGraal(valueObj.getArrayElement(key));
+                    if (serializedObj instanceof Serializable) {
+                        arrayItems.add((Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value of array item as : " + serializedObj);
+                        }
+                    } else {
+                        log.warn(String.format("Non serializable array item: %s. and will not be persisted.",
+                                serializedObj));
+                    }
+                }
+                return arrayItems;
+            }else if (valueObj.hasMembers()){
+                Map<String, Serializable> serializedMap = new HashMap<>();
+                valueObj.getMemberKeys().forEach((key) -> {
+                    Object serializedObj = toJsSerializable(valueObj.getMember(key));
+                    if (serializedObj instanceof Serializable) {
+                        serializedMap.put(key, (Serializable) serializedObj);
+                        if (log.isDebugEnabled()) {
+                            log.debug("Serialized the value for key : " + key);
+                        }
+                    }
+                    else {
+                        log.warn(String.format("Non serializable object for key : %s, and will not be persisted.", key));
+                    }
 
-        if (value instanceof SerializableJsFunction) {
-            SerializableJsFunction serializableJsFunction = (SerializableJsFunction) value;
+                });
+                return serializedMap;
+            }else if (valueObj.isDuration()){
+                return valueObj.asDuration();
+            }else if (valueObj.isTime()){
+                return valueObj.asTime();
+            }else if (valueObj.isTimeZone()){
+                return valueObj.asTimeZone();
+            }else if (valueObj.isNull()){
+                return null;
+            }
+            else {
+                return Collections.EMPTY_MAP;
+            }
+        }
+        return value;
+    }
+
+    public static Object fromJsSerializable(Object value, Object contextOrEngine) throws FrameworkException {
+
+        if (value instanceof NashornSerializableJsFunction) {
+            NashornSerializableJsFunction serializableJsFunction = (NashornSerializableJsFunction) value;
             try {
                 return engine.eval(serializableJsFunction.getSource());
             } catch (ScriptException e) {
@@ -2414,6 +2486,35 @@ public class FrameworkUtils {
                 deserializedMap.put(entry.getKey(), deserializedObj);
             }
             return deserializedMap;
+        }
+        return value;
+    }
+
+    public static Object fromJsSerializableGraal (Object value, Context context){
+        if (value instanceof GraalSerializableJsFunction) {
+            GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;
+            try {
+                context.eval("js","var tempFunc = "+ serializableJsFunction.getSource());
+                return context.getBindings("js").getMember("tempFunc");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }else if (value instanceof Map){
+            Value deserializedValue = context.eval("js","[]");
+            for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                Object deserializedObj = fromJsSerializableGraal(entry.getValue(), context);
+                deserializedValue.putMember(entry.getKey(), deserializedObj);
+            }
+            return deserializedValue;
+        }else if (value instanceof List){
+            Value deserializedValue = context.eval("js","[]");
+            List valueList = (List) value;
+            int listSize = valueList.size();
+            for (int index = 0; index <listSize; index++){
+                Object deserializedObject = fromJsSerializableGraal(valueList.get(index),context);
+                deserializedValue.setArrayElement(index, deserializedObject);
+            }
+            return deserializedValue;
         }
         return value;
     }

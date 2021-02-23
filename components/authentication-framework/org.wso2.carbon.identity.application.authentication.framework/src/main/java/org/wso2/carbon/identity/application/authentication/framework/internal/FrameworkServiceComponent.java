@@ -273,7 +273,8 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
+        JsGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactory();
+        assert jsGraphBuilderFactory != null;
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
@@ -775,4 +776,17 @@ public class FrameworkServiceComponent {
         }
         return authConfig;
     }
+
+    private JsGraphBuilderFactory createJsGraphBuilderFactory() {
+        String scriptEngineName = IdentityUtil.getProperty("AdaptiveAuth.ScriptEngine");
+        if (scriptEngineName != null) {
+            if ("graaljs".equals(scriptEngineName)) {
+                return new JsPolyglotGraphBuilderFactory();
+            }
+            return new JsNashornGraphBuilderFactory();
+        }
+        return null;
+    };
+
+
 }

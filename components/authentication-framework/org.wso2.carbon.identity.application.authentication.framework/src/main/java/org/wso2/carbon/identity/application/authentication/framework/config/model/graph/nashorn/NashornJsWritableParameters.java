@@ -16,13 +16,16 @@
  *  under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn;
 
 import java.util.Map;
 
-public class JsWritableParameters extends JsParameters {
+/**
+ * Javascript wrapper for Java level HashMap of HTTP headers/cookies for Nashorn Execution.
+ */
+public class NashornJsWritableParameters extends NashornJsParameters {
 
-    public JsWritableParameters(Map wrapped) {
+    public NashornJsWritableParameters(Map wrapped) {
 
         super(wrapped);
     }

@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -37,6 +38,7 @@ import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.Mockito.mock;
 
 @Test
-@WithH2Database(jndiName = "jdbc/WSO2CarbonDB", files = {"dbScripts/h2.sql"})
+@WithH2Database( files = {"dbScripts/h2.sql"})
 @WithCarbonHome
 public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSequenceHandlerAbstractTest {
 
@@ -82,7 +84,11 @@ public class GraphBasedSequenceHandlerExceptionRetryTest extends GraphBasedSeque
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
         graphBasedSequenceHandler.handle(req, resp, context);
+        PrivilegedCarbonContext.endTenantFlow();
 
         Integer currentAttempts = (Integer) context.getProperties().get(CONTEXT_ATTRIBUTE_NAME_CURRENT_FAIL_TRIES);
 

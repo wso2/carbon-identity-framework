@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +38,7 @@ public class AuthenticationGraph implements Serializable {
 
     private boolean buildSuccessful = true;
     private String errorReason;
+    private WeakReference<Throwable> throwableWeakReference;
 
     public String getName() {
         return name;
@@ -84,5 +86,15 @@ public class AuthenticationGraph implements Serializable {
 
     public void setErrorReason(String errorReason) {
         this.errorReason = errorReason;
+    }
+
+    public void setError(Throwable t) {
+
+        this.throwableWeakReference = new WeakReference<>(t);
+    }
+
+    public Throwable getError() {
+
+        return (throwableWeakReference == null ? null : throwableWeakReference.get());
     }
 }

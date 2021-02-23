@@ -1,27 +1,28 @@
 /*
- *  Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing,
- *  software distributed under the License is distributed on an
- *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- *  KIND, either express or implied.  See the License for the
- *  specific language governing permissions and limitations
- *  under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
@@ -33,16 +34,13 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
-import org.wso2.carbon.identity.core.IdentityClaimManager;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.claim.Claim;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -52,30 +50,31 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Represent the user's claim. Can be either remote or local.
+ * Represent the user's claim for GraalJs Execution. Can be either remote or local.
  */
-public class JsClaims extends AbstractJSContextMemberObject {
+public class GraalJsClaims extends AbstractJSContextMemberObject implements ProxyObject {
 
-    private static final Log LOG = LogFactory.getLog(JsClaims.class);
+    private static final Log LOG = LogFactory.getLog(GraalJsClaims.class);
     private String idp;
     private boolean isRemoteClaimRequest;
     private int step;
     protected transient AuthenticatedUser authenticatedUser;
+    private transient Map<String, String> localClaimUriToValueReadCache = new HashMap<>();
 
     /**
-     * Constructor to get the user authenticated in step 'n'
+     * Constructor to get the user authenticated in step 'n'.
      *
      * @param step                 The authentication step
      * @param idp                  The authenticated IdP
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
+    public GraalJsClaims(AuthenticationContext context, int step, String idp, boolean isRemoteClaimRequest) {
 
         this(step, idp, isRemoteClaimRequest);
         initializeContext(context);
     }
 
-    public JsClaims(int step, String idp, boolean isRemoteClaimRequest) {
+    public GraalJsClaims(int step, String idp, boolean isRemoteClaimRequest) {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.idp = idp;
@@ -138,13 +137,14 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param authenticatedUser    Authenticated user
      * @param isRemoteClaimRequest Whether the request is for remote claim (false for local claim request)
      */
-    public JsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public GraalJsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
 
         this.isRemoteClaimRequest = isRemoteClaimRequest;
         this.authenticatedUser = authenticatedUser;
     }
 
-    public JsClaims(AuthenticationContext context,AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
+    public GraalJsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser,
+                         boolean isRemoteClaimRequest) {
 
         this(authenticatedUser, isRemoteClaimRequest);
         initializeContext(context);
@@ -164,6 +164,12 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     @Override
+    public Object getMemberKeys() {
+
+        return null;
+    }
+
+    @Override
     public boolean hasMember(String claimUri) {
 
         if (authenticatedUser != null) {
@@ -177,19 +183,16 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     @Override
-    public void setMember(String claimUri, Object claimValue) {
-
+    public void putMember(String claimUri, Value claimValue) {
         if (authenticatedUser != null) {
             if (isRemoteClaimRequest) {
                 setFederatedClaim(claimUri, claimValue);
-                return;
             } else {
                 setLocalClaim(claimUri, claimValue);
-                return;
             }
         }
-        super.setMember(claimUri, claimValue);
     }
+
 
     /**
      * Get the claim by local claim URI.
@@ -197,7 +200,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @param claimUri   Local claim URI
      * @param claimValue Claim Value
      */
-    private void setLocalClaim(String claimUri, Object claimValue) {
+    private void setLocalClaim(String claimUri, Value claimValue) {
 
         if (isFederatedIdP()) {
             setLocalMappedClaim(claimUri, claimValue);
@@ -209,12 +212,12 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Sets the remote claim value that is mapped to the give local claim
+     * Sets the remote claim value that is mapped to the give local claim.
      *
      * @param localClaimURI Local claim URI
      * @param claimValue    Value to be set
      */
-    private void setLocalMappedClaim(String localClaimURI, Object claimValue) {
+    private void setLocalMappedClaim(String localClaimURI, Value claimValue) {
 
         Map<ClaimMapping, String> idpAttributesMap = authenticatedUser.getUserAttributes();
         Map<String, String> remoteMapping = FrameworkUtils.getClaimMappings(idpAttributesMap, false);
@@ -225,12 +228,14 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Sets a local claim directly at the userstore for the given user by given claim uri
+     * Sets a local claim directly at the userstore for the given user by given claim uri.
      *
      * @param claimUri   Local claim URI
      * @param claimValue Claim value
      */
     private void setLocalUserClaim(String claimUri, Object claimValue) {
+
+        localClaimUriToValueReadCache.clear();
 
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
@@ -248,7 +253,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Gets the remote claim that is mapped to the given local claim
+     * Gets the remote claim that is mapped to the given local claim.
      *
      * @param localClaim      local claim URI
      * @param remoteClaimsMap Remote claim URI - value map
@@ -317,22 +322,14 @@ public class JsClaims extends AbstractJSContextMemberObject {
      * @return Claim value of the user authenticated by the indicated IdP
      */
     protected boolean hasLocalClaim(String claimUri) {
-
-        int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
-        RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
-        try {
-            UserRealm userRealm = realmService.getTenantUserRealm(usersTenantId);
-            Claim[] supportedClaims = IdentityClaimManager.getInstance().getAllSupportedClaims((org.wso2.carbon.user
-                .core.UserRealm) userRealm);
-            for (Claim claim : supportedClaims) {
-                if (claim.getClaimUri().equals(claimUri)) {
-                    return true;
-                }
-            }
-        } catch (UserStoreException e) {
-            LOG.error("Error when retrieving user realm for tenant : " + usersTenantId, e);
-        } catch (IdentityException e) {
-            LOG.error("Error when initializing identity claim manager.", e);
+        String value = localClaimUriToValueReadCache.get(claimUri);
+        if (value != null) {
+            return true;
+        }
+        value = getLocalClaim(claimUri);
+        if (value != null) {
+            localClaimUriToValueReadCache.put(claimUri, value);
+            return true;
         }
         return false;
     }
@@ -374,7 +371,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Check if step's IdP is a federated IDP
+     * Check if step's IdP is a federated IDP.
      *
      * @return true if the idp is federated
      */
@@ -399,7 +396,7 @@ public class JsClaims extends AbstractJSContextMemberObject {
     }
 
     /**
-     * Gets the mapped remote claim value for the given local claim URI
+     * Gets the mapped remote claim value for the given local claim URI.
      *
      * @param claimUri Local claim URI
      * @return Mapped remote claim value from IdP
@@ -424,6 +421,10 @@ public class JsClaims extends AbstractJSContextMemberObject {
      */
     private String getLocalUserClaim(String claimUri) {
 
+        String value = localClaimUriToValueReadCache.get(claimUri);
+        if (value != null) {
+            return value;
+        }
         int usersTenantId = IdentityTenantUtil.getTenantId(authenticatedUser.getTenantDomain());
         String usernameWithDomain = UserCoreUtil.addDomainToName(authenticatedUser.getUserName(), authenticatedUser
             .getUserStoreDomain());

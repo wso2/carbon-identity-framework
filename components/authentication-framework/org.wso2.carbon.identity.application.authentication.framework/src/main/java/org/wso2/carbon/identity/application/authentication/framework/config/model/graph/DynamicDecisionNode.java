@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +40,18 @@ public class DynamicDecisionNode extends AbstractAuthGraphNode implements AuthGr
         return null;
     }
 
+    /**
+     * @deprecated Please use getFunction(String) instead
+     * @return
+     */
+    @Deprecated
     public Map<String, SerializableJsFunction> getFunctionMap() {
         return Collections.unmodifiableMap(functionMap);
+    }
+
+    public SerializableJsFunction getFunction(String outcome) {
+        SerializableJsFunction result = functionMap.get(outcome);
+        return result;
     }
 
     public void addFunction(String outcome, SerializableJsFunction function) {

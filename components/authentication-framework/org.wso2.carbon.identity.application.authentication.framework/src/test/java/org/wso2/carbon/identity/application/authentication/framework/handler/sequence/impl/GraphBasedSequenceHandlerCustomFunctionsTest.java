@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -36,7 +37,10 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
+import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +48,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,6 +59,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 @Test
+@WithCarbonHome
+@WithH2Database( files = {"dbScripts/h2.sql"})
 public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequenceHandlerAbstractTest {
 
     @Test
@@ -86,7 +91,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsAuthenticationContext, String, Boolean>)GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                new CustomBooleanImpl());
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-1.xml");
 
@@ -133,7 +138,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                new CustomBooleanImpl());
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fail.xml");
 
@@ -162,7 +167,7 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
                 (Function<JsAuthenticationContext, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean);
 
         jsFunctionRegistrar.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER, "getTrueFunction2",
-                (BiFunction<JsAuthenticationContext, String, Boolean>) GraphBasedSequenceHandlerCustomFunctionsTest::customBoolean2);
+                new CustomBooleanImpl());
 
         ServiceProvider sp1 = getTestServiceProvider("js-sp-dynamic-on-fallback.xml");
 
@@ -206,7 +211,11 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
         graphBasedSequenceHandler.handle(req, resp, deseralizedContext);
+        PrivilegedCarbonContext.endTenantFlow();
 
         List<AuthHistory> authHistories = deseralizedContext.getAuthenticationStepHistory();
         assertNotNull(authHistories);
@@ -244,7 +253,11 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
         graphBasedSequenceHandler.handle(req, resp, context);
+        PrivilegedCarbonContext.endTenantFlow();
         return context;
     }
 
@@ -256,8 +269,17 @@ public class GraphBasedSequenceHandlerCustomFunctionsTest extends GraphBasedSequ
         return true;
     }
 
-    public static Boolean customBoolean2(JsAuthenticationContext context, String value) {
-        return true;
+
+    @FunctionalInterface
+    public interface CustomBoolean2Interface extends Serializable {
+        Boolean customBoolean2(JsAuthenticationContext context, String value);
+    }
+
+
+    public class CustomBooleanImpl implements CustomBoolean2Interface {
+        public  Boolean customBoolean2(JsAuthenticationContext context, String value)  {
+            return true;
+        }
     }
 
     @FunctionalInterface

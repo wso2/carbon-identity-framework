@@ -19,11 +19,13 @@
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
 import org.testng.annotations.Test;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsBaseGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
@@ -32,6 +34,7 @@ import org.wso2.carbon.identity.application.authentication.framework.store.LongW
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.common.testng.WithH2Database;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.Collections;
 import java.util.Map;
@@ -69,7 +72,11 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
 
         UserCoreUtil.setDomainInThreadLocal("test_domain");
 
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(MultitenantConstants.SUPER_TENANT_ID);
         graphBasedSequenceHandler.handle(req, resp, context);
+        PrivilegedCarbonContext.endTenantFlow();
 
     }
 
@@ -86,10 +93,9 @@ public class GraphBasedSequenceHandlerLongWaitTest extends GraphBasedSequenceHan
                                  Map<String, Object> payloadData, Map<String, Object> eventHandlers) {
 
             AsyncProcess asyncProcess = new AsyncProcess((ctx, r) -> {
-                System.out.println("Calling With : " + ctx);
                 r.accept(ctx, Collections.emptyMap(), "onSuccess");
             });
-            JsGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
+            JsBaseGraphBuilder.addLongWaitProcess(asyncProcess, eventHandlers);
         }
     }
 }

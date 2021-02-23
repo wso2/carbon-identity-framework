@@ -23,6 +23,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -43,7 +45,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 @Test
-public class JsAuthenticationContextTest {
+public class NashornJsAuthenticationContextTest {
 
     public static final String TEST_IDP = "testIdP";
     private ScriptEngine scriptEngine;
@@ -68,7 +70,7 @@ public class JsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
-        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
@@ -111,7 +113,7 @@ public class JsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         setupAuthContextWithStepData(authenticationContext, authenticatedUser);
 
-        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
@@ -130,7 +132,7 @@ public class JsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setServiceProviderName(SERVICE_PROVIDER_NAME);
 
-        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
@@ -156,13 +158,13 @@ public class JsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, lastAttemptedUser);
 
-        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 
         Object result = scriptEngine.eval("context.lastLoginFailedUser");
         assertNotNull(result);
-        assertTrue(result instanceof JsAuthenticatedUser);
+        assertTrue(result instanceof NashornJsAuthenticatedUser);
 
         String username = (String) scriptEngine.eval("context.lastLoginFailedUser.username");
         assertEquals(username, LAST_ATTEMPTED_USER_USERNAME);
@@ -180,7 +182,7 @@ public class JsAuthenticationContextTest {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         authenticationContext.setProperty(FrameworkConstants.JSAttributes.JS_LAST_LOGIN_FAILED_USER, null);
 
-        JsAuthenticationContext jsAuthenticationContext = new JsAuthenticationContext(authenticationContext);
+        NashornJsAuthenticationContext jsAuthenticationContext = new NashornJsAuthenticationContext(authenticationContext);
         Bindings bindings = scriptEngine.getBindings(ScriptContext.GLOBAL_SCOPE);
         bindings.put("context", jsAuthenticationContext);
 

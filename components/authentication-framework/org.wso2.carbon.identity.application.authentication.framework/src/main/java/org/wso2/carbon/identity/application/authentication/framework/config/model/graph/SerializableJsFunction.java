@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,69 +18,22 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
-import jdk.nashorn.api.scripting.ScriptUtils;
-import jdk.nashorn.internal.runtime.ScriptFunction;
-
 import java.io.Serializable;
 
 /**
- *  Javascript function wrapper. This allows serialization of a javascript defined function.
+ * Serializable javascript function.
+ * This is required since the next javascript execution may happen on a different node than current node, when user
+ * submits a form in the browser.
+ * The request may come to different node.
+ * The current authentication context holds this function in serialized form.
  *
+ * @param <T> Script Engine
  */
-public class SerializableJsFunction implements Serializable {
+public interface SerializableJsFunction<T> extends Serializable {
 
-    private static final long serialVersionUID = -7605388897997019588L;
-    private String source;
-    private boolean isFunction;
+    Object apply(T scriptEngine, Object... params);
 
-    public SerializableJsFunction(String source, boolean isFunction) {
+    void setName(String name);
 
-        this.source = source;
-        this.isFunction = isFunction;
-    }
-
-    public String getSource() {
-
-        return source;
-    }
-
-    public void setSource(String source) {
-
-        this.source = source;
-    }
-
-    public boolean isFunction() {
-
-        return isFunction;
-    }
-
-    public void setFunction(boolean function) {
-
-        isFunction = function;
-    }
-
-    /**
-     * This will return the converted SerializableJsFunction if the given  ScriptObjectMirror is a function.
-     * @param scriptObjectMirror
-     * @return null if the ScriptObjectMirror is not a function.
-     */
-    public static SerializableJsFunction toSerializableForm(ScriptObjectMirror scriptObjectMirror) {
-
-        if (!scriptObjectMirror.isFunction()) {
-            return null;
-        }
-
-        //TODO try to get rid of ScriptFunction
-        Object unwrapped = ScriptUtils.unwrap(scriptObjectMirror);
-        if (unwrapped instanceof ScriptFunction) {
-            ScriptFunction scriptFunction = (ScriptFunction) unwrapped;
-            boolean isFunction = scriptObjectMirror.isFunction();
-            String source = scriptFunction.toSource();
-
-            return new SerializableJsFunction(source, isFunction);
-        } else {
-            return new SerializableJsFunction(unwrapped.toString(), true);
-        }
-    }
+    String getName();
 }
