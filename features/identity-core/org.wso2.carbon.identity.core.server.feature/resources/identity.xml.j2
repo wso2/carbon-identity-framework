@@ -1252,6 +1252,17 @@
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
     </JITProvisioning>
 
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Enabling this configuration will enable validating the application role for the user who initiates the
+        application operations. Enabling this configuration will create application role for newly created SPs and
+        the application role will be assigned to the app owner.
+        The default value of the configuration is false.
+        -->
+        <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
+    </ApplicationMgt>
+
     <EventListeners>
         <EventListener id="workflow"
                        type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
