@@ -644,7 +644,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             boolean persistUserToSessionMapping = true;
             String userId;
             try {
-                int idpId = UserSessionStore.getInstance().getIdPId(idpName);
+                int idpId = UserSessionStore.getInstance().getIdPId(idpName, appTenantId);
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
