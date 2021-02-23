@@ -266,6 +266,38 @@ public class UserSessionStore {
     }
 
     /**
+     * Retrieve IDP ID from the IDP table using IDP name and tenant ID.
+     *
+     * @param idpName   IDP name.
+     * @param tenantId  Tenant ID.
+     * @return          IDP ID.
+     * @throws UserSessionException
+     */
+    public int getIdPId(String idpName, int tenantId) throws UserSessionException {
+
+        int idPId = -1;
+        if (idpName.equals("LOCAL")) {
+            return idPId;
+        }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_IDP_WITH_TENANT)) {
+                preparedStatement.setString(1, idpName);
+                preparedStatement.setInt(2, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        idPId = resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving the IdP id of: " + idpName + " and tenant ID: " +
+                    tenantId, e);
+        }
+        return idPId;
+    }
+
+    /**
      * Method to store user id and session id mapping in the database table IDN_AUTH_USER_SESSION_STORE.
      *
      * @param userId    Id of the user
