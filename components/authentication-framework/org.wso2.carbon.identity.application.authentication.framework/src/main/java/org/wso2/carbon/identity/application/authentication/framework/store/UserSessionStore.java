@@ -272,7 +272,9 @@ public class UserSessionStore {
      * @param tenantId  Tenant ID.
      * @return          IDP ID.
      * @throws UserSessionException
+     * @deprecated instead use {@link #getIdPId(String, int)}.
      */
+    @Deprecated
     public int getIdPId(String idpName, int tenantId) throws UserSessionException {
 
         int idPId = -1;
