@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -40,7 +39,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.StepConfigGraphNode;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
