@@ -151,9 +151,9 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
             StepConfig stepConfig) throws PostAuthenticationFailedException {
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
+        UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
         String fullQualifiedAssociatedUserId = FrameworkUtils.prependUserStoreDomainToName(
                 associatedLocalUserName + UserCoreConstants.TENANT_DOMAIN_COMBINER + context.getTenantDomain());
-        UserCoreUtil.setDomainInThreadLocal(UserCoreUtil.extractDomainFromName(associatedLocalUserName));
         sequenceConfig.setAuthenticatedUser(
                 AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(fullQualifiedAssociatedUserId));
         sequenceConfig.getApplicationConfig().setMappedSubjectIDSelected(true);

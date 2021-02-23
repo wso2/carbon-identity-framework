@@ -67,7 +67,7 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
     @Override
     public int getPriority() {
 
-        return 1;
+        return 10;
     }
 
     /**
@@ -157,8 +157,13 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                     }
                 }
 
-                // Cleanup dangling origins without any associations.
-                cleanupDanglingOrigins(connection, tenantId);
+                // Cleanup dangling origins (origins without any association to an application) is disabled temporary.
+                // Even the CORS Origins are stored for each application separately, the CORS valve filters them
+                // based on the tenant level. Because of that there might be other applications which are not configured
+                // allowed origins but still working as another application has already set is as an allowed origin.
+                // Related issue: https://github.com/wso2/product-is/issues/11241
+
+                // cleanupDanglingOrigins(connection, tenantId);
 
                 for (CORSOrigin corsOrigin : corsOrigins) {
                     // Check if the origins is there.
@@ -312,8 +317,14 @@ public class CORSOriginDAOImpl implements CORSOriginDAO {
                     }
                 }
 
-                // Cleanup dangling origins without any associations.
-                cleanupDanglingOrigins(connection, tenantId);
+                // Cleanup dangling origins (origins without any association to an application) is disabled temporary.
+                // Even the CORS Origins are stored for each application separately, the CORS valve filters them
+                // based on the tenant level. Because of that there might be other applications which are not configured
+                // allowed origins but still working as another application has already set is as an allowed origin.
+                // Related issue: https://github.com/wso2/product-is/issues/11241
+
+                // cleanupDanglingOrigins(connection, tenantId);
+
             } catch (SQLException e) {
                 IdentityDatabaseUtil.rollbackTransaction(connection);
                 throw handleServerException(ERROR_CODE_CORS_DELETE, e, currentId);

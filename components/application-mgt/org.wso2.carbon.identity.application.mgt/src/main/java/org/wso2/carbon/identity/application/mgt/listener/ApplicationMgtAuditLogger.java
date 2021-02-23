@@ -44,46 +44,60 @@ public class ApplicationMgtAuditLogger extends AbstractApplicationMgtListener {
     public boolean doPostCreateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        int appId = -1;
-        String name = "Undefined";
-        if (serviceProvider != null) {
-            appId = serviceProvider.getApplicationID();
-            name = serviceProvider.getApplicationName();
-        }
-
+        int appId = getAppId(serviceProvider);
+        String name = getApplicationName(serviceProvider);
         // Append tenant domain to username.
-        userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+        String initiator = buildInitiatorUsername(tenantDomain, userName);
 
-        audit.info(String.format(AUDIT_MESSAGE, userName, "create", appId, name, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, initiator, "create", appId, name, SUCCESS));
         return true;
     }
+
+
 
     @Override
     public boolean doPostUpdateApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        int appId = -1;
-        String name = "Undefined";
-        if (serviceProvider != null) {
-            appId = serviceProvider.getApplicationID();
-            name = serviceProvider.getApplicationName();
-        }
+        String name = getApplicationName(serviceProvider);
+        int appId = getAppId(serviceProvider);
+        String initiator = buildInitiatorUsername(tenantDomain, userName);
 
-        // Append tenant domain to username.
-        userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
-
-        audit.info(String.format(AUDIT_MESSAGE, userName, "update", appId, name, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, initiator, "update", appId, name, SUCCESS));
         return true;
     }
 
     @Override
-    public boolean doPostDeleteApplication(String applicationName, String tenantDomain, String userName)
+    public boolean doPostDeleteApplication(ServiceProvider serviceProvider, String tenantDomain, String userName)
             throws IdentityApplicationManagementException {
 
-        // Append tenant domain to username.
-        userName = UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
+        String applicationName = getApplicationName(serviceProvider);
+        int appId = getAppId(serviceProvider);
+        String initiator = buildInitiatorUsername(tenantDomain, userName);
 
-        audit.info(String.format(AUDIT_MESSAGE, userName, "delete", applicationName, null, SUCCESS));
+        audit.info(String.format(AUDIT_MESSAGE, initiator, "delete", appId, applicationName, SUCCESS));
         return true;
+    }
+
+    private int getAppId(ServiceProvider serviceProvider) {
+
+        if (serviceProvider != null) {
+            return serviceProvider.getApplicationID();
+        }
+        return -1;
+    }
+
+    private String getApplicationName(ServiceProvider serviceProvider) {
+
+        if (serviceProvider != null) {
+            return serviceProvider.getApplicationName();
+        }
+        return "Undefined";
+    }
+
+    private String buildInitiatorUsername(String tenantDomain, String userName) {
+
+        // Append tenant domain to username build the full qualified username of initiator.
+        return UserCoreUtil.addTenantDomainToEntry(userName, tenantDomain);
     }
 }

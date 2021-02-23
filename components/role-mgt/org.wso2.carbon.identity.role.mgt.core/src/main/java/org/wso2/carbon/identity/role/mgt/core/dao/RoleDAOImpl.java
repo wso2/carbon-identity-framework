@@ -685,7 +685,7 @@ public class RoleDAOImpl implements RoleDAO {
             throw new IdentityRoleManagementClientException(ROLE_NOT_FOUND.getCode(),
                     "Role id: " + roleID + " does not exist in the system.");
         }
-        if (isExistingRoleName(newRoleName, tenantDomain)) {
+        if (!StringUtils.equalsIgnoreCase(roleName, newRoleName) && isExistingRoleName(newRoleName, tenantDomain)) {
             throw new IdentityRoleManagementClientException(ROLE_ALREADY_EXISTS.getCode(),
                     "Role name: " + newRoleName + " is already there in the system. Please pick another role name.");
         }

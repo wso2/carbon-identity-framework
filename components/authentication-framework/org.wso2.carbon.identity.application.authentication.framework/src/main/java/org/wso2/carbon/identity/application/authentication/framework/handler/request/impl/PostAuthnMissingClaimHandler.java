@@ -43,6 +43,7 @@ import org.wso2.carbon.identity.user.profile.mgt.association.federation.Federate
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.exception.FederatedAssociationManagerException;
 import org.wso2.carbon.user.api.Claim;
 import org.wso2.carbon.user.api.ClaimManager;
+import org.wso2.carbon.user.core.UserStoreClientException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -60,6 +61,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.hand
         .PostAuthnHandlerFlowStatus.UNSUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants
         .POST_AUTHENTICATION_REDIRECTION_TRIGGERED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.POST_AUTH_MISSING_CLAIMS_ERROR;
 
 public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
@@ -113,7 +115,15 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                     context);
             return flowStatus;
         } else {
-            handlePostAuthenticationForMissingClaimsResponse(request, response, context);
+            try {
+                handlePostAuthenticationForMissingClaimsResponse(request, response, context);
+            } catch (PostAuthenticationFailedException e) {
+                if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
+                    PostAuthnHandlerFlowStatus flowStatus =
+                            handlePostAuthenticationForMissingClaimsRequest(request, response, context);
+                    return flowStatus;
+                }
+            }
             if (log.isDebugEnabled()) {
                 log.debug("Successfully returning from missing claim handler");
             }
@@ -167,6 +177,11 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
                         context.getContextIdentifier());
                 uriBuilder.addParameter(FrameworkConstants.REQUEST_PARAM_SP,
                         context.getSequenceConfig().getApplicationConfig().getApplicationName());
+                if (context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR) != null) {
+                    uriBuilder.addParameter("errorMessage",
+                            context.getProperty(POST_AUTH_MISSING_CLAIMS_ERROR).toString());
+                    context.removeProperty(POST_AUTH_MISSING_CLAIMS_ERROR);
+                }
                 response.sendRedirect(uriBuilder.build().toString());
                 context.setProperty(POST_AUTHENTICATION_REDIRECTION_TRIGGERED, true);
 
@@ -294,6 +309,9 @@ public class PostAuthnMissingClaimHandler extends AbstractPostAuthnHandler {
 
                 userStoreManager.setUserClaimValues(user.getUserName(), localIdpClaims, null);
             } catch (UserStoreException e) {
+                if (e instanceof UserStoreClientException) {
+                    context.setProperty(POST_AUTH_MISSING_CLAIMS_ERROR, e.getMessage());
+                }
                 throw new PostAuthenticationFailedException(
                         "Error while handling missing mandatory claims",
                         "Error while updating claims for local user. Could not update profile", e);

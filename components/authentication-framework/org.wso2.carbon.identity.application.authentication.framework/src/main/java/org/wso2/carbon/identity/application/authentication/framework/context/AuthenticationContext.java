@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.context;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorStateInfo;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ExternalIdPConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -28,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.base.IdentityRuntimeException;
 import org.wso2.carbon.identity.core.bean.context.MessageContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -102,6 +104,10 @@ public class AuthenticationContext extends MessageContext implements Serializabl
      * AuthenticatorStateInfoDTO and set all the required state info in it.
      */
     private AuthenticatorStateInfo stateInfo;
+
+    private String userTenantDomainHint;
+
+    private String loginTenantDomain;
 
     private List<String> executedPostAuthHandlers = new ArrayList<>();
 
@@ -635,7 +641,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     /**
      * Get the Runtime claims map.
      *
-     * @return  Map of Claim URI and value
+     * @return Map of Claim URI and value
      */
     public Map<String, String> getRuntimeClaims() {
 
@@ -644,5 +650,68 @@ public class AuthenticationContext extends MessageContext implements Serializabl
             return (Map<String, String>) parameter;
         }
         return Collections.emptyMap();
+    }
+
+    /**
+     * Retrieves the potential tenant domain of the user who is going to login. This will return the first non-empty
+     * value of userTenantDomainHint, loginTenantDomain or tenant domain in the respective order.
+     *
+     * This will be used to populate the FQN of the user (if user/client didn't provide explicitly) when logging in.
+     * This should ideally be the tenant domain user is going to log into (the one where the session will be created)
+     * , but may be overridden for any special call applications with the domain hint.
+     *
+     * @return The most possible tenant domain of the user who will be logging in
+     */
+    public String getUserTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return tenantDomain;
+        }
+        if (StringUtils.isNotBlank(userTenantDomainHint)) {
+            return userTenantDomainHint;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    /**
+     * Set the user's tenant domain hint. Should only be used if different from the tenant domain where the session
+     * would be created
+     *
+     * @param userTenantDomainHint The possible tenant domain of the user
+     */
+    public void setUserTenantDomainHint(String userTenantDomainHint) {
+
+        this.userTenantDomainHint = userTenantDomainHint;
+    }
+
+    /**
+     * Gets the tenant domain to which the user should get logged into and the session should get created. For a
+     * non-saas application this should be the user's and application's tenant domain. For a saas application, this
+     * will be the user's tenant domain for most cases.
+     *
+     * @return the tenant domain the user's session should be created
+     */
+    public String getLoginTenantDomain() {
+
+        if (!IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            return tenantDomain;
+        }
+        if (StringUtils.isNotBlank(loginTenantDomain)) {
+            return loginTenantDomain;
+        }
+        return tenantDomain;
+    }
+
+    /**
+     * Sets the tenant domain where the user's session should be created
+     *
+     * @param loginTenantDomain the tenant domain where the user's session is created
+     */
+    public void setLoginTenantDomain(String loginTenantDomain) {
+
+        this.loginTenantDomain = loginTenantDomain;
     }
 }

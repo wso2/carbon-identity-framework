@@ -41,9 +41,11 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -75,6 +77,9 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LongWaitStatusServlet;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -84,6 +89,7 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -194,137 +200,145 @@ public class FrameworkServiceComponent {
     @SuppressWarnings("unchecked")
     @Activate
     protected void activate(ComponentContext ctxt) {
-        try {
-            FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-            dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
-            BundleContext bundleContext = ctxt.getBundleContext();
-            bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
-                    ApplicationAuthenticationService(), null);
-            bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
-            bundleContext.registerService(UserSessionManagementService.class.getName(),
-                    new UserSessionManagementServiceImpl(), null);
-            boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
-            if (tenantDropdownEnabled) {
-                // Register the tenant management listener for tracking changes to tenants
-                bundleContext.registerService(TenantMgtListener.class.getName(),
-                        new AuthenticationEndpointTenantActivityListener(), null);
+        FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
+        dataHolder.setJsFunctionRegistry(new JsFunctionRegistryImpl());
+        BundleContext bundleContext = ctxt.getBundleContext();
+        bundleContext.registerService(ApplicationAuthenticationService.class.getName(), new
+                ApplicationAuthenticationService(), null);
+        bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
+        bundleContext.registerService(UserSessionManagementService.class.getName(),
+                new UserSessionManagementServiceImpl(), null);
+        bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
+                new SessionExtenderRequestFactory(), null);
+        bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
+                new SessionExtenderResponseFactory(), null);
+        bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
 
-                if (log.isDebugEnabled()) {
-                    log.debug("AuthenticationEndpointTenantActivityListener is registered. Tenant Domains Dropdown is " +
-                            "enabled.");
-                }
+        ServerSessionManagementService serverSessionManagementService = new ServerSessionManagementServiceImpl();
+        bundleContext.registerService(ServerSessionManagementService.class.getName(),
+                serverSessionManagementService, null);
+        dataHolder.setServerSessionManagementService(serverSessionManagementService);
+
+        boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
+
+        if (tenantDropdownEnabled) {
+            // Register the tenant management listener for tracking changes to tenants
+            bundleContext.registerService(TenantMgtListener.class.getName(),
+                    new AuthenticationEndpointTenantActivityListener(), null);
+
+            if (log.isDebugEnabled()) {
+                log.debug("AuthenticationEndpointTenantActivityListener is registered. Tenant Domains Dropdown is " +
+                        "enabled.");
             }
-            AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
-            authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
-            bundleContext
-                    .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
-            dataHolder.setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
+        }
+        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
+        bundleContext
+                .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
+        dataHolder.setAuthenticationMethodNameTranslator(authenticationMethodNameTranslator);
 
-            // Register Common servlet
-            Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
-                    COMMON_SERVLET_URL);
+        // Register Common servlet
+        Servlet commonAuthServlet = new ContextPathServletAdaptor(new CommonAuthenticationServlet(),
+                COMMON_SERVLET_URL);
 
-            Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
-                    IDENTITY_SERVLET_URL);
+        Servlet identityServlet = new ContextPathServletAdaptor(new IdentityServlet(),
+                IDENTITY_SERVLET_URL);
 
-            Servlet loginContextServlet = new ContextPathServletAdaptor(new LoginContextServlet(),
-                    LOGIN_CONTEXT_SERVLET_URL);
+        Servlet loginContextServlet = new ContextPathServletAdaptor(new LoginContextServlet(),
+                LOGIN_CONTEXT_SERVLET_URL);
+        try {
+            httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
+            httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
+            httpService.registerServlet(LOGIN_CONTEXT_SERVLET_URL, loginContextServlet, null, null);
+        } catch (Exception e) {
+            String errMsg = "Error when registering servlets via the HttpService.";
+            log.error(errMsg, e);
+            throw new RuntimeException(errMsg, e);
+        }
+
+        if (promptOnLongWait()) {
+            Servlet longWaitStatusServlet = new ContextPathServletAdaptor(new LongWaitStatusServlet(),
+                    LONGWAITSTATUS_SERVLET_URL);
             try {
-                httpService.registerServlet(COMMON_SERVLET_URL, commonAuthServlet, null, null);
-                httpService.registerServlet(IDENTITY_SERVLET_URL, identityServlet, null, null);
-                httpService.registerServlet(LOGIN_CONTEXT_SERVLET_URL, loginContextServlet, null, null);
+                httpService.registerServlet(LONGWAITSTATUS_SERVLET_URL, longWaitStatusServlet, null, null);
             } catch (Exception e) {
-                String errMsg = "Error when registering servlets via the HttpService.";
+                String errMsg = "Error when registering longwaitstatus servlet via the HttpService.";
                 log.error(errMsg, e);
                 throw new RuntimeException(errMsg, e);
             }
-
-            if (promptOnLongWait()) {
-                Servlet longWaitStatusServlet = new ContextPathServletAdaptor(new LongWaitStatusServlet(),
-                        LONGWAITSTATUS_SERVLET_URL);
-                try {
-                    httpService.registerServlet(LONGWAITSTATUS_SERVLET_URL, longWaitStatusServlet, null, null);
-                } catch (Exception e) {
-                    String errMsg = "Error when registering longwaitstatus servlet via the HttpService.";
-                    log.error(errMsg, e);
-                    throw new RuntimeException(errMsg, e);
-                }
-            }
-
-            dataHolder.setBundleContext(bundleContext);
-            dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
-            dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
-            dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-            JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
-            jsGraphBuilderFactory.init();
-            UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
-            dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
-            dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
-
-            PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
-            bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
-            dataHolder.setPostAuthenticationMgtService(postAuthenticationMgtService);
-            // Registering missing mandatory claim handler as a post authn handler
-            PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
-            bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
-
-            SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
-            bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
-            dataHolder.setSSOConsentService(ssoConsentService);
-            bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
-
-            bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
-
-            //this is done to load SessionDataStore class and start the cleanup tasks.
-            SessionDataStore.getInstance();
-
-            AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
-            asyncSequenceExecutor.init();
-            dataHolder.setAsyncSequenceExecutor(asyncSequenceExecutor);
-
-            LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
-            CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
-
-            String connectionTimeoutString = IdentityUtil.getProperty("AdaptiveAuth.HTTPConnectionTimeout");
-            int connectionTimeout = 5000;
-            if (connectionTimeoutString != null) {
-                try {
-                    connectionTimeout = Integer.parseInt(connectionTimeoutString);
-                } catch (NumberFormatException e) {
-                    log.error("Error while parsing connection timeout : " + connectionTimeoutString, e);
-                }
-            }
-
-            LongWaitStatusStoreService longWaitStatusStoreService =
-                    new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
-            dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
-
-            // Registering JIT, association and domain handler as post authentication handler
-            PostAuthenticationHandler postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
-            bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
-            PostAuthenticationHandler postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
-            bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
-            PostAuthenticationHandler postAuthenticatedUserDomainHandler = PostAuthenticatedSubjectIdentifierHandler
-                    .getInstance();
-            bundleContext
-                    .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
-            if (log.isDebugEnabled()) {
-                log.debug("Application Authentication Framework bundle is activated");
-            }
-
-            /**
-             * Load and reade the require.js file in resources.
-             */
-            this.loadCodeForRequire();
-
-            // Set user session mapping enabled.
-            FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
-                    .isUserSessionMappingEnabled());
         }
-        catch (Throwable e){
-            log.error("Error while activating FrameworkServiceComponent", e);
+
+        dataHolder.setBundleContext(bundleContext);
+        dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
+        dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
+        dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
+        JsGraphBuilderFactory jsGraphBuilderFactory = new JsGraphBuilderFactory();
+        jsGraphBuilderFactory.init();
+        UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
+        dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
+        dataHolder.setJsGraphBuilderFactory(jsGraphBuilderFactory);
+
+        PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
+        bundleContext.registerService(PostAuthenticationMgtService.class.getName(), postAuthenticationMgtService, null);
+        dataHolder.setPostAuthenticationMgtService(postAuthenticationMgtService);
+        // Registering missing mandatory claim handler as a post authn handler
+        PostAuthenticationHandler postAuthnMissingClaimHandler = new PostAuthnMissingClaimHandler();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthnMissingClaimHandler, null);
+
+        SSOConsentService ssoConsentService = new SSOConsentServiceImpl();
+        bundleContext.registerService(SSOConsentService.class.getName(), ssoConsentService, null);
+        dataHolder.setSSOConsentService(ssoConsentService);
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), consentMgtPostAuthnHandler, null);
+
+        bundleContext.registerService(ClaimFilter.class.getName(), new DefaultClaimFilter(), null);
+
+        //this is done to load SessionDataStore class and start the cleanup tasks.
+        SessionDataStore.getInstance();
+
+        AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
+        asyncSequenceExecutor.init();
+        dataHolder.setAsyncSequenceExecutor(asyncSequenceExecutor);
+
+        LongWaitStatusDAOImpl daoImpl = new LongWaitStatusDAOImpl();
+        CacheBackedLongWaitStatusDAO cacheBackedDao = new CacheBackedLongWaitStatusDAO(daoImpl);
+
+        String connectionTimeoutString = IdentityUtil.getProperty("AdaptiveAuth.HTTPConnectionTimeout");
+        int connectionTimeout = 5000;
+        if (connectionTimeoutString != null) {
+            try {
+                connectionTimeout = Integer.parseInt(connectionTimeoutString);
+            } catch (NumberFormatException e) {
+                log.error("Error while parsing connection timeout : " + connectionTimeoutString, e);
+            }
         }
+
+        LongWaitStatusStoreService longWaitStatusStoreService =
+                new LongWaitStatusStoreService(cacheBackedDao, connectionTimeout);
+        dataHolder.setLongWaitStatusStoreService(longWaitStatusStoreService);
+
+        // Registering JIT, association and domain handler as post authentication handler
+        PostAuthenticationHandler postJITProvisioningHandler = JITProvisioningPostAuthenticationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postJITProvisioningHandler, null);
+        PostAuthenticationHandler postAuthAssociationHandler = PostAuthAssociationHandler.getInstance();
+        bundleContext.registerService(PostAuthenticationHandler.class.getName(), postAuthAssociationHandler, null);
+        PostAuthenticationHandler postAuthenticatedUserDomainHandler = PostAuthenticatedSubjectIdentifierHandler
+                .getInstance();
+        bundleContext
+                .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Application Authentication Framework bundle is activated");
+        }
+
+        /**
+         * Load and reade the require.js file in resources.
+         */
+        this.loadCodeForRequire();
+
+        // Set user session mapping enabled.
+        FrameworkServiceDataHolder.getInstance().setUserSessionMappingEnabled(FrameworkUtils
+                .isUserSessionMappingEnabled());
     }
 
     @Deactivate
