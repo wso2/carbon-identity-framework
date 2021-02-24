@@ -354,6 +354,7 @@
   "identity_mgt_account_suspension.use_identity_claims": true,
 
   "sp_role_management.return_only_mapped_local_roles": false,
+  "idp_role_management.return_only_mapped_local_roles": false,
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
