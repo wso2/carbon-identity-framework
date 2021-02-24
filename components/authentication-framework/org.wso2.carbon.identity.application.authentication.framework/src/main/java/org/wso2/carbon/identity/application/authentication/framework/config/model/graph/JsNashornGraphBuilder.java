@@ -242,9 +242,8 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     }
 
     private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
-        return  this.engine;
-//            return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
-//                    .createEngine(authenticationContext);
+        return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
+                    .createEngine(authenticationContext);
 
     }
 }

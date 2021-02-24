@@ -676,8 +676,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
-//        jsBasedEvaluator.evaluate(context,
-//        (jsConsumer) -> jsConsumer.call(null, new GraalJsAuthenticationContext(context)));
         jsBasedEvaluator.evaluate(fn, JsWrapperFactorySingleton.getInstance().createJsAuthenticationContext(context));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
@@ -710,8 +708,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
-//        return jsBasedEvaluator.evaluate(context,
-//                (jsFunction) -> jsFunction.call(null, stepId, new GraalJsAuthenticationContext(context)));
         return jsBasedEvaluator.evaluate(fn, stepId,
                 JsWrapperFactorySingleton.getInstance().createJsAuthenticationContext(context));
     }

@@ -204,10 +204,10 @@
             <version>20.2.0</version>
         </dependency>
         <dependency>
-        <groupId>org.graalvm.truffle</groupId>
-        <artifactId>truffle-api</artifactId>
-        <version>20.2.0</version>
-    </dependency>
+            <groupId>org.graalvm.truffle</groupId>
+            <artifactId>truffle-api</artifactId>
+            <version>20.2.0</version>
+        </dependency>
     </dependencies>
 
     <build>
