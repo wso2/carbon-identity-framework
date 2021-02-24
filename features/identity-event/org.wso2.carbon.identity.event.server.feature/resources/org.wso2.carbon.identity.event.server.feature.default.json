@@ -36,6 +36,7 @@
   "identity_mgt.events.schemes.'account.disable.handler'.module_index": "5",
   "identity_mgt.events.schemes.'account.disable.handler'.subscriptions": [
     "PRE_AUTHENTICATION",
+    "POST_AUTHENTICATION",
     "PRE_SET_USER_CLAIMS",
     "POST_SET_USER_CLAIMS"
   ],
