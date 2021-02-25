@@ -871,4 +871,19 @@ public class UserSessionStore {
         }
         return activeSessionCount;
     }
+
+    /**
+     * Returns the user id of the federated user
+     *
+     * @param userName
+     * @param tenantId
+     * @param idPId
+     * @return
+     * @throws UserSessionException
+     */
+    public String getFederatedUserId(String userName, int tenantId, int idPId)
+            throws UserSessionException {
+
+        return getUserId(userName, tenantId, null, idPId);
+    }
 }
