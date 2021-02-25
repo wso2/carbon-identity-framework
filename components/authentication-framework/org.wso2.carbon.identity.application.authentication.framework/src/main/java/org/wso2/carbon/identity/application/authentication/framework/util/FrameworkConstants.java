@@ -97,6 +97,7 @@ public abstract class FrameworkConstants {
     public static final String CHANGING_USERNAME_ALLOWED = "changingUserNameAllowed";
     public static final String MISSING_CLAIMS = "missingClaims";
     public static final String MISSING_CLAIMS_DISPLAY_NAME = "missingClaimsDisplayName";
+    public static final String POST_AUTH_MISSING_CLAIMS_ERROR = "postAuthMissingClaimsError";
 
     public static final String REQUEST_PARAM_SP = "sp";
     public static final String MAPPED_ATTRIBUTES = "MappedAttributes";
@@ -161,6 +162,8 @@ public abstract class FrameworkConstants {
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
         public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+        public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnOnlyMappedLocalRoles";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
@@ -491,5 +494,12 @@ public abstract class FrameworkConstants {
         public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
         public static final String CONSOLE_APP = "Console";
         public static final String CONSOLE_APP_PATH = "/console";
+    }
+
+    public static class AutoLoginConstant {
+
+        public static final String COOKIE_NAME = "ALOR";
+        public static final String CONTENT = "content";
+        public static final String DOMAIN = "domain";
     }
 }

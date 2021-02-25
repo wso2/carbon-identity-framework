@@ -95,7 +95,7 @@ public interface WorkflowListener {
     /**
      * Trigger after deleting workflows by tenant id.
      *
-     * @param tenantId Id of the tenant
+     * @param tenantId The id of the tenant.
      * @throws WorkflowException
      */
     default void doPostDeleteWorkflows(int tenantId) throws WorkflowException {

@@ -3572,8 +3572,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Delete all applications of a given tenant id.
      *
-     * @param tenantId Id of the tenant
-     * @throws IdentityApplicationManagementException
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
      */
     @Override
     public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
@@ -3586,7 +3586,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
 
-            // Delete the application certificates of the tenant
+            // Delete the application certificates of the tenant.
             deleteCertificatesByTenantId(connection, tenantId);
 
             try (PreparedStatement deleteClientPrepStmt = connection
@@ -3826,8 +3826,8 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Deletes all certificates of a given tenant id from the database.
      *
-     * @param connection Connection
-     * @param tenantId Id of the tenant
+     * @param connection The database connection.
+     * @param tenantId The id of the tenant.
      */
     private void deleteCertificatesByTenantId(Connection connection, int tenantId) throws SQLException {
 
@@ -5170,9 +5170,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     /**
      * Add audit log entry.
      *
-     * @param action Action
-     * @param data Audit data
-     * @param result Result
+     * @param action The action of the log.
+     * @param data   Data of the action to log.
+     * @param result The success of fail state of the action.
      */
     private void audit(String action, String data, String result) {
 
@@ -5180,7 +5180,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         if (StringUtils.isBlank(loggedInUser)) {
             loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
-
         String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
 

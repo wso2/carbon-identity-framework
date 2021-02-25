@@ -1,5 +1,6 @@
 {
   "authentication.consent.prompt": true,
+  "authentication.consent.subject.prompt": true,
   "authentication.map_federated_users_to_local": false,
 
   "identity.data_source": "jdbc/WSO2IdentityDB",
@@ -335,6 +336,7 @@
   "identity_mgt.user_self_registration.enable_account_lock_for_verified_preferred_channel" : true,
   "identity_mgt.user_self_registration.enable_detailed_api_response" : false,
   "identity_mgt.user_self_registration.lock_on_creation": true,
+  "identity_mgt.user_self_registration.send_confirmation_on_creation": false,
   "identity_mgt.user_self_registration.notify_account_confirmation": false,
   "identity_mgt.user_self_registration.enable_recaptcha": true,
   "identity_mgt.user_self_registration.verification_email_validity": "$ref{identity_mgt.default_mail_validity_period}",
@@ -352,6 +354,7 @@
   "identity_mgt_account_suspension.use_identity_claims": true,
 
   "sp_role_management.return_only_mapped_local_roles": false,
+  "idp_role_management.return_only_mapped_local_roles": false,
 
   "authentication_policy.check_account_exist": true,
   "authentication.jit_provisioning.username_provisioning_url": "/accountrecoveryendpoint/register.do",
@@ -617,22 +620,16 @@
 
   "continue_on_claim_handling_error": true,
 
-  "console.applications.account_app.configs": {
-    "path": "/myaccount/overview"
-  },
+  "console.applications.account_app.configs.path": "/myaccount/overview",
   "console.app_base_name": "console",
   "console.client_id": "CONSOLE",
   "console.debug.enable": false,
-  "console.applications.admin_app.configs": {
-    "basePath": "/manage",
-    "displayName": "Manage",
-    "path": "/manage/users"
-  },
-  "console.applications.developer_app.configs": {
-    "basePath": "/develop",
-    "displayName": "Develop",
-    "path": "/develop/applications"
-  },
+  "console.applications.admin_app.configs.basePath": "/manage",
+  "console.applications.admin_app.configs.displayName": "Manage",
+  "console.applications.admin_app.configs.path": "/manage/users",
+  "console.applications.developer_app.configs.basePath": "/develop",
+  "console.applications.developer_app.configs.displayName": "Develop",
+  "console.applications.developer_app.configs.path": "/develop/applications",
   "console.documentation.base_url": "https://api.github.com",
   "console.documentation.content_base_url": "https://api.github.com/repos/wso2/docs-is/contents/en/docs",
   "console.documentation.github_options": {
@@ -920,6 +917,9 @@
   "cors.supported_methods": [
     "GET",
     "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
     "HEAD",
     "OPTIONS"
   ],
