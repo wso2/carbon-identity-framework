@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.entitlement.cache;
 
 import org.apache.axis2.clustering.ClusteringAgent;
 import org.apache.axis2.clustering.ClusteringFault;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -78,10 +79,12 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
                 synchronized (localPolicyCacheMap) {
                     if (localPolicyCacheMap.get(identityCacheKey.getTenantId()) != null) {
                         if(localPolicyCacheMap.get(identityCacheKey.getTenantId()).get(identityCacheKey.getKey())!=null){
-                            if (policyStatus != null && policyStatus.getPolicyId()
-                                    .equals(localPolicyCacheMap.get(identityCacheKey.getTenantId())
-                                            .get(identityCacheKey.getKey()).getPolicyId())) {
-                                validateAndUpdatePolicyAction(identityCacheKey, policyStatus);
+                            if (policyStatus != null && StringUtils.isNotEmpty(policyStatus.getPolicyId())) {
+                                if (policyStatus.getPolicyId()
+                                        .equals(localPolicyCacheMap.get(identityCacheKey.getTenantId())
+                                                .get(identityCacheKey.getKey()).getPolicyId())) {
+                                    validateAndUpdatePolicyAction(identityCacheKey, policyStatus);
+                                }
                             }
                             PolicyStatus status = localPolicyCacheMap.get(identityCacheKey.getTenantId()).get(identityCacheKey.getKey());
                             status.setPolicyAction(getPriorityAction(status.getPolicyAction(),policyStatus.getPolicyAction()));
@@ -117,12 +120,12 @@ public class PolicyCache extends EntitlementBaseCache<IdentityCacheKey, PolicySt
     /**
      * To update the localPolicyCacheMap whenever the deletion and publishing are carried out at the same time.
      * <p>
-     * In this edge case, When the user deletes the policy, the deleted policy is added to the policy cache
+     * In this edge case, when the user deletes the policy, the deleted policy is added to the policy cache
      * (policies to be invalidated) with the status- "DELETE" and when the policy is published back again since
      * there is already a cache entry with the status- "DELETE" the status would not be changed to "UPDATE".
      *
-     * @param identityCacheKey identity Cache key which wraps the identity related cache key values
-     * @param policyStatus     the status of the policy
+     * @param identityCacheKey Identity Cache key which wraps the identity related cache key values.
+     * @param policyStatus     The status of the policy.
      */
     private static void validateAndUpdatePolicyAction(IdentityCacheKey identityCacheKey, PolicyStatus policyStatus) {
 
