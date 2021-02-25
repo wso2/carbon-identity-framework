@@ -82,7 +82,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
 //        todo move to functions registry
         bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                (SelectOneFunction) selectAcrFromFunction::evaluate);
+                selectAcrFromFunction);
 
         JsLogger jsLogger = new JsLogger();
         bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
