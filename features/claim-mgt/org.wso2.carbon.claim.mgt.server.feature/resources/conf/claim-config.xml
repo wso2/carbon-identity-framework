@@ -120,7 +120,6 @@
 				<DisplayName>Role</DisplayName>
 				<AttributeID>role</AttributeID>
 				<Description>Role</Description>
-	            		<SupportedByDefault />
 				<ReadOnly />
 			</Claim>
 			<Claim>

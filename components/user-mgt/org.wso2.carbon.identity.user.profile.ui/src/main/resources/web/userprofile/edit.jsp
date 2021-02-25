@@ -27,6 +27,7 @@
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@page import="org.wso2.carbon.user.mgt.ui.Util" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@page import="java.net.URLEncoder" %>
 <script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
@@ -41,6 +42,10 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
 <%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
+<%@ page
+        import="static org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil.isGroupsVsRolesSeparationEnabled" %>
+<%@ page import="java.util.Arrays" %>
+<%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
 
 <%
     boolean readOnlyUserStore = false;
@@ -85,6 +90,11 @@
         
         if (userProfile != null) {
             userFields = client.getOrderedUserFields(userProfile.getFieldValues());
+            if (IdentityUtil.isGroupsVsRolesSeparationEnabled()) {
+                // Filter role claim.
+                userFields = Arrays.stream(userFields).filter(field -> !UserCoreConstants.ROLE_CLAIM
+                        .equalsIgnoreCase(field.getClaimUri())).toArray();
+            }
             profileConfigs = userProfile.getProfileConfigurations();
         }
         isLockable = UserProfileUIUtil.isAccountLockable(decryptedUsername);

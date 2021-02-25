@@ -35,6 +35,8 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="org.wso2.carbon.identity.claim.metadata.mgt.ui.utils.ClaimConstants" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="java.util.Arrays" %>
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
@@ -47,6 +49,11 @@
     try {
         ClaimMetadataAdminClient client = new ClaimMetadataAdminClient(cookie, serverURL, configContext);
         localClaims = client.getLocalClaims();
+        if (IdentityUtil.isGroupsVsRolesSeparationEnabled()) {
+            // Filter role claim.
+            localClaims = Arrays.stream(localClaims).filter(localClaim -> !UserCoreConstants.ROLE_CLAIM
+                    .equalsIgnoreCase(localClaim.getLocalClaimURI())).toArray();
+        }
         session.setAttribute("localClaims", localClaims);
     } catch (Exception e) {
         String BUNDLE = "org.wso2.carbon.identity.claim.metadata.mgt.ui.i18n.Resources";
