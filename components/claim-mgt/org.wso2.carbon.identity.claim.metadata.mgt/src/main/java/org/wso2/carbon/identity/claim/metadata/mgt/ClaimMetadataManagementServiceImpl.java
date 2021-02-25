@@ -34,7 +34,9 @@ import org.wso2.carbon.identity.claim.metadata.mgt.model.ExternalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.claim.metadata.mgt.util.ClaimConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.util.List;
@@ -168,6 +170,13 @@ public class ClaimMetadataManagementServiceImpl implements ClaimMetadataManageme
         // Add listener
 
         List<LocalClaim> localClaims = this.localClaimDAO.getLocalClaims(tenantId);
+
+        // Filter the local claim `role` when groups vs roles separation is enabled. This claim is considered as a
+        // legacy claim going forward, thus `roles` and `groups` claims should be used instead.
+        if (IdentityUtil.isGroupsVsRolesSeparationEnabled()) {
+            localClaims = localClaims.stream().filter(localClaim -> !UserCoreConstants.ROLE_CLAIM.equalsIgnoreCase(
+                    localClaim.getClaimURI())).collect(Collectors.toList());
+        }
 
         // Add listener
 

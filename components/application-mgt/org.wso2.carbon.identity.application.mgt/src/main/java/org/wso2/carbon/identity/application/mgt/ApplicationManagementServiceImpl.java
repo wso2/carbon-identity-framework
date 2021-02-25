@@ -64,11 +64,13 @@ import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMg
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtService;
 import org.wso2.carbon.identity.application.mgt.defaultsequence.DefaultAuthSeqMgtServiceImpl;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponent;
+import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationMgtListenerServiceComponent;
 import org.wso2.carbon.identity.application.mgt.listener.AbstractApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationMgtListener;
 import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceManagementListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidatorManager;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityConfigParser;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -843,12 +845,21 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
         try {
             startTenantFlow(tenantDomain);
             String claimDialect = ApplicationMgtSystemConfig.getInstance().getClaimDialect();
-            ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getClaimManager()
-                    .getAllClaimMappings(claimDialect);
+
             List<String> claimUris = new ArrayList<>();
-            for (ClaimMapping claimMap : claimMappings) {
-                claimUris.add(claimMap.getClaim().getClaimUri());
+            if (UserCoreConstants.DEFAULT_CARBON_DIALECT.equalsIgnoreCase(claimDialect)) {
+                // Local claims are retrieved via ClaimMetadataManagement service for consistency.
+                List<LocalClaim> localClaims = ApplicationManagementServiceComponentHolder.getInstance()
+                        .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+                claimUris = getLocalClaimURIs(localClaims);
+            } else {
+                ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
+                        .getClaimManager().getAllClaimMappings(claimDialect);
+                for (ClaimMapping claimMap : claimMappings) {
+                    claimUris.add(claimMap.getClaim().getClaimUri());
+                }
             }
+
             String[] allLocalClaimUris = (claimUris.toArray(new String[claimUris.size()]));
             if (ArrayUtils.isNotEmpty(allLocalClaimUris)) {
                 Arrays.sort(allLocalClaimUris);
@@ -2549,6 +2560,17 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
                 }
             }
         }
+    }
+
+    private ArrayList<String> getLocalClaimURIs(List<LocalClaim> localClaims) {
+
+        // Using Java 8 streams to do the mapping will result in breaking at the axis level thus using the following
+        // approach.
+        ArrayList<String> localClaimsArray = new ArrayList<String>();
+        for (LocalClaim localClaim : localClaims) {
+            localClaimsArray.add(localClaim.getClaimURI());
+        }
+        return localClaimsArray;
     }
 }
 

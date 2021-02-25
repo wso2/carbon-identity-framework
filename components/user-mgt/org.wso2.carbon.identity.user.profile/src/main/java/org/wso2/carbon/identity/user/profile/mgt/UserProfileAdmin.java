@@ -477,6 +477,13 @@ public class UserProfileAdmin extends AbstractAdmin {
                 UserFieldDTO data = new UserFieldDTO();
                 Claim claim = claims[j];
                 String claimUri = claim.getClaimUri();
+
+                // Skip legacy `role` claim URI from user's profile.
+                if (IdentityUtil.isGroupsVsRolesSeparationEnabled() && UserCoreConstants.ROLE_CLAIM
+                        .equalsIgnoreCase(claimUri)) {
+                    continue;
+                }
+
                 if (!UserCoreConstants.PROFILE_CONFIGURATION.equals(claimUri)) {
                     data.setClaimUri(claimUri);
                     data.setFieldValue(valueMap.get(claimUri));

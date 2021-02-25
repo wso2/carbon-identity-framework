@@ -27,12 +27,13 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.user.api.ClaimMapping;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -339,20 +340,18 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     public String[] getAllLocalClaimUris() throws IdentityProviderManagementException {
 
         try {
-            String claimDialect = LOCAL_DEFAULT_CLAIM_DIALECT;
-            ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext()
-                    .getUserRealm().getClaimManager().getAllClaimMappings(claimDialect);
-            List<String> claimUris = new ArrayList<String>();
-            for (ClaimMapping claimMap : claimMappings) {
-                claimUris.add(claimMap.getClaim().getClaimUri());
-            }
-            String[] allLocalClaimUris = claimUris.toArray(new String[0]);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            List<LocalClaim> localClaims = IdpMgtServiceComponentHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+
+            String[] allLocalClaimUris = getLocalClaimsArray(localClaims);
+
             if (ArrayUtils.isNotEmpty(allLocalClaimUris)) {
                 Arrays.sort(allLocalClaimUris);
             }
             return allLocalClaimUris;
-        } catch (UserStoreException e) {
-            String message = "Error while reading system claims";
+        } catch (ClaimMetadataException e) {
+            String message = "Error while reading local claims";
             log.error(message, e);
             throw new IdentityProviderManagementException(message, e);
         }
@@ -413,5 +412,16 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             log.error("Error while retrieving IDP metadata", idpException);
             throw idpException;
         }
+    }
+
+    private String[] getLocalClaimsArray(List<LocalClaim> localClaims) {
+
+        // Using Java 8 streams to do the mapping will result in breaking at the axis level thus using the followng
+        // approach.
+        ArrayList<String> localClaimsArray = new ArrayList<String>();
+        for (LocalClaim localClaim : localClaims) {
+            localClaimsArray.add(localClaim.getClaimURI());
+        }
+        return localClaimsArray.toArray(new String[0]);
     }
 }

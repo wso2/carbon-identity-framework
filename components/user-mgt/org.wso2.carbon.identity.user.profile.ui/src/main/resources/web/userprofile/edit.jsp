@@ -42,10 +42,9 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 <%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil" %>
 <%@ page import="org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIException" %>
-<%@ page
-        import="static org.wso2.carbon.identity.user.profile.ui.client.UserProfileUIUtil.isGroupsVsRolesSeparationEnabled" %>
 <%@ page import="java.util.Arrays" %>
 <%@ page import="org.wso2.carbon.user.core.UserCoreConstants" %>
+<%@ page import="java.util.ArrayList" %>
 
 <%
     boolean readOnlyUserStore = false;
@@ -90,11 +89,6 @@
         
         if (userProfile != null) {
             userFields = client.getOrderedUserFields(userProfile.getFieldValues());
-            if (IdentityUtil.isGroupsVsRolesSeparationEnabled()) {
-                // Filter role claim.
-                userFields = Arrays.stream(userFields).filter(field -> !UserCoreConstants.ROLE_CLAIM
-                        .equalsIgnoreCase(field.getClaimUri())).toArray();
-            }
             profileConfigs = userProfile.getProfileConfigurations();
         }
         isLockable = UserProfileUIUtil.isAccountLockable(decryptedUsername);

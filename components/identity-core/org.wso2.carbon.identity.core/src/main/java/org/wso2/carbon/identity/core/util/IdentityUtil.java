@@ -1405,10 +1405,15 @@ public class IdentityUtil {
      *
      * @return Where groups vs separation enabled or not.
      */
-    public static boolean isGroupsVsRolesSeparationEnabled() throws CarbonException,
-            org.wso2.carbon.user.core.UserStoreException {
+    public static boolean isGroupsVsRolesSeparationEnabled() {
 
-        return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration().getRealmProperty(
-                UserCoreConstants.RealmConfig.PROPERTY_GROUP_AND_ROLE_SEPARATION_ENABLED));
+        try {
+            return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
+                    .getAuthorizationManagerProperty(UserCoreConstants.RealmConfig.
+                            PROPERTY_GROUP_AND_ROLE_SEPARATION_ENABLED));
+        } catch (org.wso2.carbon.user.core.UserStoreException | CarbonException e) {
+            log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
+            return Boolean.FALSE;
+        }
     }
 }

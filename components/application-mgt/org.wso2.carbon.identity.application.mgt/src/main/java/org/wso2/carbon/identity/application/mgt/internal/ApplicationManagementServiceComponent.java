@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.application.mgt.listener.ApplicationResourceMana
 import org.wso2.carbon.identity.application.mgt.listener.DefaultApplicationResourceMgtListener;
 import org.wso2.carbon.identity.application.mgt.validator.ApplicationValidator;
 import org.wso2.carbon.identity.application.mgt.validator.DefaultApplicationValidator;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.idp.mgt.listener.IdentityProviderMgtListener;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -337,5 +338,23 @@ public class ApplicationManagementServiceComponent {
         objForUncategorized.put(ApplicationConstants.CATEGORY_ORDER, ApplicationConstants.ORDER_FOR_UNCATEGORIZED);
         categoriesObj.put(ApplicationConstants.UNCATEGORIZED, objForUncategorized);
         return categoriesObj;
+    }
+
+    @Reference(
+            name = "claim.meta.mgt.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetaMgtService"
+    )
+    protected void setClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setClaimMetadataManagementService(
+                claimMetaMgtService);
+    }
+
+    protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        ApplicationManagementServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }
