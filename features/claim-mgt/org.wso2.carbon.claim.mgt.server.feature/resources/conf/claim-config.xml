@@ -117,10 +117,9 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/role</ClaimURI>
-				<DisplayName>Role</DisplayName>
+				<DisplayName>Roles and groups</DisplayName>
 				<AttributeID>role</AttributeID>
-				<Description>Role</Description>
-				<SupportedByDefault/>
+				<Description>Include both userstore groups and internal roles</Description>
 				<ReadOnly />
 			</Claim>
 			<Claim>
