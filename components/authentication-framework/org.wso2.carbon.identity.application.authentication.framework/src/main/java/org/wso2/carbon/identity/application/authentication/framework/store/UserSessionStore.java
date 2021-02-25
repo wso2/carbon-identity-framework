@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -873,17 +874,19 @@ public class UserSessionStore {
     }
 
     /**
-     * Returns the user id of the federated user
+     * Returns the user id of the federated user.
      *
      * @param userName
-     * @param tenantId
+     * @param tenantDomain
      * @param idPId
      * @return
      * @throws UserSessionException
      */
-    public String getFederatedUserId(String userName, int tenantId, int idPId)
+    public String getFederatedUserId(String userName, String tenantDomain, int idPId)
             throws UserSessionException {
 
+        int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
+                .getTenantId(tenantDomain);
         return getUserId(userName, tenantId, null, idPId);
     }
 }
