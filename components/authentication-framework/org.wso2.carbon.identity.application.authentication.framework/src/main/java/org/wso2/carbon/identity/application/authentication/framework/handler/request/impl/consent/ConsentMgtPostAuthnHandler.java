@@ -22,7 +22,9 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.PostAuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.AbstractPostAuthnHandler;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus;
@@ -214,11 +216,14 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private void removeClaimsWithoutConsent(AuthenticationContext context, ConsentClaimsData consentClaimsData)
             throws PostAuthenticationFailedException {
 
-        List<ClaimMetaData> claimsWithConsent = consentClaimsData.getClaimsWithConsent();
-        List<String> claimsURIsWithConsent = getClaimsFromMetaData(claimsWithConsent);
-        Set<String> claimsWithoutConsent = getClaimsWithoutConsent(claimsURIsWithConsent, context);
+        List<ClaimMetaData> claimsWithConsentAndRequestedConsent = consentClaimsData.getClaimsWithConsent();
+        claimsWithConsentAndRequestedConsent.addAll(consentClaimsData.getRequestedClaims());
+        claimsWithConsentAndRequestedConsent.addAll(consentClaimsData.getMandatoryClaims());
+        List<String> claimsURIsWithConsentAndRequestedConsent =
+                getClaimsFromMetaData(claimsWithConsentAndRequestedConsent);
+        List<String> claimsWithoutConsent = getClaimsWithoutConsent(claimsURIsWithConsentAndRequestedConsent, context);
         String spStandardDialect = getStandardDialect(context);
-        removeUserClaimsFromContext(context, new ArrayList<>(claimsWithoutConsent), spStandardDialect);
+        removeUserClaimsFromContext(context, claimsWithoutConsent, spStandardDialect);
     }
 
     private ServiceProvider getServiceProvider(AuthenticationContext context) {
@@ -238,16 +243,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return spTenantDomain;
     }
 
-    private Set<String> getClaimsWithoutConsent(List<String> claimWithConsent, AuthenticationContext context)
+    private List<String> getClaimsWithoutConsent(List<String> claimWithConsentAndRequestedConsent,
+                                                 AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
-        List<String> requestedClaims = new ArrayList<>(getSPRequestedLocalClaims(context));
-        List<String> mandatoryClaims = new ArrayList<>(getSPMandatoryLocalClaims(context));
-        Set<String> consentClaims = getUniqueLocalClaims(requestedClaims, mandatoryClaims);
-
-        consentClaims.removeAll(claimWithConsent);
-        consentClaims.removeAll(mandatoryClaims);
-        return consentClaims;
+        List<String> claimsWithoutConsent = getSPRequestedLocalClaims(context);
+        claimsWithoutConsent.removeAll(claimWithConsentAndRequestedConsent);
+        return claimsWithoutConsent;
     }
 
     private String buildConsentClaimString(List<ClaimMetaData> consentClaimsData) {
@@ -257,12 +259,6 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
             joiner.add(claimMetaData.getId() + "_" + claimMetaData.getDisplayName());
         }
         return joiner.toString();
-    }
-
-    private Set<String> getUniqueLocalClaims(List<String> requestedClaims, List<String> mandatoryClaims) {
-
-        return Stream.concat(requestedClaims.stream(), mandatoryClaims.stream()).collect
-                (Collectors.toSet());
     }
 
     protected PostAuthnHandlerFlowStatus handlePostConsent(HttpServletRequest request, HttpServletResponse response,
@@ -291,7 +287,7 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
                 List<Integer> claimIdsWithConsent = getClaimIdsWithConsent(userConsent);
                 getSSOConsentService().processConsent(claimIdsWithConsent, serviceProvider, authenticatedUser,
                                                  consentClaimsData);
-                removeDisapprovedClaims(context, userConsent);
+                removeDisapprovedClaims(context, authenticatedUser);
             } catch (SSOConsentDisabledException e) {
                 String error = "Authentication Failure: Consent management is disabled for SSO.";
                 String errorDesc = "Illegal operation. Consent management is disabled, but post authentication for " +
@@ -356,11 +352,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return userConsent.getApprovedClaims().stream().map(ClaimMetaData::getId).collect(Collectors.toList());
     }
 
-    private void removeDisapprovedClaims(AuthenticationContext context, UserConsent userConsent) {
+    private void removeDisapprovedClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser)
+            throws SSOConsentServiceException, PostAuthenticationFailedException {
 
         String spStandardDialect = getStandardDialect(context);
-        List<String> disapprovedClaims = getClaimsFromMetaData(userConsent.getDisapprovedClaims());
-
+        List<String> claimWithConsent = getClaimsFromMetaData(getSSOConsentService().
+                getClaimsWithConsents(getServiceProvider(context), authenticatedUser));
+        List<String> disapprovedClaims = getClaimsWithoutConsent(claimWithConsent, context);
         if (isDebugEnabled()) {
             String message = "Removing disapproved claims: %s in the dialect: %s by user: %s for service provider: %s" +
                              " in tenant domain: %s.";
