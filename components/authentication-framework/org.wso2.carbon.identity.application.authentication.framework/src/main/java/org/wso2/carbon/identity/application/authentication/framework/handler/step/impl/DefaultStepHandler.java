@@ -56,11 +56,9 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.SAML2SSO.FED_AUTH_NAME;
 import static org.wso2.carbon.identity.base.IdentityConstants.FEDERATED_IDP_SESSION_ID;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESIDENT_IDP;
 
@@ -140,6 +138,8 @@ public class DefaultStepHandler implements StepHandler {
                     AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
                     populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData,
                             stepConfig.getAuthenticatorList().get(0));
+                    request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                            .SUCCESS_COMPLETED);
                 } else {
                     context.setRequestAuthenticated(false);
                 }
@@ -148,6 +148,8 @@ public class DefaultStepHandler implements StepHandler {
                 AuthenticatedIdPData authenticatedIdPData = authenticatedIdPs.get(authenticatedIdP);
                 populateStepConfigWithAuthenticationDetails(stepConfig, authenticatedIdPData, authenticatedStepIdps
                         .get(authenticatedIdP));
+                request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus
+                        .SUCCESS_COMPLETED);
             }
 
             stepConfig.setCompleted(true);
