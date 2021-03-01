@@ -876,17 +876,15 @@ public class UserSessionStore {
     /**
      * Returns the user id of the federated user.
      *
-     * @param userName
-     * @param tenantDomain
+     * @param userName - username of the federated user.
+     * @param tenantId
      * @param idPId
      * @return
      * @throws UserSessionException
      */
-    public String getFederatedUserId(String userName, String tenantDomain, int idPId)
+    public String getFederatedUserId(String userName, int tenantId, int idPId)
             throws UserSessionException {
-
-        int tenantId = (tenantDomain == null) ? MultitenantConstants.INVALID_TENANT_ID : IdentityTenantUtil
-                .getTenantId(tenantDomain);
+        
         return getUserId(userName, tenantId, null, idPId);
     }
 }
