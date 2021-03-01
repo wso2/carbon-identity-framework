@@ -21,13 +21,13 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -51,7 +51,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
             throws FrameworkException {
 
         Map<String, Object> map = (Map<String, Object>) authContext.getProperty(JS_BINDING_CURRENT_CONTEXT);
-        Value bindings = context.getBindings("js");
+        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 Object deserializedValue = FrameworkUtils.fromJsSerializableGraal(entry.getValue(), context);
@@ -62,7 +62,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
 
     public static void persistCurrentContext(AuthenticationContext authContext, Context context) {
 
-        Value engineBindings = context.getBindings("js");
+        Value engineBindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.getMemberKeys().forEach((key) -> {
             Value keybinding = engineBindings.getMember(key);
@@ -76,13 +76,14 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
 
     public Context createEngine(AuthenticationContext authenticationContext) {
 
-        Context context = Context.newBuilder("js").allowAllAccess(true).build();
+        Context context = Context.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE)
+                .allowHostAccess(HostAccess.ALL).build();
 
-        Value bindings = context.getBindings("js");
+        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
 //        todo move to functions registry
         bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                (SelectOneFunction) selectAcrFromFunction::evaluate);
+                selectAcrFromFunction);
 
         JsLogger jsLogger = new JsLogger();
         bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);

@@ -2408,7 +2408,7 @@ public class FrameworkUtils {
         if (value instanceof Serializable) {
             if (value instanceof HashMap) {
                 Map<String, Object> map = new HashMap<>();
-                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializable(v)));
+                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializableGraal(v)));
                 return map;
             } else {
                 return value;
@@ -2446,7 +2446,7 @@ public class FrameworkUtils {
             } else if (valueObj.hasMembers()) {
                 Map<String, Serializable> serializedMap = new HashMap<>();
                 valueObj.getMemberKeys().forEach((key) -> {
-                    Object serializedObj = toJsSerializable(valueObj.getMember(key));
+                    Object serializedObj = toJsSerializableGraal(valueObj.getMember(key));
                     if (serializedObj instanceof Serializable) {
                         serializedMap.put(key, (Serializable) serializedObj);
                         if (log.isDebugEnabled()) {
@@ -2498,20 +2498,24 @@ public class FrameworkUtils {
         if (value instanceof GraalSerializableJsFunction) {
             GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;
             try {
-                context.eval("js", "var tempFunc = " + serializableJsFunction.getSource());
-                return context.getBindings("js").getMember("tempFunc");
+                context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
+                        "var tempFunc = " + serializableJsFunction.getSource());
+                return context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE)
+                        .getMember("tempFunc");
             } catch (Exception e) {
                 log.error("could not recreate JS Object", e);
             }
         } else if (value instanceof Map) {
-            Value deserializedValue = context.eval("js", "[]");
+            Value deserializedValue = context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
+                    "[]");
             for (Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
                 Object deserializedObj = fromJsSerializableGraal(entry.getValue(), context);
                 deserializedValue.putMember(entry.getKey(), deserializedObj);
             }
             return deserializedValue;
         } else if (value instanceof List) {
-            Value deserializedValue = context.eval("js", "[]");
+            Value deserializedValue = context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
+                    "[]");
             List valueList = (List) value;
             int listSize = valueList.size();
             for (int index = 0; index < listSize; index++) {

@@ -422,6 +422,9 @@ public abstract class FrameworkConstants {
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
+
+        public static final String POLYGLOT_SOURCE = "src.js";
+        public static final String POLYGLOT_LANGUAGE = "js";
     }
     public static class InternalRoleDomains {
 

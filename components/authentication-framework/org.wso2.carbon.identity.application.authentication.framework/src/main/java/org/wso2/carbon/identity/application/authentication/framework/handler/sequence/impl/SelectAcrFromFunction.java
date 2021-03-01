@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.se
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.graalvm.polyglot.HostAccess;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -34,6 +35,7 @@ public class SelectAcrFromFunction implements SelectOneFunction {
 
     private static final Log log = LogFactory.getLog(SelectAcrFromFunction.class);
 
+    @HostAccess.Export
     public String evaluate(JsAuthenticationContext context, Object possibleOutcomesObj) {
 
         String[] possibleOutcomes = extractPossibleOutcomes(context, possibleOutcomesObj);
@@ -85,7 +87,7 @@ public class SelectAcrFromFunction implements SelectOneFunction {
                 if (outcomeToTest.equals(acrChecked)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Reassigning Best Match for the outcome : " + outcomeToTest + " with priority : " +
-                                x+1);
+                                x + 1);
                     }
                     acrRequestedWithPriority.put(x+1, acrChecked) ;
                     break;

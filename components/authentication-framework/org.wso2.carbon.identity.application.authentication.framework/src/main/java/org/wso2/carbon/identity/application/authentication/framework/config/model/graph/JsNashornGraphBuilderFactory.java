@@ -90,7 +90,7 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<Scrip
         SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
 //        todo move to functions registry
         bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-            (SelectOneFunction) selectAcrFromFunction::evaluate);
+                selectAcrFromFunction);
 
         JsLogger jsLogger = new JsLogger();
         bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);

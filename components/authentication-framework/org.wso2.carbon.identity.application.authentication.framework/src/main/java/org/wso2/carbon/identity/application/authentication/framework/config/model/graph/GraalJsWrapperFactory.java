@@ -87,6 +87,4 @@ public class GraalJsWrapperFactory implements JsWrapperFactory {
 
         return new GraalSerializableJsFunction(source, isFunction);
     }
-
-
 }

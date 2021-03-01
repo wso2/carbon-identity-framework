@@ -94,7 +94,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
 
         try {
             currentBuilder.set(this);
-            Value bindings = context.getBindings("js");
+            Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
 
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP, (StepExecutor) this::executeStep);
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)
@@ -113,14 +113,14 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             }
             SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                    (SelectOneFunction) selectAcrFromFunction::evaluate);
+                    selectAcrFromFunction);
             currentBuilder.set(this);
-            context.eval(Source.newBuilder("js",
+            context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
                     FrameworkServiceDataHolder.getInstance().getCodeForRequireFunction(),
-                    "src.js").build());
-            context.eval(Source.newBuilder("js",
+                    FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
+            context.eval(Source.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
                     script,
-                    "src.js").build());
+                    FrameworkConstants.JSAttributes.POLYGLOT_SOURCE).build());
 
             Value onLoginRequestFn = bindings.getMember(FrameworkConstants.JSAttributes.JS_FUNC_ON_LOGIN_REQUEST);
             if (onLoginRequestFn == null) {
@@ -192,7 +192,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 return null;
             }
             Context context = getContext(authenticationContext);
-            Value bindings = context.getBindings("js");
+            Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
 
 
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP
