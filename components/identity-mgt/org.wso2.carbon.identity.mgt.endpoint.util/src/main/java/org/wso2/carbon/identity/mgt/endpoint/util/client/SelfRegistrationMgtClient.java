@@ -291,6 +291,10 @@ public class SelfRegistrationMgtClient {
                         if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
                             return new Integer(SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
                         }
+                    } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
+                        JSONObject jsonResponse = new JSONObject(
+                                new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
+                        return jsonResponse.getInt("code");
                     }
                     // Logging and throwing since this is a client
                     if (log.isDebugEnabled()) {
