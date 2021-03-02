@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.st
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreClientException;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -624,8 +626,9 @@ public class DefaultStepHandler implements StepHandler {
         } catch (AuthenticationFailedException e) {
             IdentityErrorMsgContext errorContext = IdentityUtil.getIdentityErrorMsg();
             if (errorContext != null) {
+                Throwable rootCause = ExceptionUtils.getRootCause(e);
                 if (!IdentityCoreConstants.ADMIN_FORCED_USER_PASSWORD_RESET_VIA_OTP_ERROR_CODE.
-                        equals(errorContext.getErrorCode())) {
+                        equals(errorContext.getErrorCode()) && !(rootCause instanceof UserStoreClientException)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Authentication failed exception!", e);
                     }
@@ -739,7 +742,7 @@ public class DefaultStepHandler implements StepHandler {
                 String errorCode = errorContext.getErrorCode();
                 String reason = null;
                 if (errorCode.contains(":")) {
-                    String[] errorCodeReason = errorCode.split(":");
+                    String[] errorCodeReason = errorCode.split(":", 2);
                     if (errorCodeReason.length > 1) {
                         errorCode = errorCodeReason[0];
                         reason = errorCodeReason[1];
@@ -811,7 +814,10 @@ public class DefaultStepHandler implements StepHandler {
                             ("accountrecoveryendpoint/confirmrecovery.do?" + context.getContextIdIncludedQueryParams()))
                             + "&username=" + URLEncoder.encode(username, "UTF-8") + "&confirmation=" + otp;
                 } else {
-                    retryParam = retryParam + "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
+                    if (StringUtils.isNotBlank(retryParam) && StringUtils.isNotBlank(reason)) {
+                        retryParam = "&authFailure=true&authFailureMsg=" + URLEncoder.encode(reason, "UTF-8");
+                    }
+                    retryParam += "&errorCode=" + errorCode + "&failedUsername=" + URLEncoder.encode
                             (request.getParameter("username"), "UTF-8");
                     return response.encodeRedirectURL(loginPage + ("?" + context.getContextIdIncludedQueryParams()))
                             + "&authenticators=" + URLEncoder.encode(authenticatorNames, "UTF-8") + retryParam;
