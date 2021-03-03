@@ -876,15 +876,15 @@ public class UserSessionStore {
     /**
      * Returns the user id of the federated user.
      *
-     * @param userName - username of the federated user.
-     * @param tenantId
+     * @param subjectIdentifier Subject Identifier of the federated user.
+     * @param tenantId          Id of the tenant domain
      * @param idPId
      * @return
      * @throws UserSessionException
      */
-    public String getFederatedUserId(String userName, int tenantId, int idPId)
+    public String getFederatedUserId(String subjectIdentifier, int tenantId, int idPId)
             throws UserSessionException {
-        
-        return getUserId(userName, tenantId, null, idPId);
+
+        return getUserId(subjectIdentifier, tenantId, null, idPId);
     }
 }
