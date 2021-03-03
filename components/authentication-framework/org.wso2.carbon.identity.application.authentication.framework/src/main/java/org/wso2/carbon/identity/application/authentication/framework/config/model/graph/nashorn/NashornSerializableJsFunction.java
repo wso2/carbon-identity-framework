@@ -26,7 +26,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 
-import java.util.function.Function;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
@@ -91,7 +90,7 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
 
     /**
      * This will return the converted NashornSerializableJsFunction if the given  ScriptObjectMirror is a function.
-     * @param functionObject
+     * @param functionObject function object to serialize
      * @return null if the ScriptObjectMirror is not a function.
      */
     public static NashornSerializableJsFunction toSerializableForm(Object functionObject) {
@@ -118,14 +117,10 @@ public class NashornSerializableJsFunction implements SerializableJsFunction<Scr
         this.name = name;
     }
 
-    private static NashornSerializableJsFunction serializeGraal(Function functionObject) {
-        return new NashornSerializableJsFunction("", true);
-    }
-
-    /**.
-     * Serialize Nashorn javascript funmction
-     * @param scriptObjectMirror
-     * @return
+    /**
+     * Serialize Nashorn javascript function.
+     * @param scriptObjectMirror JavaScript Object
+     * @return serialized JavaScript Source
      */
     private static NashornSerializableJsFunction serializeNashorn(ScriptObjectMirror scriptObjectMirror) {
 

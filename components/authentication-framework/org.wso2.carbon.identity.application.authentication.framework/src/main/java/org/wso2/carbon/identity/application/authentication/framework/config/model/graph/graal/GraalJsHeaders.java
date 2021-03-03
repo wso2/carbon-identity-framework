@@ -73,9 +73,7 @@ public class GraalJsHeaders implements ProxyObject {
         if (wrapped == null) {
             return false;
         } else {
-            if (wrapped.containsKey(name)) {
-                wrapped.remove(name);
-            }
+            wrapped.remove(name);
         }
         return false;
     }

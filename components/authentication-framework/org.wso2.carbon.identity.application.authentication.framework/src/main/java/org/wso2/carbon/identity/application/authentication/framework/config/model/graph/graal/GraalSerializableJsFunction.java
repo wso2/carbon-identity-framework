@@ -45,7 +45,7 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
     public GraalSerializableJsFunction(String source, String functionType) {
 
         this.source = source;
-        if (functionType == "polyglotFunction") {
+        if (functionType.equals("polyglotFunction")) {
             this.isPolyglotFunction = true;
         } else {
             this.isHostFunction = true;
@@ -61,7 +61,7 @@ public class GraalSerializableJsFunction implements SerializableJsFunction<Conte
     /**
      * This will return the converted NashornSerializableJsFunction if the given  ScriptObjectMirror is a function.
      *
-     * @param functionObject
+     * @param functionObject Value type Function to Serialize
      * @return null if the ScriptObjectMirror is not a function.
      */
     public static GraalSerializableJsFunction toSerializableForm(Object functionObject) {

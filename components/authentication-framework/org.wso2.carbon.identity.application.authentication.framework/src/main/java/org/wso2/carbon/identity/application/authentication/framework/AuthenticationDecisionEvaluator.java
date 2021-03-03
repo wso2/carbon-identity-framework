@@ -40,5 +40,5 @@ public interface AuthenticationDecisionEvaluator extends Serializable {
      * @param params - Parameters for the JavaScript function
      * @return
      */
-    Object evaluate(SerializableJsFunction fn, Object... params);
+    Object evaluate(SerializableJsFunction<?> fn, Object... params);
 }

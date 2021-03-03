@@ -131,24 +131,20 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
 
     @Override
     public void putMember(String key, Value value) {
-        switch (key) {
-            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                getWrapped().setSelectedAcr(String.valueOf(value));
-                break;
+
+        if (FrameworkConstants.JSAttributes.JS_SELECTED_ACR.equals(key)) {
+            getWrapped().setSelectedAcr(String.valueOf(value));
         }
     }
 
     @Override
     public boolean removeMember(String name) {
 
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_SELECTED_ACR:
-                getWrapped().setSelectedAcr(null);
-                return true;
-            default:
-
-                return false;
+        if (FrameworkConstants.JSAttributes.JS_SELECTED_ACR.equals(name)) {
+            getWrapped().setSelectedAcr(null);
+            return true;
         }
+        return false;
     }
 
 

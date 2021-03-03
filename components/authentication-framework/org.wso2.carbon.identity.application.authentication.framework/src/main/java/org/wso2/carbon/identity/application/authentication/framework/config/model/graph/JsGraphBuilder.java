@@ -36,5 +36,5 @@ public interface JsGraphBuilder {
 
     AuthenticationGraph build();
 
-    AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction fn);
+    AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction<?> fn);
 }

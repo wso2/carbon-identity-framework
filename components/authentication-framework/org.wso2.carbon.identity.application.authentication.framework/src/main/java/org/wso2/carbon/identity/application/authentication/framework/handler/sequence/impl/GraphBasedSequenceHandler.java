@@ -26,7 +26,6 @@ import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -670,9 +669,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        SerializableJsFunction<?> fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
@@ -685,9 +684,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context, Map<String, Object> data) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        SerializableJsFunction<?> fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = jsGraphBuilder.getScriptEvaluator(fn);

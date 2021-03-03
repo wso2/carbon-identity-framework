@@ -40,20 +40,17 @@ public abstract class AbstractJSObjectWrapper<T> extends AbstractJSContextMember
     }
 
     public Object getMember(String name) {
-        switch (name) {
-            case "getWrapped": //Allows polyglot to proxy getWrapped method
-                return getWrapped();
+
+        if ("getWrapped".equals(name)) { //Allows polyglot to proxy getWrapped method
+            return getWrapped();
         }
         return null;
     }
 
     public boolean hasMember(String name) {
 
-        switch (name) {
-            case "getWrapped":  //Allows polyglot to proxy getWrapped method
-                return true;
-        }
-        return false;
+        //Allows polyglot to proxy getWrapped method
+        return "getWrapped".equals(name);
     }
 
 }

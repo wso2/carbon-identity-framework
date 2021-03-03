@@ -96,23 +96,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         FrameworkServiceDataHolder.getInstance().setAsyncSequenceExecutor(asyncSequenceExecutor);
     }
 
-//    public void GraphBasedSequenceHandlerAbstractTest(JsGraphBuilderFactory graphBuilderFactory ){
-//        this.configurationLoader = new UIBasedConfigurationLoader();
-//        this.graphBuilderFactory = graphBuilderFactory;
-//
-//        JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
-//        org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction selectAcrFromFunction = new org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction();
-//        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-//                FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, selectAcrFromFunction);
-//        FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
-//
-//        graphBuilderFactory.init();
-//        FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
-//
-//        AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
-//        asyncSequenceExecutor.init();
-//        FrameworkServiceDataHolder.getInstance().setAsyncSequenceExecutor(asyncSequenceExecutor);
-//    }
     @BeforeMethod
     protected void setUp() throws UserStoreException, NoSuchFieldException, IllegalAccessException,
             NoSuchMethodException, URISyntaxException {

@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
@@ -157,14 +156,14 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     }
 
     @Override
-    protected Function<Object, SerializableJsFunction> effectiveFunctionSerializer() {
+    protected Function<Object, SerializableJsFunction<?>> effectiveFunctionSerializer() {
 
         return GraalSerializableJsFunction::toSerializableForm;
     }
 
-    public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction fn) {
+    public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction<?> fn) {
 
-        return this.new JsBasedEvaluator(fn);
+        return new JsBasedEvaluator((GraalSerializableJsFunction) fn);
     }
 
     /**
@@ -176,9 +175,9 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     public class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
 
         private static final long serialVersionUID = 6853505881096840344L;
-        private SerializableJsFunction jsFunction;
+        private final GraalSerializableJsFunction jsFunction;
 
-        public JsBasedEvaluator(SerializableJsFunction jsFunction) {
+        public JsBasedEvaluator(GraalSerializableJsFunction jsFunction) {
 
             this.jsFunction = jsFunction;
         }

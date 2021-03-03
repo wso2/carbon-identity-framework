@@ -81,11 +81,11 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         }
         return result;
     }
-
     public static void clearCurrentBuilder() {
         currentBuilder.remove();
     }
 
+    @SuppressWarnings("unchecked")
     public static <T extends JsGraphBuilder> T getCurrentBuilder() {
 
         return (T) currentBuilder.get();
@@ -155,7 +155,6 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
      * @param handlers   Handlers to run before and after the prompt.
      * @param callbacks  Callbacks to run after the prompt.
      */
-    @SuppressWarnings("unchecked")
     public static void addPrompt(String templateId, Map<String, Object> parameters, Map<String, Object> handlers,
                                  Map<String, Object> callbacks) {
 
@@ -200,8 +199,8 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     /**
      * Adding the long wait process.
      *
-     * @param asyncProcess
-     * @param parameterMap
+     * @param asyncProcess Async Process
+     * @param parameterMap Parameter Map for the process
      */
     private void addLongWaitProcessInternal(AsyncProcess asyncProcess,
                                            Map<String, Object> parameterMap) {
@@ -220,7 +219,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         this.currentNode = newNode;
     }
 
-    protected abstract Function<Object, SerializableJsFunction> effectiveFunctionSerializer();
+    protected abstract Function<Object, SerializableJsFunction<?>> effectiveFunctionSerializer();
 
 
     /**
@@ -534,6 +533,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
      *
      * @param options Authentication options
      */
+    @SuppressWarnings("unchecked")
     protected void authenticatorParamsOptions(Map<String, Object> options, StepConfig stepConfig) {
 
         Map<String, Map<String, String>> authenticatorParams = new HashMap<>();
@@ -639,13 +639,13 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
      */
     protected static void addEventListeners(DynamicDecisionNode decisionNode,
                                             Map<String, Object> eventsMap, Function<Object,
-            SerializableJsFunction> serializerFunction) {
+            SerializableJsFunction<?>> serializerFunction) {
 
         if (eventsMap == null) {
             return;
         }
         eventsMap.forEach((key, value) -> {
-            SerializableJsFunction jsFunction;
+            SerializableJsFunction<?> jsFunction;
             jsFunction = serializerFunction.apply(value);
             if (jsFunction != null) {
                 jsFunction.setName(key);
@@ -657,14 +657,14 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     }
 
     private static void addHandlers(ShowPromptNode showPromptNode, Map<String, Object> handlersMap,
-                                    Function<Object, SerializableJsFunction> serializerFunction) {
+                                    Function<Object, SerializableJsFunction<?>> serializerFunction) {
 
         if (handlersMap == null) {
             return;
         }
         handlersMap.forEach((key, value) -> {
             if (value instanceof ScriptObjectMirror) {
-                SerializableJsFunction jsFunction = serializerFunction.apply(value);
+                SerializableJsFunction<?> jsFunction = serializerFunction.apply(value);
                 if (jsFunction != null) {
                     showPromptNode.addHandler(key, jsFunction);
                 } else {
@@ -717,24 +717,33 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         return new StepConfigGraphNode(stepConfig);
     }
 
+    /**
+     * functional interface for executeStep function.
+     */
     @FunctionalInterface
     public interface StepExecutor {
 
         void executeStep(Integer stepId, Object... parameterMap);
     }
-
+    /**
+     * functional interface for addShowPrompt function.
+     */
     @FunctionalInterface
     public interface PromptExecutor {
 
         void prompt(String template, Object... parameterMap);
     }
-
+    /**
+     * functional interface for restricted functions.
+     */
     @FunctionalInterface
     public interface RestrictedFunction {
 
         void exit(Object... arg);
     }
-
+    /**
+     * functional interface for loadLocalLibrary function.
+     */
     @FunctionalInterface
     public interface LoadExecutor {
 
@@ -742,4 +751,3 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     }
 
 }
-

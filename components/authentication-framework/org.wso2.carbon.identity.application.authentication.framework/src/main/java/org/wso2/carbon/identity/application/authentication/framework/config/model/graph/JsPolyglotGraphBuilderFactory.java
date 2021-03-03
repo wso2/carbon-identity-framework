@@ -46,7 +46,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
     public void init() {
 
     }
-
+    @SuppressWarnings("unchecked")
     public static void restoreCurrentContext(AuthenticationContext authContext, Context context)
             throws FrameworkException {
 

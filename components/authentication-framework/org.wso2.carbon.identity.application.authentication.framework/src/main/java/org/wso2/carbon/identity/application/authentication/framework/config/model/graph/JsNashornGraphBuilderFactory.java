@@ -21,13 +21,13 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.ss.formula.functions.T;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -47,7 +47,6 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<Scrip
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
 
     // Suppress the Nashorn deprecation warnings in jdk 11
-    @SuppressWarnings("removal")
     private NashornScriptEngineFactory factory;
 
 
@@ -55,7 +54,7 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<Scrip
 
         factory = new NashornScriptEngineFactory();
     }
-
+    @SuppressWarnings("unchecked")
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
         throws FrameworkException {
 
@@ -65,7 +64,7 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<Scrip
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), engine);
                 if (deserializedValue instanceof AbstractJSObjectWrapper) {
-                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
+                    ((AbstractJSObjectWrapper<T>) deserializedValue).initializeContext(context);
                 }
                 bindings.put(entry.getKey(), deserializedValue);
             }

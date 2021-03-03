@@ -248,7 +248,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
             userRealm.getUserStoreManager().setUserClaimValues(usernameWithDomain, claimUriMap, null);
         } catch (UserStoreException e) {
             LOG.error(String.format("Error when setting claim : %s of user: %s to value: %s", claimUri,
-                    authenticatedUser, String.valueOf(claimValue)), e);
+                    authenticatedUser, claimValue), e);
         }
     }
 
@@ -262,7 +262,7 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
     private String getRemoteClaimMappedToLocalClaim(String localClaim, Map<String, String> remoteClaimsMap) {
 
         String authenticatorDialect = null;
-        Map<String, String> localToIdpClaimMapping = null;
+        Map<String, String> localToIdpClaimMapping;
         String tenantDomain = getContext().getTenantDomain();
         try {
             // Check if the IDP use an standard dialect (like oidc), If it does, dialect claim mapping are

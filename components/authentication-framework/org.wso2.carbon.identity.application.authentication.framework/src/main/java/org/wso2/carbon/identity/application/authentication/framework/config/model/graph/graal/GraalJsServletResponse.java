@@ -52,19 +52,17 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
     @Override
     public Object getMember(String name) {
 
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                Map headers = new HashMap();
-                Collection<String> headerNames = getResponse().getHeaderNames();
-                if (headerNames != null) {
-                    for (String element : headerNames) {
-                        headers.put(element, getResponse().getHeader(element));
-                    }
+        if (FrameworkConstants.JSAttributes.JS_HEADERS.equals(name)) {
+            Map headers = new HashMap();
+            Collection<String> headerNames = getResponse().getHeaderNames();
+            if (headerNames != null) {
+                for (String element : headerNames) {
+                    headers.put(element, getResponse().getHeader(element));
                 }
-                return new GraalJsHeaders(headers, getResponse());
-            default:
-                return super.getMember(name);
+            }
+            return new GraalJsHeaders(headers, getResponse());
         }
+        return super.getMember(name);
     }
 
     @Override
@@ -81,12 +79,10 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
             return false;
         }
 
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return true;
-            default:
-                return super.hasMember(name);
+        if (FrameworkConstants.JSAttributes.JS_HEADERS.equals(name)) {
+            return true;
         }
+        return super.hasMember(name);
     }
 
     @Override

@@ -94,6 +94,6 @@ public class GraalJsRuntimeClaims extends GraalJsClaims implements ProxyObject {
         if (claimValueAsString == null) {
             claimValueAsString = StringUtils.EMPTY;
         }
-        getContext().addRuntimeClaim(claimUri, String.valueOf(claimValueAsString));
+        getContext().addRuntimeClaim(claimUri, claimValueAsString);
     }
 }

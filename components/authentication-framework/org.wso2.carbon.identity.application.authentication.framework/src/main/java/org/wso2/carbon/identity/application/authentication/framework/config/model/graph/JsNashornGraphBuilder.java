@@ -144,13 +144,13 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     }
 
 
-    protected Function<Object, SerializableJsFunction> effectiveFunctionSerializer() {
+    protected Function<Object, SerializableJsFunction<?>> effectiveFunctionSerializer() {
 
-        return v -> NashornSerializableJsFunction.toSerializableForm(v);
+        return NashornSerializableJsFunction::toSerializableForm;
     }
 
 
-    protected SerializableJsFunction toSerializableForm(Object function) {
+    protected SerializableJsFunction<?> toSerializableForm(Object function) {
 
         return NashornSerializableJsFunction.toSerializableForm(function);
     }
@@ -164,7 +164,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     public class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
 
         private static final long serialVersionUID = 6853505881096840344L;
-        private NashornSerializableJsFunction jsFunction;
+        private final NashornSerializableJsFunction jsFunction;
 
         public JsBasedEvaluator(NashornSerializableJsFunction jsFunction) {
 
