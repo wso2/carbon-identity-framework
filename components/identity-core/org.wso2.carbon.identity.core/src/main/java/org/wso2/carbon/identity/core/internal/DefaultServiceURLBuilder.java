@@ -489,18 +489,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String fetchAbsolutePublicUrl() throws URLBuilderException {
 
             StringBuilder absolutePublicUrl = new StringBuilder();
-            if (StringUtils.isBlank(protocol)) {
-                throw new URLBuilderException("Protocol of service URL is not available.");
-            }
-            if (StringUtils.isBlank(proxyHostName)) {
-                throw new URLBuilderException("Hostname of service URL is not available.");
-            }
-            absolutePublicUrl.append(protocol).append("://");
-            absolutePublicUrl.append(proxyHostName.toLowerCase());
-            // If it's well known HTTPS port, skip adding port.
-            if (proxyPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
-                absolutePublicUrl.append(":").append(proxyPort);
-            }
+            absolutePublicUrl.append(fetchAbsolutePublicUrlWithoutURLPath());
             absolutePublicUrl.append(fetchRelativePublicUrl());
             return absolutePublicUrl.toString();
         }
