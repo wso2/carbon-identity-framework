@@ -2177,7 +2177,7 @@
 				<Description>Roles</Description>
 				<DisplayOrder>5</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:x509Certificates.default</ClaimURI>
