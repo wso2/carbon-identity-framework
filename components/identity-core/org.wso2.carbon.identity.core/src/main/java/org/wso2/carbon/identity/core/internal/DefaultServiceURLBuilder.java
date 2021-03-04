@@ -300,6 +300,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         private String absoluteInternalUrl;
         private String relativePublicUrl;
         private String relativeInternalUrl;
+        private String absolutePublicUrlWithoutURLPath;
 
         private ServiceURLImpl(String protocol, String proxyHostName, String internalHostName, int proxyPort,
                                int transportPort,
@@ -320,6 +321,7 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             this.absoluteInternalUrl = fetchAbsoluteInternalUrl();
             this.relativePublicUrl = fetchRelativePublicUrl();
             this.relativeInternalUrl = fetchRelativeInternalUrl();
+            this.absolutePublicUrlWithoutURLPath = fetchAbsolutePublicUrlWithoutURLPath();
         }
 
         /**
@@ -449,6 +451,18 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
         }
 
         /**
+         * Returns the proxy server url when the Identity Server is fronted with a proxy.
+         * Concatenate the protocol, host name, port and  return the public absolute URL.
+         *
+         * @return The public absolute URL without any url path.
+         */
+        @Override
+        public String getAbsolutePublicUrlWithoutPath() {
+
+            return absolutePublicUrlWithoutURLPath;
+        }
+
+        /**
          * Returns the relative url, relative to the proxy the server is fronted with.
          * Concatenate the url context, query params and the fragment to the url path to return the public relative URL.
          *
@@ -520,6 +534,25 @@ public class DefaultServiceURLBuilder implements ServiceURLBuilder {
             appendParamsToUri(relativeUrl, fragment, "#");
             return relativeUrl.toString();
         }
+
+        private String fetchAbsolutePublicUrlWithoutURLPath() throws URLBuilderException {
+
+            StringBuilder absolutePublicUrlWithoutURLPath = new StringBuilder();
+            if (StringUtils.isBlank(protocol)) {
+                throw new URLBuilderException("Protocol of service URL is not available.");
+            }
+            if (StringUtils.isBlank(proxyHostName)) {
+                throw new URLBuilderException("Hostname of service URL is not available.");
+            }
+            absolutePublicUrlWithoutURLPath.append(protocol).append("://");
+            absolutePublicUrlWithoutURLPath.append(proxyHostName.toLowerCase());
+            // If it's well known HTTPS port, skip adding port.
+            if (proxyPort != IdentityCoreConstants.DEFAULT_HTTPS_PORT) {
+                absolutePublicUrlWithoutURLPath.append(":").append(proxyPort);
+            }
+            return absolutePublicUrlWithoutURLPath.toString();
+        }
+
 
         private String fetchRelativeInternalUrl() throws URLBuilderException {
 
