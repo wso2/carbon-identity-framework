@@ -80,12 +80,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
             graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
         }
 
-//        graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
-
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
-        org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction selectAcrFromFunction = new org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-                FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, selectAcrFromFunction);
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
         graphBuilderFactory.init();

@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -80,11 +79,6 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
                 .allowHostAccess(HostAccess.ALL).build();
 
         Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-//        todo move to functions registry
-        bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                selectAcrFromFunction);
-
         JsLogger jsLogger = new JsLogger();
         bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return context;

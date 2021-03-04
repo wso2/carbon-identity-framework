@@ -27,7 +27,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -86,11 +85,6 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<Scrip
         Bindings bindings = engine.createBindings();
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
         engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-//        todo move to functions registry
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-                selectAcrFromFunction);
-
         JsLogger jsLogger = new JsLogger();
         bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return engine;

@@ -54,7 +54,6 @@
 <!--        <parameter name="log-level" value="debug"/>-->
         <parameter name="scriptEngine" value="nashorn"/>
         <classes>
-<!--            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAcrTest"/>-->
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />
@@ -68,7 +67,6 @@
 <!--        <parameter name="log-level" value="debug"/>-->
         <parameter name="scriptEngine" value="graaljs"/>
         <classes>
-<!--            <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerAcrTest"/>-->
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerNoJsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerCustomFunctionsTest"/>
             <class name="org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.GraphBasedSequenceHandlerClaimMappingsTest" />
