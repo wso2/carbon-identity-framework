@@ -138,7 +138,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     }
 
     @Override
-    public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction fn) {
+    public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction<?> fn) {
 
         return new JsBasedEvaluator((NashornSerializableJsFunction) fn);
     }
@@ -172,8 +172,9 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
         }
 
         @Override
-        public Object evaluate(SerializableJsFunction fn, Object... params) {
+        public Object evaluate(SerializableJsFunction<?> fn, Object... params) {
 
+            NashornSerializableJsFunction func = (NashornSerializableJsFunction) fn;
             JsNashornGraphBuilder graphBuilder = JsNashornGraphBuilder.this;
             Object result = null;
             if (jsFunction == null) {
@@ -205,7 +206,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
                     JsNashornGraphBuilder.contextForJs.set(authenticationContext);
 
 
-                    result = fn.apply(scriptEngine, params);
+                    result = func.apply(scriptEngine, params);
 
                     JsNashornGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 

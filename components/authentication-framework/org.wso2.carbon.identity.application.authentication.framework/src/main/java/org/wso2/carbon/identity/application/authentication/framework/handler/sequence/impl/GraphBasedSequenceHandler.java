@@ -701,9 +701,9 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private Object evaluateHandler(String outcomeName, ShowPromptNode dynamicDecisionNode,
                                    AuthenticationContext context, Object stepId) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
+        SerializableJsFunction<?> fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);

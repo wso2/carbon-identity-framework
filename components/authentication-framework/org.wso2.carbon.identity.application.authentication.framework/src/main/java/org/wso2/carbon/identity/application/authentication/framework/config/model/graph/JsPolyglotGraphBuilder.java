@@ -183,8 +183,9 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
         }
 
         @Override
-        public Object evaluate(SerializableJsFunction fn, Object... params) {
+        public Object evaluate(SerializableJsFunction<?> fn, Object... params) {
 
+            GraalSerializableJsFunction func = (GraalSerializableJsFunction) fn;
             JsPolyglotGraphBuilder graphBuilder = JsPolyglotGraphBuilder.this;
             Object result = null;
             if (jsFunction == null) {
@@ -216,7 +217,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 JsPolyglotGraphBuilderFactory.restoreCurrentContext(authenticationContext, context);
                 JsPolyglotGraphBuilder.contextForJs.set(authenticationContext);
 
-                result = fn.apply(context, params);
+                result = func.apply(context, params);
 
                 JsPolyglotGraphBuilderFactory.persistCurrentContext(authenticationContext, context);
 

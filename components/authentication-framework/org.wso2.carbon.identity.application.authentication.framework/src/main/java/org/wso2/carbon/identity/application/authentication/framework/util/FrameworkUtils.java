@@ -2408,7 +2408,7 @@ public class FrameworkUtils {
         if (value instanceof Serializable) {
             if (value instanceof HashMap) {
                 Map<String, Object> map = new HashMap<>();
-                ((HashMap) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializableGraal(v)));
+                ((HashMap<String, Object>) value).forEach((k, v) -> map.put((String) k, FrameworkUtils.toJsSerializableGraal(v)));
                 return map;
             } else {
                 return value;
@@ -2516,7 +2516,7 @@ public class FrameworkUtils {
         } else if (value instanceof List) {
             Value deserializedValue = context.eval(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE,
                     "[]");
-            List valueList = (List) value;
+            List<?> valueList = (List<?>) value;
             int listSize = valueList.size();
             for (int index = 0; index < listSize; index++) {
                 Object deserializedObject = fromJsSerializableGraal(valueList.get(index), context);

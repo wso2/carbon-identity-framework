@@ -66,7 +66,7 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
-    protected JsGraphBuilderFactory graphBuilderFactory;
+    protected JsGraphBuilderFactory<?> graphBuilderFactory;
 
     @BeforeClass
     @Parameters({"scriptEngine"})

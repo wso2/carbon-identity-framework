@@ -53,7 +53,7 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
     public Object getMember(String name) {
 
         if (FrameworkConstants.JSAttributes.JS_HEADERS.equals(name)) {
-            Map headers = new HashMap();
+            Map<String, String> headers = new HashMap<>();
             Collection<String> headerNames = getResponse().getHeaderNames();
             if (headerNames != null) {
                 for (String element : headerNames) {

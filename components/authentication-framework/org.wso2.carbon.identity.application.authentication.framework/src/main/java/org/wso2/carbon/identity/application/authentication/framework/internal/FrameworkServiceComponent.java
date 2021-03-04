@@ -275,7 +275,7 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsGraphBuilderFactory jsGraphBuilderFactory = createJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = createJsGraphBuilderFactory();
         assert jsGraphBuilderFactory != null;
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
