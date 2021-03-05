@@ -29,9 +29,11 @@ import org.apache.xerces.util.SecurityManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.CarbonException;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.caching.impl.CachingConstants;
+import org.wso2.carbon.core.util.AdminServicesUtil;
 import org.wso2.carbon.core.util.Utils;
 import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.base.IdentityException;
@@ -1396,5 +1398,26 @@ public class IdentityUtil {
             // Ignore.
         }
         return defaultItemsPerPage;
+    }
+
+    /**
+     * Check with authorization manager whether groups vs roles separation config is set to true.
+     *
+     * @return Where groups vs separation enabled or not.
+     */
+    public static boolean isGroupsVsRolesSeparationEnabled() {
+
+        try {
+            if (AdminServicesUtil.getUserRealm() == null) {
+                log.warn("Unable to find the user realm, thus GroupAndRoleSeparationEnabled is set as FALSE.");
+                return Boolean.FALSE;
+            }
+            return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
+                    .getAuthorizationManagerProperty(UserCoreConstants.RealmConfig.
+                            PROPERTY_GROUP_AND_ROLE_SEPARATION_ENABLED));
+        } catch (org.wso2.carbon.user.core.UserStoreException | CarbonException e) {
+            log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
+            return Boolean.FALSE;
+        }
     }
 }
