@@ -238,17 +238,15 @@ public class SelfRegistrationMgtClient {
     /**
      * Checks whether a given username is valid or not and return a JSON object with API response.
      *
-     * @param username        Username.
+     * @param user            User.
      * @param skipSignUpCheck To specify whether to enable or disable the check whether sign up is enabled for this
      *                        tenant.
      * @return A JSON object with API response data.
      * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
      */
-    public JSONObject checkUsernameValidityStatus(String username, boolean skipSignUpCheck)
+    public JSONObject checkUsernameValidityStatus(User user, boolean skipSignUpCheck)
             throws SelfRegistrationMgtClientException {
 
-        User user = new User();
-        user.setUsername(username);
         return checkUserNameValidityInternal(user, skipSignUpCheck);
     }
 
