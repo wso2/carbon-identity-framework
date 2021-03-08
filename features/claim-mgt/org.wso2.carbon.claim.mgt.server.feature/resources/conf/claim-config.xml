@@ -404,6 +404,8 @@
 				<DisplayName>Groups</DisplayName>
 				<AttributeID>groups</AttributeID>
 				<Description>Groups</Description>
+				<SupportedByDefault />
+				<ReadOnly />
 			</Claim>
 			<Claim>
 				<ClaimURI>http://wso2.org/claims/identity/verifyEmail</ClaimURI>
