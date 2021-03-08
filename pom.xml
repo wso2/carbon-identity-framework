@@ -2020,6 +2020,11 @@
 
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>
+
+        <!--Sonar Cloud Integration-->
+        <sonar.projectKey>tharindu-bandara_carbon-identity-framework</sonar.projectKey>
+        <sonar.organization>tharindu-bandara</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <build>
