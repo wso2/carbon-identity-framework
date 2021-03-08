@@ -5,4 +5,8 @@ cache:
   directories:
   - .autoconf
   - $HOME/.m2
-script:  mvn clean install
+addons:
+  sonarcloud:
+    organization: "tharindu-bandara" # the key of the org you chose at step #3
+script:
+  - mvn clean install sonar:sonar
