@@ -28,7 +28,6 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
-import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
