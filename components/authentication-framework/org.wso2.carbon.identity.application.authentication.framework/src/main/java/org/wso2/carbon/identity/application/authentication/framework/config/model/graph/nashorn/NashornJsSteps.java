@@ -28,7 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import java.util.Optional;
 
 /**
- * Returns when context.steps[<step_number/>] is called.
+ * Returns when context.steps[step_number] is called.
  */
 public class NashornJsSteps extends AbstractJSContextMemberObject implements ProxyArray {
 
