@@ -216,12 +216,13 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
     private void removeClaimsWithoutConsent(AuthenticationContext context, ConsentClaimsData consentClaimsData)
             throws PostAuthenticationFailedException {
 
-        List<ClaimMetaData> claimsWithConsentAndRequestedConsent = consentClaimsData.getClaimsWithConsent();
-        claimsWithConsentAndRequestedConsent.addAll(consentClaimsData.getRequestedClaims());
-        claimsWithConsentAndRequestedConsent.addAll(consentClaimsData.getMandatoryClaims());
-        List<String> claimsURIsWithConsentAndRequestedConsent =
-                getClaimsFromMetaData(claimsWithConsentAndRequestedConsent);
-        List<String> claimsWithoutConsent = getClaimsWithoutConsent(claimsURIsWithConsentAndRequestedConsent, context);
+        List<ClaimMetaData> approvedAndNewlyRequestedConsents = consentClaimsData.getClaimsWithConsent();
+        approvedAndNewlyRequestedConsents.addAll(consentClaimsData.getRequestedClaims());
+        approvedAndNewlyRequestedConsents.addAll(consentClaimsData.getMandatoryClaims());
+        List<String> claimsURIsOfApprovedAndNewlyRequestedConsents =
+                getClaimsFromMetaData(approvedAndNewlyRequestedConsents);
+        List<String> claimsWithoutConsent =
+                getClaimsWithoutConsent(claimsURIsOfApprovedAndNewlyRequestedConsents, context);
         String spStandardDialect = getStandardDialect(context);
         removeUserClaimsFromContext(context, claimsWithoutConsent, spStandardDialect);
     }
@@ -243,12 +244,12 @@ public class ConsentMgtPostAuthnHandler extends AbstractPostAuthnHandler {
         return spTenantDomain;
     }
 
-    private List<String> getClaimsWithoutConsent(List<String> claimWithConsentAndRequestedConsent,
+    private List<String> getClaimsWithoutConsent(List<String> approvedAndNewlyRequestedConsents,
                                                  AuthenticationContext context)
             throws PostAuthenticationFailedException {
 
         List<String> claimsWithoutConsent = getSPRequestedLocalClaims(context);
-        claimsWithoutConsent.removeAll(claimWithConsentAndRequestedConsent);
+        claimsWithoutConsent.removeAll(approvedAndNewlyRequestedConsents);
         return claimsWithoutConsent;
     }
 
