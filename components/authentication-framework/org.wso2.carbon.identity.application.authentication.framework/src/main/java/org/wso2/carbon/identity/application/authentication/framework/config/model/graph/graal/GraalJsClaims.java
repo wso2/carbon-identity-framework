@@ -193,7 +193,6 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
         }
     }
 
-
     /**
      * Get the claim by local claim URI.
      *
@@ -283,7 +282,6 @@ public class GraalJsClaims extends AbstractJSContextMemberObject implements Prox
                 localToIdpClaimMapping = IdentityProviderManager.getInstance().getMappedIdPClaimsMap
                         (idp, tenantDomain, Collections
                                 .singletonList(localClaim));
-
             }
             if (localToIdpClaimMapping != null) {
                 return localToIdpClaimMapping.get(localClaim);

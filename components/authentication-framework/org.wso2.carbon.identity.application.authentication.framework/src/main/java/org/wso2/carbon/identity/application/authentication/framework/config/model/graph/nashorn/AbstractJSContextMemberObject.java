@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * Represents the abstract class for all context objects for Nashorn.
  */
-public class AbstractJSContextMemberObject extends AbstractJSObject implements Serializable {
+public class AbstractJSContextMemberObject implements Serializable {
 
     private transient AuthenticationContext context;
 

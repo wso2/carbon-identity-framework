@@ -54,6 +54,7 @@ public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObje
 
         super(wrapped);
     }
+
     @Override
     public Object getMember(String name) {
 
@@ -114,6 +115,7 @@ public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObje
 
     @Override
     public void putMember(String key, Value value) {
+
         LOG.warn("Unsupported operation. Servlet Request is read only. Can't remove parameter " + key);
     }
 
@@ -124,6 +126,7 @@ public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObje
     }
 
     private HttpServletRequest getRequest() {
+
         TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();
     }

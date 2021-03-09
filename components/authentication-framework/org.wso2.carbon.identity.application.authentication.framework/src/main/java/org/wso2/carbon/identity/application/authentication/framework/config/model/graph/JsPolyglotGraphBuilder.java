@@ -32,8 +32,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -247,5 +249,38 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     private Context getContext(AuthenticationContext authenticationContext) {
 
         return this.context;
+    }
+
+    /**
+     * Adds a function to show a prompt in Javascript code.
+     *
+     * @param templateId Identifier of the template
+     * @param parameters parameters
+     */
+    @SuppressWarnings("unchecked")
+    public void addShowPrompt(String templateId, Object... parameters) {
+
+        ShowPromptNode newNode = new ShowPromptNode();
+        newNode.setTemplateId(templateId);
+
+        if (parameters.length == 2) {
+            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializableGraal(parameters[0]));
+        }
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+
+        currentNode = newNode;
+        if (parameters.length > 0) {
+            if (parameters[parameters.length - 1] instanceof Map) {
+                addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1],
+                        effectiveFunctionSerializer());
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
+
+        }
     }
 }

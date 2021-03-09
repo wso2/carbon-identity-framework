@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+
 /**
  * Javascript wrapper for Java level HttpServletResponse for GraalJs Execution.
  * This provides controlled access to HttpServletResponse object via provided javascript native syntax.
@@ -78,7 +79,6 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
             //Transient Object is null, hence no member access is possible.
             return false;
         }
-
         if (FrameworkConstants.JSAttributes.JS_HEADERS.equals(name)) {
             return true;
         }
@@ -88,14 +88,21 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
     @Override
     public void putMember(String key, Value value) {
 
+
     }
 
+    /**
+     * Gets the HttpSevletResponse from wrapped Object Wrapper.
+     */
     public HttpServletResponse getResponse() {
 
         TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();
     }
 
+    /**
+     * Adds the Cookie to Servlet Response.
+     */
     public void addCookie(Cookie cookie) {
         getResponse().addCookie(cookie);
     }

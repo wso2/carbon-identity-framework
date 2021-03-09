@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +28,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.ApplicationAuthenticatorService;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
@@ -37,7 +35,6 @@ import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementS
 import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
 import org.wso2.carbon.identity.functions.library.mgt.model.FunctionLibrary;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +78,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         }
         return result;
     }
+
     public static void clearCurrentBuilder() {
         currentBuilder.remove();
     }
@@ -114,39 +112,6 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
             log.error("No function library available with " + functionLibraryName + "name.");
         }
         return libraryScript;
-    }
-
-    /**
-     * Adds a function to show a prompt in Javascript code.
-     *
-     * @param templateId Identifier of the template
-     * @param parameters parameters
-     */
-    @SuppressWarnings("unchecked")
-    public void addShowPrompt(String templateId, Object... parameters) {
-
-        ShowPromptNode newNode = new ShowPromptNode();
-        newNode.setTemplateId(templateId);
-
-        if (parameters.length == 2) {
-            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
-        }
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-
-        currentNode = newNode;
-        if (parameters.length > 0) {
-            if (parameters[parameters.length - 1] instanceof Map) {
-                addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1],
-                     effectiveFunctionSerializer());
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-
-        }
     }
 
     /**
@@ -663,15 +628,15 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
             return;
         }
         handlersMap.forEach((key, value) -> {
-            if (value instanceof ScriptObjectMirror) {
+            if (!(value instanceof SerializableJsFunction<?>)) {
                 SerializableJsFunction<?> jsFunction = serializerFunction.apply(value);
                 if (jsFunction != null) {
                     showPromptNode.addHandler(key, jsFunction);
                 } else {
                     log.error("Event handler : " + key + " is not a function : " + value);
                 }
-            } else if (value instanceof SerializableJsFunction) {
-                showPromptNode.addHandler(key, (SerializableJsFunction) value);
+            } else {
+                showPromptNode.addHandler(key, (SerializableJsFunction<?>) value);
             }
         });
     }
@@ -680,6 +645,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
 
         return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
     }
+
     /**
      * Attach the new node to the destination node.
      * Any immediate branches available in the destination will be re-attached to the new node.
@@ -725,6 +691,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
 
         void executeStep(Integer stepId, Object... parameterMap);
     }
+
     /**
      * functional interface for addShowPrompt function.
      */
@@ -733,6 +700,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
 
         void prompt(String template, Object... parameterMap);
     }
+
     /**
      * functional interface for restricted functions.
      */
@@ -741,6 +709,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
 
         void exit(Object... arg);
     }
+
     /**
      * functional interface for loadLocalLibrary function.
      */
@@ -749,5 +718,4 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
 
         String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
     }
-
 }

@@ -86,7 +86,6 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
             case FrameworkConstants.JSAttributes.JS_RETRY_STEP:
                 return getWrapped().isRetrying();
         }
-
         return super.getMember(name);
     }
 
@@ -147,7 +146,6 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
         return false;
     }
 
-
     private boolean hasTransientValueInParameters(String key) {
 
         TransientObjectWrapper transientObjectWrapper = (TransientObjectWrapper) getWrapped().getParameter(key);
@@ -165,21 +163,18 @@ public class GraalJsAuthenticationContext extends AbstractJSObjectWrapper<Authen
         }
     }
 
-
     private String getAuthenticatedIdPOfCurrentStep() {
 
         if (getContext().getSequenceConfig() == null) {
             //Sequence config is not yet initialized
             return null;
         }
-
         StepConfig stepConfig = getContext().getSequenceConfig().getStepMap()
                 .get(getContext().getCurrentStep());
         if (stepConfig != null) {
             return stepConfig.getAuthenticatedIdP();
         }
         return null;
-
     }
 
     private StepConfig getCurrentSubjectIdentifierStep() {

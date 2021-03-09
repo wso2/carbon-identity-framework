@@ -52,5 +52,4 @@ public abstract class AbstractJSObjectWrapper<T> extends AbstractJSContextMember
         //Allows polyglot to proxy getWrapped method
         return "getWrapped".equals(name);
     }
-
 }

@@ -785,10 +785,8 @@ public class FrameworkServiceComponent {
             if ("graaljs".equals(scriptEngineName)) {
                 return new JsPolyglotGraphBuilderFactory();
             }
-            return new JsNashornGraphBuilderFactory();
         }
-        return null;
+        //Enabling Nashorn In case No Config is Present
+        return new JsNashornGraphBuilderFactory();
     };
-
-
 }
