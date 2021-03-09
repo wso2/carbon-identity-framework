@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.core.AbstractIdentityUserMgtFailureEventListener
 import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.Permission;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.listener.UserManagementErrorEventListener;
 import org.wso2.carbon.user.mgt.listeners.utils.ListenerUtils;
@@ -159,6 +160,25 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
                 ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, errorCode,
                 errorMessage));
 
+        return true;
+    }
+
+    @Override
+    public boolean onAddRoleFailureWithID(String errorCode, String errorMessage, String roleName, String[] userList,
+                                          org.wso2.carbon.user.api.Permission[] permissions,
+                                          UserStoreManager userStoreManager) {
+
+        JSONObject dataObject = new JSONObject();
+        if (ArrayUtils.isNotEmpty(userList)) {
+            dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+        }
+        if (ArrayUtils.isNotEmpty(permissions)) {
+            JSONArray permissionsArray = new JSONArray(permissions);
+            dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
+        }
+        audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
+                ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, errorCode,
+                errorMessage));
         return true;
     }
 
