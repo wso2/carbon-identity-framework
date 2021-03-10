@@ -88,6 +88,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_GETTING_REALM_IN_POST_AUTHENTICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_GET_CLAIMS_WHILE_TRYING_TO_PASSWORD_PROVISION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkErrorConstants.ErrorMessages.ERROR_WHILE_TRYING_TO_PROVISION_USER_WITHOUT_PASSWORD_PROVISIONING;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
  * This is post authentication handler responsible for JIT provisioning.
@@ -671,7 +672,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
 
         if (claimMapping != null) {
             //Ex. Standard dialects like OIDC.
-            idpRoleClaimUri = claimMapping.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+            idpRoleClaimUri = claimMapping.get(getLocalGroupsClaimURI());
         } else if (idPStandardDialect == null && !useDefaultIdpDialect) {
             //Ex. SAML custom claims.
             idpRoleClaimUri = FrameworkUtils.getIdpRoleClaimUri(externalIdPConfig);

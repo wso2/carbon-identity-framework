@@ -87,6 +87,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 @PrepareForTest({
                         FrameworkUtils.class, IdentityApplicationManagementUtil.class, ApplicationMgtSystemConfig.class,
@@ -174,8 +175,8 @@ public class DefaultStepBasedSequenceHandlerTest {
     private Object[][] getSpRoleClaimUriData() {
         return new Object[][]{
                 {"SP_ROLE_CLAIM", "SP_ROLE_CLAIM"},
-                {null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI},
-                {"", FrameworkConstants.LOCAL_ROLE_CLAIM_URI}
+                {null, getLocalGroupsClaimURI()},
+                {"", getLocalGroupsClaimURI()}
         };
     }
 
@@ -195,7 +196,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         return new Object[][]{
                 {       // SP mapped role claim
                         new HashMap<String, String>() {{
-                            put("SP_ROLE_CLAIM", FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+                            put("SP_ROLE_CLAIM", getLocalGroupsClaimURI());
                         }},
                         "SP_ROLE_CLAIM"
                 },
@@ -203,13 +204,13 @@ public class DefaultStepBasedSequenceHandlerTest {
                         new HashMap<String, String>() {{
                             put("SP_CLAIM", "LOCAL_CLAIM");
                         }},
-                        FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        getLocalGroupsClaimURI()
                 },
                 {      // No SP mapped claims
-                        new HashMap<>(), FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        new HashMap<>(), getLocalGroupsClaimURI()
                 },
                 {
-                        null, FrameworkConstants.LOCAL_ROLE_CLAIM_URI
+                        null, getLocalGroupsClaimURI()
                 }
         };
     }
@@ -252,7 +253,7 @@ public class DefaultStepBasedSequenceHandlerTest {
         return new Object[][]{
                 {       // SP mapped role claim
                         new ClaimMapping[]{
-                                ClaimMapping.build(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, "IDP_ROLE_CLAIM", "", true)
+                                ClaimMapping.build(getLocalGroupsClaimURI(), "IDP_ROLE_CLAIM", "", true)
                         },
                         "IDP_ROLE_CLAIM"
                 },
@@ -264,7 +265,7 @@ public class DefaultStepBasedSequenceHandlerTest {
                 },
                 {       // Role claim among claim mappings but remote claim is null
                         new ClaimMapping[]{
-                                ClaimMapping.build(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, null, null, true)
+                                ClaimMapping.build(getLocalGroupsClaimURI(), null, null, true)
                         },
                         null
                 },

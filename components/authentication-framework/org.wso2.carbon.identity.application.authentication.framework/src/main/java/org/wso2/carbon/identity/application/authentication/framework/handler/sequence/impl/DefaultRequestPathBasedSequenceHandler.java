@@ -48,6 +48,8 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
+
 public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedSequenceHandler {
 
     private static final Log log = LogFactory.getLog(DefaultRequestPathBasedSequenceHandler.class);
@@ -241,7 +243,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             if (spToLocalClaimMapping != null && !spToLocalClaimMapping.isEmpty()) {
 
                 for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
+                    if (getLocalGroupsClaimURI().equals(entry.getValue())) {
                         return entry.getKey();
                     }
                 }
@@ -249,7 +251,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         }
 
         if (spRoleClaimUri == null) {
-            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            spRoleClaimUri = getLocalGroupsClaimURI();
             if (log.isDebugEnabled()) {
                 String serviceProvider = appConfig.getApplicationName();
                 log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +

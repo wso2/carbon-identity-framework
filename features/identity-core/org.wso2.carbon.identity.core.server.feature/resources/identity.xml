@@ -1879,7 +1879,7 @@
     <!-- This configuration specifies the claims that should be logged to "audit.log" upon changes. -->
     <!--<LoggableUserClaims>-->
         <!--<LoggableUserClaim>http://wso2.org/claims/identity/accountLocked</LoggableUserClaim>-->
-        <!--<LoggableUserClaim>http://wso2.org/claims/role</LoggableUserClaim>-->
+        <!--<LoggableUserClaim>http://wso2.org/claims/groups</LoggableUserClaim>-->
     <!--</LoggableUserClaims>-->
 
     <!--Configuration Store properties-->

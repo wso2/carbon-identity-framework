@@ -66,6 +66,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
  * This is a test class for {@link PostAuthAssociationHandler}.
@@ -122,7 +123,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         ClaimHandler claimHandler = PowerMockito.mock(ClaimHandler.class);
         Map<String, String> claims = new HashMap<>();
         claims.put("claim1", "value1");
-        claims.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, String.format("%s,%s", ORI_ROLE_1, ORI_ROLE_2));
+        claims.put(getLocalGroupsClaimURI(), String.format("%s,%s", ORI_ROLE_1, ORI_ROLE_2));
         PowerMockito.doReturn(claims).when(claimHandler).handleClaimMappings(any(StepConfig.class),
                 any(AuthenticationContext.class), any(Map.class), anyBoolean());
         PowerMockito.when(FrameworkUtils.getClaimHandler()).thenReturn(claimHandler);
@@ -205,8 +206,8 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
         }
 
         if (withSpRoleMapping) {
-            sequenceConfig.getApplicationConfig().getClaimMappings().put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI,
-                    FrameworkConstants.LOCAL_ROLE_CLAIM_URI);
+            sequenceConfig.getApplicationConfig().getClaimMappings().put(getLocalGroupsClaimURI(),
+                    getLocalGroupsClaimURI());
             sequenceConfig.getApplicationConfig().getServiceProvider().getClaimConfig().setLocalClaimDialect(true);
             sequenceConfig.getApplicationConfig().getRoleMappings().put(ORI_ROLE_1, SP_MAPPED_ROLE_1);
             sequenceConfig.getApplicationConfig().getRoleMappings().put(ORI_ROLE_2, SP_MAPPED_ROLE_2);
@@ -218,7 +219,7 @@ public class PostAuthAssociationHandlerTest extends AbstractFrameworkTest {
     private boolean isSpRoleMappingSuccessful(Map<ClaimMapping, String> authenticatedUserAttributes) {
 
         for (Map.Entry<ClaimMapping, String> entry : authenticatedUserAttributes.entrySet()) {
-            if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getKey().getLocalClaim().getClaimUri())) {
+            if (getLocalGroupsClaimURI().equals(entry.getKey().getLocalClaim().getClaimUri())) {
                 List<String> roles = Arrays.asList(entry.getValue().split(","));
                 return roles.size() == 2 && roles.contains(SP_MAPPED_ROLE_1) && roles.contains(SP_MAPPED_ROLE_2);
             }

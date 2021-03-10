@@ -1441,4 +1441,17 @@ public class IdentityUtil {
         }
         return Collections.unmodifiableSet(roleGroupClaimURIs);
     }
+
+    /**
+     * With group role separation, user roles are separated into groups and internal roles and, to support backward
+     * compatibility, the legacy wso2.role claim still returns both groups and internal roles. This method provides
+     * the claim URI which contain user groups, or both groups and roles in a backward compatible manner.
+     *
+     * @return Claim URI for the user groups, or both groups and roles based on the backward compatibility.
+     */
+    public static String getLocalGroupsClaimURI() {
+
+        return isGroupsVsRolesSeparationEnabled() ?
+                UserCoreConstants.USER_STORE_GROUPS_CLAIM : UserCoreConstants.ROLE_CLAIM;
+    }
 }

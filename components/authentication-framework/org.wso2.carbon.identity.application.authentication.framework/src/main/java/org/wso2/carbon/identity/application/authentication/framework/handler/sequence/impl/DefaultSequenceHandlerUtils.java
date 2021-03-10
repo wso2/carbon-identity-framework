@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.APPLICATION_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.InternalRoleDomains.WORKFLOW_DOMAIN;
-
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 /**
  * Common utility used by Default Sequence Handlers.
@@ -242,10 +242,9 @@ public class DefaultSequenceHandlerUtils {
     private static String getStandardRoleClaimURI(String standardDialect, String tenantDomain)
             throws FrameworkException {
 
-        String roleClaim = getStandardClaimURIFromLocal(standardDialect, tenantDomain, FrameworkConstants
-                .LOCAL_ROLE_CLAIM_URI);
+        String roleClaim = getStandardClaimURIFromLocal(standardDialect, tenantDomain, getLocalGroupsClaimURI());
         if (StringUtils.isBlank(roleClaim)) {
-            return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            return getLocalGroupsClaimURI();
         }
         return roleClaim;
     }
@@ -295,7 +294,7 @@ public class DefaultSequenceHandlerUtils {
                 }
             }
         }
-        return FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+        return getLocalGroupsClaimURI();
     }
 
     /**
@@ -317,7 +316,7 @@ public class DefaultSequenceHandlerUtils {
 
             if (MapUtils.isNotEmpty(spToLocalClaimMapping)) {
                 for (Map.Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
+                    if (getLocalGroupsClaimURI().equals(entry.getValue())) {
                         spRoleClaimUri = entry.getKey();
                         break;
                     }
@@ -326,7 +325,7 @@ public class DefaultSequenceHandlerUtils {
         }
 
         if (StringUtils.isEmpty(spRoleClaimUri)) {
-            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            spRoleClaimUri = getLocalGroupsClaimURI();
             if (log.isDebugEnabled()) {
                 String serviceProvider = appConfig.getApplicationName();
                 log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +
