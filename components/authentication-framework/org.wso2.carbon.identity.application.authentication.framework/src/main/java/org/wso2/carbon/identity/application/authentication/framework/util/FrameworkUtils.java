@@ -112,6 +112,7 @@ import org.wso2.carbon.identity.event.IdentityEventConstants;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.ResolvedUserResult;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -2784,6 +2785,24 @@ public class FrameworkUtils {
             return username + "@" + context.getUserTenantDomain();
         }
         return username;
+    }
+
+    /**
+     * Gets resolvedUserResult from multi attribute login identifier if enable multi attribute login.
+     *
+     * @param loginIdentifier login identifier for multi attribute login
+     * @param tenantDomain    user tenant domain
+     * @return resolvedUserResult with SUCCESS status if enable multi attribute login. Otherwise returns
+     * resolvedUserResult with FAIL status.
+     */
+    public static ResolvedUserResult processMultiAttributeLoginIdentification(String loginIdentifier, String tenantDomain) {
+
+        ResolvedUserResult resolvedUserResult = new ResolvedUserResult(ResolvedUserResult.UserResolvedStatus.FAIL);
+        if (FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().isEnabled(tenantDomain)) {
+            resolvedUserResult = FrameworkServiceDataHolder.getInstance().getMultiAttributeLoginService().
+                    resolveUser(MultitenantUtils.getTenantAwareUsername(loginIdentifier), tenantDomain);
+        }
+        return resolvedUserResult;
     }
 
     /**
