@@ -135,7 +135,7 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
         if (cacheEntry == null) {
             if (log.isDebugEnabled()) {
                 log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found in the" +
-                        " cache. Trying to get from cache.");
+                        " cache. Trying to get from db.");
             }
             cacheEntry = getSessionFromDB(key);
         }
