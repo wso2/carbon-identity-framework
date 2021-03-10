@@ -877,7 +877,7 @@ public class UserSessionStore {
      * Returns the user id of the federated user.
      *
      * @param subjectIdentifier - Subject Identifier of the federated user.
-     * @param tenantId          - Id of the tenant domain.
+     * @param tenantId          - Id of the service provider's tenant domain.
      * @param idPId             - Id of the identity provider.
      * @return userId - User Id of the federated user.
      * @throws UserSessionException
@@ -885,8 +885,8 @@ public class UserSessionStore {
     public String getFederatedUserId(String subjectIdentifier, int tenantId, int idPId)
             throws UserSessionException {
 
-        //When federated user is stored, the userDomain is passed as null and it is added as "FEDERATED" to the store.
-        //Here null is passed as userDomain to get the userId from the "FEDERATED" userDomain.
+        // When federated user is stored, the userDomain is passed as null and it is added as "FEDERATED" to the store.
+        // Here null is passed as userDomain to get the userId from the "FEDERATED" userDomain.
         return getUserId(subjectIdentifier, tenantId, null, idPId);
     }
 }
