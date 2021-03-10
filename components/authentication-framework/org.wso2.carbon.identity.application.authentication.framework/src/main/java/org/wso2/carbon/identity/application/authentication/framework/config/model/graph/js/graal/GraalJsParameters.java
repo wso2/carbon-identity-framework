@@ -24,6 +24,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 import java.util.Map;
 
@@ -33,9 +34,7 @@ import java.util.Map;
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class GraalJsParameters extends AbstractJSObjectWrapper<Map> implements ProxyObject, JsParameters {
-
-    private static final Log LOG = LogFactory.getLog(GraalJsParameters.class);
+public class GraalJsParameters extends JsBaseParameters implements ProxyObject {
 
     public GraalJsParameters(Map wrapped) {
 
@@ -56,12 +55,6 @@ public class GraalJsParameters extends AbstractJSObjectWrapper<Map> implements P
     public Object getMemberKeys() {
 
         return null;
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        return getWrapped().get(name) != null;
     }
 
     public void putMember(String key, Value value) {

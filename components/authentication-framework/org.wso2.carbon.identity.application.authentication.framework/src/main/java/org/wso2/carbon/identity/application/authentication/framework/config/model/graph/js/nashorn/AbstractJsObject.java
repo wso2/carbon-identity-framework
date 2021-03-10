@@ -19,86 +19,75 @@ public interface AbstractJsObject extends JSObject {
         throw new UnsupportedOperationException("call");
     }
 
+    @Override
     default Object newObject(final Object... args) {
         throw new UnsupportedOperationException("newObject");
     }
 
+    @Override
     default Object eval(final String s) {
         throw new UnsupportedOperationException("eval");
     }
 
+    @Override
     default Object getMember(final String name) {
         Objects.requireNonNull(name);
         return null;
     }
 
+    @Override
     default Object getSlot(final int index) {
         return null;
     }
 
-    /**
-     * @implSpec This implementation always returns false
-     */
+    @Override
     default boolean hasMember(final String name) {
         Objects.requireNonNull(name);
         return false;
     }
 
-    /**
-     * @implSpec This implementation always returns false
-     */
+    @Override
     default boolean hasSlot(final int slot) {
         return false;
     }
 
-    /**
-     * @implSpec This implementation is a no-op
-     */
+    @Override
     default void removeMember(final String name) {
         Objects.requireNonNull(name);
         //empty
     }
 
-    /**
-     * @implSpec This implementation is a no-op
-     */
+    @Override
     default void setMember(final String name, final Object value) {
         Objects.requireNonNull(name);
         //empty
     }
 
-    /**
-     * @implSpec This implementation is a no-op
-     */
+    @Override
     default void setSlot(final int index, final Object value) {
         //empty
     }
 
     // property and value iteration
 
-    /**
-     * @implSpec This implementation returns empty set
-     */
+    @Override
     default Set<String> keySet() {
         return Collections.emptySet();
     }
 
-    /**
-     * @implSpec This implementation returns empty set
-     */
+    @Override
     default Collection<Object> values() {
         return Collections.emptySet();
     }
 
     // JavaScript instanceof check
 
-    /**
-     * @implSpec This implementation always returns false
-     */
+    @Override
     default boolean isInstance(final Object instance) {
         return false;
     }
 
+    @Override
     default boolean isInstanceOf(final Object clazz) {
         if (clazz instanceof JSObject) {
             return ((JSObject) clazz).isInstance(this);
@@ -107,40 +96,28 @@ public interface AbstractJsObject extends JSObject {
         return false;
     }
 
+    @Override
     default String getClassName() {
         return getClass().getName();
     }
 
-    /**
-     * @implSpec This implementation always returns false
-     */
+    @Override
     default boolean isFunction() {
         return false;
     }
 
-    /**
-     * @implSpec This implementation always returns false
-     */
+    @Override
     default boolean isStrictFunction() {
         return false;
     }
 
-    /**
-     * @implSpec This implementation always returns false
-     */
+    @Override
     default boolean isArray() {
         return false;
     }
 
-    /**
-     * Returns this object's numeric value.
-     *
-     * @return this object's numeric value.
-     * @deprecated use {@link #getDefaultValue(Class)} with {@link Number} hint instead.
-     */
     @Override @Deprecated
     default double toNumber() {
         return JSType.toNumber(JSType.toPrimitive(this, Number.class));
     }
-
 }

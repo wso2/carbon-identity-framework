@@ -18,8 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -42,8 +41,7 @@ import javax.servlet.http.HttpServletRequest;
  * Also it prevents writing an arbitrary values to the respective fields,
  * keeping consistency on runtime HTTPServletRequest.
  */
-public class NashornJsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>>
-        implements JsServletRequest, AbstractJsObject {
+public class NashornJsServletRequest extends JsBaseServletRequest implements AbstractJsObject {
 
     public NashornJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
@@ -80,31 +78,5 @@ public class NashornJsServletRequest extends AbstractJSObjectWrapper<TransientOb
             default:
                 return super.getMember(name);
         }
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        if (getRequest() == null) {
-            //Transient Object is null, hence no member access is possible.
-            return false;
-        }
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return getRequest().getHeaderNames() != null;
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return getRequest().getParameterMap() != null;
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-                return getRequest().getCookies() != null;
-            default:
-                return super.hasMember(name);
-        }
-    }
-
-    private HttpServletRequest getRequest() {
-
-        TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
-        return transientObjectWrapper.getWrapped();
     }
 }

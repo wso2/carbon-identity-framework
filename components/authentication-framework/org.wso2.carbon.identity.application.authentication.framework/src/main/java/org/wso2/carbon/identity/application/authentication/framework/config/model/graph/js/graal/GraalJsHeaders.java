@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
 
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
@@ -29,22 +30,18 @@ import javax.servlet.http.HttpServletResponse;
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class GraalJsHeaders implements ProxyObject {
-
-    private Map wrapped;
-    private HttpServletResponse response;
+public class GraalJsHeaders extends JsBaseHeaders implements ProxyObject {
 
     public GraalJsHeaders(Map wrapped, HttpServletResponse response) {
 
-        this.wrapped = wrapped;
-        this.response = response;
+        super(wrapped, response);
     }
 
     @Override
     public Object getMember(String name) {
 
         if (wrapped == null) {
-            return false;
+            return null;
         } else {
             return wrapped.get(name);
         }
@@ -55,17 +52,6 @@ public class GraalJsHeaders implements ProxyObject {
 
         return null;
     }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        if (wrapped == null) {
-            return false;
-        } else {
-            return wrapped.get(name) != null;
-        }
-    }
-
 
     @Override
     public boolean removeMember(String name) {

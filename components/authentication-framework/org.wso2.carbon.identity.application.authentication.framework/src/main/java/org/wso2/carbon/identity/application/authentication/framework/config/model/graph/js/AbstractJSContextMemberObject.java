@@ -49,4 +49,9 @@ public abstract class AbstractJSContextMemberObject implements Serializable {
 
         return context;
     }
+
+    public boolean hasMember (String name) {
+        Objects.requireNonNull(name);
+        return false;
+    }
 }

@@ -18,12 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -46,10 +43,7 @@ import javax.servlet.http.HttpServletRequest;
  * Also it prevents writing an arbitrary values to the respective fields,
  * keeping consistency on runtime HTTPServletRequest.
  */
-public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>>
-        implements ProxyObject, JsServletRequest {
-
-    private static final Log LOG = LogFactory.getLog(GraalJsServletRequest.class);
+public class GraalJsServletRequest extends JsBaseServletRequest implements ProxyObject {
 
     public GraalJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
 
@@ -124,11 +118,5 @@ public class GraalJsServletRequest extends AbstractJSObjectWrapper<TransientObje
     public boolean removeMember(String key) {
 
         return false;
-    }
-
-    private HttpServletRequest getRequest() {
-
-        TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
-        return transientObjectWrapper.getWrapped();
     }
 }

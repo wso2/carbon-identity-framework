@@ -18,10 +18,8 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 import java.util.Map;
 
@@ -31,22 +29,16 @@ import java.util.Map;
  * syntax.
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
-public class NashornJsParameters extends AbstractJSObjectWrapper<Map> implements JsParameters, AbstractJsObject {
-
-    private static final Log LOG = LogFactory.getLog(JsParameters.class);
+public class NashornJsParameters extends JsBaseParameters implements AbstractJsObject {
 
     public NashornJsParameters(Map wrapped) {
+
         super(wrapped);
     }
 
     @Override
     public Object getMember(String name) {
         return getWrapped().get(name);
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-        return getWrapped().get(name) != null;
     }
 
     @Override

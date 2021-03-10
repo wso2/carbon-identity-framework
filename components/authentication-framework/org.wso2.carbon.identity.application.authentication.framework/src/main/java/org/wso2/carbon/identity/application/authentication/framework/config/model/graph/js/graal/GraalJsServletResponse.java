@@ -20,15 +20,13 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -43,8 +41,7 @@ import javax.servlet.http.HttpServletResponse;
  * Also it prevents writing an arbitrary values to the respective fields,
  * keeping consistency on runtime HttpServletResponse.
  */
-public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletResponse>>
-        implements ProxyObject, JsServletResponse {
+public class GraalJsServletResponse extends JsBaseServletResponse implements ProxyObject {
 
     public GraalJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
@@ -88,23 +85,6 @@ public class GraalJsServletResponse extends AbstractJSObjectWrapper<TransientObj
 
     @Override
     public void putMember(String key, Value value) {
-
-
-    }
-
-    /**
-     * Gets the HttpSevletResponse from wrapped Object Wrapper.
-     */
-    public HttpServletResponse getResponse() {
-
-        TransientObjectWrapper<HttpServletResponse> transientObjectWrapper = getWrapped();
-        return transientObjectWrapper.getWrapped();
-    }
-
-    /**
-     * Adds the Cookie to Servlet Response.
-     */
-    public void addCookie(Cookie cookie) {
-        getResponse().addCookie(cookie);
+        // What to Do ?
     }
 }
