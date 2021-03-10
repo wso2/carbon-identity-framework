@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.application.authentication.framework;
 
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
@@ -30,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 
@@ -51,7 +53,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({UserCoreUtil.class, FrameworkServiceDataHolder.class})
+@PrepareForTest({IdentityUtil.class, UserCoreUtil.class, FrameworkServiceDataHolder.class})
 public class AbstractApplicationAuthenticatorTest {
 
     @Mock
@@ -97,6 +99,10 @@ public class AbstractApplicationAuthenticatorTest {
         when(context.getTenantDomain()).thenReturn(TENANT_DOMAIN);
         doCallRealMethod().when(abstractApplicationAuthenticator).getUserStoreAppendedName(anyString());
         doCallRealMethod().when(abstractApplicationAuthenticator).process(request, response, context);
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     /**

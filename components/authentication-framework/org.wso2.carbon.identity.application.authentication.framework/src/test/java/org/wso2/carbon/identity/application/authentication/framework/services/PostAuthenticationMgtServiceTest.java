@@ -16,7 +16,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.services;
 
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -28,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.req
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.testutil.IdentityBaseTest;
 
 import java.io.IOException;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Matchers.any;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
@@ -46,6 +50,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Tests for PostAuthenticationManagement Service.
  */
+@PrepareForTest({IdentityUtil.class})
 public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
 
     private PostAuthenticationMgtService postAuthenticationMgtService = new PostAuthenticationMgtService();
@@ -61,6 +66,10 @@ public class PostAuthenticationMgtServiceTest extends IdentityBaseTest {
 
         testPostHandlerWithRedirect.setEnabled(true);
         FrameworkServiceDataHolder.getInstance().addPostAuthenticationHandler(testPostHandlerWithRedirect);
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @DataProvider(name = "singlePostAuthenticatorData")

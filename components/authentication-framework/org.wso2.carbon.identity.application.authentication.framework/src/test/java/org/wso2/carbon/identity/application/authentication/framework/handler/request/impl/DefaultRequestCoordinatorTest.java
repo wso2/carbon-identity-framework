@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.request.impl;
 
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -46,7 +47,7 @@ import static org.wso2.carbon.utils.multitenancy.MultitenantConstants.SUPER_TENA
  * Unit tests for {@link DefaultRequestCoordinator}.
  */
 @WithCarbonHome
-@PrepareForTest(IdentityTenantUtil.class)
+@PrepareForTest({IdentityTenantUtil.class, IdentityUtil.class})
 public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
 
     private DefaultRequestCoordinator requestCoordinator;
@@ -55,6 +56,10 @@ public class DefaultRequestCoordinatorTest extends PowerMockIdentityBaseTest {
     public void setUp() throws Exception {
 
         requestCoordinator = new DefaultRequestCoordinator();
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @AfterMethod

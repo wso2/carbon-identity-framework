@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.Assert;
@@ -28,6 +29,7 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.DuplicatedAuthUserException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.UserSessionException;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -42,7 +44,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 /**
  * Test class that includes unit tests of UserSessionStore
  */
-@PrepareForTest({IdentityDatabaseUtil.class})
+@PrepareForTest({IdentityUtil.class, IdentityDatabaseUtil.class})
 @PowerMockIgnore({"javax.xml.*"})
 public class UserSessionStoreTest extends DataStoreBaseTest {
 
@@ -53,6 +55,10 @@ public class UserSessionStoreTest extends DataStoreBaseTest {
 
         initMocks(this);
         initH2DB(DB_NAME, getDatabaseScriptFilePath("user_session_store_h2.sql"));
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @AfterClass

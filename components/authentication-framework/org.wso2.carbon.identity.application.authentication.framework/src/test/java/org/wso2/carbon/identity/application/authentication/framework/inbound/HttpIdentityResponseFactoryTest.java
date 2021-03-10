@@ -16,6 +16,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -30,6 +31,7 @@ import java.util.Properties;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
@@ -42,6 +44,10 @@ public class HttpIdentityResponseFactoryTest {
     public void setUp() throws Exception {
         initMocks(this);
         httpIdentityResponseFactory = spy(HttpIdentityResponseFactory.class);
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @AfterMethod

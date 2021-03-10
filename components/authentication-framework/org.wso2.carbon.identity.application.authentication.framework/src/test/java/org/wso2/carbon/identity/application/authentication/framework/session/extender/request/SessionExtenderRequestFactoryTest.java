@@ -19,6 +19,8 @@
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.request;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -29,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.inbound.Fra
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderClientException;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Enumeration;
 import java.util.UUID;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.wso2.carbon.identity.application.authentication.framework.session.extender.SessionExtenderConstants.SESSION_ID_PARAM_NAME;
@@ -54,6 +58,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 /**
  * Unit test cases for SessionExtenderRequestFactory.
  */
+@PrepareForTest({IdentityUtil.class})
 public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
 
     @Mock
@@ -72,6 +77,10 @@ public class SessionExtenderRequestFactoryTest extends PowerMockTestCase {
         initMocks(this);
         sessionExtenderRequestFactory = new SessionExtenderRequestFactory();
         CommonTestUtils.initPrivilegedCarbonContext();
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @AfterMethod

@@ -16,12 +16,14 @@
 package org.wso2.carbon.identity.application.authentication.framework.util;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthnMissingClaimHandler;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +32,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 
-@PrepareForTest({ConfigurationFacade.class})
+@PrepareForTest({ConfigurationFacade.class, IdentityUtil.class})
 public class FrameworkUtilsTest {
 
     @Mock
@@ -41,6 +43,13 @@ public class FrameworkUtilsTest {
     @BeforeTest
     public void setUp() {
         testPostAuthenticationHandler = new PostAuthnMissingClaimHandler();
+
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     private void setMockedConfigurationFacade() {

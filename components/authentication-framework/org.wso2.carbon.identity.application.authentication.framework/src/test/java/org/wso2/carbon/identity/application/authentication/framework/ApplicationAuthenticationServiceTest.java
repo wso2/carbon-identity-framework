@@ -17,12 +17,14 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticationException;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceComponent;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
-@PrepareForTest({FrameworkServiceComponent.class})
+@PrepareForTest({FrameworkServiceComponent.class, IdentityUtil.class})
 public class ApplicationAuthenticationServiceTest {
 
     private static final String REQUESTPATH_AUTHENTICATOR_NAME = "RequestPathAuthenticator";
@@ -59,6 +61,10 @@ public class ApplicationAuthenticationServiceTest {
         initMocks(this);
         initAuthenticators();
         applicationAuthenticationService = new ApplicationAuthenticationService();
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     private void initAuthenticators() {

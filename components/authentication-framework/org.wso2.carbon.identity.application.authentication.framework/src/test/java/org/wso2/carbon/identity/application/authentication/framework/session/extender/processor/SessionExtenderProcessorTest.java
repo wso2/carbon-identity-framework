@@ -18,6 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.processor;
 
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.AfterMethod;
@@ -31,6 +32,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Ses
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequest;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponse;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -47,7 +49,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 /**
  * Unit test cases for SessionExtenderProcessor.
  */
-@PrepareForTest({SessionContextCache.class})
+@PrepareForTest({SessionContextCache.class, IdentityUtil.class})
 public class SessionExtenderProcessorTest extends PowerMockTestCase {
 
     private SessionExtenderProcessor sessionExtenderProcessor;
@@ -57,6 +59,10 @@ public class SessionExtenderProcessorTest extends PowerMockTestCase {
         initMocks(this);
         sessionExtenderProcessor = new SessionExtenderProcessor();
         CommonTestUtils.initPrivilegedCarbonContext();
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @AfterMethod

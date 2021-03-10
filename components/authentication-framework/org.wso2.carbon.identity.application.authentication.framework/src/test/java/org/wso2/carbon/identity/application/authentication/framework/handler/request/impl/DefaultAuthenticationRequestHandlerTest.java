@@ -18,6 +18,7 @@ package org.wso2.carbon.identity.application.authentication.framework.handler.re
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.IObjectFactory;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.application.common.model.LocalAndOutboundAuthent
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.common.testng.WithCarbonHome;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -71,7 +73,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class})
+@PrepareForTest({FrameworkUtils.class, SessionNonceCookieUtil.class, IdentityUtil.class})
 @WithCarbonHome
 public class DefaultAuthenticationRequestHandlerTest {
 
@@ -94,6 +96,10 @@ public class DefaultAuthenticationRequestHandlerTest {
 
         initMocks(this);
         authenticationRequestHandler = new DefaultAuthenticationRequestHandler();
+
+        // Test with role, group separation enabled.
+        mockStatic(IdentityUtil.class);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
     }
 
     @AfterMethod
