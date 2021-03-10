@@ -74,9 +74,12 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Base64;
@@ -1419,5 +1422,23 @@ public class IdentityUtil {
             log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
             return Boolean.FALSE;
         }
+    }
+
+    /**
+     * With group role separation, user roles are separated into groups and internal roles and, to support backward
+     * compatibility, the legacy wso2.role claim still returns both groups and internal roles. This method provides
+     * claim URIs of these group, role claims.
+     *
+     * @return An unmodifiable set of claim URIs which contain user groups, roles, or both.
+     */
+    public static Set<String> getRoleGroupClaims() {
+
+        Set<String> roleGroupClaimURIs = new HashSet<>();
+        roleGroupClaimURIs.add(UserCoreConstants.ROLE_CLAIM);
+        if (isGroupsVsRolesSeparationEnabled()) {
+            roleGroupClaimURIs.add(UserCoreConstants.INTERNAL_ROLES_CLAIM);
+            roleGroupClaimURIs.add(UserCoreConstants.USER_STORE_GROUPS_CLAIM);
+        }
+        return Collections.unmodifiableSet(roleGroupClaimURIs);
     }
 }
