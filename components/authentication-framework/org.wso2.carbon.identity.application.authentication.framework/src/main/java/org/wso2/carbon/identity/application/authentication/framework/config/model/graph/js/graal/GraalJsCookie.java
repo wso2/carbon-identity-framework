@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,17 +16,36 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
+package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
+
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyObject;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
 
 import javax.servlet.http.Cookie;
 
 /**
- * Interface for Javascript wrapper for Java level Cookie.
+ * Javascript wrapper for Java level Cookie for GraalJs Execution.
  * This provides controlled access to Cookie object via provided javascript native syntax.
  * e.g
  * var commonAuthIdDomain = context.request.cookies.commonAuthId.domain
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
  */
-public interface JsCookie {
-    Cookie getWrapped();
+public class GraalJsCookie extends JsBaseCookie implements ProxyObject {
+
+    public GraalJsCookie(Cookie cookie) {
+
+        super(cookie);
+    }
+
+    @Override
+    public Object getMemberKeys() {
+
+        return null;
+    }
+
+    @Override
+    public void putMember(String key, Value value) {
+        LOG.warn("Unsupported operation. Cookie is read only. Can't remove parameter " + key);
+    }
 }

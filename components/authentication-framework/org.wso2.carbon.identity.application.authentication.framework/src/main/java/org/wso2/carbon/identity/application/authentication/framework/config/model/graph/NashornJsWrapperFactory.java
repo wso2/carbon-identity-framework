@@ -18,14 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsCookie;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsParameters;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsServletRequest;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsServletResponse;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornJsWritableParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalSerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsCookie;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsWritableParameters;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;

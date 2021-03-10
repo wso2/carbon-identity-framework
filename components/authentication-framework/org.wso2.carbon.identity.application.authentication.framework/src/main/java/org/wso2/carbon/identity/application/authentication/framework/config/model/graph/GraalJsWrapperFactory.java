@@ -18,14 +18,14 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsAuthenticatedUser;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsCookie;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsParameters;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsServletRequest;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsServletResponse;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalJsWritableParameters;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.graal.GraalSerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsCookie;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsServletRequest;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsServletResponse;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalJsWritableParameters;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal.GraalSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
