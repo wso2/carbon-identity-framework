@@ -885,8 +885,7 @@ public class UserSessionStore {
     public String getFederatedUserId(String subjectIdentifier, int tenantId, int idPId)
             throws UserSessionException {
 
-        // When federated user is stored, the userDomain is passed as null and it is added as "FEDERATED" to the store.
-        // Here null is passed as userDomain to get the userId from the "FEDERATED" userDomain.
-        return getUserId(subjectIdentifier, tenantId, null, idPId);
+        // When federated user is stored, the userDomain is added as "FEDERATED" to the store.
+        return getUserId(subjectIdentifier, tenantId, FEDERATED_USER_DOMAIN, idPId);
     }
 }
