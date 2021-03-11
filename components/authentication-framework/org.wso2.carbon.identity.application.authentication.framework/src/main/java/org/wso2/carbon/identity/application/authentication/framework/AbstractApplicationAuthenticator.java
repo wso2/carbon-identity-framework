@@ -35,7 +35,16 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.event.IdentityEventConstants;
+import org.wso2.carbon.identity.event.IdentityEventException;
+import org.wso2.carbon.identity.event.event.Event;
+import org.wso2.carbon.identity.event.services.IdentityEventService;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -92,6 +101,9 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                             }
                         }
                     }
+                    if (this instanceof FederatedApplicationAuthenticator) {
+                        handlePostAuthentication(context);
+                    }
                     request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, true);
                     context.setProperty(FrameworkConstants.LAST_FAILED_AUTHENTICATOR, null);
                     publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
@@ -133,6 +145,32 @@ public abstract class AbstractApplicationAuthenticator implements ApplicationAut
                 }
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
+        }
+    }
+
+    private void handlePostAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+
+        Map<String, Object> eventProperties = new HashMap<>();
+        String username = MultitenantUtils.getTenantAwareUsername(context.getSubject().toFullQualifiedUsername());
+        String tenantDomain = context.getTenantDomain();
+        IdentityEventService identityEventService = FrameworkServiceDataHolder.getInstance().getIdentityEventService();
+        RealmService realmService = FrameworkServiceDataHolder.getInstance().getRealmService();
+        try {
+            UserRealm userRealm = realmService.getTenantUserRealm(IdentityTenantUtil.getTenantId(tenantDomain));
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_NAME, username);
+            eventProperties.put(IdentityEventConstants.EventProperty.USER_STORE_MANAGER, userRealm
+                    .getUserStoreManager());
+            eventProperties.put(IdentityEventConstants.EventProperty.TENANT_DOMAIN, tenantDomain);
+            eventProperties.put(IdentityEventConstants.EventProperty.OPERATION_STATUS, false);
+            Event event = new Event(IdentityEventConstants.Event.POST_AUTHENTICATION, eventProperties);
+            identityEventService.handleEvent(event);
+        } catch (UserStoreException e) {
+            throw new AuthenticationFailedException(ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                    " Error in accessing user store in tenant: " + tenantDomain, e);
+        } catch (IdentityEventException e) {
+            throw new AuthenticationFailedException(ErrorMessages.SYSTEM_ERROR_WHILE_AUTHENTICATING.getCode(),
+                    " Error while handling post authentication event for user: " + username + " in tenant: " +
+                            tenantDomain, e);
         }
     }
 
