@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Map;
 
 /**
@@ -131,6 +133,6 @@ public interface ServiceURL {
      */
     default String getAbsolutePublicUrlWithoutPath() {
 
-        return null;
+        return StringUtils.EMPTY;
     }
 }
