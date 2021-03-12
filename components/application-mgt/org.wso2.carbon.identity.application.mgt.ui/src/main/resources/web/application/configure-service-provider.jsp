@@ -371,7 +371,8 @@
             //Invalid cert data, ignore showing cert information in the UI
         }
     }
-
+    
+    boolean isGroupVsRoleSeparationImprovementsEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
 %>
 
 <script>
@@ -2015,7 +2016,9 @@
                     </div>
                 </div> --%>
                 <h2 id="authorization_permission_head" class="sectionSeperator trigger active">
-                    <a href="#"><fmt:message key="title.config.app.authorization.permission"/></a>
+                    <a href="#"><fmt:message key="<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                    "title.config.app.authorization.permission.with.group" : "title.config.app.authorization.permission"
+                    %>"/></a>
                 </h2>
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="permissionConfRow">
                     <h2 id="permission_mapping_head" class="sectionSeperator trigger active"
@@ -2073,7 +2076,8 @@
                         </table>
                     </div>
                     <h2 id="role_mapping_head" class="sectionSeperator trigger active" style="background-color: beige;">
-                        <a href="#">Role Mapping</a>
+                        <a href="#"><%=isGroupVsRoleSeparationImprovementsEnabled ? "Group Mapping" : "Role Mapping"%>
+                        </a>
                     </h2>
                     <div class="toggle_container sectionSub" style="margin-bottom:10px;display: none;"
                          id="roleMappingRowRow">
@@ -2082,10 +2086,12 @@
                                 <td>
                                     <a id="roleMappingAddLink" class="icon-link"
                                        style="background-image: url(images/add.gif);margin-left:0;"><fmt:message
-                                        key='button.add.role.mapping'/></a>
+                                        key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                                            "button.add.group.mapping" : "button.add.role.mapping"%>'/></a>
                                     <div style="clear:both"/>
                                     <div class="sectionHelp">
-                                        <fmt:message key='help.role.mapping'/>
+                                        <fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                                            "help.role.mapping" : "help.group.mapping"%>'/>
                                     </div>
                                 </td>
                             </tr>
@@ -2093,8 +2099,10 @@
                         <table class="styledLeft" id="roleMappingAddTable" style="display:none">
                             <thead>
                             <tr>
-                                <th class="leftCol-big"><fmt:message key='title.table.role.idp.role'/></th>
-                                <th class="leftCol-big"><fmt:message key='title.table.role.sp.role'/></th>
+                                <th class="leftCol-big"><fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled
+                               ? "title.table.role.idp.group" : "title.table.role.idp.role"%>'/></th>
+                                <th class="leftCol-big"><fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled
+                                ? "title.table.role.sp.group" : "title.table.role.sp.group"%>'/></th>
                                 <th><fmt:message key='config.application.authz.permissions.action'/></th>
                             </tr>
                             </thead>

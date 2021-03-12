@@ -1229,6 +1229,8 @@
     if (scimDefaultPwd == null) {
         scimDefaultPwd = "";
     }
+    
+    boolean isGroupVsRoleSeparationImprovementsEnabled = IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled();
 
 %>
 
@@ -3541,7 +3543,8 @@
 
 
                 <h2 id="role_permission_config_head" class="sectionSeperator trigger active">
-                    <a href="#"><fmt:message key="role.config.head"/></a>
+                    <a href="#"><fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ? "group.config.head"
+                     : "role.config.head"%>'/></a>
                 </h2>
 
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="roleConfig">
@@ -3555,13 +3558,17 @@
 
                                 <div style="clear:both"/>
                                 <div class="sectionHelp">
-                                    <fmt:message key='roles.mapping.help'/>
+                                    <fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                                    "groups.mapping.help" : "roles.mapping.help"%>'/>
                                 </div>
                                 <table class="styledLeft" id="roleAddTable" style="display:none">
                                     <thead>
                                     <tr>
-                                        <th class="leftCol-big"><fmt:message key='idp.role'/></th>
-                                        <th class="leftCol-big"><fmt:message key='local.role'/></th>
+                                        <th class="leftCol-big"><fmt:message key='<%=
+                                        isGroupVsRoleSeparationImprovementsEnabled ? "idp.role" : "idp.role"%>'/></th>
+                                        <th class="leftCol-big"><fmt:message key='<%=
+                                        isGroupVsRoleSeparationImprovementsEnabled ? "local.role" : "local.role"%>'/>
+                                        </th>
                                         <th><fmt:message key='actions'/></th>
                                     </tr>
                                     </thead>
