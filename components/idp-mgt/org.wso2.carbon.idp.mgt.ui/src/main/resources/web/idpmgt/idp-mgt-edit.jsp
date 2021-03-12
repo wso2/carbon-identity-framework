@@ -3550,11 +3550,13 @@
                 <div class="toggle_container sectionSub" style="margin-bottom:10px;" id="roleConfig">
                     <table>
                         <tr>
-                            <td class="leftCol-med labelField"><fmt:message key='roles'/>:</td>
+                            <td class="leftCol-med labelField"><fmt:message key='<%=
+                           isGroupVsRoleSeparationImprovementsEnabled ? "groups" : "roles"%>'/>:</td>
                             <td>
                                 <a id="roleAddLink" class="icon-link"
                                    style="margin-left:0;background-image:url(images/add.gif);"><fmt:message
-                                        key='add.role.mapping'/></a>
+                                        key='<%=isGroupVsRoleSeparationImprovementsEnabled ? "add.group.mapping" :
+                                        "add.role.mapping"%>'/></a>
 
                                 <div style="clear:both"/>
                                 <div class="sectionHelp">
@@ -3565,9 +3567,9 @@
                                     <thead>
                                     <tr>
                                         <th class="leftCol-big"><fmt:message key='<%=
-                                        isGroupVsRoleSeparationImprovementsEnabled ? "idp.role" : "idp.role"%>'/></th>
+                                        isGroupVsRoleSeparationImprovementsEnabled ? "idp.group" : "idp.role"%>'/></th>
                                         <th class="leftCol-big"><fmt:message key='<%=
-                                        isGroupVsRoleSeparationImprovementsEnabled ? "local.role" : "local.role"%>'/>
+                                        isGroupVsRoleSeparationImprovementsEnabled ? "local.group" : "local.role"%>'/>
                                         </th>
                                         <th><fmt:message key='actions'/></th>
                                     </tr>

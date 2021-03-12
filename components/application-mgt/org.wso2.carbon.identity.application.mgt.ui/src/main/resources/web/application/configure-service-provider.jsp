@@ -2091,7 +2091,7 @@
                                     <div style="clear:both"/>
                                     <div class="sectionHelp">
                                         <fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
-                                            "help.role.mapping" : "help.group.mapping"%>'/>
+                                            "help.group.mapping" : "help.role.mapping"%>'/>
                                     </div>
                                 </td>
                             </tr>
