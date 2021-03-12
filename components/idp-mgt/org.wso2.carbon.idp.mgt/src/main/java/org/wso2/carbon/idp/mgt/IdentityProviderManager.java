@@ -2613,7 +2613,7 @@ public class IdentityProviderManager implements IdpManager {
                     role = IdentityUtil.addDomainToName(role, mapping.getLocalRole().getUserStoreId());
                 }
 
-                if (IdentityUtil.isGroupsVsRolesSeparationEnabled()) {
+                if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
                     // Only Groups are allowed for role mapping.
                     if (isInternalRole(role)) {
                         if (log.isDebugEnabled()) {

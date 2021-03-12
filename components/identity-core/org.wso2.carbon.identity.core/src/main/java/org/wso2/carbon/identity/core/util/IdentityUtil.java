@@ -1404,27 +1404,6 @@ public class IdentityUtil {
     }
 
     /**
-     * Check with authorization manager whether groups vs roles separation config is set to true.
-     *
-     * @return Where groups vs separation enabled or not.
-     */
-    public static boolean isGroupsVsRolesSeparationEnabled() {
-
-        try {
-            if (AdminServicesUtil.getUserRealm() == null) {
-                log.warn("Unable to find the user realm, thus GroupAndRoleSeparationEnabled is set as FALSE.");
-                return Boolean.FALSE;
-            }
-            return Boolean.parseBoolean(AdminServicesUtil.getUserRealm().getRealmConfiguration()
-                    .getAuthorizationManagerProperty(UserCoreConstants.RealmConfig.
-                            PROPERTY_GROUP_AND_ROLE_SEPARATION_ENABLED));
-        } catch (org.wso2.carbon.user.core.UserStoreException | CarbonException e) {
-            log.warn("Property value parsing error: GroupAndRoleSeparationEnabled, thus considered as FALSE");
-            return Boolean.FALSE;
-        }
-    }
-
-    /**
      * With group role separation, user roles are separated into groups and internal roles and, to support backward
      * compatibility, the legacy wso2.role claim still returns both groups and internal roles. This method provides
      * claim URIs of these group, role claims.
@@ -1435,7 +1414,7 @@ public class IdentityUtil {
 
         Set<String> roleGroupClaimURIs = new HashSet<>();
         roleGroupClaimURIs.add(UserCoreConstants.ROLE_CLAIM);
-        if (isGroupsVsRolesSeparationEnabled()) {
+        if (isGroupsVsRolesSeparationImprovementsEnabled()) {
             roleGroupClaimURIs.add(UserCoreConstants.INTERNAL_ROLES_CLAIM);
             roleGroupClaimURIs.add(UserCoreConstants.USER_STORE_GROUPS_CLAIM);
         }
@@ -1451,7 +1430,7 @@ public class IdentityUtil {
      */
     public static String getLocalGroupsClaimURI() {
 
-        return isGroupsVsRolesSeparationEnabled() ?
+        return isGroupsVsRolesSeparationImprovementsEnabled() ?
                 UserCoreConstants.USER_STORE_GROUPS_CLAIM : UserCoreConstants.ROLE_CLAIM;
     }
 }

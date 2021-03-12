@@ -451,7 +451,7 @@ public class DefaultApplicationValidator implements ApplicationValidator {
             UserStoreManager userStoreManager = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
                     .getUserStoreManager();
             for (RoleMapping roleMapping : permissionsAndRoleConfig.getRoleMappings()) {
-                if (IdentityUtil.isGroupsVsRolesSeparationEnabled()) {
+                if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
                     if (isInternalRole(roleMapping.getLocalRole().getLocalRoleName())) {
                         validationMsg.add(String.format(INTERNAL_ROLES_PROHIBITED_FOR_ROLE_MAPPING, roleMapping
                                 .getLocalRole().getLocalRoleName()));

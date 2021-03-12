@@ -45,11 +45,11 @@ public class FrameworkUtilsTest {
         testPostAuthenticationHandler = new PostAuthnMissingClaimHandler();
 
         mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
 
         // Test with role, group separation enabled.
         mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationEnabled()).thenReturn(true);
+        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     private void setMockedConfigurationFacade() {
