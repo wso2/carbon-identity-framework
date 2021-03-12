@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.session.extender.response;
 
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -28,10 +26,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.F
 import org.wso2.carbon.identity.application.authentication.framework.inbound.HttpIdentityResponse;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderClientException;
 import org.wso2.carbon.identity.application.authentication.framework.session.extender.exception.SessionExtenderServerException;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -45,7 +41,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.sess
 /**
  * Unit test cases for SessionExtenderResponseFactory.
  */
-@PrepareForTest({IdentityUtil.class})
 public class SessionExtenderResponseFactoryTest extends PowerMockTestCase {
 
     private SessionExtenderResponseFactory sessionExtenderResponseFactory;
@@ -53,10 +48,6 @@ public class SessionExtenderResponseFactoryTest extends PowerMockTestCase {
     @BeforeMethod
     public void setUp() throws Exception {
         sessionExtenderResponseFactory = new SessionExtenderResponseFactory();
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     @Test

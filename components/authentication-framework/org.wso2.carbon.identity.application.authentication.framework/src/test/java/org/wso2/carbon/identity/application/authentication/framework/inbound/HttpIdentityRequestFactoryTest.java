@@ -17,7 +17,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.inbound;
 
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -47,7 +46,6 @@ import javax.servlet.http.HttpServletResponse;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -72,10 +70,6 @@ public class HttpIdentityRequestFactoryTest extends PowerMockTestCase {
         initMocks(this);
         httpIdentityRequestFactory = new HttpIdentityRequestFactory();
         CommonTestUtils.initPrivilegedCarbonContext();
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     @AfterMethod

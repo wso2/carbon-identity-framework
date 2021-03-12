@@ -19,8 +19,6 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -35,7 +33,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.ServiceProvider;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -55,7 +51,6 @@ import static org.testng.Assert.assertTrue;
  * Tests for graph builder with Javascript.
  */
 @Test
-@PrepareForTest({IdentityUtil.class})
 public class JsGraphBuilderTest extends AbstractFrameworkTest {
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
@@ -75,10 +70,6 @@ public class JsGraphBuilderTest extends AbstractFrameworkTest {
         initMocks(this);
         jsGraphBuilderFactory = new JsGraphBuilderFactory();
         jsGraphBuilderFactory.init();
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     @Test

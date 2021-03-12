@@ -18,22 +18,17 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.services;
 
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Arrays;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertTrue;
 
-@PrepareForTest({IdentityUtil.class})
 public class ConditionalAuthenticationMgtServiceTest {
 
     ConditionalAuthenticationMgtService conditionalAuthenticationMgtService;
@@ -42,10 +37,6 @@ public class ConditionalAuthenticationMgtServiceTest {
     public void setUp() {
         conditionalAuthenticationMgtService = new
                 ConditionalAuthenticationMgtService();
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     @Test(dataProvider = "jsFunctionProvider")

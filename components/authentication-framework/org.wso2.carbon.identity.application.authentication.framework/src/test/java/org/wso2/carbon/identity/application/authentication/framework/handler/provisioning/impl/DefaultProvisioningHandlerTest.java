@@ -16,7 +16,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.provisioning.impl;
 
-import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.testng.IObjectFactory;
@@ -29,14 +28,13 @@ import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framwork.test.utils.CommonTestUtils;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-@PrepareForTest({FrameworkUtils.class, IdentityUtil.class})
+@PrepareForTest(FrameworkUtils.class)
 //@PowerMockIgnore({"org.xml.*","org.w3c.*"})
 public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
 
@@ -46,10 +44,6 @@ public class DefaultProvisioningHandlerTest extends PowerMockTestCase {
     public void setUp() throws Exception {
         provisioningHandler = new DefaultProvisioningHandler();
         CommonTestUtils.initPrivilegedCarbonContext();
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     @AfterMethod

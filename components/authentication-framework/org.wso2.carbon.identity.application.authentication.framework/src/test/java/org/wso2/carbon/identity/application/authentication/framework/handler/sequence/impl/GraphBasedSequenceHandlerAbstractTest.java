@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
@@ -34,7 +32,6 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.dao.CacheBackedIdPMgtDAO;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -56,9 +53,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@PrepareForTest({IdentityUtil.class})
 public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest {
 
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
@@ -109,10 +104,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         configFilePathField.setAccessible(true);
         URL url = this.getClass().getResource(APPLICATION_AUTHENTICATION_FILE_NAME);
         configFilePathField.set(null, Paths.get(url.toURI()).toString());
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     protected void resetAuthenticators() {

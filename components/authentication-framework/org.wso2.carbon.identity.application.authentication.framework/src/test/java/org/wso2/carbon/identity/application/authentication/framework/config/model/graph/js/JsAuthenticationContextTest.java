@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
@@ -30,7 +28,6 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,14 +37,12 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 @Test
-@PrepareForTest({IdentityUtil.class})
 public class JsAuthenticationContextTest {
 
     public static final String TEST_IDP = "testIdP";
@@ -57,10 +52,6 @@ public class JsAuthenticationContextTest {
     public void setUp() {
 
         scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
-
-        // Test with role, group separation enabled.
-        mockStatic(IdentityUtil.class);
-        Mockito.when(IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()).thenReturn(true);
     }
 
     @Test
