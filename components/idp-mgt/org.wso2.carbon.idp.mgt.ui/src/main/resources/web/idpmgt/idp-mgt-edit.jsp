@@ -3636,14 +3636,17 @@
                         </tr>
 
                         <tr>
-                            <td class="leftCol-med labelField"><fmt:message key='provisioning.role'/>:</td>
+                            <td class="leftCol-med labelField"><fmt:message key='<%=
+                            isGroupVsRoleSeparationImprovementsEnabled ? "provisioning.group" : "provisioning" +
+                             ".role"%>'/>:</td>
                             <td>
                                 <input id="idpProvisioningRole" class="leftCol-med" name="idpProvisioningRole"
                                        type="text"
                                        value="<%=Encode.forHtmlAttribute(provisioningRole)%>"/>
 
                                 <div class="sectionHelp">
-                                    <fmt:message key='provisioning.role.help'/>
+                                    <fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                                    "provisioning.group.help" : "provisioning.role.help"%>'/>
                                 </div>
                             </td>
                         </tr>
