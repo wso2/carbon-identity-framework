@@ -1917,6 +1917,14 @@ public class ApplicationManagementServiceImpl extends ApplicationManagementServi
     private void assignApplicationRole(String applicationName, String username)
             throws IdentityApplicationManagementException {
 
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Validating user with application roles is disabled. Therefore, the application " +
+                        "role will not be assigned to user: " + username);
+            }
+            return;
+        }
         String roleName = getAppRoleName(applicationName);
         String[] newRoles = {roleName};
 
