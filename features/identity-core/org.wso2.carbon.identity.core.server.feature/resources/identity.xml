@@ -857,6 +857,7 @@
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
         <NotifyUserExistence>false</NotifyUserExistence>
+        <NotifyUserAccountStatus>true</NotifyUserAccountStatus>
     </Recovery>
 
     <EmailVerification>
