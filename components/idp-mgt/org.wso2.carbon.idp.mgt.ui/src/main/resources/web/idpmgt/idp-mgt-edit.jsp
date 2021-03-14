@@ -3550,12 +3550,14 @@
                             <td class="leftCol-med labelField"><fmt:message key='roles'/>:</td>
                             <td>
                                 <a id="roleAddLink" class="icon-link"
-                                   style="margin-left:0;background-image:url(images/add.gif);"><fmt:message
-                                        key='add.role.mapping'/></a>
+                                   style="margin-left:0;background-image:url(images/add.gif);"><fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                                   "add.group.mapping" : "add.role.mapping"%>'/>
+                                </a>
 
                                 <div style="clear:both"/>
                                 <div class="sectionHelp">
-                                    <fmt:message key='roles.mapping.help'/>
+                                    <fmt:message key='<%=isGroupVsRoleSeparationImprovementsEnabled ?
+                                    "groups.mapping.help" : "roles.mapping.help"%>'/>
                                 </div>
                                 <table class="styledLeft" id="roleAddTable" style="display:none">
                                     <thead>
