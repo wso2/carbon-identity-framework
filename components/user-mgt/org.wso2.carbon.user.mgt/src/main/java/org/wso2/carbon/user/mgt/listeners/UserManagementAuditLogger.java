@@ -216,6 +216,25 @@ public class UserManagementAuditLogger extends AbstractIdentityUserOperationEven
     }
 
     @Override
+    public boolean doPostAddInternalRoleWithID(String roleName, String[] userIDs, Permission[] permissions,
+                                               UserStoreManager userStoreManager) {
+
+        if (isEnable()) {
+            JSONObject dataObject = new JSONObject();
+            if (ArrayUtils.isNotEmpty(userIDs)) {
+                dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userIDs));
+            }
+            if (ArrayUtils.isNotEmpty(permissions)) {
+                JSONArray permissionsArray = new JSONArray(permissions);
+                dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
+            }
+            audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
+                    ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, SUCCESS));
+        }
+        return true;
+    }
+
+    @Override
     public boolean doPostUpdateRoleName(String roleName, String newRoleName, UserStoreManager userStoreManager) {
 
         if (isEnable()) {

@@ -524,6 +524,11 @@ public class IdentityManagementEndpointUtil {
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
 
+        String malformedQueryParam = getMalformedQueryParam(url.getQuery());
+        if (malformedQueryParam != null) {
+            throw new MalformedURLException(
+                    String.format("The query param: %s does not contain a value", malformedQueryParam));
+        }
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
@@ -558,6 +563,11 @@ public class IdentityManagementEndpointUtil {
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
 
+        String malformedQueryParam = getMalformedQueryParam(uri.getQuery());
+        if (malformedQueryParam != null) {
+            throw new URISyntaxException(malformedQueryParam,
+                    String.format("The query param: %s does not contain a value", malformedQueryParam));
+        }
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(uri.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
@@ -606,6 +616,30 @@ public class IdentityManagementEndpointUtil {
         } else {
             return endpointUrl + "/" + path;
         }
+    }
+
+    /**
+     * Get malformed query param if the query string contains any. A malformed query param will be any param with no
+     * value.
+     *
+     * @param queryParams Query params.
+     * @return Malformed query param. Null will be returned if there are no malformed query params.
+     */
+    private static String getMalformedQueryParam(String queryParams) {
+
+        if (StringUtils.isBlank(queryParams)) {
+            return null;
+        }
+        String[] params = queryParams.split(SPLITTING_CHAR);
+        if (ArrayUtils.isEmpty(params)) {
+            return null;
+        }
+        for (String param : params) {
+            if (StringUtils.isNotBlank(param) && param.split(PADDING_CHAR).length < 2) {
+                return param;
+            }
+        }
+        return null;
     }
 
     /**

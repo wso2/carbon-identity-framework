@@ -58,6 +58,8 @@ import java.nio.charset.StandardCharsets;
 public class SelfRegistrationMgtClient {
 
     private static final String CLIENT = "Client ";
+    public static final String CODE = "code";
+    public static final String STATUS_CODE = "statusCode";
     private static final Logger log = Logger.getLogger(SelfRegistrationMgtClient.class);
     private static final String CONSENT_API_RELATIVE_PATH = "/api/identity/consent-mgt/v1.0";
     private static final String USERNAME_VALIDATE_API_RELATIVE_PATH = "/api/identity/user/v1.0/validate-username";
@@ -230,6 +232,27 @@ public class SelfRegistrationMgtClient {
     public Integer checkUsernameValidity(User user, boolean skipSignUpCheck) throws
             SelfRegistrationMgtClientException {
 
+        return checkUserNameValidityInternal(user, skipSignUpCheck).getInt(CODE);
+    }
+
+    /**
+     * Checks whether a given username is valid or not and return a JSON object with API response.
+     *
+     * @param user            User.
+     * @param skipSignUpCheck To specify whether to enable or disable the check whether sign up is enabled for this
+     *                        tenant.
+     * @return A JSON object with API response data.
+     * @throws SelfRegistrationMgtClientException Self Registration Management Exception.
+     */
+    public JSONObject checkUsernameValidityStatus(User user, boolean skipSignUpCheck)
+            throws SelfRegistrationMgtClientException {
+
+        return checkUserNameValidityInternal(user, skipSignUpCheck);
+    }
+
+    private JSONObject checkUserNameValidityInternal(User user, boolean skipSignUpCheck) throws
+            SelfRegistrationMgtClientException {
+
         if (log.isDebugEnabled()) {
             log.debug("Checking username validating for username: {}. SkipSignUpCheck flag is set to {}.",
                     user.getUsername(), skipSignUpCheck);
@@ -265,18 +288,30 @@ public class SelfRegistrationMgtClient {
             try (CloseableHttpResponse response = httpclient.execute(post)) {
 
                 if (log.isDebugEnabled()) {
-                    log.debug("HTTP status {} when validating username: {}." ,
+                    log.debug("HTTP status {} when validating username: {}.",
                             response.getStatusLine().getStatusCode(), user.getUsername());
                 }
 
-                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK ||
+                        response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
                     JSONObject jsonResponse = new JSONObject(
                             new JSONTokener(new InputStreamReader(response.getEntity().getContent())));
                     if (log.isDebugEnabled()) {
                         log.debug("Username validation response: {} for username: {}.",
                                 jsonResponse.toString(2), user.getUsername());
                     }
-                    return jsonResponse.getInt("statusCode");
+                    // Adding "code" attribute since in 200 OK instances, we're getting only statusCode
+                    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK && jsonResponse.has(STATUS_CODE)) {
+                        if (jsonResponse.has(CODE)) {
+                            if (log.isDebugEnabled()) {
+                                log.debug("Trying to add code attribute in a success instance but the attribute " +
+                                        "already exists with the value: " + jsonResponse.get(CODE));
+                            }
+                        } else {
+                            jsonResponse.put(CODE, jsonResponse.get(STATUS_CODE));
+                        }
+                    }
+                    return jsonResponse;
                 } else {
                     // Handle invalid tenant domain error thrown by the TenantContextRewriteValve.
                     if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
@@ -289,7 +324,8 @@ public class SelfRegistrationMgtClient {
                             content = (String) jsonResponse.get("description");
                         }
                         if (StringUtils.isNotBlank(content) && content.contains("invalid tenant domain")) {
-                            return new Integer(SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
+                            jsonResponse.put(CODE, SelfRegistrationStatusCodes.ERROR_CODE_INVALID_TENANT);
+                            return jsonResponse;
                         }
                     }
                     // Logging and throwing since this is a client
@@ -334,16 +370,12 @@ public class SelfRegistrationMgtClient {
             IOException {
 
         String purposeResponse = executeGet(getPurposesEndpoint(tenantDomain) + "/" + purposeId);
-        JSONObject purpose = new JSONObject(purposeResponse);
-        return purpose;
+        return new JSONObject(purposeResponse);
     }
 
     private boolean isDefaultPurpose(JSONObject purpose) {
 
-        if (DEFAULT.equalsIgnoreCase(purpose.getString(PURPOSE))) {
-            return true;
-        }
-        return false;
+        return DEFAULT.equalsIgnoreCase(purpose.getString(PURPOSE));
     }
 
     private boolean hasPIICategories(JSONObject purpose) {

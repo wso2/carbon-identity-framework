@@ -162,6 +162,8 @@ public abstract class FrameworkConstants {
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_NAME = "name";
         public static final String ATTR_AUTH_ENDPOINT_QUERY_PARAM_ACTION = "action";
         public static final String REMOVE_PARAM_ON_CONSUME = "removeOnConsumeFromAPI";
+        public static final String SEND_ONLY_LOCALLY_MAPPED_ROLES_OF_IDP = "FederatedRoleManagement"
+                + ".ReturnOnlyMappedLocalRoles";
 
         /**
          * Configuration name for setting the url for receiving tenant list upon any modification to a tenant
