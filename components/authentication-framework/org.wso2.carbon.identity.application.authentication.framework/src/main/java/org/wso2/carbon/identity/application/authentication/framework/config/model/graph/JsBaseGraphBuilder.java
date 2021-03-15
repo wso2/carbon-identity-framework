@@ -79,10 +79,18 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         return result;
     }
 
+    /**
+     * Removes Current Graph Builder from ThreadLocal.
+     */
     public static void clearCurrentBuilder() {
         currentBuilder.remove();
     }
 
+    /**
+     * Gets Current Graph Builder from ThreadLocal.
+     * @param <T> JsBaseGraphBuilder
+     * @return JsBaseGraphBuilder
+     */
     @SuppressWarnings("unchecked")
     public static <T extends JsGraphBuilder> T getCurrentBuilder() {
 
@@ -180,12 +188,10 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         } else {
             attachToLeaf(this.currentNode, newNode);
         }
-
         this.currentNode = newNode;
     }
 
     protected abstract Function<Object, SerializableJsFunction<?>> effectiveFunctionSerializer();
-
 
     /**
      * Adds the step given by step ID tp the authentication graph.
@@ -305,7 +311,6 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
     public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
         FailNode newNode = createFailNode(url, parameterMap);
-
         AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
         if (currentNode == null) {
             dynamicallyBuiltBaseNode.set(newNode);
@@ -535,9 +540,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         if (commonOptions instanceof Map) {
             authenticatorParams.put(FrameworkConstants.JSAttributes.JS_COMMON_OPTIONS,
                     new HashMap<>((Map<String, String>) commonOptions));
-
         }
-
         if (!authenticatorParams.isEmpty()) {
             authenticationContext.addAuthenticatorParams(authenticatorParams);
         }
@@ -593,8 +596,6 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
             log.error("Unknown graph node found : " + baseNode);
         }
     }
-
-
 
     /**
      * Adds all the event listeners to the decision node.
@@ -669,7 +670,6 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
         } else {
             log.error("Can not infuse nodes in node type : " + destination);
         }
-
     }
 
     /**

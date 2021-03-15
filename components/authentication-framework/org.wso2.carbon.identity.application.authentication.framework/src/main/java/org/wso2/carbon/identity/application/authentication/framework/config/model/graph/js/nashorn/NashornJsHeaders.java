@@ -22,7 +22,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 
-
 /**
  * Javascript wrapper for Java level HashMap of HTTP headers for Nashorn Execution.
  * This provides controlled access to HTTPServletResponse object's headers via provided javascript native syntax.

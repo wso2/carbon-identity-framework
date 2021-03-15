@@ -31,7 +31,6 @@ import java.util.Map;
  */
 public interface JsGraphBuilderFactory<T> {
 
-
     void init();
 
     JsGraphBuilder createBuilder(AuthenticationContext context, Map<Integer, StepConfig> stepConfigMapCopy);

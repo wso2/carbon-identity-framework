@@ -27,5 +27,6 @@ import java.util.Map;
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime.
  */
 public interface JsParameters {
+
     Map getWrapped();
 }

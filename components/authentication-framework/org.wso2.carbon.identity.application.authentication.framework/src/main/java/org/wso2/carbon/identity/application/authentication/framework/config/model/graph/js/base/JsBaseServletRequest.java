@@ -57,5 +57,4 @@ implements JsServletRequest {
         TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
         return transientObjectWrapper.getWrapped();
     }
-
 }

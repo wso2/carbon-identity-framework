@@ -28,5 +28,6 @@ import javax.servlet.http.Cookie;
  * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime Cookie.
  */
 public interface JsCookie {
+
     Cookie getWrapped();
 }

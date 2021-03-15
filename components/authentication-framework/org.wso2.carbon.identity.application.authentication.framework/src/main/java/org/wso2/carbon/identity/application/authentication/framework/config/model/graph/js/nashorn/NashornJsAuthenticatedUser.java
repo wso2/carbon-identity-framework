@@ -101,6 +101,4 @@ public class NashornJsAuthenticatedUser extends JsBaseAuthenticatedUser implemen
 
         super.setMember(name, (String) value);
     }
-
 }
-

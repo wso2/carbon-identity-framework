@@ -26,5 +26,6 @@ import javax.servlet.http.HttpServletRequest;
  * Interface for JavaScript Servlet Request Wrapper.
  */
 public interface JsServletRequest {
+
     TransientObjectWrapper<HttpServletRequest> getWrapped();
 }

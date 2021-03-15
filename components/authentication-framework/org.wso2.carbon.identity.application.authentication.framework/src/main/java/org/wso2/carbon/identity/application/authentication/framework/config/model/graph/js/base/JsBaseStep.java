@@ -80,5 +80,4 @@ public abstract class JsBaseStep extends AbstractJSContextMemberObject {
                 })));
         return optionsList;
     }
-
 }

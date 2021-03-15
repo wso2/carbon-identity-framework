@@ -147,8 +147,7 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 log.debug("Error in building the Javascript source", e);
             }
         } finally {
-            context.close();
-            clearCurrentBuilder();
+            clearCurrentBuilder(context);
         }
         return this;
     }
@@ -162,6 +161,12 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
     public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction<?> fn) {
 
         return new JsBasedEvaluator((GraalSerializableJsFunction) fn);
+    }
+
+    public static void clearCurrentBuilder(Context context) {
+
+        context.close();
+        clearCurrentBuilder();
     }
 
     /**
@@ -233,16 +238,12 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
                 FailNode failNode = new FailNode();
                 attachToLeaf(executingNode, failNode);
             } finally {
-                context.close();
                 contextForJs.remove();
                 dynamicallyBuiltBaseNode.remove();
-                clearCurrentBuilder();
+                clearCurrentBuilder(context);
             }
-
             return result;
         }
-
-
     }
 
     private Context getContext(AuthenticationContext authenticationContext) {

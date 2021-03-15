@@ -45,16 +45,6 @@ public class GraalJsClaims extends JsBaseClaims implements ProxyObject {
         super(context, step, idp, isRemoteClaimRequest);
     }
 
-    public GraalJsClaims(int step, String idp, boolean isRemoteClaimRequest) {
-
-        super(step, idp, isRemoteClaimRequest);
-    }
-
-    public GraalJsClaims(AuthenticatedUser authenticatedUser, boolean isRemoteClaimRequest) {
-
-        super(authenticatedUser, isRemoteClaimRequest);
-    }
-
     public GraalJsClaims(AuthenticationContext context, AuthenticatedUser authenticatedUser,
                          boolean isRemoteClaimRequest) {
 

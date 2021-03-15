@@ -25,5 +25,4 @@ public abstract class JsBaseParameters extends AbstractJSObjectWrapper<Map> impl
     public boolean hasMember(String name) {
         return getWrapped().get(name) != null;
     }
-
 }

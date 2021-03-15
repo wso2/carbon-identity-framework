@@ -33,9 +33,7 @@ public class NashornJsWritableParameters extends NashornJsParameters  {
     @Override
     public void removeMember(String name) {
 
-        if (getWrapped().containsKey(name)) {
-            getWrapped().remove(name);
-        }
+        getWrapped().remove(name);
     }
 
     @Override
