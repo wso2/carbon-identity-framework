@@ -944,7 +944,7 @@
     </JITProvisioning>
 
     <OutboundProvisioning>
-        <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
+        <ResetProvisioningEntitiesOnConfigUpdate>true</ResetProvisioningEntitiesOnConfigUpdate>
     </OutboundProvisioning>
 
     <EventListeners>

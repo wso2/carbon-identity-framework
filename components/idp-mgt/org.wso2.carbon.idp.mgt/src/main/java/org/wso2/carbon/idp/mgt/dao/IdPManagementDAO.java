@@ -1631,7 +1631,6 @@ public class IdPManagementDAO {
                             idpId, tenantId);
                 }
             }
-
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
@@ -1641,11 +1640,8 @@ public class IdPManagementDAO {
                                                   Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException, SQLException {
 
-        PreparedStatement prepStmt = null;
-
-        try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_PROVISIONING_CONFIG_PROPERTY_SQL;
-            prepStmt = dbConnection.prepareStatement(sqlStmt);
+        String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_PROVISIONING_CONFIG_PROPERTY_SQL;
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
             for (ProvisioningConnectorConfig connector : provisioningConnectors) {
                 if (isProvisioningConfigAvailableToUpdate(connector, dbConnection, idpId, tenantId)) {
                     updateProvisioningConfig(connector, dbConnection, idpId, tenantId);
@@ -1688,8 +1684,6 @@ public class IdPManagementDAO {
             }
         } catch (IOException e) {
             throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 
@@ -1708,12 +1702,10 @@ public class IdPManagementDAO {
                                                           Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException {
 
-        PreparedStatement prepStmt = null;
         ResultSet rs = null;
         boolean isAvailable = false;
-        try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_PROVISIONING_CONFIGS_FOR_CONNECTOR_TYPE_SQL;
-            prepStmt = dbConnection.prepareStatement(sqlStmt);
+        String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_PROVISIONING_CONFIGS_FOR_CONNECTOR_TYPE_SQL;
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
             prepStmt.setInt(1, idpId);
             prepStmt.setString(2, provisioningConnector.getName());
             prepStmt.setInt(3, tenantId);
@@ -1724,8 +1716,6 @@ public class IdPManagementDAO {
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while searching for provisioning connector " +
                     "config ", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
         }
         return isAvailable;
     }
@@ -1734,11 +1724,8 @@ public class IdPManagementDAO {
                                           Connection dbConnection, int idpId, int tenantId)
             throws IdentityProviderManagementException {
 
-        PreparedStatement prepStmt = null;
-
-        try {
-            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_PROVISIONING_CONFIG_SQL;
-            prepStmt = dbConnection.prepareStatement(sqlStmt);
+        String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_PROVISIONING_CONFIG_SQL;
+        try (PreparedStatement prepStmt = dbConnection.prepareStatement(sqlStmt)) {
             if (provisioningConnector.isEnabled()) {
                 prepStmt.setString(1, IdPManagementConstants.IS_TRUE_VALUE);
             } else {
@@ -1756,8 +1743,6 @@ public class IdPManagementDAO {
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while updating the provisioning " +
                     "connector config " + e);
-        } finally {
-            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 
