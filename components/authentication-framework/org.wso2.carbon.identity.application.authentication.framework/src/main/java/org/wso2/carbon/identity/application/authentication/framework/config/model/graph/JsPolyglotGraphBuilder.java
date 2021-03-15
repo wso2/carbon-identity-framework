@@ -192,7 +192,6 @@ public class JsPolyglotGraphBuilder extends JsBaseGraphBuilder implements JsGrap
             Context context = getContext(authenticationContext);
             Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
 
-
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP
                     , (StepExecutor) graphBuilder::executeStepInAsyncEvent);
             bindings.putMember(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR, (BiConsumer<String, Map>)

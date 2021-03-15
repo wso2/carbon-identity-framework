@@ -904,8 +904,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.debug("Stored application name for id: " + applicationId + " is " + storedAppName);
         }
 
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
         // only if the application has been renamed TODO: move to OSGi layer
-        if (!StringUtils.equals(applicationName, storedAppName)) {
+        if (!StringUtils.equals(applicationName, storedAppName) && validateRoles) {
             String applicationNameforRole = IdentityUtil.addDomainToName(applicationName, ApplicationConstants.
                     APPLICATION_DOMAIN);
             String storedAppNameforRole = IdentityUtil.addDomainToName(storedAppName, ApplicationConstants.

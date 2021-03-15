@@ -628,7 +628,7 @@ public abstract class JsBaseGraphBuilder implements JsGraphBuilder {
             return;
         }
         handlersMap.forEach((key, value) -> {
-            if (!(value instanceof SerializableJsFunction<?>)) {
+            if (!(value instanceof SerializableJsFunction)) {
                 SerializableJsFunction<?> jsFunction = serializerFunction.apply(value);
                 if (jsFunction != null) {
                     showPromptNode.addHandler(key, jsFunction);

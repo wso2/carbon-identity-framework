@@ -163,6 +163,25 @@ public class UserMgtFailureAuditLogger extends AbstractIdentityUserMgtFailureEve
     }
 
     @Override
+    public boolean onAddRoleFailureWithID(String errorCode, String errorMessage, String roleName, String[] userList,
+                                          org.wso2.carbon.user.api.Permission[] permissions,
+                                          UserStoreManager userStoreManager) {
+
+        JSONObject dataObject = new JSONObject();
+        if (ArrayUtils.isNotEmpty(userList)) {
+            dataObject.put(ListenerUtils.USERS_FIELD, new JSONArray(userList));
+        }
+        if (ArrayUtils.isNotEmpty(permissions)) {
+            JSONArray permissionsArray = new JSONArray(permissions);
+            dataObject.put(ListenerUtils.PERMISSIONS_FIELD, permissionsArray);
+        }
+        audit.warn(createAuditMessage(ListenerUtils.ADD_ROLE_ACTION,
+                ListenerUtils.getEntityWithUserStoreDomain(roleName, userStoreManager), dataObject, errorCode,
+                errorMessage));
+        return true;
+    }
+
+    @Override
     public boolean onDeleteRoleFailure(String errorCode, String errorMessage, String roleName,
             UserStoreManager userStoreManager) {
 

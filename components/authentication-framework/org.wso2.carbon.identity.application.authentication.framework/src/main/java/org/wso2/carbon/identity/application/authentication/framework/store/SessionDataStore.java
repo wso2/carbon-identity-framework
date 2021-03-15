@@ -294,6 +294,10 @@ public class SessionDataStore {
     }
 
     public SessionContextDO getSessionContextData(String key, String type) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
+        }
         if (!enablePersist) {
             return null;
         }
@@ -530,6 +534,9 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("Persisted SessionContextData to DB. key : " + key + " type : " + type);
+        }
     }
 
     public void removeSessionData(String key, String type, long nanoTime) {
@@ -568,6 +575,9 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("Removed SessionContextData from DB. key : " + key + " type : " + type);
+        }
     }
 
     /**
