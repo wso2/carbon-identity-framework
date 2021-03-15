@@ -268,6 +268,7 @@
   "identity_mgt.recovery.enable_detailed_error_messages":false,
   "identity_mgt.recovery.enable_auto_login": false,
   "identity_mgt.recovery.notify_user_existence": false,
+  "identity_mgt.recovery.notify_user_account_status": false,
   "identity_mgt.user_onboarding.notification.manage_internally": true,
   "identity_mgt.user_self_registration.notification.manage_internally": true,
   "identity_mgt.default_mail_validity_period": "1d",
