@@ -1188,6 +1188,17 @@
         <CheckAccountExist>{{authentication_policy.check_account_exist}}</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Disabling this configuration will discard validating the application role for the user who initiates the
+        application operations. Disabling this configuration will not create application role for newly created SPs and
+        the application role will not be assigned to the app owner.
+        The default value of the configuration is true.
+        -->
+        <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
+    </ApplicationMgt>
+
     <JITProvisioning>
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>

@@ -908,6 +908,17 @@
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
 
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Disabling this configuration will ignore validating the application role for the user who initiates the
+        application operations. Disabling this configuration will not create application role for newly created SPs and
+        the application role will not be assigned to the app owner.
+        The default value of the configuration is true.
+        -->
+        <EnableRoleValidation>true</EnableRoleValidation>
+    </ApplicationMgt>
+
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
