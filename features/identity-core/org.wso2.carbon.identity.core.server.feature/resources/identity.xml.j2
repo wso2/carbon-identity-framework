@@ -1252,7 +1252,18 @@
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
     </JITProvisioning>
 
-     {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Enabling this configuration will enable validating the application role for the user who initiates the
+        application operations. Enabling this configuration will create application role for newly created SPs and
+        the application role will be assigned to the app owner.
+        The default value of the configuration is false.
+        -->
+        <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
+    </ApplicationMgt>
+
+    {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
         <!--
         Disabling this configuration will allow to keep the provisioned entities as it is and  will update the outbound
         provisioning config rather than deleting the existing entries and add them as the new entries whenever updating
@@ -1262,7 +1273,7 @@
          <OutboundProvisioning>
             <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
          </OutboundProvisioning>
-     {% endif %}
+    {% endif %}
 
     <EventListeners>
         <EventListener id="workflow"
