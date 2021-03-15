@@ -932,6 +932,10 @@
         <PasswordProvisioningUI>/accountrecoveryendpoint/signup.do</PasswordProvisioningUI>
     </JITProvisioning>
 
+    <OutboundProvisioning>
+        <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
+    </OutboundProvisioning>
+
     <EventListeners>
         <EventListener type="org.wso2.carbon.user.core.listener.UserOperationEventListener"
                        name="org.wso2.carbon.user.mgt.workflow.userstore.UserStoreActionListener"

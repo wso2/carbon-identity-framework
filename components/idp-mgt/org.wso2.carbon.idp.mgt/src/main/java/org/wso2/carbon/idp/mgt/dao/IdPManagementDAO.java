@@ -44,6 +44,7 @@ import org.wso2.carbon.identity.core.ConnectorException;
 import org.wso2.carbon.identity.core.model.ExpressionNode;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementClientException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementServerException;
@@ -76,6 +77,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME;
 import static org.wso2.carbon.idp.mgt.util.IdPManagementConstants.TEMPLATE_ID_IDP_PROPERTY_NAME;
 
@@ -1616,16 +1618,146 @@ public class IdPManagementDAO {
         ResultSet rs = null;
 
         try {
-            deleteProvisioningConnectorConfigs(dbConnection, idpId);
+            if (!isEnableResetProvisioningEntitiesOnConfigUpdate()) {
+                if (newProvisioningConnectorConfigs != null && newProvisioningConnectorConfigs.length > 0) {
+                    updateProvisioningConfigProperty(newProvisioningConnectorConfigs, dbConnection,
+                            idpId, tenantId);
+                }
+            } else {
+                deleteProvisioningConnectorConfigs(dbConnection, idpId);
 
-            if (newProvisioningConnectorConfigs != null
-                    && newProvisioningConnectorConfigs.length > 0) {
-                addProvisioningConnectorConfigs(newProvisioningConnectorConfigs, dbConnection,
-                        idpId, tenantId);
+                if (newProvisioningConnectorConfigs != null && newProvisioningConnectorConfigs.length > 0) {
+                    addProvisioningConnectorConfigs(newProvisioningConnectorConfigs, dbConnection,
+                            idpId, tenantId);
+                }
             }
 
         } finally {
             IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+        }
+    }
+
+    private void updateProvisioningConfigProperty(ProvisioningConnectorConfig[] provisioningConnectors,
+                                                  Connection dbConnection, int idpId, int tenantId)
+            throws IdentityProviderManagementException, SQLException {
+
+        PreparedStatement prepStmt = null;
+
+        try {
+            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_PROVISIONING_CONFIG_PROPERTY_SQL;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            for (ProvisioningConnectorConfig connector : provisioningConnectors) {
+                if (isProvisioningConfigAvailableToUpdate(connector, dbConnection, idpId, tenantId)) {
+                    updateProvisioningConfig(connector, dbConnection, idpId, tenantId);
+                    Property[] connectorProperties = connector.getProvisioningProperties();
+                    if (connectorProperties != null && connectorProperties.length > 0) {
+                        for (Property config : connectorProperties) {
+                            if (config == null) {
+                                continue;
+                            }
+                            prepStmt.setString(1, config.getName());
+                            if (IdentityApplicationConstants.ConfigElements.PROPERTY_TYPE_BLOB.equals
+                                    (config.getType())) {
+                                prepStmt.setString(2, null);
+                                setBlobValue(config.getValue(), prepStmt, 3);
+                                prepStmt.setString(4, config.getType());
+                            } else {
+                                prepStmt.setString(2, config.getValue());
+                                setBlobValue(null, prepStmt, 3);
+                                prepStmt.setString(4, IdentityApplicationConstants.ConfigElements.
+                                        PROPERTY_TYPE_STRING);
+                            }
+
+                            if (config.isConfidential()) {
+                                prepStmt.setString(5, IdPManagementConstants.IS_TRUE_VALUE);
+                            } else {
+                                prepStmt.setString(5, IdPManagementConstants.IS_FALSE_VALUE);
+                            }
+                            prepStmt.setInt(6, idpId);
+                            prepStmt.setInt(7, tenantId);
+                            prepStmt.setString(8, connector.getName());
+                            prepStmt.setInt(9, tenantId);
+                            prepStmt.setString(10, config.getName());
+                            prepStmt.executeUpdate();
+                        }
+                    }
+                } else {
+                    addProvisioningConnectorConfigs(new ProvisioningConnectorConfig[]{connector}, dbConnection, idpId,
+                            tenantId);
+                }
+            }
+        } catch (IOException e) {
+            throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
+        } finally {
+            IdentityDatabaseUtil.closeStatement(prepStmt);
+        }
+    }
+
+    private boolean isEnableResetProvisioningEntitiesOnConfigUpdate() {
+
+        boolean resetProvisioningEntities = true;
+
+        if (StringUtils.isNotEmpty(IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE))) {
+            resetProvisioningEntities = Boolean
+                    .parseBoolean(IdentityUtil.getProperty(RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE));
+        }
+        return resetProvisioningEntities;
+    }
+
+    private boolean isProvisioningConfigAvailableToUpdate(ProvisioningConnectorConfig provisioningConnector,
+                                                          Connection dbConnection, int idpId, int tenantId)
+            throws IdentityProviderManagementException {
+
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        boolean isAvailable = false;
+        try {
+            String sqlStmt = IdPManagementConstants.SQLQueries.GET_IDP_PROVISIONING_CONFIGS_FOR_CONNECTOR_TYPE_SQL;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            prepStmt.setInt(1, idpId);
+            prepStmt.setString(2, provisioningConnector.getName());
+            prepStmt.setInt(3, tenantId);
+            rs = prepStmt.executeQuery();
+            if (rs.next()) {
+                isAvailable = rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while searching for provisioning connector " +
+                    "config ", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(null, rs, prepStmt);
+        }
+        return isAvailable;
+    }
+
+    private void updateProvisioningConfig(ProvisioningConnectorConfig provisioningConnector,
+                                          Connection dbConnection, int idpId, int tenantId)
+            throws IdentityProviderManagementException {
+
+        PreparedStatement prepStmt = null;
+
+        try {
+            String sqlStmt = IdPManagementConstants.SQLQueries.UPDATE_IDP_PROVISIONING_CONFIG_SQL;
+            prepStmt = dbConnection.prepareStatement(sqlStmt);
+            if (provisioningConnector.isEnabled()) {
+                prepStmt.setString(1, IdPManagementConstants.IS_TRUE_VALUE);
+            } else {
+                prepStmt.setString(1, IdPManagementConstants.IS_FALSE_VALUE);
+            }
+            if (provisioningConnector.isBlocking()) {
+                prepStmt.setString(2, IdPManagementConstants.IS_TRUE_VALUE);
+            } else {
+                prepStmt.setString(2, IdPManagementConstants.IS_FALSE_VALUE);
+            }
+            prepStmt.setInt(3, idpId);
+            prepStmt.setString(4, provisioningConnector.getName());
+            prepStmt.setInt(5, tenantId);
+            prepStmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new IdentityProviderManagementException("Error occurred while updating the provisioning " +
+                    "connector config " + e);
+        } finally {
+            IdentityDatabaseUtil.closeStatement(prepStmt);
         }
     }
 
