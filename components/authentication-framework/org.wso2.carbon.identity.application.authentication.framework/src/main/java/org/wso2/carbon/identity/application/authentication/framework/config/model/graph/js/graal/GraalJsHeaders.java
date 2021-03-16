@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseHeaders;
 
@@ -50,7 +51,7 @@ public class GraalJsHeaders extends JsBaseHeaders implements ProxyObject {
     @Override
     public Object getMemberKeys() {
 
-        return null;
+        return ProxyArray.fromArray(wrapped.keySet().toArray());
     }
 
     @Override

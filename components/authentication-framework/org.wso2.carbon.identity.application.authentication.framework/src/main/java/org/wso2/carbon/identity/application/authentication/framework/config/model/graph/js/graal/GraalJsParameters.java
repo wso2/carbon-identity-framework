@@ -18,12 +18,9 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsParameters;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseParameters;
 
 import java.util.Map;
@@ -54,10 +51,11 @@ public class GraalJsParameters extends JsBaseParameters implements ProxyObject {
     @Override
     public Object getMemberKeys() {
 
-        return null;
+        return ProxyArray.fromArray(getWrapped().keySet().toArray());
     }
 
     public void putMember(String key, Value value) {
+
         LOG.warn("Unsupported operation. Parameters are read only. Can't set parameter " + key + " to value: " + value);
     }
 

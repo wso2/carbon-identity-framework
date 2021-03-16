@@ -19,9 +19,12 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseCookie;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 
+import java.util.Arrays;
 import javax.servlet.http.Cookie;
 
 /**
@@ -41,11 +44,24 @@ public class GraalJsCookie extends JsBaseCookie implements ProxyObject {
     @Override
     public Object getMemberKeys() {
 
-        return null;
+        String[] cookieProperties = new String[]{
+                FrameworkConstants.JSAttributes.JS_COOKIE_NAME,
+                FrameworkConstants.JSAttributes.JS_COOKIE_VALUE,
+                FrameworkConstants.JSAttributes.JS_COOKIE_COMMENT,
+                FrameworkConstants.JSAttributes.JS_COOKIE_DOMAIN,
+                FrameworkConstants.JSAttributes.JS_COOKIE_MAX_AGE,
+                FrameworkConstants.JSAttributes.JS_COOKIE_PATH,
+                FrameworkConstants.JSAttributes.JS_COOKIE_SECURE,
+                FrameworkConstants.JSAttributes.JS_COOKIE_VERSION,
+                FrameworkConstants.JSAttributes.JS_COOKIE_HTTP_ONLY
+        };
+        return ProxyArray.fromArray(Arrays.stream(cookieProperties).filter(this::hasMember).toArray());
     }
+
 
     @Override
     public void putMember(String key, Value value) {
+
         LOG.warn("Unsupported operation. Cookie is read only. Can't remove parameter " + key);
     }
 }

@@ -103,7 +103,7 @@ public class GraalJsAuthenticatedUser extends JsBaseAuthenticatedUser
     @Override
     public Object getMemberKeys() {
 
-        return  ProxyArray.fromArray(new String[]{ FrameworkConstants.JSAttributes.JS_USERNAME});
+        return  ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_USERNAME);
     }
 
     public void putMember(String name, Value value) {

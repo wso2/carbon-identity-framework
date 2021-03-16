@@ -89,8 +89,8 @@ public class GraalJsAuthenticationContext extends JsBaseAuthenticationContext
     @Override
     public Object getMemberKeys() {
 
-        return ProxyArray.fromArray(new String[]{ FrameworkConstants.JSAttributes.JS_STEPS,
-                FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT});
+        return ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_STEPS,
+                FrameworkConstants.JSAttributes.JS_CURRENT_KNOWN_SUBJECT);
     }
 
     @Override

@@ -19,12 +19,14 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletRequest;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -85,7 +87,14 @@ public class GraalJsServletRequest extends JsBaseServletRequest implements Proxy
     @Override
     public Object getMemberKeys() {
 
-        return null;
+        String[] servletRequestProperties = new String[]{
+                FrameworkConstants.JSAttributes.JS_HEADERS,
+                FrameworkConstants.JSAttributes.JS_COOKIES,
+                FrameworkConstants.JSAttributes.JS_REQUEST_IP,
+                FrameworkConstants.JSAttributes.JS_PARAMS
+        };
+
+        return ProxyArray.fromArray(Arrays.stream(servletRequestProperties).filter(this::hasMember).toArray());
     }
 
     @Override

@@ -18,7 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseServletResponse;
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
@@ -42,6 +45,8 @@ import javax.servlet.http.HttpServletResponse;
  * keeping consistency on runtime HttpServletResponse.
  */
 public class GraalJsServletResponse extends JsBaseServletResponse implements ProxyObject {
+
+    Log LOG = LogFactory.getLog(GraalJsServletResponse.class);
 
     public GraalJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped) {
 
@@ -67,7 +72,7 @@ public class GraalJsServletResponse extends JsBaseServletResponse implements Pro
     @Override
     public Object getMemberKeys() {
 
-        return null;
+        return ProxyArray.fromArray(FrameworkConstants.JSAttributes.JS_HEADERS);
     }
 
     @Override
@@ -85,6 +90,8 @@ public class GraalJsServletResponse extends JsBaseServletResponse implements Pro
 
     @Override
     public void putMember(String key, Value value) {
-        // What to Do ?
+
+        LOG.warn("Unsupported operation. Servlet Response is read only. Can't set parameter "
+                + key + " to value: " + value);
     }
 }

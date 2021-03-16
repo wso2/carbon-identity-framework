@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.graal;
 
 import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.base.JsBaseStep;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -52,7 +53,9 @@ public class GraalJsStep extends JsBaseStep implements ProxyObject {
     @Override
     public Object getMemberKeys() {
 
-        return null;
+        return ProxyArray.fromArray (FrameworkConstants.JSAttributes.JS_AUTHENTICATED_SUBJECT,
+        FrameworkConstants.JSAttributes.JS_AUTHENTICATION_OPTIONS,
+        FrameworkConstants.JSAttributes.JS_AUTHENTICATED_IDP);
     }
 
     @Override
