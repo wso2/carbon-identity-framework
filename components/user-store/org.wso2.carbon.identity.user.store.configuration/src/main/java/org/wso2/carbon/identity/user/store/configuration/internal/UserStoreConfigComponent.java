@@ -39,8 +39,10 @@ import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDA
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
+import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreHashProviderListenerImpl;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.ConfigurationContextService;
 
@@ -128,6 +130,11 @@ public class UserStoreConfigComponent {
             ctxt.getBundleContext().registerService(UserStoreConfigService.class.getName(), userStoreConfigService,
                     null);
             UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
+            UserStoreHashProviderListenerImpl userStoreHashProviderListener = new UserStoreHashProviderListenerImpl();
+            ctxt.getBundleContext().registerService(UserStoreHashProviderListenerImpl.class.getName(),
+                    userStoreHashProviderListener, null);
+            UserStoreConfigListenersHolder.getInstance().
+                    setUserStoreConfigListenerService(userStoreHashProviderListener);
             if (serviceRegistration != null) {
                 if (log.isDebugEnabled()) {
                     log.debug("FileBasedUserStoreDAOFactory is successfully registered.");
@@ -285,5 +292,22 @@ public class UserStoreConfigComponent {
         if (log.isDebugEnabled()) {
             log.debug("ConfigurationContextService Instance was unset.");
         }
+    }
+
+    @Reference(
+            name = "hash.provider.component",
+            service = org.wso2.carbon.user.core.hash.HashProviderFactory.class,
+            cardinality = ReferenceCardinality.MULTIPLE,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetHashProviderFactory"
+    )
+    protected void setHashProviderFactory(HashProviderFactory hashProviderFactory) {
+
+        UserStoreConfigListenersHolder.getInstance().setHashProviderFactory(hashProviderFactory);
+    }
+
+    protected void unsetHashProviderFactory(HashProviderFactory hashProviderFactory) {
+
+        UserStoreConfigListenersHolder.getInstance().unbindHashProviderFactory(hashProviderFactory);
     }
 }
