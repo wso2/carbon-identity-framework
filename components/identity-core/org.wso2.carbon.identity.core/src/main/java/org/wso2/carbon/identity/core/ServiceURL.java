@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.core;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Map;
 
 /**
@@ -122,4 +124,15 @@ public interface ServiceURL {
      * @return The internal relative URL from the Service URL instance.
      */
     String getRelativeInternalURL();
+
+    /**
+     * Returns the proxy server url when the Identity Server is fronted with a proxy.
+     * Concatenate the protocol, host name, port and  return the public absolute URL.
+     *
+     * @return The public absolute URL without any url path.
+     */
+    default String getAbsolutePublicUrlWithoutPath() {
+
+        return StringUtils.EMPTY;
+    }
 }
