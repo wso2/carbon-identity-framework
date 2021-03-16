@@ -1286,7 +1286,12 @@ public class FrameworkUtils {
                                                        boolean useLocalDialectAsKey) {
 
         Map<String, String> remoteToLocalClaimMap = new HashMap<String, String>();
-
+        if (MapUtils.isEmpty(claimMappings)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Claim mapping is empty or null when useLocalDialectAsKey is " + useLocalDialectAsKey);
+            }
+            return remoteToLocalClaimMap;
+        }
         for (Entry<ClaimMapping, String> entry : claimMappings.entrySet()) {
             ClaimMapping claimMapping = entry.getKey();
             if (useLocalDialectAsKey) {

@@ -728,6 +728,8 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
                     if (authenticatedUser != null) {
 
+                        setUserToAuthenticatedIDP(previousAuthenticatedSeq, authenticatedUser,
+                                sessionContext.getAuthenticatedIdPs());
                         if (isUserAllowedToLogin(authenticatedUser)) {
                             String authenticatedUserTenantDomain = authenticatedUser.getTenantDomain();
                             // set the user for the current authentication/logout flow
@@ -1017,6 +1019,35 @@ public class DefaultRequestCoordinator extends AbstractRequestCoordinator implem
 
         } catch (UserStoreException e) {
             throw new FrameworkException("Error occurred while retrieving claim: " + claimURI, e);
+        }
+    }
+
+    private void setUserToAuthenticatedIDP(SequenceConfig previousAuthenticatedSeq,
+                                           AuthenticatedUser authenticatedUser,
+                                           Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs) {
+
+        String idpName = previousAuthenticatedSeq.getAuthenticatedUser().getFederatedIdPName();
+        if (StringUtils.isBlank(idpName) && !authenticatedUser.isFederatedUser()) {
+            idpName = FrameworkConstants.LOCAL_IDP_NAME;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Authenticated user: " + authenticatedUser.getUserName() + " found in the previous " +
+                    "authenticated sequence has idp: " + idpName);
+        }
+        for (Map.Entry<String, AuthenticatedIdPData> entry : previousAuthenticatedIdPs.entrySet()) {
+            AuthenticatedIdPData authenticatedIdPData = entry.getValue();
+            if (StringUtils.equals(entry.getValue().getIdpName(), idpName)) {
+                // Getting authenticated user from previous sequence and user attributed from idp data.
+                // Because we drop user attributes in previous sequence when we store it into cache
+                AuthenticatedUser user = new AuthenticatedUser(previousAuthenticatedSeq.getAuthenticatedUser());
+                user.setUserAttributes(authenticatedIdPData.getUser().getUserAttributes());
+                if (log.isDebugEnabled()) {
+                    log.debug("Setting authenticated user : " + user.getUserName() + " from previous " +
+                            "authenticated sequence to authenticatedIdp data");
+                }
+                authenticatedIdPData.setUser(user);
+                break;
+            }
         }
     }
 }
