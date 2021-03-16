@@ -22,17 +22,26 @@
     <parent>
         <artifactId>multi-attribute-login-feature</artifactId>
         <groupId>org.wso2.carbon.identity.framework</groupId>
-        <version>5.19.55-SNAPSHOT</version>
+        <version>5.18.187.28-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.identity.unique.claim.mgt.feature</artifactId>
+    <artifactId>org.wso2.carbon.identity.unique.claim.mgt.server.feature</artifactId>
 
     <packaging>pom</packaging>
     <name>Unique Claim Mgt Feature</name>
     <url>http://wso2.org</url>
     <description>This feature contains the bundles required for unique claim Mgt</description>
-
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.mgt</artifactId>
+        </dependency>
+    </dependencies>
     <build>
         <plugins>
             <plugin>
