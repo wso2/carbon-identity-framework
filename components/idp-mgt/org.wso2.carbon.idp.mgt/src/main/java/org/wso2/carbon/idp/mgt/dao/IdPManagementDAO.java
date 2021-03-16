@@ -1683,7 +1683,8 @@ public class IdPManagementDAO {
                 }
             }
         } catch (IOException e) {
-            throw new IdentityProviderManagementException("An error occurred while processing content stream.", e);
+            throw new IdentityProviderManagementException("An error occurred when processing content stream while " +
+                    "updating provisioning config properties of Identity Provider : " + idpId, e);
         }
     }
 
@@ -1715,7 +1716,7 @@ public class IdPManagementDAO {
             }
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while searching for provisioning connector " +
-                    "config ", e);
+                    "config of Identity Provider : " + idpId, e);
         }
         return isAvailable;
     }
@@ -1742,7 +1743,7 @@ public class IdPManagementDAO {
             prepStmt.executeUpdate();
         } catch (SQLException e) {
             throw new IdentityProviderManagementException("Error occurred while updating the provisioning " +
-                    "connector config " + e);
+                    "connector config of Identity Provider : " + idpId, e);
         }
     }
 
