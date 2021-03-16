@@ -1102,6 +1102,8 @@
             <AccountUnlockNotification>{{identity_mgt.password_reset_by_admin.enable_account_unlock_notification}}</AccountUnlockNotification>
         </AdminPasswordReset>
         <NotifyUserExistence>{{identity_mgt.recovery.notify_user_existence}}</NotifyUserExistence>
+        <!--Whether to notify the user if the user account is locked/disabled-->
+        <NotifyUserAccountStatus>{{identity_mgt.recovery.notify_user_account_status}}</NotifyUserAccountStatus>
         <CallbackRegex>{{identity_mgt.recovery.callback_url}}</CallbackRegex>
         <ErrorMessage>
             <EnableDetailedErrorMessages>{{identity_mgt.recovery.enable_detailed_error_messages}}</EnableDetailedErrorMessages>
@@ -1144,6 +1146,7 @@
             <EnableDetailedResponseBody>{{identity_mgt.user_self_registration.enable_detailed_api_response}}</EnableDetailedResponseBody>
         </API>
         <LockOnCreation>{{identity_mgt.user_self_registration.lock_on_creation}}</LockOnCreation>
+        <SendConfirmationOnCreation>{{identity_mgt.user_self_registration.send_confirmation_on_creation}}</SendConfirmationOnCreation>
         <NotifyAccountConfirmation>{{identity_mgt.user_self_registration.notify_account_confirmation}}</NotifyAccountConfirmation>
         <Notification>
             <InternallyManage>{{identity_mgt.user_self_registration.notification.manage_internally}}</InternallyManage>
@@ -1224,6 +1227,19 @@
         <ReturnOnlyMappedLocalRoles>{{sp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
     </SPRoleManagement>
 
+    <!--
+        This configuration is used to filter the federated IDP configured role mappings. If the property value is,
+        true : If IDP role mapping available, it will return the configured role mappings .
+        false : If there is no IDP role mapping and If the remote role and local role names are matching it will allow
+        to returns all the unmapped roles.
+    -->
+
+    {% if idp_role_management.return_only_mapped_local_roles is defined %}
+        <FederatedRoleManagement>
+            <ReturnOnlyMappedLocalRoles>{{idp_role_management.return_only_mapped_local_roles}}</ReturnOnlyMappedLocalRoles>
+        </FederatedRoleManagement>
+    {% endif %}
+
     <EnableAskPasswordAdminUI>{{identity_mgt.user_onboarding.ask_password_from_user}}</EnableAskPasswordAdminUI>
 
     <EnableRecoveryEndpoint>{{identity_mgt.endpoint.enable_recovery_endpoint}}</EnableRecoveryEndpoint>
@@ -1237,6 +1253,29 @@
         <UserNameProvisioningUI>{{authentication.jit_provisioning.username_provisioning_url}}</UserNameProvisioningUI>
         <PasswordProvisioningUI>{{authentication.jit_provisioning.password_provisioning_url}}</PasswordProvisioningUI>
     </JITProvisioning>
+
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Enabling this configuration will enable validating the application role for the user who initiates the
+        application operations. Enabling this configuration will create application role for newly created SPs and
+        the application role will be assigned to the app owner.
+        The default value of the configuration is false.
+        -->
+        <EnableRoleValidation>{{application_mgt.enable_role_validation}}</EnableRoleValidation>
+    </ApplicationMgt>
+
+    {% if outbound_provisioning_management.reset_provisioning_entities_on_config_update is defined %}
+        <!--
+        Disabling this configuration will allow to keep the provisioned entities as it is and  will update the outbound
+        provisioning config rather than deleting the existing entries and add them as the new entries whenever updating
+        the provisioning connector configurations.
+        The default value of the configuration is true.
+        -->
+         <OutboundProvisioning>
+            <ResetProvisioningEntitiesOnConfigUpdate>{{outbound_provisioning_management.reset_provisioning_entities_on_config_update}}</ResetProvisioningEntitiesOnConfigUpdate>
+         </OutboundProvisioning>
+    {% endif %}
 
     <EventListeners>
         <EventListener id="workflow"

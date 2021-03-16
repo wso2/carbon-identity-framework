@@ -86,6 +86,8 @@ public class IdPManagementConstants {
 
     public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
     public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
+    public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
+            + ".ResetProvisioningEntitiesOnConfigUpdate";
 
     public static class SQLQueries {
 
@@ -284,9 +286,16 @@ public class IdPManagementConstants {
                 + "PROVISIONING_CONFIG_ID, PROPERTY_KEY, PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, IS_SECRET) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+        public static final String UPDATE_IDP_PROVISIONING_CONFIG_PROPERTY_SQL = "UPDATE IDP_PROV_CONFIG_PROPERTY SET "
+                + "PROPERTY_KEY=?, PROPERTY_VALUE=?, PROPERTY_BLOB_VALUE=?, PROPERTY_TYPE = ?, IS_SECRET=? "
+                + "WHERE PROVISIONING_CONFIG_ID=(SELECT ID FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=? "
+                + "AND TENANT_ID = ? AND PROVISIONING_CONNECTOR_TYPE=?) AND TENANT_ID = ? AND PROPERTY_KEY=?";
+
         public static final String UPDATE_IDP_PROVISIONING_CONFIG_SQL = "UPDATE IDP_PROVISIONING_CONFIG SET "
-                + "PROV_CONNECTOR_TYPE=?, PROV_CONFIG_KEY=? PROV_CONFIG_VALUE=?, "
-                + "PROV_CONFIG_IS_SECRET = ? WHERE IDP_ID=?";
+                + "IS_ENABLED=?, IS_BLOCKING=? WHERE (IDP_ID=? AND PROVISIONING_CONNECTOR_TYPE=? AND TENANT_ID=?)";
+
+        public static final String GET_IDP_PROVISIONING_CONFIGS_FOR_CONNECTOR_TYPE_SQL = "SELECT ID FROM "
+                + "IDP_PROVISIONING_CONFIG WHERE (IDP_ID=? AND PROVISIONING_CONNECTOR_TYPE=? AND TENANT_ID=?)";
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
 
