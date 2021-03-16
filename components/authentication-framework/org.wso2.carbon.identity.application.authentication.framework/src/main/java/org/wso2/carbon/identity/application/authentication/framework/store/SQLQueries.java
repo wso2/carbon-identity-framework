@@ -72,6 +72,8 @@ public class SQLQueries {
      */
     public static final String SQL_SELECT_IDP_ID_OF_IDP = "SELECT IDP.ID FROM IDP WHERE NAME = ?";
 
+    public static final String SQL_SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
+
     // Retrieve application id given the name and the tenant id.
     public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
 

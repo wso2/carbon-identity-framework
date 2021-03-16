@@ -240,7 +240,9 @@ public class UserSessionStore {
      * @param idPName name of the identity provider
      * @return id of the identity provider
      * @throws UserSessionException if an error occurs when retrieving the identity provider id list from the database
+     * @deprecated instead use {@link #getIdPId(String, int)}.
      */
+    @Deprecated
     public int getIdPId(String idPName) throws UserSessionException {
 
         int idPId = -1;
@@ -261,6 +263,38 @@ public class UserSessionStore {
             }
         } catch (SQLException e) {
             throw new UserSessionException("Error while retrieving the IdP id of: " + idPName, e);
+        }
+        return idPId;
+    }
+
+    /**
+     * Retrieve IDP ID from the IDP table using IDP name and tenant ID.
+     *
+     * @param idpName   IDP name.
+     * @param tenantId  Tenant ID.
+     * @return          IDP ID.
+     * @throws UserSessionException
+     */
+    public int getIdPId(String idpName, int tenantId) throws UserSessionException {
+
+        int idPId = -1;
+        if (idpName.equals("LOCAL")) {
+            return idPId;
+        }
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(false)) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SQLQueries.SQL_SELECT_IDP_WITH_TENANT)) {
+                preparedStatement.setString(1, idpName);
+                preparedStatement.setInt(2, tenantId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        idPId = resultSet.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new UserSessionException("Error while retrieving the IdP id of: " + idpName + " and tenant ID: " +
+                    tenantId, e);
         }
         return idPId;
     }
@@ -836,5 +870,21 @@ public class UserSessionStore {
                     tenantDomain, e);
         }
         return activeSessionCount;
+    }
+
+    /**
+     * Returns the user id of the federated user.
+     *
+     * @param subjectIdentifier - Subject Identifier of the federated user.
+     * @param tenantId          - Id of the service provider's tenant domain.
+     * @param idPId             - Id of the identity provider.
+     * @return userId - User Id of the federated user.
+     * @throws UserSessionException
+     */
+    public String getFederatedUserId(String subjectIdentifier, int tenantId, int idPId)
+            throws UserSessionException {
+
+        // When federated user is stored, the userDomain is added as "FEDERATED" to the store.
+        return getUserId(subjectIdentifier, tenantId, FEDERATED_USER_DOMAIN, idPId);
     }
 }

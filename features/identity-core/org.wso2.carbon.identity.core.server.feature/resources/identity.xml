@@ -857,6 +857,7 @@
         </AdminPasswordReset>
         <CallbackRegex>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/login.do</CallbackRegex>
         <NotifyUserExistence>false</NotifyUserExistence>
+        <NotifyUserAccountStatus>true</NotifyUserAccountStatus>
     </Recovery>
 
     <EmailVerification>
@@ -926,6 +927,17 @@
     <AuthenticationPolicy>
         <CheckAccountExist>true</CheckAccountExist>
     </AuthenticationPolicy>
+
+    <!--Application management service configurations-->
+    <ApplicationMgt>
+        <!--
+        Enabling this configuration will enable validating the application role for the user who initiates the
+        application operations. Enabling this configuration will create application role for newly created SPs and
+        the application role will be assigned to the app owner.
+        The default value of the configuration is false.
+        -->
+        <EnableRoleValidation>false</EnableRoleValidation>
+    </ApplicationMgt>
 
     <JITProvisioning>
         <UserNameProvisioningUI>/accountrecoveryendpoint/register.do</UserNameProvisioningUI>
