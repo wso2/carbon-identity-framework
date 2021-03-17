@@ -64,7 +64,7 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
         Value engineBindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         Map<String, Object> persistableMap = new HashMap<>();
         engineBindings.getMemberKeys().forEach((key) -> {
-            Value keybinding = engineBindings.getMember(key);
+            Value binding = engineBindings.getMember(key);
             if (!keybinding.isHostObject()) {
                 persistableMap.put(key, FrameworkUtils.toJsSerializableGraal(keybinding));
             }
