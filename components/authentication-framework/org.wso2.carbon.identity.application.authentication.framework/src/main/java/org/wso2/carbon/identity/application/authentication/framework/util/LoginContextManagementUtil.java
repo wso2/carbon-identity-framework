@@ -84,6 +84,9 @@ public class LoginContextManagementUtil {
         AuthenticationContext context = FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey);
         // Valid Request
         if (isValidRequest(request, context)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Setting response for the valid request.");
+            }
             // If the context is valid and at the first step.
             if (isStepHasMultiOption(context)) {
                 context.setCurrentAuthenticator(null);
