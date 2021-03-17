@@ -84,7 +84,9 @@ public class UserRealmProxy {
     public static final String PERMISSION = "/permission";
     public static final String PERMISSION_TREE = "/permission/";
     public static final String PERMISSION_ADMIN = "/permission/admin";
+    public static final String PERMISSION_ADMIN_TREE = "/permission/admin/";
     public static final String PERMISSION_PROTECTED = "/permission/protected";
+    public static final String PERMISSION_PROTECTED_TREE = "/permission/protected/";
     private UserRealm realm = null;
 
     public UserRealmProxy(UserRealm userRealm) {
@@ -2159,11 +2161,7 @@ public class UserRealmProxy {
             if (rawResources != null &&
                     !adminUser.equalsIgnoreCase(loggedInUserName)) {
                 Arrays.sort(rawResources);
-                if (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION) > -1 ||
-                        Arrays.binarySearch(rawResources, PERMISSION_TREE) > -1) {
-
+                if (isPermissionsListHasAdminPermissions(rawResources)) {
                     log.warn("An attempt to Assign admin permission for role by user : " +
                             loggedInUserName);
                     throw new UserStoreException("Can not assign Admin for permission role");
@@ -2188,6 +2186,22 @@ public class UserRealmProxy {
             log.error(e.getMessage(), e);
             throw new UserAdminException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Check whether the admin permissions are available in the rawResources.
+     *
+     * @param rawResources Resource permissions list.
+     * @return True if the permissions list contains any admin root permissions.
+     */
+    private boolean isPermissionsListHasAdminPermissions(String[] rawResources) {
+
+        return (Arrays.binarySearch(rawResources, PERMISSION_ADMIN) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_ADMIN_TREE) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_PROTECTED) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_PROTECTED_TREE) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION) > -1 ||
+                Arrays.binarySearch(rawResources, PERMISSION_TREE) > -1);
     }
 
     public void bulkImportUsers(String userStoreDomain, String fileName, InputStream inStream, String defaultPassword)
