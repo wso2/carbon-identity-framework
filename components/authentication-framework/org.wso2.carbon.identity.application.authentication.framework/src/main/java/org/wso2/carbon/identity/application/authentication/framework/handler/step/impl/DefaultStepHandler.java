@@ -124,6 +124,9 @@ public class DefaultStepHandler implements StepHandler {
             }
         }
 
+        if (context.isPassiveAuthenticate() && MapUtils.isNotEmpty(context.getAuthenticatedIdPsPerApp())) {
+            authenticatedIdPs = context.getAuthenticatedIdPsPerApp();
+        }
         Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
                 .getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
 

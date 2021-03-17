@@ -396,9 +396,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE;
-                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                        sequenceConfig);
+                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                if (!context.isPassiveAuthenticate()) {
+                    setAuthenticatedIDPByApps(sessionContext, appConfig.getApplicationName());
+                }
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -485,6 +487,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                         sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
+                setAuthenticatedIDPByApps(sessionContext, appConfig.getApplicationName());
                 sessionContext.setRememberMe(context.isRememberMe());
                 if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
                     if (log.isDebugEnabled()) {
@@ -919,4 +922,24 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         return authenticationResult;
     }
 
+    private void setAuthenticatedIDPByApps(SessionContext sessionContext, String applicationName) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting shared authenticatedIdpData from session context and setting it for"
+                    + "application: " + applicationName);
+        }
+        Map<String, AuthenticatedIdPData> authenticatedIdPDataMap = new HashMap<>();
+        for (Map.Entry<String, AuthenticatedIdPData> entry : sessionContext.getAuthenticatedIdPs().entrySet()) {
+            // Getting shared authenticatedIdpData from session context and set it against application.
+            AuthenticatedIdPData sharedAuthenticatedIdp = entry.getValue();
+            AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+            authenticatedIdPData.setUser(new AuthenticatedUser(sharedAuthenticatedIdp.getUser()));
+            authenticatedIdPData.setIdpName(sharedAuthenticatedIdp.getIdpName());
+            for (AuthenticatorConfig authenticator : sharedAuthenticatedIdp.getAuthenticators()) {
+                authenticatedIdPData.addAuthenticator(authenticator);
+            }
+            authenticatedIdPDataMap.put(authenticatedIdPData.getIdpName(), authenticatedIdPData);
+        }
+        sessionContext.getAuthenticatedIdPsPerApp().put(applicationName, authenticatedIdPDataMap);
+    }
 }

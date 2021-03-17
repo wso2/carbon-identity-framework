@@ -22,10 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SessionContext implements Serializable {
@@ -37,6 +34,7 @@ public class SessionContext implements Serializable {
     private boolean isRememberMe = false;
     private Map<String,Object> properties = new HashMap<>();
     private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
+    private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsPerApp = new HashMap<>();
 
     public Map<String, SequenceConfig> getAuthenticatedSequences() {
         return authenticatedSequences;
@@ -54,6 +52,16 @@ public class SessionContext implements Serializable {
 
     public void setAuthenticatedIdPs(Map<String, AuthenticatedIdPData> authenticatedIdPs) {
         this.authenticatedIdPs = authenticatedIdPs;
+    }
+
+    public void setAuthenticatedIdPsPerApp(Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsPerApp) {
+
+        this.authenticatedIdPsPerApp = authenticatedIdPsPerApp;
+    }
+
+    public Map<String, Map<String, AuthenticatedIdPData>> getAuthenticatedIdPsPerApp() {
+
+        return authenticatedIdPsPerApp;
     }
 
     public boolean isRememberMe() {
