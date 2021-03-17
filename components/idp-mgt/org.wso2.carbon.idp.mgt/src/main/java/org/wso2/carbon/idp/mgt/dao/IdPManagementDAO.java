@@ -1622,7 +1622,7 @@ public class IdPManagementDAO {
                             idpId, tenantId);
                 }
             } else {
-
+                deleteProvisioningConnectorConfigs(dbConnection, idpId);
                 if (newProvisioningConnectorConfigs != null && newProvisioningConnectorConfigs.length > 0) {
                     addProvisioningConnectorConfigs(newProvisioningConnectorConfigs, dbConnection,
                             idpId, tenantId);
