@@ -23,13 +23,14 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDecisionEvaluator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.NashornJsAuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.nashorn.NashornSerializableJsFunction;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsAuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornSerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.functions.library.mgt.exception.FunctionLibraryManagementException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -49,6 +50,7 @@ import javax.script.ScriptException;
 public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraphBuilder {
 
     private static final Log log = LogFactory.getLog(JsNashornGraphBuilder.class);
+    protected ScriptEngine engine;
 
     /**
      * Constructs the builder with the given authentication context.
@@ -138,223 +140,19 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     }
 
     @Override
-    public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction fn) {
+    public AuthenticationDecisionEvaluator getScriptEvaluator(SerializableJsFunction<?> fn) {
 
         return new JsBasedEvaluator((NashornSerializableJsFunction) fn);
     }
 
-    /**
-     * Add authentication fail node to the authentication graph during subsequent requests.
-     *
-     * @param parameterMap Parameters needed to send the error.
-     */
-    public static void sendErrorAsync(String url, Map<String, Object> parameterMap) {
 
-        FailNode newNode = createFailNode(url, parameterMap);
+    protected Function<Object, SerializableJsFunction<?>> effectiveFunctionSerializer() {
 
-        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
-        if (currentNode == null) {
-            dynamicallyBuiltBaseNode.set(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
+        return NashornSerializableJsFunction::toSerializableForm;
     }
 
-    private static FailNode createFailNode(String url, Map<String, Object> parameterMap) {
 
-        FailNode failNode = new FailNode();
-        failNode.setErrorPageUri(url);
-
-        parameterMap.forEach((key, value) -> failNode.getFailureData().put(key, String.valueOf(value)));
-        return failNode;
-    }
-
-    /**
-     * Add authentication fail node to the authentication graph in the initial request.
-     *
-     * @param parameterMap Parameters needed to send the error.
-     */
-    public void sendError(String url, Map<String, Object> parameterMap) {
-
-        FailNode newNode = createFailNode(url, parameterMap);
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-    }
-
-    /**
-     * Adds the step given by step ID tp the authentication graph.
-     *
-     * @param stepId Step Id
-     * @param params params
-     */
-    @SuppressWarnings("unchecked")
-    public final void executeStep(int stepId, Object... params) {
-
-        StepConfig stepConfig;
-        stepConfig = stepNamedMap.get(stepId);
-
-        if (stepConfig == null) {
-            log.error("Given Authentication Step :" + stepId + " is not in Environment");
-            return;
-        }
-        StepConfigGraphNode newNode = wrap(stepConfig);
-        if (currentNode == null) {
-            result.setStartNode(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-        currentNode = newNode;
-        if (params.length > 0) {
-            // if there are any params provided, last one is assumed to be the event listeners
-            if (params[params.length - 1] instanceof Map) {
-                attachEventListeners((Map<String, Object>) params[params.length - 1], currentNode);
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-        }
-        if (params.length == 2) {
-            // There is an argument with options present
-            if (params[0] instanceof Map) {
-                Map<String, Object> options = (Map<String, Object>) params[0];
-                handleOptions(options, stepConfig);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void handleOptions(Map<String, Object> options, StepConfig stepConfig) {
-
-        Object authenticationOptionsObj = options.get(FrameworkConstants.JSAttributes.AUTHENTICATION_OPTIONS);
-        if (authenticationOptionsObj instanceof Map) {
-            filterOptions((Map<String, Map<String, String>>) authenticationOptionsObj, stepConfig);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Authenticator options not provided or invalid, hence proceeding without filtering");
-            }
-        }
-
-        Object authenticatorParams = options.get(FrameworkConstants.JSAttributes.AUTHENTICATOR_PARAMS);
-        if (authenticatorParams instanceof Map) {
-            authenticatorParamsOptions((Map<String, Object>) authenticatorParams, stepConfig);
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Authenticator params not provided or invalid, hence proceeding without setting params");
-            }
-        }
-    }
-
-    /**
-     * Adds the step given by step ID tp the authentication graph.
-     *
-     * @param params params
-     */
-    @SuppressWarnings("unchecked")
-    public void executeStepInAsyncEvent(int stepId, Object... params) {
-
-        AuthenticationContext context = contextForJs.get();
-        AuthGraphNode currentNode = dynamicallyBuiltBaseNode.get();
-
-        if (log.isDebugEnabled()) {
-            log.debug("Execute Step on async event. Step ID : " + stepId);
-        }
-        AuthenticationGraph graph = context.getSequenceConfig().getAuthenticationGraph();
-        if (graph == null) {
-            log.error("The graph happens to be null on the sequence config. Can not execute step : " + stepId);
-            return;
-        }
-
-        StepConfig stepConfig = graph.getStepMap().get(stepId);
-        // Inorder to keep original stepConfig as a backup in AuthenticationGraph.
-        StepConfig clonedStepConfig = new StepConfig(stepConfig);
-        clonedStepConfig
-                .applyStateChangesToNewObjectFromContextStepMap(context.getSequenceConfig().getStepMap().get(stepId));
-        if (log.isDebugEnabled()) {
-            log.debug("Found step for the Step ID : " + stepId + ", Step Config " + clonedStepConfig);
-        }
-        StepConfigGraphNode newNode = wrap(clonedStepConfig);
-        if (currentNode == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Setting a new node at the first time. Node : " + newNode.getName());
-            }
-            dynamicallyBuiltBaseNode.set(newNode);
-        } else {
-            attachToLeaf(currentNode, newNode);
-        }
-
-        if (params.length > 0) {
-            // if there is only one param, it is assumed to be the event listeners
-            if (params[params.length - 1] instanceof Map) {
-                attachEventListeners((Map<String, Object>) params[params.length - 1], newNode);
-            } else {
-                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
-            }
-        }
-
-        if (params.length == 2) {
-            // There is an argument with options present
-            if (params[0] instanceof Map) {
-                Map<String, Object> options = (Map<String, Object>) params[0];
-                handleOptions(options, clonedStepConfig);
-            }
-        }
-    }
-
-    protected Function<Object, SerializableJsFunction> effectiveFunctionSerializer() {
-
-        return v -> NashornSerializableJsFunction.toSerializableForm(v);
-    }
-
-    private void attachEventListeners(Map<String, Object> eventsMap, AuthGraphNode currentNode) {
-
-        if (eventsMap == null) {
-            return;
-        }
-        DynamicDecisionNode decisionNode = new DynamicDecisionNode();
-        addEventListeners(decisionNode, eventsMap, effectiveFunctionSerializer());
-        if (!decisionNode.getFunctionMap().isEmpty()) {
-            attachToLeaf(currentNode, decisionNode);
-        }
-    }
-
-    /**
-     * Creates the StepConfigGraphNode with given StepConfig.
-     *
-     * @param stepConfig Step Config Object.
-     * @return built and wrapped new StepConfigGraphNode.
-     */
-    private static StepConfigGraphNode wrap(StepConfig stepConfig) {
-
-        return new StepConfigGraphNode(stepConfig);
-    }
-
-    @FunctionalInterface
-    public interface StepExecutor {
-
-        void executeStep(Integer stepId, Object... parameterMap);
-    }
-
-    @FunctionalInterface
-    public interface PromptExecutor {
-
-        void prompt(String template, Object... parameterMap);
-    }
-
-    @FunctionalInterface
-    public interface RestrictedFunction {
-
-        void exit(Object... arg);
-    }
-
-    @FunctionalInterface
-    public interface LoadExecutor {
-
-        String loadLocalLibrary(String libraryName) throws FunctionLibraryManagementException;
-    }
-
-    protected SerializableJsFunction toSerializableForm(Object function) {
+    protected SerializableJsFunction<?> toSerializableForm(Object function) {
 
         return NashornSerializableJsFunction.toSerializableForm(function);
     }
@@ -368,7 +166,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     public class JsBasedEvaluator implements AuthenticationDecisionEvaluator {
 
         private static final long serialVersionUID = 6853505881096840344L;
-        private NashornSerializableJsFunction jsFunction;
+        private final NashornSerializableJsFunction jsFunction;
 
         public JsBasedEvaluator(NashornSerializableJsFunction jsFunction) {
 
@@ -376,8 +174,9 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
         }
 
         @Override
-        public Object evaluate(AuthenticationContext authenticationContext, SerializableJsFunction fn) {
+        public Object evaluate(SerializableJsFunction<?> fn, Object... params) {
 
+            NashornSerializableJsFunction func = (NashornSerializableJsFunction) fn;
             JsNashornGraphBuilder graphBuilder = JsNashornGraphBuilder.this;
             Object result = null;
             if (jsFunction == null) {
@@ -393,7 +192,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_EXECUTE_STEP,
                             (StepExecutor) graphBuilder::executeStepInAsyncEvent);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SEND_ERROR,
-                            (BiConsumer<String, Map>) JsNashornGraphBuilder::sendErrorAsync);
+                            (BiConsumer<String, Map>) JsBaseGraphBuilder::sendErrorAsync);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SHOW_PROMPT, (PromptExecutor)
                             graphBuilder::addShowPrompt);
                     globalBindings.put(FrameworkConstants.JSAttributes.JS_FUNC_LOAD_FUNC_LIB, (LoadExecutor)
@@ -409,7 +208,7 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
                     JsNashornGraphBuilder.contextForJs.set(authenticationContext);
 
 
-                    result = fn.apply(scriptEngine, new NashornJsAuthenticationContext(authenticationContext));
+                    result = func.apply(scriptEngine, params);
 
                     JsNashornGraphBuilderFactory.persistCurrentContext(authenticationContext, scriptEngine);
 
@@ -443,11 +242,44 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
 
             return executingNode instanceof DynamicDecisionNode && dynamicallyBuiltBaseNode.get() != null;
         }
+    }
 
-        private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
-
-            return FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
+    private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
+        return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
                     .createEngine(authenticationContext);
+
+    }
+
+    /**
+     * Adds a function to show a prompt in Javascript code.
+     *
+     * @param templateId Identifier of the template
+     * @param parameters parameters
+     */
+    @SuppressWarnings("unchecked")
+    public void addShowPrompt(String templateId, Object... parameters) {
+
+        ShowPromptNode newNode = new ShowPromptNode();
+        newNode.setTemplateId(templateId);
+
+        if (parameters.length == 2) {
+            newNode.setData((Map<String, Serializable>) FrameworkUtils.toJsSerializable(parameters[0]));
+        }
+        if (currentNode == null) {
+            result.setStartNode(newNode);
+        } else {
+            attachToLeaf(currentNode, newNode);
+        }
+
+        currentNode = newNode;
+        if (parameters.length > 0) {
+            if (parameters[parameters.length - 1] instanceof Map) {
+                addEventListeners(newNode, (Map<String, Object>) parameters[parameters.length - 1],
+                        effectiveFunctionSerializer());
+            } else {
+                log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
+            }
+
         }
     }
 }

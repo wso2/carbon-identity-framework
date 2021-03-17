@@ -18,8 +18,10 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Parameters;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractFrameworkTest;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
@@ -29,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactorySingleton;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
@@ -63,19 +66,21 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
     protected static final String APPLICATION_AUTHENTICATION_FILE_NAME = "application-authentication-GraphStepHandlerTest.xml";
     protected GraphBasedSequenceHandler graphBasedSequenceHandler = new GraphBasedSequenceHandler();
     protected UIBasedConfigurationLoader configurationLoader;
-    protected JsGraphBuilderFactory graphBuilderFactory;
+    protected JsGraphBuilderFactory<?> graphBuilderFactory;
 
     @BeforeClass
-    protected void setupSuite() {
+    @Parameters({"scriptEngine"})
+    protected void setupSuite(String scriptEngine) {
 
         configurationLoader = new UIBasedConfigurationLoader();
-        graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
-//        graphBuilderFactory = new JsNashornGraphBuilderFactory();
+
+        if(scriptEngine.contentEquals("nashorn")) {
+            graphBuilderFactory = new JsNashornGraphBuilderFactory();
+        } else if (scriptEngine.contentEquals("graaljs")) {
+            graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
+        }
 
         JsFunctionRegistryImpl jsFunctionRegistry = new JsFunctionRegistryImpl();
-        org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction selectAcrFromFunction = new org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.graal.SelectAcrFromFunction();
-        jsFunctionRegistry.register(JsFunctionRegistry.Subsystem.SEQUENCE_HANDLER,
-                FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM, selectAcrFromFunction);
         FrameworkServiceDataHolder.getInstance().setJsFunctionRegistry(jsFunctionRegistry);
 
         graphBuilderFactory.init();
@@ -151,5 +156,10 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
         doAnswer(m -> attributes.get(m.getArgumentAt(0, String.class))).when(req).getAttribute(anyString());
 
         return req;
+    }
+
+    @AfterClass
+    protected void unSet() {
+        JsWrapperFactorySingleton.clearInstance();
     }
 }

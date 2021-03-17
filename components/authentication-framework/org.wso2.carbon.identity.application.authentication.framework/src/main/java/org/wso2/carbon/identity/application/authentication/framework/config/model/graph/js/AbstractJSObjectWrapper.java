@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ * Copyright (c) 2020, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
  * WSO2 Inc. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -18,14 +18,16 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
+import java.util.Objects;
+
 /**
- * Abstract wrapper class for objects used inside the javascript.
+ * Abstract wrapper class for objects used inside the javascript for GraalJs Execution.
  *
  * @param <T> Wrapped object type
  */
 public abstract class AbstractJSObjectWrapper<T> extends AbstractJSContextMemberObject {
 
-    private T wrapped;
+    private final T wrapped;
 
     public AbstractJSObjectWrapper(T wrapped) {
         if (wrapped == null) {
@@ -36,5 +38,26 @@ public abstract class AbstractJSObjectWrapper<T> extends AbstractJSContextMember
 
     public T getWrapped() {
         return wrapped;
+    }
+
+    public Object getMember(String name) {
+
+        Objects.requireNonNull(name);
+        if ("getWrapped".equals(name)) { //Allows polyglot to proxy getWrapped method
+            return getWrapped();
+        }
+        return null;
+    }
+
+    public boolean hasMember(String name) {
+
+        Objects.requireNonNull(name);
+        //Allows polyglot to proxy getWrapped method
+        return "getWrapped".equals(name);
+    }
+
+    public void setMember(String name, Object value) {
+
+        Objects.requireNonNull(name);
     }
 }

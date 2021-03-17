@@ -411,7 +411,6 @@ public abstract class FrameworkConstants {
         public static final String JS_FUNC_CALL_AND_WAIT = "callAndWait";
         public static final String JS_CALL_AND_WAIT_STATUS = "callAndWaitReturnStatus";
         public static final String JS_CALL_AND_WAIT_DATA = "callAndWaitReturnData";
-        public static final String JS_FUNC_SELECT_ACR_FROM = "selectAcrFrom";
         public static final String JS_LOG = "Log";
         public static final String JS_FUNC_SEND_ERROR = "sendError";
         public static final String JS_RETRY_STEP = "retry";
@@ -424,6 +423,9 @@ public abstract class FrameworkConstants {
         public static final String STEP_OPTIONS = "stepOptions";
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
+
+        public static final String POLYGLOT_SOURCE = "src.js";
+        public static final String POLYGLOT_LANGUAGE = "js";
     }
     public static class InternalRoleDomains {
 

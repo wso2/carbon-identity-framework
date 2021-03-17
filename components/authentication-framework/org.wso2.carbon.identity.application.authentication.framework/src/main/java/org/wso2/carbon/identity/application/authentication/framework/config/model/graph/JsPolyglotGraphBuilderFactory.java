@@ -18,76 +18,70 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph;
 
-import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
-import org.graalvm.polyglot.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.graalvm.polyglot.management.ExecutionListener;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
+import org.graalvm.polyglot.Value;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
 
 /**
  * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expnsive objects.
+ * This factory is there to reuse of Graaljs polyglot Context and any related expensive objects.
  */
-public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory {
+public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Context> {
 
     private static final Log LOG = LogFactory.getLog(JsPolyglotGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
 
-    private ScriptEngine engine;
-
     public void init() {
 
     }
+    @SuppressWarnings("unchecked")
+    public static void restoreCurrentContext(AuthenticationContext authContext, Context context)
+            throws FrameworkException {
 
-    public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
-        throws FrameworkException {
-
-        Map<String, Object> map = (Map<String, Object>) context.getProperty(JS_BINDING_CURRENT_CONTEXT);
-        Bindings bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        Map<String, Object> map = (Map<String, Object>) authContext.getProperty(JS_BINDING_CURRENT_CONTEXT);
+        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         if (map != null) {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
-                Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), engine);
-                if (deserializedValue instanceof AbstractJSObjectWrapper) {
-                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
-                }
-                bindings.put(entry.getKey(), deserializedValue);
+                Object deserializedValue = FrameworkUtils.fromJsSerializableGraal(entry.getValue(), context);
+                bindings.putMember(entry.getKey(), deserializedValue);
             }
         }
     }
 
-    public static void persistCurrentContext(AuthenticationContext context, ScriptEngine engine) {
+    public static void persistCurrentContext(AuthenticationContext authContext, Context context) {
 
-        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        Value engineBindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
         Map<String, Object> persistableMap = new HashMap<>();
-        engineBindings.forEach((key, value) -> persistableMap.put(key, FrameworkUtils.toJsSerializable(value)));
-        context.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
+        engineBindings.getMemberKeys().forEach((key) -> {
+            Value keybinding = engineBindings.getMember(key);
+            if (!keybinding.isHostObject()) {
+                persistableMap.put(key, FrameworkUtils.toJsSerializableGraal(keybinding));
+            }
+        });
+
+        authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
-    public ScriptEngine createEngine(AuthenticationContext authenticationContext) {
+    public Context createEngine(AuthenticationContext authenticationContext) {
 
-        GraalJSEngineFactory jsEngineFactory = new GraalJSEngineFactory();
+        Context context = Context.newBuilder(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE)
+                .allowHostAccess(HostAccess.ALL).build();
 
-        Engine graalEngine = jsEngineFactory.getPolyglotEngine();
-        ExecutionListener listener = ExecutionListener.newBuilder()
-                    .onEnter((e) -> System.out.println(e.getLocation().getStartLine()+" : "+
-                            e.getLocation().getCharacters()))
-                    .statements(true)
-                    .attach(graalEngine);
-
-        engine = jsEngineFactory.getScriptEngine();
-
-        return engine;
+        Value bindings = context.getBindings(FrameworkConstants.JSAttributes.POLYGLOT_LANGUAGE);
+        JsLogger jsLogger = new JsLogger();
+        bindings.putMember(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
+        return context;
     }
 
     public JsPolyglotGraphBuilder createBuilder(AuthenticationContext authenticationContext,

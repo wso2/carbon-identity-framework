@@ -22,13 +22,14 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Map;
-import javax.script.ScriptEngine;
 
 /**
- * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expnsive objects.
+ * Interface for Factory to create a Javascript based sequence builder.
+ * This factory is there to reuse of script engine and any related expensive objects.
+ *
+ * @param <T> scriptEngine
  */
-public interface JsGraphBuilderFactory {
+public interface JsGraphBuilderFactory<T> {
 
     void init();
 
@@ -37,5 +38,5 @@ public interface JsGraphBuilderFactory {
     JsGraphBuilder createBuilder(AuthenticationContext authenticationContext,
                                      Map<Integer, StepConfig> stepConfigMap, AuthGraphNode currentNode);
 
-    ScriptEngine createEngine(AuthenticationContext authenticationContext);
+    T createEngine(AuthenticationContext authenticationContext);
 }

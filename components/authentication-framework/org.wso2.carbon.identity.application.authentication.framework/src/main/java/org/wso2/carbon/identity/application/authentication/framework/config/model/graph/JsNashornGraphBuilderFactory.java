@@ -21,13 +21,12 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.poi.ss.formula.functions.T;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.AbstractJSObjectWrapper;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.JsLogger;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectAcrFromFunction;
-import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.SelectOneFunction;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
@@ -38,16 +37,15 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 
 /**
- * Factory to create a Javascript based sequence builder.
- * This factory is there to reuse of Nashorn engine and any related expnsive objects.
+ * Factory to create a Javascript based sequence builder with Nashorn.
+ * This factory is there to reuse of Nashorn engine and any related expensive objects.
  */
-public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory {
+public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<ScriptEngine> {
 
     private static final Log LOG = LogFactory.getLog(JsNashornGraphBuilderFactory.class);
     private static final String JS_BINDING_CURRENT_CONTEXT = "JS_BINDING_CURRENT_CONTEXT";
 
     // Suppress the Nashorn deprecation warnings in jdk 11
-    @SuppressWarnings("removal")
     private NashornScriptEngineFactory factory;
 
 
@@ -55,7 +53,7 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory {
 
         factory = new NashornScriptEngineFactory();
     }
-
+    @SuppressWarnings("unchecked")
     public static void restoreCurrentContext(AuthenticationContext context, ScriptEngine engine)
         throws FrameworkException {
 
@@ -65,7 +63,7 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory {
             for (Map.Entry<String, Object> entry : map.entrySet()) {
                 Object deserializedValue = FrameworkUtils.fromJsSerializable(entry.getValue(), engine);
                 if (deserializedValue instanceof AbstractJSObjectWrapper) {
-                    ((AbstractJSObjectWrapper) deserializedValue).initializeContext(context);
+                    ((AbstractJSObjectWrapper<T>) deserializedValue).initializeContext(context);
                 }
                 bindings.put(entry.getKey(), deserializedValue);
             }
@@ -87,11 +85,6 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory {
         Bindings bindings = engine.createBindings();
         engine.setBindings(bindings, ScriptContext.GLOBAL_SCOPE);
         engine.setBindings(engine.createBindings(), ScriptContext.ENGINE_SCOPE);
-        SelectAcrFromFunction selectAcrFromFunction = new SelectAcrFromFunction();
-//        todo move to functions registry
-        bindings.put(FrameworkConstants.JSAttributes.JS_FUNC_SELECT_ACR_FROM,
-            (SelectOneFunction) selectAcrFromFunction::evaluate);
-
         JsLogger jsLogger = new JsLogger();
         bindings.put(FrameworkConstants.JSAttributes.JS_LOG, jsLogger);
         return engine;
