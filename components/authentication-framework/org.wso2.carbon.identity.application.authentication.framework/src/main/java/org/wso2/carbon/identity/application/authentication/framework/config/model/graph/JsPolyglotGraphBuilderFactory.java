@@ -69,7 +69,6 @@ public class JsPolyglotGraphBuilderFactory implements JsGraphBuilderFactory<Cont
                 persistableMap.put(key, FrameworkUtils.toJsSerializableGraal(binding));
             }
         });
-
         authContext.setProperty(JS_BINDING_CURRENT_CONTEXT, persistableMap);
     }
 
