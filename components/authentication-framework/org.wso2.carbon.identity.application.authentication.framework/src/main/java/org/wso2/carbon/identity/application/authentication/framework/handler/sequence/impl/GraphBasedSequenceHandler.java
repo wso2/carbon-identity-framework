@@ -37,7 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactorySingleton;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
@@ -675,7 +675,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
-        jsBasedEvaluator.evaluate(fn, JsWrapperFactorySingleton.getInstance().createJsAuthenticationContext(context));
+        jsBasedEvaluator.evaluate(fn, JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                createJsAuthenticationContext(context));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -691,8 +692,10 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = jsGraphBuilder.getScriptEvaluator(fn);
         jsBasedEvaluator.evaluate(fn,
-                JsWrapperFactorySingleton.getInstance().createJsAuthenticationContext(context),
-                JsWrapperFactorySingleton.getInstance().createJsWritableParameters(data));
+                JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                        createJsAuthenticationContext(context),
+                JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                createJsWritableParameters(data));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -708,7 +711,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
         return jsBasedEvaluator.evaluate(fn, stepId,
-                JsWrapperFactorySingleton.getInstance().createJsAuthenticationContext(context));
+                JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                        createJsAuthenticationContext(context));
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

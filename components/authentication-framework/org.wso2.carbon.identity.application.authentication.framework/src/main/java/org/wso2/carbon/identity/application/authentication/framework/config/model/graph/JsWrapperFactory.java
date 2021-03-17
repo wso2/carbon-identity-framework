@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Interface specific Js Wrapper Factory.
+ * Interface to create Js Wrapper objects.
  */
 public interface JsWrapperFactory {
 

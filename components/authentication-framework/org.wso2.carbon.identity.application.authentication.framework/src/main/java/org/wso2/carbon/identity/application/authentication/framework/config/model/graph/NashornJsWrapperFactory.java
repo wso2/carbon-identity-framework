@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Factory to create a Javascript Object Wrappers for GraalJs execution.
+ * Factory to create a Javascript Object Wrappers for Nashorn execution.
  */
 public class NashornJsWrapperFactory implements JsWrapperFactory {
 

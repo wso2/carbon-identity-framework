@@ -21,7 +21,7 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 import java.util.Objects;
 
 /**
- * Abstract wrapper class for objects used inside the javascript for GraalJs Execution.
+ * Abstract wrapper class for objects used inside the javascript.
  *
  * @param <T> Wrapped object type
  */

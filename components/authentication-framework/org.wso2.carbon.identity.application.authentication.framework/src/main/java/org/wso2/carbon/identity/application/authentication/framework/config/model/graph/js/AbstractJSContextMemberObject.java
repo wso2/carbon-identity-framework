@@ -24,7 +24,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 /**
- * Represents the abstract class for all context objects for GraalJs Execution.
+ * Represents the abstract class for all context objects.
  */
 public abstract class AbstractJSContextMemberObject implements Serializable {
 

@@ -23,13 +23,13 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
 /**
  * Singleton to get the appropriate Javascript Proxy Object Wrapper Factory.
  */
-public class JsWrapperFactorySingleton {
+public class JsWrapperFactoryProvider {
 
-    private static JsWrapperFactorySingleton jsWrapperFactorySingleton = null;
+    private static JsWrapperFactoryProvider jsWrapperFactoryProvider = null;
     private static JsWrapperFactory jsWrapperFactory = null;
 
 
-    private JsWrapperFactorySingleton() {
+    private JsWrapperFactoryProvider() {
         if (FrameworkServiceDataHolder.getInstance().
                 getJsGraphBuilderFactory() instanceof JsPolyglotGraphBuilderFactory) {
             jsWrapperFactory = new GraalJsWrapperFactory();
@@ -38,16 +38,33 @@ public class JsWrapperFactorySingleton {
         }
     }
 
-    public static JsWrapperFactory getInstance() {
-        if (jsWrapperFactorySingleton == null) {
-            jsWrapperFactorySingleton = new JsWrapperFactorySingleton();
+    /**
+     * returns Js Wrapper Factory Provider.
+     * @return Js Wrapper Factory Provider
+     */
+    public static JsWrapperFactoryProvider getInstance() {
+        if (jsWrapperFactoryProvider == null) {
+            jsWrapperFactoryProvider = new JsWrapperFactoryProvider();
         }
+        return jsWrapperFactoryProvider;
+    }
+
+    /**
+     * Returns Appropriate Authentication Context Member Object Factory
+     * based on used Script Engine.
+     * @return JavaScript Object Factory
+     */
+    public JsWrapperFactory getWrapperFactory() {
+
         return jsWrapperFactory;
     }
 
+    /**
+     * Clears JsWrapperFactoryProvider for JavaScript tests.
+     */
     public static void clearInstance() {
         jsWrapperFactory = null;
-        jsWrapperFactorySingleton = null;
+        jsWrapperFactoryProvider = null;
     }
 
 }

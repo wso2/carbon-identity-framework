@@ -1364,8 +1364,8 @@ public class FrameworkUtils {
         return idps;
     }
 
-    public static Map<String, AuthenticatorConfig>
-    getAuthenticatedStepIdPs(StepConfig stepConfig, Map<String, AuthenticatedIdPData> authenticatedIdPs) {
+    public static Map<String, AuthenticatorConfig> getAuthenticatedStepIdPs(StepConfig stepConfig,
+                                                                            Map<String, AuthenticatedIdPData> authenticatedIdPs) {
 
         if (log.isDebugEnabled()) {
             log.debug(String.format("Finding already authenticated IdPs of the step {order:%d}",
