@@ -52,7 +52,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -399,7 +398,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
                 if (!context.isPassiveAuthenticate()) {
-                    setAuthenticatedIDPByApps(sessionContext, appConfig.getApplicationName());
+                    setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                            appConfig.getApplicationName());
                 }
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
@@ -487,7 +487,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                         sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
-                setAuthenticatedIDPByApps(sessionContext, appConfig.getApplicationName());
+                setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                        appConfig.getApplicationName());
                 sessionContext.setRememberMe(context.isRememberMe());
                 if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
                     if (log.isDebugEnabled()) {
@@ -922,24 +923,24 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         return authenticationResult;
     }
 
-    private void setAuthenticatedIDPByApps(SessionContext sessionContext, String applicationName) {
+    private void setAuthenticatedIDPsOfApp(SessionContext sessionContext,
+                                           Map<String, AuthenticatedIdPData> authenticatedIdPs,
+                                           String applicationName) throws FrameworkException {
 
         if (log.isDebugEnabled()) {
-            log.debug("Getting shared authenticatedIdpData from session context and setting it for"
-                    + "application: " + applicationName);
+            log.debug("Getting current authenticatedIDPs of the application from authentication context and setting "
+                    + "it into session context for application: " + applicationName);
         }
         Map<String, AuthenticatedIdPData> authenticatedIdPDataMap = new HashMap<>();
-        for (Map.Entry<String, AuthenticatedIdPData> entry : sessionContext.getAuthenticatedIdPs().entrySet()) {
-            // Getting shared authenticatedIdpData from session context and set it against application.
-            AuthenticatedIdPData sharedAuthenticatedIdp = entry.getValue();
-            AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
-            authenticatedIdPData.setUser(new AuthenticatedUser(sharedAuthenticatedIdp.getUser()));
-            authenticatedIdPData.setIdpName(sharedAuthenticatedIdp.getIdpName());
-            for (AuthenticatorConfig authenticator : sharedAuthenticatedIdp.getAuthenticators()) {
-                authenticatedIdPData.addAuthenticator(authenticator);
+        for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
+            try {
+                AuthenticatedIdPData authenticatedIdpData = (AuthenticatedIdPData) entry.getValue().clone();
+                authenticatedIdPDataMap.put(authenticatedIdpData.getIdpName(), authenticatedIdpData);
+            } catch (CloneNotSupportedException e) {
+                String errorMsg = "Error while cloning AuthenticatedIdPData object.";
+                throw new FrameworkException(errorMsg, e);
             }
-            authenticatedIdPDataMap.put(authenticatedIdPData.getIdpName(), authenticatedIdPData);
         }
-        sessionContext.getAuthenticatedIdPsPerApp().put(applicationName, authenticatedIdPDataMap);
+        sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
     }
 }
