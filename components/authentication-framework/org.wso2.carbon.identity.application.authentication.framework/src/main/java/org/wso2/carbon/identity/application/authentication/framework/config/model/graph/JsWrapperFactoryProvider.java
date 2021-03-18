@@ -25,8 +25,8 @@ import org.wso2.carbon.identity.application.authentication.framework.internal.Fr
  */
 public class JsWrapperFactoryProvider {
 
-    private static JsWrapperFactoryProvider jsWrapperFactoryProvider = null;
-    private static JsWrapperFactory jsWrapperFactory = null;
+    private static JsWrapperFactoryProvider jsWrapperFactoryProvider = new JsWrapperFactoryProvider();
+    private JsWrapperFactory jsWrapperFactory;
 
 
     private JsWrapperFactoryProvider() {
@@ -43,9 +43,7 @@ public class JsWrapperFactoryProvider {
      * @return Js Wrapper Factory Provider
      */
     public static JsWrapperFactoryProvider getInstance() {
-        if (jsWrapperFactoryProvider == null) {
-            jsWrapperFactoryProvider = new JsWrapperFactoryProvider();
-        }
+
         return jsWrapperFactoryProvider;
     }
 
@@ -58,13 +56,4 @@ public class JsWrapperFactoryProvider {
 
         return jsWrapperFactory;
     }
-
-    /**
-     * Clears JsWrapperFactoryProvider for JavaScript tests.
-     */
-    public static void clearInstance() {
-        jsWrapperFactory = null;
-        jsWrapperFactoryProvider = null;
-    }
-
 }

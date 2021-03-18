@@ -94,7 +94,7 @@
                                     <version>${graalvm.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/runtimes/lib</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.graalvm.js</groupId>
@@ -102,7 +102,7 @@
                                     <version>${graalvm.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/runtimes/lib</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.graalvm.truffle</groupId>
@@ -110,7 +110,7 @@
                                     <version>${graalvm.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/runtimes/lib</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>com.ibm.icu</groupId>
@@ -118,7 +118,7 @@
                                     <version>${icu.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/runtimes/lib</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.graalvm.regex</groupId>
@@ -126,7 +126,7 @@
                                     <version>${graalvm.version}</version>
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/runtimes/lib</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/graal</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

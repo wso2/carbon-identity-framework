@@ -426,6 +426,10 @@ public abstract class FrameworkConstants {
 
         public static final String POLYGLOT_SOURCE = "src.js";
         public static final String POLYGLOT_LANGUAGE = "js";
+        public static final String GRAALJS = "graaljs";
+        public static final String NASHORN = "nashorn";
+
+        public static final String SCRIPT_ENGINE_CONFIG = "AdaptiveAuth.ScriptEngine";
     }
     public static class InternalRoleDomains {
 

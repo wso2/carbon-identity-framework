@@ -27,5 +27,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface JsServletRequest {
 
+    /**
+     * @return Wrapped Servlet Request
+     */
     TransientObjectWrapper<HttpServletRequest> getWrapped();
 }

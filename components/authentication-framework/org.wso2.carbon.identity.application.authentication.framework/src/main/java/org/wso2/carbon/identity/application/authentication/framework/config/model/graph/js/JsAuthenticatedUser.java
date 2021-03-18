@@ -24,5 +24,9 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
  * Interface for JavaScript Authenticated User Wrapper.
  */
 public interface JsAuthenticatedUser  {
+
+    /**
+     * @return Wrapped Authenticated User
+     */
     AuthenticatedUser getWrapped();
 }

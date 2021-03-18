@@ -780,13 +780,13 @@ public class FrameworkServiceComponent {
     }
 
     private JsGraphBuilderFactory createJsGraphBuilderFactory() {
-        String scriptEngineName = IdentityUtil.getProperty("AdaptiveAuth.ScriptEngine");
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.JSAttributes.SCRIPT_ENGINE_CONFIG);
         if (scriptEngineName != null) {
-            if ("graaljs".equals(scriptEngineName)) {
+            if (FrameworkConstants.JSAttributes.GRAALJS.equals(scriptEngineName)) {
                 return new JsPolyglotGraphBuilderFactory();
             }
         }
-        //Enabling Nashorn In case No Config is Present
+        //Enabling Nashorn In case No Config/ Wrong Config is Present
         return new JsNashornGraphBuilderFactory();
     };
 }

@@ -28,7 +28,14 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface JsServletResponse {
 
+    /**
+     * @return Wrapped Servlet Response
+     */
     TransientObjectWrapper<HttpServletResponse> getWrapped();
 
+    /**
+     * Adds Cookie to Servlet Response.
+     * @param cookie HTTP Cookie
+     */
     void addCookie(Cookie cookie);
 }

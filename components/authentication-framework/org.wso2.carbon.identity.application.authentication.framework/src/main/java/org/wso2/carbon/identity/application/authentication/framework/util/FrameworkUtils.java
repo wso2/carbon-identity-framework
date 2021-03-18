@@ -2404,7 +2404,13 @@ public class FrameworkUtils {
         return value;
     }
 
+    /**
+     * Creates Serializable Java Object from GraalJs Context Member.
+     * @param value GraalJs Context Member
+     * @return Serializable Object
+     */
     public static Object toJsSerializableGraal (Object value) {
+
         if (value instanceof Serializable) {
             if (value instanceof HashMap) {
                 Map<String, Object> map = new HashMap<>();
@@ -2494,6 +2500,12 @@ public class FrameworkUtils {
         return value;
     }
 
+    /**
+     * Creates GraalJs Context Member from Serializable Java Object.
+     * @param value Serializable Java Object
+     * @param context - current GraalJs Context
+     * @return GraalJs Context Member
+     */
     public static Object fromJsSerializableGraal (Object value, Context context) {
         if (value instanceof GraalSerializableJsFunction) {
             GraalSerializableJsFunction serializableJsFunction = (GraalSerializableJsFunction) value;

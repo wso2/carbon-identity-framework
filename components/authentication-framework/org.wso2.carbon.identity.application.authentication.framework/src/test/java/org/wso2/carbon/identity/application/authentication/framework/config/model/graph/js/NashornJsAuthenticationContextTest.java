@@ -53,7 +53,7 @@ public class NashornJsAuthenticationContextTest {
     @BeforeClass
     public void setUp() {
 
-        scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
+        scriptEngine = new ScriptEngineManager().getEngineByName(FrameworkConstants.JSAttributes.NASHORN);
     }
 
     @Test

@@ -48,7 +48,6 @@ public class JsNashornGraphBuilderFactory implements JsGraphBuilderFactory<Scrip
     // Suppress the Nashorn deprecation warnings in jdk 11
     private NashornScriptEngineFactory factory;
 
-
     public void init() {
 
         factory = new NashornScriptEngineFactory();

@@ -38,20 +38,61 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface JsWrapperFactory {
 
+    /**
+     * Creates a JavaScript Proxy for authenticated User.
+     * @param authenticatedUser - Represent Authenticated Subject
+     * @return Proxy for authenticated User
+     */
     JsAuthenticatedUser createJsAuthenticatedUser(AuthenticatedUser authenticatedUser);
 
+    /**
+     * Creates a JavaScript Proxy for authentication Context.
+     * @param authenticationContext - Represent Authentication Request data from servlet
+     * @return Proxy for authentication Context
+     */
     JsAuthenticationContext createJsAuthenticationContext(AuthenticationContext authenticationContext);
 
+    /**
+     * Creates a JavaScript Proxy for Java Level Cookie.
+     * @param cookie - Java Level Cookie
+     * @return Proxy for Cookie
+     */
     JsCookie createJsCookie(Cookie cookie);
 
+    /**
+     * Creates a JavaScript Proxy for Servlet Request HTTP Headers.
+     * @param parameters -HTTP Headers in Servlet Request
+     * @return Proxy for HTTP headers/Cookies in Servlet Request
+     */
     JsParameters createJsParameters(Map parameters);
 
+    /**
+     * Creates a JavaScript Proxy for Writable Servlet Request HTTP Headers.
+     * @param data - HTTP Headers in Servlet Request
+     * @return Proxy for HTTP headers/Cookies in Servlet Request
+     */
     JsParameters createJsWritableParameters(Map data);
 
+    /**
+     * Creates a JavaScript Proxy for Servlet Request.
+     * @param wrapped - Wrapped Servlet Request
+     * @return Proxy for wrapped Servlet Request
+     */
     JsServletRequest createJsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped);
 
+    /**
+     * Creates a JavaScript Proxy for Servlet Response.
+     * @param wrapped Wrapped Servlet Response
+     * @return Proxy for wrapped Servlet Response
+     */
     JsServletResponse createJsServletResponse(TransientObjectWrapper<HttpServletResponse> wrapped);
 
+    /**
+     * Creates JavaScript Function Wrapper.
+     * @param source - JavaScript Raw String Source
+     * @param isFunction - Executability of source
+     * @return JavaScript Function Wrapper
+     */
     SerializableJsFunction createSerializableFunction(String source, boolean isFunction);
 
 }

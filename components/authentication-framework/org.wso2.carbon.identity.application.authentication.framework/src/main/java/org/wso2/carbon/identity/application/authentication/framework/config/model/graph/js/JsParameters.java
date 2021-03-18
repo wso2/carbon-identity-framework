@@ -28,5 +28,8 @@ import java.util.Map;
  */
 public interface JsParameters {
 
+    /**
+     * @return Wrapped HashMap of HTTP headers/cookies
+     */
     Map getWrapped();
 }

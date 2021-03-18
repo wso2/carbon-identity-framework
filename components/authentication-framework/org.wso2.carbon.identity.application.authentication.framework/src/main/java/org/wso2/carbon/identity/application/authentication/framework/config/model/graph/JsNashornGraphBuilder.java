@@ -247,7 +247,6 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
     private ScriptEngine getEngine(AuthenticationContext authenticationContext) {
         return (ScriptEngine) FrameworkServiceDataHolder.getInstance().getJsGraphBuilderFactory()
                     .createEngine(authenticationContext);
-
     }
 
     /**
@@ -279,7 +278,6 @@ public class JsNashornGraphBuilder extends JsBaseGraphBuilder implements JsGraph
             } else {
                 log.error("Invalid argument and hence ignored. Last argument should be a Map of event listeners.");
             }
-
         }
     }
 }

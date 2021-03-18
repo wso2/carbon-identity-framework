@@ -26,15 +26,18 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractFra
 import org.wso2.carbon.identity.application.authentication.framework.MockAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.GraalJsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.NashornJsWrapperFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.handler.SubjectCallback;
 import org.wso2.carbon.identity.application.authentication.framework.internal.FrameworkServiceDataHolder;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
@@ -68,13 +71,13 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
     @BeforeClass
     @Parameters({"scriptEngine"})
-    protected void setupSuite(String scriptEngine) {
+    protected void setupSuite(String scriptEngine) throws IllegalAccessException, InstantiationException, NoSuchFieldException {
 
         configurationLoader = new UIBasedConfigurationLoader();
 
-        if(scriptEngine.contentEquals("nashorn")) {
+        if(scriptEngine.contentEquals(FrameworkConstants.JSAttributes.NASHORN)) {
             graphBuilderFactory = new JsNashornGraphBuilderFactory();
-        } else if (scriptEngine.contentEquals("graaljs")) {
+        } else if (scriptEngine.contentEquals(FrameworkConstants.JSAttributes.GRAALJS)) {
             graphBuilderFactory = new JsPolyglotGraphBuilderFactory();
         }
 
@@ -83,6 +86,14 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
         graphBuilderFactory.init();
         FrameworkServiceDataHolder.getInstance().setJsGraphBuilderFactory(graphBuilderFactory);
+
+        Field wrapperFactory = JsWrapperFactoryProvider.class.getDeclaredField("jsWrapperFactory");
+        wrapperFactory.setAccessible(true);
+        if (graphBuilderFactory instanceof JsNashornGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new NashornJsWrapperFactory());
+        } else if (graphBuilderFactory instanceof  JsPolyglotGraphBuilderFactory) {
+            wrapperFactory.set(JsWrapperFactoryProvider.getInstance(), new GraalJsWrapperFactory());
+        }
 
         AsyncSequenceExecutor asyncSequenceExecutor = new AsyncSequenceExecutor();
         asyncSequenceExecutor.init();
@@ -158,6 +169,6 @@ public class GraphBasedSequenceHandlerAbstractTest extends AbstractFrameworkTest
 
     @AfterClass
     protected void unSet() {
-        JsWrapperFactoryProvider.clearInstance();
+
     }
 }
