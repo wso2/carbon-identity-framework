@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 
 /**
  * This PostAuthentication Handler is responsible for handling the association of user accounts with local users.
@@ -60,7 +61,6 @@ public class PostAuthAssociationHandler extends AbstractPostAuthnHandler {
 
     private static final Log log = LogFactory.getLog(PostAuthAssociationHandler.class);
     private static PostAuthAssociationHandler instance = new PostAuthAssociationHandler();
-    private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
 
     /**
      * To get an instance of {@link PostAuthAssociationHandler}.
