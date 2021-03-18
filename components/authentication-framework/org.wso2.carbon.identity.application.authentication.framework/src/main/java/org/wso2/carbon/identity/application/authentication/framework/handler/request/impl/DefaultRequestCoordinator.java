@@ -90,6 +90,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.RequestParams.TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.ResidentIdpPropertyName.ACCOUNT_LOCK_HANDLER_ENABLE_PROPERTY;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.USER_TENANT_DOMAIN;
 import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
 
 /**
@@ -98,7 +99,6 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 public class DefaultRequestCoordinator extends AbstractRequestCoordinator implements RequestCoordinator {
 
     private static final Log log = LogFactory.getLog(DefaultRequestCoordinator.class);
-    private static final String USER_TENANT_DOMAIN = "user-tenant-domain";
     private static volatile DefaultRequestCoordinator instance;
     private static final String ACR_VALUES_ATTRIBUTE = "acr_values";
     private static final String REQUESTED_ATTRIBUTES = "requested_attributes";
