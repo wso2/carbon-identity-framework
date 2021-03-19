@@ -140,6 +140,8 @@ public abstract class FrameworkConstants {
 
     public static final String TENANT_CONTEXT_PREFIX = "/t/";
 
+    public static final String USER_TENANT_DOMAIN = "user-tenant-domain";
+
     private FrameworkConstants() {
 
     }
