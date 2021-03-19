@@ -84,7 +84,7 @@ import static org.testng.Assert.assertTrue;
 @PrepareForTest({IdentityConfigParser.class, ServerConfiguration.class, CarbonUtils.class,
         IdentityCoreServiceComponent.class, NetworkUtils.class, IdentityTenantUtil.class})
 @PowerMockIgnore({"javax.net.*", "javax.security.*", "javax.crypto.*", "javax.xml.*", "org.xml.sax.*", "org.w3c.dom" +
-        ".*", "org.apache.xerces.*","org.graalvm.polyglot.*"})
+        ".*", "org.apache.xerces.*"})
 public class IdentityUtilTest {
 
     @Mock

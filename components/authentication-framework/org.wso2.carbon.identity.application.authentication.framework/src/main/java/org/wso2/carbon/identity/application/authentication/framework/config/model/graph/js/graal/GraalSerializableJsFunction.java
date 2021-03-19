@@ -36,7 +36,7 @@ import java.util.function.Function;
 public class GraalSerializableJsFunction implements SerializableJsFunction<Context> {
 
     private static final Log log = LogFactory.getLog(GraalSerializableJsFunction.class);
-    private static final long serialVersionUID = -7605388897997019588L;
+    private static final long serialVersionUID = -7001351065432647040L;
     private String source;
     private boolean isPolyglotFunction = false;
     private boolean isHostFunction = false;
