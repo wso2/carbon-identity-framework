@@ -96,7 +96,18 @@ public class UniqueClaimUserOperationEventListener extends AbstractIdentityUserO
         if (!isEnable()) {
             return true;
         }
-        return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager);
+        String tenantDomain;
+        try {
+            tenantDomain = UniqueClaimUserOperationDataHolder.getInstance().getRealmService().getTenantManager().
+                    getDomain(userStoreManager.getTenantId());
+            if (isUniqueClaim(claimURI, tenantDomain)) {
+                return !isClaimDuplicated(userName, claimURI, claimValue, profile, userStoreManager);
+            }
+        } catch (org.wso2.carbon.user.api.UserStoreException | ClaimMetadataException e) {
+            log.error("Error while retrieving details. " + e.getMessage(), e);
+            return false;
+        }
+        return true;
     }
 
     @Override
