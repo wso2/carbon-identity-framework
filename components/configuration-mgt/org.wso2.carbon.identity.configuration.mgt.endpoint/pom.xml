@@ -26,7 +26,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.configuration.mgt.endpoint</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>WSO2 Carbon - Configuration Management Endpoint</name>
     <description>Identity Configuration Management Endpoint</description>
     <url>http://wso2.org</url>
@@ -164,22 +164,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <webResources>
-                        <resource>
-                            <!-- this is relative to the pom.xml directory -->
-                            <directory>src/main/resources/</directory>
-                        </resource>
-                    </webResources>
-                    <warName>api#identity#config-mgt#v1.0</warName>
-                    <packagingExcludes>WEB-INF/lib/commons-logging*.jar</packagingExcludes>
-                    <packagingExcludes>WEB-INF/lib/axis2*.jar</packagingExcludes>
-                    <packagingExcludes>WEB-INF/lib/axiom*.jar</packagingExcludes>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
