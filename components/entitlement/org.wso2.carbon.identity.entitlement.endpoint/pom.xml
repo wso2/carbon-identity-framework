@@ -27,7 +27,7 @@
 
     <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
     <name>WSO2 Carbon - Entitlement REST</name>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
@@ -174,13 +174,6 @@
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <warName>api#identity#entitlement</warName>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
