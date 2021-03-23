@@ -813,7 +813,7 @@ public class ApplicationBean {
      * @return
      */
     public List<String> getWstrustSP() {
-        if (wstrustEp != null && !CollectionUtils.isEmpty(wstrustEp)) {
+        if (CollectionUtils.isNotEmpty(wstrustEp)) {
             return wstrustEp;
         }
         else {
@@ -1264,7 +1264,7 @@ public class ApplicationBean {
             authRequestList.add(opicAuthenticationRequest);
         }
 
-        if (wstrustEp != null && !CollectionUtils.isEmpty(wstrustEp)) {
+        if (CollectionUtils.isNotEmpty(wstrustEp)) {
             wstrustEp.forEach(entry -> {
                 InboundAuthenticationRequestConfig opicAuthenticationRequest = new InboundAuthenticationRequestConfig();
                 opicAuthenticationRequest.setInboundAuthKey(entry);
