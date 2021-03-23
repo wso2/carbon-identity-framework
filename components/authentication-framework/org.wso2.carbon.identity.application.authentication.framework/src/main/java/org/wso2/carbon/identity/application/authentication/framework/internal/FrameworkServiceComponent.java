@@ -770,7 +770,7 @@ public class FrameworkServiceComponent {
     @Reference(
             name = "MultiAttributeLoginService",
             service = MultiAttributeLoginService.class,
-            cardinality = ReferenceCardinality.MANDATORY,
+            cardinality = ReferenceCardinality.OPTIONAL,
             policy = ReferencePolicy.DYNAMIC,
             unbind = "unsetMultiAttributeLoginService")
     protected void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
