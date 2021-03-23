@@ -523,6 +523,9 @@
         handler class. Therefor not supporting additional scope handlers. -->
         <ScopeHandlers>
             <ScopeHandler class="org.wso2.carbon.identity.oauth2.validators.OIDCScopeHandler" />
+        {% for scope_handler in oauth.custom_scope_handler%}
+            <ScopeHandler class="{{scope_handler.class}}" />
+        {% endfor %}
         </ScopeHandlers>
 
         <!-- Assertions can be used to embedd parameters into access token. -->

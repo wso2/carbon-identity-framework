@@ -96,6 +96,7 @@ import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -764,6 +765,22 @@ public class FrameworkServiceComponent {
                     "bundle");
         }
         FrameworkServiceDataHolder.getInstance().setFederatedAssociationManager(null);
+    }
+
+    @Reference(
+            name = "MultiAttributeLoginService",
+            service = MultiAttributeLoginService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetMultiAttributeLoginService")
+    protected void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
+
+        FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(multiAttributeLogin);
+    }
+
+    protected void unsetMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
+
+        FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);
     }
 
     private AuthenticatorConfig getAuthenticatorConfig(String name) {
