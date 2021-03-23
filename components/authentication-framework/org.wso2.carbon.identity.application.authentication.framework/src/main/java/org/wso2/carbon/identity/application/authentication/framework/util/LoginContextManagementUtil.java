@@ -36,6 +36,7 @@ import java.net.URLDecoder;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,6 +48,8 @@ import static org.wso2.carbon.identity.application.authentication.framework.util
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.REQUEST_PARAM_APPLICATION;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getConsoleURL;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.getMyAccountURL;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.DEFAULT_SP_CONFIG;
 
 /**
@@ -80,7 +83,10 @@ public class LoginContextManagementUtil {
 
         AuthenticationContext context = FrameworkUtils.getAuthenticationContextFromCache(sessionDataKey);
         // Valid Request
-        if (context != null) {
+        if (isValidRequest(request, context)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Setting response for the valid request.");
+            }
             // If the context is valid and at the first step.
             if (isStepHasMultiOption(context)) {
                 context.setCurrentAuthenticator(null);
@@ -315,5 +321,15 @@ public class LoginContextManagementUtil {
             }
         }
         return stepHasMultiOption;
+    }
+
+    private static boolean isValidRequest(HttpServletRequest request, AuthenticationContext context) {
+
+        boolean isValidRequest = context != null;
+        if (isNonceCookieEnabled() && isValidRequest) {
+            Cookie nonceCookie = FrameworkUtils.getCookie(request, getNonceCookieName(context));
+            isValidRequest = nonceCookie != null && StringUtils.isNotBlank(nonceCookie.getValue());
+        }
+        return isValidRequest;
     }
 }
