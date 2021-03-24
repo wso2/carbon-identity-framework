@@ -513,12 +513,8 @@
   "user.enable_per_user_functionality_locking": false,
   "tenant_context.enable_tenant_qualified_urls": false,
   "tenant_context.rewrite.webapps": [
-    "/api/identity/consent-mgt/v1.0/",
     "/oauth2/",
     "/scim2/",
-    "/api/identity/oauth2/dcr/v1.1/",
-    "/api/identity/oauth2/v1.0/",
-    "/api/users/v2/me/webauthn",
     "/api/identity/media/v1.0/",
     "/api/",
     "/myaccount/",
