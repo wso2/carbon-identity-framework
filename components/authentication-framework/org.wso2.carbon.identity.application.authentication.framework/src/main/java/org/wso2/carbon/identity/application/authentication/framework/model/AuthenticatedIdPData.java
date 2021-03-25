@@ -21,13 +21,17 @@ package org.wso2.carbon.identity.application.authentication.framework.model;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class AuthenticatedIdPData implements Serializable {
+public class AuthenticatedIdPData implements Serializable, Cloneable {
 
     private static final long serialVersionUID = 5576595024956777804L;
 
@@ -211,5 +215,14 @@ public class AuthenticatedIdPData implements Serializable {
         }
 
         return false;
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+
+        AuthenticatedIdPData authenticatedIdPData = (AuthenticatedIdPData) super.clone();
+        authenticatedIdPData.setUser(new AuthenticatedUser(this.user));
+        authenticatedIdPData.setIdpName(this.idpName);
+        authenticatedIdPData.authenticators = new ArrayList<>(this.authenticators);
+        return authenticatedIdPData;
     }
 }

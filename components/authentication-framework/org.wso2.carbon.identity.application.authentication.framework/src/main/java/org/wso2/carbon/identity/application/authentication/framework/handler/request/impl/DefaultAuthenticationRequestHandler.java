@@ -52,7 +52,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -396,9 +395,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
                 analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE;
-                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                        sequenceConfig);
+                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                if (!context.isPassiveAuthenticate()) {
+                    setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                            appConfig.getApplicationName());
+                }
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -485,6 +487,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                         sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
+                setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                        appConfig.getApplicationName());
                 sessionContext.setRememberMe(context.isRememberMe());
                 if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
                     if (log.isDebugEnabled()) {
@@ -919,4 +923,24 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         return authenticationResult;
     }
 
+    private void setAuthenticatedIDPsOfApp(SessionContext sessionContext,
+                                           Map<String, AuthenticatedIdPData> authenticatedIdPs,
+                                           String applicationName) throws FrameworkException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting current authenticatedIDPs of the application from authentication context and setting "
+                    + "it into session context for application: " + applicationName);
+        }
+        Map<String, AuthenticatedIdPData> authenticatedIdPDataMap = new HashMap<>();
+        for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
+            try {
+                AuthenticatedIdPData authenticatedIdpData = (AuthenticatedIdPData) entry.getValue().clone();
+                authenticatedIdPDataMap.put(authenticatedIdpData.getIdpName(), authenticatedIdpData);
+            } catch (CloneNotSupportedException e) {
+                String errorMsg = "Error while cloning AuthenticatedIdPData object.";
+                throw new FrameworkException(errorMsg, e);
+            }
+        }
+        sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
+    }
 }

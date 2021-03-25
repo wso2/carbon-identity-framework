@@ -243,7 +243,7 @@
                     <div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105, 125);"
                          class="leftCol-med">
                         <input id="clientSecret" name="clientSecret" type="password"
-                               autocomplete="off" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
+                               autocomplete="new-password" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                         <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
                             <a style="margin-top: 5px;" class="showHideBtn"
