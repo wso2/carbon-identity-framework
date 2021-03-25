@@ -28,7 +28,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util.client.api;
 import com.sun.jersey.api.client.GenericType;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants;
 import org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointUtil;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiClient;
