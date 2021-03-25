@@ -90,6 +90,7 @@ public class AuthenticationContext extends MessageContext implements Serializabl
     private List<String> requestedAcr;
     private AcrRule acrRule = AcrRule.EXACT;
     private String selectedAcr;
+    private Map<String,  AuthenticatedIdPData> authenticatedIdPsOfApp = new HashMap<>();
 
     /** The user/subject known at the latest authentication step */
     private AuthenticatedUser lastAuthenticatedUser;
@@ -337,6 +338,16 @@ public class AuthenticationContext extends MessageContext implements Serializabl
 
     public void setPreviousAuthenticatedIdPs(Map<String, AuthenticatedIdPData> previousAuthenticatedIdPs) {
         this.previousAuthenticatedIdPs = previousAuthenticatedIdPs;
+    }
+
+    public void setAuthenticatedIdPsOfApp(Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
+
+        this.authenticatedIdPsOfApp = authenticatedIdPsOfApp;
+    }
+
+    public Map<String, AuthenticatedIdPData> getAuthenticatedIdPsOfApp() {
+
+        return authenticatedIdPsOfApp;
     }
 
     public boolean isRetrying() {
