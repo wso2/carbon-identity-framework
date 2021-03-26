@@ -50,7 +50,12 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationConst
 import org.wso2.carbon.identity.application.mgt.ui.util.ApplicationMgtUIConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -812,13 +817,22 @@ public class ApplicationBean {
     /**
      * @return
      */
-    public List<String> getWstrustSP() {
-        if (CollectionUtils.isNotEmpty(wstrustEp)) {
+    public String getWstrustSP() {
+        List<String> wsTrustEps = getAllWsTrustSPs();
+        if (CollectionUtils.isNotEmpty(wsTrustEps))
+            return getAllWsTrustSPs().get(0);
+        else
+            return null;
+    }
+
+    /**
+     * @return
+     */
+    public List<String> getAllWsTrustSPs() {
+        if (CollectionUtils.isNotEmpty(wstrustEp))
             return wstrustEp;
-        }
-        else {
-            wstrustEp = new ArrayList<String>(0);
-        }
+        else
+            wstrustEp = new ArrayList<>(0);
 
         InboundAuthenticationRequestConfig[] authRequests = serviceProvider
                 .getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();

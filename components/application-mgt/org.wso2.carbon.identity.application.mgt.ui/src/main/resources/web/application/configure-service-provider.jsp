@@ -250,7 +250,7 @@
         isNeedToUpdate = true;
     }
 
-    List<String> wsTrust = appBean.getWstrustSP();
+    List<String> wsTrust = appBean.getAllWsTrustSPs();
 
     String display = request.getParameter("display");
 
@@ -2352,7 +2352,7 @@
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#"><fmt:message key="title.config.sts.config"/></a>
-                                    <% if (appBean.getWstrustSP() != null && !appBean.getWstrustSP().isEmpty()) { %>
+                                    <% if (appBean.getAllWsTrustSPs() != null && !appBean.getAllWsTrustSPs().isEmpty()) { %>
                                     <div class="enablelogo"><img src="images/ok.png" width="16" height="16"></div>
                                     <%} %>
                                 </h2>
@@ -2368,7 +2368,7 @@
                                             <tr>
                                                 <td>
                                                     <%
-                                                        if (appBean.getWstrustSP() == null || appBean.getWstrustSP().isEmpty()) {
+                                                        if (appBean.getAllWsTrustSPs() == null || appBean.getAllWsTrustSPs().isEmpty()) {
                                                     %>
                                                     <a id="sts_link" class="icon-link" onclick="onSTSClick()">
                                                         <fmt:message key='auth.configure'/></a>
@@ -2386,7 +2386,7 @@
                                                         </thead>
                                                         <tbody>
                                                         <%
-                                                            for (String wsTrustURI : appBean.getWstrustSP()) {
+                                                            for (String wsTrustURI : appBean.getAllWsTrustSPs()) {
                                                         %>
                                                         <tr>
                                                             <td>
