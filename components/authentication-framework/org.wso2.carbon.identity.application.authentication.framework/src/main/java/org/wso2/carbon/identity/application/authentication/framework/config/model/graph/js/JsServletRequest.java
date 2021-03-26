@@ -19,89 +19,16 @@
 package org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.TransientObjectWrapper;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Javascript wrapper for Java level HTTPServletRequest.
- * This provides controlled access to HTTPServletRequest object via provided javascript native syntax.
- * e.g
- * var redirect_uri = context.request.params.redirect_uri
- * <p>
- * instead of
- * var userName = context.getRequest().getParameter("redirect_uri)
- * <p>
- * Also it prevents writing an arbitrary values to the respective fields, keeping consistency on runtime HTTPServletRequest.
+ * Interface for JavaScript Servlet Request Wrapper.
  */
-public class JsServletRequest extends AbstractJSObjectWrapper<TransientObjectWrapper<HttpServletRequest>> {
+public interface JsServletRequest {
 
-    public JsServletRequest(TransientObjectWrapper<HttpServletRequest> wrapped) {
-
-        super(wrapped);
-    }
-
-    @Override
-    public Object getMember(String name) {
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                Map headers = new HashMap();
-                Enumeration<String> headerNames = getRequest().getHeaderNames();
-                if (headerNames != null) {
-                    while (headerNames.hasMoreElements()) {
-                        String headerName = headerNames.nextElement();
-                        headers.put(headerName, getRequest().getHeader(headerName));
-                    }
-                }
-                return new JsWritableParameters(headers);
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return new JsParameters(getRequest().getParameterMap());
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-                Map cookies = new HashMap();
-                Cookie[] cookieArr = getRequest().getCookies();
-                if (cookieArr != null) {
-                    for (Cookie cookie : cookieArr) {
-                        cookies.put(cookie.getName(), new JsCookie(cookie));
-                    }
-                }
-                return new JsWritableParameters(cookies);
-            case FrameworkConstants.JSAttributes.JS_REQUEST_IP:
-                return IdentityUtil.getClientIpAddress(getRequest());
-            default:
-                return super.getMember(name);
-        }
-    }
-
-    @Override
-    public boolean hasMember(String name) {
-
-        if (getRequest() == null) {
-            //Transient Object is null, hence no member access is possible.
-            return false;
-        }
-
-        switch (name) {
-            case FrameworkConstants.JSAttributes.JS_HEADERS:
-                return getRequest().getHeaderNames() != null;
-            case FrameworkConstants.JSAttributes.JS_PARAMS:
-                return getRequest().getParameterMap() != null;
-            case FrameworkConstants.JSAttributes.JS_COOKIES:
-                return getRequest().getCookies() != null;
-            default:
-                return super.hasMember(name);
-        }
-    }
-
-    private HttpServletRequest getRequest() {
-
-        TransientObjectWrapper<HttpServletRequest> transientObjectWrapper = getWrapped();
-        return transientObjectWrapper.getWrapped();
-    }
+    /**
+     * @return Wrapped Servlet Request
+     */
+    TransientObjectWrapper<HttpServletRequest> getWrapped();
 }
-

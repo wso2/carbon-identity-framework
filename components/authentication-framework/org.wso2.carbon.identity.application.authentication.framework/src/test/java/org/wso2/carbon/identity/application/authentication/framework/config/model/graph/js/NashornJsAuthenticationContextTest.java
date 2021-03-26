@@ -23,6 +23,8 @@ import org.testng.annotations.Test;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthenticationGraph;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsAuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.js.nashorn.NashornJsAuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -51,7 +53,7 @@ public class NashornJsAuthenticationContextTest {
     @BeforeClass
     public void setUp() {
 
-        scriptEngine = new ScriptEngineManager().getEngineByName("nashorn");
+        scriptEngine = new ScriptEngineManager().getEngineByName(FrameworkConstants.JSAttributes.NASHORN);
     }
 
     @Test
@@ -162,7 +164,7 @@ public class NashornJsAuthenticationContextTest {
 
         Object result = scriptEngine.eval("context.lastLoginFailedUser");
         assertNotNull(result);
-        assertTrue(result instanceof JsAuthenticatedUser);
+        assertTrue(result instanceof NashornJsAuthenticatedUser);
 
         String username = (String) scriptEngine.eval("context.lastLoginFailedUser.username");
         assertEquals(username, LAST_ATTEMPTED_USER_USERNAME);

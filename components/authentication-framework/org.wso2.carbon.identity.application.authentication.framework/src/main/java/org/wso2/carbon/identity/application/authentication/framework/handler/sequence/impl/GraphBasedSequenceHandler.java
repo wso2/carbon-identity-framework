@@ -37,6 +37,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.FailNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilder;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsWrapperFactoryProvider;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.LongWaitNode;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.ShowPromptNode;
@@ -86,7 +87,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context)
             throws FrameworkException {
-
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }
@@ -178,7 +178,7 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         } else if (currentNode instanceof EndStep) {
             handleEndOfSequence(request, response, context, sequenceConfig);
         } else if (currentNode instanceof FailNode) {
-            handleAuthFail(request, response, context, sequenceConfig, (FailNode)currentNode);
+            handleAuthFail(request, response, context, sequenceConfig, (FailNode) currentNode);
         }
         return isInterrupt;
     }
@@ -353,7 +353,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             } catch (IOException e) {
                 throw new FrameworkException("Error when redirecting user to " + errorPage, e);
             } catch (URISyntaxException e) {
-                throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
+                throw new FrameworkException("Error when redirecting user to " + errorPage +
+                        ". Error page is not a valid "
                         + "URL.", e);
             }
 
@@ -668,14 +669,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        SerializableJsFunction<?> fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
-//        jsBasedEvaluator.evaluate(context, (jsConsumer) -> jsConsumer.call(null, new GraalJsAuthenticationContext(context)));
-        jsBasedEvaluator.evaluate(context, fn);
+        jsBasedEvaluator.evaluate(fn, JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                createJsAuthenticationContext(context));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -684,13 +685,17 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private void executeFunction(String outcomeName, DynamicDecisionNode dynamicDecisionNode,
                                  AuthenticationContext context, Map<String, Object> data) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
+        SerializableJsFunction<?> fn = dynamicDecisionNode.getFunctionMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder jsGraphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = jsGraphBuilder.getScriptEvaluator(fn);
-        jsBasedEvaluator.evaluate(context, fn);
+        jsBasedEvaluator.evaluate(fn,
+                JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                        createJsAuthenticationContext(context),
+                JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                createJsWritableParameters(data));
         if (dynamicDecisionNode.getDefaultEdge() == null) {
             dynamicDecisionNode.setDefaultEdge(new EndStep());
         }
@@ -699,15 +704,15 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
     private Object evaluateHandler(String outcomeName, ShowPromptNode dynamicDecisionNode,
                                    AuthenticationContext context, Object stepId) {
 
-        SerializableJsFunction fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
+        SerializableJsFunction<?> fn = dynamicDecisionNode.getHandlerMap().get(outcomeName);
         FrameworkServiceDataHolder dataHolder = FrameworkServiceDataHolder.getInstance();
-        JsGraphBuilderFactory jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = dataHolder.getJsGraphBuilderFactory();
         JsGraphBuilder graphBuilder = jsGraphBuilderFactory.createBuilder(context, context
                 .getSequenceConfig().getAuthenticationGraph().getStepMap(), dynamicDecisionNode);
         AuthenticationDecisionEvaluator jsBasedEvaluator = graphBuilder.getScriptEvaluator(fn);
-//        return jsBasedEvaluator.evaluate(context,
-//                (jsFunction) -> jsFunction.call(null, stepId, new GraalJsAuthenticationContext(context)));
-        return jsBasedEvaluator.evaluate(context, fn);
+        return jsBasedEvaluator.evaluate(fn, stepId,
+                JsWrapperFactoryProvider.getInstance().getWrapperFactory().
+                        createJsAuthenticationContext(context));
     }
 
     private boolean handleInitialize(HttpServletRequest request, HttpServletResponse response,

@@ -43,14 +43,16 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsPolyglotGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsFunctionRegistryImpl;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsNashornGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.CacheBackedLongWaitStatusDAO;
 import org.wso2.carbon.identity.application.authentication.framework.dao.impl.LongWaitStatusDAOImpl;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -89,7 +91,6 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
-import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
@@ -232,7 +233,8 @@ public class FrameworkServiceComponent {
                         "enabled.");
             }
         }
-        AuthenticationMethodNameTranslatorImpl authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
+        AuthenticationMethodNameTranslatorImpl
+                authenticationMethodNameTranslator = new AuthenticationMethodNameTranslatorImpl();
         authenticationMethodNameTranslator.initializeConfigsWithServerConfig();
         bundleContext
                 .registerService(AuthenticationMethodNameTranslator.class, authenticationMethodNameTranslator, null);
@@ -273,7 +275,8 @@ public class FrameworkServiceComponent {
         dataHolder.getHttpIdentityRequestFactories().add(new HttpIdentityRequestFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLoginResponseFactory());
         dataHolder.getHttpIdentityResponseFactories().add(new FrameworkLogoutResponseFactory());
-        JsNashornGraphBuilderFactory jsGraphBuilderFactory = new JsNashornGraphBuilderFactory();
+        JsGraphBuilderFactory<?> jsGraphBuilderFactory = createJsGraphBuilderFactory();
+        assert jsGraphBuilderFactory != null;
         jsGraphBuilderFactory.init();
         UIBasedConfigurationLoader uiBasedConfigurationLoader = new UIBasedConfigurationLoader();
         dataHolder.setSequenceLoader(uiBasedConfigurationLoader);
@@ -775,4 +778,15 @@ public class FrameworkServiceComponent {
         }
         return authConfig;
     }
+
+    private JsGraphBuilderFactory createJsGraphBuilderFactory() {
+        String scriptEngineName = IdentityUtil.getProperty(FrameworkConstants.JSAttributes.SCRIPT_ENGINE_CONFIG);
+        if (scriptEngineName != null) {
+            if (FrameworkConstants.JSAttributes.GRAALJS.equals(scriptEngineName)) {
+                return new JsPolyglotGraphBuilderFactory();
+            }
+        }
+        //Enabling Nashorn In case No Config/ Wrong Config is Present
+        return new JsNashornGraphBuilderFactory();
+    };
 }

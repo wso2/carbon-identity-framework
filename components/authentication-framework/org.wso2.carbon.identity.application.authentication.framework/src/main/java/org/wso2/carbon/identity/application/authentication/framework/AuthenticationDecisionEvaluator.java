@@ -19,10 +19,8 @@
 package org.wso2.carbon.identity.application.authentication.framework;
 
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.SerializableJsFunction;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.io.Serializable;
-import java.util.function.Function;
 
 /**
  * Definition for dynamic Authentication Decision evaluation.
@@ -38,8 +36,9 @@ public interface AuthenticationDecisionEvaluator extends Serializable {
      * Selects the authentication decision outcome based on current context.
      * Implementor may return null, in which case the flow will select the default outcome.
      *
-     * @param context
+     * @param fn -JavaScript function to be executed
+     * @param params - Parameters for the JavaScript function
      * @return
      */
-    Object evaluate(AuthenticationContext context, SerializableJsFunction fn);
+    Object evaluate(SerializableJsFunction<?> fn, Object... params);
 }

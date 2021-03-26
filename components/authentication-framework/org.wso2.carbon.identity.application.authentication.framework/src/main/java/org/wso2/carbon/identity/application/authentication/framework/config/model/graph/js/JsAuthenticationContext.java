@@ -20,6 +20,9 @@ package org.wso2.carbon.identity.application.authentication.framework.config.mod
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+/**
+ * Interface for JavaScript Authentication Context Wrapper.
+ */
 public interface JsAuthenticationContext {
 
     AuthenticationContext getWrapped();
