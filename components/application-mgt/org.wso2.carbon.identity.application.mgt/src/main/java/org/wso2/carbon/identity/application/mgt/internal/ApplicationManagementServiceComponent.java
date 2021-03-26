@@ -85,6 +85,16 @@ public class ApplicationManagementServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
         try {
+            buildFileBasedSPList();
+            if (log.isDebugEnabled()) {
+                log.debug("File based SP building completed");
+            }
+
+            loadAuthenticationTemplates();
+            if (log.isDebugEnabled()) {
+                log.debug("Authentication templates are loaded");
+            }
+
             bundleContext = context.getBundleContext();
             // Registering Application management service as a OSGIService
             bundleContext.registerService(ApplicationManagementService.class.getName(),
@@ -107,10 +117,6 @@ public class ApplicationManagementServiceComponent {
             // Register the ApplicationValidator.
             context.getBundleContext().registerService(ApplicationValidator.class,
                     new DefaultApplicationValidator(), null);
-
-            buildFileBasedSPList();
-            loadAuthenticationTemplates();
-
             if (log.isDebugEnabled()) {
                 log.debug("Identity ApplicationManagementComponent bundle is activated");
             }
