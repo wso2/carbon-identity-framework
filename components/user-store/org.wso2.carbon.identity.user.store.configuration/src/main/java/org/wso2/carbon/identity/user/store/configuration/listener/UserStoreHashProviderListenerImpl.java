@@ -9,15 +9,15 @@ import org.wso2.carbon.identity.user.store.configuration.internal.UserStoreConfi
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
 
-import java.util.List;
+import java.util.Set;
 
 /**
- * Hash Provider Listener for validating the HashProvider Params.
+ * Hash Provider Listener for validatiusereeeeng the HashProvider Params.
  */
 public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigListener {
 
     public static final String DIGEST_FUNCTION = "PasswordDigest";
-    public static final String HASH_PROVIDER_PARAMS_JSON = "Hash.algorithm.props";
+    public static final String HASH_PROVIDER_PARAMS_JSON = "Hash.Algorithm.Properties";
 
     @Override
     public void onUserStorePreUpdate(int tenantId, UserStoreDTO userStoreDTO, boolean isStateChange) throws
@@ -54,7 +54,7 @@ public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigLi
         HashProviderFactory hashProviderFactory = UserStoreConfigListenersHolder.getInstance().
                 getHashProviderFactory(digestFunction);
         if (hashProviderFactory != null) {
-            List<String> hashProviderMetaProperties = hashProviderFactory.getHashProviderMetaProperties();
+            Set<String> hashProviderMetaProperties = hashProviderFactory.getHashProviderMetaProperties();
             validateParams(hashProviderParamsJSON, hashProviderMetaProperties);
         }
     }
@@ -63,18 +63,21 @@ public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigLi
      * Validating the hashProvider params.
      *
      * @param hashProviderParamsJSON     Hash provider params in the JSON string format.
-     * @param hashProviderMetaProperties List of metaProperties of the HashProvider.
+     * @param hashProviderMetaProperties Set of metaProperties of the HashProvider.
      * @throws UserStoreException The exception thrown at validating the hashProvider params.
      */
-    private void validateParams(String hashProviderParamsJSON, List<String> hashProviderMetaProperties)
+    private void validateParams(String hashProviderParamsJSON, Set<String> hashProviderMetaProperties)
             throws UserStoreException {
 
         try {
             Gson gson = new Gson();
             JsonObject hashPropertyJSON = gson.fromJson(hashProviderParamsJSON, JsonObject.class);
-            for (String hashProperty : hashProviderMetaProperties) {
-                if (!hashPropertyJSON.has(hashProperty)) {
-                    throw new UserStoreException(hashProperty + " should be configured.");
+            if (hashPropertyJSON != null) {
+                Set<String> hashPropertyJSONKey = hashPropertyJSON.keySet();
+                for (String hashProperty : hashPropertyJSONKey) {
+                    if (!hashProviderMetaProperties.contains(hashProperty)) {
+                        throw new UserStoreException(hashProperty + " should be configured.");
+                    }
                 }
             }
         } catch (JsonSyntaxException e) {
