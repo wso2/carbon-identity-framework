@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -32,6 +33,7 @@ import javax.xml.bind.annotation.XmlType;
 /**
  * Model Class representing Entitlements/All response
  */
+@XmlRootElement(name = "resources")
 public class HomeResponseModel {
 
     @XmlAttribute
