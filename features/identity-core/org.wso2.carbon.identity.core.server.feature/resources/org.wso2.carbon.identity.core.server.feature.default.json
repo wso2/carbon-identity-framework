@@ -645,7 +645,7 @@
   "console.ui.app_copyright": "WSO2 Identity Server",
   "console.ui.app_title": "Console | WSO2 Identity Server",
   "console.ui.app_name": "Console",
-  "console.ui.app_logo_path": "/assets/images/logo.svg",
+  "console.ui.app_logo_path": "/assets/branding/images/logo.svg",
   "console.ui.product_name": "WSO2 Identity Server",
   "console.theme": "default",
   "console.session.params.userIdleTimeOut": 600,
@@ -879,7 +879,7 @@
   "myaccount.ui.app_copyright": "WSO2 Identity Server",
   "myaccount.ui.app_title": "My Account | WSO2 Identity Server",
   "myaccount.ui.app_name": "My Account",
-  "myaccount.ui.app_logo_path": "/assets/images/logo.svg",
+  "myaccount.ui.app_logo_path": "/assets/branding/images/logo.svg",
   "myaccount.ui.product_name": "WSO2 Identity Server",
   "myaccount.theme": "default",
   "myaccount.product_version.configs": {
