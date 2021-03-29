@@ -39,7 +39,7 @@ import org.wso2.carbon.identity.user.store.configuration.dao.AbstractUserStoreDA
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.DatabaseBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.dao.impl.FileBasedUserStoreDAOFactory;
 import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreConfigListener;
-import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreHashProviderListenerImpl;
+import org.wso2.carbon.identity.user.store.configuration.listener.UserStoreHashProviderConfigListenerImpl;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
 import org.wso2.carbon.user.core.hash.HashProviderFactory;
@@ -130,8 +130,9 @@ public class UserStoreConfigComponent {
             ctxt.getBundleContext().registerService(UserStoreConfigService.class.getName(), userStoreConfigService,
                     null);
             UserStoreConfigListenersHolder.getInstance().setUserStoreConfigService(userStoreConfigService);
-            UserStoreHashProviderListenerImpl userStoreHashProviderListener = new UserStoreHashProviderListenerImpl();
-            ctxt.getBundleContext().registerService(UserStoreHashProviderListenerImpl.class.getName(),
+            UserStoreHashProviderConfigListenerImpl userStoreHashProviderListener =
+                    new UserStoreHashProviderConfigListenerImpl();
+            ctxt.getBundleContext().registerService(UserStoreHashProviderConfigListenerImpl.class.getName(),
                     userStoreHashProviderListener, null);
             UserStoreConfigListenersHolder.getInstance().
                     setUserStoreConfigListenerService(userStoreHashProviderListener);

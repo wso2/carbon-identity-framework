@@ -12,9 +12,9 @@ import org.wso2.carbon.user.core.hash.HashProviderFactory;
 import java.util.Set;
 
 /**
- * Hash Provider Listener for validatiusereeeeng the HashProvider Params.
+ * Hash Provider Listener for validating the HashProvider Params.
  */
-public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigListener {
+public class UserStoreHashProviderConfigListenerImpl extends AbstractUserStoreConfigListener {
 
     public static final String DIGEST_FUNCTION = "PasswordDigest";
     public static final String HASH_PROVIDER_PARAMS_JSON = "Hash.Algorithm.Properties";
@@ -54,7 +54,7 @@ public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigLi
         HashProviderFactory hashProviderFactory = UserStoreConfigListenersHolder.getInstance().
                 getHashProviderFactory(digestFunction);
         if (hashProviderFactory != null) {
-            Set<String> hashProviderMetaProperties = hashProviderFactory.getHashProviderMetaProperties();
+            Set<String> hashProviderMetaProperties = hashProviderFactory.getHashProviderConfigProperties();
             validateParams(hashProviderParamsJSON, hashProviderMetaProperties);
         }
     }
@@ -63,10 +63,10 @@ public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigLi
      * Validating the hashProvider params.
      *
      * @param hashProviderParamsJSON     Hash provider params in the JSON string format.
-     * @param hashProviderMetaProperties Set of metaProperties of the HashProvider.
+     * @param hashProviderConfigProperties Set of metaProperties of the HashProvider.
      * @throws UserStoreException The exception thrown at validating the hashProvider params.
      */
-    private void validateParams(String hashProviderParamsJSON, Set<String> hashProviderMetaProperties)
+    private void validateParams(String hashProviderParamsJSON, Set<String> hashProviderConfigProperties)
             throws UserStoreException {
 
         try {
@@ -75,13 +75,14 @@ public class UserStoreHashProviderListenerImpl extends AbstractUserStoreConfigLi
             if (hashPropertyJSON != null) {
                 Set<String> hashPropertyJSONKey = hashPropertyJSON.keySet();
                 for (String hashProperty : hashPropertyJSONKey) {
-                    if (!hashProviderMetaProperties.contains(hashProperty)) {
-                        throw new UserStoreException(hashProperty + " should be configured.");
+                    if (!hashProviderConfigProperties.contains(hashProperty)) {
+                        throw new UserStoreException(hashProperty +
+                                " is not a configuration property which needs to be configured.");
                     }
                 }
             }
         } catch (JsonSyntaxException e) {
-            throw new UserStoreException("UserStore Hashing Configuration should be a proper JSON format", e);
+            throw new UserStoreException("User store hashing configuration should be a proper JSON format", e);
         }
     }
 }

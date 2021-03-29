@@ -105,7 +105,7 @@ public class UserStoreConfigListenersHolder {
         if (hashProviderFactoryMap == null) {
             hashProviderFactoryMap = new HashMap<>();
         }
-        hashProviderFactoryMap.put(hashProviderFactory.getType(), hashProviderFactory);
+        hashProviderFactoryMap.put(hashProviderFactory.getAlgorithm(), hashProviderFactory);
     }
 
     /**
@@ -130,6 +130,6 @@ public class UserStoreConfigListenersHolder {
      */
     public void unbindHashProviderFactory(HashProviderFactory hashProviderFactory) {
 
-        hashProviderFactoryMap.remove(hashProviderFactory.getType());
+        hashProviderFactoryMap.remove(hashProviderFactory.getAlgorithm());
     }
 }
