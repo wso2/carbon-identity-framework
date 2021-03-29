@@ -40,6 +40,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
+            <type>war</type>
         </dependency>
         <dependency>
             <groupId>org.wso2.balana</groupId>
@@ -118,8 +119,10 @@
                                 <artifactItem>
                                     <groupId>org.wso2.carbon.identity.framework</groupId>
                                     <artifactId>org.wso2.carbon.identity.entitlement.endpoint</artifactId>
+                                    <type>war</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/api_resources/</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
+                                    <destFileName>api#identity#entitlement.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>

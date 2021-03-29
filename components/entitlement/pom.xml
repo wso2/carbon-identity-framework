@@ -38,6 +38,7 @@
         <module>org.wso2.carbon.identity.entitlement</module>
         <module>org.wso2.carbon.identity.entitlement.common</module>
         <module>org.wso2.carbon.identity.entitlement.ui</module>
+        <module>org.wso2.carbon.identity.api.server.entitlement</module>
         <module>org.wso2.carbon.identity.entitlement.endpoint</module>
     </modules>
 

@@ -40,6 +40,7 @@
         <dependency>
             <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.configuration.mgt.endpoint</artifactId>
+            <type>war</type>
         </dependency>
     </dependencies>
     <build>
@@ -60,8 +61,10 @@
                                 <artifactItem>
                                     <groupId>org.wso2.carbon.identity.framework</groupId>
                                     <artifactId>org.wso2.carbon.identity.configuration.mgt.endpoint</artifactId>
+                                    <type>war</type>
                                     <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/src/main/resources/api_resources/</outputDirectory>
+                                    <outputDirectory>${basedir}/src/main/resources/</outputDirectory>
+                                    <destFileName>api#identity#config-mgt#v1.0.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -85,6 +88,7 @@
                                     <includes>
                                         <include>p2.inf</include>
                                         <include>build.properties</include>
+                                        <include>api#identity#config-mgt#v1.0.war</include>
                                     </includes>
                                 </resource>
                             </resources>
