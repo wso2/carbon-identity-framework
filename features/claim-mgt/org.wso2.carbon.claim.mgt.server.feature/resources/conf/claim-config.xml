@@ -371,6 +371,12 @@
 				<Description>Photo URL</Description>
 			</Claim>
 			<Claim>
+				<ClaimURI>http://wso2.org/claims/websiteurl</ClaimURI>
+				<DisplayName>Website URL</DisplayName>
+				<AttributeID>websiteUrl</AttributeID>
+				<Description>Website URL</Description>
+			</Claim>
+			<Claim>
 				<ClaimURI>http://wso2.org/claims/thumbnail</ClaimURI>
 				<DisplayName>Photo - Thumbnail</DisplayName>
 				<AttributeID>thumbnail</AttributeID>
@@ -1599,12 +1605,12 @@
 			</Claim>
 			<Claim>
 				<ClaimURI>website</ClaimURI>
-				<DisplayName>URL</DisplayName>
-				<AttributeID>url</AttributeID>
+				<DisplayName>Website URL</DisplayName>
+				<AttributeID>websiteUrl</AttributeID>
 				<Description>URL of the End-User's Web page or blog. This Web page SHOULD contain information published by the End-User or an organization that the End-User is affiliated with.</Description>
 				<DisplayOrder>10</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/url</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/websiteurl</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>upn</ClaimURI>
