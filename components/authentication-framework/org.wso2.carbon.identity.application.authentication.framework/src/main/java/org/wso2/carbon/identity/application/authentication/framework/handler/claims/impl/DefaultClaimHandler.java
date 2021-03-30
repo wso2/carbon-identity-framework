@@ -223,12 +223,18 @@ public class DefaultClaimHandler implements ClaimHandler {
         }
 
         // set the subject claim URI as a property
-        if (spStandardDialect != null) {
-            setSubjectClaimForFederatedClaims(localUnfilteredClaims, spStandardDialect, context);
+        if (stepConfig.isSubjectIdentifierStep()) {
+            if (spStandardDialect != null) {
+                setSubjectClaimForFederatedClaims(localUnfilteredClaims, spStandardDialect, context);
+            } else {
+                setSubjectClaimForFederatedClaims(spUnfilteredClaims, null, context);
+            }
         } else {
-            setSubjectClaimForFederatedClaims(spUnfilteredClaims, null, context);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Not setting subject claim for federated claims since this step: %s is not as a"
+                        + " subjectIdentifierStep", stepConfig.getOrder()));
+            }
         }
-
 
         //Add multi Attributes separator with claims.it can be defined in user-mgt.xml file
         UserRealm realm = getUserRealm(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
@@ -495,15 +501,19 @@ public class DefaultClaimHandler implements ClaimHandler {
                                             allSPMappedClaims, spRequestedClaims);
 
         context.setProperty(FrameworkConstants.UNFILTERED_SP_CLAIM_VALUES, allSPMappedClaims);
-
-        if (spStandardDialect != null) {
-            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
-                                          allLocalClaims, spStandardDialect, context);
+        if (stepConfig.isSubjectIdentifierStep()) {
+            if (spStandardDialect != null) {
+                setSubjectClaimForLocalClaims(tenantAwareUserName, userStore, allLocalClaims, spStandardDialect,
+                        context);
+            } else {
+                setSubjectClaimForLocalClaims(tenantAwareUserName, userStore, allSPMappedClaims, null, context);
+            }
         } else {
-            setSubjectClaimForLocalClaims(tenantAwareUserName, userStore,
-                                          allSPMappedClaims, null, context);
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Not setting subject claim for local claims since this step: %s is not as a " +
+                        "subjectIdentifierStep", stepConfig.getOrder()));
+            }
         }
-
 
         if (FrameworkConstants.RequestType.CLAIM_TYPE_OPENID.equals(context.getRequestType())) {
             spRequestedClaims = allSPMappedClaims;
