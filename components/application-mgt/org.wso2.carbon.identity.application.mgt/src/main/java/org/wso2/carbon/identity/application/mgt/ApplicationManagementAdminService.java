@@ -319,9 +319,24 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
     @SuppressWarnings("ValidExternallyBoundObject")
     public int getCountOfAllApplications() throws IdentityApplicationManagementException {
 
-        List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+        int applicationCount;
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Allowing the application access based on the role is disabled. " +
+                        "Therefore sending count of all applications.");
+            }
+            applicationCount = ApplicationManagementService.getInstance().getCountOfAllApplications(getTenantDomain(),
+                    getUsername());
+        } else {
+            /* Application role validation is enabled. Checking the
+             number of applications the user has access to, based
+             on the application role. */
+            List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+            applicationCount = applicationRoles.size();
+        }
 
-        return applicationRoles.size();
+        return applicationCount;
     }
 
     /**
@@ -332,18 +347,33 @@ public class ApplicationManagementAdminService extends AbstractAdmin {
      */
     public int getCountOfApplications(String filter) throws IdentityApplicationManagementException {
 
-        String sanitizedFilter = getSanitizedFilter(filter);
-        Pattern pattern = Pattern.compile(sanitizedFilter, Pattern.CASE_INSENSITIVE);
-        List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
-        List<String> filteredApplicationRoles = new ArrayList<>();
-        for (String applicationRole : applicationRoles) {
-            Matcher matcher = pattern.matcher(applicationRole);
-            if (matcher.matches()) {
-                filteredApplicationRoles.add(applicationRole);
+        int applicationCount;
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
+        if (!validateRoles) {
+            if (log.isDebugEnabled()) {
+                log.debug("Allowing the application access based on the role is disabled. " +
+                        "Therefore sending count of all matching applications.");
             }
+            applicationCount = ApplicationManagementService.getInstance().getCountOfApplications(getTenantDomain(),
+                    getUsername(), filter);
+        } else {
+            /* Application role validation is enabled. Checking the
+             number of matching applications the user has access to,
+             based on the application role. */
+            String sanitizedFilter = getSanitizedFilter(filter);
+            Pattern pattern = Pattern.compile(sanitizedFilter, Pattern.CASE_INSENSITIVE);
+            List<String> applicationRoles = getApplicationRolesOfUser(getUsername());
+            List<String> filteredApplicationRoles = new ArrayList<>();
+            for (String applicationRole : applicationRoles) {
+                Matcher matcher = pattern.matcher(applicationRole);
+                if (matcher.matches()) {
+                    filteredApplicationRoles.add(applicationRole);
+                }
+            }
+            applicationCount = filteredApplicationRoles.size();
         }
 
-        return filteredApplicationRoles.size();
+        return applicationCount;
     }
 
     /**
