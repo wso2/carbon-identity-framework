@@ -527,15 +527,10 @@ public abstract class FrameworkConstants {
 
         // RDBMS implementation constants.
         public static final String GET_TEMP_POOL_SIZE="JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize";
-
         public static final String GET_TEMP_CLEANUP_ENABLE="JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
-
         public static final String GET_DELETE_CHUNK_SIZE="JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.DeleteChunkSize";
-
         public static final int DEFAULT_MAX_TEMP_DATA_POOLSIZE = 50;
-
         public static final boolean DEFAULT_TEMP_DATA_CLEANUP_ENABLED= false;
-
         public static final int  DEFAULT_DETELE_CHUNK_SIZE=50000;
 
     }
