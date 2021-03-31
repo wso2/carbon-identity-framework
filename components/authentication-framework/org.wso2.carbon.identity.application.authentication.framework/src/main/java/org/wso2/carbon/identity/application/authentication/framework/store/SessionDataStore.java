@@ -42,6 +42,7 @@ public abstract class SessionDataStore {
     private static boolean enablePersist;
     private static volatile SessionDataStore instance;
 
+
     static {
         try {
             String maxPoolSizeValue = IdentityUtil.getProperty("JDBCPersistenceManager.SessionDataPersist.PoolSize");
@@ -242,6 +243,25 @@ public abstract class SessionDataStore {
     protected BlockingDeque getSessionContextQueue() {
 
         return this.sessionContextQueue;
+    }
+
+
+    protected int getIntProperty(String propertyName, Integer defaultValue) {
+
+        String stringVal = IdentityUtil.getProperty(propertyName);
+        if (StringUtils.isNotBlank(stringVal)) {
+            return Integer.parseInt(stringVal);
+        }
+        return defaultValue;
+    }
+
+    protected Boolean getBooleanProperty(String propertyName, Boolean defaultValue) {
+
+        String stringVal = IdentityUtil.getProperty(propertyName);
+        if (StringUtils.isNotBlank(stringVal)) {
+            return Boolean.parseBoolean(stringVal);
+        }
+        return defaultValue;
     }
 
 }

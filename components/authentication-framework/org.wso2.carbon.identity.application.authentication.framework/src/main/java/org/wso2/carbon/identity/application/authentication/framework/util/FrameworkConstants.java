@@ -508,7 +508,7 @@ public abstract class FrameworkConstants {
         public static boolean DEFAULT_ENABLE_PERSIST = true;
 
         // Identity file configuration constants.
-        public static final String REDIS_GET_POOL_SIZE =
+        public static final String GET_POOL_SIZE =
                 "JDBCPersistenceManager.SessionDataPersist.PoolSize";
         public static final String TEMP_DATA_CLEANUP_ENABLE =
                 "JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
@@ -522,8 +522,34 @@ public abstract class FrameworkConstants {
                 "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxWaitMills";
         public static final String PERSIST_ENABLE =
                 "JDBCPersistenceManager.SessionDataPersist.Enable";
+        public static final String SESSION_DATA_CLEANUP_ENABLE =
+                "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
+
+        // RDBMS implementation constants.
+        public static final String GET_TEMP_POOL_SIZE="JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize";
+
+        public static final String GET_TEMP_CLEANUP_ENABLE="JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
+
+        public static final String GET_DELETE_CHUNK_SIZE="JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.DeleteChunkSize";
+
+        public static final int DEFAULT_MAX_TEMP_DATA_POOLSIZE = 50;
+
+        public static final boolean DEFAULT_TEMP_DATA_CLEANUP_ENABLED= false;
+
+        public static final int  DEFAULT_DETELE_CHUNK_SIZE=50000;
+
+    }
+
+    public static class Application {
+
+        public static final String MY_ACCOUNT_APP = "My Account";
+        public static final String MY_ACCOUNT_APP_PATH = "/myaccount";
+        public static final String CONSOLE_APP = "Console";
+        public static final String CONSOLE_APP_PATH = "/console";
+    }
+
+    public static class AutoLoginConstant {
         public static final String DATA_CLEANUP_ENABLE =
                 "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
     }
-
 }

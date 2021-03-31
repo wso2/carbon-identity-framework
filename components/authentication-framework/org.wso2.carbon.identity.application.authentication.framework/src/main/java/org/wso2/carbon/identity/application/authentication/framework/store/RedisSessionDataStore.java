@@ -52,7 +52,7 @@ public class RedisSessionDataStore extends SessionDataStore {
 
     {
         try {
-            maxSessionDataPoolSize = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_GET_POOL_SIZE,
+            maxSessionDataPoolSize = getIntProperty(FrameworkConstants.SessionDataStoreConstants.GET_POOL_SIZE,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
             tempDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.TEMP_DATA_CLEANUP_ENABLE,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_TEMPDATA_CLEANUP_ENABLED);
@@ -88,7 +88,7 @@ public class RedisSessionDataStore extends SessionDataStore {
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        sessionDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.DATA_CLEANUP_ENABLE,
+        sessionDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.SESSION_DATA_CLEANUP_ENABLE,
                 FrameworkConstants.SessionDataStoreConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
     }
 
@@ -282,24 +282,6 @@ public class RedisSessionDataStore extends SessionDataStore {
             return true;
         }
         return false;
-    }
-
-    private int getIntProperty(String propertyName, Integer defaultValue) {
-
-        String stringVal = IdentityUtil.getProperty(propertyName);
-        if (StringUtils.isNotBlank(stringVal)) {
-            return Integer.parseInt(stringVal);
-        }
-        return defaultValue;
-    }
-
-    private Boolean getBooleanProperty(String propertyName, Boolean defaultValue) {
-
-        String stringVal = IdentityUtil.getProperty(propertyName);
-        if (StringUtils.isNotBlank(stringVal)) {
-            return Boolean.parseBoolean(stringVal);
-        }
-        return defaultValue;
     }
 
     private void addRedisHash(Jedis jedis, String key, String field, String value) {
