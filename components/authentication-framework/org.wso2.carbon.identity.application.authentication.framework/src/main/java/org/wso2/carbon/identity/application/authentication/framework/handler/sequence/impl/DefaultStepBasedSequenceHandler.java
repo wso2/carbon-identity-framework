@@ -318,7 +318,8 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
-                    if(!stepConfig.isSubjectAttributeStep()){
+                    if (!stepConfig.isSubjectAttributeStep()) {
+                        // Do claim mapping inorder to get subject claim uri requested.
                         handleClaimMappings(stepConfig, context, extAttibutesValueMap, true);
                     }
                     subjectFoundInStep = true;
@@ -355,6 +356,7 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
 
                 if (stepConfig.isSubjectIdentifierStep()) {
                     if (!stepConfig.isSubjectAttributeStep()) {
+                        // Do claim mapping inorder to get subject claim uri requested.
                         handleClaimMappings(stepConfig, context, null, false);
                     }
                     subjectFoundInStep = true;
