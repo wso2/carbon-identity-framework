@@ -318,6 +318,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
+                    if(!stepConfig.isSubjectAttributeStep()){
+                        handleClaimMappings(stepConfig, context, extAttibutesValueMap, true);
+                    }
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
                 }
@@ -351,6 +354,9 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             } else {
 
                 if (stepConfig.isSubjectIdentifierStep()) {
+                    if (!stepConfig.isSubjectAttributeStep()) {
+                        handleClaimMappings(stepConfig, context, null, false);
+                    }
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
 
