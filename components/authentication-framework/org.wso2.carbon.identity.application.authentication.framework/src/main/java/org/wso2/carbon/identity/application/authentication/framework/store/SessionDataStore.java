@@ -246,22 +246,28 @@ public abstract class SessionDataStore {
     }
 
 
-    protected int getIntProperty(String propertyName, Integer defaultValue) {
+    protected int getIntegerPropertyFromIdentityUtil(String propertyAccessLocation, Integer defaultValue) {
 
-        String stringVal = IdentityUtil.getProperty(propertyName);
+        String stringVal = IdentityUtil.getProperty(propertyAccessLocation);
         if (StringUtils.isNotBlank(stringVal)) {
             return Integer.parseInt(stringVal);
         }
         return defaultValue;
     }
 
-    protected Boolean getBooleanProperty(String propertyName, Boolean defaultValue) {
+    protected Boolean getBooleanPropertyFromIdentityUtil(String propertyAccessLocation, Boolean defaultValue) {
 
-        String stringVal = IdentityUtil.getProperty(propertyName);
+        String stringVal = IdentityUtil.getProperty(propertyAccessLocation);
         if (StringUtils.isNotBlank(stringVal)) {
             return Boolean.parseBoolean(stringVal);
         }
         return defaultValue;
+    }
+
+    protected void getInternalProperty(String string,Object value){
+        if (log.isDebugEnabled()) {
+            log.debug(string  + value);
+        }
     }
 
 }

@@ -19,13 +19,11 @@
 package org.wso2.carbon.identity.application.authentication.framework.store;
 
 import org.apache.commons.lang.SerializationUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -52,17 +50,17 @@ public class RedisSessionDataStore extends SessionDataStore {
 
     {
         try {
-            maxSessionDataPoolSize = getIntProperty(FrameworkConstants.SessionDataStoreConstants.GET_POOL_SIZE,
+            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.GET_POOL_SIZE,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
-            tempDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.TEMP_DATA_CLEANUP_ENABLE,
+            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.TEMP_DATA_CLEANUP_ENABLE,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_TEMPDATA_CLEANUP_ENABLED);
-            maxTotal = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_TOTAL,
+            maxTotal = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_TOTAL,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_TOTAL);
-            maxIdle = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_IDLE,
+            maxIdle = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_IDLE,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_IDLE);
-            minIdle = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MIN_IDLE,
+            minIdle = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MIN_IDLE,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_MIN_IDLE);
-            maxWaitMillis = getIntProperty(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_WAIT,
+            maxWaitMillis = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.REDIS_POOL_MAX_WAIT,
                     FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_WAIT_MILLIS);
 
         } catch (NumberFormatException e) {
@@ -83,12 +81,12 @@ public class RedisSessionDataStore extends SessionDataStore {
 
     RedisSessionDataStore() {
 
-        enablePersist = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.PERSIST_ENABLE,
+        enablePersist = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.PERSIST_ENABLE,
                 FrameworkConstants.SessionDataStoreConstants.DEFAULT_ENABLE_PERSIST);
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        sessionDataCleanupEnabled = getBooleanProperty(FrameworkConstants.SessionDataStoreConstants.SESSION_DATA_CLEANUP_ENABLE,
+        sessionDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.SESSION_DATA_CLEANUP_ENABLE,
                 FrameworkConstants.SessionDataStoreConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
     }
 
