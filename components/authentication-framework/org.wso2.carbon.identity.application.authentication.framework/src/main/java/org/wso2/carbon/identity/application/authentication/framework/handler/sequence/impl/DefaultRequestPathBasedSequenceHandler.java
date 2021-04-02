@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -241,7 +242,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
             if (spToLocalClaimMapping != null && !spToLocalClaimMapping.isEmpty()) {
 
                 for (Entry<String, String> entry : spToLocalClaimMapping.entrySet()) {
-                    if (FrameworkConstants.LOCAL_ROLE_CLAIM_URI.equals(entry.getValue())) {
+                    if (IdentityUtil.getLocalGroupsClaimURI().equals(entry.getValue())) {
                         return entry.getKey();
                     }
                 }
@@ -249,7 +250,7 @@ public class DefaultRequestPathBasedSequenceHandler implements RequestPathBasedS
         }
 
         if (spRoleClaimUri == null) {
-            spRoleClaimUri = FrameworkConstants.LOCAL_ROLE_CLAIM_URI;
+            spRoleClaimUri = IdentityUtil.getLocalGroupsClaimURI();
             if (log.isDebugEnabled()) {
                 String serviceProvider = appConfig.getApplicationName();
                 log.debug("Service Provider Role Claim URI not configured for SP: " + serviceProvider +

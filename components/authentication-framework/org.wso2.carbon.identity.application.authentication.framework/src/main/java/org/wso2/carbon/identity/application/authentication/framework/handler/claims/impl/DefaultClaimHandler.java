@@ -63,6 +63,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.wso2.carbon.identity.core.util.IdentityUtil.getLocalGroupsClaimURI;
 
 public class DefaultClaimHandler implements ClaimHandler {
 
@@ -986,13 +987,13 @@ public class DefaultClaimHandler implements ClaimHandler {
      */
     private void handleRoleClaim(AuthenticationContext context, Map<String, String> mappedAttrs) {
 
-        if (mappedAttrs.containsKey(FrameworkConstants.LOCAL_ROLE_CLAIM_URI)) {
-            String[] groups = mappedAttrs.get(FrameworkConstants.LOCAL_ROLE_CLAIM_URI).split(Pattern
+        if (mappedAttrs.containsKey(getLocalGroupsClaimURI())) {
+            String[] groups = mappedAttrs.get(getLocalGroupsClaimURI()).split(Pattern
                     .quote(FrameworkUtils.getMultiAttributeSeparator()));
             SequenceConfig sequenceConfig = context.getSequenceConfig();
             // Execute only if it has allowed removing userstore domain from the sp level configurations.
             if (isRemoveUserDomainInRole(sequenceConfig)) {
-                mappedAttrs.put(FrameworkConstants.LOCAL_ROLE_CLAIM_URI, FrameworkUtils
+                mappedAttrs.put(getLocalGroupsClaimURI(), FrameworkUtils
                         .removeDomainFromNamesExcludeHybrid(Arrays.asList(groups)));
             }
         }

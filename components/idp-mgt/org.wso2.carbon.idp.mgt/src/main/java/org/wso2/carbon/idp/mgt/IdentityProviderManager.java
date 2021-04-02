@@ -66,6 +66,7 @@ import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
 import org.wso2.carbon.idp.mgt.util.MetadataConverter;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.api.UserStoreManager;
+import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
 import java.io.IOException;
@@ -85,7 +86,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import javax.xml.stream.XMLStreamException;
+
+import static org.wso2.carbon.user.core.UserCoreConstants.INTERNAL_DOMAIN;
+import static org.wso2.carbon.user.core.UserCoreConstants.WORKFLOW_DOMAIN;
+import static org.wso2.carbon.user.mgt.UserMgtConstants.APPLICATION_DOMAIN;
 
 public class IdentityProviderManager implements IdpManager {
 
@@ -2605,6 +2612,18 @@ public class IdentityProviderManager implements IdpManager {
                 if (StringUtils.isNotBlank(mapping.getLocalRole().getUserStoreId())) {
                     role = IdentityUtil.addDomainToName(role, mapping.getLocalRole().getUserStoreId());
                 }
+
+                if (IdentityUtil.isGroupsVsRolesSeparationImprovementsEnabled()) {
+                    // Only roles are allowed for role mapping.
+                    if (isGroup(role)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Groups including: " + role + ", are not allowed for the identity " +
+                                    "provider role mapping.");
+                        }
+                        continue;
+                    }
+                }
+
                 // Remove invalid mappings if local role does not exists.
                 if (usm.isExistingRole(role)) {
                     validRoleMappings.add(mapping);
@@ -2920,5 +2939,11 @@ public class IdentityProviderManager implements IdpManager {
             throw IdPManagementUtil.handleServerException(
                     IdPManagementConstants.ErrorMessage.ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES, null, e);
         }
+    }
+
+    private boolean isGroup(String localRoleName) {
+
+        return !Stream.of(INTERNAL_DOMAIN, APPLICATION_DOMAIN, WORKFLOW_DOMAIN).anyMatch(domain -> localRoleName
+                .toUpperCase().startsWith((domain + UserCoreConstants.DOMAIN_SEPARATOR).toUpperCase()));
     }
 }

@@ -1895,6 +1895,7 @@
     <!--<LoggableUserClaims>-->
         <!--<LoggableUserClaim>http://wso2.org/claims/identity/accountLocked</LoggableUserClaim>-->
         <!--<LoggableUserClaim>http://wso2.org/claims/role</LoggableUserClaim>-->
+        <!--<LoggableUserClaim>http://wso2.org/claims/roles</LoggableUserClaim>-->
     <!--</LoggableUserClaims>-->
 
     <!--Configuration Store properties-->
