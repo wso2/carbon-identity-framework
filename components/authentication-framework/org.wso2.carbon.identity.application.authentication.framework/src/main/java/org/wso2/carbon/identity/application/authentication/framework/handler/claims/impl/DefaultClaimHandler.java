@@ -145,9 +145,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     spRequestedClaimMappings, context.getTenantDomain());
             spRequestedClaimMappings = mapRequestClaimsInStandardDialect(spRequestedClaimMappings,
                     carbonToStandardClaimMapping);
-            if (stepConfig.isSubjectAttributeStep()) {
-                context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, spRequestedClaimMappings);
-            }
+            context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, spRequestedClaimMappings);
         }
 
         ApplicationAuthenticator authenticator = stepConfig.
@@ -490,9 +488,7 @@ public class DefaultClaimHandler implements ClaimHandler {
                     spToLocalClaimMappings, tenantDomain);
             requestedClaimMappings = mapRequestClaimsInStandardDialect(requestedClaimMappings,
                     carbonToStandardClaimMapping);
-            if (stepConfig == null || stepConfig.isSubjectAttributeStep()) {
-                context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, requestedClaimMappings);
-            }
+            context.setProperty(FrameworkConstants.SP_TO_CARBON_CLAIM_MAPPING, requestedClaimMappings);
         }
 
         mapSPClaimsAndFilterRequestedClaims(spToLocalClaimMappings, requestedClaimMappings, allLocalClaims,
