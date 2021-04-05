@@ -318,6 +318,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
                 }
 
                 if (stepConfig.isSubjectIdentifierStep()) {
+                    if (!stepConfig.isSubjectAttributeStep()) {
+                        /*
+                        Do claim mapping inorder to get subject claim uri requested. This is done only if the
+                        step is not a subject attribute step. Because it is already done in the previous flow if
+                        the step is a subject attribute step.
+                        */
+                        handleClaimMappings(stepConfig, context, extAttibutesValueMap, true);
+                    }
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
                 }
@@ -351,6 +359,14 @@ public class DefaultStepBasedSequenceHandler implements StepBasedSequenceHandler
             } else {
 
                 if (stepConfig.isSubjectIdentifierStep()) {
+                    if (!stepConfig.isSubjectAttributeStep()) {
+                        /*
+                        Do claim mapping inorder to get subject claim uri requested. This is done only if the
+                        step is not a subject attribute step. Because it is already done in the previous flow if
+                        the step is a subject attribute step.
+                        */
+                        handleClaimMappings(stepConfig, context, null, false);
+                    }
                     subjectFoundInStep = true;
                     sequenceConfig.setAuthenticatedUser(new AuthenticatedUser(stepConfig.getAuthenticatedUser()));
 
