@@ -1540,6 +1540,17 @@ public class ApplicationBean {
     }
 
     /**
+     * @param wstrustEp
+     */
+    public void setWstrustEp(String wstrustEp) {
+        if (CollectionUtils.isEmpty(this.wsTrustEp) 
+            this.wsTrustEp = new ArrayList<String>(0);
+
+        this.wsTrustEp.clear();
+        this.wsTrustEp.add(wstrustEp);
+    }
+
+    /**
      * @param wstrustEps
      */
     public void setWstrustEp(List<String> wstrustEps) {
