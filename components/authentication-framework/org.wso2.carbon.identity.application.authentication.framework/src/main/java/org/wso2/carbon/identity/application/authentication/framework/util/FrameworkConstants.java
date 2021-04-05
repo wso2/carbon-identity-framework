@@ -242,6 +242,7 @@ public abstract class FrameworkConstants {
                 "PasswordUpdate.PreserveLoggedInSession";
 
         private Config() {
+
         }
 
     }
@@ -273,6 +274,7 @@ public abstract class FrameworkConstants {
         public static final String IDENTIFIER_CONSENT = "identifier_consent";
 
         private RequestParams() {
+
         }
     }
 
@@ -285,6 +287,7 @@ public abstract class FrameworkConstants {
         public static final String USER_ATTRIBUTES = "userAttributes";
 
         private ResponseParams() {
+
         }
     }
 
@@ -310,6 +313,7 @@ public abstract class FrameworkConstants {
         public static final String CLAIM_TYPE_OIDC = "oidc";
 
         private RequestType() {
+
         }
     }
 
@@ -323,6 +327,7 @@ public abstract class FrameworkConstants {
         public static final String IDENTIFIER_FIRST_AUTHENTICATOR = "IdentifierExecutor";
 
         private RequestAttribute() {
+
         }
     }
 
@@ -416,11 +421,14 @@ public abstract class FrameworkConstants {
         public static final String AUTHENTICATOR_PARAMS = "authenticatorParams";
         public static final String FORCE_AUTH_PARAM = "forceAuth";
     }
+
     public static class InternalRoleDomains {
 
         public static final String APPLICATION_DOMAIN = "Application";
         public static final String WORKFLOW_DOMAIN = "Workflow";
+
         private InternalRoleDomains() {
+
         }
     }
 
@@ -429,6 +437,7 @@ public abstract class FrameworkConstants {
         public static final String TYPE_APPLICATION_JSON = "application/json";
 
         private ContentTypes() {
+
         }
     }
 
@@ -457,7 +466,6 @@ public abstract class FrameworkConstants {
         public static final String ACCOUNT_DISABLE_HANDLER_ENABLE_PROPERTY = "account.disable.handler.enable";
     }
 
-
     /**
      * Constants related with Analytics parameters.
      */
@@ -479,59 +487,11 @@ public abstract class FrameworkConstants {
         public static final String CUSTOM_PARAM_5 = CUSTOM_PARAM_PREFIX + "5";
     }
 
-    public static class SessionDataStoreConstants{
+    public static class SessionDataStoreConstants {
 
-        // Redis Constants.
-        public static final String NANO_TIME = "nanoTime";
-        public static final String TYPE = "type";
-        public static final String EXPIRY_TIME = "expireTime";
-        public static final String TENANT_ID = "tenantId";
-        public static final String HOST = "127.0.0.1";
-        public static final int PORT = 6379;
-        public static final String OBJECT = "object";
-        public static final String DIVIDER = ":";
-        public static final String TEMPSTORE = "temp";
-
-        // Redis pool configuration constants.
-        public static int DEFAULT_MAX_TOTAL = 1000;
-        public static int DEFAULT_MAX_IDLE = 1000;
-        public static int DEFAULT_MIN_IDLE = 100;
-        public static int DEFAULT_MAX_WAIT_MILLIS = 20000;
-        public static final boolean TEST_ON_BORROW = true;
-        public static final boolean BLOCK_WHEN_EXHAUSTED = true;
-        public static final boolean TEST_ON_RETURN = true;
-
-        // General Persist layer constants.
-        public static boolean DEFAULT_TEMPDATA_CLEANUP_ENABLED = false;
-        public static int DEFAULT_MAX_SESSION_DATA_POOLSIZE = 100;
-        public static boolean DEFAULT_SESSION_DATA_CLEANUP_ENABLED = true;
-        public static boolean DEFAULT_ENABLE_PERSIST = true;
-
-        // Identity file configuration constants.
-        public static final String GET_POOL_SIZE =
-                "JDBCPersistenceManager.SessionDataPersist.PoolSize";
-        public static final String TEMP_DATA_CLEANUP_ENABLE =
-                "JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
-        public static final String REDIS_POOL_MAX_TOTAL =
-                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxTotal";
-        public static final String REDIS_POOL_MAX_IDLE =
-                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxIdle";
-        public static final String REDIS_POOL_MIN_IDLE =
-                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MinIdle";
-        public static final String REDIS_POOL_MAX_WAIT =
-                "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxWaitMills";
         public static final String PERSIST_ENABLE =
                 "JDBCPersistenceManager.SessionDataPersist.Enable";
-        public static final String SESSION_DATA_CLEANUP_ENABLE =
-                "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
-
-        // RDBMS implementation constants.
-        public static final String GET_TEMP_POOL_SIZE="JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.PoolSize";
-        public static final String GET_TEMP_CLEANUP_ENABLE="JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
-        public static final String GET_DELETE_CHUNK_SIZE="JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.DeleteChunkSize";
-        public static final int DEFAULT_MAX_TEMP_DATA_POOLSIZE = 50;
-        public static final boolean DEFAULT_TEMP_DATA_CLEANUP_ENABLED= false;
-        public static final int  DEFAULT_DETELE_CHUNK_SIZE=50000;
+        public static boolean DEFAULT_ENABLE_PERSIST = true;
 
     }
 
@@ -544,7 +504,6 @@ public abstract class FrameworkConstants {
     }
 
     public static class AutoLoginConstant {
-        public static final String DATA_CLEANUP_ENABLE =
-                "JDBCPersistenceManager.SessionDataPersist.SessionDataCleanUp.Enable";
+
     }
 }

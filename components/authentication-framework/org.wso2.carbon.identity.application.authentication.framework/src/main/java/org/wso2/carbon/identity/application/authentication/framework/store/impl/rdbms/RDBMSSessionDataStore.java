@@ -16,13 +16,17 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.store;
+package org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbms;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionCleanUpService;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionContextDO;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataPersistTask;
+import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.TempAuthContextDataDeleteTask;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.common.cache.CacheEntry;
@@ -119,17 +123,17 @@ public class RDBMSSessionDataStore extends SessionDataStore {
 
     {
         try {
-            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.GET_POOL_SIZE,
-                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
-            getInternalProperty("Session data pool size config value: ",maxSessionDataPoolSize);
-            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.GET_TEMP_CLEANUP_ENABLE,
-                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_TEMP_DATA_CLEANUP_ENABLED);
-            maxTempDataPoolSize = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.GET_TEMP_POOL_SIZE,
-                    FrameworkConstants.SessionDataStoreConstants.DEFAULT_MAX_TEMP_DATA_POOLSIZE);
-            getInternalProperty("Temporary data pool size config value: ",maxTempDataPoolSize);
+            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(rdbmsConstants.GET_POOL_SIZE,
+                    rdbmsConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
+            getInternalProperty("Session data pool size config value: ", maxSessionDataPoolSize);
+            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(rdbmsConstants.GET_TEMP_CLEANUP_ENABLE,
+                    rdbmsConstants.DEFAULT_TEMP_DATA_CLEANUP_ENABLED);
+            maxTempDataPoolSize = getIntegerPropertyFromIdentityUtil(rdbmsConstants.GET_TEMP_POOL_SIZE,
+                    rdbmsConstants.DEFAULT_MAX_TEMP_DATA_POOLSIZE);
+            getInternalProperty("Temporary data pool size config value: ", maxTempDataPoolSize);
 
         } catch (NumberFormatException e) {
-            getInternalProperty("Exception ignored : ",e);
+            getInternalProperty("Exception ignored : ", e);
             log.warn("One or more pool size configurations cause NumberFormatException. Default values would be used.");
         }
         if (maxSessionDataPoolSize > 0) {
@@ -148,22 +152,22 @@ public class RDBMSSessionDataStore extends SessionDataStore {
         }
     }
 
-    RDBMSSessionDataStore() {
+    public RDBMSSessionDataStore() {
 
-        enablePersist = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.PERSIST_ENABLE,
-                FrameworkConstants.SessionDataStoreConstants.DEFAULT_ENABLE_PERSIST);
-        deleteChunkSize = getIntegerPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.GET_DELETE_CHUNK_SIZE,
-                FrameworkConstants.SessionDataStoreConstants.DEFAULT_DETELE_CHUNK_SIZE);
+        enablePersist = getBooleanPropertyFromIdentityUtil(rdbmsConstants.PERSIST_ENABLE,
+                rdbmsConstants.DEFAULT_ENABLE_PERSIST);
+        deleteChunkSize = getIntegerPropertyFromIdentityUtil(rdbmsConstants.GET_DELETE_CHUNK_SIZE,
+                rdbmsConstants.DEFAULT_DETELE_CHUNK_SIZE);
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        sessionDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(FrameworkConstants.SessionDataStoreConstants.SESSION_DATA_CLEANUP_ENABLE,
-                FrameworkConstants.SessionDataStoreConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
+        sessionDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(rdbmsConstants.SESSION_DATA_CLEANUP_ENABLE,
+                rdbmsConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
         if (sessionDataCleanupEnabled || tempDataCleanupEnabled) {
             long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(CarbonContext.getThreadLocalCarbonContext().
                     getTenantDomain());
             getInternalProperty(String.format("Session clean up task enabled to run in %d minutes intervals.",
-                    sessionCleanupPeriod),"");
+                    sessionCleanupPeriod), "");
             SessionCleanUpService sessionCleanUpService = new SessionCleanUpService(sessionCleanupPeriod / 4,
                     sessionCleanupPeriod);
             sessionCleanUpService.activateCleanUp();
@@ -247,17 +251,17 @@ public class RDBMSSessionDataStore extends SessionDataStore {
 
         try {
 
-            if (isDBType(connection,MYSQL_DATABASE)
-                    || isDBType(connection,H2_DATABASE)) {
+            if (isDBType(connection, MYSQL_DATABASE)
+                    || isDBType(connection, H2_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
-            } else if (isDBType(connection,DB2_DATABASE)) {
+            } else if (isDBType(connection, DB2_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-            } else if (isDBType(connection,MS_SQL_DATABASE)
-                    || isDBType(connection,MICROSOFT_DATABASE)) {
+            } else if (isDBType(connection, MS_SQL_DATABASE)
+                    || isDBType(connection, MICROSOFT_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-            } else if (isDBType(connection,POSTGRESQL_DATABASE)) {
+            } else if (isDBType(connection, POSTGRESQL_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-            } else if (isDBType(connection,INFORMIX_DATABASE)) {
+            } else if (isDBType(connection, INFORMIX_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
             } else {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_ORACLE;
@@ -314,17 +318,17 @@ public class RDBMSSessionDataStore extends SessionDataStore {
         ResultSet resultSet = null;
         try {
 
-            if (isDBType(connection,MYSQL_DATABASE)
-                    || isDBType(connection,H2_DATABASE)) {
+            if (isDBType(connection, MYSQL_DATABASE)
+                    || isDBType(connection, H2_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
-            } else if (isDBType(connection,DB2_DATABASE)) {
+            } else if (isDBType(connection, DB2_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-            } else if (isDBType(connection,MS_SQL_DATABASE)
-                    || isDBType(connection,MICROSOFT_DATABASE)) {
+            } else if (isDBType(connection, MS_SQL_DATABASE)
+                    || isDBType(connection, MICROSOFT_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-            } else if (isDBType(connection,POSTGRESQL_DATABASE)) {
+            } else if (isDBType(connection, POSTGRESQL_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-            } else if (isDBType(connection,INFORMIX_DATABASE)) {
+            } else if (isDBType(connection, INFORMIX_DATABASE)) {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
             } else {
                 sqlSelect = SQL_DESERIALIZE_OBJECT_ORACLE;
@@ -413,17 +417,17 @@ public class RDBMSSessionDataStore extends SessionDataStore {
             connection = IdentityDatabaseUtil.getDBConnection();
             String nonFormattedQuery;
 
-            if (isDBType(connection,MYSQL_DATABASE) || isDBType(connection,MARIA_DATABASE)
-                    || isDBType(connection,H2_DATABASE)) {
+            if (isDBType(connection, MYSQL_DATABASE) || isDBType(connection, MARIA_DATABASE)
+                    || isDBType(connection, H2_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
             } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_DB2SQL;
-            } else if (isDBType(connection,MS_SQL_DATABASE)
-                    || isDBType(connection,MICROSOFT_DATABASE)) {
+            } else if (isDBType(connection, MS_SQL_DATABASE)
+                    || isDBType(connection, MICROSOFT_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MSSQL;
-            } else if (isDBType(connection,POSTGRESQL_DATABASE)) {
+            } else if (isDBType(connection, POSTGRESQL_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL;
-            } else if (isDBType(connection,INFORMIX_DATABASE)) {
+            } else if (isDBType(connection, INFORMIX_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL;
             } else {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_ORACLE;
@@ -443,7 +447,7 @@ public class RDBMSSessionDataStore extends SessionDataStore {
      */
     private void removeExpiredSessionData(String sqlQuery) {
 
-        getInternalProperty("DB query for removing expired data: ",sqlQuery);
+        getInternalProperty("DB query for removing expired data: ", sqlQuery);
         long currentTime = FrameworkUtils.getCurrentStandardNano();
         try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
             boolean deleteCompleted = false;
@@ -456,10 +460,10 @@ public class RDBMSSessionDataStore extends SessionDataStore {
                     totalDeletedEntries += noOfDeletedRecords;
                     // Commit the chunk deletion.
                     IdentityDatabaseUtil.commitTransaction(connection);
-                    getInternalProperty(String.format("Removed %d expired session records.", noOfDeletedRecords),"");
+                    getInternalProperty(String.format("Removed %d expired session records.", noOfDeletedRecords), "");
                 }
             }
-            getInternalProperty(String.format("Deleted total of %d entries", totalDeletedEntries),"");
+            getInternalProperty(String.format("Deleted total of %d entries", totalDeletedEntries), "");
         } catch (SQLException | IdentityRuntimeException e) {
             log.error("Error while removing session data from the database for nano time: " + currentTime, e);
         }
@@ -509,7 +513,7 @@ public class RDBMSSessionDataStore extends SessionDataStore {
 
     boolean isDBType(Connection connection, String dbName) throws SQLException {
 
-            return connection.getMetaData().getDriverName().contains(dbName);
+        return connection.getMetaData().getDriverName().contains(dbName);
     }
 
 }
