@@ -417,6 +417,10 @@
   "event.default_listener.username_resolver.enable": true,
   "event.default_listener.userid_resolver.priority": "15",
   "event.default_listener.userid_resolver.enable": true,
+  "event.default_listener.uma_introspection_data_provider.priority": "161",
+  "event.default_listener.uma_introspection_data_provider.enable": false,
+  "event.default_listener.is_introspection_data_provider.priority": "162",
+  "event.default_listener.is_introspection_data_provider.enable": false,
 
   "event.default_listener.unique_claim_user_operation_event_listener.priority": "101",
   "event.default_listener.unique_claim_user_operation_event_listener.enable": false,
