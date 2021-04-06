@@ -40,6 +40,7 @@
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurpose" %>
 <%@ page import="org.wso2.carbon.identity.application.mgt.ui.ApplicationPurposes" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
+<%@ page import="org.wso2.carbon.security.sts.service.util.STSServiceValidationUtil" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIUtil" %>
 <%@ page import="org.wso2.carbon.utils.ServerConstants" %>
@@ -146,7 +147,7 @@
     //adding code to support jwks URI
     String jwksUri = appBean.getServiceProvider().getJwksUri();
     boolean hasJWKSUri = StringUtils.isNotEmpty(jwksUri);
-    
+
     String authTypeReq = request.getParameter("authType");
     if (authTypeReq != null && authTypeReq.trim().length() > 0) {
         appBean.setAuthenticationType(authTypeReq);
@@ -587,6 +588,37 @@
         });
     }
 
+    function getConfigurationType(postURL) {
+
+        var configType;
+
+        if(postURL.includes("sso-saml")) {
+            configType = "SAML2 Web SSO Configuration";
+        } else if(postURL.includes("oauth")) {
+            configType = "OAuth/OpenID Connect Configuration";
+        } else if(postURL.includes("generic-sts")) {
+            configType = "WS-Trust Security Token Service Configuration";
+        } else {
+            configType = "Kerberos KDC";
+        }
+
+        return configType;
+    }
+
+    function updateBeanAndPostWithConfirmation(postURL, data, redirectURLOnSuccess) {
+
+        var serviceProvider = document.getElementById("spName").value;
+        var configurationType = getConfigurationType(postURL);
+
+        function doDelete() {
+            updateBeanAndPost(postURL, data, redirectURLOnSuccess)
+        }
+
+        CARBON.showConfirmationDialog("Are you sure that you want to remove " +
+         configurationType + " from the service provider " + serviceProvider + "?",
+                               doDelete, null);
+    }
+
     function updateBeanAndPost(postURL, data, redirectURLOnSuccess) {
         var numberOfClaimMappings = document.getElementById("claimMappingAddTable").rows.length;
         document.getElementById('number_of_claim_mappings').value = numberOfClaimMappings;
@@ -618,6 +650,20 @@
                 });
             }
         });
+    }
+
+    function updateBeanAndPostToWithConfirmation(postURL, data) {
+
+        var serviceProvider = document.getElementById("spName").value;
+        var action = data.includes("revoke")? "Revoke Secret" : "Regenerate Secret";
+
+        function doAction() {
+              updateBeanAndPostTo(postURL, data);
+        }
+
+        CARBON.showConfirmationDialog("Are you sure that you want to " +
+          action + " for OAuth client?",
+          doAction, null);
     }
 
     function updateBeanAndPostTo(postURL, data) {
@@ -1059,7 +1105,7 @@
                     });
             }
         });
-        
+
 
         if ($('#isNeedToUpdate').val() == 'true') {
             $('#isNeedToUpdate').val('false');
@@ -1327,7 +1373,7 @@
                             <td>
                                 <input style="width:50%" id="spName" name="spName" type="text"
                                        value="<%=Encode.forHtmlAttribute(spName)%>"
-                                       white-list-patterns="^[a-zA-Z0-9\s.+_-]*$" autofocus/>
+                                       white-list-patterns="<%=Encode.forHtmlContent(ApplicationMgtUIUtil.getSPValidatorJavascriptRegex())%>" autofocus/>
                                 <div class="sectionHelp">
                                     <fmt:message key='help.name'/>
                                 </div>
@@ -1502,6 +1548,29 @@
                                        autofocus />
                                 <div class="sectionHelp">
                                     <fmt:message key='help.image.url'/>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:15%" class="leftCol-med labelField">
+                                <fmt:message key='config.application.logout.return.url'/>
+                            </td>
+                            <td>
+                                <% boolean logoutReturnUrlDefined = false;
+                                    if (appBean.getServiceProvider().getSpProperties() != null) {
+                                        for (ServiceProviderProperty property : appBean.getServiceProvider().getSpProperties()) {
+                                            if (property.getName() != null && "logoutReturnUrl".equals(property.getName())) {
+                                                logoutReturnUrlDefined = true; %>
+                                <input style="width:50%" type="text" name="logoutReturnUrl" id="logoutReturnUrl"
+                                       value="<%=property.getValue() != null ? Encode.forHtmlContent(property.getValue()) : "" %>"/>
+                                <% }
+                                }
+                                }
+                                    if (!logoutReturnUrlDefined) { %>
+                                <input style="width:50%" type="text" name="logoutReturnUrl" id="logoutReturnUrl" value=".*"/>
+                                <% } %>
+                                <div class="sectionHelp">
+                                    <fmt:message key='help.logout.return.url'/>
                                 </div>
                             </td>
                         </tr>
@@ -2137,7 +2206,7 @@
                                                            class="icon-link"
                                                            style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                         <a title="Delete Service Providers"
-                                                           onclick="updateBeanAndPost('../sso-saml/remove_service_provider-finish-ajaxprocessor.jsp',
+                                                           onclick="updateBeanAndPostWithConfirmation('../sso-saml/remove_service_provider-finish-ajaxprocessor.jsp',
                                                                'issuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                                'configure-service-provider.jsp?action=delete&samlIssuer=<%=Encode.forUriComponent(appBean.getSAMLIssuer())%>&spName=<%=Encode.forUriComponent(spName)%>');"
                                                            class="icon-link"
@@ -2209,9 +2278,9 @@
                                                                        value="<%=Encode.forHtmlAttribute(oauthConsumerSecret)%>"
                                                                        readonly="readonly">
                                                                 <span style="float: right;">
-                                						<a style="margin-top: 5px;" class="showHideBtn"
+                                                        <a style="margin-top: 5px;" class="showHideBtn"
                                                            onclick="showHidePassword(this, 'oauthConsumerSecret')">Show</a>
-                                					</span>
+                                                    </span>
                                                             </div>
                                                             <% } %>
                                                             <%} %>
@@ -2224,20 +2293,20 @@
 
 
                                                             <a title="Revoke Service Providers"
-                                                               onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');"
+                                                               onclick="updateBeanAndPostToWithConfirmation('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=revoke');"
                                                                class="icon-link"
                                                                style="background-image: url(images/disabled.png)">Revoke</a>
 
 
                                                             <a title="Regenerate Secret Key"
-                                                               onclick="updateBeanAndPostTo('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
+                                                               onclick="updateBeanAndPostToWithConfirmation('../oauth/edit-app-ajaxprocessor.jsp','appName=<%=Encode.forUriComponent(spName)%>&consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&action=regenerate');"
                                                                class="icon-link"
                                                                style="background-image: url(images/enabled.png)">Regenerate
                                                                 Secret</a>
 
 
                                                             <a title="Delete Service Providers"
-                                                               onclick="updateBeanAndPost('../oauth/remove-app-ajaxprocessor.jsp',
+                                                               onclick="updateBeanAndPostWithConfirmation('../oauth/remove-app-ajaxprocessor.jsp',
                                                                    'consumerkey=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>&appName=<%=Encode.forUriComponent(spName)%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                                    'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&oauthapp=<%=Encode.forUriComponent(appBean.getOIDCClientId())%>');"
                                                                class="icon-link"
@@ -2349,6 +2418,7 @@
                                     </table>
                                 </div>
 
+                                <% if (STSServiceValidationUtil.isWSTrustAvailable()) { %>
                                 <h2 id="wst.config.head" class="sectionSeperator trigger active"
                                     style="background-color: beige;">
                                     <a href="#"><fmt:message key="title.config.sts.config"/></a>
@@ -2398,7 +2468,7 @@
                                                                    class="icon-link"
                                                                    style="background-image: url(../admin/images/edit.gif)">Edit</a>
                                                                 <a title="Delete Audience"
-                                                                   onclick="updateBeanAndPost('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
+                                                                   onclick="updateBeanAndPostWithConfirmation('../generic-sts/remove-sts-trusted-service-ajaxprocessor.jsp',
                                                                        'action=delete&spName=<%=Encode.forUriComponent(spName)%>&endpointaddrs=<%=Encode.forUriComponent(wsTrustURI)%>',
                                                                        'configure-service-provider.jsp?spName=<%=Encode.forUriComponent(spName)%>&action=delete&serviceName=<%=Encode.forUriComponent(wsTrustURI)%>');"
                                                                    class="icon-link"
@@ -2420,6 +2490,7 @@
 
                                         </table>
                                     </div>
+                                    <%} %>
 
                                     <h2 id="kerberos.kdc.head" class="sectionSeperator trigger active"
                                         style="background-color: beige;">
@@ -2473,7 +2544,7 @@
                                                                        style="background-image: url(../admin/images/edit.gif)">Change
                                                                         Password</a>
                                                                     <a title="Delete"
-                                                                       onclick="updateBeanAndPost('../servicestore/delete-finish-ajaxprocessor.jsp',
+                                                                       onclick="updateBeanAndPostWithConfirmation('../servicestore/delete-finish-ajaxprocessor.jsp',
                                                                            'SPAction=delete&spnName=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>&spName=<%=Encode.forUriComponent(spName)%>',
                                                                            'configure-service-provider.jsp?action=delete&spName=<%=Encode.forUriComponent(spName)%>&kerberos=<%=Encode.forUriComponent(appBean.getKerberosServiceName())%>');"
                                                                        class="icon-link"
@@ -2575,11 +2646,11 @@
                                                                    value="<%=prop.getDefaultValue()%>"
                                                                 <%}%>
                                                                    style="  outline: none; border: none; min-width: 175px; max-width:
-						                            180px;"/>
+                                                    180px;"/>
                                                             <span style=" float: right; padding-right: 5px;">
-					                            <a style="margin-top: 5px;" class="showHideBtn"
+                                                <a style="margin-top: 5px;" class="showHideBtn"
                                                    onclick="showHidePassword(this, '<%=propName%>')">Show</a>
-				                            </span>
+                                            </span>
                                                         </div>
                                                         <% } else { %>
                                                         <input id="<%=propName%>"
@@ -2598,9 +2669,9 @@
                                                         <%} %>
                                                     </td>
                                                             <%
-					                            }
-		                            }
-	                            %>
+                                                }
+                                    }
+                                %>
                                             </table>
                                         </div>
                                         <%
