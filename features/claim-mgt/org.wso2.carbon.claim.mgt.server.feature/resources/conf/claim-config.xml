@@ -1627,7 +1627,7 @@
 				<Description>List of group names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
 				<DisplayOrder>12</DisplayOrder>
 				<SupportedByDefault />
-				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
+				<MappedLocalClaim>http://wso2.org/claims/groups</MappedLocalClaim>
 			</Claim>
 			<Claim>
 				<ClaimURI>roles</ClaimURI>
