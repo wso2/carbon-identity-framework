@@ -18,7 +18,7 @@
 
 package org.wso2.carbon.identity.application.authentication.framework.store.impl.redis;
 
-public class redisConstants {
+public class RedisConstants {
 
     public static final String GET_REDIS_POOL_MAX_TOTAL =
             "JDBCPersistenceManager.SessionDataPersist.RedisPoolConfig.MaxTotal";
@@ -32,7 +32,6 @@ public class redisConstants {
             "JDBCPersistenceManager.SessionDataPersist.TempDataCleanup.Enable";
     public static final String GET_POOL_SIZE =
             "JDBCPersistenceManager.SessionDataPersist.PoolSize";
-
     // Redis Constants.
     public static final String NANO_TIME = "nanoTime";
     public static final String TYPE = "type";
@@ -46,12 +45,10 @@ public class redisConstants {
     public static final boolean TEST_ON_BORROW = true;
     public static final boolean BLOCK_WHEN_EXHAUSTED = true;
     public static final boolean TEST_ON_RETURN = true;
-
     // General Persist layer constants.
     public static boolean DEFAULT_TEMPDATA_CLEANUP_ENABLED = false;
     public static int DEFAULT_MAX_SESSION_DATA_POOLSIZE = 100;
     public static boolean DEFAULT_ENABLE_PERSIST = true;
-
     // Redis pool configuration constants.
     public static int DEFAULT_MAX_TOTAL = 1000;
     public static int DEFAULT_MAX_IDLE = 1000;

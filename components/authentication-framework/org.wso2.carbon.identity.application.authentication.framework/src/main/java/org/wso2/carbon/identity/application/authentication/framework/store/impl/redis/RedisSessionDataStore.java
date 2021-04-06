@@ -52,18 +52,18 @@ public class RedisSessionDataStore extends SessionDataStore {
 
     {
         try {
-            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(redisConstants.GET_POOL_SIZE,
-                    redisConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
-            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(redisConstants.GET_TEMP_DATA_CLEANUP_ENABLE,
-                    redisConstants.DEFAULT_TEMPDATA_CLEANUP_ENABLED);
-            maxTotal = getIntegerPropertyFromIdentityUtil(redisConstants.GET_REDIS_POOL_MAX_TOTAL,
-                    redisConstants.DEFAULT_MAX_TOTAL);
-            maxIdle = getIntegerPropertyFromIdentityUtil(redisConstants.GET_REDIS_POOL_MAX_IDLE,
-                    redisConstants.DEFAULT_MAX_IDLE);
-            minIdle = getIntegerPropertyFromIdentityUtil(redisConstants.GET_REDIS_POOL_MIN_IDLE,
-                    redisConstants.DEFAULT_MIN_IDLE);
-            maxWaitMillis = getIntegerPropertyFromIdentityUtil(redisConstants.GET_REDIS_POOL_MAX_WAIT,
-                    redisConstants.DEFAULT_MAX_WAIT_MILLIS);
+            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(RedisConstants.GET_POOL_SIZE,
+                    RedisConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
+            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(RedisConstants.GET_TEMP_DATA_CLEANUP_ENABLE,
+                    RedisConstants.DEFAULT_TEMPDATA_CLEANUP_ENABLED);
+            maxTotal = getIntegerPropertyFromIdentityUtil(RedisConstants.GET_REDIS_POOL_MAX_TOTAL,
+                    RedisConstants.DEFAULT_MAX_TOTAL);
+            maxIdle = getIntegerPropertyFromIdentityUtil(RedisConstants.GET_REDIS_POOL_MAX_IDLE,
+                    RedisConstants.DEFAULT_MAX_IDLE);
+            minIdle = getIntegerPropertyFromIdentityUtil(RedisConstants.GET_REDIS_POOL_MIN_IDLE,
+                    RedisConstants.DEFAULT_MIN_IDLE);
+            maxWaitMillis = getIntegerPropertyFromIdentityUtil(RedisConstants.GET_REDIS_POOL_MAX_WAIT,
+                    RedisConstants.DEFAULT_MAX_WAIT_MILLIS);
 
         } catch (NumberFormatException e) {
             if (log.isDebugEnabled()) {
@@ -108,8 +108,8 @@ public class RedisSessionDataStore extends SessionDataStore {
             if (pool == null) {
                 synchronized (RedisSessionDataStore.class) {
                     if (pool == null) {
-                        pool = new JedisPool(getPoolConfig(), redisConstants.HOST,
-                                redisConstants.PORT);
+                        pool = new JedisPool(getPoolConfig(), RedisConstants.HOST,
+                                RedisConstants.PORT);
                     }
                 }
             }
@@ -127,9 +127,9 @@ public class RedisSessionDataStore extends SessionDataStore {
         jedisPoolConfig.setMaxIdle(maxIdle);
         jedisPoolConfig.setMinIdle(minIdle);
         jedisPoolConfig.setMaxWaitMillis(maxWaitMillis);
-        jedisPoolConfig.setBlockWhenExhausted(redisConstants.BLOCK_WHEN_EXHAUSTED);
-        jedisPoolConfig.setTestOnBorrow(redisConstants.TEST_ON_BORROW);
-        jedisPoolConfig.setTestOnReturn(redisConstants.TEST_ON_RETURN);
+        jedisPoolConfig.setBlockWhenExhausted(RedisConstants.BLOCK_WHEN_EXHAUSTED);
+        jedisPoolConfig.setTestOnBorrow(RedisConstants.TEST_ON_BORROW);
+        jedisPoolConfig.setTestOnReturn(RedisConstants.TEST_ON_RETURN);
 
         return jedisPoolConfig;
     }
@@ -160,11 +160,11 @@ public class RedisSessionDataStore extends SessionDataStore {
         if (!enablePersist) {
             return;
         }
-        String redisKey = key + redisConstants.DIVIDER + type;
+        String redisKey = key + RedisConstants.DIVIDER + type;
         boolean tempStore = getSessionStoreType(type);
         if (tempStore) {
-            redisKey = redisKey + redisConstants.DIVIDER +
-                    redisConstants.TEMPSTORE;
+            redisKey = redisKey + RedisConstants.DIVIDER +
+                    RedisConstants.TEMPSTORE;
         }
 
         try {
@@ -172,8 +172,8 @@ public class RedisSessionDataStore extends SessionDataStore {
             if (jedis.exists(redisKey)) {
                 jedis.del(redisKey);
             }
-            String objectKey = redisKey + redisConstants.DIVIDER +
-                    redisConstants.OBJECT;
+            String objectKey = redisKey + RedisConstants.DIVIDER +
+                    RedisConstants.OBJECT;
             if (jedis.exists(objectKey)) {
                 jedis.del(objectKey);
             }
@@ -200,21 +200,21 @@ public class RedisSessionDataStore extends SessionDataStore {
     public SessionContextDO getSessionContextData(String key, String type) {
 
         Jedis jedis;
-        String redisKey = key + redisConstants.DIVIDER + type;
+        String redisKey = key + RedisConstants.DIVIDER + type;
         if (!enablePersist) {
             return null;
         }
         boolean tempStore = getSessionStoreType(type);
         if (tempStore) {
-            redisKey = redisKey + redisConstants.DIVIDER +
-                    redisConstants.TEMPSTORE;
+            redisKey = redisKey + RedisConstants.DIVIDER +
+                    RedisConstants.TEMPSTORE;
         }
         try {
             jedis = getJedisInstance().getResource();
             if (jedis.exists(redisKey)) {
-                long nanoTime = Long.parseLong(jedis.hget(redisKey, redisConstants.NANO_TIME));
-                String objectKey = redisKey + redisConstants.DIVIDER +
-                        redisConstants.OBJECT;
+                long nanoTime = Long.parseLong(jedis.hget(redisKey, RedisConstants.NANO_TIME));
+                String objectKey = redisKey + RedisConstants.DIVIDER +
+                        RedisConstants.OBJECT;
                 Object blobObject = deserialize(jedis.get(objectKey.getBytes()));
                 jedis.close();
                 return new SessionContextDO(key, type, blobObject, nanoTime);
@@ -237,7 +237,7 @@ public class RedisSessionDataStore extends SessionDataStore {
         Long expireTime;
         String redisKey;
         boolean tempStore = getSessionStoreType(type);
-        redisKey = key + redisConstants.DIVIDER + type;
+        redisKey = key + RedisConstants.DIVIDER + type;
         if (!enablePersist) {
             return;
         }
@@ -248,19 +248,19 @@ public class RedisSessionDataStore extends SessionDataStore {
             validityPeriodNano = getCleanupTimeout(type, tenantId);
         }
         if (tempStore) {
-            redisKey = redisKey + redisConstants.DIVIDER +
-                    redisConstants.TEMPSTORE;
+            redisKey = redisKey + RedisConstants.DIVIDER +
+                    RedisConstants.TEMPSTORE;
         }
         try {
             Jedis jedis;
             jedis = getJedisInstance().getResource();
-            addRedisHash(jedis, redisKey, redisConstants.NANO_TIME, String.valueOf(nanoTime));
-            addRedisHash(jedis, redisKey, redisConstants.EXPIRY_TIME,
+            addRedisHash(jedis, redisKey, RedisConstants.NANO_TIME, String.valueOf(nanoTime));
+            addRedisHash(jedis, redisKey, RedisConstants.EXPIRY_TIME,
                     String.valueOf(nanoTime + validityPeriodNano));
-            addRedisHash(jedis, redisKey, redisConstants.TENANT_ID, String.valueOf(tenantId));
+            addRedisHash(jedis, redisKey, RedisConstants.TENANT_ID, String.valueOf(tenantId));
 
-            objectKey = redisKey + redisConstants.DIVIDER +
-                    redisConstants.OBJECT;
+            objectKey = redisKey + RedisConstants.DIVIDER +
+                    RedisConstants.OBJECT;
             byte[] serializedSessionObject = serialize((Serializable) entry);
             jedis.set(objectKey.getBytes(), serializedSessionObject);
 

@@ -327,7 +327,6 @@ public abstract class FrameworkConstants {
         public static final String IDENTIFIER_FIRST_AUTHENTICATOR = "IdentifierExecutor";
 
         private RequestAttribute() {
-
         }
     }
 

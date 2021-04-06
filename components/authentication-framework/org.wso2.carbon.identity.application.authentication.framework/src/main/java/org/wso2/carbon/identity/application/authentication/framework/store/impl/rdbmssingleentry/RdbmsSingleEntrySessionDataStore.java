@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbms;
+package org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -56,7 +56,7 @@ import java.util.concurrent.LinkedBlockingDeque;
  * entry will be updated. Session data entry removal as single is handled by removeSessionData method
  * and as batch is handled by removeExpiredSessionData method.
  */
-public class RDBMSSessionDataStore extends SessionDataStore {
+public class RdbmsSingleEntrySessionDataStore extends SessionDataStore {
 
     public static final String DEFAULT_SESSION_STORE_TABLE_NAME = "IDN_AUTH_SESSION_STORE";
     public static final String DEFAULT_TEMP_SESSION_STORE_TABLE_NAME = "IDN_AUTH_TEMP_SESSION_STORE";
@@ -123,13 +123,13 @@ public class RDBMSSessionDataStore extends SessionDataStore {
 
     {
         try {
-            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(rdbmsConstants.GET_POOL_SIZE,
-                    rdbmsConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
+            maxSessionDataPoolSize = getIntegerPropertyFromIdentityUtil(RdbmsSingleEntryConstants.GET_POOL_SIZE,
+                    RdbmsSingleEntryConstants.DEFAULT_MAX_SESSION_DATA_POOLSIZE);
             getInternalProperty("Session data pool size config value: ", maxSessionDataPoolSize);
-            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(rdbmsConstants.GET_TEMP_CLEANUP_ENABLE,
-                    rdbmsConstants.DEFAULT_TEMP_DATA_CLEANUP_ENABLED);
-            maxTempDataPoolSize = getIntegerPropertyFromIdentityUtil(rdbmsConstants.GET_TEMP_POOL_SIZE,
-                    rdbmsConstants.DEFAULT_MAX_TEMP_DATA_POOLSIZE);
+            tempDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(RdbmsSingleEntryConstants.GET_TEMP_CLEANUP_ENABLE,
+                    RdbmsSingleEntryConstants.DEFAULT_TEMP_DATA_CLEANUP_ENABLED);
+            maxTempDataPoolSize = getIntegerPropertyFromIdentityUtil(RdbmsSingleEntryConstants.GET_TEMP_POOL_SIZE,
+                    RdbmsSingleEntryConstants.DEFAULT_MAX_TEMP_DATA_POOLSIZE);
             getInternalProperty("Temporary data pool size config value: ", maxTempDataPoolSize);
 
         } catch (NumberFormatException e) {
@@ -152,17 +152,17 @@ public class RDBMSSessionDataStore extends SessionDataStore {
         }
     }
 
-    public RDBMSSessionDataStore() {
+    public RdbmsSingleEntrySessionDataStore() {
 
-        enablePersist = getBooleanPropertyFromIdentityUtil(rdbmsConstants.PERSIST_ENABLE,
-                rdbmsConstants.DEFAULT_ENABLE_PERSIST);
-        deleteChunkSize = getIntegerPropertyFromIdentityUtil(rdbmsConstants.GET_DELETE_CHUNK_SIZE,
-                rdbmsConstants.DEFAULT_DETELE_CHUNK_SIZE);
+        enablePersist = getBooleanPropertyFromIdentityUtil(RdbmsSingleEntryConstants.PERSIST_ENABLE,
+                RdbmsSingleEntryConstants.DEFAULT_ENABLE_PERSIST);
+        deleteChunkSize = getIntegerPropertyFromIdentityUtil(RdbmsSingleEntryConstants.GET_DELETE_CHUNK_SIZE,
+                RdbmsSingleEntryConstants.DEFAULT_DETELE_CHUNK_SIZE);
         if (!enablePersist) {
             log.info("Session Data Persistence of Authentication framework is not enabled.");
         }
-        sessionDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(rdbmsConstants.SESSION_DATA_CLEANUP_ENABLE,
-                rdbmsConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
+        sessionDataCleanupEnabled = getBooleanPropertyFromIdentityUtil(RdbmsSingleEntryConstants.SESSION_DATA_CLEANUP_ENABLE,
+                RdbmsSingleEntryConstants.DEFAULT_SESSION_DATA_CLEANUP_ENABLED);
         if (sessionDataCleanupEnabled || tempDataCleanupEnabled) {
             long sessionCleanupPeriod = IdentityUtil.getCleanUpPeriod(CarbonContext.getThreadLocalCarbonContext().
                     getTenantDomain());

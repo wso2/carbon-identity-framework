@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbms;
+package org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry;
 
-public class rdbmsConstants {
+public class RdbmsSingleEntryConstants {
 
     // Identity file configuration constants.
     public static final String PERSIST_ENABLE =

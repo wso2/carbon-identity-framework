@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
-import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbms.RDBMSSessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry.RdbmsSingleEntrySessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.store.impl.redis.RedisSessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
@@ -65,7 +65,7 @@ public abstract class SessionDataStore {
     /**
      * Returning instance of one of the implementation of SessionDataStore.
      *
-     * @return {@link RDBMSSessionDataStore} or {@link RedisSessionDataStore}
+     * @return {@link RdbmsSingleEntrySessionDataStore} or {@link RedisSessionDataStore}
      */
     public static SessionDataStore getInstance() {
 
@@ -85,7 +85,7 @@ public abstract class SessionDataStore {
                     if (redisEnabled == true) {
                         instance = new RedisSessionDataStore();
                     } else {
-                        instance = new RDBMSSessionDataStore();
+                        instance = new RdbmsSingleEntrySessionDataStore();
                     }
 
                 }
