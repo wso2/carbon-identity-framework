@@ -1630,6 +1630,15 @@
 				<MappedLocalClaim>http://wso2.org/claims/role</MappedLocalClaim>
 			</Claim>
 			<Claim>
+				<ClaimURI>roles</ClaimURI>
+				<DisplayName>User Roles</DisplayName>
+				<AttributeID>roles</AttributeID>
+				<Description>List of role names that have been assigned to the principal. This typically will require a mapping at the application container level to application deployment roles.</Description>
+				<DisplayOrder>13</DisplayOrder>
+				<SupportedByDefault />
+				<MappedLocalClaim>http://wso2.org/claims/roles</MappedLocalClaim>
+			</Claim>
+			<Claim>
 				<ClaimURI>email</ClaimURI>
 				<DisplayName>Email</DisplayName>
 				<AttributeID>mail</AttributeID>
