@@ -22,6 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.application.authentication.framework.store.impl.rdbmssingleentry.RdbmsSingleEntrySessionDataStore;
+import org.wso2.carbon.identity.application.authentication.framework.store.impl.redis.RedisSessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.IdentityCacheConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -41,6 +43,7 @@ public abstract class SessionDataStore {
     private static int maxSessionDataPoolSize = 100;
     private static boolean enablePersist;
     private static volatile SessionDataStore instance;
+
 
     static {
         try {
@@ -62,7 +65,7 @@ public abstract class SessionDataStore {
     /**
      * Returning instance of one of the implementation of SessionDataStore.
      *
-     * @return {@link RDBMSSessionDataStore} or {@link RedisSessionDataStore}
+     * @return {@link RdbmsSingleEntrySessionDataStore} or {@link RedisSessionDataStore}
      */
     public static SessionDataStore getInstance() {
 
@@ -82,7 +85,7 @@ public abstract class SessionDataStore {
                     if (redisEnabled == true) {
                         instance = new RedisSessionDataStore();
                     } else {
-                        instance = new RDBMSSessionDataStore();
+                        instance = new RdbmsSingleEntrySessionDataStore();
                     }
 
                 }
@@ -242,6 +245,31 @@ public abstract class SessionDataStore {
     protected BlockingDeque getSessionContextQueue() {
 
         return this.sessionContextQueue;
+    }
+
+
+    protected int getIntegerPropertyFromIdentityUtil(String propertyAccessLocation, Integer defaultValue) {
+
+        String stringVal = IdentityUtil.getProperty(propertyAccessLocation);
+        if (StringUtils.isNotBlank(stringVal)) {
+            return Integer.parseInt(stringVal);
+        }
+        return defaultValue;
+    }
+
+    protected Boolean getBooleanPropertyFromIdentityUtil(String propertyAccessLocation, Boolean defaultValue) {
+
+        String stringVal = IdentityUtil.getProperty(propertyAccessLocation);
+        if (StringUtils.isNotBlank(stringVal)) {
+            return Boolean.parseBoolean(stringVal);
+        }
+        return defaultValue;
+    }
+
+    protected void getInternalProperty(String string,Object value){
+        if (log.isDebugEnabled()) {
+            log.debug(string  + value);
+        }
     }
 
 }
