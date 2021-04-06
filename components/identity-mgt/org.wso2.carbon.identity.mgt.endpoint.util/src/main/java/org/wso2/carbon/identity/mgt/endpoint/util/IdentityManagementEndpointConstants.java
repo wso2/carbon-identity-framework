@@ -46,6 +46,8 @@ public class IdentityManagementEndpointConstants {
 
         public static final String USER_IDENTITY_MANAGEMENT_SERVICE = "/UserIdentityManagementAdminService" +
                                                                       ".UserIdentityManagementAdminServiceHttpsSoap11Endpoint/";
+        public static final String IDENTITY_PROVIDER_MANAGEMENT_SERVICE = "/IdentityProviderMgtService" +
+                                                                      ".IdentityProviderMgtServiceHttpsSoap11Endpoint/";
     }
 
     public static final class PasswordRecoveryOptions {
@@ -68,6 +70,7 @@ public class IdentityManagementEndpointConstants {
         public static final String SERVICE_CONTEXT_URL_DOMAIN = "services";
         public static final String REST_API_URL_DOMAIN = "account-recovery";
         public static final String RECOVERY_API_RELATIVE_PATH = "/api/identity/recovery/v0.9";
+        public static final String RECOVERY_API_V1_RELATIVE_PATH = "/api/users/v1/recovery";
         public static final String USER_API_RELATIVE_PATH = "/api/identity/user/v1.0";
         public static final String RECOVERY_CALLBACK_REGEX = "Recovery.CallbackRegex";
     }
@@ -94,8 +97,10 @@ public class IdentityManagementEndpointConstants {
 
     public static final String WSO2_DIALECT = "http://wso2.org/claims";
 
-    public static final String DEFAULT_USER_PORTAL_URL = "../user-portal";
-    public static final String USER_PORTAL_URL = "/user-portal";
+    public static final String DEFAULT_USER_PORTAL_URL = "../myaccount";
+    public static final String USER_PORTAL_URL = "/myaccount";
+    public static final String My_ACCOUNT_APPLICATION_NAME = "My Account";
+    public static final String USER_TENANT_HINT_PLACE_HOLDER = "${UserTenantHint}";
 
     public static final String RELATIVE_PATH_START_CHAR = ".";
     public static final String SERVICE_CONFIG_RELATIVE_PATH =

@@ -40,6 +40,7 @@
 <%@ page import="java.util.Set" %>
 <%@ page import="org.wso2.carbon.user.mgt.ui.*" %>
 <%@ page import="org.wso2.carbon.ui.CarbonUIMessage" %>
+<%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <script type="text/javascript" src="../userstore/extensions/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 <script type="text/javascript" src="../identity/validation/js/identity-validate.js"></script>
@@ -53,7 +54,14 @@
     boolean doUserList = true;
     boolean showFilterMessage = false;
     String forwardTo = "user-mgt.jsp";
-
+    
+    String disallowedCharacterRegEx = null;
+    if (IdentityUtil.getProperty(UserAdminUIConstants.CONFIG_DISALLOWED_CHARACTER_REGEX) != null) {
+        disallowedCharacterRegEx =
+                IdentityUtil.getProperty(UserAdminUIConstants.CONFIG_DISALLOWED_CHARACTER_REGEX)
+                        .replace("\"", "&quot;");
+    }
+    
     FlaggedName[] datas = null;
     FlaggedName exceededDomains = null;
     String[] claimUris = null;
@@ -237,14 +245,25 @@
                     if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                         userCount = countClient.countUsers(countFilter);
                     } else {
-                        userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter, selectedCountDomain)));
+                        try {
+                            userCount.put(selectedCountDomain, String.valueOf(countClient.countUsersInDomain(countFilter,
+                                selectedCountDomain)));
+                        } catch (Exception e) {
+                            // In this scenario an error should be shown in the count results section.
+                            userCount.put(selectedCountDomain, "Error while getting user count");
+                        }
                     }
                 } else {                //this is a claim based search
                     if (selectedCountDomain.equalsIgnoreCase(UserAdminUIConstants.ALL_DOMAINS)) {
                         userCount = countClient.countByClaim(countClaimUri, countFilter);
                     } else {
-                        userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain(countClaimUri,
-                                countFilter, selectedCountDomain)));
+                        try {
+                            userCount.put(selectedCountDomain, String.valueOf(countClient.countByClaimInDomain
+                                (countClaimUri, countFilter, selectedCountDomain)));
+                        } catch (Exception e) {
+                            // In this scenario an error should be shown in the count results section.
+                            userCount.put(selectedCountDomain, "Error while getting user count");
+                        }
                     }
                 }
             }
@@ -387,6 +406,7 @@
             CARBON.showConfirmationDialog("<fmt:message key="confirm.delete.user"/> \'" + user + "\'?", doDelete, null);
         }
 
+        var disallowedCharacterRegEx = "<%=disallowedCharacterRegEx%>";
         $(document).ready(function () {
             $('form[name=filterForm]').submit(function(){
                 return doValidateForm(this, '<fmt:message key="error.input.validation.msg"/>');
@@ -586,9 +606,18 @@
                         <td class="leftCol-big" style="padding-right: 0 !important;"><%=Encode.forHtml(key)%>
                         </td>
                         <td>
+                            <%
+                            if (StringUtils.isNumeric(value)) {
+                            %>
                             <input type="text" readonly=true name="<%=UserAdminUIConstants.USER_COUNT%>"
-                                   value="<%=Encode.forHtmlAttribute(value)%>"/>
-
+                                                               value="<%=Encode.forHtmlAttribute(value)%>"/>
+                            <%
+                            } else {
+                            %>
+                            <p>Error occurred while getting the count</p>
+                            <%
+                            }
+                            %>
                         </td>
                     </tr>
 

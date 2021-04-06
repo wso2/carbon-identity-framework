@@ -51,6 +51,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.authentication.framework.util.LoginContextManagementUtil;
 import org.wso2.carbon.identity.application.authentication.framework.util.SessionMgtConstants;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
@@ -60,7 +61,12 @@ import org.wso2.carbon.user.core.model.UserMgtContext;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,12 +74,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Authenticator.
-        SAML2SSO.FED_AUTH_NAME;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.NONCE_ERROR_CODE;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.addNonceCookie;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.getNonceCookieName;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.isNonceCookieEnabled;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.removeNonceCookie;
+import static org.wso2.carbon.identity.application.authentication.framework.util.SessionNonceCookieUtil.validateNonceCookie;
 
 public class DefaultAuthenticationRequestHandler implements AuthenticationRequestHandler {
 
@@ -131,6 +138,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         SequenceConfig seqConfig = context.getSequenceConfig();
         List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
 
+        boolean addOrUpdateNonceCookie = false;
         try {
             UserStorePreferenceOrderSupplier<List<String>> userStorePreferenceOrderSupplier =
                     FrameworkUtils.getUserStorePreferenceOrderSupplier(context, null);
@@ -154,18 +162,51 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 // To keep track of whether particular request goes through the step based sequence handler.
                 context.setProperty(FrameworkConstants.STEP_BASED_SEQUENCE_HANDLER_TRIGGERED, true);
 
+                // Add or Validate session nonce cookie.
+                if (isNonceCookieEnabled()) {
+                    String nonceCookieName = getNonceCookieName(context);
+                    if (context.isReturning()) {
+                        if (validateNonceCookie(request, context)) {
+                            addOrUpdateNonceCookie = true;
+                        } else {
+                            throw new FrameworkException(NONCE_ERROR_CODE, "Session nonce cookie value is not " +
+                                    "matching " +
+                                    "for session with sessionDataKey: " + request.getParameter("sessionDataKey"));
+                        }
+                    } else if (context.getProperty(nonceCookieName) == null) {
+                        addOrUpdateNonceCookie = true;
+                    }
+                }
+
                 // call step based sequence handler
                 FrameworkUtils.getStepBasedSequenceHandler().handle(request, response, context);
             }
+        } catch (FrameworkException e) {
+            // Remove nonce cookie after authentication failure.
+            removeNonceCookie(request, response, context);
+            throw e;
         } finally {
             UserCoreUtil.removeUserMgtContextInThreadLocal();
         }
 
         // handle post authentication
-        handlePostAuthentication(request, response, context);
+        try {
+            handlePostAuthentication(request, response, context);
+        } catch (FrameworkException e) {
+            // Remove nonce cookie after post authentication failure.
+            removeNonceCookie(request, response, context);
+            throw e;
+        }
         // if flow completed, send response back
         if (canConcludeFlow(context)) {
+            // Remove nonce cookie after authentication completion.
+            if (addOrUpdateNonceCookie) {
+                removeNonceCookie(request, response, context);
+            }
             concludeFlow(request, response, context);
+        } else if (addOrUpdateNonceCookie) {
+            // Update nonce cookie value.
+            addNonceCookie(request, response, context);
         }
     }
 
@@ -334,10 +375,15 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             SessionContext sessionContext = null;
             String commonAuthCookie = null;
             String sessionContextKey = null;
-            // Force authentication requires the creation of a new session. Therefore skip using the existing session
-            if (FrameworkUtils.getAuthCookie(request) != null && !context.isForceAuthenticate()) {
+            String analyticsSessionAction = null;
 
-                commonAuthCookie = FrameworkUtils.getAuthCookie(request).getValue();
+            //When getting the cookie, it will not give the path. When paths are tenant qualified, it will only give
+            // the cookies matching that path.
+            Cookie authCookie = FrameworkUtils.getAuthCookie(request);
+            // Force authentication requires the creation of a new session. Therefore skip using the existing session
+            if (authCookie != null && !context.isForceAuthenticate()) {
+
+                commonAuthCookie = authCookie.getValue();
 
                 if (commonAuthCookie != null) {
                     sessionContextKey = DigestUtils.sha256Hex(commonAuthCookie);
@@ -348,9 +394,13 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             String applicationTenantDomain = getApplicationTenantDomain(context);
             // session context may be null when cache expires therefore creating new cookie as well.
             if (sessionContext != null) {
-                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
-                        sequenceConfig);
+                analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE;
+                sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(), sequenceConfig);
                 sessionContext.getAuthenticatedIdPs().putAll(context.getCurrentAuthenticatedIdPs());
+                if (!context.isPassiveAuthenticate()) {
+                    setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                            appConfig.getApplicationName());
+                }
                 sessionContext.getSessionAuthHistory().resetHistory(AuthHistory
                         .merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
@@ -360,6 +410,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     sessionContext.addProperty(FrameworkConstants.UPDATED_TIMESTAMP, updatedSessionTime);
                 }
 
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 List<AuthenticationContextProperty> authenticationContextProperties = new ArrayList<>();
 
                 // Authentication context properties from already authenticated IdPs
@@ -408,28 +459,36 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                             authenticationContextProperties);
                 }
 
-                if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
-                    try {
-                        UserSessionStore.getInstance().updateSessionMetaData(sessionContextKey, SessionMgtConstants
-                                .LAST_ACCESS_TIME, Long.toString(updatedSessionTime));
-                    } catch (UserSessionException e) {
-                        log.error("Updating session meta data failed.", e);
-                    }
+                FrameworkUtils.updateSessionLastAccessTimeMetadata(sessionContextKey, updatedSessionTime);
+
+                /*
+                 * In the default configuration, the expiry time of the commonAuthCookie is fixed when rememberMe
+                 * option is selected. With this config, the expiry time will increase at every authentication.
+                 */
+                if (sessionContext.isRememberMe() &&
+                        Boolean.parseBoolean(IdentityUtil.getProperty(
+                                IdentityConstants.ServerConfig.EXTEND_REMEMBER_ME_SESSION_ON_AUTH))) {
+                    context.setRememberMe(sessionContext.isRememberMe());
+                    setAuthCookie(request, response, context, commonAuthCookie, applicationTenantDomain);
+                }
+
+                if (context.getRuntimeClaims().size() > 0) {
+                    sessionContext.addProperty(FrameworkConstants.RUNTIME_CLAIMS, context.getRuntimeClaims());
                 }
 
                 // TODO add to cache?
                 // store again. when replicate  cache is used. this may be needed.
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
-                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
-                        .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_UPDATE);
-
             } else {
+                analyticsSessionAction = FrameworkConstants.AnalyticsAttributes.SESSION_CREATE;
                 sessionContext = new SessionContext();
                 // To identify first login
                 context.setProperty(FrameworkConstants.AnalyticsAttributes.IS_INITIAL_LOGIN, true);
                 sessionContext.getAuthenticatedSequences().put(appConfig.getApplicationName(),
                         sequenceConfig);
                 sessionContext.setAuthenticatedIdPs(context.getCurrentAuthenticatedIdPs());
+                setAuthenticatedIDPsOfApp(sessionContext, context.getCurrentAuthenticatedIdPs(),
+                        appConfig.getApplicationName());
                 sessionContext.setRememberMe(context.isRememberMe());
                 if (context.getProperty(FrameworkConstants.AUTHENTICATION_CONTEXT_PROPERTIES) != null) {
                     if (log.isDebugEnabled()) {
@@ -447,16 +506,18 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 Long createdTimeMillis = System.currentTimeMillis();
                 sessionContext.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
                 authenticationResult.addProperty(FrameworkConstants.CREATED_TIMESTAMP, createdTimeMillis);
+                authenticationResult.addProperty(FrameworkConstants.AnalyticsAttributes.SESSION_ID, sessionContextKey);
                 sessionContext.getSessionAuthHistory().resetHistory(
                         AuthHistory.merge(sessionContext.getSessionAuthHistory().getHistory(),
                                 context.getAuthenticationStepHistory()));
                 populateAuthenticationContextHistory(authenticationResult, context, sessionContext);
 
+                if (context.getRuntimeClaims().size() > 0) {
+                    sessionContext.addProperty(FrameworkConstants.RUNTIME_CLAIMS, context.getRuntimeClaims());
+                }
+
                 FrameworkUtils.addSessionContextToCache(sessionContextKey, sessionContext, applicationTenantDomain);
                 setAuthCookie(request, response, context, sessionKey, applicationTenantDomain);
-                FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
-                        .getAuthenticatedUser(), FrameworkConstants.AnalyticsAttributes.SESSION_CREATE);
-
                 if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                     try {
                         storeSessionMetaData(sessionContextKey, request);
@@ -469,7 +530,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             if (authenticatedUserTenantDomain == null) {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             }
-            publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
 
             if (FrameworkServiceDataHolder.getInstance().isUserSessionMappingEnabled()) {
                 try {
@@ -483,8 +543,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             // store the saml index with the session context key for the single logout.
             if (context.getAuthenticationStepHistory() != null) {
                 for (AuthHistory authHistory : context.getAuthenticationStepHistory()) {
-                    if (FED_AUTH_NAME.equals(authHistory.getAuthenticatorName()) &&
-                            StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
+                    if (StringUtils.isNotBlank(authHistory.getIdpSessionIndex()) &&
                             StringUtils.isNotBlank(authHistory.getIdpName())) {
                         try {
                             UserSessionStore.getInstance().storeFederatedAuthSessionInfo(sessionContextKey,
@@ -496,6 +555,9 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                     }
                 }
             }
+            FrameworkUtils.publishSessionEvent(sessionContextKey, request, context, sessionContext, sequenceConfig
+                        .getAuthenticatedUser(), analyticsSessionAction);
+            publishAuthenticationSuccess(request, context, sequenceConfig.getAuthenticatedUser());
         }
 
         // Checking weather inbound protocol is an already cache removed one, request come from federated or other
@@ -586,7 +648,7 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
             boolean persistUserToSessionMapping = true;
             String userId;
             try {
-                int idpId = UserSessionStore.getInstance().getIdPId(idpName);
+                int idpId = UserSessionStore.getInstance().getIdPId(idpName, appTenantId);
 
                 // If the user is federated, generate a unique ID for the user and add an entry to the IDN_AUTH_USER
                 // table with the tenant id as -1 and user store domain as FEDERATED.
@@ -633,9 +695,8 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         }
         try {
             // AppId is the auto generated id for the applications and it should be a positive integer.
-            if (appId > 0 && !UserSessionStore.getInstance().isExistingAppSession(sessionContextKey, subject,
-                    appId, inboundAuth)) {
-                UserSessionStore.getInstance().storeAppSessionData(sessionContextKey, subject, appId, inboundAuth);
+            if (appId > 0) {
+                UserSessionStore.getInstance().storeAppSessionDataIfNotExist(sessionContextKey, subject, appId, inboundAuth);
             }
         } catch (DataAccessException e) {
             throw new UserSessionException("Error while storing Application session data in the database.", e);
@@ -678,6 +739,12 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
     private void publishAuthenticationSuccess(HttpServletRequest request, AuthenticationContext context,
                                               AuthenticatedUser user) {
 
+        Serializable authenticationStartTime =
+                context.getAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_START_TIME);
+        if (authenticationStartTime instanceof Long) {
+            context.setAnalyticsData(FrameworkConstants.AnalyticsData.AUTHENTICATION_DURATION,
+                    System.currentTimeMillis() - (long) authenticationStartTime);
+        }
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
                 .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
@@ -710,8 +777,11 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         if (context.isRememberMe()) {
             authCookieAge = IdPManagementUtil.getRememberMeTimeout(tenantDomain);
         }
-
-        FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge);
+        String path = null;
+        if (IdentityTenantUtil.isTenantedSessionsEnabled()) {
+            path = FrameworkConstants.TENANT_CONTEXT_PREFIX + context.getLoginTenantDomain() + "/";
+        }
+        FrameworkUtils.storeAuthCookie(request, response, sessionKey, authCookieAge, path);
     }
 
     private String getAuthenticatedUserTenantDomain(AuthenticationContext context,
@@ -778,7 +848,6 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
                 queryParamsString += "&" + rememberMeParam;
             }
             redirectURL = FrameworkUtils.appendQueryParamsStringToUrl(commonauthCallerPath, queryParamsString);
-
             response.sendRedirect(redirectURL);
         } catch (IOException e) {
             throw new FrameworkException(e.getMessage(), e);
@@ -854,4 +923,24 @@ public class DefaultAuthenticationRequestHandler implements AuthenticationReques
         return authenticationResult;
     }
 
+    private void setAuthenticatedIDPsOfApp(SessionContext sessionContext,
+                                           Map<String, AuthenticatedIdPData> authenticatedIdPs,
+                                           String applicationName) throws FrameworkException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting current authenticatedIDPs of the application from authentication context and setting "
+                    + "it into session context for application: " + applicationName);
+        }
+        Map<String, AuthenticatedIdPData> authenticatedIdPDataMap = new HashMap<>();
+        for (Map.Entry<String, AuthenticatedIdPData> entry : authenticatedIdPs.entrySet()) {
+            try {
+                AuthenticatedIdPData authenticatedIdpData = (AuthenticatedIdPData) entry.getValue().clone();
+                authenticatedIdPDataMap.put(authenticatedIdpData.getIdpName(), authenticatedIdpData);
+            } catch (CloneNotSupportedException e) {
+                String errorMsg = "Error while cloning AuthenticatedIdPData object.";
+                throw new FrameworkException(errorMsg, e);
+            }
+        }
+        sessionContext.setAuthenticatedIdPsOfApp(applicationName, authenticatedIdPDataMap);
+    }
 }

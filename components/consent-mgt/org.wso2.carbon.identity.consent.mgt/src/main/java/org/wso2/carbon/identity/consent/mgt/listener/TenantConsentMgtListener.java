@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.consent.mgt.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.consent.mgt.core.PrivilegedConsentManager;
 import org.wso2.carbon.consent.mgt.core.exception.ConsentManagementException;
 import org.wso2.carbon.consent.mgt.core.model.PurposeCategory;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
@@ -29,7 +30,7 @@ import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
 
 /**
- * Tenant listener which adds default purpose category for a tenant
+ * Tenant listener which adds default purpose category for a tenant.
  */
 public class TenantConsentMgtListener extends AbstractIdentityTenantMgtListener {
 
@@ -41,6 +42,41 @@ public class TenantConsentMgtListener extends AbstractIdentityTenantMgtListener 
 
         if (isSsoConsentManagementEnabled()) {
             addDefaultPurposeCategory(tenantInfoBean);
+        }
+    }
+
+    /**
+     * Delete all consents belongs to a given tenant before deleting the tenant.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws StratosException throws when an error occurs in deleting consents.
+     */
+    @Override
+    public void onPreDelete(int tenantId) throws StratosException {
+
+        if (log.isDebugEnabled()) {
+            log.info("Deleting all consents of the tenant: " + tenantId);
+        }
+        deleteAllConsents(tenantId);
+    }
+
+    /**
+     * Delete all consents belongs to a given tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws StratosException throws when an error occurs in deleting consents.
+     */
+    protected void deleteAllConsents(int tenantId) throws StratosException {
+
+        try {
+            PrivilegedConsentManager privilegedConsentManager =
+                    IdentityConsentDataHolder.getInstance().getPrivilegedConsentManager();
+            privilegedConsentManager.deletePurposeCategories(tenantId);
+            privilegedConsentManager.deletePIICategories(tenantId);
+            privilegedConsentManager.deletePurposes(tenantId);
+            privilegedConsentManager.deleteReceipts(tenantId);
+        } catch (ConsentManagementException e) {
+            throw new StratosException("Error in deleting consents of tenant:" + tenantId, e);
         }
     }
 

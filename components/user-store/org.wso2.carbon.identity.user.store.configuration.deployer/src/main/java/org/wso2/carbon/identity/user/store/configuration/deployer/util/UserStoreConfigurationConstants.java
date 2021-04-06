@@ -46,6 +46,10 @@ public class UserStoreConfigurationConstants {
     public static final String SERVER_INTERNAL_KEYSTORE_PASSWORD = "Security.InternalKeyStore.Password";
     public static final String SERVER_INTERNAL_KEYSTORE_KEY_ALIAS = "Security.InternalKeyStore.KeyAlias";
     public static final String ENCRYPTION_KEYSTORE = "Security.UserStorePasswordEncryption";
+    public static final String CRYPTO_PROVIDER = "CryptoService.InternalCryptoProviderClassName";
+    public static final String SYMMETRIC_KEY_CRYPTO_PROVIDER = "org.wso2.carbon.crypto.provider" +
+            ".SymmetricKeyInternalCryptoProvider";
+
 
     private UserStoreConfigurationConstants() {
 

@@ -34,6 +34,7 @@ import org.wso2.carbon.identity.mgt.endpoint.util.client.model.CodeValidationReq
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Property;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RecoveryInitiatingRequest;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.ResetPasswordRequest;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.UserClaim;
 
 import java.util.ArrayList;
@@ -103,7 +104,8 @@ public class NotificationApi {
 
         // verify the required parameter 'recoveryInitiatingRequest' is set
         if (recoveryInitiatingRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'recoveryInitiatingRequest' when calling recoverPasswordPost");
+            throw new ApiException(400,
+                    "Missing the required parameter 'recoveryInitiatingRequest' when calling recoverPasswordPost");
         }
 
         String tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -111,7 +113,9 @@ public class NotificationApi {
             tenantDomain = recoveryInitiatingRequest.getUser().getTenantDomain();
         }
 
-        setBasePath(tenantDomain);
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/recover-password".replaceAll("\\{format\\}", "json");
@@ -143,7 +147,8 @@ public class NotificationApi {
 
         GenericType<String> localVarReturnType = new GenericType<String>() {
         };
-        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
     }
 
     /**
@@ -167,7 +172,9 @@ public class NotificationApi {
             tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
         }
 
-        setBasePath(tenantDomain);
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/recover-username/".replaceAll("\\{format\\}", "json");
@@ -192,11 +199,13 @@ public class NotificationApi {
 
         String[] localVarAuthNames = new String[]{};
 
-        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
+        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
     }
 
     /**
-     * This API will be used to reset user password using the confirmatin key recieved through recovery process. Need to input &#x60;key&#x60;  and the new &#x60;password&#x60;.
+     * This API will be used to reset user password using the confirmatin key recieved through recovery process.
+     * Need to input &#x60;key&#x60;  and the new &#x60;password&#x60;.
      *
      * @param resetPasswordRequest key, password and optional metadata properties (required)
      * @throws ApiException if fails to make API call
@@ -207,7 +216,8 @@ public class NotificationApi {
 
         // verify the required parameter 'resetPasswordRequest' is set
         if (resetPasswordRequest == null) {
-            throw new ApiException(400, "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
+            throw new ApiException(400,
+                    "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
         }
 
         String userTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -220,7 +230,9 @@ public class NotificationApi {
             }
         }
 
-        setBasePath(userTenantDomain);
+        basePath = IdentityManagementEndpointUtil.getBasePath(userTenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         // create path and map variables
         String localVarPath = "/set-password".replaceAll("\\{format\\}", "json");
@@ -242,14 +254,127 @@ public class NotificationApi {
 
         String[] localVarAuthNames = new String[]{};
 
-        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
+        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
     }
 
     /**
-     * This API is used to validate code of self reigstered users
+     * This API will be used to reset user password using the confirmatin key recieved through recovery process.
+     * Need to input &#x60;key&#x60;  and the new &#x60;password&#x60;.
      *
-     * @param code Code retried after user self registration and optional property parameters (required)
-     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body
+     * @param resetPasswordRequest key, password and optional metadata properties (required)
+     * @throws ApiException if fails to make API call
+     */
+    public void setPasswordPost(ResetPasswordRequest resetPasswordRequest, Map<String, String> localVarHeaderParams)
+            throws ApiException {
+
+        Object localVarPostBody = resetPasswordRequest;
+
+        // verify the required parameter 'resetPasswordRequest' is set
+        if (resetPasswordRequest == null) {
+            throw new ApiException(400,
+                    "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
+        }
+
+        String userTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        List<Property> properties = resetPasswordRequest.getProperties();
+        for (Property property : properties) {
+            if (StringUtils.equalsIgnoreCase(IdentityManagementEndpointConstants.TENANT_DOMAIN, property.getKey())) {
+                userTenantDomain = property.getValue();
+                properties.remove(property);
+                break;
+            }
+        }
+
+        basePath = IdentityManagementEndpointUtil.getBasePath(userTenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
+
+        // create path and map variables
+        String localVarPath = "/set-password".replaceAll("\\{format\\}", "json");
+
+        // query params
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+
+        String[] localVarAuthNames = new String[]{};
+
+        apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, null);
+    }
+
+    /**
+     * This API will be used to reset user password using the confirmation key received through recovery process.
+     *
+     * @param resetPasswordRequest The request for password reset.
+     * @return The user object.
+     * @throws ApiException API exception.
+     */
+    public User setUserPasswordPost(ResetPasswordRequest resetPasswordRequest) throws ApiException {
+
+        Object localVarPostBody = resetPasswordRequest;
+
+        // verify the required parameter 'resetPasswordRequest' is set
+        if (resetPasswordRequest == null) {
+            throw new ApiException(400,
+                    "Missing the required parameter 'resetPasswordRequest' when calling setPasswordPost");
+        }
+
+        String userTenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        List<Property> properties = resetPasswordRequest.getProperties();
+        for (Property property : properties) {
+            if (StringUtils.equalsIgnoreCase(IdentityManagementEndpointConstants.TENANT_DOMAIN, property.getKey())) {
+                userTenantDomain = property.getValue();
+                properties.remove(property);
+                break;
+            }
+        }
+
+        basePath = IdentityManagementEndpointUtil.getBasePath(userTenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
+
+        // create path and map variables
+        String localVarPath = "/set-password".replaceAll("\\{format\\}", "json");
+
+        // query params
+        List<Pair> localVarQueryParams = new ArrayList<Pair>();
+        Map<String, String> localVarHeaderParams = new HashMap<String, String>();
+        Map<String, Object> localVarFormParams = new HashMap<String, Object>();
+
+        final String[] localVarAccepts = {
+                "application/json"
+        };
+        final String localVarAccept = apiClient.selectHeaderAccept(localVarAccepts);
+
+        final String[] localVarContentTypes = {
+                "application/json"
+        };
+        final String localVarContentType = apiClient.selectHeaderContentType(localVarContentTypes);
+
+        String[] localVarAuthNames = new String[] {};
+        GenericType<User> localVarReturnType = new GenericType<User>() {
+        };
+
+        return apiClient.invokeAPI(localVarPath, "POST", localVarQueryParams, localVarPostBody, localVarHeaderParams,
+                localVarFormParams, localVarAccept, localVarContentType, localVarAuthNames, localVarReturnType);
+    }
+
+    /**
+     * This API is used to validate code of self registered users.
+     *
+     * @param code Code retried after user self registration and optional property parameters (required).
+     * @throws ApiException If fail to call the API, e.g. server error or cannot deserialize the response body.
      */
     public void validateCodePostCall(CodeValidationRequest code) throws ApiException {
 
@@ -262,7 +387,10 @@ public class NotificationApi {
         };
         final String headerAccept = apiClient.selectHeaderAccept(contentType);
         String tenantDomain = getTenantDomain(code);
-        setBasePath(tenantDomain);
+
+        basePath = IdentityManagementEndpointUtil.getBasePath(tenantDomain,
+                IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
+        apiClient.setBasePath(basePath);
 
         Map<String, String> headerParams = new HashMap<>();
         if (headerAccept != null) {
@@ -278,16 +406,6 @@ public class NotificationApi {
         Map<String, Object> formParams = new HashMap<>();
         apiClient.invokeAPI(path, "POST", queryParams, code, headerParams,
                 formParams, headerAccept, headerContentType, authNames, localVarReturnType);
-    }
-
-    private void setBasePath(String tenantDomain) {
-
-        if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(tenantDomain)) {
-            basePath = IdentityManagementEndpointUtil.buildEndpointUrl("t/" + tenantDomain +
-                    IdentityManagementEndpointConstants.UserInfoRecovery.RECOVERY_API_RELATIVE_PATH);
-        }
-
-        apiClient.setBasePath(basePath);
     }
 
     private String getTenantDomain(CodeValidationRequest code) {

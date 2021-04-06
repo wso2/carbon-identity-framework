@@ -41,6 +41,8 @@ public class Constants {
     public static final String ACCOUNT_RESEND_FAIL_RESOURCE = "account.resend.email.fail" ;
     public static final String CONFIGURATION_ERROR = "configuration.error";
     public static final String AUTHENTICATION_MECHANISM_NOT_CONFIGURED = "authentication.mechanism.not.configured";
+    public static final String ERROR_WHILE_BUILDING_THE_ACCOUNT_RECOVERY_ENDPOINT_URL =
+            "Error.while.building.the.account.recovery.endpoint.url";
     // WebAPP Configurations
     public static final String ACCOUNT_RECOVERY_REST_ENDPOINT_URL = "AccountRecoveryRESTEndpointURL";
     public static final String ENABLE_AUTHENTICATION_WITH_REST_API = "EnableAuthenticationWithAuthenticationRESTAPI";

@@ -27,6 +27,8 @@
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
 <%@ page import="org.wso2.carbon.idp.mgt.ui.util.IdPManagementUIUtil" %>
+<%@ page import="org.wso2.carbon.identity.core.ServiceURLBuilder" %>
+<%@ page import="org.wso2.carbon.identity.core.URLBuilderException" %>
 <%@ page import="java.util.Map" %>
 <%@ page import="java.util.UUID" %>
 
@@ -158,7 +160,11 @@
         tokenUrl = StringUtils.EMPTY;
     }
     if (StringUtils.isBlank(callBackUrl)) {
-        callBackUrl = IdentityUtil.getServerURL(IdentityApplicationConstants.COMMONAUTH, true, true);
+        try {
+            callBackUrl = ServiceURLBuilder.create().addPath(IdentityApplicationConstants.COMMONAUTH).build().getAbsolutePublicURL();
+        } catch(URLBuilderException e) {
+            throw new RuntimeException("Error occurred while building URL in tenant qualified mode.", e);
+        }
     }
     if (StringUtils.isBlank(userInfoEndpoint)) {
         userInfoEndpoint = StringUtils.EMPTY;
@@ -237,7 +243,7 @@
                     <div id="showHideButtonDivIdOauth" style="border:1px solid rgb(88, 105, 125);"
                          class="leftCol-med">
                         <input id="clientSecret" name="clientSecret" type="password"
-                               autocomplete="off" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
+                               autocomplete="new-password" value="<%=Encode.forHtmlAttribute(clientSecret)%>"
                                style="  outline: none; border: none; min-width: 175px; max-width: 180px;"/>
                         <span id="showHideButtonIdOauth" style=" float: right; padding-right: 5px;">
                             <a style="margin-top: 5px;" class="showHideBtn"

@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticationMethodNameTranslator;
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.SequenceLoader;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
@@ -43,7 +44,7 @@ import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementServic
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
-import org.wso2.carbon.identity.template.mgt.TemplateManager;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -57,7 +58,6 @@ public class FrameworkServiceDataHolder {
 
     private static final Log log = LogFactory.getLog(FrameworkServiceDataHolder.class);
     private static FrameworkServiceDataHolder instance = new FrameworkServiceDataHolder();
-    private TemplateManager templateManagerService = null;
     private BundleContext bundleContext = null;
     private RealmService realmService = null;
     private RegistryService registryService = null;
@@ -85,6 +85,8 @@ public class FrameworkServiceDataHolder {
     private String requireCode = "";
     private boolean userSessionMappingEnabled;
     private FederatedAssociationManager federatedAssociationManager;
+    private ServerSessionManagementService serverSessionManagementService;
+    private MultiAttributeLoginService multiAttributeLoginService;
 
     private FrameworkServiceDataHolder() {
 
@@ -95,16 +97,6 @@ public class FrameworkServiceDataHolder {
     public static FrameworkServiceDataHolder getInstance() {
 
         return instance;
-    }
-
-    public TemplateManager getTemplateManagerService() {
-
-        return templateManagerService;
-    }
-
-    public void setTemplateManagerService(TemplateManager templateManagerService) {
-
-        this.templateManagerService = templateManagerService;
     }
 
     public RegistryService getRegistryService() {
@@ -224,6 +216,16 @@ public class FrameworkServiceDataHolder {
             org.wso2.carbon.identity.application.authentication.framework.config.model.graph.JsGraphBuilderFactory jsGraphBuilderFactory) {
 
         JsGraphBuilderFactory = jsGraphBuilderFactory;
+    }
+
+    public MultiAttributeLoginService getMultiAttributeLoginService() {
+
+        return multiAttributeLoginService;
+    }
+
+    public void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLoginService) {
+
+        this.multiAttributeLoginService = multiAttributeLoginService;
     }
 
     /**
@@ -515,5 +517,16 @@ public class FrameworkServiceDataHolder {
     public void setFederatedAssociationManager(FederatedAssociationManager federatedAssociationManager) {
 
         this.federatedAssociationManager = federatedAssociationManager;
+    }
+
+    public ServerSessionManagementService getServerSessionManagementService() {
+
+        return serverSessionManagementService;
+    }
+
+    public void setServerSessionManagementService(
+            ServerSessionManagementService sessionManagementService) {
+
+        this.serverSessionManagementService = sessionManagementService;
     }
 }

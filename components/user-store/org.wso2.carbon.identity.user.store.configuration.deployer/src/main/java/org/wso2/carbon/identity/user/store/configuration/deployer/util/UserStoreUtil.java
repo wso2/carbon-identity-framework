@@ -44,6 +44,9 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 
+import static org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants.ENCRYPTION_KEYSTORE;
+import static org.wso2.carbon.identity.user.store.configuration.deployer.util.UserStoreConfigurationConstants.INTERNAL_KEYSTORE;
+
 /**
  * Utility class to perform utility functions when deployer get triggered
  */
@@ -118,6 +121,37 @@ public class UserStoreUtil {
      */
     public static byte[] encrypt(byte[] plainTextBytes) throws CryptoException {
 
+        boolean isInternalKeyStoreEncryptionEnabled = false;
+        boolean isSymmetricKeyEncryptionEnabled = false;
+        ServerConfigurationService config =
+                UserStoreConfigComponent.getServerConfigurationService();
+        if (config != null) {
+            String encryptionKeyStore = config.getFirstProperty(UserStoreConfigurationConstants.ENCRYPTION_KEYSTORE);
+
+            if (INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
+                isInternalKeyStoreEncryptionEnabled = true;
+            }
+            String cryptoProvider = config.getFirstProperty(UserStoreConfigurationConstants.CRYPTO_PROVIDER);
+            if (UserStoreConfigurationConstants.SYMMETRIC_KEY_CRYPTO_PROVIDER.equalsIgnoreCase(cryptoProvider)) {
+                isSymmetricKeyEncryptionEnabled = true;
+            }
+        }
+
+        if (isInternalKeyStoreEncryptionEnabled && isSymmetricKeyEncryptionEnabled) {
+
+            throw new CryptoException(String.format("Userstore encryption can not be supported due to " +
+                            "conflicting configurations: '%s' and '%s'. When using internal keystore, assymetric crypto " +
+                            "provider should be used.", UserStoreConfigurationConstants.INTERNAL_KEYSTORE,
+                    UserStoreConfigurationConstants.SYMMETRIC_KEY_CRYPTO_PROVIDER));
+        } else if (isInternalKeyStoreEncryptionEnabled || isSymmetricKeyEncryptionEnabled) {
+            return CryptoUtil.getDefaultCryptoUtil().encrypt(plainTextBytes);
+        } else {
+            return encryptWithPrimaryKeyStore(plainTextBytes);
+        }
+    }
+
+    private static byte[] encryptWithPrimaryKeyStore(byte[] plainTextBytes) throws CryptoException {
+
         Cipher cipher;
         Certificate certificate;
         String cipherTransformation = System.getProperty(CIPHER_TRANSFORMATION_SYSTEM_PROPERTY);
@@ -171,20 +205,11 @@ public class UserStoreUtil {
         }
 
         // Get the encryption keystore.
-        String encryptionKeyStore = config.getFirstProperty(UserStoreConfigurationConstants.ENCRYPTION_KEYSTORE);
 
         String filePath = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_FILE);
         String keyStoreType = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_TYPE);
         String password = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_PASSWORD);
         String keyAlias = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_KEYSTORE_KEY_ALIAS);
-
-        // If the encryption keystore is selected to be internal then select that keystore properties.
-        if (UserStoreConfigurationConstants.INTERNAL_KEYSTORE.equalsIgnoreCase(encryptionKeyStore)) {
-            filePath = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_FILE);
-            keyStoreType = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_TYPE);
-            password = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_PASSWORD);
-            keyAlias = config.getFirstProperty(UserStoreConfigurationConstants.SERVER_INTERNAL_KEYSTORE_KEY_ALIAS);
-        }
 
         KeyStore store;
         InputStream inputStream = null;

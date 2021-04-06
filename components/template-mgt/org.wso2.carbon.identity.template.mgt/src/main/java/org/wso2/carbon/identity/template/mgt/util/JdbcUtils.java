@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.DB2;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.H2;
+import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.MARIADB;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.MICROSOFT;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.MY_SQL;
 import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.POSTGRE_SQL;
@@ -31,7 +32,6 @@ import static org.wso2.carbon.identity.template.mgt.TemplateMgtConstants.S_MICRO
 /**
  * A util class to support the Jdbc executions.
  */
-
 public class JdbcUtils {
 
     /**
@@ -52,7 +52,7 @@ public class JdbcUtils {
      */
     public static boolean isH2MySqlOrPostgresDB() throws DataAccessException {
 
-        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL);
+        return isDBTypeOf(MY_SQL) || isDBTypeOf(H2) || isDBTypeOf(POSTGRE_SQL) || isDBTypeOf(MARIADB);
     }
 
     /**

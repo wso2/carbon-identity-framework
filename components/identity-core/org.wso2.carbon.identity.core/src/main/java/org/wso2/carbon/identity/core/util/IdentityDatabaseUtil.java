@@ -124,7 +124,10 @@ public class IdentityDatabaseUtil {
      *
      * @return Database Connection
      * @throws IdentityRuntimeException Error when getting a database connection to Identity database
+     * @Deprecated The logic is improved with the transaction isolation. Hence deprecating this method to
+     * use {@link IdentityDatabaseUtil#getUserDBConnection(boolean)} method.
      */
+    @Deprecated
     public static Connection getUserDBConnection() throws IdentityRuntimeException {
         Connection connection;
         try {
@@ -133,5 +136,36 @@ public class IdentityDatabaseUtil {
             throw IdentityRuntimeException.error("Database error. Could not get a connection", e);
         }
         return connection;
+    }
+
+    /**
+     * Get a database connection instance from the Identity Persistence Manager
+     *
+     * @return Database Connection
+     * @throws IdentityRuntimeException Error when getting a database connection to Identity database
+     */
+    public static Connection getUserDBConnection(boolean shouldApplyTransaction) throws IdentityRuntimeException {
+
+        return UmPersistenceManager.getInstance().getDBConnection(shouldApplyTransaction);
+    }
+
+    /**
+     * Commit the User DB transaction.
+     *
+     * @param dbConnection Database Connection.
+     */
+    public static void commitUserDBTransaction(Connection dbConnection) {
+
+        UmPersistenceManager.getInstance().commitTransaction(dbConnection);
+    }
+
+    /**
+     * Rollback the User DB transaction.
+     *
+     * @param dbConnection Database Connection.
+     */
+    public static void rollbackUserDBTransaction(Connection dbConnection) {
+
+        UmPersistenceManager.getInstance().rollbackTransaction(dbConnection);
     }
 }

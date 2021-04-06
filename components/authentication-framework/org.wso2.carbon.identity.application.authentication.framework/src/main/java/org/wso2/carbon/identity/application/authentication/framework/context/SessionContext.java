@@ -22,10 +22,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SessionContext implements Serializable {
@@ -37,6 +34,8 @@ public class SessionContext implements Serializable {
     private boolean isRememberMe = false;
     private Map<String,Object> properties = new HashMap<>();
     private SessionAuthHistory sessionAuthHistory = new SessionAuthHistory();
+    // This authenticatedIdPsOfApp has the mapping of application and the map of authenticated IDPs.
+    private Map<String, Map<String, AuthenticatedIdPData>> authenticatedIdPsOfApp;
 
     public Map<String, SequenceConfig> getAuthenticatedSequences() {
         return authenticatedSequences;
@@ -54,6 +53,19 @@ public class SessionContext implements Serializable {
 
     public void setAuthenticatedIdPs(Map<String, AuthenticatedIdPData> authenticatedIdPs) {
         this.authenticatedIdPs = authenticatedIdPs;
+    }
+
+    public Map<String, AuthenticatedIdPData> getAuthenticatedIdPsOfApp(String app) {
+
+        return authenticatedIdPsOfApp.get(app);
+    }
+
+    public void setAuthenticatedIdPsOfApp(String app, Map<String, AuthenticatedIdPData> authenticatedIdPsOfApp) {
+
+        if (this.authenticatedIdPsOfApp == null) {
+            this.authenticatedIdPsOfApp = new HashMap<>();
+        }
+        this.authenticatedIdPsOfApp.put(app, authenticatedIdPsOfApp);
     }
 
     public boolean isRememberMe() {

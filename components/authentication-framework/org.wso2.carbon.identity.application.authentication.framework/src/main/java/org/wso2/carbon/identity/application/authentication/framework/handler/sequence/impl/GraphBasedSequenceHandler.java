@@ -22,14 +22,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.utils.URIBuilder;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncCaller;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncProcess;
 import org.wso2.carbon.identity.application.authentication.framework.AsyncReturn;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationFlowHandler;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.graph.AuthGraphNode;
@@ -61,7 +58,9 @@ import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -72,7 +71,7 @@ import static org.wso2.carbon.identity.application.authentication.framework.Auth
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.INCOMPLETE;
 import static org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus.SUCCESS_COMPLETED;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.AdaptiveAuthentication.ADAPTIVE_AUTH_LONG_WAIT_TIMEOUT;
-import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_PREVIOUS_STEP;
+import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.BACK_TO_FIRST_STEP;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants.JSAttributes.PROP_CURRENT_NODE;
 import static org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils.promptOnLongWait;
 
@@ -93,8 +92,8 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             log.debug("Executing the Step Based Authentication...");
         }
 
-        if (isBackToPreviousStep(context)) {
-            modifyCurrentNodeAsPreviousStep(context);
+        if (isBackToFirstStep(context)) {
+            modifyCurrentNodeAsFirstStep(context);
         }
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         String authenticationType = sequenceConfig.getApplicationConfig().getServiceProvider()
@@ -129,16 +128,17 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         }
     }
 
-    private void modifyCurrentNodeAsPreviousStep(AuthenticationContext context) {
+    private void modifyCurrentNodeAsFirstStep(AuthenticationContext context) {
 
-        context.removeProperty(BACK_TO_PREVIOUS_STEP);
+        context.removeProperty(BACK_TO_FIRST_STEP);
         if (context.getProperty(PROP_CURRENT_NODE) != null) {
             //Identifier first should be the first step. Other steps will be determine dynamically.
-            for (int i = 2; i <= context.getSequenceConfig().getStepMap().size(); i++) {
+            int size = context.getSequenceConfig().getStepMap().size();
+            for (int i = 2; i <= size; i++) {
                 context.getSequenceConfig().getStepMap().remove(i);
             }
             AuthGraphNode parentNode = ((AuthGraphNode) context.getProperty(PROP_CURRENT_NODE)).getParent();
-            while (parentNode != null && !isIdentifierFirstStep((parentNode))) {
+            while (parentNode != null && !isFirstStep(parentNode)) {
                 if (parentNode instanceof DynamicDecisionNode) {
                     ((DynamicDecisionNode) parentNode).setDefaultEdge(new EndStep());
                 }
@@ -146,15 +146,16 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
             }
             context.setProperty(PROP_CURRENT_NODE, parentNode);
             if (log.isDebugEnabled()) {
-                log.debug("Modified current node a parent node which can handle the Identifier First requests.");
+                log.debug("Modified current node a parent node which can restart authentication flow" +
+                        " from first step.");
             }
         }
     }
 
-    private boolean isBackToPreviousStep(AuthenticationContext context) {
+    private boolean isBackToFirstStep(AuthenticationContext context) {
 
-        return context.getProperty(BACK_TO_PREVIOUS_STEP) != null && Boolean.parseBoolean(context.getProperty
-                (BACK_TO_PREVIOUS_STEP).toString());
+        return context.getProperty(BACK_TO_FIRST_STEP) != null && Boolean.parseBoolean(context.getProperty
+                (BACK_TO_FIRST_STEP).toString());
     }
 
     private boolean handleNode(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context,
@@ -251,9 +252,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         try {
 
             String promptPage = ConfigurationFacade.getInstance().getAuthenticationEndpointPromptURL();
-            String redirectUrl = promptPage + "?templateId=" +
+            String tenantDomainQueryString = null;
+            if (!IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                tenantDomainQueryString = "tenantDomain=" + context.getTenantDomain();
+                promptPage = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, tenantDomainQueryString);
+            }
+            String redirectUrl = FrameworkUtils.appendQueryParamsStringToUrl(promptPage, "templateId=" +
                     URLEncoder.encode(promptNode.getTemplateId(), StandardCharsets.UTF_8.name()) + "&promptId=" +
-                    context.getContextIdentifier()+ "&tenantDomain=" + context.getTenantDomain();
+                    context.getContextIdentifier());
             if (promptNode.getData() != null) {
                 context.addEndpointParams(promptNode.getData());
             }
@@ -322,7 +328,6 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
      * @param request HTTP Servlet request
      * @param response HTTP Servlet Response
      * @param context Authentication Context
-     * @param sequenceConfig Sequence Config
      * @param node Fail Node
      * @throws FrameworkException
      */
@@ -332,28 +337,67 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         if (log.isDebugEnabled()) {
             log.debug("Found a Fail Node in conditional authentication");
         }
-        String errorPage = node.getErrorPageUri();
-        String redirectURL = null;
-        if (StringUtils.isBlank(errorPage)) {
-            errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+
+        if (node.isShowErrorPage()) {
+            // Set parameters specific to sendError function to context if isShowErrorPage  is true
+            String errorPage = node.getErrorPageUri();
+            String redirectURL = null;
+            if (StringUtils.isBlank(errorPage)) {
+                errorPage = ConfigurationFacade.getInstance().getAuthenticationEndpointRetryURL();
+            }
+            try {
+                URIBuilder uriBuilder = new URIBuilder(errorPage);
+                node.getFailureData().forEach(uriBuilder::addParameter);
+                redirectURL = uriBuilder.toString();
+                response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
+            } catch (IOException e) {
+                throw new FrameworkException("Error when redirecting user to " + errorPage, e);
+            } catch (URISyntaxException e) {
+                throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
+                        + "URL.", e);
+            }
+
+            context.setRequestAuthenticated(false);
+            context.getSequenceConfig().setCompleted(true);
+            request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
+            throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
+                    redirectURL);
+        } else {
+            // If isShowErrorPage is false, set parameters specific to fail function to context.
+            setErrorPropertiesToContext(node, context);
         }
-        try {
-            URIBuilder uriBuilder = new URIBuilder(errorPage);
-            node.getFailureData().forEach(uriBuilder::addParameter);
-            redirectURL = uriBuilder.toString();
-            response.sendRedirect(FrameworkUtils.getRedirectURL(redirectURL, request));
-        } catch (IOException e) {
-            throw new FrameworkException("Error when redirecting user to " + errorPage, e);
-        } catch (URISyntaxException e) {
-            throw new FrameworkException("Error when redirecting user to " + errorPage + ". Error page is not a valid "
-                + "URL.", e);
+    }
+
+    /**
+     * Sets error properties to Authentication context and fail authentication.
+     */
+    private void setErrorPropertiesToContext(FailNode node, AuthenticationContext context) throws FrameworkException {
+
+        Map<String, String> parameterMap = node.getFailureData();
+
+        // If an error code is provided, set it to the context.
+        if (parameterMap.containsKey(FrameworkConstants.ERROR_CODE)) {
+            context.setProperty(FrameworkConstants.AUTH_ERROR_CODE, parameterMap.get(FrameworkConstants.ERROR_CODE));
         }
 
+        // If an error description is provided, set it to the context.
+        if (parameterMap.containsKey(FrameworkConstants.ERROR_MESSAGE)) {
+            context.setProperty(FrameworkConstants.AUTH_ERROR_MSG, parameterMap.get(FrameworkConstants.ERROR_MESSAGE));
+        }
+
+        // If an error URL is provided, validate is before proceeding.
+        if (parameterMap.containsKey(FrameworkConstants.ERROR_URI)) {
+            try {
+                new URL(parameterMap.get(FrameworkConstants.ERROR_URI));
+            } catch (MalformedURLException e) {
+                throw new FrameworkException("Error when validating provided errorURI: "
+                        + parameterMap.get(FrameworkConstants.ERROR_URI), e);
+            }
+            // Set the error URL to the context.
+            context.setProperty(FrameworkConstants.AUTH_ERROR_URI, parameterMap.get(FrameworkConstants.ERROR_URI));
+        }
         context.setRequestAuthenticated(false);
         context.getSequenceConfig().setCompleted(true);
-        request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, AuthenticatorFlowStatus.INCOMPLETE);
-        throw new JsFailureException("Error initiated from authentication script. User will be redirected to " +
-            redirectURL);
     }
 
     private boolean handleAuthenticationStep(HttpServletRequest request, HttpServletResponse response,
@@ -430,10 +474,12 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                 if (context.isRetrying()) {
                     StepConfigGraphNode newNextNode = new StepConfigGraphNode(stepConfigGraphNode.getStepConfig());
                     newNextNode.setNext(stepConfigGraphNode.getNext());
+
                     AuthGraphNode parentNode = stepConfigGraphNode.getParent();
                     if (parentNode == null) {
                         parentNode = sequenceConfig.getAuthenticationGraph().getStartNode();
                     }
+                    newNextNode.setParent(parentNode);
                     if (parentNode instanceof DynamicDecisionNode) {
                         ((DynamicDecisionNode) parentNode).setDefaultEdge(newNextNode);
                     } else if (parentNode instanceof StepConfigGraphNode) {
@@ -488,10 +534,24 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
                     FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
             context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_STATUS);
             context.removeProperty(FrameworkConstants.JSAttributes.JS_CALL_AND_WAIT_DATA);
+            AuthGraphNode nextNode;
             if (outcomeName != null) {
                 executeFunction(outcomeName, longWaitNode, context, data);
+                nextNode = longWaitNode.getDefaultEdge();
+                if (nextNode == null) {
+                    log.error("Authentication script does not have applicable event handler for outcome "
+                            + outcomeName + " from the long wait process : " + context.getContextIdentifier()
+                            + ". So ending the authentication flow. Add the correspoding event handler to the script");
+                    nextNode = new FailNode();
+                }
+            } else {
+                log.error("The outcome from the long wait process " + context.getContextIdentifier()
+                        + " is null. Because asyncReturn.accept() has not been used properly in the async process flow"
+                        + " of the custom function. So ending the authentication flow. Check the flow in the async"
+                        + " process flow of the custom function and add asyncReturn.accept() with the corresponding"
+                        + " outcome.");
+                nextNode = new FailNode();
             }
-            AuthGraphNode nextNode = longWaitNode.getDefaultEdge();
             context.setProperty(FrameworkConstants.JSAttributes.PROP_CURRENT_NODE, nextNode);
         }
         return isWaiting;
@@ -689,16 +749,14 @@ public class GraphBasedSequenceHandler extends DefaultStepBasedSequenceHandler i
         throw (E) exception;
     }
 
-    private boolean isIdentifierFirstStep(AuthGraphNode authGraphNode) {
+    private boolean isFirstStep(AuthGraphNode authGraphNode) {
 
         if (authGraphNode instanceof DynamicDecisionNode) {
             return false;
         } else if (authGraphNode instanceof StepConfigGraphNode) {
             StepConfig stepConfig = ((StepConfigGraphNode) authGraphNode).getStepConfig();
-            for (AuthenticatorConfig authenticatorConfig : stepConfig.getAuthenticatorList()) {
-                if (authenticatorConfig.getApplicationAuthenticator() instanceof AuthenticationFlowHandler) {
-                    return true;
-                }
+            if (stepConfig.getOrder() == 1) {
+                return true;
             }
         }
         return false;

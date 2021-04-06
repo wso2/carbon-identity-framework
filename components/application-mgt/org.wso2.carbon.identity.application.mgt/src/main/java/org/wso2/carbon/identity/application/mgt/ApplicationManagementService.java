@@ -28,8 +28,10 @@ import org.wso2.carbon.identity.application.common.model.SpFileContent;
 import org.wso2.carbon.identity.application.common.model.SpTemplate;
 import org.wso2.carbon.identity.application.mgt.internal.ApplicationManagementServiceComponentHolder;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Application management service abstract class.
@@ -130,6 +132,14 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
      */
     public abstract void deleteApplication(String applicationName, String tenantDomain, String username)
             throws IdentityApplicationManagementException;
+
+    /**
+     * Delete Applications by tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws org.wso2.carbon.identity.application.common.IdentityApplicationManagementException
+     */
+    public abstract void deleteApplications(int tenantId) throws IdentityApplicationManagementException;
 
     /**
      * Get Identity Provider
@@ -381,6 +391,16 @@ public abstract class ApplicationManagementService implements ApplicationPaginat
     public String getAuthenticationTemplatesJSON() {
 
         return ApplicationManagementServiceComponentHolder.getInstance().getAuthenticationTemplatesJson();
+    }
+
+    /**
+     * Get system applications defined for the server.
+     *
+     * @return system applications set.
+     */
+    public Set<String> getSystemApplications() {
+
+        return Collections.emptySet();
     }
 
 }

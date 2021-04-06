@@ -60,7 +60,10 @@ public class IdentityApplicationConstants {
 
     public static final String YAHOO_OAUTH2_URL = "https://api.login.yahoo.com/oauth2/request_auth";
     public static final String YAHOO_TOKEN_URL = "https://api.login.yahoo.com/oauth2/get_token";
+    @Deprecated
+    /** @deprecated Please use {@link #YAHOO_OIDC_USERINFO_URL instead. */
     public static final String YAHOO_USERINFO_URL = "https://social.yahooapis.com/v1/user/";
+    public static final String YAHOO_OIDC_USERINFO_URL = "https://api.login.yahoo.com/openid/v1/userinfo";
 
     public static final String SESSION_IDLE_TIME_OUT = "SessionIdleTimeout";
     public static final String REMEMBER_ME_TIME_OUT = "RememberMeTimeout";
@@ -89,6 +92,10 @@ public class IdentityApplicationConstants {
 
     // Service Provider configuration options that are stored as SP properites.
     public static final String JWKS_URI_SP_PROPERTY_NAME = "jwksURI";
+    public static final String TEMPLATE_ID_SP_PROPERTY_NAME = "templateId";
+    public static final String TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME = "Template Id";
+
+    public static final String IDP_ISSUER_NAME = "idpIssuerName";
 
     /**
      * Config elements.

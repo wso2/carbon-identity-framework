@@ -176,7 +176,7 @@ public class FunctionLibraryManagementServiceImpl implements FunctionLibraryMana
             engine.eval(code);
         } catch (ScriptException e) {
             log.error("Script library script of " + functionLibrary.getFunctionLibraryName() +
-                    " contains errors." + e);
+                    " contains errors.", e);
             throw FunctionLibraryExceptionManagementUtil.handleClientException(
                     FunctionLibraryManagementConstants.ErrorMessage.ERROR_CODE_VALIDATE_SCRIPT_LIBRARY_SCRIPT,
                     functionLibrary.getFunctionLibraryName(), e);

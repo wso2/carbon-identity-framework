@@ -35,10 +35,12 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.ConnectorConfig;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.role.mgt.core.RoleManagementService;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.idp.mgt.IdpManager;
@@ -375,6 +377,23 @@ public class IdPManagementServiceComponent {
     }
 
     @Reference(
+            name = "org.wso2.carbon.identity.role.mgt.core.internal.RoleManagementServiceComponent",
+            service = RoleManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRoleManagementService"
+    )
+    private void setRoleManagementService(RoleManagementService roleManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(roleManagementService);
+    }
+
+    private void unsetRoleManagementService(RoleManagementService roleManagementService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setRoleManagementService(null);
+    }
+
+    @Reference(
             name = "idp.mgt.event.listener.service",
             service = IdentityProviderMgtListener.class,
             cardinality = ReferenceCardinality.MULTIPLE,
@@ -447,5 +466,22 @@ public class IdPManagementServiceComponent {
     protected void unsetGovernanceConnector(ConnectorConfig identityConnectorConfig) {
 
         IdpMgtServiceComponentHolder.getInstance().unsetGovernanceConnector(identityConnectorConfig);
+    }
+
+    @Reference(
+            name = "claim.meta.mgt.service",
+            service = ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetaMgtService"
+    )
+    protected void setClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(claimMetaMgtService);
+    }
+
+    protected void unsetClaimMetaMgtService(ClaimMetadataManagementService claimMetaMgtService) {
+
+        IdpMgtServiceComponentHolder.getInstance().setClaimMetadataManagementService(null);
     }
 }

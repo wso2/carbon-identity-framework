@@ -27,12 +27,13 @@ import org.wso2.carbon.core.AbstractAdmin;
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.ProvisioningConnectorConfig;
+import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
+import org.wso2.carbon.identity.claim.metadata.mgt.model.LocalClaim;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.idp.mgt.internal.IdpMgtServiceComponentHolder;
 import org.wso2.carbon.idp.mgt.model.IdpSearchResult;
 import org.wso2.carbon.idp.mgt.util.IdPManagementConstants;
 import org.wso2.carbon.idp.mgt.util.IdPManagementUtil;
-import org.wso2.carbon.user.api.ClaimMapping;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +51,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when getting Resident Identity Provider
      */
     public IdentityProvider getResidentIdP() throws IdentityProviderManagementException {
+
         String tenantDomain = "";
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -70,6 +72,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      */
     public void updateResidentIdP(IdentityProvider identityProvider)
             throws IdentityProviderManagementException {
+
         String tenantDomain = "";
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -88,6 +91,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     public IdentityProvider[] getAllIdPs() throws IdentityProviderManagementException {
+
         String tenantDomain = "";
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
@@ -99,7 +103,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
                     i--;
                 }
             }
-            return identityProviders.toArray(new IdentityProvider[identityProviders.size()]);
+            return identityProviders.toArray(new IdentityProvider[0]);
         } catch (IdentityProviderManagementException idpException) {
             log.error("Error while getting IdPs in tenantDomain : " + tenantDomain, idpException);
             throw idpException;
@@ -148,7 +152,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         IdpSearchResult idpSearchResult = IdentityProviderManager.getInstance()
                 .getIdPs(limit, offset, filter, IdPManagementConstants.DEFAULT_SORT_ORDER,
-                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain);
+                        IdPManagementConstants.DEFAULT_SORT_BY, tenantDomain, new ArrayList<>());
         return idpSearchResult.getIdPs().toArray(new IdentityProvider[0]);
     }
 
@@ -202,26 +206,27 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     public IdentityProvider[] getAllIdPsSearch(String filter) throws IdentityProviderManagementException {
+
         String tenantDomain = "";
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext()
-					.getTenantDomain();
-			List<IdentityProvider> identityProviders = IdentityProviderManager
-					.getInstance().getIdPsSearch(tenantDomain, filter);
-			for (int i = 0; i < identityProviders.size(); i++) {
+                    .getTenantDomain();
+            List<IdentityProvider> identityProviders = IdentityProviderManager
+                    .getInstance().getIdPsSearch(tenantDomain, filter);
+            for (int i = 0; i < identityProviders.size(); i++) {
                 String providerName = identityProviders.get(i).getIdentityProviderName();
                 if (providerName != null && providerName.startsWith(IdPManagementConstants.SHARED_IDP_PREFIX)) {
                     identityProviders.remove(i);
                     i--;
                 }
             }
-            return identityProviders.toArray(new IdentityProvider[identityProviders.size()]);
+            return identityProviders.toArray(new IdentityProvider[0]);
         } catch (IdentityProviderManagementException idpException) {
             log.error("Error while getting IdPs in tenantDomain : " + tenantDomain, idpException);
             throw idpException;
         }
     }
-    
+
     /**
      * Retrieves Enabled registered Identity providers for the logged-in tenant
      *
@@ -230,18 +235,19 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when getting list of Identity Providers
      */
     public IdentityProvider[] getEnabledAllIdPs() throws IdentityProviderManagementException {
+
         String tenantDomain = "";
         try {
             tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             List<IdentityProvider> identityProviders = IdentityProviderManager.getInstance().getEnabledIdPs
                     (tenantDomain);
-            return identityProviders.toArray(new IdentityProvider[identityProviders.size()]);
+            return identityProviders.toArray(new IdentityProvider[0]);
         } catch (IdentityProviderManagementException idpException) {
-            log.error("Error while getting enabled registered Identity providers in tenantDomain : " + tenantDomain, idpException);
+            log.error("Error while getting enabled registered Identity providers in tenantDomain : " + tenantDomain,
+                    idpException);
             throw idpException;
         }
     }
-
 
     /**
      * Retrieves Identity provider information for the logged-in tenant by Identity Provider name
@@ -251,12 +257,14 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException
      */
     public IdentityProvider getIdPByName(String idPName) throws IdentityProviderManagementException {
+
         try {
             if (StringUtils.isBlank(idPName)) {
                 throw new IllegalArgumentException("Provided IdP name is empty");
             }
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            IdentityProvider identityProvider = IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain, true);
+            IdentityProvider identityProvider =
+                    IdentityProviderManager.getInstance().getIdPByName(idPName, tenantDomain, true);
             IdPManagementUtil.removeOriginalPasswords(identityProvider);
             return identityProvider;
         } catch (IdentityProviderManagementException idpException) {
@@ -296,6 +304,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      */
     public void deleteIdP(String idPName) throws IdentityProviderManagementException {
+
         try {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             IdentityProviderManager.getInstance().deleteIdP(idPName, tenantDomain);
@@ -313,6 +322,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when deleting Identity Provider
      */
     public void forceDeleteIdP(String idPName) throws IdentityProviderManagementException {
+
         String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
         try {
             IdentityProviderManager.getInstance().forceDeleteIdp(idPName, tenantDomain);
@@ -330,20 +340,18 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     public String[] getAllLocalClaimUris() throws IdentityProviderManagementException {
 
         try {
-            String claimDialect = LOCAL_DEFAULT_CLAIM_DIALECT;
-            ClaimMapping[] claimMappings = CarbonContext.getThreadLocalCarbonContext()
-                    .getUserRealm().getClaimManager().getAllClaimMappings(claimDialect);
-            List<String> claimUris = new ArrayList<String>();
-            for (ClaimMapping claimMap : claimMappings) {
-                claimUris.add(claimMap.getClaim().getClaimUri());
-            }
-            String[] allLocalClaimUris = claimUris.toArray(new String[claimUris.size()]);
+            String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+            List<LocalClaim> localClaims = IdpMgtServiceComponentHolder.getInstance()
+                    .getClaimMetadataManagementService().getLocalClaims(tenantDomain);
+
+            String[] allLocalClaimUris = getLocalClaimsArray(localClaims);
+
             if (ArrayUtils.isNotEmpty(allLocalClaimUris)) {
                 Arrays.sort(allLocalClaimUris);
             }
             return allLocalClaimUris;
-        } catch (UserStoreException e) {
-            String message = "Error while reading system claims";
+        } catch (ClaimMetadataException e) {
+            String message = "Error while reading local claims";
             log.error(message, e);
             throw new IdentityProviderManagementException(message, e);
         }
@@ -358,6 +366,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      */
     public void updateIdP(String oldIdPName, IdentityProvider identityProvider) throws
             IdentityProviderManagementException {
+
         try {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
             IdPManagementUtil.removeRandomPasswords(identityProvider, true);
@@ -375,6 +384,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
      * @throws IdentityProviderManagementException Error when getting authenticators registered in the system
      */
     public FederatedAuthenticatorConfig[] getAllFederatedAuthenticators() throws IdentityProviderManagementException {
+
         try {
             return IdentityProviderManager.getInstance().getAllFederatedAuthenticators();
         } catch (IdentityProviderManagementException idpException) {
@@ -384,6 +394,7 @@ public class IdentityProviderManagementService extends AbstractAdmin {
     }
 
     public ProvisioningConnectorConfig[] getAllProvisioningConnectors() throws IdentityProviderManagementException {
+
         try {
             return IdentityProviderManager.getInstance().getAllProvisioningConnectors();
         } catch (IdentityProviderManagementException idpException) {
@@ -391,14 +402,26 @@ public class IdentityProviderManagementService extends AbstractAdmin {
             throw idpException;
         }
     }
-    public String  getResidentIDPMetadata() throws IdentityProviderManagementException {
+
+    public String getResidentIDPMetadata() throws IdentityProviderManagementException {
+
         try {
             String tenantDomain = CarbonContext.getThreadLocalCarbonContext().getTenantDomain();
-            String metadata = IdentityProviderManager.getInstance().getResidentIDPMetadata(tenantDomain);
-            return metadata;
+            return IdentityProviderManager.getInstance().getResidentIDPMetadata(tenantDomain);
         } catch (IdentityProviderManagementException idpException) {
             log.error("Error while retrieving IDP metadata", idpException);
             throw idpException;
         }
+    }
+
+    private String[] getLocalClaimsArray(List<LocalClaim> localClaims) {
+
+        // Using Java 8 streams to do the mapping will result in breaking at the axis level thus using the followng
+        // approach.
+        ArrayList<String> localClaimsArray = new ArrayList<String>();
+        for (LocalClaim localClaim : localClaims) {
+            localClaimsArray.add(localClaim.getClaimURI());
+        }
+        return localClaimsArray.toArray(new String[0]);
     }
 }

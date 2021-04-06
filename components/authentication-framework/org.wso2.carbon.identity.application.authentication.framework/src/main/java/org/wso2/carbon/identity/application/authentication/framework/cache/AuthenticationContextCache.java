@@ -123,6 +123,9 @@ public class AuthenticationContextCache extends
                 log.debug("Found a valid AuthenticationContextCacheEntry corresponding to the session data key : " +
                         key.getContextId() + " from the data store. ");
             }
+
+            // Update the cache again with the new value.
+            super.addToCache(key, entry);
         }
         return entry;
     }

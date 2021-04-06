@@ -36,6 +36,7 @@ import org.wso2.carbon.identity.user.store.configuration.dto.UserStorePersistanc
 import org.wso2.carbon.identity.user.store.configuration.utils.IdentityUserStoreMgtException;
 import org.wso2.carbon.identity.user.store.configuration.utils.UserStoreConfigurationConstant;
 import org.wso2.carbon.user.api.RealmConfiguration;
+import org.wso2.carbon.user.api.UserStoreClientException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.UserStoreConfigConstants;
@@ -61,8 +62,10 @@ import java.util.UUID;
 import javax.xml.stream.XMLStreamException;
 
 import static org.wso2.carbon.identity.user.store.configuration.UserStoreMgtDBQueries.GET_ALL_USERSTORE_PROPERTIES;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.buildIdentityUserStoreClientException;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.convertMapToArray;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.setMaskInUserStoreProperties;
+import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListenersOnUserStorePreAdd;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreDelete;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.triggerListnersOnUserStorePreUpdate;
 import static org.wso2.carbon.identity.user.store.configuration.utils.SecondaryUserStoreConfigurationUtil.validateForFederatedDomain;
@@ -86,6 +89,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
 
         String domainName = userStorePersistanceDTO.getUserStoreDTO().getDomainId();
         try {
+            // Run pre user-store add listeners.
+            triggerListenersOnUserStorePreAdd(domainName);
             boolean isValidDomain = xmlProcessorUtils.isValidDomain(domainName, true);
             validateForFederatedDomain(domainName);
             if (isValidDomain) {
@@ -125,6 +130,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             updateUserStoreProperties(domainName, userStorePersistanceDTO);
             removeRealmFromSecondaryUserStoreManager(domainName);
             addRealmToSecondaryUserStoreManager(userStorePersistanceDTO);
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + domainName + " cannot be updated.", e);
         } catch (UserStoreException | XMLStreamException e) {
             throw new IdentityUserStoreMgtException("Error occured while updating the userstore.", e);
         }
@@ -370,6 +377,8 @@ public class DatabaseBasedUserStoreDAOImpl extends AbstractUserStoreDAO {
             userStoreManager.deletePersistedDomain(domain);
             deleteUserStore(domain, tenantId);
             removeRealmFromSecondaryUserStoreManager(domain);
+        } catch (UserStoreClientException e) {
+            throw buildIdentityUserStoreClientException("Userstore " + domain + " cannot be deleted.", e);
         } catch (UserStoreException e) {
             throw new IdentityUserStoreMgtException("Error while triggering the userstore pre delete listeners.");
         }

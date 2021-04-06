@@ -72,6 +72,8 @@ public class SQLQueries {
      */
     public static final String SQL_SELECT_IDP_ID_OF_IDP = "SELECT IDP.ID FROM IDP WHERE NAME = ?";
 
+    public static final String SQL_SELECT_IDP_WITH_TENANT = "SELECT IDP.ID FROM IDP WHERE NAME = ? AND TENANT_ID = ?";
+
     // Retrieve application id given the name and the tenant id.
     public static final String SQL_SELECT_APP_ID_OF_APP = "SELECT ID FROM SP_APP WHERE APP_NAME =? AND TENANT_ID =?";
 
@@ -104,7 +106,7 @@ public class SQLQueries {
             "DELETE FROM IDN_AUTH_USER_SESSION_MAPPING WHERE SESSION_ID = ?";
 
     // Retrieve data for the Application model.
-    public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME, APP_ID FROM " +
+    public static final String SQL_GET_APPLICATION = "SELECT SUBJECT, APP_NAME , APP_ID, UUID FROM " +
             "IDN_AUTH_SESSION_APP_INFO SESSION_STORE, SP_APP APP where SESSION_STORE.APP_ID = APP.ID AND " +
             "SESSION_ID = ?";
 
@@ -120,7 +122,21 @@ public class SQLQueries {
     public static final String SQL_STORE_FEDERATED_AUTH_SESSION_INFO = "INSERT INTO IDN_FED_AUTH_SESSION_MAPPING "
             + "(IDP_SESSION_ID, SESSION_ID, IDP_NAME,  AUTHENTICATOR_ID, PROTOCOL_TYPE) VALUES (?, ?, ?, ?, ?)";
 
+    // Get federated authentication session details using the IDP session id.
+    public static final String SQL_GET_FEDERATED_AUTH_SESSION_INFO_BY_SESSION_ID =
+            "SELECT IDP_SESSION_ID, SESSION_ID, IDP_NAME, AUTHENTICATOR_ID, PROTOCOL_TYPE FROM " +
+                    "IDN_FED_AUTH_SESSION_MAPPING WHERE IDP_SESSION_ID = ?";
+
     // Remove federated authentication session details of a given session context key.
     public static final String SQL_DELETE_FEDERATED_AUTH_SESSION_INFO = "DELETE FROM IDN_FED_AUTH_SESSION_MAPPING"
             + " WHERE SESSION_ID=?";
+
+    public static final String SQL_GET_ACTIVE_SESSION_COUNT_BY_TENANT =
+            "SELECT COUNT( DISTINCT IDN_AUTH_SESSION_META_DATA.SESSION_ID) " +
+                    "FROM IDN_AUTH_SESSION_META_DATA INNER JOIN IDN_AUTH_USER_SESSION_MAPPING " +
+                    "ON IDN_AUTH_SESSION_META_DATA.SESSION_ID = IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID " +
+                    "INNER JOIN IDN_AUTH_SESSION_STORE " +
+                    "ON IDN_AUTH_USER_SESSION_MAPPING.SESSION_ID = IDN_AUTH_SESSION_STORE.SESSION_ID " +
+                    "WHERE IDN_AUTH_SESSION_META_DATA.PROPERTY_TYPE = ? AND IDN_AUTH_SESSION_META_DATA.VALUE " +
+                    "BETWEEN ? AND ? AND IDN_AUTH_SESSION_STORE.TENANT_ID = ? ";
 }

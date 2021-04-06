@@ -26,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.CarbonContext;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.database.utils.jdbc.NamedPreparedStatement;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementClientException;
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
@@ -109,6 +110,9 @@ import static org.wso2.carbon.identity.application.common.util.IdentityApplicati
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.INVALID_OFFSET;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.Error.SORTING_NOT_IMPLEMENTED;
 import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.JWKS_URI_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME;
+import static org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants.TEMPLATE_ID_SP_PROPERTY_NAME;
+import static org.wso2.carbon.identity.application.mgt.ApplicationConstants.LOCAL_SP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_CERTIFICATE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_CONSENT_PURPOSE;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.ADD_SP_METADATA;
@@ -176,11 +180,13 @@ import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.L
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UM_PERMISSIONS_W;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.LOAD_UUID_BY_APP_ID;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_APPMGT_APP_WITH_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_APP_FROM_SP_APP_WITH_UUID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_AUTH_SCRIPT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CERTIFICATE;
+import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CERTIFICATES_BY_TENANT_ID;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CLAIM_MAPPINGS_FROM_APPMGT_CLAIM_MAPPING;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_CLIENT_FROM_APPMGT_CLIENT;
 import static org.wso2.carbon.identity.application.mgt.ApplicationMgtDBQueries.REMOVE_PRO_CONNECTORS;
@@ -238,6 +244,10 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private static final String APPLICATION_NAME_CONSTRAINT = "APPLICATION_NAME_CONSTRAINT";
 
     private Log log = LogFactory.getLog(ApplicationDAOImpl.class);
+    private static final Log AUDIT_LOG = CarbonConstants.AUDIT_LOG;
+    private static final String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Data : { %s } | Result :  %s ";
+    private static final String AUDIT_SUCCESS = "Success";
+    private static final String AUDIT_FAIL = "Fail";
 
     private List<String> standardInboundAuthTypes;
     public static final String USE_DOMAIN_IN_ROLES = "USE_DOMAIN_IN_ROLES";
@@ -400,7 +410,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         int tenantID = IdentityTenantUtil.getTenantId(tenantDomain);
         String qualifiedUsername = CarbonContext.getThreadLocalCarbonContext().getUsername();
-        if (ApplicationConstants.LOCAL_SP.equals(application.getApplicationName())) {
+        if (LOCAL_SP.equals(application.getApplicationName())) {
             qualifiedUsername = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
         }
 
@@ -894,8 +904,9 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             log.debug("Stored application name for id: " + applicationId + " is " + storedAppName);
         }
 
+        boolean validateRoles = ApplicationMgtUtil.validateRoles();
         // only if the application has been renamed TODO: move to OSGi layer
-        if (!StringUtils.equals(applicationName, storedAppName)) {
+        if (!StringUtils.equals(applicationName, storedAppName) && validateRoles) {
             String applicationNameforRole = IdentityUtil.addDomainToName(applicationName, ApplicationConstants.
                     APPLICATION_DOMAIN);
             String storedAppNameforRole = IdentityUtil.addDomainToName(storedAppName, ApplicationConstants.
@@ -1770,7 +1781,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                                           String tenantDomain) throws IdentityApplicationManagementException {
 
         int applicationId = getApplicationIdByName(applicationName, tenantDomain);
-        if (isApplicationNotFound(applicationId) && ApplicationConstants.LOCAL_SP.equals(applicationName)) {
+        if (isApplicationNotFound(applicationId) && LOCAL_SP.equals(applicationName)) {
             // Looking for the resident sp. Create the resident sp for the tenant.
             if (log.isDebugEnabled()) {
                 log.debug("The application: " + applicationName + " trying to retrieve is not available, which is" +
@@ -2009,48 +2020,39 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             String filterResolvedForSQL = resolveSQLFilter(filter);
 
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            if (databaseProductName.contains("MySQL")
+                    || databaseProductName.contains("MariaDB")
+                    || databaseProductName.contains("H2")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filterResolvedForSQL);
-                getAppNamesStmt.setInt(3, offset);
-                getAppNamesStmt.setInt(4, limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset, limit);
             } else if (databaseProductName.contains("Oracle")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_ORACLE;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filterResolvedForSQL);
-                getAppNamesStmt.setInt(3, offset + limit);
-                getAppNamesStmt.setInt(4, offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset + limit,
+                        offset);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filterResolvedForSQL);
-                getAppNamesStmt.setInt(3, offset);
-                getAppNamesStmt.setInt(4, limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset, limit);
             } else if (databaseProductName.contains("PostgreSQL")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_POSTGRESQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filterResolvedForSQL);
-                getAppNamesStmt.setInt(3, limit);
-                getAppNamesStmt.setInt(4, offset);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, limit, offset);
             } else if (databaseProductName.contains("DB2")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_DB2SQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filterResolvedForSQL);
-                getAppNamesStmt.setInt(3, offset + 1);
-                getAppNamesStmt.setInt(4, offset + limit);
+                populateApplicationSearchQuery(getAppNamesStmt, tenantID, filterResolvedForSQL, offset + 1,
+                        offset + limit);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setString(2, filterResolvedForSQL);
-                getAppNamesStmt.setInt(3, offset);
-                getAppNamesStmt.setInt(4, limit);
+                getAppNamesStmt.setInt(1, offset);
+                getAppNamesStmt.setInt(2, limit);
+                getAppNamesStmt.setInt(3, tenantID);
+                getAppNamesStmt.setString(4, filterResolvedForSQL);
+                getAppNamesStmt.setString(5, LOCAL_SP);
+
             } else {
                 log.error("Error while loading applications from DB: Database driver could not be identified or " +
                         "not supported.");
@@ -2061,9 +2063,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
-                    continue;
-                }
                 appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
         } catch (SQLException e) {
@@ -2076,6 +2075,24 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return appInfo.toArray(new ApplicationBasicInfo[0]);
+    }
+
+    /**
+     * Set values to the prepare statement for searching applications
+     * @param getAppNamesStmt
+     * @param tenantID
+     * @param filterResolvedForSQL
+     * @param start
+     * @param end
+     * @throws SQLException
+     */
+    private void populateApplicationSearchQuery(PreparedStatement getAppNamesStmt, int tenantID, String
+            filterResolvedForSQL, int start, int end) throws SQLException {
+        getAppNamesStmt.setInt(1, tenantID);
+        getAppNamesStmt.setString(2, filterResolvedForSQL);
+        getAppNamesStmt.setString(3, LOCAL_SP);
+        getAppNamesStmt.setInt(4, start);
+        getAppNamesStmt.setInt(5, end);
     }
 
     @Override
@@ -2093,6 +2110,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             List<ServiceProviderProperty> propertyList = getServicePropertiesBySpId(connection, applicationId);
 
             serviceProvider.setJwksUri(getJwksUri(propertyList));
+            serviceProvider.setTemplateId(getTemplateId(propertyList));
             serviceProvider.setInboundAuthenticationConfig(getInboundAuthenticationConfig(
                     applicationId, connection, tenantID));
             serviceProvider
@@ -2142,6 +2160,15 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         } finally {
             IdentityApplicationManagementUtil.closeConnection(connection);
         }
+    }
+
+    private String getTemplateId(List<ServiceProviderProperty> propertyList) {
+
+        return propertyList.stream()
+                .filter(property -> TEMPLATE_ID_SP_PROPERTY_NAME.equals(property.getName()))
+                .findFirst()
+                .map(ServiceProviderProperty::getValue)
+                .orElse(StringUtils.EMPTY);
     }
 
     private String getJwksUri(List<ServiceProviderProperty> propertyList) {
@@ -2575,19 +2602,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
         List<InboundAuthenticationRequestConfig> returnList = new ArrayList<>(inboundAuthenticationRequestConfigMap
                 .values());
-
-        for (Map.Entry<String, AbstractInboundAuthenticatorConfig> entry : allCustomAuthenticators.entrySet()) {
-            AbstractInboundAuthenticatorConfig inboundAuthenticatorConfig = entry.getValue();
-            InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig =
-                    new InboundAuthenticationRequestConfig();
-            inboundAuthenticationRequestConfig.setInboundAuthType(inboundAuthenticatorConfig.getName());
-            inboundAuthenticationRequestConfig.setInboundConfigType(inboundAuthenticatorConfig.getConfigName());
-            inboundAuthenticationRequestConfig.setFriendlyName(inboundAuthenticatorConfig.getFriendlyName());
-            inboundAuthenticationRequestConfig.setProperties(inboundAuthenticatorConfig
-                    .getConfigurationProperties());
-
-            returnList.add(inboundAuthenticationRequestConfig);
-        }
         InboundAuthenticationConfig inboundAuthenticationConfig = new InboundAuthenticationConfig();
         inboundAuthenticationConfig.setInboundAuthenticationRequestConfigs(returnList.toArray(new
                 InboundAuthenticationRequestConfig[returnList.size()]));
@@ -3186,6 +3200,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             getAppNamesStmt = connection
                     .prepareStatement(LOAD_APP_COUNT_BY_TENANT);
             getAppNamesStmt.setInt(1, tenantID);
+            getAppNamesStmt.setString(2, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
@@ -3226,13 +3241,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             getAppNamesStmt = connection
                     .prepareStatement(LOAD_APP_NAMES_BY_TENANT);
             getAppNamesStmt.setInt(1, tenantID);
+            getAppNamesStmt.setString(2, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
                 ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
-                    continue;
-                }
                 basicInfo.setApplicationId(appNameResultSet.getInt("ID"));
                 basicInfo.setApplicationName(appNameResultSet.getString("APP_NAME"));
                 basicInfo.setDescription(appNameResultSet.getString("DESCRIPTION"));
@@ -3294,6 +3307,7 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     .prepareStatement(LOAD_APP_COUNT_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
             getAppNamesStmt.setString(2, filterResolvedForSQL);
+            getAppNamesStmt.setString(3, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
             appNameResultSet.next();
             count = Integer.parseInt(appNameResultSet.getString(1));
@@ -3338,13 +3352,11 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
                     .prepareStatement(LOAD_APP_NAMES_BY_TENANT_AND_APP_NAME);
             getAppNamesStmt.setInt(1, tenantID);
             getAppNamesStmt.setString(2, filterResolvedForSQL);
+            getAppNamesStmt.setString(3, LOCAL_SP);
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
                 ApplicationBasicInfo basicInfo = new ApplicationBasicInfo();
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
-                    continue;
-                }
                 basicInfo.setApplicationName(appNameResultSet.getString(1));
                 basicInfo.setDescription(appNameResultSet.getString(2));
                 appInfo.add(basicInfo);
@@ -3389,42 +3401,36 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
 
         try {
             String databaseProductName = connection.getMetaData().getDatabaseProductName();
-            if (databaseProductName.contains("MySQL") || databaseProductName.contains("H2")) {
+            if (databaseProductName.contains("MySQL")
+                    || databaseProductName.contains("MariaDB")
+                    || databaseProductName.contains("H2")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_MYSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, offset);
-                getAppNamesStmt.setInt(3, limit);
+                populateListAppNamesQueryValues(tenantID, offset, limit, getAppNamesStmt);
             } else if (databaseProductName.contains("Oracle")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_ORACLE;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, offset + limit);
-                getAppNamesStmt.setInt(3, offset);
+                populateListAppNamesQueryValues(tenantID, offset + limit, offset, getAppNamesStmt);
             } else if (databaseProductName.contains("Microsoft")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_MSSQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, offset);
-                getAppNamesStmt.setInt(3, limit);
+                populateListAppNamesQueryValues(tenantID, offset, limit, getAppNamesStmt);
             } else if (databaseProductName.contains("PostgreSQL")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_POSTGRESQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, limit);
-                getAppNamesStmt.setInt(3, offset);
+                populateListAppNamesQueryValues(tenantID, limit, offset, getAppNamesStmt);
             } else if (databaseProductName.contains("DB2")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_DB2SQL;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
-                getAppNamesStmt.setInt(1, tenantID);
-                getAppNamesStmt.setInt(2, offset + 1);
-                getAppNamesStmt.setInt(3, offset + limit);
+                populateListAppNamesQueryValues(tenantID, offset + 1, offset + limit, getAppNamesStmt);
             } else if (databaseProductName.contains("INFORMIX")) {
                 sqlQuery = LOAD_APP_NAMES_BY_TENANT_INFORMIX;
                 getAppNamesStmt = connection.prepareStatement(sqlQuery);
                 getAppNamesStmt.setInt(1, offset);
                 getAppNamesStmt.setInt(2, limit);
                 getAppNamesStmt.setInt(3, tenantID);
+                getAppNamesStmt.setString(4, LOCAL_SP);
+
             } else {
                 log.error("Error while loading applications from DB: Database driver could not be identified or " +
                         "not supported.");
@@ -3435,9 +3441,6 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             appNameResultSet = getAppNamesStmt.executeQuery();
 
             while (appNameResultSet.next()) {
-                if (ApplicationConstants.LOCAL_SP.equals(appNameResultSet.getString(1))) {
-                    continue;
-                }
                 appInfo.add(buildApplicationBasicInfo(appNameResultSet));
             }
 
@@ -3451,6 +3454,22 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         }
 
         return appInfo.toArray(new ApplicationBasicInfo[0]);
+    }
+
+    /**
+     * Set values to the prepare statement for listing application names
+     * @param start
+     * @param end
+     * @param tenantID
+     * @param getAppNamesStmt
+     * @throws SQLException
+     */
+    private void populateListAppNamesQueryValues(int tenantID, int start, int end,  PreparedStatement
+            getAppNamesStmt) throws SQLException {
+        getAppNamesStmt.setInt(1, tenantID);
+        getAppNamesStmt.setString(2, LOCAL_SP);
+        getAppNamesStmt.setInt(3, start);
+        getAppNamesStmt.setInt(4, end);
     }
 
     /**
@@ -3549,6 +3568,41 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             IdentityApplicationManagementUtil.closeStatement(deleteClientPrepStmt);
         }
 
+    }
+
+    /**
+     * Delete all applications of a given tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws IdentityApplicationManagementException throws when an error occurs in deleting applications.
+     */
+    @Override
+    public void deleteApplications(int tenantId) throws IdentityApplicationManagementException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all applications of the tenant: " + tenantId);
+        }
+
+        String auditData = "\"" + "Tenant Id" + "\" : \"" + tenantId + "\"";
+
+        try (Connection connection = IdentityDatabaseUtil.getDBConnection(true)) {
+
+            // Delete the application certificates of the tenant.
+            deleteCertificatesByTenantId(connection, tenantId);
+
+            try (PreparedStatement deleteClientPrepStmt = connection
+                    .prepareStatement(REMOVE_APPS_FROM_APPMGT_APP_BY_TENANT_ID)) {
+                deleteClientPrepStmt.setInt(1, tenantId);
+                deleteClientPrepStmt.execute();
+                IdentityDatabaseUtil.commitTransaction(connection);
+                audit("Delete all applications of a tenant", auditData, AUDIT_SUCCESS);
+            }
+        } catch (SQLException e) {
+            audit("Delete all applications of a tenant", auditData, AUDIT_FAIL);
+            String msg = "An error occurred while delete all the applications of the tenant: " + tenantId;
+            log.error(msg, e);
+            throw new IdentityApplicationManagementException(msg, e);
+        }
     }
 
     /**
@@ -3767,6 +3821,29 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             statementToRemoveCertificate.execute();
         } finally {
             IdentityApplicationManagementUtil.closeStatement(statementToRemoveCertificate);
+        }
+    }
+
+    /**
+     * Deletes all certificates of a given tenant id from the database.
+     *
+     * @param connection The database connection.
+     * @param tenantId The id of the tenant.
+     */
+    private void deleteCertificatesByTenantId(Connection connection, int tenantId) throws SQLException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Deleting all application certificates of tenant: " + tenantId);
+        }
+
+        PreparedStatement deleteCertificatesStmt = null;
+
+        try {
+            deleteCertificatesStmt = connection.prepareStatement(REMOVE_CERTIFICATES_BY_TENANT_ID);
+            deleteCertificatesStmt.setInt(1, tenantId);
+            deleteCertificatesStmt.execute();
+        } finally {
+            IdentityApplicationManagementUtil.closeStatement(deleteCertificatesStmt);
         }
     }
 
@@ -4401,7 +4478,20 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
         ServiceProviderProperty jwksUri = buildJwksProperty(sp);
         spPropertyMap.put(jwksUri.getName(), jwksUri);
 
+        ServiceProviderProperty templateIdProperty = buildTemplateIdProperty(sp);
+        spPropertyMap.put(templateIdProperty.getName(), templateIdProperty);
+
         sp.setSpProperties(spPropertyMap.values().toArray(new ServiceProviderProperty[0]));
+    }
+
+    private ServiceProviderProperty buildTemplateIdProperty(ServiceProvider sp) {
+
+        ServiceProviderProperty templateIdProperty = new ServiceProviderProperty();
+        templateIdProperty.setName(TEMPLATE_ID_SP_PROPERTY_NAME);
+        templateIdProperty.setDisplayName(TEMPLATE_ID_SP_PROPERTY_DISPLAY_NAME);
+        templateIdProperty
+                .setValue(StringUtils.isNotBlank(sp.getTemplateId()) ? sp.getTemplateId() : StringUtils.EMPTY);
+        return templateIdProperty;
     }
 
     private ServiceProviderProperty buildJwksProperty(ServiceProvider sp) {
@@ -4869,47 +4959,47 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
     private String getDBVendorSpecificDiscoverableAppRetrievalQueryByAppName(String dbVendorType) throws
             IdentityApplicationManagementException {
 
-        switch (dbVendorType) {
-            case "MySQL":
-            case "H2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL;
-            case "Oracle":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE;
-            case "Microsoft SQL Server":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MSSQL;
-            case "PostgreSQL":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_POSTGRESQL;
-            case "DB2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_DB2;
-            case "INFORMIX":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_INFORMIX;
-            default:
-                throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
-                        "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+        if ("MySQL".equals(dbVendorType)
+                || "MariaDB".equals(dbVendorType)
+                || "H2".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MYSQL;
+        } else if ("Oracle".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_ORACLE;
+        } else if ("Microsoft SQL Server".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_MSSQL;
+        } else if ("PostgreSQL".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_POSTGRESQL;
+        } else if (dbVendorType != null && dbVendorType.contains("DB2")) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_DB2;
+        } else if ("INFORMIX".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_AND_APP_NAME_INFORMIX;
         }
+
+        throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
+                "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
     }
 
     private String getDBVendorSpecificDiscoverableAppRetrievalQuery(String dbVendorType) throws
             IdentityApplicationManagementException {
 
-        switch (dbVendorType) {
-            case "MySQL":
-            case "H2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL;
-            case "Oracle":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE;
-            case "Microsoft SQL Server":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_MSSQL;
-            case "PostgreSQL":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_POSTGRESQL;
-            case "DB2":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_DB2SQL;
-            case "INFORMIX":
-                return LOAD_DISCOVERABLE_APPS_BY_TENANT_INFORMIX;
-            default:
-                throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
-                        "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
+        if ("MySQL".equals(dbVendorType)
+                || "MariaDB".equals(dbVendorType)
+                || "H2".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_MYSQL;
+        } else if ("Oracle".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_ORACLE;
+        } else if ("Microsoft SQL Server".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_MSSQL;
+        } else if ("PostgreSQL".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_POSTGRESQL;
+        } else if (dbVendorType != null && dbVendorType.contains("DB2")) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_DB2SQL;
+        } else if ("INFORMIX".equals(dbVendorType)) {
+            return LOAD_DISCOVERABLE_APPS_BY_TENANT_INFORMIX;
         }
+
+        throw new IdentityApplicationManagementException("Error while loading discoverable applications from " +
+                "DB. Database driver for " + dbVendorType + "could not be identified or not supported.");
     }
 
     private ApplicationBasicInfo buildApplicationBasicInfo(ResultSet appNameResultSet)
@@ -5076,5 +5166,24 @@ public class ApplicationDAOImpl extends AbstractApplicationDAOImpl implements Pa
             applicationId = getApplicationIdByName(serviceProvider.getApplicationName(), tenantDomain);
         }
         return applicationId;
+    }
+
+    /**
+     * Add audit log entry.
+     *
+     * @param action The action of the log.
+     * @param data   Data of the action to log.
+     * @param result The success of fail state of the action.
+     */
+    private void audit(String action, String data, String result) {
+
+        String loggedInUser = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        if (StringUtils.isBlank(loggedInUser)) {
+            loggedInUser = CarbonConstants.REGISTRY_SYSTEM_USERNAME;
+        }
+        String tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        loggedInUser = UserCoreUtil.addTenantDomainToEntry(loggedInUser, tenantDomain);
+
+        AUDIT_LOG.info(String.format(AUDIT_MESSAGE, loggedInUser, action, data, result));
     }
 }

@@ -35,26 +35,60 @@ public class IdPManagementConstants {
     public static final String ASC_SORT_ORDER = "ASC";
     public static final String DEFAULT_SORT_ORDER = "ASC";
     public static final String EMPTY_STRING = "";
-    public static final String NAME = "NAME";
-    public static final String IDP_NAME = "name";
-    public static final String DESCRIPTION = "DESCRIPTION";
-    public static final String IDP_DESCRIPTION = "description";
-    public static final String HOME_REALM_ID = "HOME_REALM_ID";
-    public static final String IDP_HOME_REALM_ID = "homeRealmIdentifier";
-    public static final String IDP_UUID = "id";
-    public static final String UUID = "UUID";
-    public static final String IDP_IS_ENABLED = "isEnabled";
-    public static final String IS_ENABLED = "IS_ENABLED";
+
     public static final String RESIDENT_IDP = "LOCAL";
     public static final String EQ = "eq";
     public static final String SW = "sw";
     public static final String EW = "ew";
     public static final String CO = "co";
 
+    // Idp basic attributes.
+    public static final String NAME = "NAME";
+    public static final String IDP_NAME = "name";
+    public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String IDP_DESCRIPTION = "description";
+    public static final String IDP_UUID = "id";
+    public static final String UUID = "UUID";
+    public static final String IDP_IS_ENABLED = "isEnabled";
+    public static final String IS_ENABLED = "IS_ENABLED";
+    public static final String IDP_IMAGE_URL = "image";
+
+    // IdP optional attributes constants.
+    public static final String IDP_IS_PRIMARY = "isPrimary";
+    public static final String IS_PRIMARY = "IS_PRIMARY";
+    public static final String IDP_HOME_REALM_ID = "homeRealmIdentifier";
+    public static final String HOME_REALM_ID = "HOME_REALM_ID";
+    public static final String IDP_IS_FEDERATION_HUB = "isFederationHub";
+    public static final String IS_FEDERATION_HUB = "IS_FEDERATION_HUB";
+    public static final String IDP_CERTIFICATE = "certificate";
+    public static final String CERTIFICATE = "CERTIFICATE";
+    public static final String IDP_ALIAS = "alias";
+    public static final String ALIAS = "ALIAS";
+    public static final String IDP_CLAIMS = "claims";
+    public static final String CLAIMS = "USER_CLAIM_URI, ROLE_CLAIM_URI, IS_LOCAL_CLAIM_DIALECT";
+    public static final String IDP_ROLES = "roles";
+    public static final String ROLES = "PROVISIONING_ROLE";
+    public static final String IDP_FEDERATED_AUTHENTICATORS = "federatedAuthenticators";
+    public static final String FEDERATED_AUTHENTICATORS = "DEFAULT_AUTHENTICATOR_NAME";
+    public static final String IDP_PROVISIONING = "provisioning";
+    public static final String PROVISIONING =
+            "INBOUND_PROV_ENABLED, INBOUND_PROV_USER_STORE_ID, DEFAULT_PRO_CONNECTOR_NAME";
+
+    //Default SAML endpoints.
+    public static final String SSO_ARTIFACT_URL = "samlartresolve";
+    public static final String SAML_ECP_URL = "samlecp";
+    public static final String SAMLSSO = "samlsso";
+
     // JIT provisioning properties for password provisioning and username provisioning.
     public static final String PASSWORD_PROVISIONING_ENABLED = "PASSWORD_PROVISIONING_ENABLED";
     public static final String MODIFY_USERNAME_ENABLED = "MODIFY_USERNAME_ENABLED";
     public static final String PROMPT_CONSENT_ENABLED = "PROMPT_CONSENT_ENABLED";
+
+    public static final String TEMPLATE_ID_IDP_PROPERTY_NAME = "templateId";
+    public static final String TEMPLATE_ID_IDP_PROPERTY_DISPLAY_NAME = "Template Id";
+    public static final String RESET_PROVISIONING_ENTITIES_ON_CONFIG_UPDATE = "OutboundProvisioning"
+            + ".ResetProvisioningEntitiesOnConfigUpdate";
+
     public static class SQLQueries {
 
         public static final String GET_IDPS_SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
@@ -65,42 +99,44 @@ public class IdPManagementConstants {
                 "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP " +
                 "WHERE (TENANT_ID = ? OR (TENANT_ID = ? AND NAME LIKE '" + SHARED_IDP_PREFIX + "%')) AND NAME LIKE ?";
 
-        public static final String GET_IDP_BY_TENANT_MYSQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String FROM_IDP_WHERE = "FROM IDP WHERE ";
 
-        public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? ORDER BY %s LIMIT ?, ?";
+        public static final String GET_IDP_BY_TENANT_MYSQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
-        public static final String GET_IDP_BY_TENANT_DB2SQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_MYSQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s LIMIT ?, ?";
 
-        public static final String GET_IDP_BY_TENANT_DB2SQL_TAIL = "TENANT_ID = ? ORDER BY %s LIMIT ? OFFSET ?";
+        public static final String GET_IDP_BY_TENANT_DB2SQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
 
-        public static final String GET_IDP_BY_TENANT_MSSQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, " +
-                "IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_DB2SQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s LIMIT ? OFFSET ?";
 
-        public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
+        public static final String GET_IDP_BY_TENANT_MSSQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
+
+        public static final String GET_IDP_BY_TENANT_MSSQL_TAIL = "TENANT_ID =? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s OFFSET ? ROWS FETCH NEXT ?" +
                 " ROWS ONLY";
 
-        public static final String GET_IDP_BY_TENANT_ORACLE = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION," +
-                " IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL, UUID FROM " +
-                "(SELECT ID, NAME, IMAGE_URL, UUID, IS_PRIMARY, HOME_REALM_ID, DESCRIPTION, IS_FEDERATION_HUB, " +
-                "IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ROWNUM AS rnum FROM (SELECT ID, NAME, IS_PRIMARY," +
-                " HOME_REALM_ID, DESCRIPTION, IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME FROM " +
-                "IDP ORDER BY %s) WHERE ";
+        public static final String GET_IDP_BY_TENANT_ORACLE = "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, " +
+                "UUID, TENANT_ID ";
 
-        public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND ROWNUM <= ?) WHERE rnum > ?";
+        public static final String FROM_IDP_WHERE_ORACLE = "FROM IDP ORDER BY %s ) WHERE ";
 
-        public static final String GET_IDP_BY_TENANT_POSTGRESQL = "SELECT NAME, IS_PRIMARY, HOME_REALM_ID, " +
-                "DESCRIPTION, IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME, ID, IMAGE_URL," +
-                " UUID FROM IDP WHERE ";
+        public static final String ROWNUM_FOR_ORACLE = ", ROWNUM AS rnum FROM (";
 
-        public static final String GET_IDP_BY_TENANT_POSTGRESQL_TAIL = "TENANT_ID = ? ORDER BY %s LIMIT ? OFFSET ?";
+        public static final String FROM = " FROM ( ";
 
-        public static final String GET_IDP_BY_TENANT_INFORMIX = "SELECT SKIP ? FIRST ? NAME, IS_PRIMARY, " +
-                "HOME_REALM_ID, DESCRIPTION, IS_FEDERATION_HUB, IS_LOCAL_CLAIM_DIALECT, IS_ENABLED, DISPLAY_NAME," +
-                " ID, IMAGE_URL, UUID FROM IDP WHERE ";
+        public static final String GET_IDP_BY_TENANT_ORACLE_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' AND ROWNUM <= ?) WHERE rnum > ?";
 
-        public static final String GET_IDP_BY_TENANT_INFORMIX_TAIL = "TENANT_ID = ? ORDER BY %s";
+        public static final String GET_IDP_BY_TENANT_POSTGRESQL =
+                "SELECT ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
+
+        public static final String GET_IDP_BY_TENANT_POSTGRESQL_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s LIMIT ? OFFSET ?";
+
+        public static final String GET_IDP_BY_TENANT_INFORMIX =
+                "SELECT SKIP ? FIRST ? ID, NAME, DESCRIPTION, IS_ENABLED, IMAGE_URL, UUID ";
+
+        public static final String GET_IDP_BY_TENANT_INFORMIX_TAIL = "TENANT_ID = ? AND NAME != '" + RESIDENT_IDP + "' ORDER BY %s";
 
         public static final String GET_IDP_COUNT_SQL = "SELECT COUNT(*) FROM IDP WHERE ";
 
@@ -184,7 +220,7 @@ public class IdPManagementConstants {
                 "PROPERTY_VALUE = ?, IS_SECRET = ? WHERE AUTHENTICATOR_ID = ? AND PROPERTY_KEY = ?";
 
         public static final String DELETE_IDP_AUTH_PROP_WITH_KEY_SQL = "DELETE FROM IDP_AUTHENTICATOR_PROPERTY "
-                + "WHERE PROPERTY_KEY = ? AND TENANT_ID = ?";
+                + "WHERE PROPERTY_KEY = ? AND TENANT_ID = ? AND AUTHENTICATOR_ID = ?";
 
         public static final String ADD_IDP_CLAIMS_SQL = "INSERT INTO IDP_CLAIM (IDP_ID, TENANT_ID, CLAIM) "
                 + "VALUES (?, ?, ?)";
@@ -237,6 +273,8 @@ public class IdPManagementConstants {
         public static final String ADD_IDP_AUTH_SQL = "INSERT INTO IDP_AUTHENTICATOR " +
                 "(IDP_ID, TENANT_ID, IS_ENABLED, NAME, DISPLAY_NAME) VALUES (?,?,?,?,?)";
 
+        public static final String DELETE_IDP_AUTH_SQL = "DELETE FROM IDP_AUTHENTICATOR WHERE IDP_ID=? AND NAME=?";
+
         public static final String ADD_IDP_AUTH_PROP_SQL = "INSERT INTO IDP_AUTHENTICATOR_PROPERTY " +
                 "(AUTHENTICATOR_ID, TENANT_ID, PROPERTY_KEY, PROPERTY_VALUE, IS_SECRET) VALUES (?, ?, ?, ?, ?)";
 
@@ -248,11 +286,20 @@ public class IdPManagementConstants {
                 + "PROVISIONING_CONFIG_ID, PROPERTY_KEY, PROPERTY_VALUE, PROPERTY_BLOB_VALUE, PROPERTY_TYPE, IS_SECRET) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
+        public static final String UPDATE_IDP_PROVISIONING_CONFIG_PROPERTY_SQL = "UPDATE IDP_PROV_CONFIG_PROPERTY SET "
+                + "PROPERTY_KEY=?, PROPERTY_VALUE=?, PROPERTY_BLOB_VALUE=?, PROPERTY_TYPE = ?, IS_SECRET=? "
+                + "WHERE PROVISIONING_CONFIG_ID=(SELECT ID FROM IDP_PROVISIONING_CONFIG WHERE IDP_ID=? "
+                + "AND TENANT_ID = ? AND PROVISIONING_CONNECTOR_TYPE=?) AND TENANT_ID = ? AND PROPERTY_KEY=?";
+
         public static final String UPDATE_IDP_PROVISIONING_CONFIG_SQL = "UPDATE IDP_PROVISIONING_CONFIG SET "
-                + "PROV_CONNECTOR_TYPE=?, PROV_CONFIG_KEY=? PROV_CONFIG_VALUE=?, "
-                + "PROV_CONFIG_IS_SECRET = ? WHERE IDP_ID=?";
+                + "IS_ENABLED=?, IS_BLOCKING=? WHERE (IDP_ID=? AND PROVISIONING_CONNECTOR_TYPE=? AND TENANT_ID=?)";
+
+        public static final String GET_IDP_PROVISIONING_CONFIGS_FOR_CONNECTOR_TYPE_SQL = "SELECT ID FROM "
+                + "IDP_PROVISIONING_CONFIG WHERE (IDP_ID=? AND PROVISIONING_CONNECTOR_TYPE=? AND TENANT_ID=?)";
 
         public static final String DELETE_IDP_SQL = "DELETE FROM IDP WHERE (TENANT_ID=? AND NAME=?)";
+
+        public static final String DELETE_ALL_IDP_BY_TENANT_ID_SQL = "DELETE FROM IDP WHERE TENANT_ID = ?";
 
         public static final String DELETE_IDP_BY_RESOURCE_ID_SQL = "DELETE FROM IDP WHERE UUID=?";
 
@@ -339,43 +386,53 @@ public class IdPManagementConstants {
         public static final String GET_CONNECTED_APPS_MYSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
-                " ID FROM IDP WHERE UUID = ?)) LIMIT ?,?";
-        public static final String GET_CONNECTED_APPS_ORACLE = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
-                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+                " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN " +
+                "SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE IDP.UUID = ? LIMIT ?,?;";
+        public static final String GET_CONNECTED_APPS_ORACLE = "SELECT UUID FROM (SELECT UUID, ROWNUM AS RNUM FROM ( " +
+                "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN SP_FEDERATED_IDP ON SP_AUTH_STEP.ID = SP_FEDERATED_IDP.ID)" +
+                " INNER JOIN SP_APP ON SP_AUTH_STEP.APP_ID = SP_APP.ID WHERE AUTHENTICATOR_ID IN ( SELECT ID FROM " +
+                "IDP_AUTHENTICATOR WHERE IDP_ID = ( SELECT ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM" +
+                " SP_PROVISIONING_CONNECTOR INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER " +
+                "JOIN IDP ON IDP_NAME = IDP.NAME WHERE IDP.UUID = ?) WHERE ROWNUM <= ?) WHERE RNUM > ?";
+        public static final String GET_CONNECTED_APPS_MSSQL = "(SELECT UUID, SP_APP.ID FROM SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
-                " ID FROM IDP WHERE UUID = ?)) AND ROWNUM <= ?) WHERE rnum > ?";
-        public static final String GET_CONNECTED_APPS_MSSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
-                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
-                ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
-                " ID FROM IDP WHERE UUID = ?)) OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                " ID FROM IDP WHERE UUID = ?))) UNION (SELECT SP_APP.UUID, SP_APP.ID FROM SP_PROVISIONING_CONNECTOR " +
+                "INNER JOIN SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP" +
+                ".NAME WHERE IDP.UUID = ?) ORDER BY SP_APP.ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         public static final String GET_CONNECTED_APPS_POSTGRESSQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
-                " ID FROM IDP WHERE UUID = ?)) LIMIT ? OFFSET ?";
+                " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN " +
+                "SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE " +
+                "IDP.UUID = ? LIMIT ? OFFSET ?";
         public static final String GET_CONNECTED_APPS_DB2SQL = "SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
-                " ID FROM IDP WHERE UUID = ?)) LIMIT ? OFFSET ?";
+                " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN SP_APP " +
+                "ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE IDP.UUID" +
+                " = ? LIMIT ? OFFSET ?";
         public static final String GET_CONNECTED_APPS_INFORMIX = "SELECT SKIP ? FIRST ? UUID FROM (SP_AUTH_STEP INNER JOIN " +
                 "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
                 " ID FROM IDP WHERE UUID = ?))";
-        public static final String CONNECTED_APPS_TOTAL_COUNT_SQL = "SELECT COUNT(UUID) FROM (SP_AUTH_STEP INNER JOIN" +
-                " SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
+        public static final String CONNECTED_APPS_TOTAL_COUNT_SQL = "SELECT COUNT(1) FROM (SELECT UUID FROM (SP_AUTH_STEP INNER JOIN " +
+                "SP_FEDERATED_IDP ON SP_AUTH_STEP.ID=SP_FEDERATED_IDP.ID) INNER JOIN SP_APP ON SP_AUTH_STEP" +
                 ".APP_ID=SP_APP.ID WHERE AUTHENTICATOR_ID IN (SELECT ID FROM IDP_AUTHENTICATOR WHERE IDP_ID = (SELECT" +
-                " ID FROM IDP WHERE UUID = ?))";
+                " ID FROM IDP WHERE UUID = ?)) UNION SELECT SP_APP.UUID FROM SP_PROVISIONING_CONNECTOR INNER JOIN " +
+                "SP_APP ON SP_PROVISIONING_CONNECTOR.APP_ID = SP_APP.ID INNER JOIN IDP ON IDP_NAME = IDP.NAME WHERE " +
+                "IDP.UUID = ?) APP";
+        public static final String GET_IDP_NAME_BY_METADATA = "SELECT IDP.NAME FROM IDP INNER JOIN IDP_METADATA ON " +
+                "IDP.ID = IDP_METADATA.IDP_ID WHERE IDP_METADATA.NAME = ? AND IDP_METADATA.VALUE = ? AND " +
+                "IDP_METADATA.TENANT_ID = ?";
     }
 
     public enum ErrorMessage {
 
-        ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
-        ERROR_CODE_ADD_IDP("IDP-65002", "Error while adding the Identity Provider: %s."),
+        // Client Errors.
         ERROR_CODE_IDP_ALREADY_EXISTS("IDP-60001", "Identity Provider with the name: %s already exists."),
-        ERROR_CODE_RETRIEVE_IDP("IDP-65003", "Error while getting the Identity Provider: %s."),
         ERROR_CODE_IDP_DOES_NOT_EXIST("IDP-60002", "Identity Provider with resource ID: %s does not exists."),
         ERROR_CODE_IDP_NAME_DOES_NOT_EXIST("IDP-60002", "Identity Provider with name: %s does not exists."),
-        ERROR_CODE_DELETE_IDP("IDP-65004", "Error while deleting Identity Provider: %s."),
-        ERROR_CODE_UPDATE_IDP("IDP-65005", "Error while updating Identity Provider: %s."),
         ERROR_CODE_IDP_ADD_REQUEST_INVALID("IDP-60003", "Identity Provider add request validation failed. %s"),
         ERROR_CODE_IDP_GET_REQUEST_INVALID("IDP-60004", "Identity Provider get request validation failed. %s"),
         ERROR_CODE_IDP_DELETE_REQUEST_INVALID("IDP-60005", "Identity Provider delete request validation failed. %s"),
@@ -383,10 +440,24 @@ public class IdPManagementConstants {
         ERROR_CODE_SEARCH_REQUEST_INVALID("IDP-60007", "Search request validation failed. Invalid search filter. %s"),
         ERROR_CODE_GET_CONNECTED_APPS_REQUEST_INVALID("IDP-60008", "Identity Provider get connected apps request " +
                 "validation failed. %s"),
+        DUPLICATE_OUTBOUND_CONNECTOR_PROPERTIES("IDP-60009", "Duplicate properties in Outbound " +
+                "Provisioning Connector configurations for connector : %s"),
+        ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),
+        ERROR_CODE_IDP_ATTRIBUTE_INVALID("IDP-60009", "Invalid attribute of Identity Provider. %s"),
+        ERROR_CODE_NOT_EXISTING_OUTBOUND_PROVISIONING_ROLE("IDP-60010", "One or more outbound " +
+                "provisioning roles does not exist"),
+
+        // Server Errors.
+        ERROR_CODE_UNEXPECTED("IDP-65001", "Unexpected Error"),
+        ERROR_CODE_ADD_IDP("IDP-65002", "Error while adding the Identity Provider: %s."),
+        ERROR_CODE_RETRIEVE_IDP("IDP-65003", "Error while getting the Identity Provider: %s."),
+        ERROR_CODE_DELETE_IDP("IDP-65004", "Error while deleting Identity Provider: %s."),
+        ERROR_CODE_UPDATE_IDP("IDP-65005", "Error while updating Identity Provider: %s."),
         ERROR_CODE_CONNECTING_DATABASE("IDP-65006", "Error while connecting database. %s"),
-        ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected applications of " +
-                "Identity Provider with resource ID: %s."),
-        ERROR_CODE_IDP_NAME_INVALID("IDP-60098", "Identity Provider name is invalid. %s"),;
+        ERROR_CODE_RETRIEVE_IDP_CONNECTED_APPS("IDP-65007", "Error while retrieving connected " +
+                "applications of Identity Provider with resource ID: %s."),
+        ERROR_CODE_VALIDATING_OUTBOUND_PROVISIONING_ROLES("IDP-65008", "Error while validating " +
+                "the outbound provisioning roles");
 
         private final String code;
         private final String message;

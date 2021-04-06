@@ -56,7 +56,6 @@ import java.util.concurrent.TimeUnit;
  * And these events are stored with unique sessionId, operation type and operation initiated timestamp.
  * Expired DELETE operations and related STORE operations will be deleted by a OperationCleanUpService task.
  * All expired operations will be deleted by SessionCleanUpService task.
- *
  */
 public class SessionDataStore {
     private static final Log log = LogFactory.getLog(SessionDataStore.class);
@@ -69,13 +68,13 @@ public class SessionDataStore {
             "INSERT INTO IDN_AUTH_SESSION_STORE(SESSION_ID, SESSION_TYPE,OPERATION, TIME_CREATED, EXPIRY_TIME) VALUES (?,?,?,?,?)";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID in (" +
-            "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
+                    "SELECT SESSION_ID  FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "')";
 
     private static final String SQL_DELETE_TEMP_STORE_OPERATIONS_TASK =
             "DELETE FROM IDN_AUTH_TEMP_SESSION_STORE WHERE EXPIRY_TIME < ?";
     private static final String SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL =
             "DELETE IDN_AUTH_SESSION_STORE_DELETE FROM IDN_AUTH_SESSION_STORE IDN_AUTH_SESSION_STORE_DELETE WHERE " +
-                    "OPERATION = '"+OPERATION_STORE+"' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
+                    "OPERATION = '" + OPERATION_STORE + "' AND SESSION_ID IN (SELECT SESSION_ID FROM (SELECT SESSION_ID " +
                     "FROM IDN_AUTH_SESSION_STORE WHERE OPERATION = '" + OPERATION_DELETE + "') " +
                     "IDN_AUTH_SESSION_STORE_SELECT)";
     private static final String SQL_DELETE_DELETE_OPERATIONS_TASK =
@@ -117,6 +116,7 @@ public class SessionDataStore {
                     "(SELECT SESSION_ID, SESSION_TYPE, OPERATION, TIME_CREATED FROM IDN_AUTH_SESSION_STORE WHERE " +
                     "EXPIRY_TIME < ? FETCH FIRST %d ROWS ONLY)";
     private static final String MYSQL_DATABASE = "MySQL";
+    private static final String MARIA_DATABASE = "MariaDB";
     private static final String H2_DATABASE = "H2";
     private static final String DB2_DATABASE = "DB2";
     private static final String MS_SQL_DATABASE = "MS SQL";
@@ -175,7 +175,7 @@ public class SessionDataStore {
             }
             log.warn("One or more pool size configurations cause NumberFormatException. Default values would be used");
         }
-        if ( maxSessionDataPoolSize > 0) {
+        if (maxSessionDataPoolSize > 0) {
             log.info("Thread pool size for session persistent consumer : " + maxSessionDataPoolSize);
             ExecutorService threadPool = Executors.newFixedThreadPool(maxSessionDataPoolSize);
             for (int i = 0; i < maxSessionDataPoolSize; i++) {
@@ -294,6 +294,10 @@ public class SessionDataStore {
     }
 
     public SessionContextDO getSessionContextData(String key, String type) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Getting SessionContextData from DB. key : " + key + " type : " + type);
+        }
         if (!enablePersist) {
             return null;
         }
@@ -308,17 +312,18 @@ public class SessionDataStore {
         ResultSet resultSet = null;
         try {
             if (StringUtils.isBlank(sqlSelect)) {
-                if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)
-                        || connection.getMetaData().getDriverName().contains(H2_DATABASE)) {
+                String driverName = connection.getMetaData().getDriverName();
+                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
+                        || driverName.contains(H2_DATABASE)) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_MYSQL;
                 } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_DB2SQL;
-                } else if (connection.getMetaData().getDriverName().contains(MS_SQL_DATABASE)
-                        || connection.getMetaData().getDriverName().contains(MICROSOFT_DATABASE)) {
+                } else if (driverName.contains(MS_SQL_DATABASE)
+                        || driverName.contains(MICROSOFT_DATABASE)) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_MSSQL;
-                } else if (connection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)) {
+                } else if (driverName.contains(POSTGRESQL_DATABASE)) {
                     sqlSelect = SQL_DESERIALIZE_OBJECT_POSTGRESQL;
-                } else if (connection.getMetaData().getDriverName().contains(INFORMIX_DATABASE)) {
+                } else if (driverName.contains(INFORMIX_DATABASE)) {
                     // Driver name = "IBM Informix JDBC Driver for IBM Informix Dynamic Server"
                     sqlSelect = SQL_DESERIALIZE_OBJECT_INFORMIX;
                 } else {
@@ -329,7 +334,7 @@ public class SessionDataStore {
             preparedStatement.setString(1, key);
             preparedStatement.setString(2, type);
             resultSet = preparedStatement.executeQuery();
-            if(resultSet.next()) {
+            if (resultSet.next()) {
                 String operation = resultSet.getString(1);
                 long nanoTime = resultSet.getLong(3);
                 if ((OPERATION_STORE.equals(operation))) {
@@ -396,17 +401,18 @@ public class SessionDataStore {
         try {
             connection = IdentityDatabaseUtil.getDBConnection();
             String nonFormattedQuery;
-            if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)
-                    || connection.getMetaData().getDriverName().contains(H2_DATABASE)) {
+            String driverName = connection.getMetaData().getDriverName();
+            if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)
+                    || driverName.contains(H2_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MYSQL;
             } else if (connection.getMetaData().getDatabaseProductName().contains(DB2_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_DB2SQL;
-            } else if (connection.getMetaData().getDriverName().contains(MS_SQL_DATABASE)
-                    || connection.getMetaData().getDriverName().contains(MICROSOFT_DATABASE)) {
+            } else if (driverName.contains(MS_SQL_DATABASE)
+                    || driverName.contains(MICROSOFT_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_MSSQL;
-            } else if (connection.getMetaData().getDriverName().contains(POSTGRESQL_DATABASE)) {
+            } else if (driverName.contains(POSTGRESQL_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_POSTGRESQL;
-            } else if (connection.getMetaData().getDriverName().contains(INFORMIX_DATABASE)) {
+            } else if (driverName.contains(INFORMIX_DATABASE)) {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_INFOMIXSQL;
             } else {
                 nonFormattedQuery = SQL_DELETE_EXPIRED_DATA_TASK_ORACLE;
@@ -528,6 +534,9 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("Persisted SessionContextData to DB. key : " + key + " type : " + type);
+        }
     }
 
     public void removeSessionData(String key, String type, long nanoTime) {
@@ -566,6 +575,9 @@ public class SessionDataStore {
             IdentityDatabaseUtil.closeAllConnections(connection, null, preparedStatement);
         }
 
+        if (log.isDebugEnabled()) {
+            log.debug("Removed SessionContextData from DB. key : " + key + " type : " + type);
+        }
     }
 
     /**
@@ -651,7 +663,8 @@ public class SessionDataStore {
 
         try {
             if (StringUtils.isBlank(sqlDeleteSTORETask)) {
-                if (connection.getMetaData().getDriverName().contains(MYSQL_DATABASE)) {
+                String driverName = connection.getMetaData().getDriverName();
+                if (driverName.contains(MYSQL_DATABASE) || driverName.contains(MARIA_DATABASE)) {
                     sqlDeleteSTORETask = SQL_DELETE_STORE_OPERATIONS_TASK_MYSQL;
                 } else {
                     sqlDeleteSTORETask = SQL_DELETE_STORE_OPERATIONS_TASK;

@@ -143,6 +143,16 @@ public interface WorkflowManagementService {
     void removeWorkflow(String id) throws WorkflowException;
 
     /**
+     * Remove all workflows by tenant id.
+     *
+     * @param tenantId The id of the tenant.
+     * @throws WorkflowException throws when an error occurs in removing workflows.
+     */
+    default void removeWorkflows(int tenantId) throws WorkflowException {
+
+    }
+
+    /**
      * Remove association
      *
      * @param associationId  ID of association to remove

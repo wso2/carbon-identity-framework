@@ -54,6 +54,11 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
     }
 
     public void addToCache(SessionContextCacheKey key, SessionContextCacheEntry entry) {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Adding session context corresponding to the key : " + key.getContextId() +
+                " with accessed time " + entry.getAccessedTime() + " and validity time " + entry.getValidityPeriod());
+        }
         entry.setAccessedTime();
         super.addToCache(key, entry);
         Object authUser = entry.getContext().getProperty(FrameworkConstants.AUTHENTICATED_USER);
@@ -72,26 +77,25 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
         // Retrieve session from the database if its not in cache
         if (cacheEntry == null) {
-            SessionContextDO sessionContextDO = SessionDataStore.getInstance().
-                    getSessionContextData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
-
-            if (sessionContextDO != null) {
-                cacheEntry = new SessionContextCacheEntry(sessionContextDO);
+            if (log.isDebugEnabled()) {
+                log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found in the" +
+                        " cache. Trying to get from db.");
             }
+            cacheEntry = getSessionFromDB(key);
         }
 
         if (cacheEntry == null) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found.");
             }
             return null;
         } else if (isValidIdleSession(key, cacheEntry) || isValidRememberMeSession(key, cacheEntry)) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Found a valid session corresponding to the key : " + key.getContextId());
             }
             return cacheEntry;
         } else {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Found an expired session corresponding to the key : " + key.getContextId());
             }
             clearCacheEntry(key);
@@ -100,14 +104,89 @@ public class SessionContextCache extends BaseCache<SessionContextCacheKey, Sessi
 
     }
 
+    /**
+     * Retrieve session from the database.
+     *
+     * @param key Session context cache key.
+     * @return Session context cache entry.
+     */
+    private SessionContextCacheEntry getSessionFromDB(SessionContextCacheKey key) {
+
+        SessionContextCacheEntry cacheEntry = null;
+        SessionContextDO sessionContextDO = SessionDataStore.getInstance().
+                getSessionContextData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
+
+        if (sessionContextDO != null) {
+            cacheEntry = new SessionContextCacheEntry(sessionContextDO);
+        }
+        return cacheEntry;
+    }
+
+    /**
+     * Get session context cache entry from the cache.
+     *
+     * @param key Session context cache key.
+     * @return Session context cache entry.
+     */
+    public SessionContextCacheEntry getSessionContextCacheEntry(SessionContextCacheKey key) {
+
+        SessionContextCacheEntry cacheEntry = super.getValueFromCache(key);
+        // Retrieve session from the database if it's not in the cache.
+        if (cacheEntry == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found in the" +
+                        " cache. Trying to get from db.");
+            }
+            cacheEntry = getSessionFromDB(key);
+        }
+
+        if (cacheEntry == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Session corresponding to the key : " + key.getContextId() + " cannot be found.");
+            }
+            return null;
+        } else {
+            return cacheEntry;
+        }
+    }
+
+    /**
+     * Check whether the session is expired.
+     *
+     * @param cachekey   Session context cache key.
+     * @param cacheEntry Session context cache entry.
+     * @return True if the session is expired else return false.
+     */
+    public boolean isSessionExpired(SessionContextCacheKey cachekey, SessionContextCacheEntry cacheEntry) {
+
+        if (isValidIdleSession(cachekey, cacheEntry) || isValidRememberMeSession(cachekey, cacheEntry)) {
+            if (log.isDebugEnabled()) {
+                log.debug("A valid session is available corresponding to the key : " + cachekey.getContextId());
+            }
+            return false;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Found an expired session corresponding to the key : " + cachekey.getContextId());
+        }
+        clearCacheEntry(cachekey);
+        return true;
+    }
+
     public void clearCacheEntry(SessionContextCacheKey key) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Clear session context corresponding to the key : " + key.getContextId());
+        }
         super.clearCacheEntry(key);
         SessionDataStore.getInstance().clearSessionData(key.getContextId(), SESSION_CONTEXT_CACHE_NAME);
     }
 
     public void clearCacheEntry(String sessionContextKey) {
 
+        if (log.isDebugEnabled()) {
+            log.debug("Clear session context corresponding to the key : " + sessionContextKey);
+        }
         SessionContextCacheKey sessionContextCacheKey = new SessionContextCacheKey(sessionContextKey);
         super.clearCacheEntry(sessionContextCacheKey);
         SessionDataStore.getInstance().clearSessionData(sessionContextCacheKey.getContextId(),

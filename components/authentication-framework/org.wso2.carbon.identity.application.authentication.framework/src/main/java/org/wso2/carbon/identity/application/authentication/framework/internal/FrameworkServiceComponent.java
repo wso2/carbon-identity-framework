@@ -41,7 +41,11 @@ import org.wso2.carbon.identity.application.authentication.framework.FederatedAp
 import org.wso2.carbon.identity.application.authentication.framework.JsFunctionRegistry;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.RequestPathApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.ServerSessionManagementService;
 import org.wso2.carbon.identity.application.authentication.framework.UserSessionManagementService;
+import org.wso2.carbon.identity.application.authentication.framework.config.builder.FileBasedConfigurationBuilder;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.AuthenticatorConfig;
+import org.wso2.carbon.identity.application.authentication.framework.internal.impl.ServerSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.internal.impl.UserSessionManagementServiceImpl;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.loader.UIBasedConfigurationLoader;
@@ -73,6 +77,9 @@ import org.wso2.carbon.identity.application.authentication.framework.services.Po
 import org.wso2.carbon.identity.application.authentication.framework.servlet.CommonAuthenticationServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LoginContextServlet;
 import org.wso2.carbon.identity.application.authentication.framework.servlet.LongWaitStatusServlet;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.processor.SessionExtenderProcessor;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.request.SessionExtenderRequestFactory;
+import org.wso2.carbon.identity.application.authentication.framework.session.extender.response.SessionExtenderResponseFactory;
 import org.wso2.carbon.identity.application.authentication.framework.store.LongWaitStatusStoreService;
 import org.wso2.carbon.identity.application.authentication.framework.store.SessionDataStore;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
@@ -82,13 +89,14 @@ import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorC
 import org.wso2.carbon.identity.application.common.model.LocalAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.model.RequestPathAuthenticatorConfig;
+import org.wso2.carbon.identity.base.IdentityConstants;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.handler.HandlerComparator;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.event.services.IdentityEventService;
 import org.wso2.carbon.identity.functions.library.mgt.FunctionLibraryManagementService;
-import org.wso2.carbon.identity.template.mgt.TemplateManager;
+import org.wso2.carbon.identity.multi.attribute.login.mgt.MultiAttributeLoginService;
 import org.wso2.carbon.identity.user.profile.mgt.association.federation.FederatedAssociationManager;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
@@ -98,6 +106,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import javax.servlet.Servlet;
 
@@ -189,29 +198,6 @@ public class FrameworkServiceComponent {
         return FrameworkServiceDataHolder.getInstance().getAuthenticators();
     }
 
-    @Reference(
-            name = "carbon.identity.template.mgt.component",
-            service = TemplateManager.class,
-            cardinality = ReferenceCardinality.MANDATORY,
-            policy = ReferencePolicy.DYNAMIC,
-            unbind = "unsetTemplateManagerService"
-    )
-    protected void setTemplateManagerService(TemplateManager templateManagerService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Template Manager Service is set in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(templateManagerService);
-    }
-
-    protected void unsetTemplateManagerService(TemplateManager templateManagerService) {
-
-        if (log.isDebugEnabled()) {
-            log.debug("Template Manager Service is unset in the Application Authentication Framework bundle");
-        }
-        FrameworkServiceDataHolder.getInstance().setTemplateManagerService(null);
-    }
-
     @SuppressWarnings("unchecked")
     @Activate
     protected void activate(ComponentContext ctxt) {
@@ -224,6 +210,17 @@ public class FrameworkServiceComponent {
         bundleContext.registerService(JsFunctionRegistry.class, dataHolder.getJsFunctionRegistry(), null);
         bundleContext.registerService(UserSessionManagementService.class.getName(),
                 new UserSessionManagementServiceImpl(), null);
+        bundleContext.registerService(HttpIdentityRequestFactory.class.getName(),
+                new SessionExtenderRequestFactory(), null);
+        bundleContext.registerService(HttpIdentityResponseFactory.class.getName(),
+                new SessionExtenderResponseFactory(), null);
+        bundleContext.registerService(IdentityProcessor.class.getName(), new SessionExtenderProcessor(), null);
+
+        ServerSessionManagementService serverSessionManagementService = new ServerSessionManagementServiceImpl();
+        bundleContext.registerService(ServerSessionManagementService.class.getName(),
+                serverSessionManagementService, null);
+        dataHolder.setServerSessionManagementService(serverSessionManagementService);
+
         boolean tenantDropdownEnabled = ConfigurationFacade.getInstance().getTenantDropdownEnabled();
 
         if (tenantDropdownEnabled) {
@@ -330,6 +327,7 @@ public class FrameworkServiceComponent {
                 .getInstance();
         bundleContext
                 .registerService(PostAuthenticationHandler.class.getName(), postAuthenticatedUserDomainHandler, null);
+
         if (log.isDebugEnabled()) {
             log.debug("Application Authentication Framework bundle is activated");
         }
@@ -429,6 +427,8 @@ public class FrameworkServiceComponent {
             localAuthenticatorConfig.setName(authenticator.getName());
             localAuthenticatorConfig.setProperties(configProperties);
             localAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
+            AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
+            localAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addLocalAuthenticator(localAuthenticatorConfig);
         } else if (authenticator instanceof FederatedApplicationAuthenticator) {
             FederatedAuthenticatorConfig federatedAuthenticatorConfig = new FederatedAuthenticatorConfig();
@@ -441,6 +441,8 @@ public class FrameworkServiceComponent {
             reqPathAuthenticatorConfig.setName(authenticator.getName());
             reqPathAuthenticatorConfig.setProperties(configProperties);
             reqPathAuthenticatorConfig.setDisplayName(authenticator.getFriendlyName());
+            AuthenticatorConfig fileBasedConfig = getAuthenticatorConfig(authenticator.getName());
+            reqPathAuthenticatorConfig.setEnabled(fileBasedConfig.isEnabled());
             ApplicationAuthenticatorService.getInstance().addRequestPathAuthenticator(reqPathAuthenticatorConfig);
         }
 
@@ -763,5 +765,31 @@ public class FrameworkServiceComponent {
                     "bundle");
         }
         FrameworkServiceDataHolder.getInstance().setFederatedAssociationManager(null);
+    }
+
+    @Reference(
+            name = "MultiAttributeLoginService",
+            service = MultiAttributeLoginService.class,
+            cardinality = ReferenceCardinality.OPTIONAL,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetMultiAttributeLoginService")
+    protected void setMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
+
+        FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(multiAttributeLogin);
+    }
+
+    protected void unsetMultiAttributeLoginService(MultiAttributeLoginService multiAttributeLogin) {
+
+        FrameworkServiceDataHolder.getInstance().setMultiAttributeLoginService(null);
+    }
+
+    private AuthenticatorConfig getAuthenticatorConfig(String name) {
+
+        AuthenticatorConfig authConfig = FileBasedConfigurationBuilder.getInstance().getAuthenticatorBean(name);
+        if (authConfig == null) {
+            authConfig = new AuthenticatorConfig();
+            authConfig.setParameterMap(new HashMap<String, String>());
+        }
+        return authConfig;
     }
 }

@@ -21,9 +21,7 @@ package org.wso2.carbon.identity.mgt.endpoint.util;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.axiom.om.util.Base64;
-import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
-import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -35,13 +33,24 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.owasp.encoder.Encode;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.base.MultitenantConstants;
+import org.wso2.carbon.identity.base.IdentityRuntimeException;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApiException;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClient;
+import org.wso2.carbon.identity.mgt.endpoint.util.client.ApplicationDataRetrievalClientException;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Claim;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.Error;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.RetryError;
 import org.wso2.carbon.identity.mgt.endpoint.util.client.model.User;
 import org.wso2.carbon.identity.mgt.stub.beans.VerificationBean;
+import org.wso2.securevault.SecretResolver;
+import org.wso2.securevault.SecretResolverFactory;
+import org.wso2.securevault.commons.MiscellaneousUtil;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -49,13 +58,20 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
+
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.My_ACCOUNT_APPLICATION_NAME;
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.SUPER_TENANT;
+import static org.wso2.carbon.identity.mgt.endpoint.util.IdentityManagementEndpointConstants.USER_TENANT_HINT_PLACE_HOLDER;
 
 /**
  * This class defines utility methods used within this web application.
@@ -70,10 +86,16 @@ public class IdentityManagementEndpointUtil {
     public static final String PURPOSES = "purposes";
     public static final String MANDATORY = "mandatory";
     public static final String DISPLAY_NAME = "displayName";
+    private static final String PROTECTED_TOKENS = "protectedTokens";
+    private static final String DEFAULT_CALLBACK_HANDLER = "org.wso2.carbon.securevault.DefaultSecretCallbackHandler";
+    private static final String SECRET_PROVIDER = "secretProvider";
 
     private static final Log log = LogFactory.getLog(IdentityManagementEndpointUtil.class);
     private static final String CODE = "51007";
     private static final String UNEXPECTED_ERROR = "Unexpected Error.";
+
+    private static String accessUsername = null;
+    private static String accessPassword = null;
 
     private IdentityManagementEndpointUtil() {
 
@@ -135,12 +157,65 @@ public class IdentityManagementEndpointUtil {
      * @param userPortalUrl configured user portal url
      * @return configured url or the default url if configured url is empty
      */
+    @Deprecated
     public static final String getUserPortalUrl(String userPortalUrl) {
+
+        return getUserPortalUrl(userPortalUrl, null);
+    }
+
+    /**
+     * Returns the My Account access url for the specific tenant.
+     *
+     * @param userPortalUrl configured user portal url
+     * @param tenantDomain tenant domain of the user
+     * @return configured url or the default url if configured url is empty
+     */
+    public static final String getUserPortalUrl(String userPortalUrl, String tenantDomain) {
 
         if (StringUtils.isNotBlank(userPortalUrl)) {
             return userPortalUrl;
         }
-        return IdentityUtil.getServerURL(IdentityManagementEndpointConstants.USER_PORTAL_URL, true, true);
+        try {
+            if (StringUtils.isNotEmpty(tenantDomain)) {
+                ApplicationDataRetrievalClient applicationDataRetrievalClient = new ApplicationDataRetrievalClient();
+                try {
+                    String myAccountAccessUrl = applicationDataRetrievalClient.getApplicationAccessURL(SUPER_TENANT,
+                            My_ACCOUNT_APPLICATION_NAME);
+                    if (StringUtils.isNotEmpty(myAccountAccessUrl)) {
+                        return replaceUserTenantHintPlaceholder(myAccountAccessUrl, tenantDomain);
+                    }
+                } catch (ApplicationDataRetrievalClientException e) {
+                    // Falling back to building the url.
+                }
+            }
+            return ServiceURLBuilder.create().addPath(IdentityManagementEndpointConstants.USER_PORTAL_URL).build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException e) {
+            throw new IdentityRuntimeException(
+                    "Error while building url for context: " + IdentityManagementEndpointConstants.USER_PORTAL_URL);
+        }
+    }
+
+    /**
+     * Replace the ${UserTenantHint} placeholder in the url with the tenant domain.
+     *
+     * @param url           Url with the placeholder.
+     * @param tenantDomain  Tenant Domain.
+     * @return              Processed url.
+     */
+    public static String replaceUserTenantHintPlaceholder(String url, String tenantDomain) {
+
+        if (StringUtils.isBlank(url)) {
+            return url;
+        }
+        if (!url.contains(USER_TENANT_HINT_PLACE_HOLDER)) {
+            return url;
+        }
+        if (StringUtils.isBlank(tenantDomain)) {
+            tenantDomain = SUPER_TENANT;
+        }
+        return url.replaceAll(Pattern.quote(USER_TENANT_HINT_PLACE_HOLDER), tenantDomain)
+                .replaceAll(Pattern.quote("/t/" + SUPER_TENANT), "");
     }
 
     /**
@@ -448,7 +523,6 @@ public class IdentityManagementEndpointUtil {
         URL url = new URL(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URL(url.getProtocol(), url.getHost(), url.getPort(), url.getPath(), null).toString());
-
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(url.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
@@ -482,7 +556,6 @@ public class IdentityManagementEndpointUtil {
         URI uri = new URI(callbackUrl);
         StringBuilder encodedCallbackUrl = new StringBuilder(
                 new URI(uri.getScheme(), uri.getAuthority(), uri.getPath(), null, null).toString());
-
         Map<String, String> encodedQueryMap = getEncodedQueryParamMap(uri.getQuery());
 
         if (MapUtils.isNotEmpty(encodedQueryMap)) {
@@ -500,16 +573,23 @@ public class IdentityManagementEndpointUtil {
      * @param queryParams String of query params.
      * @return map of the encoded query params.
      */
-    public static Map<String,String> getEncodedQueryParamMap(String queryParams) {
+    public static Map<String, String> getEncodedQueryParamMap(String queryParams) {
 
         Map<String, String> encodedQueryMap = new HashMap<>();
-        if (StringUtils.isNotBlank(queryParams)) {
-            encodedQueryMap = Arrays.stream(queryParams.split(SPLITTING_CHAR))
-                    .map(entry -> entry.split(PADDING_CHAR))
-                    .collect(Collectors.toMap(entry -> Encode.forUriComponent(entry[0]),
-                            entry -> Encode.forUriComponent(entry[1])));
+        if (StringUtils.isBlank(queryParams)) {
+            return encodedQueryMap;
         }
-
+        String[] params = queryParams.split(SPLITTING_CHAR);
+        if (ArrayUtils.isEmpty(params)) {
+            return encodedQueryMap;
+        }
+        for (String param : params) {
+            String[] queryParamWithValue = param.split(PADDING_CHAR);
+            if (queryParamWithValue.length > 1) {
+                encodedQueryMap.put(Encode.forUriComponent(queryParamWithValue[0]),
+                        Encode.forUriComponent(queryParamWithValue[1]));
+            }
+        }
         return encodedQueryMap;
     }
 
@@ -519,6 +599,7 @@ public class IdentityManagementEndpointUtil {
      * @param path path of the url
      * @return endpoint url
      */
+    @Deprecated
     public static String buildEndpointUrl(String path) {
 
         String serviceContextURL = IdentityManagementServiceUtil.getInstance().getServiceContextURL();
@@ -611,16 +692,9 @@ public class IdentityManagementEndpointUtil {
 
     public static void authenticate(ServiceClient client) throws Exception {
 
-        Properties properties = new Properties();
-        try (InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
-                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
-            properties.load(inputStream);
+        if (accessPassword == null || accessUsername == null) {
+            loadCredentials();
         }
-
-        String accessUsername = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
-                .SERVICE_ACCESS_USERNAME);
-        String accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
-                .SERVICE_ACCESS_PASSWORD);
 
         if (accessUsername != null && accessPassword != null) {
             setOptions(client, accessUsername, accessPassword);
@@ -629,8 +703,161 @@ public class IdentityManagementEndpointUtil {
         }
     }
 
+    private static void loadCredentials() throws IOException {
+
+        Properties properties = new Properties();
+        try (InputStream inputStream = IdentityManagementServiceUtil.class.getClassLoader().getResourceAsStream
+                (IdentityManagementEndpointConstants.SERVICE_CONFIG_FILE_NAME)) {
+            properties.load(inputStream);
+
+            // Resolve encrypted properties with secure vault.
+            resolveSecrets(properties);
+        }
+
+        accessUsername = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                .SERVICE_ACCESS_USERNAME);
+        accessPassword = properties.getProperty(IdentityManagementEndpointConstants.ServiceConfigConstants
+                .SERVICE_ACCESS_PASSWORD);
+    }
+
     public static void setOptions(ServiceClient client, String accessUsername, String accessPassword) {
 
         IdentityManagementServiceUtil.setAutheticationOptions(client, accessUsername, accessPassword);
+    }
+
+    /**
+     * Get base path URL for API clients.
+     *
+     * @param tenantDomain tenant Domain.
+     * @param context      URL context.
+     * @return base path.
+     * @throws ApiException ApiException.
+     */
+    public static String getBasePath(String tenantDomain, String context) throws ApiException {
+
+        return getBasePath(tenantDomain, context, true);
+    }
+
+    /**
+     * Get base path URL for API clients.
+     *
+     * @param tenantDomain          Tenant Domain.
+     * @param context               URL context.
+     * @param isEndpointTenantAware Whether the endpoint is tenant aware.
+     * @return Base path.
+     * @throws ApiException ApiException.
+     */
+    public static String getBasePath(String tenantDomain, String context, boolean isEndpointTenantAware)
+            throws ApiException {
+
+        String basePath;
+        String serverUrl = IdentityManagementServiceUtil.getInstance().getContextURLFromFile();
+        try {
+            if (StringUtils.isBlank(serverUrl)) {
+                if (IdentityTenantUtil.isTenantQualifiedUrlsEnabled()) {
+                    basePath = ServiceURLBuilder.create().addPath(context).setTenant(tenantDomain).build()
+                            .getAbsoluteInternalURL();
+                } else {
+                    serverUrl = ServiceURLBuilder.create().build().getAbsoluteInternalURL();
+                    if (StringUtils.isNotBlank(tenantDomain) && !MultitenantConstants.SUPER_TENANT_DOMAIN_NAME
+                            .equalsIgnoreCase(tenantDomain) && isEndpointTenantAware) {
+                        basePath = serverUrl + "/t/" + tenantDomain + context;
+                    } else {
+                        basePath = serverUrl + context;
+                    }
+                }
+            } else {
+                basePath = serverUrl + context;
+            }
+        } catch (URLBuilderException e) {
+            throw new ApiException("Error while building url for context: " + context);
+        }
+        return basePath;
+    }
+
+    /**
+     * Get status of the availability of secured (with secure vault) properties
+     *
+     * @return availability of secured properties
+     */
+    private static boolean isSecuredPropertyAvailable(Properties properties) {
+
+        Enumeration propertyNames = properties.propertyNames();
+
+        while (propertyNames.hasMoreElements()) {
+            String key = (String) propertyNames.nextElement();
+            if (PROTECTED_TOKENS.equals(key) && StringUtils.isNotBlank(properties.getProperty(key))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * There can be sensitive information like passwords in configuration file. If they are encrypted using secure
+     * vault, this method will resolve them and replace with original values.
+     */
+    private static void resolveSecrets(Properties properties) {
+
+        String secretProvider = (String) properties.get(SECRET_PROVIDER);
+        if (StringUtils.isBlank(secretProvider)) {
+            properties.put(SECRET_PROVIDER, DEFAULT_CALLBACK_HANDLER);
+        }
+        SecretResolver secretResolver = SecretResolverFactory.create(properties);
+        if (secretResolver != null && secretResolver.isInitialized()) {
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                String key = entry.getKey().toString();
+                String value = entry.getValue().toString();
+                if (value != null) {
+                    value = MiscellaneousUtil.resolve(value, secretResolver);
+                }
+                properties.put(key, value);
+            }
+        }
+        // Support the protectedToken alias used for encryption. ProtectedToken alias is deprecated.
+        if (isSecuredPropertyAvailable(properties)) {
+            SecretResolver resolver = SecretResolverFactory.create(properties, "");
+            String protectedTokens = (String) properties.get(PROTECTED_TOKENS);
+            StringTokenizer st = new StringTokenizer(protectedTokens, ",");
+            while (st.hasMoreElements()) {
+                String element = st.nextElement().toString().trim();
+
+                if (resolver.isTokenProtected(element)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Resolving and replacing secret for " + element);
+                    }
+                    // Replaces the original encrypted property with resolved property
+                    properties.put(element, resolver.resolve(element));
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("No encryption done for value with key :" + element);
+                    }
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Secure vault encryption ignored since no protected tokens available.");
+            }
+        }
+    }
+
+    /**
+     * Get a query parameter value from a URL.
+     *
+     * @param url               URL.
+     * @param queryParameter    Required query parameter name.
+     * @return Query parameter value.
+     * @throws URISyntaxException If url is not in valid syntax.
+     */
+    public static String getQueryParameter(String url, String queryParameter) throws URISyntaxException {
+
+        String queryParams = new URI(url).getQuery();
+        Map<String, String> queryParamMap = new HashMap<>();
+        if (StringUtils.isNotBlank(queryParams)) {
+            queryParamMap = Arrays.stream(queryParams.split(SPLITTING_CHAR))
+                    .map(entry -> entry.split(PADDING_CHAR))
+                    .collect(Collectors.toMap(entry -> entry[0], entry -> entry[1]));
+        }
+        return queryParamMap.get(queryParameter);
     }
 }

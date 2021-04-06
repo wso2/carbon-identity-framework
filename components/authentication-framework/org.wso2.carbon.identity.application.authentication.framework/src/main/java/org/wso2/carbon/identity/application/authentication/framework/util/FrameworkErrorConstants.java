@@ -55,7 +55,10 @@ public class FrameworkErrorConstants {
         ERROR_WHILE_ADDING_CONSENT("80014", "Error while adding consent for tenant domain, %s"),
         ERROR_WHILE_SETTING_IDP_DATA("80015", "Error while setting IDP data for tenant domain, %s"),
         ERROR_WHILE_SETTING_IDP_DATA_IDP_IS_NULL("80016", "Resident IDP is null for the tenant domain, %s"),
-        ERROR_WHILE_HANDLING_CLAIM_MAPPINGS("80017", "Error while handling claim mappings");
+        ERROR_WHILE_HANDLING_CLAIM_MAPPINGS("80017", "Error while handling claim mappings"),
+        MISMATCHING_TENANT_DOMAIN("AFW-60001",
+                "Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications"),
+        SYSTEM_ERROR_WHILE_AUTHENTICATING("AFW-65001", "System error while authenticating");
 
         private final String code;
         private final String message;

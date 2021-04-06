@@ -72,6 +72,32 @@ public interface ConfigurationDAO {
     Resource getResourceById(String resourceId) throws ConfigurationManagementException;
 
     /**
+     * Returns {@link Resource} by id given the tenant id.
+     *
+     * @param tenantId   Tenant id of the {@link Resource}.
+     * @param resourceId Id value of the {@link Resource} to be returned.
+     * @return {@link Resource} for the given name.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    Resource getTenantResourceById(int tenantId, String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * Delete {@link Resource} by the given resourceName.
+     *
+     * @param tenantId   Tenant id of the {@link Resource}.
+     * @param resourceId Id of the {@link Resource}.
+     * @throws ConfigurationManagementException Configuration Management Exception.
+     */
+    void deleteResourceById(int tenantId, String resourceId) throws ConfigurationManagementException;
+
+    /**
+     * Update {@link Resource} and {@link ResourceFile} associated to the given resource object.
+     *
+     * @param resource {@link Resource} object.
+     */
+    void replaceResourceWithFiles(Resource resource) throws ConfigurationManagementException;
+
+    /**
      * Delete {@link Resource} by the given resourceName.
      *
      * @param tenantId       Tenant id of the {@link Resource}.
@@ -207,38 +233,57 @@ public interface ConfigurationDAO {
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
-     * @param fileId Id of the file.
+     * @param fileId       Id of the file.
      * @return {@link InputStream} for the given file id.
      */
-    InputStream getFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException;
+    InputStream getFileById(String resourceType, String resourceName, String fileId) throws
+            ConfigurationManagementException;
 
     /**
      * Get files for the {@link Resource}.
      *
-     * @param resourceId Id of the {@link Resource}.
+     * @param resourceId       Id of the {@link Resource}.
      * @param resourceTypeName Name of the {@link ResourceType}
-     * @param resourceName Name of the {@link Resource}.
+     * @param resourceName     Name of the {@link Resource}.
      * @return A list of {@link ResourceFile} for the given resource.
      */
-    List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws ConfigurationManagementException;
+    List<ResourceFile> getFiles(String resourceId, String resourceTypeName, String resourceName) throws
+            ConfigurationManagementException;
 
     /**
      * Get files for the {@link ResourceType}.
      *
      * @param resourceTypeId Id of the {@link ResourceType}.
      * @return A list of {@link ResourceFile} for the given resource.
+     * @throws ConfigurationManagementException Configuration Management Exception.
      */
-    List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException;
+    default List<ResourceFile> getFilesByResourceType(String resourceTypeId) throws ConfigurationManagementException {
 
+        throw new ConfigurationManagementException("This method is not implemented", null);
+    }
+
+    /**
+     * Get files by resource type Id and tenant Id.
+     *
+     * @param resourceTypeId Id of the {@link ResourceType}.
+     * @param tenantId       Id of the tenant.
+     * @return A list of {@link ResourceFile} for the given resource.
+     */
+    default List<ResourceFile> getFilesByResourceType(String resourceTypeId, int tenantId)
+            throws ConfigurationManagementException {
+
+        throw new ConfigurationManagementException("This method is not implemented", null);
+    }
     /**
      * Delete the file.
      *
      * @param resourceType resource type name.
      * @param resourceName resource name.
-     * @param fileId Id of the file.
+     * @param fileId       Id of the file.
      * @return {@link InputStream} for the given file id.
      */
-    void deleteFileById(String resourceType, String resourceName, String fileId) throws ConfigurationManagementException;
+    void deleteFileById(String resourceType, String resourceName, String fileId) throws
+            ConfigurationManagementException;
 
     /**
      * Delete files for the {@link Resource}.
@@ -257,4 +302,14 @@ public interface ConfigurationDAO {
      */
     List getResourcesByType(int tenantId, String resourceTypeId)
             throws ConfigurationManagementException;
+
+    /**
+     * Validates whether a resource exists with the given resource id in the tenant domain.
+     *
+     * @param tenantId id of the considered tenant domain.
+     * @param resourceId id of the resource.
+     * @return whether the resource exists or not.
+     * @throws ConfigurationManagementException if an error occurs while validating the resourceId.
+     */
+    boolean isExistingResource(int tenantId, String resourceId) throws ConfigurationManagementException;
 }
