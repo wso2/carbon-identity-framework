@@ -762,6 +762,13 @@ public class SSOConsentServiceImpl implements SSOConsentService {
 
         List<ClaimMetaData> claimsFromPIICategoryValidity = getClaimsFromPIICategoryValidity(piiCategoriesFromServices);
         requestedClaims.addAll(claimsFromPIICategoryValidity);
+
+        /* When consent denied requested claim is updated as mandatory, that claim should remove from the
+        requested denied claims list. */
+        if (!isConsented && CollectionUtils.isNotEmpty(requestedClaims)
+                && CollectionUtils.isNotEmpty(userConsent.getApprovedClaims())) {
+            requestedClaims.removeAll(userConsent.getApprovedClaims());
+        }
         return getDistinctClaims(requestedClaims);
     }
 
