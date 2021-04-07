@@ -37,14 +37,9 @@ public class RedisConstants {
     public static final String TYPE = "type";
     public static final String EXPIRY_TIME = "expireTime";
     public static final String TENANT_ID = "tenantId";
-    public static final String HOST = "127.0.0.1";
-    public static final int PORT = 6379;
     public static final String OBJECT = "object";
     public static final String DIVIDER = ":";
     public static final String TEMPSTORE = "temp";
-    public static final boolean TEST_ON_BORROW = true;
-    public static final boolean BLOCK_WHEN_EXHAUSTED = true;
-    public static final boolean TEST_ON_RETURN = true;
     // General Persist layer constants.
     public static boolean DEFAULT_TEMPDATA_CLEANUP_ENABLED = false;
     public static int DEFAULT_MAX_SESSION_DATA_POOLSIZE = 100;
