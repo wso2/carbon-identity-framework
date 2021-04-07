@@ -948,6 +948,7 @@
         <Resource context="/totpauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/x509certificateauthenticationendpoint(.*)" secured="false" http-method="all"/>
         <Resource context="/userandrolemgtservice(.*)" secured="false" http-method="all"/>
+        <Resource context="(.*)/identity/oidc/slo(.*)" secured="false" http-method="POST"/>
     </ResourceAccessControl>
 
     <ClientAppAuthentication>

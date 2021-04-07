@@ -87,6 +87,8 @@
 
   "authentication.authenticator.oidc.name": "OpenIDConnectAuthenticator",
   "authentication.authenticator.oidc.enable": true,
+  "authentication.authenticator.oidc.parameters.enableIatValidation": true,
+  "authentication.authenticator.oidc.parameters.iatValidityPeriod": "300",
 
   "authentication.authenticator.google.name": "GoogleOIDCAuthenticator",
   "authentication.authenticator.google.enable": true,
